@@ -1,4 +1,4 @@
-import { IconKey } from "../components/Icon";
+import type { IconKey } from "../components/Icon";
 
 type FeatureCardContent = {
   title: string;

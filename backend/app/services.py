@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 from functools import lru_cache
-from typing import Dict, Iterable, List, Mapping, Tuple
+from typing import Dict, Iterable, List, Mapping, Optional, Tuple
 
 from fastapi import HTTPException
+from pymongo import MongoClient
+from pymongo.collection import Collection
+from pymongo.errors import PyMongoError
 
 from zygotrix_engine import (
     BLOOD_TYPE,
@@ -16,21 +19,92 @@ from zygotrix_engine import (
     Trait,
 )
 
+from .config import get_settings
 
-@lru_cache(maxsize=1)
+DEFAULT_TRAITS: Dict[str, Trait] = {
+    "eye_color": EYE_COLOR,
+    "blood_type": BLOOD_TYPE,
+    "hair_color": HAIR_COLOR,
+}
+
+_mongo_client: Optional[MongoClient] = None
+
+
+def _build_trait_from_document(document: Mapping[str, object]) -> Trait:
+    return Trait(
+        name=str(document.get("name", "")),
+        alleles=tuple(str(allele) for allele in document.get("alleles", [])),
+        phenotype_map=dict(document.get("phenotype_map", {})),
+        description=str(document.get("description", "")),
+        metadata=dict(document.get("metadata", {})),
+    )
+
+
+def get_mongo_client() -> Optional[MongoClient]:
+    settings = get_settings()
+    global _mongo_client
+
+    if not settings.mongodb_uri:
+        return None
+
+    if _mongo_client is not None:
+        return _mongo_client
+
+    try:
+        if settings.mongodb_uri.startswith("mongomock://"):
+            import mongomock  # type: ignore
+
+            _mongo_client = mongomock.MongoClient()
+        else:
+            _mongo_client = MongoClient(settings.mongodb_uri)
+    except PyMongoError as exc:  # pragma: no cover
+        raise HTTPException(status_code=503, detail=f"Unable to connect to MongoDB: {exc}") from exc
+
+    return _mongo_client
+
+
+def get_traits_collection(required: bool = False) -> Optional[Collection]:
+    client = get_mongo_client()
+    if client is None:
+        if required:
+            raise HTTPException(status_code=503, detail="MongoDB connection is not configured.")
+        return None
+
+    settings = get_settings()
+    database = client[settings.mongodb_db_name]
+    return database[settings.mongodb_traits_collection]
+
+
+def fetch_persistent_traits() -> Dict[str, Trait]:
+    collection = get_traits_collection()
+    if collection is None:
+        return {}
+
+    persistent: Dict[str, Trait] = {}
+    try:
+        documents = collection.find()
+    except PyMongoError:
+        return persistent
+
+    for document in documents:
+        key = str(document.get("key"))
+        if not key:
+            continue
+        try:
+            persistent[key] = _build_trait_from_document(document)
+        except Exception:
+            continue
+    return persistent
+
+
 def get_trait_registry() -> Dict[str, Trait]:
-    """Return the default trait registry shipped with the engine."""
-
-    return {
-        "eye_color": EYE_COLOR,
-        "blood_type": BLOOD_TYPE,
-        "hair_color": HAIR_COLOR,
-    }
+    registry = dict(DEFAULT_TRAITS)
+    registry.update(fetch_persistent_traits())
+    return registry
 
 
-@lru_cache(maxsize=1)
 def get_simulator() -> Simulator:
-    """Instantiate a simulator with the default registry."""
+    """Instantiate a simulator using the latest trait registry."""
 
     return Simulator(trait_registry=get_trait_registry())
 
@@ -69,8 +143,8 @@ def simulate_mendelian_traits(
 ) -> Tuple[Dict[str, Dict[str, float]], List[str]]:
     """Run Mendelian simulations and optionally filter trait outputs."""
 
-    simulator = get_simulator()
     registry, missing = filter_traits(trait_filter)
+    simulator = Simulator(trait_registry=registry)
 
     parent1_filtered = {key: parent1[key] for key in parent1 if key in registry}
     parent2_filtered = {key: parent2[key] for key in parent2 if key in registry}
@@ -80,7 +154,6 @@ def simulate_mendelian_traits(
         parent2_filtered,
         as_percentages=as_percentages,
     )
-    # Ensure trait order reflect filter when provided
     ordered_results: Dict[str, Dict[str, float]] = {}
     for key in (registry.keys() if not trait_filter else trait_filter):
         if key in results:
@@ -100,3 +173,39 @@ def calculate_polygenic_score(
         raise HTTPException(status_code=400, detail="Weights mapping cannot be empty.")
     calculator = get_polygenic_calculator()
     return calculator.calculate_polygenic_score(parent1_genotype, parent2_genotype, weights)
+
+
+def save_trait(key: str, definition: Mapping[str, object]) -> Trait:
+    collection = get_traits_collection(required=True)
+    trait = _build_trait_from_document({"key": key, **definition})
+
+    try:
+        collection.update_one(
+            {"key": key},
+            {
+                "$set": {
+                    "key": key,
+                    "name": trait.name,
+                    "alleles": list(trait.alleles),
+                    "phenotype_map": dict(trait.phenotype_map),
+                    "description": trait.description,
+                    "metadata": dict(trait.metadata),
+                }
+            },
+            upsert=True,
+        )
+    except PyMongoError as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to save trait: {exc}") from exc
+
+    return trait
+
+
+def delete_trait(key: str) -> None:
+    collection = get_traits_collection(required=True)
+    try:
+        result = collection.delete_one({"key": key})
+    except PyMongoError as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to delete trait: {exc}") from exc
+
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail=f"Trait '{key}' does not exist.")

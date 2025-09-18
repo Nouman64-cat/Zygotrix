@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { simulateMendelianTrait } from "../services/zygotrixApi";
-import { TraitInfo } from "../types/api";
+import type { TraitInfo } from "../types/api";
 import { deriveDefaultGenotypes, sanitizeDiploidGenotype } from "../utils/genetics";
 
 type LiveSandboxProps = {

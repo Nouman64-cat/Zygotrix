@@ -20,6 +20,65 @@ def test_trait_catalogue_lists_defaults() -> None:
     assert {"eye_color", "blood_type", "hair_color"}.issubset(trait_keys)
 
 
+def test_create_custom_trait_persists() -> None:
+    payload = {
+        "key": "coat_color_create",
+        "name": "Coat Color",
+        "alleles": ["B", "b"],
+        "phenotype_map": {"BB": "Black", "Bb": "Black", "bb": "Brown"},
+        "description": "Coat color example",
+        "metadata": {"source": "unit-test"},
+    }
+    response = client.post("/api/traits", json=payload)
+    assert response.status_code == 201
+    trait = response.json()["trait"]
+    assert trait["key"] == payload["key"]
+    assert trait["metadata"]["source"] == "unit-test"
+
+    listing = client.get("/api/traits").json()
+    assert any(tr["key"] == payload["key"] for tr in listing["traits"])
+
+
+def test_update_custom_trait() -> None:
+    base_payload = {
+        "key": "coat_color_update",
+        "name": "Coat Color",
+        "alleles": ["B", "b"],
+        "phenotype_map": {"BB": "Black", "Bb": "Black", "bb": "Brown"},
+    }
+    client.post("/api/traits", json=base_payload)
+
+    update_payload = {
+        "key": "coat_color_update",
+        "name": "Updated Coat Color",
+        "alleles": ["B", "b"],
+        "phenotype_map": {"BB": "Black", "Bb": "Chocolate", "bb": "Brown"},
+        "description": "Updated description",
+        "metadata": {"updated": "true"},
+    }
+    response = client.put("/api/traits/coat_color_update", json=update_payload)
+    assert response.status_code == 200
+    trait = response.json()["trait"]
+    assert trait["name"] == "Updated Coat Color"
+    assert trait["phenotype_map"]["Bb"] == "Chocolate"
+
+
+def test_delete_trait() -> None:
+    payload = {
+        "key": "coat_color_delete",
+        "name": "Delete Coat",
+        "alleles": ["C", "c"],
+        "phenotype_map": {"CC": "Cream", "Cc": "Cream", "cc": "White"},
+    }
+    client.post("/api/traits", json=payload)
+
+    response = client.delete("/api/traits/coat_color_delete")
+    assert response.status_code == 204
+
+    second_delete = client.delete("/api/traits/coat_color_delete")
+    assert second_delete.status_code == 404
+
+
 def test_mendelian_simulation_returns_percentages() -> None:
     body = {
         "parent1_genotypes": {"eye_color": "Bb", "blood_type": "AO"},

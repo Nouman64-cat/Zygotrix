@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
 import { fetchTraits } from "../services/zygotrixApi";
-import { TraitInfo } from "../types/api";
+import type { TraitInfo } from "../types/api";
 
 type TraitsHook = {
   traits: TraitInfo[];

@@ -1,4 +1,4 @@
-import { TraitInfo } from "../types/api";
+import type { TraitInfo } from "../types/api";
 
 export const sanitizeDiploidGenotype = (value: string): string =>
   value.replace(/[^A-Za-z]/g, "").slice(0, 2);

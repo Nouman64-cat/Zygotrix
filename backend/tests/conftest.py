@@ -1,5 +1,9 @@
+import os
 import sys
 from pathlib import Path
+
+os.environ.setdefault("MONGODB_URI", "mongomock://localhost")
+os.environ.setdefault("MONGODB_DB_NAME", "zygotrix_test")
 
 CURRENT_DIR = Path(__file__).resolve().parent
 BACKEND_ROOT = CURRENT_DIR.parent

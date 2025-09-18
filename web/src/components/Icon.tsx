@@ -1,4 +1,4 @@
-import React from "react";
+import React, { type ReactNode, type ReactElement } from "react";
 
 export type IconKey =
   | "dna"
@@ -13,9 +13,9 @@ type IconProps = {
   className?: string;
 };
 
-type IconRenderer = (className?: string) => JSX.Element;
+type IconRenderer = (className?: string) => ReactElement;
 
-const createIcon = (paths: React.ReactNode): IconRenderer => {
+const createIcon = (paths: ReactNode): IconRenderer => {
   return (className) => (
     <svg
       viewBox="0 0 24 24"

@@ -1,6 +1,7 @@
 import React from "react";
 
-import { Icon, IconKey } from "./Icon";
+import { Icon } from "./Icon";
+import type { IconKey } from "./Icon";
 
 type FeatureCard = {
   title: string;

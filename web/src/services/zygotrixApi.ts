@@ -1,4 +1,11 @@
-import type { MendelianSimulationResponse, PolygenicScoreResponse, TraitInfo, TraitListResponse } from "../types/api";
+import type {
+  MendelianSimulationResponse,
+  PolygenicScoreResponse,
+  TraitInfo,
+  TraitListResponse,
+  TraitMutationPayload,
+  TraitMutationResponse,
+} from "../types/api";
 
 export const API_BASE_URL = import.meta.env.VITE_ZYGOTRIX_API ?? "http://127.0.0.1:8000";
 
@@ -14,6 +21,37 @@ export const fetchTraits = async (signal?: AbortSignal): Promise<TraitInfo[]> =>
   const response = await fetch(`${API_BASE_URL}/api/traits`, { signal });
   const payload = await handleResponse<TraitListResponse>(response);
   return payload.traits;
+};
+
+export const createTrait = async (payload: TraitMutationPayload): Promise<TraitMutationResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/traits`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<TraitMutationResponse>(response);
+};
+
+export const updateTrait = async (
+  key: string,
+  payload: TraitMutationPayload,
+): Promise<TraitMutationResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/traits/${encodeURIComponent(key)}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<TraitMutationResponse>(response);
+};
+
+export const deleteTrait = async (key: string): Promise<void> => {
+  const response = await fetch(`${API_BASE_URL}/api/traits/${encodeURIComponent(key)}`, {
+    method: "DELETE",
+  });
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(body || `Delete failed with status ${response.status}`);
+  }
 };
 
 export const simulateMendelianTrait = async (

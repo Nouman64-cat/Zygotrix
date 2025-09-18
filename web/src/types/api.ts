@@ -4,10 +4,24 @@ export type TraitInfo = {
   description?: string;
   alleles: string[];
   phenotype_map: Record<string, string>;
+  metadata?: Record<string, string>;
 };
 
 export type TraitListResponse = {
   traits: TraitInfo[];
+};
+
+export type TraitMutationPayload = {
+  key: string;
+  name: string;
+  alleles: string[];
+  phenotype_map: Record<string, string>;
+  description?: string;
+  metadata?: Record<string, string>;
+};
+
+export type TraitMutationResponse = {
+  trait: TraitInfo;
 };
 
 export type MendelianSimulationResponse = {

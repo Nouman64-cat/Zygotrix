@@ -1,7 +1,7 @@
 import React from "react";
+import { Link } from "react-router-dom";
 
 import PolygenicOverview from "./PolygenicOverview";
-import Navbar from "./Navbar";
 
 type HeroSectionProps = {
   stats: { value: string; label: string }[];
@@ -16,9 +16,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({ stats, polygenic }) => {
   return (
     <header className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/10 via-transparent to-[#10B981]/10" />
-      <Navbar />
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-16 px-6 pb-24 pt-10 lg:grid-cols-2 lg:pb-32">
+      <section className="relative z-10 mx-auto grid max-w-7xl gap-16 px-6 pb-24 pt-16 lg:grid-cols-2 lg:pb-32">
         <div>
           <span className="inline-block rounded-full bg-[#10B981]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#10B981]">
             Precision genetics
@@ -30,18 +29,18 @@ const HeroSection: React.FC<HeroSectionProps> = ({ stats, polygenic }) => {
             Zygotrix Engine combines rigorously tested Mendelian calculators, additive polygenic scoring, and expressive trait definitions so your team can explore the next generation of genetic scenarios.
           </p>
           <div className="mt-8 flex flex-wrap gap-4">
-            <a
-              href="#live-api"
+            <Link
+              to="/playground"
               className="inline-flex items-center justify-center rounded-full bg-[#1E3A8A] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#1E3A8A]/30 transition hover:bg-[#162b63]"
             >
-              Try the live API
-            </a>
-            <a
-              href="#features"
+              Explore the playground
+            </Link>
+            <Link
+              to="/about"
               className="inline-flex items-center justify-center rounded-full border border-[#1E3A8A]/20 px-6 py-3 text-sm font-semibold text-[#1E3A8A] transition hover:border-[#1E3A8A]/40"
             >
-              View capabilities
-            </a>
+              Learn about Zygotrix
+            </Link>
           </div>
           <dl className="mt-12 grid gap-8 text-[#1E3A8A] sm:grid-cols-3">
             {stats.map((stat) => (

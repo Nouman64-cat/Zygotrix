@@ -1,31 +1,22 @@
 import React from "react";
+import { Route, Routes } from "react-router-dom";
 
-import CTASection from "./components/CTASection";
-import FeatureHighlights from "./components/FeatureHighlights";
-import Footer from "./components/Footer";
-import HeroSection from "./components/HeroSection";
-import LiveSandbox from "./components/LiveSandbox";
-import WorkflowSection from "./components/WorkflowSection";
-import { featureCards, stats, workflow } from "./data/content";
-import { usePolygenicScore } from "./hooks/usePolygenicScore";
-import { useTraits } from "./hooks/useTraits";
+import MainLayout from "./layouts/MainLayout";
+import AboutPage from "./pages/AboutPage";
+import ContactPage from "./pages/ContactPage";
+import HomePage from "./pages/HomePage";
+import PlaygroundPage from "./pages/PlaygroundPage";
 
 const App: React.FC = () => {
-  const { traits, loading: traitsLoading, error: traitsError, reload } = useTraits();
-  const { score, loading: polygenicLoading, error: polygenicError } = usePolygenicScore();
-
   return (
-    <div className="min-h-screen bg-slate-50">
-      <HeroSection
-        stats={stats}
-        polygenic={{ score, loading: polygenicLoading, error: polygenicError }}
-      />
-      <FeatureHighlights cards={featureCards} />
-      <LiveSandbox traits={traits} loading={traitsLoading} error={traitsError} reload={reload} />
-      <WorkflowSection steps={workflow} />
-      <CTASection />
-      <Footer />
-    </div>
+    <Routes>
+      <Route element={<MainLayout />}>
+        <Route index element={<HomePage />} />
+        <Route path="about" element={<AboutPage />} />
+        <Route path="playground" element={<PlaygroundPage />} />
+        <Route path="contact" element={<ContactPage />} />
+      </Route>
+    </Routes>
   );
 };
 

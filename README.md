@@ -10,7 +10,7 @@ Zygotrix is an educational genetics simulation platform that helps students and 
 
 ## Repository Structure
 
-- `genetics-engine/`: Core Python library that models inheritance logic and calculates trait probabilities; intentionally framework-agnostic so it can be packaged or published independently.
+- `zygotrix-engine/`: Core Python library that models inheritance logic and calculates trait probabilities; intentionally framework-agnostic so it can be packaged or published independently.
 - `backend/`: FastAPI service that exposes the engine to web and mobile clients while handling authentication, persistence, and orchestration tasks.
 - `web/`: Browser-based frontend that presents interactive simulations, reports, and visual dashboards for desktop users.
 - `mobile/`: Mobile-first experience (React Native/Expo planned) optimized for handheld learning and quick scenario exploration.

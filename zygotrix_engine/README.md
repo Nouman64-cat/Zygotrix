@@ -13,7 +13,16 @@ Zygotrix Engine is a lightweight genetics toolkit that powers Mendelian and poly
 
 The engine targets Python 3.10+ and has no third-party runtime dependencies.
 
+From the project root:
+
 ```bash
+pip install -e zygotrix_engine
+```
+
+Or within the package directory:
+
+```bash
+cd zygotrix_engine
 pip install -e .
 ```
 
@@ -22,7 +31,7 @@ If you prefer an isolated environment:
 ```bash
 python -m venv .venv
 source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
-pip install -e .
+pip install -e zygotrix_engine
 ```
 
 ## Quick Start
@@ -83,7 +92,7 @@ from zygotrix_engine import PolygenicCalculator
 
 calculator = PolygenicCalculator()
 parent1 = {"rs1": 1.0, "rs2": 0.0}
-parent2 = {"rs1": 2.0, "rs2": 1.0}
+parent2 = {"rs1": 2.0, "rs2": 0.0}
 weights = {"rs1": 0.6, "rs2": -0.2}
 
 score = calculator.calculate_polygenic_score(parent1, parent2, weights)
@@ -94,13 +103,13 @@ print(score)  # 0.9
 
 `zygotrix_engine.utils` exposes helpers that support the calculators:
 - `normalize_probabilities(mapping)` ensures weights sum to 1.0.
-- `to_percentage_distribution(mapping)` converts probabilities to 0–100.
+- `to_percentage_distribution(mapping)` converts probabilities to 0-100.
 - `sample_from_distribution(mapping, rng=None)` draws outcomes from a distribution.
 
 ## Running Tests
 
 ```bash
-pip install -e .
+pip install -e zygotrix_engine
 pip install pytest
 pytest
 ```
@@ -109,4 +118,4 @@ The test suite currently focuses on Mendelian probability calculations (`tests/t
 
 ## License
 
-This package is distributed under the terms specified in the project’s root `LICENSE` file.
+This package is distributed under the terms specified in the project's root `LICENSE` file.

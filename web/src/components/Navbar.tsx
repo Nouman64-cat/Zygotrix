@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-
+import logo from "../../public/zygotrix-logo.png";
 const navItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
@@ -27,11 +27,9 @@ const Navbar: React.FC = () => {
     <header className="sticky top-0 z-50 from-slate-900/95 via-slate-900/80 to-transparent backdrop-blur-lg">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Link to="/" className="group flex items-center gap-3">
-          <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1E3A8A] via-[#3B82F6] to-[#10B981] shadow-lg shadow-[#1E3A8A]/30 transition group-hover:shadow-[#1E3A8A]/50">
-            <span className="text-lg font-black tracking-tight text-white">
-              ZY
-            </span>
-          </span>
+          <div>
+            <img src={logo} alt="Zygotrix" className="w-[4rem]" />
+          </div>
           <div className="leading-tight">
             <p className="text-base font-semibold uppercase tracking-[0.35em] text-gray">
               Zygotrix

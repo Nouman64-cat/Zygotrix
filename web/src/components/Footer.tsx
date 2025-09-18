@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-
+import logo from "../../public/zygotrix-logo.png";
 const footerLinks = [
   {
     heading: "Navigation",
@@ -28,24 +28,33 @@ const Footer: React.FC = () => {
       <div className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-16 lg:flex-row lg:justify-between">
         <div className="max-w-sm space-y-4">
           <div className="inline-flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1E3A8A] via-[#3B82F6] to-[#10B981] shadow-lg shadow-[#1E3A8A]/40">
-              <span className="text-lg font-black tracking-tight text-white">ZY</span>
-            </span>
+            <div>
+              <img src={logo} alt="Zygotrix" className="w-[4rem]" />
+            </div>
             <div className="leading-tight">
-              <p className="text-lg font-semibold uppercase tracking-[0.35em] text-white">Zygotrix</p>
-              <p className="text-xs font-medium text-white/70">Genetics intelligence engine</p>
+              <p className="text-lg font-semibold uppercase tracking-[0.35em] text-white">
+                Zygotrix
+              </p>
+              <p className="text-xs font-medium text-white/70">
+                Genetics intelligence engine
+              </p>
             </div>
           </div>
           <p className="text-sm text-slate-400">
-            Uniting Mendelian ratios, polygenic scores, and expressive trait registries in a toolkit that feels designed for humans.
+            Uniting Mendelian ratios, polygenic scores, and expressive trait
+            registries in a toolkit that feels designed for humans.
           </p>
-          <p className="text-xs uppercase tracking-[0.3em] text-[#3B82F6]">{new Date().getFullYear()} · Crafted for discovery</p>
+          <p className="text-xs uppercase tracking-[0.3em] text-[#3B82F6]">
+            {new Date().getFullYear()} ï¿½ Crafted for discovery
+          </p>
         </div>
 
         <div className="grid flex-1 gap-12 sm:grid-cols-2 lg:max-w-xl">
           {footerLinks.map((section) => (
             <div key={section.heading}>
-              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">{section.heading}</p>
+              <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">
+                {section.heading}
+              </p>
               <ul className="mt-4 space-y-3">
                 {section.links.map((link) => (
                   <li key={link.label}>
@@ -62,15 +71,21 @@ const Footer: React.FC = () => {
           ))}
 
           <div className="sm:col-span-2 lg:col-span-1">
-            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">Stay in sync</p>
+            <p className="text-sm font-semibold uppercase tracking-[0.3em] text-white/70">
+              Stay in sync
+            </p>
             <p className="mt-4 text-sm text-slate-400">
-              Subscribe for release notes and genetics insights—one concise email per month.
+              Subscribe for release notes and genetics insightsï¿½one concise
+              email per month.
             </p>
             <form
               className="mt-6 flex items-center gap-3 rounded-full border border-white/10 bg-white/5 px-2 py-1 shadow-inner"
               onSubmit={(event) => {
                 event.preventDefault();
-                window.open("mailto:hello@zygotrix.io?subject=Newsletter", "_blank");
+                window.open(
+                  "mailto:hello@zygotrix.io?subject=Newsletter",
+                  "_blank"
+                );
               }}
             >
               <input

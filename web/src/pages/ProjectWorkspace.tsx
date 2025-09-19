@@ -37,6 +37,15 @@ const ProjectWorkspace: React.FC = () => {
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
+  // Editable project details
+  const [projectName, setProjectName] = useState(
+    projectId === "new" ? "New Project" : `Project ${projectId}`
+  );
+  const [projectDescription, setProjectDescription] =
+    useState("Genomics Workspace");
+  const [isEditingName, setIsEditingName] = useState(false);
+  const [isEditingDescription, setIsEditingDescription] = useState(false);
+
   const toolboxItems: ToolboxItem[] = [
     {
       id: "sequence",
@@ -72,6 +81,58 @@ const ProjectWorkspace: React.FC = () => {
       label: "Note",
       icon: DocumentTextIcon,
       color: "bg-yellow-500",
+    },
+  ];
+
+  // Sample existing projects for the sidebar
+  const existingProjects = [
+    {
+      id: 1,
+      name: "Alzheimer's Disease Study",
+      color: "bg-blue-500",
+      icon: CubeIcon,
+      type: "Neurodegenerative",
+      lastUpdated: "2 hours ago",
+    },
+    {
+      id: 2,
+      name: "Cancer Genomics Panel",
+      color: "bg-red-500",
+      icon: BeakerIcon,
+      type: "Oncology",
+      lastUpdated: "1 day ago",
+    },
+    {
+      id: 3,
+      name: "Cardiovascular Risk",
+      color: "bg-green-500",
+      icon: ChartBarIcon,
+      type: "Cardiovascular",
+      lastUpdated: "3 days ago",
+    },
+    {
+      id: 4,
+      name: "Pharmacogenomics",
+      color: "bg-purple-500",
+      icon: BeakerIcon,
+      type: "Pharmacogenomics",
+      lastUpdated: "6 hours ago",
+    },
+    {
+      id: 5,
+      name: "Rare Disease Exome",
+      color: "bg-orange-500",
+      icon: CubeIcon,
+      type: "Rare Disease",
+      lastUpdated: "5 days ago",
+    },
+    {
+      id: 6,
+      name: "Population Genomics",
+      color: "bg-indigo-500",
+      icon: ChartBarIcon,
+      type: "Population",
+      lastUpdated: "1 week ago",
     },
   ];
 
@@ -161,7 +222,7 @@ const ProjectWorkspace: React.FC = () => {
   };
 
   const renderWorkspaceItem = (item: WorkspaceItem) => {
-    const commonClasses = `absolute bg-white rounded-lg shadow-md border cursor-move overflow-hidden ${
+    const commonClasses = `absolute bg-white rounded-lg shadow-md border border-gray-200 cursor-move overflow-hidden ${
       draggedItem === item.id ? "z-50 shadow-xl" : "z-10"
     }`;
 
@@ -312,7 +373,7 @@ const ProjectWorkspace: React.FC = () => {
     <DashboardLayout>
       <div className="flex flex-col h-screen min-h-screen">
         {/* Header */}
-        <div className="bg-white border-b px-6 py-4 flex items-center justify-between flex-shrink-0">
+        <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate("/portal/projects")}
@@ -321,10 +382,59 @@ const ProjectWorkspace: React.FC = () => {
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
             <div>
-              <h1 className="text-xl font-semibold">
-                {projectId === "new" ? "New Project" : `Project ${projectId}`}
-              </h1>
-              <p className="text-gray-500 text-sm">Genomics Workspace</p>
+              {isEditingName ? (
+                <input
+                  type="text"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  onBlur={() => setIsEditingName(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") setIsEditingName(false);
+                    if (e.key === "Escape") {
+                      setProjectName(
+                        projectId === "new"
+                          ? "New Project"
+                          : `Project ${projectId}`
+                      );
+                      setIsEditingName(false);
+                    }
+                  }}
+                  autoFocus
+                  className="text-xl font-semibold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 py-0.5"
+                />
+              ) : (
+                <h1
+                  className="text-xl font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 transition-colors"
+                  onClick={() => setIsEditingName(true)}
+                >
+                  {projectName}
+                </h1>
+              )}
+
+              {isEditingDescription ? (
+                <input
+                  type="text"
+                  value={projectDescription}
+                  onChange={(e) => setProjectDescription(e.target.value)}
+                  onBlur={() => setIsEditingDescription(false)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") setIsEditingDescription(false);
+                    if (e.key === "Escape") {
+                      setProjectDescription("Genomics Workspace");
+                      setIsEditingDescription(false);
+                    }
+                  }}
+                  autoFocus
+                  className="text-gray-500 text-sm bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 py-0.5"
+                />
+              ) : (
+                <p
+                  className="text-gray-500 text-sm cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 transition-colors"
+                  onClick={() => setIsEditingDescription(true)}
+                >
+                  {projectDescription}
+                </p>
+              )}
             </div>
           </div>
 
@@ -340,7 +450,7 @@ const ProjectWorkspace: React.FC = () => {
 
         <div className="flex-1 flex bg-gray-50 min-h-0 overflow-hidden">
           {/* Toolbox */}
-          <div className="w-64 bg-white border-r p-4 flex-shrink-0 overflow-y-auto">
+          <div className="w-64 bg-white border-r border-gray-200 p-4 flex-shrink-0 overflow-y-auto">
             <h3 className="font-semibold mb-4">Tools</h3>
             <div className="space-y-2">
               {toolboxItems.map((tool) => (
@@ -409,18 +519,87 @@ const ProjectWorkspace: React.FC = () => {
               {/* Empty State */}
               {items.length === 0 && (
                 <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center">
-                    <PlusIcon className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                    <h3 className="text-lg font-medium text-gray-900 mb-2">
-                      Start Building
+                  <div className="text-center max-w-md">
+                    {/* Animated Icon Container */}
+                    <div className="relative mb-8">
+                      <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                        <CubeIcon className="h-12 w-12 text-blue-500" />
+                      </div>
+                      {/* Floating Icons */}
+                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
+                        <BeakerIcon className="h-4 w-4 text-green-500" />
+                      </div>
+                      <div
+                        className="absolute -bottom-2 -left-2 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      >
+                        <ChartBarIcon className="h-4 w-4 text-orange-500" />
+                      </div>
+                      <div
+                        className="absolute top-1/2 -right-6 w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center animate-bounce"
+                        style={{ animationDelay: "0.4s" }}
+                      >
+                        <DocumentTextIcon className="h-3 w-3 text-purple-500" />
+                      </div>
+                    </div>
+
+                    {/* Improved Content */}
+                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                      Start Building Your Project
                     </h3>
-                    <p className="text-gray-500 max-w-sm">
-                      Select a tool from the left panel and click anywhere on
-                      the canvas to start building your genomics project.
+                    <p className="text-gray-600 mb-6 leading-relaxed">
+                      Create your genomics workspace by selecting tools from the
+                      left panel and placing them anywhere on this canvas.
                     </p>
+
+                    {/* Quick Action Buttons */}
                   </div>
                 </div>
               )}
+            </div>
+          </div>
+
+          {/* Right Sidebar - Existing Projects */}
+          <div className="w-64 bg-white border-l border-gray-200 p-4 flex-shrink-0 overflow-y-auto">
+            <h3 className="font-semibold mb-4">Existing Projects</h3>
+            <div className="space-y-3">
+              {existingProjects
+                .filter((project) => project.id.toString() !== projectId)
+                .map((project) => (
+                  <button
+                    key={project.id}
+                    onClick={() => navigate(`/portal/workspace/${project.id}`)}
+                    className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
+                  >
+                    <div className="flex items-start space-x-3">
+                      <div
+                        className={`w-8 h-8 ${project.color} rounded flex items-center justify-center flex-shrink-0`}
+                      >
+                        <project.icon className="h-4 w-4 text-white" />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-medium text-sm text-gray-900 truncate">
+                          {project.name}
+                        </h4>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {project.type}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-1">
+                          {project.lastUpdated}
+                        </p>
+                      </div>
+                    </div>
+                  </button>
+                ))}
+            </div>
+
+            <div className="mt-6 pt-4 border-t border-gray-200">
+              <button
+                onClick={() => navigate("/portal/projects")}
+                className="w-full text-left p-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+              >
+                View All Projects →
+              </button>
             </div>
           </div>
         </div>

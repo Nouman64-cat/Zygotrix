@@ -2,27 +2,6 @@ import React from "react";
 
 import logo from "../../public/zygotrix-logo.png";
 
-const timeline = [
-  {
-    title: "Genetics-first foundations",
-    period: "2019-2021",
-    description:
-      "Zygotrix began as a research initiative focused on making Mendelian models approachable for data teams and clinicians alike.",
-  },
-  {
-    title: "Polygenic expansion",
-    period: "2022-2023",
-    description:
-      "We layered in additive scoring, confidence analytics, and validation pipelines so polygenic risk could sit alongside classical inheritance.",
-  },
-  {
-    title: "Platform era",
-    period: "2024-present",
-    description:
-      "Today Zygotrix powers web experiences, lab notebooks, and embedded diagnostics through a consistent simulation engine and API.",
-  },
-];
-
 const values = [
   {
     name: "Scientific rigor",
@@ -48,8 +27,7 @@ const AboutPage: React.FC = () => {
         <div className="grid gap-10 lg:grid-cols-[1.4fr,1fr] lg:items-center">
           <div className="space-y-6">
             <span className="inline-flex items-center gap-3 rounded-full bg-[#1E3A8A]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#1E3A8A]">
-              <span className="h-2 w-2 rounded-full bg-[#10B981]" />
-              Our story
+              <span className="h-2 w-2 rounded-full bg-[#10B981]" /> Our story
             </span>
             <h1 className="text-4xl font-bold text-[#1E3A8A] sm:text-5xl">
               Zygotrix is crafted for teams who translate genetics into action.

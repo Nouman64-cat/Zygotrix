@@ -5,7 +5,7 @@ const navItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
   { label: "Playground", to: "/playground" },
-  { label: "Contact", to: "/contact" },
+  // { label: "Contact", to: "/contact" },
 ];
 
 const Navbar: React.FC = () => {

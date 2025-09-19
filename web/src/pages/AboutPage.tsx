@@ -55,7 +55,11 @@ const AboutPage: React.FC = () => {
               Zygotrix is crafted for teams who translate genetics into action.
             </h1>
             <p className="text-base text-slate-600">
-              We believe that understanding inheritance patterns should feel intuitive, whether you are prototyping in a notebook or running production simulations. Zygotrix distills complex models into approachable building blocks so you can focus on insight generation.
+              We believe that understanding inheritance patterns should feel
+              intuitive, whether you are prototyping in a notebook or running
+              production simulations. Zygotrix distills complex models into
+              approachable building blocks so you can focus on insight
+              generation.
             </p>
             <div className="flex flex-wrap gap-3">
               <a
@@ -79,7 +83,8 @@ const AboutPage: React.FC = () => {
               <div className="relative overflow-hidden rounded-3xl border border-white bg-white/90 p-8 shadow-2xl shadow-[#1E3A8A]/20">
                 <img src={logo} alt="Zygotrix" className="mx-auto w-32" />
                 <p className="mt-6 text-center text-sm text-slate-600">
-                  Merging Mendelian logic, polygenic scoring, and thoughtful interaction design into a single learning platform.
+                  Merging Mendelian logic, polygenic scoring, and thoughtful
+                  interaction design into a single learning platform.
                 </p>
               </div>
             </div>
@@ -88,32 +93,24 @@ const AboutPage: React.FC = () => {
 
         <div className="mt-16 grid gap-8 lg:grid-cols-[1.4fr,1fr]">
           <div className="rounded-3xl border border-white/70 bg-white/95 p-8 shadow-xl shadow-slate-200/60">
-            <h2 className="text-xl font-semibold text-[#1E3A8A]">What guides us</h2>
+            <h2 className="text-xl font-semibold text-[#1E3A8A]">
+              What guides us
+            </h2>
             <ul className="mt-6 space-y-6">
               {values.map((value) => (
-                <li key={value.name} className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-                  <p className="text-base font-semibold text-[#1E3A8A]">{value.name}</p>
-                  <p className="mt-2 text-sm text-slate-600">{value.description}</p>
+                <li
+                  key={value.name}
+                  className="rounded-2xl border border-slate-100 bg-slate-50/60 p-4"
+                >
+                  <p className="text-base font-semibold text-[#1E3A8A]">
+                    {value.name}
+                  </p>
+                  <p className="mt-2 text-sm text-slate-600">
+                    {value.description}
+                  </p>
                 </li>
               ))}
             </ul>
-          </div>
-
-          <div
-            id="milestones"
-            className="rounded-3xl border border-white/70 bg-white/95 p-8 shadow-xl shadow-slate-200/60"
-          >
-            <h2 className="text-xl font-semibold text-[#1E3A8A]">Milestones</h2>
-            <ol className="mt-6 space-y-6">
-              {timeline.map((entry) => (
-                <li key={entry.title} className="relative rounded-2xl border border-slate-100 bg-slate-50/60 p-4">
-                  <span className="absolute -left-3 top-5 h-2 w-2 rounded-full bg-[#10B981]" />
-                  <p className="text-xs font-semibold uppercase tracking-[0.3em] text-[#3B82F6]">{entry.period}</p>
-                  <p className="mt-2 text-base font-semibold text-[#1E3A8A]">{entry.title}</p>
-                  <p className="mt-2 text-sm text-slate-600">{entry.description}</p>
-                </li>
-              ))}
-            </ol>
           </div>
         </div>
       </section>

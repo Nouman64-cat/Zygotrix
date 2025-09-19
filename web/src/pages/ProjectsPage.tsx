@@ -1,84 +1,110 @@
-import React from "react";
+import React, { useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { PlusIcon } from "@heroicons/react/24/solid";
+
+interface Project {
+  id: number;
+  name: string;
+  description: string;
+  color: string;
+  samples: number;
+  variants: number;
+  status: "Active" | "Completed" | "In Progress";
+  progress: number;
+  lastUpdated: string;
+  type: string;
+}
 
 const ProjectsPage: React.FC = () => {
-  const projects = [
+  const [searchTerm, setSearchTerm] = useState("");
+
+  const projects: Project[] = [
     {
       id: 1,
-      name: "Height Prediction Model",
+      name: "Alzheimer's Disease Study",
       description:
-        "Polygenic risk score model for predicting adult height based on genetic variants",
+        "GWAS analysis for early onset Alzheimer's disease with focus on APOE variants",
+      color: "blue",
+      samples: 1247,
+      variants: 850000,
       status: "Active",
       progress: 85,
-      lastUpdated: "2 days ago",
-      type: "Polygenic Analysis",
+      lastUpdated: "2 hours ago",
+      type: "Neurodegenerative",
     },
     {
       id: 2,
-      name: "Eye Color Inheritance Study",
+      name: "Cancer Genomics Panel",
       description:
-        "Mendelian inheritance patterns for eye color traits across populations",
+        "Targeted sequencing analysis for hereditary cancer predisposition genes",
+      color: "red",
+      samples: 892,
+      variants: 45000,
       status: "In Progress",
-      progress: 60,
-      lastUpdated: "1 week ago",
-      type: "Mendelian Study",
+      progress: 62,
+      lastUpdated: "1 day ago",
+      type: "Oncology",
     },
     {
       id: 3,
       name: "Cardiovascular Risk Assessment",
       description:
-        "Multi-trait analysis for cardiovascular disease risk prediction",
-      status: "Planning",
-      progress: 25,
+        "Polygenic risk scoring for coronary artery disease and hypertension",
+      color: "green",
+      samples: 2150,
+      variants: 120000,
+      status: "Completed",
+      progress: 100,
       lastUpdated: "3 days ago",
-      type: "Risk Assessment",
+      type: "Cardiovascular",
     },
     {
       id: 4,
-      name: "Diabetes Susceptibility",
+      name: "Pharmacogenomics Study",
       description:
-        "Genetic markers and environmental factors for Type 2 diabetes",
-      status: "Completed",
-      progress: 100,
-      lastUpdated: "1 month ago",
-      type: "Disease Analysis",
+        "Drug metabolism variants analysis for personalized medicine",
+      color: "purple",
+      samples: 567,
+      variants: 28000,
+      status: "Active",
+      progress: 45,
+      lastUpdated: "6 hours ago",
+      type: "Pharmacogenomics",
     },
     {
       id: 5,
-      name: "Alzheimer's Early Detection",
+      name: "Rare Disease Exome",
       description:
-        "Genomic markers for early onset Alzheimer's disease prediction",
+        "Whole exome sequencing for undiagnosed rare genetic disorders",
+      color: "orange",
+      samples: 234,
+      variants: 450000,
       status: "Active",
       progress: 70,
       lastUpdated: "5 days ago",
-      type: "Neurodegenerative",
+      type: "Rare Disease",
     },
     {
       id: 6,
-      name: "Cancer Predisposition Panel",
-      description:
-        "Comprehensive genetic testing panel for hereditary cancer syndromes",
+      name: "Population Genomics",
+      description: "Large-scale population structure and ancestry analysis",
+      color: "indigo",
+      samples: 5000,
+      variants: 2000000,
       status: "In Progress",
-      progress: 40,
+      progress: 30,
       lastUpdated: "1 week ago",
-      type: "Oncogenomics",
+      type: "Population",
     },
   ];
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case "Active":
-        return "bg-green-100 text-green-800";
-      case "In Progress":
-        return "bg-blue-100 text-blue-800";
-      case "Planning":
-        return "bg-yellow-100 text-yellow-800";
-      case "Completed":
-        return "bg-gray-100 text-gray-800";
-      default:
-        return "bg-gray-100 text-gray-800";
-    }
-  };
+  const filteredProjects = projects.filter(
+    (project) =>
+      project.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.type.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      project.description.toLowerCase().includes(searchTerm.toLowerCase())
+  );
 
   const getProgressColor = (progress: number) => {
     if (progress >= 80) return "bg-green-500";
@@ -87,213 +113,144 @@ const ProjectsPage: React.FC = () => {
     return "bg-red-500";
   };
 
+  const getColorBorder = (color: string) => {
+    switch (color) {
+      case "blue":
+        return "border-l-blue-500";
+      case "red":
+        return "border-l-red-500";
+      case "green":
+        return "border-l-green-500";
+      case "purple":
+        return "border-l-purple-500";
+      case "orange":
+        return "border-l-orange-500";
+      case "indigo":
+        return "border-l-indigo-500";
+      default:
+        return "border-l-gray-500";
+    }
+  };
+
   return (
     <DashboardLayout>
       <div className="space-y-6">
-        {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900">Projects</h1>
-              <p className="text-slate-600 mt-1">
-                Manage your genetic research projects and track their progress.
-              </p>
-            </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M12 6v6m0 0v6m0-6h6m-6 0H6"
-                />
-              </svg>
-              New Project
-            </button>
+        {/* Header */}
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
+            <p className="text-gray-600 mt-1">
+              Manage your genomic analysis projects
+            </p>
           </div>
         </div>
 
-        {/* Project Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <svg
-                  className="w-6 h-6 text-blue-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
-                  />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">
-                  Total Projects
-                </p>
-                <p className="text-2xl font-bold text-slate-900">6</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <svg
-                  className="w-6 h-6 text-green-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">Active</p>
-                <p className="text-2xl font-bold text-slate-900">2</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-yellow-100 rounded-lg">
-                <svg
-                  className="w-6 h-6 text-yellow-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">
-                  In Progress
-                </p>
-                <p className="text-2xl font-bold text-slate-900">3</p>
-              </div>
-            </div>
-          </div>
-
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-            <div className="flex items-center">
-              <div className="p-2 bg-gray-100 rounded-lg">
-                <svg
-                  className="w-6 h-6 text-gray-600"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M5 13l4 4L19 7"
-                  />
-                </svg>
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-slate-600">Completed</p>
-                <p className="text-2xl font-bold text-slate-900">1</p>
-              </div>
-            </div>
-          </div>
+        {/* Search */}
+        <div className="relative">
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <input
+            type="text"
+            placeholder="Search projects..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          />
         </div>
 
         {/* Projects Grid */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200">
-          <div className="p-6 border-b border-slate-200">
-            <h2 className="text-lg font-semibold text-slate-900">
-              All Projects
-            </h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          {/* Start New Project Card */}
+          <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors duration-200 p-6 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[320px]">
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
+              <PlusIcon className="h-6 w-6 text-blue-600" />
+            </div>
+            <h3 className="text-lg font-semibold text-gray-900 mb-2">
+              Start New Project
+            </h3>
+            <p className="text-gray-500 text-sm">
+              Create a new genomic analysis project
+            </p>
           </div>
-          <div className="divide-y divide-slate-200">
-            {projects.map((project) => (
-              <div
-                key={project.id}
-                className="p-6 hover:bg-slate-50 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <h3 className="text-lg font-semibold text-slate-900">
-                        {project.name}
-                      </h3>
-                      <span
-                        className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(
-                          project.status
-                        )}`}
-                      >
-                        {project.status}
-                      </span>
-                      <span className="px-2 py-1 text-xs font-medium bg-slate-100 text-slate-700 rounded-full">
-                        {project.type}
-                      </span>
+
+          {/* Project Cards */}
+          {filteredProjects.map((project) => (
+            <div
+              key={project.id}
+              className={`bg-white rounded-lg shadow-sm border-l-4 ${getColorBorder(
+                project.color
+              )} hover:shadow-md transition-shadow duration-200 cursor-pointer aspect-[3/4] min-h-[320px] flex flex-col`}
+            >
+              <div className="p-6 flex-1 flex flex-col">
+                {/* Header */}
+                <div className="mb-3">
+                  <h3 className="text-lg font-semibold text-gray-900">
+                    {project.name}
+                  </h3>
+                </div>
+
+                {/* Description */}
+                <p className="text-gray-600 text-sm mb-4 line-clamp-2">
+                  {project.description}
+                </p>
+
+                {/* Stats */}
+                <div className="grid grid-cols-2 gap-4 mb-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-gray-900">
+                      {project.samples.toLocaleString()}
                     </div>
-                    <p className="text-slate-600 mb-3">{project.description}</p>
-                    <div className="flex items-center gap-4 text-sm text-slate-500">
-                      <span>Last updated: {project.lastUpdated}</span>
-                      <span>Progress: {project.progress}%</span>
-                    </div>
+                    <div className="text-xs text-gray-500">Samples</div>
                   </div>
-                  <div className="ml-6">
-                    <div className="flex items-center gap-3">
-                      {/* Progress bar */}
-                      <div className="w-32">
-                        <div className="flex items-center justify-between mb-1">
-                          <span className="text-xs text-slate-500">
-                            Progress
-                          </span>
-                          <span className="text-xs font-medium text-slate-700">
-                            {project.progress}%
-                          </span>
-                        </div>
-                        <div className="w-full bg-slate-200 rounded-full h-2">
-                          <div
-                            className={`h-2 rounded-full ${getProgressColor(
-                              project.progress
-                            )}`}
-                            style={{ width: `${project.progress}%` }}
-                          ></div>
-                        </div>
-                      </div>
-                      {/* Action buttons */}
-                      <div className="flex gap-2">
-                        <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                          View
-                        </button>
-                        <button className="text-slate-600 hover:text-slate-700 text-sm font-medium">
-                          Edit
-                        </button>
-                      </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-gray-900">
+                      {project.variants.toLocaleString()}
                     </div>
+                    <div className="text-xs text-gray-500">Variants</div>
                   </div>
                 </div>
+
+                {/* Progress */}
+                <div className="mb-4 flex-1 flex flex-col justify-end">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="text-sm font-medium text-gray-700">
+                      Progress
+                    </span>
+                    <span className="text-sm text-gray-500">
+                      {project.progress}%
+                    </span>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div
+                      className={`h-2 rounded-full ${getProgressColor(
+                        project.progress
+                      )}`}
+                      style={{ width: `${project.progress}%` }}
+                    ></div>
+                  </div>
+                </div>
+
+                {/* Footer */}
+                <div className="flex justify-between items-center text-xs text-gray-500 mt-auto">
+                  <span>{project.type}</span>
+                  <span>Updated {project.lastUpdated}</span>
+                </div>
               </div>
-            ))}
-          </div>
+            </div>
+          ))}
         </div>
+
+        {/* Empty State */}
+        {filteredProjects.length === 0 && searchTerm && (
+          <div className="text-center py-12">
+            <div className="text-gray-400 mb-4">
+              <MagnifyingGlassIcon className="h-12 w-12 mx-auto" />
+            </div>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">
+              No projects found
+            </h3>
+            <p className="text-gray-500">Try adjusting your search criteria</p>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );

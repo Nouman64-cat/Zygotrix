@@ -1,20 +1,30 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+
+import { useAuth } from "../context/AuthContext";
 import logo from "../../public/zygotrix-logo.png";
-const navItems = [
+
+const baseNavItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
   { label: "Playground", to: "/playground" },
-  // { label: "Contact", to: "/contact" },
 ];
 
 const Navbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
+  const { user, signOut } = useAuth();
 
   useEffect(() => {
     setMobileOpen(false);
   }, [location]);
+
+  const navItems = useMemo(() => {
+    if (user) {
+      return [...baseNavItems, { label: "Portal", to: "/portal" }];
+    }
+    return baseNavItems;
+  }, [user]);
 
   const linkClasses = ({ isActive }: { isActive: boolean }) =>
     `rounded-full px-4 py-2 text-sm font-semibold transition ${
@@ -22,6 +32,10 @@ const Navbar: React.FC = () => {
         ? "bg-white text-[#1E3A8A] shadow"
         : "text-gray/80 hover:opacity-80"
     }`;
+
+  const handleSignOut = () => {
+    signOut();
+  };
 
   return (
     <header className="sticky top-0 z-50 from-slate-900/95 via-slate-900/80 to-transparent backdrop-blur-lg">
@@ -48,13 +62,39 @@ const Navbar: React.FC = () => {
           ))}
         </div>
 
-        <div className="hidden items-center gap-4 lg:flex">
-          <Link
-            to="/playground"
-            className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#1E3A8A] shadow-lg shadow-black/20 transition hover:shadow-black/40"
-          >
-            Start exploring
-          </Link>
+        <div className="hidden items-center gap-3 lg:flex">
+          {user ? (
+            <>
+              <Link
+                to="/portal"
+                className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#1E3A8A] shadow-lg shadow-black/20 transition hover:shadow-black/40"
+              >
+                Portal
+              </Link>
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold text-gray transition hover:text-red-500"
+              >
+                Sign out
+              </button>
+            </>
+          ) : (
+            <>
+              <Link
+                to="/signin"
+                className="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white transition hover:border-white/40 hover:text-white"
+              >
+                Sign in
+              </Link>
+              <Link
+                to="/signin"
+                className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#1E3A8A] shadow-lg shadow-black/20 transition hover:shadow-black/40"
+              >
+                Get started
+              </Link>
+            </>
+          )}
         </div>
 
         <button
@@ -97,12 +137,31 @@ const Navbar: React.FC = () => {
                 {item.label}
               </NavLink>
             ))}
-            <Link
-              to="/playground"
-              className="block rounded-2xl bg-white px-4 py-3 text-center text-base font-semibold text-[#1E3A8A] shadow-lg shadow-black/30"
-            >
-              Start exploring
-            </Link>
+
+            {user ? (
+              <button
+                type="button"
+                onClick={handleSignOut}
+                className="block w-full rounded-2xl border border-white/20 px-4 py-3 text-center text-base font-semibold text-white"
+              >
+                Sign out
+              </button>
+            ) : (
+              <div className="space-y-2">
+                <Link
+                  to="/signin"
+                  className="block rounded-2xl border border-white/20 px-4 py-3 text-center text-base font-semibold text-white"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/signin"
+                  className="block rounded-2xl bg-white px-4 py-3 text-center text-base font-semibold text-[#1E3A8A] shadow-lg shadow-black/30"
+                >
+                  Get started
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -1,6 +1,14 @@
+﻿import os
+
 import pytest
 from fastapi.testclient import TestClient
 
+os.environ.setdefault("MONGODB_URI", "mongomock://localhost")
+os.environ.setdefault("AUTH_SECRET_KEY", "test-secret-key")
+os.environ.setdefault("RESEND_API_KEY", "test-key")
+os.environ.setdefault("RESEND_FROM_EMAIL", "noreply@example.test")
+
+from app import services
 from app.main import app
 
 client = TestClient(app)
@@ -10,6 +18,85 @@ def test_health_endpoint() -> None:
     response = client.get("/health")
     assert response.status_code == 200
     assert response.json() == {"status": "ok"}
+
+
+def test_user_signup_and_portal_flow(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(services, "generate_otp_code", lambda: "123456")
+
+    payload = {
+        "email": "tester@example.com",
+        "password": "SuperSecure1",
+        "full_name": "Portal Tester",
+    }
+    response = client.post("/api/auth/signup", json=payload)
+    assert response.status_code == 202
+    assert "expires_at" in response.json()
+
+    wrong = client.post(
+        "/api/auth/signup/verify",
+        json={"email": payload["email"], "otp": "000000"},
+    )
+    assert wrong.status_code == 400
+
+    verify = client.post(
+        "/api/auth/signup/verify",
+        json={"email": payload["email"], "otp": "123456"},
+    )
+    assert verify.status_code == 200
+    assert "Account created" in verify.json()["message"]
+
+    login = client.post(
+        "/api/auth/login",
+        json={"email": payload["email"], "password": payload["password"]},
+    )
+    assert login.status_code == 200
+    token = login.json()["access_token"]
+
+    me_response = client.get(
+        "/api/auth/me",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert me_response.status_code == 200
+    assert me_response.json()["email"] == payload["email"]
+
+    portal_response = client.get(
+        "/api/portal/status",
+        headers={"Authorization": f"Bearer {token}"},
+    )
+    assert portal_response.status_code == 200
+    assert "Welcome" in portal_response.json()["message"]
+
+
+def test_duplicate_signup_rejected(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setattr(services, "generate_otp_code", lambda: "111222")
+
+    payload = {
+        "email": "duplicate@example.com",
+        "password": "UniquePass1",
+    }
+    client.post("/api/auth/signup", json=payload)
+    client.post(
+        "/api/auth/signup/verify",
+        json={"email": payload["email"], "otp": "111222"},
+    )
+
+    second = client.post("/api/auth/signup", json=payload)
+    assert second.status_code == 400
+
+
+def test_login_with_invalid_password() -> None:
+    services.create_user_account("loginuser@example.com", "ValidPass1", None)
+
+    response = client.post(
+        "/api/auth/login",
+        json={"email": "loginuser@example.com", "password": "WrongPass1"},
+    )
+    assert response.status_code == 401
+
+
+def test_portal_requires_authentication() -> None:
+    response = client.get("/api/portal/status")
+    assert response.status_code == 403
 
 
 def test_trait_catalogue_lists_defaults() -> None:

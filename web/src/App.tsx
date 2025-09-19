@@ -10,6 +10,8 @@ import DataManagementPage from "./pages/DataManagementPage";
 import HomePage from "./pages/HomePage";
 import PlaygroundPage from "./pages/PlaygroundPage";
 import PortalPage from "./pages/PortalPage";
+import PreferencesPage from "./pages/PreferencesPage";
+import ProfilePage from "./pages/ProfilePage";
 import ProjectsPage from "./pages/ProjectsPage";
 import SettingsPage from "./pages/SettingsPage";
 import TraitManagementPage from "./pages/TraitManagementPage";
@@ -62,6 +64,22 @@ const App: React.FC = () => {
         element={
           <RequireAuth>
             <DataManagementPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="portal/profile"
+        element={
+          <RequireAuth>
+            <ProfilePage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="portal/preferences"
+        element={
+          <RequireAuth>
+            <PreferencesPage />
           </RequireAuth>
         }
       />

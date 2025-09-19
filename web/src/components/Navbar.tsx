@@ -59,7 +59,7 @@ const Navbar: React.FC = () => {
 
         <button
           type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 bg-white/10 text-white lg:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 lg:hidden"
           onClick={() => setMobileOpen((value) => !value)}
           aria-label="Toggle navigation"
         >
@@ -83,16 +83,14 @@ const Navbar: React.FC = () => {
 
       {mobileOpen && (
         <div className="lg:hidden">
-          <div className="mx-4 mb-4 space-y-2 rounded-3xl border border-white/10 bg-slate-900/90 p-4 shadow-2xl backdrop-blur">
+          <div className="mx-4 mb-4 space-y-2 rounded-3xl border border-white/10 p-4 shadow-2xl backdrop-blur">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
                   `block rounded-2xl px-4 py-3 text-base font-semibold transition ${
-                    isActive
-                      ? "bg-white text-[#1E3A8A]"
-                      : "text-white/80 hover:bg-white/10 hover:text-white"
+                    isActive ? "bg-white text-[#1E3A8A]" : " hover:bg-blue-100"
                   }`
                 }
               >

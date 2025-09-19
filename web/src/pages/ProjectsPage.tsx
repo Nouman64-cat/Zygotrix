@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
 import { PlusIcon } from "@heroicons/react/24/solid";
@@ -17,6 +18,7 @@ interface Project {
 }
 
 const ProjectsPage: React.FC = () => {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
 
   const projects: Project[] = [
@@ -160,7 +162,10 @@ const ProjectsPage: React.FC = () => {
         {/* Projects Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
           {/* Start New Project Card */}
-          <div className="bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors duration-200 p-6 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[320px]">
+          <button
+            onClick={() => navigate("/portal/workspace/new")}
+            className="bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors duration-200 p-6 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[320px] w-full"
+          >
             <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
               <PlusIcon className="h-6 w-6 text-blue-600" />
             </div>
@@ -170,15 +175,16 @@ const ProjectsPage: React.FC = () => {
             <p className="text-gray-500 text-sm">
               Create a new genomic analysis project
             </p>
-          </div>
+          </button>
 
           {/* Project Cards */}
           {filteredProjects.map((project) => (
-            <div
+            <button
               key={project.id}
+              onClick={() => navigate(`/portal/workspace/${project.id}`)}
               className={`bg-white rounded-lg shadow-sm border-l-4 ${getColorBorder(
                 project.color
-              )} hover:shadow-md transition-shadow duration-200 cursor-pointer aspect-[3/4] min-h-[320px] flex flex-col`}
+              )} hover:shadow-md transition-shadow duration-200 cursor-pointer aspect-[3/4] min-h-[320px] flex flex-col w-full text-left`}
             >
               <div className="p-6 flex-1 flex flex-col">
                 {/* Header */}
@@ -235,7 +241,7 @@ const ProjectsPage: React.FC = () => {
                   <span>Updated {project.lastUpdated}</span>
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
 

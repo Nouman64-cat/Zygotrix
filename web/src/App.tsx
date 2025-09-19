@@ -12,11 +12,12 @@ import PlaygroundPage from "./pages/PlaygroundPage";
 import PortalPage from "./pages/PortalPage";
 import PreferencesPage from "./pages/PreferencesPage";
 import ProfilePage from "./pages/ProfilePage";
-import ProjectsPage from "./pages/ProjectsPage";
+import ProjectWorkspace from "./pages/ProjectWorkspace";
 import SettingsPage from "./pages/SettingsPage";
 import TraitManagementPage from "./pages/TraitManagementPage";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
+import ProjectsPage from "./pages/ProjectsPage";
 
 const App: React.FC = () => {
   return (
@@ -88,6 +89,14 @@ const App: React.FC = () => {
         element={
           <RequireAuth>
             <SettingsPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="portal/workspace/:projectId"
+        element={
+          <RequireAuth>
+            <ProjectWorkspace />
           </RequireAuth>
         }
       />

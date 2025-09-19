@@ -3,7 +3,6 @@ import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import {
   ArrowLeftIcon,
-  PlusIcon,
   CubeIcon,
   BeakerIcon,
   ChartBarIcon,

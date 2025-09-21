@@ -20,7 +20,7 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
 };
 
 const getAuthHeaders = (): HeadersInit => {
-  const token = localStorage.getItem("access_token");
+  const token = localStorage.getItem("zygotrix_auth_token");
   return {
     "Content-Type": "application/json",
     ...(token ? { Authorization: `Bearer ${token}` } : {}),

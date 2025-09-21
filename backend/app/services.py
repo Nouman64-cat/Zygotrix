@@ -866,9 +866,12 @@ def create_project(
     
     # If creating from template, copy tools
     if from_template:
-        template_doc = collection.find_one({"_id": ObjectId(from_template), "is_template": True})
-        if template_doc:
-            project_doc["tools"] = template_doc.get("tools", [])
+        # Get template from hardcoded templates instead of database
+        templates_objs = get_project_templates()
+        template_obj = next((t for t in templates_objs if t["id"] == from_template), None)
+        if template_obj:
+            # Copy template tools
+            project_doc["tools"] = template_obj.get("tools", [])
     
     result = collection.insert_one(project_doc)
     project_doc["_id"] = result.inserted_id
@@ -959,7 +962,7 @@ def delete_project(project_id: str, user_id: str) -> bool:
     return result.deleted_count > 0
 
 
-def get_project_templates() -> List["ProjectTemplate"]:
+def get_project_templates() -> List[Dict[str, Any]]:
     """Get all available project templates."""
     from .schemas import ProjectTemplate, MendelianProjectTool
     
@@ -1043,4 +1046,4 @@ def get_project_templates() -> List["ProjectTemplate"]:
         )
     ]
     
-    return templates
+    return [template.model_dump() for template in templates]

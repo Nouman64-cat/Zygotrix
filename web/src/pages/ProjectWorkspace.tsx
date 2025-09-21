@@ -84,46 +84,31 @@ const ProjectWorkspace: React.FC = () => {
         position: tool.position || { x: 100, y: 100 },
         data: {
           name: tool.name,
+          // For mendelian-study items, extract data from trait_configurations
+          ...(tool.type === "mendelian-study" &&
+          tool.trait_configurations?.general
+            ? {
+                selectedTrait: tool.trait_configurations.general.selectedTrait,
+                parent1Genotype:
+                  tool.trait_configurations.general.parent1Genotype,
+                parent2Genotype:
+                  tool.trait_configurations.general.parent2Genotype,
+                asPercentages:
+                  tool.trait_configurations.general.asPercentages === "true",
+                simulationResults:
+                  tool.simulation_results?.phenotypes ||
+                  tool.simulation_results,
+              }
+            : {}),
           trait_configurations: tool.trait_configurations,
           simulation_results: tool.simulation_results,
           notes: tool.notes,
         },
         size: { width: 400, height: 300 },
       }));
-
       setItems(workspaceItems);
     }
-  }, [project]);
-
-  // Auto-save project progress
-  const handleSaveProgress = useCallback(async () => {
-    if (!project || saving) return;
-
-    try {
-      setSaving(true);
-
-      // Convert workspace items back to project tools
-      const projectTools: MendelianProjectTool[] = items
-        .filter((item) => item.type === "mendelian-study")
-        .map((item) => ({
-          id: item.id,
-          type: item.type,
-          name: item.data.name || "Mendelian Study",
-          trait_configurations: item.data.trait_configurations || {},
-          simulation_results: item.data.simulation_results,
-          notes: item.data.notes,
-          position: item.position,
-        }));
-
-      await saveProgress(projectTools);
-    } catch (err) {
-      console.error("Failed to save progress:", err);
-    } finally {
-      setSaving(false);
-    }
-  }, [project, items, saveProgress, saving]);
-
-  // Save project details when name or description changes
+  }, [project]); // Save project details when name or description changes
   const handleUpdateProjectDetails = useCallback(async () => {
     if (!project) return;
 
@@ -137,13 +122,62 @@ const ProjectWorkspace: React.FC = () => {
     }
   }, [project, projectName, projectDescription, updateProject]);
 
-  // Auto-save when items change
-  useEffect(() => {
-    if (project && items.length > 0) {
-      const timeoutId = setTimeout(handleSaveProgress, 1000);
-      return () => clearTimeout(timeoutId);
+  // Manual save function triggered by keyboard shortcut
+  const handleManualSave = useCallback(async () => {
+    if (!project || saving) return;
+
+    try {
+      setSaving(true);
+
+      // Convert workspace items back to project tools
+      const projectTools: MendelianProjectTool[] = items
+        .filter((item) => item.type === "mendelian-study")
+        .map((item) => ({
+          id: item.id,
+          type: item.type,
+          name: item.data.name || "Mendelian Study",
+          // Store trait configurations as nested string dictionaries
+          trait_configurations: {
+            general: {
+              selectedTrait: item.data.selectedTrait || "",
+              parent1Genotype: item.data.parent1Genotype || "",
+              parent2Genotype: item.data.parent2Genotype || "",
+              asPercentages: item.data.asPercentages ? "true" : "false",
+            },
+          },
+          simulation_results:
+            item.data.simulationResults || item.data.simulation_results
+              ? {
+                  phenotypes:
+                    item.data.simulationResults || item.data.simulation_results,
+                }
+              : undefined,
+          notes: item.data.notes || "",
+          position: item.position,
+        }));
+
+      await saveProgress(projectTools);
+    } catch (err) {
+      console.error("Failed to save progress:", err);
+    } finally {
+      setSaving(false);
     }
-  }, [items, project, handleSaveProgress]);
+  }, [project, items, saveProgress, saving]);
+
+  // Keyboard shortcut for save (Cmd+S / Ctrl+S)
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if ((event.metaKey || event.ctrlKey) && event.key === "s") {
+        event.preventDefault();
+        handleManualSave();
+      }
+    };
+
+    document.addEventListener("keydown", handleKeyDown);
+    return () => {
+      document.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [handleManualSave]);
 
   const toolboxItems: ToolboxItem[] = [
     {
@@ -713,8 +747,12 @@ const ProjectWorkspace: React.FC = () => {
             {/* Loading indicator */}
             {loading && <div className="text-sm text-gray-500">Loading...</div>}
 
-            <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
-              Save Project
+            <button
+              onClick={handleManualSave}
+              disabled={saving || !project}
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {saving ? "Saving..." : "Save Project"}
             </button>
             <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
               <Cog6ToothIcon className="h-5 w-5" />

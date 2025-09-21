@@ -145,7 +145,16 @@ def get_mongo_client() -> Optional[MongoClient]:
 
             _mongo_client = mongomock.MongoClient()
         else:
-            _mongo_client = MongoClient(settings.mongodb_uri)
+            # Optimize MongoDB connection with connection pooling
+            _mongo_client = MongoClient(
+                settings.mongodb_uri,
+                maxPoolSize=50,  # Maximum number of connections
+                minPoolSize=10,  # Minimum number of connections
+                maxIdleTimeMS=30000,  # Close connections after 30 seconds idle
+                serverSelectionTimeoutMS=5000,  # Timeout for server selection
+                socketTimeoutMS=20000,  # Socket timeout
+                connectTimeoutMS=20000,  # Connection timeout
+            )
     except PyMongoError as exc:  # pragma: no cover
         raise HTTPException(
             status_code=503, detail=f"Unable to connect to MongoDB: {exc}"
@@ -565,10 +574,6 @@ def send_signup_otp_email(
 
     from_email = settings.resend_from_email or "onboarding@resend.dev"
     
-    # Debug logging to see what email is being used
-    print(f"DEBUG: Using from_email: {from_email}")
-    print(f"DEBUG: Sending to recipient: {recipient}")
-    
     payload = {
         "from": from_email,
         "to": [recipient],
@@ -728,7 +733,25 @@ def authenticate_user(email: str, password: str) -> Dict[str, Any]:
     return _serialize_user(user)
 
 
+# Cache for user data to avoid database hits on every request
+user_cache = {}
+
+def clear_user_cache(user_id: Optional[str] = None):
+    """Clear user cache for a specific user or all users"""
+    global user_cache
+    if user_id:
+        user_cache.pop(user_id, None)
+    else:
+        user_cache.clear()
+
 def get_user_by_id(user_id: str) -> Dict[str, Any]:
+    # Check cache first
+    if user_id in user_cache:
+        cached_user, cache_time = user_cache[user_id]
+        # Cache for 5 minutes
+        if datetime.now(timezone.utc) - cache_time < timedelta(minutes=5):
+            return cached_user
+    
     collection = get_users_collection(required=True)
     assert collection is not None, "Users collection is required"
     try:
@@ -741,7 +764,12 @@ def get_user_by_id(user_id: str) -> Dict[str, Any]:
     user = collection.find_one({"_id": object_id})
     if not user:
         raise HTTPException(status_code=401, detail="User not found.")
-    return _serialize_user(user)
+    
+    serialized_user = _serialize_user(user)
+    # Cache the user data
+    user_cache[user_id] = (serialized_user, datetime.now(timezone.utc))
+    
+    return serialized_user
 
 
 def create_access_token(

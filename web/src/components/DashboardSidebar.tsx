@@ -245,27 +245,35 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           )}
           <div className="flex items-center gap-2">
             {/* Collapse button for desktop */}
-            <button
-              onClick={onToggleCollapse}
-              className="hidden lg:flex p-2 rounded-md hover:bg-slate-100 transition-colors"
-              aria-label="Toggle sidebar"
-            >
-              <svg
-                className={`w-5 h-5 text-slate-500 transition-transform ${
-                  isCollapsed ? "rotate-180" : ""
-                }`}
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
+            <div className="relative group">
+              <button
+                onClick={onToggleCollapse}
+                className="hidden lg:flex p-2 rounded-md hover:bg-slate-100 transition-colors"
+                aria-label="Toggle sidebar"
               >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
-                />
-              </svg>
-            </button>
+                <svg
+                  className={`w-5 h-5 text-slate-500 transition-transform ${
+                    isCollapsed ? "rotate-180" : ""
+                  }`}
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M11 19l-7-7 7-7m8 14l-7-7 7-7"
+                  />
+                </svg>
+              </button>
+
+              {/* Collapse Button Tooltip */}
+              <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                {isCollapsed ? "Expand Sidebar" : "Collapse Sidebar"}
+                <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+              </div>
+            </div>
             {/* Close button for mobile */}
             <button
               onClick={onClose}
@@ -291,76 +299,109 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         {/* Navigation */}
         <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
           {sidebarItems.map((item) => (
-            <Link
-              key={item.id}
-              to={item.href}
-              onClick={onClose}
-              className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
-                isActivePath(item.href)
-                  ? "bg-blue-50 text-blue-700 border border-blue-200"
-                  : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
-              } ${isCollapsed ? "justify-center" : ""}`}
-              title={isCollapsed ? item.label : undefined}
-            >
-              <span
-                className={`${
-                  isActivePath(item.href) ? "text-blue-600" : "text-slate-500"
-                }`}
+            <div key={item.id} className="relative group">
+              <Link
+                to={item.href}
+                onClick={onClose}
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
+                  isActivePath(item.href)
+                    ? "bg-blue-50 text-blue-700 border border-blue-200"
+                    : "text-slate-700 hover:bg-slate-50 hover:text-slate-900"
+                } ${isCollapsed ? "justify-center" : ""}`}
               >
-                {item.icon}
-              </span>
-              {!isCollapsed && (
-                <>
-                  <span className="flex-1">{item.label}</span>
+                <span
+                  className={`${
+                    isActivePath(item.href) ? "text-blue-600" : "text-slate-500"
+                  }`}
+                >
+                  {item.icon}
+                </span>
+                {!isCollapsed && (
+                  <>
+                    <span className="flex-1">{item.label}</span>
+                    {item.badge && (
+                      <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-full">
+                        {item.badge}
+                      </span>
+                    )}
+                  </>
+                )}
+                {isCollapsed && item.badge && (
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                )}
+              </Link>
+
+              {/* Enhanced Tooltip for collapsed state */}
+              {isCollapsed && (
+                <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                  {item.label}
                   {item.badge && (
-                    <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-full">
+                    <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-full">
                       {item.badge}
                     </span>
                   )}
-                </>
+                  {/* Tooltip arrow */}
+                  <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                </div>
               )}
-              {isCollapsed && item.badge && (
-                <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-              )}
-            </Link>
+            </div>
           ))}
         </nav>
 
         {/* Footer */}
         <div className="p-4 border-t border-slate-200 space-y-3">
           {/* System Status */}
-          <div
-            className={`flex items-center gap-3 text-xs text-slate-500 ${
-              isCollapsed ? "justify-center" : ""
-            }`}
-          >
-            <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-            {!isCollapsed && <span>System Status: Online</span>}
+          <div className="relative group">
+            <div
+              className={`flex items-center gap-3 text-xs text-slate-500 ${
+                isCollapsed ? "justify-center" : ""
+              }`}
+            >
+              <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+              {!isCollapsed && <span>System Status: Online</span>}
+            </div>
+
+            {/* System Status Tooltip */}
+            {isCollapsed && (
+              <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                System Status: Online
+                <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+              </div>
+            )}
           </div>
 
           {/* Logout Button */}
-          <button
-            onClick={handleSignOut}
-            className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors ${
-              isCollapsed ? "justify-center" : ""
-            }`}
-            title={isCollapsed ? "Sign Out" : undefined}
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
+          <div className="relative group">
+            <button
+              onClick={handleSignOut}
+              className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 transition-colors ${
+                isCollapsed ? "justify-center" : ""
+              }`}
             >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-              />
-            </svg>
-            {!isCollapsed && <span>Sign Out</span>}
-          </button>
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+                />
+              </svg>
+              {!isCollapsed && <span>Sign Out</span>}
+            </button>
+
+            {/* Sign Out Tooltip */}
+            {isCollapsed && (
+              <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                Sign Out
+                <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+              </div>
+            )}
+          </div>
         </div>
       </aside>
     </>

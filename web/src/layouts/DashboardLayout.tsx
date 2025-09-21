@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardHeader from "../components/DashboardHeader";
 import DashboardSidebar from "../components/DashboardSidebar";
 
@@ -7,8 +7,47 @@ interface DashboardLayoutProps {
 }
 
 const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  // Initialize sidebar state from localStorage with fallbacks
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    try {
+      const saved = localStorage.getItem("dashboard-sidebar-open");
+      return saved !== null ? JSON.parse(saved) : false;
+    } catch {
+      return false;
+    }
+  });
+
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(() => {
+    try {
+      const saved = localStorage.getItem("dashboard-sidebar-collapsed");
+      return saved !== null ? JSON.parse(saved) : true; // Default to collapsed
+    } catch {
+      return true; // Default to collapsed
+    }
+  });
+
+  // Persist sidebar state to localStorage whenever it changes
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "dashboard-sidebar-open",
+        JSON.stringify(sidebarOpen)
+      );
+    } catch {
+      // Ignore localStorage errors (e.g., in private browsing mode)
+    }
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(
+        "dashboard-sidebar-collapsed",
+        JSON.stringify(sidebarCollapsed)
+      );
+    } catch {
+      // Ignore localStorage errors (e.g., in private browsing mode)
+    }
+  }, [sidebarCollapsed]);
 
   const handleMenuToggle = () => {
     setSidebarOpen(!sidebarOpen);

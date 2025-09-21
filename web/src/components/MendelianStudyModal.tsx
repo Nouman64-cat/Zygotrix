@@ -284,112 +284,236 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
 
             {/* Middle Column - Selected Traits Configuration */}
             <div className="flex-1 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 border-r border-gray-200 p-5 overflow-y-auto">
-              <div className="flex items-center space-x-2 mb-5">
-                <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg">
-                  <SparklesIcon className="h-5 w-5 text-white" />
+              <div className="flex items-center justify-between mb-6">
+                <div className="flex items-center space-x-3">
+                  <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg">
+                    <SparklesIcon className="h-6 w-6 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-xl font-bold text-gray-900">
+                      Selected Traits
+                    </h3>
+                    <p className="text-sm text-gray-500">
+                      Configure genetic crosses for each trait
+                    </p>
+                  </div>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  Selected Traits
-                </h3>
-                <span className="bg-purple-100 text-purple-800 text-xs font-medium px-2.5 py-0.5 rounded-full">
-                  {project.selectedTraits.length}/5
-                </span>
+                <div className="flex items-center space-x-2">
+                  <span className="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 text-sm font-bold px-3 py-1.5 rounded-full border border-purple-200">
+                    {project.selectedTraits.length}/5
+                  </span>
+                </div>
               </div>
 
               {project.selectedTraits.length === 0 ? (
-                <div className="text-center py-12">
-                  <SparklesIcon className="h-16 w-16 text-gray-300 mx-auto mb-4" />
-                  <h3 className="text-lg font-medium text-gray-500 mb-2">
-                    No traits selected
+                <div className="text-center py-16">
+                  <div className="relative mb-6">
+                    <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                      <SparklesIcon className="h-12 w-12 text-purple-500" />
+                    </div>
+                    {/* Floating DNA icons */}
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center animate-bounce">
+                      <span className="text-lg">🧬</span>
+                    </div>
+                    <div
+                      className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-indigo-100 to-blue-100 rounded-full flex items-center justify-center animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    >
+                      <span className="text-sm">⚗️</span>
+                    </div>
+                  </div>
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Start Your Genetic Study
                   </h3>
-                  <p className="text-sm text-gray-400">
-                    Browse traits on the right to add them to your study
+                  <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
+                    Select traits from the browser on the right to begin
+                    configuring your Mendelian inheritance study
                   </p>
+                  <div className="mt-6 inline-flex items-center space-x-2 text-sm text-purple-600 bg-purple-50 px-4 py-2 rounded-full">
+                    <span>👉</span>
+                    <span className="font-medium">
+                      Browse traits to get started
+                    </span>
+                  </div>
                 </div>
               ) : (
-                <div className="space-y-4">
+                <div className="space-y-5">
                   {project.selectedTraits.map((selectedTrait) => (
                     <div
                       key={selectedTrait.key}
-                      className="bg-white/80 backdrop-blur-sm border border-purple-200 rounded-xl p-4 shadow-sm hover:shadow-md transition-all duration-200"
+                      className="bg-white/90 backdrop-blur-sm border border-purple-200/60 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-purple-300/80"
                     >
-                      <div className="flex items-center justify-between mb-3">
-                        <h4 className="font-semibold text-gray-900 text-sm">
-                          {selectedTrait.name}
-                        </h4>
+                      {/* Trait Header */}
+                      <div className="flex items-center justify-between mb-5">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
+                            <SparklesIcon className="h-5 w-5 text-white" />
+                          </div>
+                          <div>
+                            <h4 className="font-bold text-gray-900 text-base">
+                              {selectedTrait.name}
+                            </h4>
+                            <p className="text-xs text-gray-500 mt-0.5">
+                              <span className="font-medium">Alleles:</span>{" "}
+                              {selectedTrait.alleles.join(", ")}
+                            </p>
+                          </div>
+                        </div>
                         <button
                           onClick={() => removeTrait(selectedTrait.key)}
-                          className="p-1.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition-all duration-200"
+                          className="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-105"
                         >
-                          <TrashIcon className="h-4 w-4" />
+                          <TrashIcon className="h-5 w-5" />
                         </button>
                       </div>
 
-                      {/* Side by side parent genotype selectors */}
-                      <div className="grid grid-cols-2 gap-3">
-                        {/* Parent 1 */}
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Parent 1
-                          </label>
-                          <select
-                            value={selectedTrait.parent1Genotype}
-                            onChange={(e) =>
-                              updateTraitGenotype(
-                                selectedTrait.key,
-                                "parent1",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-sm"
-                          >
-                            <option value="">Select genotype</option>
-                            {getGenotypeOptions(selectedTrait.alleles).map(
-                              (genotype) => (
-                                <option key={genotype} value={genotype}>
-                                  {genotype}
-                                </option>
-                              )
-                            )}
-                          </select>
+                      {/* Parent Genotype Configuration */}
+                      <div className="space-y-4">
+                        <div className="text-center">
+                          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-100 to-indigo-100 px-4 py-2 rounded-full">
+                            <span className="text-sm font-semibold text-gray-700">
+                              Genetic Cross
+                            </span>
+                            <span className="text-lg">🧬</span>
+                          </div>
                         </div>
 
-                        {/* Parent 2 */}
-                        <div>
-                          <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Parent 2
-                          </label>
-                          <select
-                            value={selectedTrait.parent2Genotype}
-                            onChange={(e) =>
-                              updateTraitGenotype(
-                                selectedTrait.key,
-                                "parent2",
-                                e.target.value
-                              )
-                            }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white text-sm"
-                          >
-                            <option value="">Select genotype</option>
-                            {getGenotypeOptions(selectedTrait.alleles).map(
-                              (genotype) => (
-                                <option key={genotype} value={genotype}>
-                                  {genotype}
-                                </option>
-                              )
+                        <div className="grid grid-cols-1 lg:grid-cols-3 items-center">
+                          {/* Parent 1 */}
+                          <div className="relative">
+                            <div className="absolute -top-2 left-3 bg-white px-2 z-10">
+                              <label className="text-xs font-bold text-purple-700 uppercase tracking-wider">
+                                Parent 1 ♀
+                              </label>
+                            </div>
+                            <select
+                              value={selectedTrait.parent1Genotype}
+                              onChange={(e) =>
+                                updateTraitGenotype(
+                                  selectedTrait.key,
+                                  "parent1",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-2 py-4 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gradient-to-r from-purple-50/50 to-white text-sm font-semibold shadow-sm transition-all duration-200 hover:border-purple-300 appearance-none min-w-0"
+                              style={{
+                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                                backgroundPosition: "right 0.75rem center",
+                                backgroundRepeat: "no-repeat",
+                                backgroundSize: "1.5em 1.5em",
+                                paddingRight: "3rem",
+                              }}
+                            >
+                              <option value="" className="text-gray-500">
+                                Select genotype
+                              </option>
+                              {getGenotypeOptions(selectedTrait.alleles).map(
+                                (genotype) => (
+                                  <option
+                                    key={genotype}
+                                    value={genotype}
+                                    className="font-semibold"
+                                  >
+                                    {genotype}
+                                  </option>
+                                )
+                              )}
+                            </select>
+                            {selectedTrait.parent1Genotype && (
+                              <div className="absolute -bottom-1 right-3 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                ✓
+                              </div>
                             )}
-                          </select>
-                        </div>
-                      </div>
+                          </div>
 
-                      {/* Show alleles for reference */}
-                      <div className="mt-2 pt-2 border-t border-gray-100">
-                        <p className="text-xs text-gray-500">
-                          <span className="font-medium">
-                            Available alleles:
-                          </span>{" "}
-                          {selectedTrait.alleles.join(", ")}
-                        </p>
+                          {/* Cross Symbol */}
+                          <div className="flex justify-center">
+                            <div className="w-14 h-14 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center border-2 border-purple-200 shadow-sm">
+                              <span className="text-2xl font-bold text-purple-600">
+                                ×
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Parent 2 */}
+                          <div className="relative">
+                            <div className="absolute -top-2 left-3 bg-white px-2 z-10">
+                              <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider">
+                                Parent 2 ♂
+                              </label>
+                            </div>
+                            <select
+                              value={selectedTrait.parent2Genotype}
+                              onChange={(e) =>
+                                updateTraitGenotype(
+                                  selectedTrait.key,
+                                  "parent2",
+                                  e.target.value
+                                )
+                              }
+                              className="w-full px-2 py-4 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gradient-to-r from-indigo-50/50 to-white text-sm font-semibold shadow-sm transition-all duration-200 hover:border-indigo-300 appearance-none min-w-0"
+                              style={{
+                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
+                                backgroundPosition: "right 0.75rem center",
+                                backgroundRepeat: "no-repeat",
+                                backgroundSize: "1.5em 1.5em",
+                                paddingRight: "3rem",
+                              }}
+                            >
+                              <option value="" className="text-gray-500">
+                                Select genotype
+                              </option>
+                              {getGenotypeOptions(selectedTrait.alleles).map(
+                                (genotype) => (
+                                  <option
+                                    key={genotype}
+                                    value={genotype}
+                                    className="font-semibold"
+                                  >
+                                    {genotype}
+                                  </option>
+                                )
+                              )}
+                            </select>
+                            {selectedTrait.parent2Genotype && (
+                              <div className="absolute -bottom-1 right-3 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
+                                ✓
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Genotype Status */}
+                        {selectedTrait.parent1Genotype &&
+                        selectedTrait.parent2Genotype ? (
+                          <div className="mt-4 p-3 bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-xl">
+                            <div className="flex items-center justify-center space-x-2">
+                              <div className="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">
+                                  ✓
+                                </span>
+                              </div>
+                              <span className="text-sm font-semibold text-green-800">
+                                Ready for simulation:{" "}
+                                {selectedTrait.parent1Genotype} ×{" "}
+                                {selectedTrait.parent2Genotype}
+                              </span>
+                            </div>
+                          </div>
+                        ) : (
+                          <div className="mt-4 p-3 bg-gradient-to-r from-amber-50 to-yellow-50 border border-amber-200 rounded-xl">
+                            <div className="flex items-center justify-center space-x-2">
+                              <div className="w-6 h-6 bg-amber-500 rounded-full flex items-center justify-center">
+                                <span className="text-white text-xs font-bold">
+                                  !
+                                </span>
+                              </div>
+                              <span className="text-sm font-medium text-amber-800">
+                                Please select both parent genotypes to continue
+                              </span>
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   ))}

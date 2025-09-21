@@ -564,6 +564,11 @@ def send_signup_otp_email(
     )
 
     from_email = settings.resend_from_email or "onboarding@resend.dev"
+    
+    # Debug logging to see what email is being used
+    print(f"DEBUG: Using from_email: {from_email}")
+    print(f"DEBUG: Sending to recipient: {recipient}")
+    
     payload = {
         "from": from_email,
         "to": [recipient],
@@ -868,10 +873,10 @@ def create_project(
     if from_template:
         # Get template from hardcoded templates instead of database
         templates_objs = get_project_templates()
-        template_obj = next((t for t in templates_objs if t["id"] == from_template), None)
+        template_obj = next((t for t in templates_objs if t.id == from_template), None)
         if template_obj:
             # Copy template tools
-            project_doc["tools"] = template_obj.get("tools", [])
+            project_doc["tools"] = [tool.model_dump() for tool in template_obj.tools]
     
     result = collection.insert_one(project_doc)
     project_doc["_id"] = result.inserted_id
@@ -962,7 +967,7 @@ def delete_project(project_id: str, user_id: str) -> bool:
     return result.deleted_count > 0
 
 
-def get_project_templates() -> List[Dict[str, Any]]:
+def get_project_templates() -> List["ProjectTemplate"]:
     """Get all available project templates."""
     from .schemas import ProjectTemplate, MendelianProjectTool
     
@@ -1046,4 +1051,4 @@ def get_project_templates() -> List[Dict[str, Any]]:
         )
     ]
     
-    return [template.model_dump() for template in templates]
+    return templates

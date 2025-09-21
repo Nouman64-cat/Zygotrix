@@ -1,17 +1,21 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
+import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
 import { useProjects, useProjectTemplates } from "../hooks/useProjects";
 import type { Project, ProjectTemplate } from "../types/api";
-import { MagnifyingGlassIcon } from "@heroicons/react/24/outline";
+import { MagnifyingGlassIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { PlusIcon, BeakerIcon, ChartBarIcon } from "@heroicons/react/24/solid";
 
 const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [showTemplates, setShowTemplates] = useState(false);
+  const [projectToDelete, setProjectToDelete] = useState<Project | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  const { projects, loading, error, createProject } = useProjects();
+  const { projects, loading, error, createProject, deleteProject } =
+    useProjects();
   const { templates, loading: templatesLoading } = useProjectTemplates();
 
   const filteredProjects = projects.filter(
@@ -36,18 +40,36 @@ const ProjectsPage: React.FC = () => {
     }
   };
 
+  const handleDeleteProject = async () => {
+    if (!projectToDelete?.id) return;
+
+    try {
+      setIsDeleting(true);
+      await deleteProject(projectToDelete.id);
+      setProjectToDelete(null);
+    } catch (err) {
+      console.error("Failed to delete project:", err);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const openDeleteModal = (project: Project, e: React.MouseEvent) => {
+    e.stopPropagation(); // Prevent card click
+    setProjectToDelete(project);
+  };
+
+  const closeDeleteModal = () => {
+    if (!isDeleting) {
+      setProjectToDelete(null);
+    }
+  };
+
   const getProjectIcon = (project: Project) => {
     if (project.tools.some((tool) => tool.type === "mendelian")) {
       return BeakerIcon;
     }
     return ChartBarIcon;
-  };
-
-  const getProjectColor = (project: Project) => {
-    if (project.tools.some((tool) => tool.type === "mendelian")) {
-      return "border-l-purple-500";
-    }
-    return "border-l-blue-500";
   };
 
   const formatDate = (dateString: string) => {
@@ -164,76 +186,134 @@ const ProjectsPage: React.FC = () => {
         )}
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
           {/* Start New Project Card */}
           <button
             onClick={() => handleCreateProject()}
-            className="bg-white rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-colors duration-200 p-6 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[4/3] min-h-[250px] w-full"
+            className="relative bg-gradient-to-br from-white to-gray-50 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-all duration-200 p-3 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[180px] w-full shadow-sm hover:shadow-md"
           >
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4 group-hover:bg-blue-200 transition-colors">
-              <PlusIcon className="h-6 w-6 text-blue-600" />
+            {/* Notebook binding holes */}
+            <div className="absolute left-2 top-3 bottom-3 w-1">
+              <div className="flex flex-col justify-start space-y-1.5 h-full">
+                {[...Array(5)].map((_, i) => (
+                  <div
+                    key={i}
+                    className="w-1 h-1 rounded-full bg-gray-200 group-hover:bg-blue-200 transition-colors"
+                  />
+                ))}
+              </div>
             </div>
-            <h3 className="text-lg font-semibold text-gray-900 mb-2">
-              Start New Project
-            </h3>
-            <p className="text-gray-500 text-sm">
-              Create a new genomic analysis project
-            </p>
-          </button>
 
+            <div className="ml-3 flex flex-col items-center justify-center h-full">
+              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-200 transition-colors">
+                <PlusIcon className="h-4 w-4 text-blue-600" />
+              </div>
+              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+                Start New Project
+              </h3>
+              <p className="text-gray-500 text-xs">
+                Create a new genomic analysis project
+              </p>
+            </div>
+          </button>{" "}
           {/* Project Cards */}
           {filteredProjects.map((project) => {
             const IconComponent = getProjectIcon(project);
+
             return (
               <button
                 key={project.id}
                 onClick={() => navigate(`/portal/workspace/${project.id}`)}
-                className={`bg-white rounded-lg shadow-sm border-l-4 ${getProjectColor(
-                  project
-                )} hover:shadow-md transition-shadow duration-200 cursor-pointer aspect-[4/3] min-h-[250px] flex flex-col w-full text-left`}
+                className="relative bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer aspect-[3/4] min-h-[180px] flex flex-col w-full text-left border border-gray-200 hover:border-gray-300 group overflow-hidden"
               >
-                <div className="p-6 flex-1 flex flex-col">
-                  {/* Header */}
-                  <div className="flex items-center space-x-3 mb-3">
-                    <IconComponent className="h-6 w-6 text-purple-600" />
-                    <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
+                {/* Notebook binding holes */}
+                <div className="absolute left-2 top-3 bottom-3 w-1 z-10">
+                  <div className="flex flex-col justify-start space-y-1.5 h-full">
+                    {[...Array(5)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="w-1 h-1 rounded-full bg-gray-300 shadow-inner"
+                      />
+                    ))}
+                  </div>
+                </div>
+
+                {/* Color tab on the side */}
+                <div
+                  className={`absolute right-0 top-3 w-1 h-6 ${
+                    project.tools.some((tool) => tool.type === "mendelian")
+                      ? "bg-purple-500"
+                      : "bg-blue-500"
+                  } rounded-l-md`}
+                />
+
+                {/* Delete button */}
+                <button
+                  onClick={(e) => openDeleteModal(project, e)}
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white border border-gray-200 hover:border-red-300 hover:bg-red-50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-20"
+                  title="Delete project"
+                >
+                  <TrashIcon className="h-3 w-3 text-gray-500 hover:text-red-600 transition-colors" />
+                </button>
+
+                <div className="p-3 pl-6 flex-1 flex flex-col relative">
+                  {/* Header with icon and title */}
+                  <div className="mb-2">
+                    <div className="flex items-center space-x-2 mb-1">
+                      <div
+                        className={`w-5 h-5 rounded-lg flex items-center justify-center ${
+                          project.tools.some(
+                            (tool) => tool.type === "mendelian"
+                          )
+                            ? "bg-purple-100"
+                            : "bg-blue-100"
+                        }`}
+                      >
+                        <IconComponent
+                          className={`h-3 w-3 ${
+                            project.tools.some(
+                              (tool) => tool.type === "mendelian"
+                            )
+                              ? "text-purple-600"
+                              : "text-blue-600"
+                          }`}
+                        />
+                      </div>
+                      <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
+                        Active
+                      </span>
+                    </div>
+                    <h3 className="text-xs font-semibold text-gray-900 line-clamp-2 leading-tight">
                       {project.name}
                     </h3>
                   </div>
 
                   {/* Description */}
-                  <p className="text-gray-600 text-sm mb-4 line-clamp-2 flex-1">
-                    {project.description || "No description"}
+                  <p className="text-gray-600 text-xs mb-2 line-clamp-3 flex-1">
+                    {project.description ||
+                      "Study complex inheritance patterns including codominance and incomplete dominance"}
                   </p>
 
-                  {/* Stats */}
-                  <div className="grid grid-cols-2 gap-4 mb-4">
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-900">
-                        {project.tools.length}
-                      </div>
-                      <div className="text-xs text-gray-500">Tools</div>
-                    </div>
-                    <div className="text-center">
-                      <div className="text-lg font-bold text-gray-900">
-                        {project.tags.length}
-                      </div>
-                      <div className="text-xs text-gray-500">Tags</div>
+                  {/* Footer with date */}
+                  <div className="border-t border-gray-100 pt-1.5 mt-auto">
+                    <div className="text-xs text-gray-500">
+                      {project.updated_at
+                        ? formatDate(project.updated_at)
+                        : "Created recently"}
                     </div>
                   </div>
+                </div>
 
-                  {/* Footer */}
-                  <div className="border-t pt-3">
-                    <div className="flex justify-between items-center">
-                      <span className="text-xs text-gray-500">
-                        {project.updated_at
-                          ? formatDate(project.updated_at)
-                          : "Never updated"}
-                      </span>
-                      <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">
-                        Active
-                      </span>
-                    </div>
+                {/* Subtle lined paper effect */}
+                <div className="absolute inset-0 pointer-events-none">
+                  <div className="absolute left-6 right-2 top-8 bottom-6 opacity-10">
+                    {[...Array(6)].map((_, i) => (
+                      <div
+                        key={i}
+                        className="border-b border-blue-200 h-2.5"
+                        style={{ marginTop: i === 0 ? 0 : "6px" }}
+                      />
+                    ))}
                   </div>
                 </div>
               </button>
@@ -261,6 +341,15 @@ const ProjectsPage: React.FC = () => {
           </div>
         )}
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <DeleteConfirmationModal
+        isOpen={!!projectToDelete}
+        onClose={closeDeleteModal}
+        onConfirm={handleDeleteProject}
+        projectName={projectToDelete?.name || ""}
+        isDeleting={isDeleting}
+      />
     </DashboardLayout>
   );
 };

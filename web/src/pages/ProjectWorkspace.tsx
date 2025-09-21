@@ -1052,9 +1052,21 @@ const ProjectWorkspace: React.FC = () => {
                   <button
                     key={project.id}
                     onClick={() => navigate(`/portal/workspace/${project.id}`)}
-                    className="w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all"
+                    className="relative w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group overflow-hidden"
                   >
-                    <div className="flex items-start space-x-3">
+                    {/* Mini notebook binding holes */}
+                    <div className="absolute left-2 top-3 bottom-3 w-1">
+                      <div className="flex flex-col justify-start space-y-2 h-full">
+                        {[...Array(4)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="w-1 h-1 rounded-full bg-gray-300"
+                          />
+                        ))}
+                      </div>
+                    </div>
+
+                    <div className="flex items-start space-x-3 ml-2">
                       <div
                         className={`w-8 h-8 ${project.color} rounded flex items-center justify-center flex-shrink-0`}
                       >
@@ -1073,9 +1085,27 @@ const ProjectWorkspace: React.FC = () => {
                             </span>
                           )}
                         </p>
-                        <p className="text-xs text-gray-400 mt-1">
-                          {project.lastUpdated}
-                        </p>
+                        <div className="flex items-center justify-between mt-1">
+                          <p className="text-xs text-gray-400">
+                            {project.lastUpdated}
+                          </p>
+                          <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                            Active
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Subtle lined effect for mini notebook */}
+                    <div className="absolute inset-0 pointer-events-none">
+                      <div className="absolute left-8 right-2 top-6 bottom-2 opacity-5">
+                        {[...Array(3)].map((_, i) => (
+                          <div
+                            key={i}
+                            className="border-b border-gray-300 h-2"
+                            style={{ marginTop: i === 0 ? 0 : "6px" }}
+                          />
+                        ))}
                       </div>
                     </div>
                   </button>

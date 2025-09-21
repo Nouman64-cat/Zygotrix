@@ -109,6 +109,36 @@ class MendelianSimulationResponse(BaseModel):
     )
 
 
+class GenotypeRequest(BaseModel):
+    """Request for getting possible genotypes for traits."""
+    
+    trait_keys: List[str] = Field(
+        ..., 
+        json_schema_extra={"example": ["eye_color", "hair_color"]},
+        description="List of trait keys to get genotypes for (max 5)"
+    )
+
+    @field_validator("trait_keys")
+    @classmethod
+    def validate_trait_count(cls, value: List[str]) -> List[str]:
+        if len(value) > 5:
+            raise ValueError("Maximum 5 traits allowed")
+        return value
+
+
+class GenotypeResponse(BaseModel):
+    """Response containing possible genotypes for requested traits."""
+    
+    genotypes: Dict[str, List[str]] = Field(
+        ...,
+        description="Mapping of trait keys to lists of possible genotypes"
+    )
+    missing_traits: List[str] = Field(
+        default_factory=list,
+        description="Requested trait keys that were not available in the registry.",
+    )
+
+
 class PolygenicScoreRequest(BaseModel):
     """Inputs required to compute a polygenic score."""
 

@@ -1,9 +1,9 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
-import MendelianWorkspaceTool from "../components/MendelianWorkspaceTool";
+import MendelianStudyModal from "../components/MendelianStudyModal";
 import PunnettSquare from "../components/PunnettSquare";
-import { useProject } from "../hooks/useProjects";
+import { useProject, useProjects } from "../hooks/useProjects";
 import type { MendelianProjectTool } from "../types/api";
 import {
   ArrowLeftIcon,
@@ -57,12 +57,15 @@ const ProjectWorkspace: React.FC = () => {
     projectId === "new" ? undefined : projectId
   );
 
+  // Use projects hook to get all projects for the sidebar
+  const { projects: allProjects, loading: projectsLoading } = useProjects();
+
   // Workspace state
   const [items, setItems] = useState<WorkspaceItem[]>([]);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
-  const [showMendelianTool, setShowMendelianTool] = useState(false);
+  const [showMendelianModal, setShowMendelianModal] = useState(false);
   const [saving, setSaving] = useState(false);
 
   // Editable project details
@@ -95,9 +98,45 @@ const ProjectWorkspace: React.FC = () => {
                   tool.trait_configurations.general.parent2Genotype,
                 asPercentages:
                   tool.trait_configurations.general.asPercentages === "true",
-                simulationResults:
-                  tool.simulation_results?.phenotypes ||
-                  tool.simulation_results,
+                // Reconstruct simulation results in the expected nested format
+                simulationResults: (() => {
+                  const flatResults = tool.simulation_results?.phenotypes;
+                  if (!flatResults || typeof flatResults !== "object") {
+                    return null;
+                  }
+
+                  // Convert flat format back to nested format for UI
+                  const nestedResults: Record<
+                    string,
+                    Record<string, number>
+                  > = {};
+                  Object.entries(flatResults).forEach(
+                    ([traitKey, probability]) => {
+                      if (typeof probability === "number") {
+                        // For now, we'll create a simple structure with the dominant phenotype
+                        // In a real scenario, you'd need to store more phenotype data
+                        nestedResults[traitKey] = {
+                          Dominant: probability,
+                          Recessive: 100 - probability,
+                        };
+                      }
+                    }
+                  );
+
+                  return Object.keys(nestedResults).length > 0
+                    ? nestedResults
+                    : null;
+                })(),
+                // Reconstruct selectedTraits array from saved metadata
+                selectedTraits: (() => {
+                  try {
+                    const savedTraits =
+                      tool.trait_configurations?.metadata?.selectedTraits;
+                    return savedTraits ? JSON.parse(savedTraits) : [];
+                  } catch {
+                    return [];
+                  }
+                })(),
               }
             : {}),
           trait_configurations: tool.trait_configurations,
@@ -136,7 +175,7 @@ const ProjectWorkspace: React.FC = () => {
           id: item.id,
           type: item.type,
           name: item.data.name || "Mendelian Study",
-          // Store trait configurations as nested string dictionaries
+          // Store trait configurations including the full selectedTraits array
           trait_configurations: {
             general: {
               selectedTrait: item.data.selectedTrait || "",
@@ -144,12 +183,47 @@ const ProjectWorkspace: React.FC = () => {
               parent2Genotype: item.data.parent2Genotype || "",
               asPercentages: item.data.asPercentages ? "true" : "false",
             },
+            // Store the selectedTraits array as JSON string in a nested object
+            metadata: {
+              selectedTraits: item.data.selectedTraits
+                ? JSON.stringify(item.data.selectedTraits)
+                : "[]",
+            },
           },
           simulation_results:
             item.data.simulationResults || item.data.simulation_results
               ? {
-                  phenotypes:
-                    item.data.simulationResults || item.data.simulation_results,
+                  phenotypes: (() => {
+                    const simResults =
+                      item.data.simulationResults ||
+                      item.data.simulation_results;
+                    const flattened: Record<string, number> = {};
+
+                    // Flatten the nested structure for the backend
+                    Object.entries(simResults).forEach(
+                      ([traitKey, phenotypes]) => {
+                        if (
+                          typeof phenotypes === "object" &&
+                          phenotypes !== null
+                        ) {
+                          // Get the most probable phenotype for each trait
+                          const entries = Object.entries(
+                            phenotypes as Record<string, number>
+                          );
+                          if (entries.length > 0) {
+                            // Sort by probability and take the highest
+                            const [, probability] = entries.sort(
+                              ([, a], [, b]) => b - a
+                            )[0];
+                            flattened[traitKey] =
+                              typeof probability === "number" ? probability : 0;
+                          }
+                        }
+                      }
+                    );
+
+                    return flattened;
+                  })(),
                 }
               : undefined,
           notes: item.data.notes || "",
@@ -231,57 +305,56 @@ const ProjectWorkspace: React.FC = () => {
     },
   ];
 
-  // Sample existing projects for the sidebar
-  const existingProjects = [
-    {
-      id: 1,
-      name: "Alzheimer's Disease Study",
-      color: "bg-blue-500",
-      icon: CubeIcon,
-      type: "Neurodegenerative",
-      lastUpdated: "2 hours ago",
-    },
-    {
-      id: 2,
-      name: "Cancer Genomics Panel",
-      color: "bg-red-500",
-      icon: BeakerIcon,
-      type: "Oncology",
-      lastUpdated: "1 day ago",
-    },
-    {
-      id: 3,
-      name: "Cardiovascular Risk",
-      color: "bg-green-500",
-      icon: ChartBarIcon,
-      type: "Cardiovascular",
-      lastUpdated: "3 days ago",
-    },
-    {
-      id: 4,
-      name: "Pharmacogenomics",
-      color: "bg-purple-500",
-      icon: BeakerIcon,
-      type: "Pharmacogenomics",
-      lastUpdated: "6 hours ago",
-    },
-    {
-      id: 5,
-      name: "Rare Disease Exome",
-      color: "bg-orange-500",
-      icon: CubeIcon,
-      type: "Rare Disease",
-      lastUpdated: "5 days ago",
-    },
-    {
-      id: 6,
-      name: "Population Genomics",
-      color: "bg-indigo-500",
-      icon: ChartBarIcon,
-      type: "Population",
-      lastUpdated: "1 week ago",
-    },
-  ];
+  // Helper function to get formatted time difference
+  const getTimeAgo = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffInSeconds = Math.floor((now.getTime() - date.getTime()) / 1000);
+
+    if (diffInSeconds < 60) return "Just now";
+    if (diffInSeconds < 3600)
+      return `${Math.floor(diffInSeconds / 60)} minutes ago`;
+    if (diffInSeconds < 86400)
+      return `${Math.floor(diffInSeconds / 3600)} hours ago`;
+    if (diffInSeconds < 604800)
+      return `${Math.floor(diffInSeconds / 86400)} days ago`;
+    return `${Math.floor(diffInSeconds / 604800)} weeks ago`;
+  };
+
+  // Helper function to get project type icon and color
+  const getProjectTypeIcon = (type: string) => {
+    switch (type.toLowerCase()) {
+      case "mendelian":
+      case "genetics":
+        return { icon: AcademicCapIcon, color: "bg-indigo-500" };
+      case "genomics":
+      case "sequencing":
+        return { icon: CubeIcon, color: "bg-blue-500" };
+      case "analysis":
+        return { icon: ChartBarIcon, color: "bg-green-500" };
+      case "research":
+        return { icon: BeakerIcon, color: "bg-purple-500" };
+      default:
+        return { icon: DocumentTextIcon, color: "bg-gray-500" };
+    }
+  };
+
+  // Process real projects for the sidebar
+  const existingProjects = allProjects
+    .filter((proj) => proj.id !== projectId) // Exclude current project
+    .slice(0, 6) // Show only first 6 projects
+    .map((proj) => {
+      const typeInfo = getProjectTypeIcon(proj.type);
+      return {
+        id: proj.id || "",
+        name: proj.name,
+        color: typeInfo.color,
+        icon: typeInfo.icon,
+        type: proj.type || "Unknown",
+        lastUpdated: proj.updated_at ? getTimeAgo(proj.updated_at) : "Unknown",
+        toolCount: proj.tools?.length || 0,
+      };
+    });
 
   const handleCanvasClick = useCallback(
     (e: React.MouseEvent) => {
@@ -313,11 +386,11 @@ const ProjectWorkspace: React.FC = () => {
       type: itemData.type,
       position: { x: 100, y: 100 },
       size: getDefaultSize(itemData.type),
-      data: itemData.data,
+      data: itemData.content || itemData.data || itemData,
     };
 
     setItems((prev) => [...prev, newItem]);
-    setShowMendelianTool(false);
+    setShowMendelianModal(false);
   }, []);
 
   const handleMouseDown = useCallback(
@@ -434,10 +507,12 @@ const ProjectWorkspace: React.FC = () => {
             <div className="p-4">
               <div className="flex items-center mb-2">
                 <CubeIcon className="h-5 w-5 text-blue-500 mr-2" />
-                <span className="font-semibold text-sm">{item.data.name}</span>
+                <span className="font-semibold text-sm">
+                  {item.data?.name || "Sequence"}
+                </span>
               </div>
               <div className="bg-gray-100 p-2 rounded text-xs font-mono">
-                {item.data.sequence}
+                {item.data?.sequence || "No sequence data"}
               </div>
             </div>
           </div>
@@ -464,14 +539,15 @@ const ProjectWorkspace: React.FC = () => {
               <div className="space-y-1 text-xs">
                 <div>
                   <span className="font-medium">Position:</span>{" "}
-                  {item.data.position}
+                  {item.data?.position || "Unknown"}
                 </div>
                 <div>
-                  <span className="font-medium">Change:</span> {item.data.ref} →{" "}
-                  {item.data.alt}
+                  <span className="font-medium">Change:</span>{" "}
+                  {item.data?.ref || "?"} → {item.data?.alt || "?"}
                 </div>
                 <div>
-                  <span className="font-medium">Gene:</span> {item.data.gene}
+                  <span className="font-medium">Gene:</span>{" "}
+                  {item.data?.gene || "Unknown"}
                 </div>
               </div>
             </div>
@@ -494,10 +570,12 @@ const ProjectWorkspace: React.FC = () => {
             <div className="p-4">
               <div className="flex items-center mb-2">
                 <ChartBarIcon className="h-5 w-5 text-purple-500 mr-2" />
-                <span className="font-semibold text-sm">{item.data.name}</span>
+                <span className="font-semibold text-sm">
+                  {item.data?.name || "Analysis"}
+                </span>
               </div>
               <div className="bg-purple-50 p-2 rounded text-xs">
-                Status: {item.data.status}
+                Status: {item.data?.status || "Unknown"}
               </div>
             </div>
           </div>
@@ -519,7 +597,9 @@ const ProjectWorkspace: React.FC = () => {
             <div className="p-4">
               <div className="flex items-center mb-2">
                 <ChartBarIcon className="h-5 w-5 text-orange-500 mr-2" />
-                <span className="font-semibold text-sm">{item.data.title}</span>
+                <span className="font-semibold text-sm">
+                  {item.data?.title || "Chart"}
+                </span>
               </div>
               <div className="bg-gray-100 h-16 rounded flex items-center justify-center text-xs text-gray-500">
                 Chart Placeholder
@@ -548,7 +628,7 @@ const ProjectWorkspace: React.FC = () => {
               </div>
               <textarea
                 className="w-full h-16 text-xs border-none resize-none focus:outline-none"
-                defaultValue={item.data.content}
+                defaultValue={item.data?.content || ""}
                 placeholder="Add your notes..."
               />
             </div>
@@ -571,41 +651,64 @@ const ProjectWorkspace: React.FC = () => {
             <div className="p-4 h-full overflow-auto">
               <div className="flex items-center mb-3">
                 <AcademicCapIcon className="h-5 w-5 text-indigo-500 mr-2" />
-                <span className="font-semibold text-sm">{item.data.name}</span>
+                <span className="font-semibold text-sm">
+                  {item.data?.name || "Mendelian Study"}
+                </span>
               </div>
-              {item.data.selectedTrait && (
-                <div className="space-y-2 text-xs">
-                  <div className="bg-indigo-50 p-2 rounded">
-                    <div className="font-medium">
-                      Trait: {item.data.selectedTrait}
-                    </div>
-                    <div>
-                      Parents: {item.data.parent1Genotype} ×{" "}
-                      {item.data.parent2Genotype}
-                    </div>
-                  </div>
-                  {item.data.simulationResults && (
-                    <div className="space-y-1">
-                      <div className="font-medium">Results:</div>
-                      {Object.entries(item.data.simulationResults).map(
-                        ([phenotype, prob]: [string, any]) => (
+              {item.data?.selectedTraits &&
+                item.data.selectedTraits.length > 0 && (
+                  <div className="space-y-2 text-xs">
+                    <div className="bg-indigo-50 p-2 rounded">
+                      <div className="font-medium">
+                        Traits ({item.data.selectedTraits.length}):
+                      </div>
+                      {item.data.selectedTraits.map(
+                        (trait: any, index: number) => (
                           <div
-                            key={phenotype}
-                            className="flex justify-between bg-slate-50 px-2 py-1 rounded"
+                            key={index}
+                            className="text-xs text-gray-600 mt-1"
                           >
-                            <span>{phenotype}</span>
-                            <span className="font-mono">
-                              {item.data.asPercentages
-                                ? `${prob.toFixed(1)}%`
-                                : prob.toFixed(3)}
-                            </span>
+                            {trait.name}: {trait.parent1Genotype} ×{" "}
+                            {trait.parent2Genotype}
                           </div>
                         )
                       )}
                     </div>
-                  )}
-                </div>
-              )}
+                    {item.data.simulationResults && (
+                      <div className="space-y-1">
+                        <div className="font-medium">Results:</div>
+                        {Object.entries(item.data.simulationResults).map(
+                          ([traitKey, results]: [string, any]) => (
+                            <div
+                              key={traitKey}
+                              className="bg-slate-50 p-2 rounded"
+                            >
+                              <div className="font-medium text-xs mb-1">
+                                {item.data.selectedTraits.find(
+                                  (t: any) => t.key === traitKey
+                                )?.name || traitKey}
+                              </div>
+                              {results &&
+                                Object.entries(results).map(
+                                  ([phenotype, prob]: [string, any]) => (
+                                    <div
+                                      key={phenotype}
+                                      className="flex justify-between text-xs"
+                                    >
+                                      <span>{phenotype}</span>
+                                      <span className="font-mono">
+                                        {(prob * 100).toFixed(1)}%
+                                      </span>
+                                    </div>
+                                  )
+                                )}
+                            </div>
+                          )
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
             </div>
           </div>
         );
@@ -629,9 +732,9 @@ const ProjectWorkspace: React.FC = () => {
                 <span className="font-semibold text-xs">Punnett Square</span>
               </div>
               <PunnettSquare
-                parent1Genotype={item.data.parent1Genotype}
-                parent2Genotype={item.data.parent2Genotype}
-                phenotypeMap={item.data.phenotypeMap}
+                parent1Genotype={item.data?.parent1Genotype || ""}
+                parent2Genotype={item.data?.parent2Genotype || ""}
+                phenotypeMap={item.data?.phenotypeMap || {}}
                 className="scale-75 origin-top-left"
               />
             </div>
@@ -799,9 +902,9 @@ const ProjectWorkspace: React.FC = () => {
               </h4>
               <div className="space-y-2">
                 <button
-                  onClick={() => setShowMendelianTool(!showMendelianTool)}
+                  onClick={() => setShowMendelianModal(true)}
                   className={`w-full flex items-center p-3 rounded-lg border transition-all ${
-                    showMendelianTool
+                    showMendelianModal
                       ? "border-indigo-500 bg-indigo-50"
                       : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                   }`}
@@ -843,8 +946,6 @@ const ProjectWorkspace: React.FC = () => {
                   ? `Click on the canvas to add a ${
                       toolboxItems.find((t) => t.id === selectedTool)?.label
                     }`
-                  : showMendelianTool
-                  ? "Configure your Mendelian study in the panel below, then add it to the canvas."
                   : "Select a tool from above, then click on the canvas to add it to your workspace."}
               </p>
             </div>
@@ -852,13 +953,6 @@ const ProjectWorkspace: React.FC = () => {
 
           {/* Canvas Area */}
           <div className="flex-1 flex flex-col">
-            {/* Mendelian Tool Panel */}
-            {showMendelianTool && (
-              <div className="bg-white border-b border-gray-200 p-4 max-h-96 overflow-y-auto">
-                <MendelianWorkspaceTool onAddToCanvas={handleAddToCanvas} />
-              </div>
-            )}
-
             {/* Canvas */}
             <div className="flex-1 relative overflow-auto">
               <div
@@ -870,9 +964,7 @@ const ProjectWorkspace: React.FC = () => {
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
                 style={{
-                  minHeight: showMendelianTool
-                    ? "calc(100vh - 600px)"
-                    : "calc(100vh - 200px)",
+                  minHeight: "calc(100vh - 200px)",
                 }}
               >
                 {/* Grid Background */}
@@ -938,9 +1030,25 @@ const ProjectWorkspace: React.FC = () => {
           <div className="w-64 bg-white border-l border-gray-200 p-4 flex-shrink-0 overflow-y-auto">
             <h3 className="font-semibold mb-4">Existing Projects</h3>
             <div className="space-y-3">
-              {existingProjects
-                .filter((project) => project.id.toString() !== projectId)
-                .map((project) => (
+              {projectsLoading ? (
+                // Loading state
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="flex items-start space-x-3 p-3">
+                        <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                        <div className="flex-1">
+                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                          <div className="h-3 bg-gray-200 rounded w-2/3 mb-1"></div>
+                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : existingProjects.length > 0 ? (
+                // Real projects
+                existingProjects.map((project) => (
                   <button
                     key={project.id}
                     onClick={() => navigate(`/portal/workspace/${project.id}`)}
@@ -958,6 +1066,12 @@ const ProjectWorkspace: React.FC = () => {
                         </h4>
                         <p className="text-xs text-gray-500 mt-1">
                           {project.type}
+                          {project.toolCount > 0 && (
+                            <span className="ml-1 text-gray-400">
+                              • {project.toolCount} tool
+                              {project.toolCount !== 1 ? "s" : ""}
+                            </span>
+                          )}
                         </p>
                         <p className="text-xs text-gray-400 mt-1">
                           {project.lastUpdated}
@@ -965,7 +1079,15 @@ const ProjectWorkspace: React.FC = () => {
                       </div>
                     </div>
                   </button>
-                ))}
+                ))
+              ) : (
+                // Empty state
+                <div className="text-center py-6">
+                  <div className="text-gray-400 text-sm">
+                    No other projects found
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="mt-6 pt-4 border-t border-gray-200">
@@ -979,6 +1101,14 @@ const ProjectWorkspace: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Mendelian Study Modal */}
+      {showMendelianModal && (
+        <MendelianStudyModal
+          onClose={() => setShowMendelianModal(false)}
+          onAddToCanvas={handleAddToCanvas}
+        />
+      )}
     </DashboardLayout>
   );
 };

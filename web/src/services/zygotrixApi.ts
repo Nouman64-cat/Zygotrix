@@ -1,4 +1,5 @@
 import type {
+  GenotypeResponse,
   MendelianSimulationResponse,
   PolygenicScoreResponse,
   TraitInfo,
@@ -100,6 +101,40 @@ export const simulateMendelianTrait = async (
   });
 
   return handleResponse<MendelianSimulationResponse>(response);
+};
+
+export const simulateMultipleMendelianTraits = async (
+  parent1Genotypes: Record<string, string>,
+  parent2Genotypes: Record<string, string>,
+  traitKeys: string[],
+  asPercentages: boolean
+): Promise<MendelianSimulationResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/mendelian/simulate`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      parent1_genotypes: parent1Genotypes,
+      parent2_genotypes: parent2Genotypes,
+      trait_filter: traitKeys,
+      as_percentages: asPercentages,
+    }),
+  });
+
+  return handleResponse<MendelianSimulationResponse>(response);
+};
+
+export const fetchTraitGenotypes = async (
+  traitKeys: string[]
+): Promise<GenotypeResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/mendelian/genotypes`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      trait_keys: traitKeys,
+    }),
+  });
+
+  return handleResponse<GenotypeResponse>(response);
 };
 
 export const fetchPolygenicScore = async (

@@ -14,6 +14,8 @@ from zygotrix_engine import Trait
 from . import services
 from .schemas import (
     AuthResponse,
+    GenotypeRequest,
+    GenotypeResponse,
     HealthResponse,
     MendelianProjectTool,
     MessageResponse,
@@ -237,13 +239,34 @@ def remove_trait(key: str) -> Response:
     tags=["Mendelian"],
 )
 def simulate_mendelian(request: MendelianSimulationRequest) -> MendelianSimulationResponse:
-    results, missing = services.simulate_mendelian_traits(
-        parent1=request.parent1_genotypes,
-        parent2=request.parent2_genotypes,
-        trait_filter=request.trait_filter,
-        as_percentages=request.as_percentages,
-    )
-    return MendelianSimulationResponse(results=results, missing_traits=missing)
+    try:
+        results, missing = services.simulate_mendelian_traits(
+            parent1=request.parent1_genotypes,
+            parent2=request.parent2_genotypes,
+            trait_filter=request.trait_filter,
+            as_percentages=request.as_percentages,
+            max_traits=5,
+        )
+        return MendelianSimulationResponse(results=results, missing_traits=missing)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post(
+    "/api/mendelian/genotypes",
+    response_model=GenotypeResponse,
+    tags=["Mendelian"],
+)
+def get_trait_genotypes(request: GenotypeRequest) -> GenotypeResponse:
+    """Get possible genotypes for given trait keys."""
+    try:
+        genotypes, missing = services.get_possible_genotypes_for_traits(
+            trait_keys=request.trait_keys,
+            max_traits=5,
+        )
+        return GenotypeResponse(genotypes=genotypes, missing_traits=missing)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post(

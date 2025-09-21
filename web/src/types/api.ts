@@ -37,6 +37,15 @@ export type MendelianSimulationResponse = {
   missing_traits: string[];
 };
 
+export type GenotypeRequest = {
+  trait_keys: string[];
+};
+
+export type GenotypeResponse = {
+  genotypes: Record<string, string[]>;
+  missing_traits: string[];
+};
+
 export type PolygenicScoreResponse = {
   expected_score: number;
 };

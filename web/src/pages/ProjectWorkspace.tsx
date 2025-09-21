@@ -1,6 +1,10 @@
-import React, { useState, useRef, useCallback } from "react";
+import React, { useState, useRef, useCallback, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
+import MendelianWorkspaceTool from "../components/MendelianWorkspaceTool";
+import PunnettSquare from "../components/PunnettSquare";
+import { useProject } from "../hooks/useProjects";
+import type { MendelianProjectTool } from "../types/api";
 import {
   ArrowLeftIcon,
   CubeIcon,
@@ -8,11 +12,21 @@ import {
   ChartBarIcon,
   DocumentTextIcon,
   Cog6ToothIcon,
+  AcademicCapIcon,
+  CloudArrowUpIcon,
+  ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
 
 interface WorkspaceItem {
   id: string;
-  type: "sequence" | "variant" | "analysis" | "chart" | "note";
+  type:
+    | "sequence"
+    | "variant"
+    | "analysis"
+    | "chart"
+    | "note"
+    | "mendelian-study"
+    | "punnett-square";
   position: { x: number; y: number };
   data: any;
   size: { width: number; height: number };
@@ -20,7 +34,14 @@ interface WorkspaceItem {
 
 interface ToolboxItem {
   id: string;
-  type: "sequence" | "variant" | "analysis" | "chart" | "note";
+  type:
+    | "sequence"
+    | "variant"
+    | "analysis"
+    | "chart"
+    | "note"
+    | "mendelian-study"
+    | "punnett-square";
   label: string;
   icon: React.ComponentType<any>;
   color: string;
@@ -31,19 +52,98 @@ const ProjectWorkspace: React.FC = () => {
   const navigate = useNavigate();
   const canvasRef = useRef<HTMLDivElement>(null);
 
+  // Use project hook to manage project state
+  const { project, loading, error, saveProgress, updateProject } = useProject(
+    projectId === "new" ? undefined : projectId
+  );
+
+  // Workspace state
   const [items, setItems] = useState<WorkspaceItem[]>([]);
   const [selectedTool, setSelectedTool] = useState<string | null>(null);
   const [draggedItem, setDraggedItem] = useState<string | null>(null);
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
+  const [showMendelianTool, setShowMendelianTool] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   // Editable project details
-  const [projectName, setProjectName] = useState(
-    projectId === "new" ? "New Project" : `Project ${projectId}`
-  );
-  const [projectDescription, setProjectDescription] =
-    useState("Genomics Workspace");
+  const [projectName, setProjectName] = useState("");
+  const [projectDescription, setProjectDescription] = useState("");
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
+
+  // Initialize project data when loaded
+  useEffect(() => {
+    if (project) {
+      setProjectName(project.name);
+      setProjectDescription(project.description || "Genomics Workspace");
+
+      // Convert project tools to workspace items
+      const workspaceItems: WorkspaceItem[] = project.tools.map((tool) => ({
+        id: tool.id,
+        type: tool.type as WorkspaceItem["type"],
+        position: tool.position || { x: 100, y: 100 },
+        data: {
+          name: tool.name,
+          trait_configurations: tool.trait_configurations,
+          simulation_results: tool.simulation_results,
+          notes: tool.notes,
+        },
+        size: { width: 400, height: 300 },
+      }));
+
+      setItems(workspaceItems);
+    }
+  }, [project]);
+
+  // Auto-save project progress
+  const handleSaveProgress = useCallback(async () => {
+    if (!project || saving) return;
+
+    try {
+      setSaving(true);
+
+      // Convert workspace items back to project tools
+      const projectTools: MendelianProjectTool[] = items
+        .filter((item) => item.type === "mendelian-study")
+        .map((item) => ({
+          id: item.id,
+          type: item.type,
+          name: item.data.name || "Mendelian Study",
+          trait_configurations: item.data.trait_configurations || {},
+          simulation_results: item.data.simulation_results,
+          notes: item.data.notes,
+          position: item.position,
+        }));
+
+      await saveProgress(projectTools);
+    } catch (err) {
+      console.error("Failed to save progress:", err);
+    } finally {
+      setSaving(false);
+    }
+  }, [project, items, saveProgress, saving]);
+
+  // Save project details when name or description changes
+  const handleUpdateProjectDetails = useCallback(async () => {
+    if (!project) return;
+
+    try {
+      await updateProject({
+        name: projectName,
+        description: projectDescription,
+      });
+    } catch (err) {
+      console.error("Failed to update project details:", err);
+    }
+  }, [project, projectName, projectDescription, updateProject]);
+
+  // Auto-save when items change
+  useEffect(() => {
+    if (project && items.length > 0) {
+      const timeoutId = setTimeout(handleSaveProgress, 1000);
+      return () => clearTimeout(timeoutId);
+    }
+  }, [items, project, handleSaveProgress]);
 
   const toolboxItems: ToolboxItem[] = [
     {
@@ -80,6 +180,20 @@ const ProjectWorkspace: React.FC = () => {
       label: "Note",
       icon: DocumentTextIcon,
       color: "bg-yellow-500",
+    },
+    {
+      id: "mendelian-study",
+      type: "mendelian-study",
+      label: "Mendelian Study",
+      icon: AcademicCapIcon,
+      color: "bg-indigo-500",
+    },
+    {
+      id: "punnett-square",
+      type: "punnett-square",
+      label: "Punnett Square",
+      icon: AcademicCapIcon,
+      color: "bg-pink-500",
     },
   ];
 
@@ -149,7 +263,7 @@ const ProjectWorkspace: React.FC = () => {
         id: `${selectedTool}-${Date.now()}`,
         type: selectedTool as any,
         position: { x, y },
-        size: { width: 200, height: 150 },
+        size: getDefaultSize(selectedTool),
         data: getDefaultData(selectedTool as any),
       };
 
@@ -158,6 +272,19 @@ const ProjectWorkspace: React.FC = () => {
     },
     [selectedTool]
   );
+
+  const handleAddToCanvas = useCallback((itemData: any) => {
+    const newItem: WorkspaceItem = {
+      id: `custom-${Date.now()}`,
+      type: itemData.type,
+      position: { x: 100, y: 100 },
+      size: getDefaultSize(itemData.type),
+      data: itemData.data,
+    };
+
+    setItems((prev) => [...prev, newItem]);
+    setShowMendelianTool(false);
+  }, []);
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, itemId: string) => {
@@ -203,6 +330,21 @@ const ProjectWorkspace: React.FC = () => {
     setDragOffset({ x: 0, y: 0 });
   }, []);
 
+  const getDefaultSize = (type: string) => {
+    switch (type) {
+      case "mendelian-study":
+        return { width: 400, height: 300 };
+      case "punnett-square":
+        return { width: 350, height: 400 };
+      case "chart":
+        return { width: 300, height: 200 };
+      case "analysis":
+        return { width: 250, height: 180 };
+      default:
+        return { width: 200, height: 150 };
+    }
+  };
+
   const getDefaultData = (type: string) => {
     switch (type) {
       case "sequence":
@@ -215,6 +357,22 @@ const ProjectWorkspace: React.FC = () => {
         return { title: "Data Visualization", type: "bar" };
       case "note":
         return { content: "Add your notes here..." };
+      case "mendelian-study":
+        return {
+          name: "New Mendelian Study",
+          selectedTrait: "",
+          parent1Genotype: "",
+          parent2Genotype: "",
+          simulationResults: null,
+          asPercentages: true,
+          notes: "",
+        };
+      case "punnett-square":
+        return {
+          parent1Genotype: "Aa",
+          parent2Genotype: "Aa",
+          phenotypeMap: { AA: "Dominant", Aa: "Dominant", aa: "Recessive" },
+        };
       default:
         return {};
     }
@@ -363,6 +521,89 @@ const ProjectWorkspace: React.FC = () => {
           </div>
         );
 
+      case "mendelian-study":
+        return (
+          <div
+            key={item.id}
+            className={`${commonClasses} border-l-4 border-l-indigo-500`}
+            style={{
+              left: item.position.x,
+              top: item.position.y,
+              width: item.size.width,
+              height: item.size.height,
+            }}
+            onMouseDown={(e) => handleMouseDown(e, item.id)}
+          >
+            <div className="p-4 h-full overflow-auto">
+              <div className="flex items-center mb-3">
+                <AcademicCapIcon className="h-5 w-5 text-indigo-500 mr-2" />
+                <span className="font-semibold text-sm">{item.data.name}</span>
+              </div>
+              {item.data.selectedTrait && (
+                <div className="space-y-2 text-xs">
+                  <div className="bg-indigo-50 p-2 rounded">
+                    <div className="font-medium">
+                      Trait: {item.data.selectedTrait}
+                    </div>
+                    <div>
+                      Parents: {item.data.parent1Genotype} ×{" "}
+                      {item.data.parent2Genotype}
+                    </div>
+                  </div>
+                  {item.data.simulationResults && (
+                    <div className="space-y-1">
+                      <div className="font-medium">Results:</div>
+                      {Object.entries(item.data.simulationResults).map(
+                        ([phenotype, prob]: [string, any]) => (
+                          <div
+                            key={phenotype}
+                            className="flex justify-between bg-slate-50 px-2 py-1 rounded"
+                          >
+                            <span>{phenotype}</span>
+                            <span className="font-mono">
+                              {item.data.asPercentages
+                                ? `${prob.toFixed(1)}%`
+                                : prob.toFixed(3)}
+                            </span>
+                          </div>
+                        )
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case "punnett-square":
+        return (
+          <div
+            key={item.id}
+            className={`${commonClasses} border-l-4 border-l-pink-500`}
+            style={{
+              left: item.position.x,
+              top: item.position.y,
+              width: item.size.width,
+              height: item.size.height,
+            }}
+            onMouseDown={(e) => handleMouseDown(e, item.id)}
+          >
+            <div className="p-2 h-full overflow-auto">
+              <div className="flex items-center mb-2">
+                <AcademicCapIcon className="h-4 w-4 text-pink-500 mr-2" />
+                <span className="font-semibold text-xs">Punnett Square</span>
+              </div>
+              <PunnettSquare
+                parent1Genotype={item.data.parent1Genotype}
+                parent2Genotype={item.data.parent2Genotype}
+                phenotypeMap={item.data.phenotypeMap}
+                className="scale-75 origin-top-left"
+              />
+            </div>
+          </div>
+        );
+
       default:
         return null;
     }
@@ -386,15 +627,17 @@ const ProjectWorkspace: React.FC = () => {
                   type="text"
                   value={projectName}
                   onChange={(e) => setProjectName(e.target.value)}
-                  onBlur={() => setIsEditingName(false)}
+                  onBlur={() => {
+                    setIsEditingName(false);
+                    handleUpdateProjectDetails();
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") setIsEditingName(false);
+                    if (e.key === "Enter") {
+                      setIsEditingName(false);
+                      handleUpdateProjectDetails();
+                    }
                     if (e.key === "Escape") {
-                      setProjectName(
-                        projectId === "new"
-                          ? "New Project"
-                          : `Project ${projectId}`
-                      );
+                      setProjectName(project?.name || "New Project");
                       setIsEditingName(false);
                     }
                   }}
@@ -415,11 +658,19 @@ const ProjectWorkspace: React.FC = () => {
                   type="text"
                   value={projectDescription}
                   onChange={(e) => setProjectDescription(e.target.value)}
-                  onBlur={() => setIsEditingDescription(false)}
+                  onBlur={() => {
+                    setIsEditingDescription(false);
+                    handleUpdateProjectDetails();
+                  }}
                   onKeyDown={(e) => {
-                    if (e.key === "Enter") setIsEditingDescription(false);
+                    if (e.key === "Enter") {
+                      setIsEditingDescription(false);
+                      handleUpdateProjectDetails();
+                    }
                     if (e.key === "Escape") {
-                      setProjectDescription("Genomics Workspace");
+                      setProjectDescription(
+                        project?.description || "Genomics Workspace"
+                      );
                       setIsEditingDescription(false);
                     }
                   }}
@@ -437,7 +688,31 @@ const ProjectWorkspace: React.FC = () => {
             </div>
           </div>
 
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-3">
+            {/* Save indicator */}
+            {saving ? (
+              <div className="flex items-center space-x-2 text-sm text-gray-500">
+                <CloudArrowUpIcon className="h-4 w-4 animate-pulse" />
+                <span>Saving...</span>
+              </div>
+            ) : project ? (
+              <div className="text-sm text-green-600 flex items-center space-x-1">
+                <CloudArrowUpIcon className="h-4 w-4" />
+                <span>Saved</span>
+              </div>
+            ) : null}
+
+            {/* Error indicator */}
+            {error && (
+              <div className="text-sm text-red-600 flex items-center space-x-1">
+                <ExclamationTriangleIcon className="h-4 w-4" />
+                <span>Error</span>
+              </div>
+            )}
+
+            {/* Loading indicator */}
+            {loading && <div className="text-sm text-gray-500">Loading...</div>}
+
             <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
               Save Project
             </button>
@@ -452,26 +727,73 @@ const ProjectWorkspace: React.FC = () => {
           <div className="w-64 bg-white border-r border-gray-200 p-4 flex-shrink-0 overflow-y-auto">
             <h3 className="font-semibold mb-4">Tools</h3>
             <div className="space-y-2">
-              {toolboxItems.map((tool) => (
+              {toolboxItems
+                .filter(
+                  (tool) =>
+                    !["mendelian-study", "punnett-square"].includes(tool.type)
+                )
+                .map((tool) => (
+                  <button
+                    key={tool.id}
+                    onClick={() =>
+                      setSelectedTool(selectedTool === tool.id ? null : tool.id)
+                    }
+                    className={`w-full flex items-center p-3 rounded-lg border transition-all ${
+                      selectedTool === tool.id
+                        ? "border-blue-500 bg-blue-50"
+                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    }`}
+                  >
+                    <div
+                      className={`w-8 h-8 ${tool.color} rounded flex items-center justify-center mr-3`}
+                    >
+                      <tool.icon className="h-4 w-4 text-white" />
+                    </div>
+                    <span className="text-sm font-medium">{tool.label}</span>
+                  </button>
+                ))}
+            </div>
+
+            {/* Mendelian Genetics Section */}
+            <div className="mt-6 border-t border-gray-200 pt-4">
+              <h4 className="font-semibold mb-3 text-indigo-700">
+                Mendelian Genetics
+              </h4>
+              <div className="space-y-2">
                 <button
-                  key={tool.id}
-                  onClick={() =>
-                    setSelectedTool(selectedTool === tool.id ? null : tool.id)
-                  }
+                  onClick={() => setShowMendelianTool(!showMendelianTool)}
                   className={`w-full flex items-center p-3 rounded-lg border transition-all ${
-                    selectedTool === tool.id
-                      ? "border-blue-500 bg-blue-50"
+                    showMendelianTool
+                      ? "border-indigo-500 bg-indigo-50"
                       : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
                   }`}
                 >
-                  <div
-                    className={`w-8 h-8 ${tool.color} rounded flex items-center justify-center mr-3`}
-                  >
-                    <tool.icon className="h-4 w-4 text-white" />
+                  <div className="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center mr-3">
+                    <AcademicCapIcon className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium">{tool.label}</span>
+                  <span className="text-sm font-medium">Inheritance Study</span>
                 </button>
-              ))}
+
+                <button
+                  onClick={() =>
+                    setSelectedTool(
+                      selectedTool === "punnett-square"
+                        ? null
+                        : "punnett-square"
+                    )
+                  }
+                  className={`w-full flex items-center p-3 rounded-lg border transition-all ${
+                    selectedTool === "punnett-square"
+                      ? "border-pink-500 bg-pink-50"
+                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                  }`}
+                >
+                  <div className="w-8 h-8 bg-pink-500 rounded flex items-center justify-center mr-3">
+                    <AcademicCapIcon className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="text-sm font-medium">Punnett Square</span>
+                </button>
+              </div>
             </div>
 
             <div className="mt-8">
@@ -483,78 +805,94 @@ const ProjectWorkspace: React.FC = () => {
                   ? `Click on the canvas to add a ${
                       toolboxItems.find((t) => t.id === selectedTool)?.label
                     }`
+                  : showMendelianTool
+                  ? "Configure your Mendelian study in the panel below, then add it to the canvas."
                   : "Select a tool from above, then click on the canvas to add it to your workspace."}
               </p>
             </div>
           </div>
 
-          {/* Canvas */}
-          <div className="flex-1 relative overflow-auto">
-            <div
-              ref={canvasRef}
-              className={`w-full min-h-full relative ${
-                selectedTool ? "cursor-crosshair" : "cursor-default"
-              }`}
-              onClick={handleCanvasClick}
-              onMouseMove={handleMouseMove}
-              onMouseUp={handleMouseUp}
-              style={{ minHeight: "calc(100vh - 200px)" }}
-            >
-              {/* Grid Background */}
+          {/* Canvas Area */}
+          <div className="flex-1 flex flex-col">
+            {/* Mendelian Tool Panel */}
+            {showMendelianTool && (
+              <div className="bg-white border-b border-gray-200 p-4 max-h-96 overflow-y-auto">
+                <MendelianWorkspaceTool onAddToCanvas={handleAddToCanvas} />
+              </div>
+            )}
+
+            {/* Canvas */}
+            <div className="flex-1 relative overflow-auto">
               <div
-                className="absolute inset-0 opacity-5"
+                ref={canvasRef}
+                className={`w-full min-h-full relative ${
+                  selectedTool ? "cursor-crosshair" : "cursor-default"
+                }`}
+                onClick={handleCanvasClick}
+                onMouseMove={handleMouseMove}
+                onMouseUp={handleMouseUp}
                 style={{
-                  backgroundImage: `
+                  minHeight: showMendelianTool
+                    ? "calc(100vh - 600px)"
+                    : "calc(100vh - 200px)",
+                }}
+              >
+                {/* Grid Background */}
+                <div
+                  className="absolute inset-0 opacity-5"
+                  style={{
+                    backgroundImage: `
                   linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px),
                   linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px)
                 `,
-                  backgroundSize: "20px 20px",
-                }}
-              />
+                    backgroundSize: "20px 20px",
+                  }}
+                />
 
-              {/* Workspace Items */}
-              {items.map(renderWorkspaceItem)}
+                {/* Workspace Items */}
+                {items.map(renderWorkspaceItem)}
 
-              {/* Empty State */}
-              {items.length === 0 && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center max-w-md">
-                    {/* Animated Icon Container */}
-                    <div className="relative mb-8">
-                      <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                        <CubeIcon className="h-12 w-12 text-blue-500" />
+                {/* Empty State */}
+                {items.length === 0 && (
+                  <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="text-center max-w-md">
+                      {/* Animated Icon Container */}
+                      <div className="relative mb-8">
+                        <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                          <CubeIcon className="h-12 w-12 text-blue-500" />
+                        </div>
+                        {/* Floating Icons */}
+                        <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
+                          <BeakerIcon className="h-4 w-4 text-green-500" />
+                        </div>
+                        <div
+                          className="absolute -bottom-2 -left-2 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center animate-bounce"
+                          style={{ animationDelay: "0.2s" }}
+                        >
+                          <ChartBarIcon className="h-4 w-4 text-orange-500" />
+                        </div>
+                        <div
+                          className="absolute top-1/2 -right-6 w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center animate-bounce"
+                          style={{ animationDelay: "0.4s" }}
+                        >
+                          <DocumentTextIcon className="h-3 w-3 text-purple-500" />
+                        </div>
                       </div>
-                      {/* Floating Icons */}
-                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
-                        <BeakerIcon className="h-4 w-4 text-green-500" />
-                      </div>
-                      <div
-                        className="absolute -bottom-2 -left-2 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center animate-bounce"
-                        style={{ animationDelay: "0.2s" }}
-                      >
-                        <ChartBarIcon className="h-4 w-4 text-orange-500" />
-                      </div>
-                      <div
-                        className="absolute top-1/2 -right-6 w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center animate-bounce"
-                        style={{ animationDelay: "0.4s" }}
-                      >
-                        <DocumentTextIcon className="h-3 w-3 text-purple-500" />
-                      </div>
+
+                      {/* Improved Content */}
+                      <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                        Start Building Your Project
+                      </h3>
+                      <p className="text-gray-600 mb-6 leading-relaxed">
+                        Create your genomics workspace by selecting tools from
+                        the left panel and placing them anywhere on this canvas.
+                      </p>
+
+                      {/* Quick Action Buttons */}
                     </div>
-
-                    {/* Improved Content */}
-                    <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                      Start Building Your Project
-                    </h3>
-                    <p className="text-gray-600 mb-6 leading-relaxed">
-                      Create your genomics workspace by selecting tools from the
-                      left panel and placing them anywhere on this canvas.
-                    </p>
-
-                    {/* Quick Action Buttons */}
                   </div>
-                </div>
-              )}
+                )}
+              </div>
             </div>
           </div>
 

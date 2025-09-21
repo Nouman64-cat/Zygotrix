@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime, timezone
+from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
@@ -14,12 +15,20 @@ from . import services
 from .schemas import (
     AuthResponse,
     HealthResponse,
+    MendelianProjectTool,
     MessageResponse,
     MendelianSimulationRequest,
     MendelianSimulationResponse,
     PolygenicScoreRequest,
     PolygenicScoreResponse,
     PortalStatusResponse,
+    Project,
+    ProjectCreateRequest,
+    ProjectListResponse,
+    ProjectResponse,
+    ProjectTemplate,
+    ProjectTemplateListResponse,
+    ProjectUpdateRequest,
     SignupInitiateRequest,
     SignupInitiateResponse,
     SignupResendRequest,
@@ -52,13 +61,20 @@ bearer_scheme = HTTPBearer(auto_error=True)
 
 
 def trait_to_info(key: str, trait: Trait) -> TraitInfo:
+    # Extract Mendelian trait metadata from trait.metadata
+    metadata_dict = dict(trait.metadata)
+    
     return TraitInfo(
         key=key,
         name=trait.name,
         description=trait.description or None,
         alleles=list(trait.alleles),
         phenotype_map=dict(trait.phenotype_map),
-        metadata=dict(trait.metadata),
+        metadata=metadata_dict,
+        inheritance_pattern=metadata_dict.get("inheritance_pattern"),
+        verification_status=metadata_dict.get("verification_status"),
+        gene_info=metadata_dict.get("gene_info"),
+        category=metadata_dict.get("category"),
     )
 
 
@@ -70,6 +86,7 @@ def get_current_user(
 
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])
+@app.head("/health", response_model=HealthResponse, tags=["System"])
 def health() -> HealthResponse:
     return HealthResponse()
 
@@ -139,23 +156,45 @@ def portal_status(current_user: UserProfile = Depends(get_current_user)) -> Port
 
 
 @app.get("/api/traits", response_model=TraitListResponse, tags=["Traits"])
-def list_traits() -> TraitListResponse:
-    traits = [trait_to_info(key, trait) for key, trait in services.get_trait_registry().items()]
+def list_traits(
+    inheritance_pattern: Optional[str] = None,
+    verification_status: Optional[str] = None,
+    category: Optional[str] = None,
+    gene_info: Optional[str] = None,
+) -> TraitListResponse:
+    traits = [
+        trait_to_info(key, trait) 
+        for key, trait in services.get_trait_registry(
+            inheritance_pattern=inheritance_pattern,
+            verification_status=verification_status,
+            category=category,
+            gene_info=gene_info,
+        ).items()
+    ]
     return TraitListResponse(traits=traits)
 
 
 @app.post("/api/traits", response_model=TraitMutationResponse, tags=["Traits"], status_code=201)
 def create_trait(payload: TraitMutationPayload) -> TraitMutationResponse:
-    trait = services.save_trait(
-        payload.key,
-        {
-            "name": payload.name,
-            "alleles": payload.alleles,
-            "phenotype_map": dict(payload.phenotype_map),
-            "description": payload.description or "",
-            "metadata": dict(payload.metadata),
-        },
-    )
+    trait_definition = {
+        "name": payload.name,
+        "alleles": payload.alleles,
+        "phenotype_map": dict(payload.phenotype_map),
+        "description": payload.description or "",
+        "metadata": dict(payload.metadata),
+    }
+    
+    # Add new Mendelian trait fields if provided
+    if payload.inheritance_pattern:
+        trait_definition["inheritance_pattern"] = payload.inheritance_pattern
+    if payload.verification_status:
+        trait_definition["verification_status"] = payload.verification_status
+    if payload.gene_info:
+        trait_definition["gene_info"] = payload.gene_info
+    if payload.category:
+        trait_definition["category"] = payload.category
+    
+    trait = services.save_trait(payload.key, trait_definition)
     return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
 
 
@@ -163,16 +202,26 @@ def create_trait(payload: TraitMutationPayload) -> TraitMutationResponse:
 def update_trait(key: str, payload: TraitMutationPayload) -> TraitMutationResponse:
     if key != payload.key:
         raise HTTPException(status_code=400, detail="Trait key mismatch between path and payload.")
-    trait = services.save_trait(
-        payload.key,
-        {
-            "name": payload.name,
-            "alleles": payload.alleles,
-            "phenotype_map": dict(payload.phenotype_map),
-            "description": payload.description or "",
-            "metadata": dict(payload.metadata),
-        },
-    )
+    
+    trait_definition = {
+        "name": payload.name,
+        "alleles": payload.alleles,
+        "phenotype_map": dict(payload.phenotype_map),
+        "description": payload.description or "",
+        "metadata": dict(payload.metadata),
+    }
+    
+    # Add new Mendelian trait fields if provided
+    if payload.inheritance_pattern:
+        trait_definition["inheritance_pattern"] = payload.inheritance_pattern
+    if payload.verification_status:
+        trait_definition["verification_status"] = payload.verification_status
+    if payload.gene_info:
+        trait_definition["gene_info"] = payload.gene_info
+    if payload.category:
+        trait_definition["category"] = payload.category
+    
+    trait = services.save_trait(payload.key, trait_definition)
     return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
 
 
@@ -209,6 +258,85 @@ def polygenic_score(request: PolygenicScoreRequest) -> PolygenicScoreResponse:
         weights=request.weights,
     )
     return PolygenicScoreResponse(expected_score=score)
+
+
+@app.get("/api/projects", response_model=ProjectListResponse, tags=["Projects"])
+def list_projects(
+    page: int = 1,
+    page_size: int = 20,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectListResponse:
+    projects, total = services.get_user_projects(
+        user_id=current_user.id,
+        page=page,
+        page_size=page_size,
+    )
+    return ProjectListResponse(
+        projects=projects,
+        total=total,
+        page=page,
+        page_size=page_size,
+    )
+
+
+@app.post("/api/projects", response_model=ProjectResponse, status_code=201, tags=["Projects"])
+def create_project(
+    payload: ProjectCreateRequest,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectResponse:
+    project = services.create_project(
+        name=payload.name,
+        description=payload.description,
+        project_type=payload.type,
+        owner_id=current_user.id,
+        tags=payload.tags,
+        from_template=payload.from_template,
+    )
+    return ProjectResponse(project=project)
+
+
+@app.get("/api/projects/{project_id}", response_model=ProjectResponse, tags=["Projects"])
+def get_project(
+    project_id: str,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectResponse:
+    project = services.get_project(project_id=project_id, user_id=current_user.id)
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return ProjectResponse(project=project)
+
+
+@app.put("/api/projects/{project_id}", response_model=ProjectResponse, tags=["Projects"])
+def update_project(
+    project_id: str,
+    payload: ProjectUpdateRequest,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectResponse:
+    project = services.update_project(
+        project_id=project_id,
+        user_id=current_user.id,
+        updates=payload.model_dump(exclude_unset=True),
+    )
+    if not project:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return ProjectResponse(project=project)
+
+
+@app.delete("/api/projects/{project_id}", status_code=204, tags=["Projects"])
+def delete_project(
+    project_id: str,
+    current_user: UserProfile = Depends(get_current_user),
+) -> Response:
+    success = services.delete_project(project_id=project_id, user_id=current_user.id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return Response(status_code=204)
+
+
+@app.get("/api/project-templates", response_model=ProjectTemplateListResponse, tags=["Projects"])
+def list_project_templates() -> ProjectTemplateListResponse:
+    templates = services.get_project_templates()
+    return ProjectTemplateListResponse(templates=templates)
 
 
 @app.get("/", include_in_schema=False)

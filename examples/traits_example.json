@@ -1,0 +1,262 @@
+{
+  "mendelian_inheritance_examples": {
+    "description": "Sample scenarios demonstrating various Mendelian inheritance patterns using the Zygotrix Mendelian traits collection",
+    "scenarios": [
+      {
+        "title": "Classic Dominant Inheritance - Dimples",
+        "trait": "dimples",
+        "inheritance_pattern": "autosomal_dominant",
+        "description": "Demonstrates how a single dominant allele produces the trait",
+        "crosses": [
+          {
+            "parents": {
+              "parent1": "DD",
+              "parent2": "dd"
+            },
+            "expected_offspring": {
+              "Dd": 1.0
+            },
+            "phenotype_ratio": {
+              "Dimples": 1.0
+            },
+            "interpretation": "All offspring will have dimples (100%)"
+          },
+          {
+            "parents": {
+              "parent1": "Dd",
+              "parent2": "Dd"
+            },
+            "expected_offspring": {
+              "DD": 0.25,
+              "Dd": 0.5,
+              "dd": 0.25
+            },
+            "phenotype_ratio": {
+              "Dimples": 0.75,
+              "No dimples": 0.25
+            },
+            "interpretation": "Classic 3:1 phenotypic ratio for dominant trait"
+          }
+        ]
+      },
+      {
+        "title": "Verified Single-Gene Trait - Red Hair",
+        "trait": "red_hair",
+        "inheritance_pattern": "autosomal_recessive",
+        "gene": "MC1R",
+        "description": "Real-world example of a verified recessive trait controlled by the MC1R gene",
+        "crosses": [
+          {
+            "parents": {
+              "parent1": "RR",
+              "parent2": "rr"
+            },
+            "expected_offspring": {
+              "Rr": 1.0
+            },
+            "phenotype_ratio": {
+              "Non-red": 1.0
+            },
+            "interpretation": "All offspring are carriers but don't express red hair"
+          },
+          {
+            "parents": {
+              "parent1": "Rr",
+              "parent2": "Rr"
+            },
+            "expected_offspring": {
+              "RR": 0.25,
+              "Rr": 0.5,
+              "rr": 0.25
+            },
+            "phenotype_ratio": {
+              "Non-red": 0.75,
+              "Red": 0.25
+            },
+            "interpretation": "Two carrier parents have 25% chance of red-haired child"
+          }
+        ]
+      },
+      {
+        "title": "Sensory Trait - PTC Tasting",
+        "trait": "ptc_tasting",
+        "inheritance_pattern": "autosomal_dominant",
+        "gene": "TAS2R38",
+        "description": "Ability to taste phenylthiocarbamide (PTC) - a well-studied taste genetics example",
+        "crosses": [
+          {
+            "parents": {
+              "parent1": "TT",
+              "parent2": "tt"
+            },
+            "expected_offspring": {
+              "Tt": 1.0
+            },
+            "phenotype_ratio": {
+              "Can taste PTC": 1.0
+            },
+            "interpretation": "All offspring can taste PTC despite one non-taster parent"
+          },
+          {
+            "parents": {
+              "parent1": "Tt",
+              "parent2": "tt"
+            },
+            "expected_offspring": {
+              "Tt": 0.5,
+              "tt": 0.5
+            },
+            "phenotype_ratio": {
+              "Can taste PTC": 0.5,
+              "Cannot taste PTC": 0.5
+            },
+            "interpretation": "50% of offspring will be non-tasters"
+          }
+        ]
+      },
+      {
+        "title": "Physical Trait - Hitchhiker's Thumb",
+        "trait": "hitchhikers_thumb",
+        "inheritance_pattern": "autosomal_recessive",
+        "description": "Thumb hyperextension ability showing recessive inheritance pattern",
+        "crosses": [
+          {
+            "parents": {
+              "parent1": "HH",
+              "parent2": "hh"
+            },
+            "expected_offspring": {
+              "Hh": 1.0
+            },
+            "phenotype_ratio": {
+              "Straight thumb": 1.0
+            },
+            "interpretation": "All offspring have straight thumbs but carry the recessive allele"
+          },
+          {
+            "parents": {
+              "parent1": "Hh",
+              "parent2": "Hh"
+            },
+            "expected_offspring": {
+              "HH": 0.25,
+              "Hh": 0.5,
+              "hh": 0.25
+            },
+            "phenotype_ratio": {
+              "Straight thumb": 0.75,
+              "Hitchhiker's thumb": 0.25
+            },
+            "interpretation": "Classic recessive inheritance - only homozygous recessive shows trait"
+          }
+        ]
+      },
+      {
+        "title": "Behavioral Trait - Hand Clasping",
+        "trait": "hand_clasping",
+        "inheritance_pattern": "autosomal",
+        "description": "Complex behavioral trait with variable expression patterns",
+        "crosses": [
+          {
+            "parents": {
+              "parent1": "LL",
+              "parent2": "RR"
+            },
+            "expected_offspring": {
+              "LR": 1.0
+            },
+            "phenotype_ratio": {
+              "Variable": 1.0
+            },
+            "interpretation": "Heterozygotes show variable hand clasping preference"
+          },
+          {
+            "parents": {
+              "parent1": "LR",
+              "parent2": "LR"
+            },
+            "expected_offspring": {
+              "LL": 0.25,
+              "LR": 0.5,
+              "RR": 0.25
+            },
+            "phenotype_ratio": {
+              "Left hand on top": 0.25,
+              "Variable": 0.5,
+              "Right hand on top": 0.25
+            },
+            "interpretation": "Demonstrates complex inheritance patterns in behavioral traits"
+          }
+        ]
+      },
+      {
+        "title": "Medical Condition - Albinism",
+        "trait": "albinism",
+        "inheritance_pattern": "autosomal_recessive",
+        "genes": ["TYR", "OCA2"],
+        "description": "Genetic condition affecting melanin production",
+        "crosses": [
+          {
+            "parents": {
+              "parent1": "AA",
+              "parent2": "aa"
+            },
+            "expected_offspring": {
+              "Aa": 1.0
+            },
+            "phenotype_ratio": {
+              "Normal pigmentation": 1.0
+            },
+            "interpretation": "All offspring have normal pigmentation but are carriers"
+          },
+          {
+            "parents": {
+              "parent1": "Aa",
+              "parent2": "Aa"
+            },
+            "expected_offspring": {
+              "AA": 0.25,
+              "Aa": 0.5,
+              "aa": 0.25
+            },
+            "phenotype_ratio": {
+              "Normal pigmentation": 0.75,
+              "Albinism": 0.25
+            },
+            "interpretation": "Two carrier parents have 25% risk of child with albinism"
+          }
+        ]
+      }
+    ],
+    "educational_notes": {
+      "dominant_inheritance": "In autosomal dominant traits, only one copy of the dominant allele is needed to express the trait. Examples: dimples, freckles, cleft chin.",
+      "recessive_inheritance": "In autosomal recessive traits, two copies of the recessive allele are needed to express the trait. Examples: red hair, albinism, hitchhiker's thumb.",
+      "verified_vs_simplified": "Verified traits have strong scientific evidence for single-gene control (like MC1R for red hair), while simplified traits are textbook models that may involve multiple genes in reality.",
+      "gene_information": "Some traits include specific gene information (MC1R, TAS2R38) showing the molecular basis of inheritance."
+    },
+    "api_usage_examples": {
+      "filter_dominant_traits": {
+        "endpoint": "/api/traits?inheritance_pattern=autosomal_dominant",
+        "description": "Get all traits with autosomal dominant inheritance"
+      },
+      "filter_verified_traits": {
+        "endpoint": "/api/traits?verification_status=verified",
+        "description": "Get only scientifically verified single-gene traits"
+      },
+      "filter_physical_traits": {
+        "endpoint": "/api/traits?category=physical_traits",
+        "description": "Get traits affecting physical appearance"
+      },
+      "simulate_red_hair": {
+        "endpoint": "/api/mendelian/simulate",
+        "payload": {
+          "parent1": { "red_hair": "Rr" },
+          "parent2": { "red_hair": "Rr" },
+          "traits": ["red_hair"],
+          "as_percentages": true
+        },
+        "description": "Simulate red hair inheritance between two carriers"
+      }
+    }
+  }
+}

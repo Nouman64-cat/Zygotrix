@@ -17,6 +17,10 @@ class TraitInfo(BaseModel):
     alleles: List[str] = Field(default_factory=list)
     phenotype_map: Mapping[str, str] = Field(default_factory=dict)
     metadata: Mapping[str, str] = Field(default_factory=dict)
+    inheritance_pattern: Optional[str] = None
+    verification_status: Optional[str] = None
+    gene_info: Optional[str] = None
+    category: Optional[str] = None
 
 
 class TraitListResponse(BaseModel):
@@ -34,6 +38,10 @@ class TraitMutationPayload(BaseModel):
     phenotype_map: Mapping[str, str]
     description: Optional[str] = ""
     metadata: Mapping[str, str] = Field(default_factory=dict)
+    inheritance_pattern: Optional[str] = None
+    verification_status: Optional[str] = None
+    gene_info: Optional[str] = None
+    category: Optional[str] = None
 
     @field_validator("key")
     @classmethod
@@ -192,3 +200,83 @@ class PortalStatusResponse(BaseModel):
 
     message: str
     accessed_at: datetime
+
+
+class MendelianProjectTool(BaseModel):
+    """Configuration for a Mendelian genetics tool within a project."""
+    
+    id: str
+    type: str = "mendelian"
+    name: str
+    trait_configurations: Dict[str, Dict[str, str]] = Field(default_factory=dict)
+    simulation_results: Optional[Dict[str, Dict[str, float]]] = None
+    notes: Optional[str] = None
+    position: Optional[Dict[str, float]] = None
+
+
+class Project(BaseModel):
+    """A user project containing genetics studies and tools."""
+    
+    id: Optional[str] = None
+    name: str
+    description: Optional[str] = None
+    type: str = "genetics"
+    owner_id: str
+    tools: List[MendelianProjectTool] = Field(default_factory=list)
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
+    tags: List[str] = Field(default_factory=list)
+    is_template: bool = False
+    template_category: Optional[str] = None
+
+
+class ProjectCreateRequest(BaseModel):
+    """Request payload for creating a new project."""
+    
+    name: str
+    description: Optional[str] = None
+    type: str = "genetics"
+    tags: List[str] = Field(default_factory=list)
+    from_template: Optional[str] = None
+
+
+class ProjectUpdateRequest(BaseModel):
+    """Request payload for updating a project."""
+    
+    name: Optional[str] = None
+    description: Optional[str] = None
+    tags: Optional[List[str]] = None
+    tools: Optional[List[MendelianProjectTool]] = None
+
+
+class ProjectResponse(BaseModel):
+    """Response payload for project operations."""
+    
+    project: Project
+
+
+class ProjectListResponse(BaseModel):
+    """Response payload for listing projects."""
+    
+    projects: List[Project]
+    total: int
+    page: int
+    page_size: int
+
+
+class ProjectTemplate(BaseModel):
+    """A template project that users can instantiate."""
+    
+    id: str
+    name: str
+    description: str
+    category: str
+    preview_image: Optional[str] = None
+    tools: List[MendelianProjectTool]
+    tags: List[str] = Field(default_factory=list)
+
+
+class ProjectTemplateListResponse(BaseModel):
+    """Response payload for listing project templates."""
+    
+    templates: List[ProjectTemplate]

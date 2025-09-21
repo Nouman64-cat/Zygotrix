@@ -17,6 +17,10 @@ type FormState = {
   alleles: string;
   phenotypeRules: string;
   metadataPairs: string;
+  inheritancePattern: string;
+  verificationStatus: string;
+  geneInfo: string;
+  category: string;
 };
 
 type StatusMessage = {
@@ -31,6 +35,10 @@ const emptyForm: FormState = {
   alleles: "",
   phenotypeRules: "",
   metadataPairs: "",
+  inheritancePattern: "",
+  verificationStatus: "",
+  geneInfo: "",
+  category: "",
 };
 
 const toFormState = (trait: TraitInfo): FormState => ({
@@ -46,6 +54,10 @@ const toFormState = (trait: TraitInfo): FormState => ({
         .map(([k, v]) => `${k}=${v}`)
         .join("\n")
     : "",
+  inheritancePattern: trait.inheritance_pattern ?? "",
+  verificationStatus: trait.verification_status ?? "",
+  geneInfo: trait.gene_info ?? "",
+  category: trait.category ?? "",
 });
 
 const parsePairs = (value: string): Record<string, string> => {
@@ -71,8 +83,16 @@ const parseAlleles = (value: string): string[] =>
     .map((allele) => allele.trim())
     .filter(Boolean);
 
-const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits, loading, error, reload }) => {
-  const traitMap = useMemo(() => Object.fromEntries(traits.map((trait) => [trait.key, trait])), [traits]);
+const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({
+  traits,
+  loading,
+  error,
+  reload,
+}) => {
+  const traitMap = useMemo(
+    () => Object.fromEntries(traits.map((trait) => [trait.key, trait])),
+    [traits]
+  );
   const [selectedKey, setSelectedKey] = useState<string>("");
   const [form, setForm] = useState<FormState>(emptyForm);
   const [status, setStatus] = useState<StatusMessage | null>(null);
@@ -94,9 +114,15 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
     setStatus(null);
   };
 
-  const handleChange = (field: keyof FormState) => (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-    setForm((current) => ({ ...current, [field]: event.target.value }));
-  };
+  const handleChange =
+    (field: keyof FormState) =>
+    (
+      event: React.ChangeEvent<
+        HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement
+      >
+    ) => {
+      setForm((current) => ({ ...current, [field]: event.target.value }));
+    };
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -106,7 +132,9 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
     try {
       const alleles = parseAlleles(form.alleles);
       if (alleles.length === 0) {
-        throw new Error("Please provide at least one allele (single-character symbols).");
+        throw new Error(
+          "Please provide at least one allele (single-character symbols)."
+        );
       }
       if (alleles.some((allele) => allele.length !== 1)) {
         throw new Error("Alleles must be single-character symbols.");
@@ -114,7 +142,9 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
 
       const phenotypeMap = parsePairs(form.phenotypeRules);
       if (Object.keys(phenotypeMap).length === 0) {
-        throw new Error("Please provide at least one phenotype rule (e.g. BB=Brown).");
+        throw new Error(
+          "Please provide at least one phenotype rule (e.g. BB=Brown)."
+        );
       }
 
       const metadata = parsePairs(form.metadataPairs);
@@ -126,6 +156,10 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
         phenotype_map: phenotypeMap,
         description: form.description.trim() || undefined,
         metadata: Object.keys(metadata).length ? metadata : undefined,
+        inheritance_pattern: form.inheritancePattern.trim() || undefined,
+        verification_status: form.verificationStatus.trim() || undefined,
+        gene_info: form.geneInfo.trim() || undefined,
+        category: form.category.trim() || undefined,
       };
 
       if (!payload.key) {
@@ -147,7 +181,10 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
 
       reload();
     } catch (err) {
-      setStatus({ tone: "error", text: err instanceof Error ? err.message : "Unable to save trait." });
+      setStatus({
+        tone: "error",
+        text: err instanceof Error ? err.message : "Unable to save trait.",
+      });
     } finally {
       setProcessing(false);
     }
@@ -157,7 +194,11 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
     if (!selectedKey) {
       return;
     }
-    if (!window.confirm(`Delete trait '${selectedKey}'? This action cannot be undone.`)) {
+    if (
+      !window.confirm(
+        `Delete trait '${selectedKey}'? This action cannot be undone.`
+      )
+    ) {
       return;
     }
 
@@ -169,7 +210,10 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
       resetToNew();
       reload();
     } catch (err) {
-      setStatus({ tone: "error", text: err instanceof Error ? err.message : "Unable to delete trait." });
+      setStatus({
+        tone: "error",
+        text: err instanceof Error ? err.message : "Unable to delete trait.",
+      });
     } finally {
       setProcessing(false);
     }
@@ -187,7 +231,9 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
                 <span className="inline-block rounded-full bg-[#1E3A8A]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#1E3A8A]">
                   Trait catalogue
                 </span>
-                <h2 className="mt-4 text-2xl font-semibold text-[#1E3A8A]">Manage registry entries</h2>
+                <h2 className="mt-4 text-2xl font-semibold text-[#1E3A8A]">
+                  Manage registry entries
+                </h2>
               </div>
               <button
                 type="button"
@@ -198,7 +244,9 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
               </button>
             </div>
             <div className="mt-6 space-y-4">
-              {loading && <p className="text-sm text-slate-500">Loading traits…</p>}
+              {loading && (
+                <p className="text-sm text-slate-500">Loading traitsï¿½</p>
+              )}
               {error && (
                 <div className="rounded-2xl border border-red-400/40 bg-red-500/10 px-4 py-3 text-sm text-red-700">
                   {error}
@@ -218,12 +266,22 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
                   >
                     <div className="flex items-center justify-between gap-4">
                       <div>
-                        <p className="text-lg font-semibold text-[#1E3A8A]">{trait.name}</p>
-                        <p className="text-xs uppercase tracking-[0.3em] text-[#4B5563]">{trait.key}</p>
+                        <p className="text-lg font-semibold text-[#1E3A8A]">
+                          {trait.name}
+                        </p>
+                        <p className="text-xs uppercase tracking-[0.3em] text-[#4B5563]">
+                          {trait.key}
+                        </p>
                       </div>
-                      <p className="text-xs text-slate-500">Alleles: {trait.alleles.join(", ")}</p>
+                      <p className="text-xs text-slate-500">
+                        Alleles: {trait.alleles.join(", ")}
+                      </p>
                     </div>
-                    {trait.description && <p className="mt-2 text-sm text-slate-600">{trait.description}</p>}
+                    {trait.description && (
+                      <p className="mt-2 text-sm text-slate-600">
+                        {trait.description}
+                      </p>
+                    )}
                   </button>
                 ))}
                 {!loading && !error && traits.length === 0 && (
@@ -240,7 +298,10 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
               <form className="space-y-6" onSubmit={handleSubmit}>
                 <div className="grid gap-4 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-[#1E3A8A]" htmlFor="trait-key">
+                    <label
+                      className="text-sm font-semibold text-[#1E3A8A]"
+                      htmlFor="trait-key"
+                    >
                       Trait key
                     </label>
                     <input
@@ -253,7 +314,10 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-sm font-semibold text-[#1E3A8A]" htmlFor="trait-name">
+                    <label
+                      className="text-sm font-semibold text-[#1E3A8A]"
+                      htmlFor="trait-name"
+                    >
                       Name
                     </label>
                     <input
@@ -267,7 +331,10 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#1E3A8A]" htmlFor="trait-description">
+                  <label
+                    className="text-sm font-semibold text-[#1E3A8A]"
+                    htmlFor="trait-description"
+                  >
                     Description
                   </label>
                   <textarea
@@ -281,7 +348,10 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#1E3A8A]" htmlFor="trait-alleles">
+                  <label
+                    className="text-sm font-semibold text-[#1E3A8A]"
+                    htmlFor="trait-alleles"
+                  >
                     Alleles (comma or space separated)
                   </label>
                   <input
@@ -294,7 +364,10 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#1E3A8A]" htmlFor="trait-phenotypes">
+                  <label
+                    className="text-sm font-semibold text-[#1E3A8A]"
+                    htmlFor="trait-phenotypes"
+                  >
                     Phenotype rules (one per line, genotype=phenotype)
                   </label>
                   <textarea
@@ -308,7 +381,10 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold text-[#1E3A8A]" htmlFor="trait-metadata">
+                  <label
+                    className="text-sm font-semibold text-[#1E3A8A]"
+                    htmlFor="trait-metadata"
+                  >
                     Metadata (optional, one per line key=value)
                   </label>
                   <textarea
@@ -319,6 +395,96 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
                     placeholder={"source=lab\nnotes=demo"}
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-[#1E3A8A] focus:outline-none"
                   />
+                </div>
+
+                {/* Mendelian Trait Fields */}
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label
+                      className="text-sm font-semibold text-[#1E3A8A]"
+                      htmlFor="inheritance-pattern"
+                    >
+                      Inheritance Pattern
+                    </label>
+                    <select
+                      id="inheritance-pattern"
+                      value={form.inheritancePattern}
+                      onChange={handleChange("inheritancePattern")}
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-[#1E3A8A] focus:outline-none"
+                    >
+                      <option value="">Select pattern...</option>
+                      <option value="autosomal_dominant">
+                        Autosomal Dominant
+                      </option>
+                      <option value="autosomal_recessive">
+                        Autosomal Recessive
+                      </option>
+                      <option value="autosomal">Autosomal</option>
+                      <option value="x_linked">X-linked</option>
+                      <option value="y_linked">Y-linked</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      className="text-sm font-semibold text-[#1E3A8A]"
+                      htmlFor="verification-status"
+                    >
+                      Verification Status
+                    </label>
+                    <select
+                      id="verification-status"
+                      value={form.verificationStatus}
+                      onChange={handleChange("verificationStatus")}
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-[#1E3A8A] focus:outline-none"
+                    >
+                      <option value="">Select status...</option>
+                      <option value="verified">Verified</option>
+                      <option value="simplified">Simplified</option>
+                    </select>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <div className="space-y-2">
+                    <label
+                      className="text-sm font-semibold text-[#1E3A8A]"
+                      htmlFor="gene-info"
+                    >
+                      Gene Information
+                    </label>
+                    <input
+                      id="gene-info"
+                      type="text"
+                      value={form.geneInfo}
+                      onChange={handleChange("geneInfo")}
+                      placeholder="e.g., MC1R, TAS2R38"
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-[#1E3A8A] focus:outline-none"
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      className="text-sm font-semibold text-[#1E3A8A]"
+                      htmlFor="category"
+                    >
+                      Category
+                    </label>
+                    <select
+                      id="category"
+                      value={form.category}
+                      onChange={handleChange("category")}
+                      className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm focus:border-[#1E3A8A] focus:outline-none"
+                    >
+                      <option value="">Select category...</option>
+                      <option value="physical_traits">Physical Traits</option>
+                      <option value="sensory_traits">Sensory Traits</option>
+                      <option value="behavioral_traits">
+                        Behavioral Traits
+                      </option>
+                      <option value="disease_traits">Disease Traits</option>
+                    </select>
+                  </div>
                 </div>
 
                 {status && (
@@ -339,7 +505,11 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
                     disabled={processing}
                     className="inline-flex items-center justify-center rounded-full bg-[#1E3A8A] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#1E3A8A]/30 transition hover:bg-[#162b63] disabled:cursor-not-allowed disabled:bg-slate-300"
                   >
-                    {processing ? "Saving…" : selectedTraitExists ? "Update trait" : "Create trait"}
+                    {processing
+                      ? "Savingï¿½"
+                      : selectedTraitExists
+                      ? "Update trait"
+                      : "Create trait"}
                   </button>
                   {selectedTraitExists && (
                     <button
@@ -362,5 +532,3 @@ const TraitManagementSection: React.FC<TraitManagementSectionProps> = ({ traits,
 };
 
 export default TraitManagementSection;
-
-

@@ -7,7 +7,8 @@ import type {
   TraitMutationResponse,
 } from "../types/api";
 
-export const API_BASE_URL = import.meta.env.VITE_ZYGOTRIX_API ?? "http://127.0.0.1:8000";
+export const API_BASE_URL =
+  import.meta.env.VITE_ZYGOTRIX_API ?? "http://127.0.0.1:8000";
 
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
@@ -17,13 +18,34 @@ const handleResponse = async <T>(response: Response): Promise<T> => {
   return (await response.json()) as T;
 };
 
-export const fetchTraits = async (signal?: AbortSignal): Promise<TraitInfo[]> => {
-  const response = await fetch(`${API_BASE_URL}/api/traits`, { signal });
+export const fetchTraits = async (
+  signal?: AbortSignal,
+  filters?: {
+    inheritance_pattern?: string;
+    verification_status?: string;
+    category?: string;
+    gene_info?: string;
+  }
+): Promise<TraitInfo[]> => {
+  const url = new URL(`${API_BASE_URL}/api/traits`);
+
+  if (filters) {
+    if (filters.inheritance_pattern)
+      url.searchParams.set("inheritance_pattern", filters.inheritance_pattern);
+    if (filters.verification_status)
+      url.searchParams.set("verification_status", filters.verification_status);
+    if (filters.category) url.searchParams.set("category", filters.category);
+    if (filters.gene_info) url.searchParams.set("gene_info", filters.gene_info);
+  }
+
+  const response = await fetch(url.toString(), { signal });
   const payload = await handleResponse<TraitListResponse>(response);
   return payload.traits;
 };
 
-export const createTrait = async (payload: TraitMutationPayload): Promise<TraitMutationResponse> => {
+export const createTrait = async (
+  payload: TraitMutationPayload
+): Promise<TraitMutationResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/traits`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -34,20 +56,26 @@ export const createTrait = async (payload: TraitMutationPayload): Promise<TraitM
 
 export const updateTrait = async (
   key: string,
-  payload: TraitMutationPayload,
+  payload: TraitMutationPayload
 ): Promise<TraitMutationResponse> => {
-  const response = await fetch(`${API_BASE_URL}/api/traits/${encodeURIComponent(key)}`, {
-    method: "PUT",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload),
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/api/traits/${encodeURIComponent(key)}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    }
+  );
   return handleResponse<TraitMutationResponse>(response);
 };
 
 export const deleteTrait = async (key: string): Promise<void> => {
-  const response = await fetch(`${API_BASE_URL}/api/traits/${encodeURIComponent(key)}`, {
-    method: "DELETE",
-  });
+  const response = await fetch(
+    `${API_BASE_URL}/api/traits/${encodeURIComponent(key)}`,
+    {
+      method: "DELETE",
+    }
+  );
   if (!response.ok) {
     const body = await response.text();
     throw new Error(body || `Delete failed with status ${response.status}`);
@@ -58,7 +86,7 @@ export const simulateMendelianTrait = async (
   traitKey: string,
   parent1: string,
   parent2: string,
-  asPercentages: boolean,
+  asPercentages: boolean
 ): Promise<MendelianSimulationResponse> => {
   const response = await fetch(`${API_BASE_URL}/api/mendelian/simulate`, {
     method: "POST",
@@ -74,7 +102,9 @@ export const simulateMendelianTrait = async (
   return handleResponse<MendelianSimulationResponse>(response);
 };
 
-export const fetchPolygenicScore = async (signal?: AbortSignal): Promise<PolygenicScoreResponse> => {
+export const fetchPolygenicScore = async (
+  signal?: AbortSignal
+): Promise<PolygenicScoreResponse> => {
   const body = {
     parent1_genotype: { rs1: 1.0, rs2: 0.0 },
     parent2_genotype: { rs1: 2.0, rs2: 0.0 },

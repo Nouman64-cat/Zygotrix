@@ -1,6 +1,13 @@
 # Zygotrix
 
-Zygotrix is an educational genetics simulation platform that helps students and curious learners explore how parental traits and genetic information can shape possible offspring characteristics. The project is designed as a safe, accessible learning companion�not a diagnostic or medical decision-making tool.
+Zygotrix ## Core Capabilities
+
+- **19 Mendelian Traits**: Explore classic single-gene inheritance patterns with scientifically verified traits (red hair, PTC tasting) and educational models (eye color, dimples, hair texture).
+- **Advanced Trait Filtering**: Filter traits by inheritance pattern (dominant/recessive), verification status (verified/simplified), gene information, and categories.
+- **Trait-Based Inputs**: Capture parental traits such as eye color, hair color, blood type, height, and more.
+- **Genetic Data Integration**: Optionally import VCF files from services like 23andMe or AncestryDNA to enrich the simulation.
+- **Probabilistic Outputs**: Generate likelihood distributions for potential offspring traits (e.g., "60% chance blue eyes, 40% chance green eyes" or "expected height range: 165–173 cm").
+- **Educational Reports**: Export summaries that explain the underlying genetics concepts and highlight learning takeaways.educational genetics simulation platform that helps students and curious learners explore how parental traits and genetic information can shape possible offspring characteristics. The project is designed as a safe, accessible learning companion�not a diagnostic or medical decision-making tool.
 
 ## Why Zygotrix?
 
@@ -53,7 +60,7 @@ This separation keeps the genetics engine clean and reusable, while the service 
 
 ## Technology Stack
 
-- **Backend**: Python (pandas, numpy, scikit-learn, biopython) for data processing and modeling; FastAPI for service orchestration.
+- **Backend**: Python (pandas, numpy, scikit-learn, biopython) for data processing and modeling; FastAPI for service orchestration; MongoDB for trait persistence.
 - **Visualization**: matplotlib, plotly, or D3.js (if delivered through a web UI).
 - **Frontend (Planned)**: React/Next.js for web, React Native/Expo for mobile.
 - **Machine Learning (Optional)**: GANs/autoencoders for phenotype visualization experiments.

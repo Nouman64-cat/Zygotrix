@@ -9,7 +9,7 @@ import { useTraits } from "../hooks/useTraits";
 const DEFAULT_BUNDLED_TRAITS = 3;
 
 const PlaygroundPage: React.FC = () => {
-  const { traits, loading, error, reload } = useTraits();
+  const { traits, loading, error, reload, applyFilters } = useTraits();
   const {
     score,
     loading: scoreLoading,
@@ -141,6 +141,7 @@ const PlaygroundPage: React.FC = () => {
           loading={loading}
           error={error}
           reload={reload}
+          applyFilters={applyFilters}
         />
       </section>
 

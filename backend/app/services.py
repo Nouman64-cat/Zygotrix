@@ -6,7 +6,7 @@ import secrets
 import string
 from datetime import datetime, timedelta, timezone
 from functools import lru_cache
-from typing import Any, Dict, Iterable, List, Mapping, Optional, Tuple
+from typing import TYPE_CHECKING, Any, Dict, Iterable, List, Mapping, Optional, Tuple
 
 import httpx
 import jwt
@@ -28,6 +28,9 @@ from zygotrix_engine import (
 
 from .config import get_settings
 
+if TYPE_CHECKING:
+    from .schemas import Project, ProjectTemplate
+
 DEFAULT_TRAITS: Dict[str, Trait] = {
     "eye_color": EYE_COLOR,
     "blood_type": BLOOD_TYPE,
@@ -47,12 +50,42 @@ def _ensure_utc(dt: object) -> Optional[datetime]:
 
 
 def _build_trait_from_document(document: Mapping[str, object]) -> Trait:
+    # Extract base metadata and enhance with new fields for backward compatibility
+    base_metadata: Dict[str, str] = {}
+    
+    # Handle existing metadata dictionary
+    metadata_obj = document.get("metadata", {})
+    if isinstance(metadata_obj, dict):
+        base_metadata.update({str(k): str(v) for k, v in metadata_obj.items()})
+    
+    # Add new Mendelian trait metadata fields if they exist
+    if "inheritance_pattern" in document and document["inheritance_pattern"]:
+        base_metadata["inheritance_pattern"] = str(document["inheritance_pattern"])
+    if "verification_status" in document and document["verification_status"]:
+        base_metadata["verification_status"] = str(document["verification_status"])
+    if "gene_info" in document and document["gene_info"]:
+        base_metadata["gene_info"] = str(document["gene_info"])
+    if "category" in document and document["category"]:
+        base_metadata["category"] = str(document["category"])
+    
+    # Handle alleles list
+    alleles_obj = document.get("alleles", [])
+    alleles_list = []
+    if isinstance(alleles_obj, (list, tuple)):
+        alleles_list = [str(allele) for allele in alleles_obj]
+    
+    # Handle phenotype_map dictionary
+    phenotype_obj = document.get("phenotype_map", {})
+    phenotype_dict: Dict[str, str] = {}
+    if isinstance(phenotype_obj, dict):
+        phenotype_dict = {str(k): str(v) for k, v in phenotype_obj.items()}
+    
     return Trait(
         name=str(document.get("name", "")),
-        alleles=tuple(str(allele) for allele in document.get("alleles", [])),
-        phenotype_map=dict(document.get("phenotype_map", {})),
+        alleles=tuple(alleles_list),
+        phenotype_map=phenotype_dict,
         description=str(document.get("description", "")),
-        metadata=dict(document.get("metadata", {})),
+        metadata=base_metadata,
     )
 
 
@@ -168,6 +201,28 @@ def get_pending_signups_collection(required: bool = False) -> Optional[Collectio
     collection = database[settings.mongodb_pending_signups_collection]
     try:
         collection.create_index("email", unique=True)
+        collection.create_index("expires_at", expireAfterSeconds=0)
+    except PyMongoError:
+        pass
+    return collection
+
+
+def get_projects_collection(required: bool = False) -> Optional[Collection]:
+    client = get_mongo_client()
+    if client is None:
+        if required:
+            raise HTTPException(
+                status_code=503, detail="MongoDB connection is not configured."
+            )
+        return None
+
+    settings = get_settings()
+    database = client[settings.mongodb_db_name]
+    collection = database["projects"]
+    try:
+        collection.create_index("owner_id")
+        collection.create_index("created_at")
+        collection.create_index("is_template")
     except PyMongoError:
         pass
     return collection
@@ -195,9 +250,69 @@ def fetch_persistent_traits() -> Dict[str, Trait]:
     return persistent
 
 
-def get_trait_registry() -> Dict[str, Trait]:
+def fetch_filtered_traits(
+    inheritance_pattern: Optional[str] = None,
+    verification_status: Optional[str] = None,
+    category: Optional[str] = None,
+    gene_info: Optional[str] = None,
+) -> Dict[str, Trait]:
+    """Fetch traits from MongoDB with optional filtering by metadata fields."""
+    
+    collection = get_traits_collection()
+    if collection is None:
+        return {}
+
+    # Build MongoDB query filter
+    query_filter = {}
+    if inheritance_pattern:
+        query_filter["inheritance_pattern"] = inheritance_pattern
+    if verification_status:
+        query_filter["verification_status"] = verification_status
+    if category:
+        query_filter["category"] = category
+    if gene_info:
+        query_filter["gene_info"] = gene_info
+
+    filtered_traits: Dict[str, Trait] = {}
+    try:
+        documents = collection.find(query_filter)
+        for document in documents:
+            key = str(document.get("key"))
+            if not key:
+                continue
+            try:
+                filtered_traits[key] = _build_trait_from_document(document)
+            except Exception:
+                continue
+    except PyMongoError:
+        pass
+
+    return filtered_traits
+
+
+def get_trait_registry(
+    inheritance_pattern: Optional[str] = None,
+    verification_status: Optional[str] = None,
+    category: Optional[str] = None,
+    gene_info: Optional[str] = None,
+) -> Dict[str, Trait]:
+    """Get trait registry with optional filtering."""
+    
+    # Always include default traits (unless filtered out by criteria)
     registry = dict(DEFAULT_TRAITS)
-    registry.update(fetch_persistent_traits())
+    
+    # If no filters are applied, get all persistent traits
+    if not any([inheritance_pattern, verification_status, category, gene_info]):
+        registry.update(fetch_persistent_traits())
+    else:
+        # Apply filters to persistent traits only
+        registry.update(fetch_filtered_traits(
+            inheritance_pattern=inheritance_pattern,
+            verification_status=verification_status,
+            category=category,
+            gene_info=gene_info
+        ))
+    
     return registry
 
 
@@ -281,21 +396,33 @@ def calculate_polygenic_score(
 
 def save_trait(key: str, definition: Mapping[str, object]) -> Trait:
     collection = get_traits_collection(required=True)
+    assert collection is not None, "Traits collection is required"
     trait = _build_trait_from_document({"key": key, **definition})
+
+    # Prepare the document for MongoDB with enhanced fields
+    document_update = {
+        "key": key,
+        "name": trait.name,
+        "alleles": list(trait.alleles),
+        "phenotype_map": dict(trait.phenotype_map),
+        "description": trait.description,
+        "metadata": dict(trait.metadata),
+    }
+    
+    # Add new Mendelian trait fields if they exist in the definition
+    if "inheritance_pattern" in definition:
+        document_update["inheritance_pattern"] = str(definition["inheritance_pattern"])
+    if "verification_status" in definition:
+        document_update["verification_status"] = str(definition["verification_status"])
+    if "gene_info" in definition:
+        document_update["gene_info"] = str(definition["gene_info"]) if definition["gene_info"] else None
+    if "category" in definition:
+        document_update["category"] = str(definition["category"])
 
     try:
         collection.update_one(
             {"key": key},
-            {
-                "$set": {
-                    "key": key,
-                    "name": trait.name,
-                    "alleles": list(trait.alleles),
-                    "phenotype_map": dict(trait.phenotype_map),
-                    "description": trait.description,
-                    "metadata": dict(trait.metadata),
-                }
-            },
+            {"$set": document_update},
             upsert=True,
         )
     except PyMongoError as exc:
@@ -308,6 +435,7 @@ def save_trait(key: str, definition: Mapping[str, object]) -> Trait:
 
 def delete_trait(key: str) -> None:
     collection = get_traits_collection(required=True)
+    assert collection is not None, "Traits collection is required"
     try:
         result = collection.delete_one({"key": key})
     except PyMongoError as exc:
@@ -323,6 +451,7 @@ def _insert_user_document(
     email: str, password_hash: str, full_name: Optional[str]
 ) -> Dict[str, Any]:
     collection = get_users_collection(required=True)
+    assert collection is not None, "Users collection is required"
     normalized_email = _normalize_email(email)
     name = _clean_full_name(full_name)
     document = {
@@ -477,6 +606,7 @@ def request_signup_otp(email: str, password: str, full_name: Optional[str]) -> d
         raise HTTPException(status_code=400, detail="Email is already registered.")
 
     collection = get_pending_signups_collection(required=True)
+    assert collection is not None, "Pending signups collection is required"
     normalized_email = _normalize_email(email)
     now = datetime.now(timezone.utc)
     expires_at = now + timedelta(minutes=get_settings().signup_otp_ttl_minutes)
@@ -510,6 +640,7 @@ def request_signup_otp(email: str, password: str, full_name: Optional[str]) -> d
 
 def verify_signup_otp(email: str, otp: str) -> Dict[str, Any]:
     collection = get_pending_signups_collection(required=True)
+    assert collection is not None, "Pending signups collection is required"
     normalized_email = _normalize_email(email)
     pending = collection.find_one({"email": normalized_email})
     if not pending:
@@ -550,6 +681,7 @@ def verify_signup_otp(email: str, otp: str) -> Dict[str, Any]:
 
 def resend_signup_otp(email: str) -> datetime:
     collection = get_pending_signups_collection(required=True)
+    assert collection is not None, "Pending signups collection is required"
     normalized_email = _normalize_email(email)
     pending = collection.find_one({"email": normalized_email})
     if not pending:
@@ -584,6 +716,7 @@ def resend_signup_otp(email: str) -> datetime:
 
 def authenticate_user(email: str, password: str) -> Dict[str, Any]:
     collection = get_users_collection(required=True)
+    assert collection is not None, "Users collection is required"
     user = collection.find_one({"email": _normalize_email(email)})
     if not user or not verify_password(password, str(user.get("password_hash", ""))):
         raise HTTPException(status_code=401, detail="Invalid email or password.")
@@ -592,6 +725,7 @@ def authenticate_user(email: str, password: str) -> Dict[str, Any]:
 
 def get_user_by_id(user_id: str) -> Dict[str, Any]:
     collection = get_users_collection(required=True)
+    assert collection is not None, "Users collection is required"
     try:
         object_id = ObjectId(user_id)
     except Exception as exc:
@@ -656,3 +790,257 @@ def build_auth_response(user: Dict[str, Any]) -> Dict[str, Any]:
         "token_type": "bearer",
         "user": user,
     }
+
+
+def _serialize_project(document: Mapping[str, Any]) -> "Project":
+    """Convert MongoDB project document to Project model."""
+    from .schemas import MendelianProjectTool, Project
+    
+    tools_data = document.get("tools", [])
+    tools = []
+    if isinstance(tools_data, list):
+        for tool_data in tools_data:
+            if isinstance(tool_data, dict):
+                tools.append(MendelianProjectTool(**tool_data))
+    
+    created_at = document.get("created_at")
+    updated_at = document.get("updated_at")
+    
+    return Project(
+        id=str(document.get("_id")),
+        name=str(document.get("name", "")),
+        description=document.get("description"),
+        type=str(document.get("type", "genetics")),
+        owner_id=str(document.get("owner_id", "")),
+        tools=tools,
+        created_at=_ensure_utc(created_at),
+        updated_at=_ensure_utc(updated_at),
+        tags=document.get("tags", []),
+        is_template=bool(document.get("is_template", False)),
+        template_category=document.get("template_category"),
+    )
+
+
+def get_user_projects(user_id: str, page: int = 1, page_size: int = 20) -> Tuple[List["Project"], int]:
+    """Get user's projects with pagination."""
+    collection = get_projects_collection(required=True)
+    assert collection is not None, "Projects collection is required"
+    
+    skip = (page - 1) * page_size
+    
+    query = {"owner_id": user_id, "is_template": {"$ne": True}}
+    total = collection.count_documents(query)
+    
+    cursor = collection.find(query).sort("updated_at", -1).skip(skip).limit(page_size)
+    projects = [_serialize_project(doc) for doc in cursor]
+    
+    return projects, total
+
+
+def create_project(
+    name: str,
+    description: Optional[str],
+    project_type: str,
+    owner_id: str,
+    tags: List[str],
+    from_template: Optional[str] = None,
+) -> "Project":
+    """Create a new project."""
+    collection = get_projects_collection(required=True)
+    assert collection is not None, "Projects collection is required"
+    
+    now = datetime.now(timezone.utc)
+    
+    project_doc = {
+        "name": name,
+        "description": description,
+        "type": project_type,
+        "owner_id": owner_id,
+        "tools": [],
+        "created_at": now,
+        "updated_at": now,
+        "tags": tags,
+        "is_template": False,
+        "template_category": None,
+    }
+    
+    # If creating from template, copy tools
+    if from_template:
+        template_doc = collection.find_one({"_id": ObjectId(from_template), "is_template": True})
+        if template_doc:
+            project_doc["tools"] = template_doc.get("tools", [])
+    
+    result = collection.insert_one(project_doc)
+    project_doc["_id"] = result.inserted_id
+    
+    return _serialize_project(project_doc)
+
+
+def get_project(project_id: str, user_id: str) -> Optional["Project"]:
+    """Get a specific project by ID."""
+    collection = get_projects_collection(required=True)
+    assert collection is not None, "Projects collection is required"
+    
+    try:
+        object_id = ObjectId(project_id)
+    except Exception:
+        return None
+    
+    project_doc = collection.find_one({
+        "_id": object_id,
+        "owner_id": user_id,
+        "is_template": {"$ne": True}
+    })
+    
+    if not project_doc:
+        return None
+    
+    return _serialize_project(project_doc)
+
+
+def update_project(
+    project_id: str,
+    user_id: str,
+    updates: Dict[str, Any],
+) -> Optional["Project"]:
+    """Update a project."""
+    collection = get_projects_collection(required=True)
+    assert collection is not None, "Projects collection is required"
+    
+    try:
+        object_id = ObjectId(project_id)
+    except Exception:
+        return None
+    
+    # Convert tools from Pydantic models to dicts if present
+    if "tools" in updates and updates["tools"]:
+        tools_data = []
+        for tool in updates["tools"]:
+            if hasattr(tool, "model_dump"):
+                tools_data.append(tool.model_dump())
+            elif isinstance(tool, dict):
+                tools_data.append(tool)
+        updates["tools"] = tools_data
+    
+    updates["updated_at"] = datetime.now(timezone.utc)
+    
+    result = collection.find_one_and_update(
+        {
+            "_id": object_id,
+            "owner_id": user_id,
+            "is_template": {"$ne": True}
+        },
+        {"$set": updates},
+        return_document=True
+    )
+    
+    if not result:
+        return None
+    
+    return _serialize_project(result)
+
+
+def delete_project(project_id: str, user_id: str) -> bool:
+    """Delete a project."""
+    collection = get_projects_collection(required=True)
+    assert collection is not None, "Projects collection is required"
+    
+    try:
+        object_id = ObjectId(project_id)
+    except Exception:
+        return False
+    
+    result = collection.delete_one({
+        "_id": object_id,
+        "owner_id": user_id,
+        "is_template": {"$ne": True}
+    })
+    
+    return result.deleted_count > 0
+
+
+def get_project_templates() -> List["ProjectTemplate"]:
+    """Get all available project templates."""
+    from .schemas import ProjectTemplate, MendelianProjectTool
+    
+    # For now, return hardcoded templates
+    # In production, these could be stored in the database
+    templates = [
+        ProjectTemplate(
+            id="mendelian_basic",
+            name="Basic Mendelian Inheritance",
+            description="Explore simple dominant and recessive traits like eye color and blood type",
+            category="mendelian",
+            tools=[
+                MendelianProjectTool(
+                    id="eye_color_study",
+                    name="Eye Color Study",
+                    trait_configurations={
+                        "eye_color": {
+                            "parent1": "Bb",
+                            "parent2": "bb"
+                        }
+                    },
+                    position={"x": 100, "y": 100}
+                ),
+                MendelianProjectTool(
+                    id="blood_type_study",
+                    name="Blood Type Study", 
+                    trait_configurations={
+                        "blood_type": {
+                            "parent1": "AB",
+                            "parent2": "OO"
+                        }
+                    },
+                    position={"x": 400, "y": 100}
+                )
+            ],
+            tags=["beginner", "mendelian", "genetics"]
+        ),
+        ProjectTemplate(
+            id="mendelian_advanced",
+            name="Advanced Mendelian Patterns",
+            description="Study complex inheritance patterns including codominance and incomplete dominance",
+            category="mendelian",
+            tools=[
+                MendelianProjectTool(
+                    id="blood_type_codominance",
+                    name="Blood Type Codominance",
+                    trait_configurations={
+                        "blood_type": {
+                            "parent1": "AB",
+                            "parent2": "AB"
+                        }
+                    },
+                    position={"x": 150, "y": 150}
+                )
+            ],
+            tags=["advanced", "mendelian", "codominance"]
+        ),
+        ProjectTemplate(
+            id="multiple_traits",
+            name="Multiple Trait Analysis",
+            description="Analyze inheritance of multiple independent traits simultaneously",
+            category="mendelian",
+            tools=[
+                MendelianProjectTool(
+                    id="multi_trait_study",
+                    name="Eye Color + Hair Color",
+                    trait_configurations={
+                        "eye_color": {
+                            "parent1": "Bb",
+                            "parent2": "bb"
+                        },
+                        "hair_color": {
+                            "parent1": "Dd",
+                            "parent2": "dd"
+                        }
+                    },
+                    position={"x": 200, "y": 200}
+                )
+            ],
+            tags=["multiple-traits", "mendelian", "complex"]
+        )
+    ]
+    
+    return templates

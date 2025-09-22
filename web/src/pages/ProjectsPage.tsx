@@ -123,7 +123,7 @@ const ProjectsPage: React.FC = () => {
           </div>
           <button
             onClick={() => setShowTemplates(!showTemplates)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
           >
             {showTemplates ? "Hide Templates" : "Browse Templates"}
           </button>
@@ -250,7 +250,7 @@ const ProjectsPage: React.FC = () => {
                 {/* Delete button */}
                 <button
                   onClick={(e) => openDeleteModal(project, e)}
-                  className="absolute top-2 right-2 w-6 h-6 rounded-full bg-white border border-gray-200 hover:border-red-300 hover:bg-red-50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-20"
+                  className="absolute top-2 right-2 w-6 h-6 rounded-full cursor-pointer bg-white border border-gray-200 hover:border-red-300 hover:bg-red-50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-20"
                   title="Delete project"
                 >
                   <TrashIcon className="h-3 w-3 text-gray-500 hover:text-red-600 transition-colors" />

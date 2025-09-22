@@ -754,7 +754,7 @@ const ProjectWorkspace: React.FC = () => {
           <div className="flex items-center space-x-4">
             <button
               onClick={() => navigate("/portal/projects")}
-              className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+              className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
             >
               <ArrowLeftIcon className="h-5 w-5" />
             </button>
@@ -779,11 +779,11 @@ const ProjectWorkspace: React.FC = () => {
                     }
                   }}
                   autoFocus
-                  className="text-xl font-semibold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 py-0.5"
+                  className="text-xl  font-semibold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 py-0.5"
                 />
               ) : (
                 <h1
-                  className="text-xl font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 transition-colors"
+                  className="text-xl cursor-text font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 transition-colors"
                   onClick={() => setIsEditingName(true)}
                 >
                   {projectName}
@@ -816,7 +816,7 @@ const ProjectWorkspace: React.FC = () => {
                 />
               ) : (
                 <p
-                  className="text-gray-500 text-sm cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 transition-colors"
+                  className="text-gray-500 cursor-text text-sm cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 transition-colors"
                   onClick={() => setIsEditingDescription(true)}
                 >
                   {projectDescription}
@@ -853,11 +853,11 @@ const ProjectWorkspace: React.FC = () => {
             <button
               onClick={handleManualSave}
               disabled={saving || !project}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {saving ? "Saving..." : "Save Project"}
             </button>
-            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+            <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer">
               <Cog6ToothIcon className="h-5 w-5" />
             </button>
           </div>
@@ -879,7 +879,7 @@ const ProjectWorkspace: React.FC = () => {
                     onClick={() =>
                       setSelectedTool(selectedTool === tool.id ? null : tool.id)
                     }
-                    className={`w-full flex items-center p-3 rounded-lg border transition-all ${
+                    className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
                       selectedTool === tool.id
                         ? "border-blue-500 bg-blue-50"
                         : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -903,7 +903,7 @@ const ProjectWorkspace: React.FC = () => {
               <div className="space-y-2">
                 <button
                   onClick={() => setShowMendelianModal(true)}
-                  className={`w-full flex items-center p-3 rounded-lg border transition-all ${
+                  className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
                     showMendelianModal
                       ? "border-indigo-500 bg-indigo-50"
                       : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -923,7 +923,7 @@ const ProjectWorkspace: React.FC = () => {
                         : "punnett-square"
                     )
                   }
-                  className={`w-full flex items-center p-3 rounded-lg border transition-all ${
+                  className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
                     selectedTool === "punnett-square"
                       ? "border-pink-500 bg-pink-50"
                       : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
@@ -1029,12 +1029,12 @@ const ProjectWorkspace: React.FC = () => {
           {/* Right Sidebar - Existing Projects */}
           <div className="w-64 bg-white border-l border-gray-200 p-4 flex-shrink-0 overflow-y-auto">
             <h3 className="font-semibold mb-4">Existing Projects</h3>
-            <div className="space-y-3">
+            <div className="space-y-3 ">
               {projectsLoading ? (
                 // Loading state
-                <div className="space-y-3">
+                <div className="space-y-3 ">
                   {[...Array(3)].map((_, i) => (
-                    <div key={i} className="animate-pulse">
+                    <div key={i} className="animate-pulse ">
                       <div className="flex items-start space-x-3 p-3">
                         <div className="w-8 h-8 bg-gray-200 rounded"></div>
                         <div className="flex-1">
@@ -1052,7 +1052,7 @@ const ProjectWorkspace: React.FC = () => {
                   <button
                     key={project.id}
                     onClick={() => navigate(`/portal/workspace/${project.id}`)}
-                    className="relative w-full text-left p-3 rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group overflow-hidden"
+                    className="relative w-full text-left p-3 cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group overflow-hidden"
                   >
                     {/* Mini notebook binding holes */}
                     <div className="absolute left-2 top-3 bottom-3 w-1">
@@ -1123,7 +1123,7 @@ const ProjectWorkspace: React.FC = () => {
             <div className="mt-6 pt-4 border-t border-gray-200">
               <button
                 onClick={() => navigate("/portal/projects")}
-                className="w-full text-left p-2 text-sm text-blue-600 hover:text-blue-700 font-medium"
+                className="w-full text-left p-2 text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
               >
                 View All Projects →
               </button>

@@ -15,6 +15,8 @@ import { simulateMultipleMendelianTraits } from "../services/zygotrixApi";
 interface MendelianStudyModalProps {
   onClose: () => void;
   onAddToCanvas: (item: any) => void;
+  initialData?: any;
+  isEditing?: boolean;
 }
 
 interface SelectedTrait {
@@ -37,16 +39,33 @@ interface MendelianProject {
 const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
   onClose,
   onAddToCanvas,
+  initialData,
+  isEditing = false,
 }) => {
   const { traits, loading, error } = useTraits();
   const [showResultsModal, setShowResultsModal] = useState(false);
-  const [project, setProject] = useState<MendelianProject>({
-    id: `mendelian-${Date.now()}`,
-    name: "New Mendelian Study",
-    selectedTraits: [],
-    simulationResults: null,
-    asPercentages: true,
-    notes: "",
+  const [project, setProject] = useState<MendelianProject>(() => {
+    if (initialData && isEditing) {
+      return {
+        id: initialData.id || `mendelian-${Date.now()}`,
+        name: initialData.name || "Mendelian Study",
+        selectedTraits: initialData.selectedTraits || [],
+        simulationResults: initialData.simulationResults || null,
+        asPercentages:
+          initialData.asPercentages !== undefined
+            ? initialData.asPercentages
+            : true,
+        notes: initialData.notes || "",
+      };
+    }
+    return {
+      id: `mendelian-${Date.now()}`,
+      name: "New Mendelian Study",
+      selectedTraits: [],
+      simulationResults: null,
+      asPercentages: true,
+      notes: "",
+    };
   });
 
   const [searchTerm, setSearchTerm] = useState("");
@@ -181,18 +200,33 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
     onClose();
   }, [project, onAddToCanvas, onClose]);
 
-  // Reset form when modal mounts
+  // Initialize or reset form when modal mounts or when editing props change
   useEffect(() => {
-    setProject({
-      id: `mendelian-${Date.now()}`,
-      name: "New Mendelian Study",
-      selectedTraits: [],
-      simulationResults: null,
-      asPercentages: true,
-      notes: "",
-    });
+    if (initialData && isEditing) {
+      setProject((prev) => ({
+        id: initialData.id || prev.id,
+        name: initialData.name || prev.name,
+        selectedTraits: initialData.selectedTraits || [],
+        simulationResults: initialData.simulationResults || null,
+        asPercentages:
+          initialData.asPercentages !== undefined
+            ? initialData.asPercentages
+            : true,
+        notes: initialData.notes || "",
+      }));
+    } else {
+      setProject({
+        id: `mendelian-${Date.now()}`,
+        name: "New Mendelian Study",
+        selectedTraits: [],
+        simulationResults: null,
+        asPercentages: true,
+        notes: "",
+      });
+    }
+
     setSimulationError(null);
-  }, []);
+  }, [initialData, isEditing]);
 
   return (
     <>

@@ -52,12 +52,12 @@ def _ensure_utc(dt: object) -> Optional[datetime]:
 def _build_trait_from_document(document: Mapping[str, object]) -> Trait:
     # Extract base metadata and enhance with new fields for backward compatibility
     base_metadata: Dict[str, str] = {}
-    
+
     # Handle existing metadata dictionary
     metadata_obj = document.get("metadata", {})
     if isinstance(metadata_obj, dict):
         base_metadata.update({str(k): str(v) for k, v in metadata_obj.items()})
-    
+
     # Add new Mendelian trait metadata fields if they exist
     if "inheritance_pattern" in document and document["inheritance_pattern"]:
         base_metadata["inheritance_pattern"] = str(document["inheritance_pattern"])
@@ -67,19 +67,19 @@ def _build_trait_from_document(document: Mapping[str, object]) -> Trait:
         base_metadata["gene_info"] = str(document["gene_info"])
     if "category" in document and document["category"]:
         base_metadata["category"] = str(document["category"])
-    
+
     # Handle alleles list
     alleles_obj = document.get("alleles", [])
     alleles_list = []
     if isinstance(alleles_obj, (list, tuple)):
         alleles_list = [str(allele) for allele in alleles_obj]
-    
+
     # Handle phenotype_map dictionary
     phenotype_obj = document.get("phenotype_map", {})
     phenotype_dict: Dict[str, str] = {}
     if isinstance(phenotype_obj, dict):
         phenotype_dict = {str(k): str(v) for k, v in phenotype_obj.items()}
-    
+
     return Trait(
         name=str(document.get("name", "")),
         alleles=tuple(alleles_list),
@@ -266,7 +266,7 @@ def fetch_filtered_traits(
     gene_info: Optional[str] = None,
 ) -> Dict[str, Trait]:
     """Fetch traits from MongoDB with optional filtering by metadata fields."""
-    
+
     collection = get_traits_collection()
     if collection is None:
         return {}
@@ -306,22 +306,24 @@ def get_trait_registry(
     gene_info: Optional[str] = None,
 ) -> Dict[str, Trait]:
     """Get trait registry with optional filtering."""
-    
+
     # Always include default traits (unless filtered out by criteria)
     registry = dict(DEFAULT_TRAITS)
-    
+
     # If no filters are applied, get all persistent traits
     if not any([inheritance_pattern, verification_status, category, gene_info]):
         registry.update(fetch_persistent_traits())
     else:
         # Apply filters to persistent traits only
-        registry.update(fetch_filtered_traits(
-            inheritance_pattern=inheritance_pattern,
-            verification_status=verification_status,
-            category=category,
-            gene_info=gene_info
-        ))
-    
+        registry.update(
+            fetch_filtered_traits(
+                inheritance_pattern=inheritance_pattern,
+                verification_status=verification_status,
+                category=category,
+                gene_info=gene_info,
+            )
+        )
+
     return registry
 
 
@@ -369,28 +371,28 @@ def simulate_mendelian_traits(
     max_traits: int = 5,
 ) -> Tuple[Dict[str, Dict[str, float]], List[str]]:
     """Run Mendelian simulations and optionally filter trait outputs.
-    
+
     Args:
         parent1: Parent 1 genotypes mapping
-        parent2: Parent 2 genotypes mapping  
+        parent2: Parent 2 genotypes mapping
         trait_filter: Optional filter for specific traits
         as_percentages: Return results as percentages
         max_traits: Maximum number of traits allowed (default: 5)
-        
+
     Returns:
         Tuple of (results, missing_traits)
-        
+
     Raises:
         ValueError: If more than max_traits are provided
     """
 
     registry, missing = filter_traits(trait_filter)
-    
+
     # Validate trait count
     trait_keys = set(parent1.keys()) & set(parent2.keys()) & set(registry.keys())
     if len(trait_keys) > max_traits:
         raise ValueError(f"Maximum {max_traits} traits allowed, got {len(trait_keys)}")
-    
+
     simulator = Simulator(trait_registry=registry)
 
     parent1_filtered = {key: parent1[key] for key in parent1 if key in registry}
@@ -415,26 +417,26 @@ def get_possible_genotypes_for_traits(
     max_traits: int = 5,
 ) -> Tuple[Dict[str, List[str]], List[str]]:
     """Get all possible genotypes for given trait keys.
-    
+
     Args:
         trait_keys: List of trait keys to get genotypes for
         max_traits: Maximum number of traits allowed (default: 5)
-        
+
     Returns:
         Tuple of (genotypes_mapping, missing_traits)
-        
+
     Raises:
         ValueError: If more than max_traits are provided
     """
     if len(trait_keys) > max_traits:
         raise ValueError(f"Maximum {max_traits} traits allowed, got {len(trait_keys)}")
-    
+
     registry, missing = filter_traits(trait_keys)
     simulator = Simulator(trait_registry=registry)
-    
+
     # Filter out missing traits from the request
     valid_trait_keys = [key for key in trait_keys if key in registry]
-    
+
     try:
         genotypes = simulator.get_possible_genotypes_for_traits(valid_trait_keys)
         return genotypes, missing
@@ -471,14 +473,16 @@ def save_trait(key: str, definition: Mapping[str, object]) -> Trait:
         "description": trait.description,
         "metadata": dict(trait.metadata),
     }
-    
+
     # Add new Mendelian trait fields if they exist in the definition
     if "inheritance_pattern" in definition:
         document_update["inheritance_pattern"] = str(definition["inheritance_pattern"])
     if "verification_status" in definition:
         document_update["verification_status"] = str(definition["verification_status"])
     if "gene_info" in definition:
-        document_update["gene_info"] = str(definition["gene_info"]) if definition["gene_info"] else None
+        document_update["gene_info"] = (
+            str(definition["gene_info"]) if definition["gene_info"] else None
+        )
     if "category" in definition:
         document_update["category"] = str(definition["category"])
 
@@ -627,7 +631,7 @@ def send_signup_otp_email(
     )
 
     from_email = settings.resend_from_email or "onboarding@resend.dev"
-    
+
     payload = {
         "from": from_email,
         "to": [recipient],
@@ -790,6 +794,7 @@ def authenticate_user(email: str, password: str) -> Dict[str, Any]:
 # Cache for user data to avoid database hits on every request
 user_cache = {}
 
+
 def clear_user_cache(user_id: Optional[str] = None):
     """Clear user cache for a specific user or all users"""
     global user_cache
@@ -798,6 +803,7 @@ def clear_user_cache(user_id: Optional[str] = None):
     else:
         user_cache.clear()
 
+
 def get_user_by_id(user_id: str) -> Dict[str, Any]:
     # Check cache first
     if user_id in user_cache:
@@ -805,7 +811,7 @@ def get_user_by_id(user_id: str) -> Dict[str, Any]:
         # Cache for 5 minutes
         if datetime.now(timezone.utc) - cache_time < timedelta(minutes=5):
             return cached_user
-    
+
     collection = get_users_collection(required=True)
     assert collection is not None, "Users collection is required"
     try:
@@ -818,11 +824,11 @@ def get_user_by_id(user_id: str) -> Dict[str, Any]:
     user = collection.find_one({"_id": object_id})
     if not user:
         raise HTTPException(status_code=401, detail="User not found.")
-    
+
     serialized_user = _serialize_user(user)
     # Cache the user data
     user_cache[user_id] = (serialized_user, datetime.now(timezone.utc))
-    
+
     return serialized_user
 
 
@@ -882,17 +888,17 @@ def build_auth_response(user: Dict[str, Any]) -> Dict[str, Any]:
 def _serialize_project(document: Mapping[str, Any]) -> "Project":
     """Convert MongoDB project document to Project model."""
     from .schemas import MendelianProjectTool, Project
-    
+
     tools_data = document.get("tools", [])
     tools = []
     if isinstance(tools_data, list):
         for tool_data in tools_data:
             if isinstance(tool_data, dict):
                 tools.append(MendelianProjectTool(**tool_data))
-    
+
     created_at = document.get("created_at")
     updated_at = document.get("updated_at")
-    
+
     return Project(
         id=str(document.get("_id")),
         name=str(document.get("name", "")),
@@ -908,19 +914,21 @@ def _serialize_project(document: Mapping[str, Any]) -> "Project":
     )
 
 
-def get_user_projects(user_id: str, page: int = 1, page_size: int = 20) -> Tuple[List["Project"], int]:
+def get_user_projects(
+    user_id: str, page: int = 1, page_size: int = 20
+) -> Tuple[List["Project"], int]:
     """Get user's projects with pagination."""
     collection = get_projects_collection(required=True)
     assert collection is not None, "Projects collection is required"
-    
+
     skip = (page - 1) * page_size
-    
+
     query = {"owner_id": user_id, "is_template": {"$ne": True}}
     total = collection.count_documents(query)
-    
+
     cursor = collection.find(query).sort("updated_at", -1).skip(skip).limit(page_size)
     projects = [_serialize_project(doc) for doc in cursor]
-    
+
     return projects, total
 
 
@@ -935,9 +943,9 @@ def create_project(
     """Create a new project."""
     collection = get_projects_collection(required=True)
     assert collection is not None, "Projects collection is required"
-    
+
     now = datetime.now(timezone.utc)
-    
+
     project_doc = {
         "name": name,
         "description": description,
@@ -950,7 +958,7 @@ def create_project(
         "is_template": False,
         "template_category": None,
     }
-    
+
     # If creating from template, copy tools
     if from_template:
         # Get template from hardcoded templates instead of database
@@ -959,10 +967,10 @@ def create_project(
         if template_obj:
             # Copy template tools
             project_doc["tools"] = [tool.model_dump() for tool in template_obj.tools]
-    
+
     result = collection.insert_one(project_doc)
     project_doc["_id"] = result.inserted_id
-    
+
     return _serialize_project(project_doc)
 
 
@@ -970,21 +978,19 @@ def get_project(project_id: str, user_id: str) -> Optional["Project"]:
     """Get a specific project by ID."""
     collection = get_projects_collection(required=True)
     assert collection is not None, "Projects collection is required"
-    
+
     try:
         object_id = ObjectId(project_id)
     except Exception:
         return None
-    
-    project_doc = collection.find_one({
-        "_id": object_id,
-        "owner_id": user_id,
-        "is_template": {"$ne": True}
-    })
-    
+
+    project_doc = collection.find_one(
+        {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}}
+    )
+
     if not project_doc:
         return None
-    
+
     return _serialize_project(project_doc)
 
 
@@ -996,12 +1002,12 @@ def update_project(
     """Update a project."""
     collection = get_projects_collection(required=True)
     assert collection is not None, "Projects collection is required"
-    
+
     try:
         object_id = ObjectId(project_id)
     except Exception:
         return None
-    
+
     # Convert tools from Pydantic models to dicts if present
     if "tools" in updates and updates["tools"]:
         tools_data = []
@@ -1011,22 +1017,18 @@ def update_project(
             elif isinstance(tool, dict):
                 tools_data.append(tool)
         updates["tools"] = tools_data
-    
+
     updates["updated_at"] = datetime.now(timezone.utc)
-    
+
     result = collection.find_one_and_update(
-        {
-            "_id": object_id,
-            "owner_id": user_id,
-            "is_template": {"$ne": True}
-        },
+        {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}},
         {"$set": updates},
-        return_document=True
+        return_document=True,
     )
-    
+
     if not result:
         return None
-    
+
     return _serialize_project(result)
 
 
@@ -1034,25 +1036,134 @@ def delete_project(project_id: str, user_id: str) -> bool:
     """Delete a project."""
     collection = get_projects_collection(required=True)
     assert collection is not None, "Projects collection is required"
-    
+
     try:
         object_id = ObjectId(project_id)
     except Exception:
         return False
-    
-    result = collection.delete_one({
-        "_id": object_id,
-        "owner_id": user_id,
-        "is_template": {"$ne": True}
-    })
-    
+
+    result = collection.delete_one(
+        {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}}
+    )
+
     return result.deleted_count > 0
+
+
+def create_tool(
+    project_id: str,
+    user_id: str,
+    tool_data: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """Create a new tool in a project."""
+    collection = get_projects_collection(required=True)
+    assert collection is not None, "Projects collection is required"
+
+    try:
+        object_id = ObjectId(project_id)
+    except Exception:
+        return None
+
+    # Generate tool ID
+    tool_id = str(ObjectId())
+    tool_data["id"] = tool_id
+    tool_data["type"] = "mendelian"
+
+    # Update the project by adding the new tool
+    result = collection.find_one_and_update(
+        {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}},
+        {
+            "$push": {"tools": tool_data},
+            "$set": {"updated_at": datetime.now(timezone.utc)},
+        },
+        return_document=True,
+    )
+
+    if not result:
+        return None
+
+    # Return the created tool
+    for tool in result.get("tools", []):
+        if tool.get("id") == tool_id:
+            return tool
+
+    return None
+
+
+def update_tool(
+    project_id: str,
+    tool_id: str,
+    user_id: str,
+    updates: Dict[str, Any],
+) -> Optional[Dict[str, Any]]:
+    """Update a specific tool in a project."""
+    collection = get_projects_collection(required=True)
+    assert collection is not None, "Projects collection is required"
+
+    try:
+        object_id = ObjectId(project_id)
+    except Exception:
+        return None
+
+    # Build update fields for the specific tool
+    update_fields = {}
+    for key, value in updates.items():
+        update_fields[f"tools.$.{key}"] = value
+
+    update_fields["updated_at"] = datetime.now(timezone.utc)
+
+    # Update the specific tool in the tools array
+    result = collection.find_one_and_update(
+        {
+            "_id": object_id,
+            "owner_id": user_id,
+            "is_template": {"$ne": True},
+            "tools.id": tool_id,
+        },
+        {"$set": update_fields},
+        return_document=True,
+    )
+
+    if not result:
+        return None
+
+    # Return the updated tool
+    for tool in result.get("tools", []):
+        if tool.get("id") == tool_id:
+            return tool
+
+    return None
+
+
+def delete_tool(
+    project_id: str,
+    tool_id: str,
+    user_id: str,
+) -> bool:
+    """Delete a specific tool from a project."""
+    collection = get_projects_collection(required=True)
+    assert collection is not None, "Projects collection is required"
+
+    try:
+        object_id = ObjectId(project_id)
+    except Exception:
+        return False
+
+    # Remove the tool from the tools array
+    result = collection.find_one_and_update(
+        {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}},
+        {
+            "$pull": {"tools": {"id": tool_id}},
+            "$set": {"updated_at": datetime.now(timezone.utc)},
+        },
+    )
+
+    return result is not None
 
 
 def get_project_templates() -> List["ProjectTemplate"]:
     """Get all available project templates."""
     from .schemas import ProjectTemplate, MendelianProjectTool
-    
+
     # For now, return hardcoded templates
     # In production, these could be stored in the database
     templates = [
@@ -1066,26 +1177,20 @@ def get_project_templates() -> List["ProjectTemplate"]:
                     id="eye_color_study",
                     name="Eye Color Study",
                     trait_configurations={
-                        "eye_color": {
-                            "parent1": "Bb",
-                            "parent2": "bb"
-                        }
+                        "eye_color": {"parent1": "Bb", "parent2": "bb"}
                     },
-                    position={"x": 100, "y": 100}
+                    position={"x": 100, "y": 100},
                 ),
                 MendelianProjectTool(
                     id="blood_type_study",
-                    name="Blood Type Study", 
+                    name="Blood Type Study",
                     trait_configurations={
-                        "blood_type": {
-                            "parent1": "AB",
-                            "parent2": "OO"
-                        }
+                        "blood_type": {"parent1": "AB", "parent2": "OO"}
                     },
-                    position={"x": 400, "y": 100}
-                )
+                    position={"x": 400, "y": 100},
+                ),
             ],
-            tags=["beginner", "mendelian", "genetics"]
+            tags=["beginner", "mendelian", "genetics"],
         ),
         ProjectTemplate(
             id="mendelian_advanced",
@@ -1097,15 +1202,12 @@ def get_project_templates() -> List["ProjectTemplate"]:
                     id="blood_type_codominance",
                     name="Blood Type Codominance",
                     trait_configurations={
-                        "blood_type": {
-                            "parent1": "AB",
-                            "parent2": "AB"
-                        }
+                        "blood_type": {"parent1": "AB", "parent2": "AB"}
                     },
-                    position={"x": 150, "y": 150}
+                    position={"x": 150, "y": 150},
                 )
             ],
-            tags=["advanced", "mendelian", "codominance"]
+            tags=["advanced", "mendelian", "codominance"],
         ),
         ProjectTemplate(
             id="multiple_traits",
@@ -1117,20 +1219,14 @@ def get_project_templates() -> List["ProjectTemplate"]:
                     id="multi_trait_study",
                     name="Eye Color + Hair Color",
                     trait_configurations={
-                        "eye_color": {
-                            "parent1": "Bb",
-                            "parent2": "bb"
-                        },
-                        "hair_color": {
-                            "parent1": "Dd",
-                            "parent2": "dd"
-                        }
+                        "eye_color": {"parent1": "Bb", "parent2": "bb"},
+                        "hair_color": {"parent1": "Dd", "parent2": "dd"},
                     },
-                    position={"x": 200, "y": 200}
+                    position={"x": 200, "y": 200},
                 )
             ],
-            tags=["multiple-traits", "mendelian", "complex"]
-        )
+            tags=["multiple-traits", "mendelian", "complex"],
+        ),
     ]
-    
+
     return templates

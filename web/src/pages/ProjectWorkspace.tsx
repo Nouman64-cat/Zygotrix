@@ -4,6 +4,10 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import MendelianStudyModal from "../components/MendelianStudyModal";
 import PunnettSquare from "../components/PunnettSquare";
 import { useProject, useProjects } from "../hooks/useProjects";
+import {
+  deleteMendelianTool,
+  updateMendelianTool,
+} from "../services/zygotrixApi";
 import type { MendelianProjectTool } from "../types/api";
 import {
   ArrowLeftIcon,
@@ -13,6 +17,8 @@ import {
   DocumentTextIcon,
   Cog6ToothIcon,
   AcademicCapIcon,
+  TrashIcon,
+  PencilIcon,
   CloudArrowUpIcon,
   ExclamationTriangleIcon,
 } from "@heroicons/react/24/outline";
@@ -79,6 +85,10 @@ const ProjectWorkspace: React.FC = () => {
     null
   );
   const [editingItemName, setEditingItemName] = useState("");
+
+  // Item editing state (for full study editing)
+  const [editingItemId, setEditingItemId] = useState<string | null>(null);
+  const [editingItemData, setEditingItemData] = useState<any>(null);
 
   // Initialize project data when loaded
   useEffect(() => {
@@ -453,22 +463,123 @@ const ProjectWorkspace: React.FC = () => {
     []
   );
 
-  const handleNameSave = useCallback((itemId: string, newName: string) => {
-    setItems((prev) =>
-      prev.map((item) =>
-        item.id === itemId
-          ? { ...item, data: { ...item.data, name: newName } }
-          : item
-      )
-    );
-    setEditingItemNameId(null);
-    setEditingItemName("");
-  }, []);
+  const handleNameSave = useCallback(
+    async (itemId: string, newName: string) => {
+      // Find the item to get its data for API call
+      const item = items.find((i) => i.id === itemId);
+      if (!item || item.type !== "mendelian-study") return;
+
+      try {
+        if (projectId && projectId !== "new") {
+          // Call backend API to update the tool name
+          await updateMendelianTool(projectId, itemId, { name: newName });
+        }
+
+        // Update local state
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === itemId
+              ? { ...item, data: { ...item.data, name: newName } }
+              : item
+          )
+        );
+      } catch (error) {
+        console.error("Failed to update Mendelian study name:", error);
+        // You could add a toast notification here
+      }
+
+      setEditingItemNameId(null);
+      setEditingItemName("");
+    },
+    [items, projectId]
+  );
 
   const handleNameCancel = useCallback(() => {
     setEditingItemNameId(null);
     setEditingItemName("");
   }, []);
+
+  // Handle item deletion
+  const handleDeleteItem = useCallback(
+    async (e: React.MouseEvent, itemId: string) => {
+      e.stopPropagation();
+
+      // Find the item to get its data for API call
+      const item = items.find((i) => i.id === itemId);
+      if (!item || item.type !== "mendelian-study") return;
+
+      try {
+        if (projectId && projectId !== "new") {
+          // Call backend API to delete the tool
+          await deleteMendelianTool(projectId, itemId);
+        }
+
+        // Remove from local state
+        setItems((prev) => prev.filter((item) => item.id !== itemId));
+      } catch (error) {
+        console.error("Failed to delete Mendelian study:", error);
+        // You could add a toast notification here
+      }
+    },
+    [items, projectId]
+  );
+
+  // Handle item editing
+  const handleEditItem = useCallback(
+    (e: React.MouseEvent, item: WorkspaceItem) => {
+      e.stopPropagation();
+
+      if (item.type !== "mendelian-study") return;
+
+      // Set up editing state with the current item's data
+      setEditingItemId(item.id);
+      setEditingItemData(item.data);
+      setShowMendelianModal(true);
+    },
+    []
+  );
+
+  // Handle updating an existing item after editing
+  const handleUpdateItem = useCallback(
+    async (updatedData: any) => {
+      if (!editingItemId) return;
+
+      try {
+        if (projectId && projectId !== "new") {
+          // Call backend API to update the tool
+          await updateMendelianTool(projectId, editingItemId, {
+            name: updatedData.name,
+            trait_configurations:
+              updatedData.selectedTraits?.reduce((acc: any, trait: any) => {
+                acc[trait.key] = {
+                  parent1_genotype: trait.parent1Genotype,
+                  parent2_genotype: trait.parent2Genotype,
+                };
+                return acc;
+              }, {}) || {},
+            simulation_results: updatedData.simulationResults,
+            notes: updatedData.notes,
+          });
+        }
+
+        // Update local state
+        setItems((prev) =>
+          prev.map((item) =>
+            item.id === editingItemId ? { ...item, data: updatedData } : item
+          )
+        );
+      } catch (error) {
+        console.error("Failed to update Mendelian study:", error);
+        // You could add a toast notification here
+      }
+
+      // Reset editing state
+      setEditingItemId(null);
+      setEditingItemData(null);
+      setShowMendelianModal(false);
+    },
+    [editingItemId, projectId]
+  );
 
   const getDefaultSize = (type: string) => {
     switch (type) {
@@ -682,30 +793,48 @@ const ProjectWorkspace: React.FC = () => {
             onMouseDown={(e) => handleMouseDown(e, item.id)}
           >
             <div className="p-4 h-full overflow-auto">
-              <div className="flex items-center mb-3">
-                <AcademicCapIcon className="h-5 w-5 text-indigo-500 mr-2" />
-                {editingItemNameId === item.id ? (
-                  <input
-                    type="text"
-                    value={editingItemName}
-                    onChange={(e) => setEditingItemName(e.target.value)}
-                    onBlur={() => handleNameSave(item.id, editingItemName)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter")
-                        handleNameSave(item.id, editingItemName);
-                      if (e.key === "Escape") handleNameCancel();
-                    }}
-                    autoFocus
-                    className="font-semibold text-sm bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500 rounded px-1 py-0.5 flex-1"
-                  />
-                ) : (
-                  <span
-                    className="font-semibold text-sm cursor-text hover:bg-indigo-50 rounded px-1 py-0.5 transition-colors"
-                    onClick={(e) => handleNameClick(e, item)}
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center">
+                  <AcademicCapIcon className="h-5 w-5 text-indigo-500 mr-2" />
+                  {editingItemNameId === item.id ? (
+                    <input
+                      type="text"
+                      value={editingItemName}
+                      onChange={(e) => setEditingItemName(e.target.value)}
+                      onBlur={() => handleNameSave(item.id, editingItemName)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter")
+                          handleNameSave(item.id, editingItemName);
+                        if (e.key === "Escape") handleNameCancel();
+                      }}
+                      autoFocus
+                      className="font-semibold text-sm bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500 rounded px-1 py-0.5 flex-1"
+                    />
+                  ) : (
+                    <span
+                      className="font-semibold text-sm cursor-text hover:bg-indigo-50 rounded px-1 py-0.5 transition-colors"
+                      onClick={(e) => handleNameClick(e, item)}
+                    >
+                      {item.data?.name || "Mendelian Study"}
+                    </span>
+                  )}
+                </div>
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={(e) => handleEditItem(e, item)}
+                    className="p-1 text-gray-400 cursor-pointer hover:text-blue-500 hover:bg-blue-50 rounded transition-colors"
+                    title="Edit study"
                   >
-                    {item.data?.name || "Mendelian Study"}
-                  </span>
-                )}
+                    <PencilIcon className="h-4 w-4" />
+                  </button>
+                  <button
+                    onClick={(e) => handleDeleteItem(e, item.id)}
+                    className="p-1 text-gray-400 cursor-pointer hover:text-red-500 hover:bg-red-50 rounded transition-colors"
+                    title="Delete study"
+                  >
+                    <TrashIcon className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
               {item.data?.selectedTraits &&
                 item.data.selectedTraits.length > 0 && (
@@ -1187,8 +1316,14 @@ const ProjectWorkspace: React.FC = () => {
       {/* Mendelian Study Modal */}
       {showMendelianModal && (
         <MendelianStudyModal
-          onClose={() => setShowMendelianModal(false)}
-          onAddToCanvas={handleAddToCanvas}
+          onClose={() => {
+            setShowMendelianModal(false);
+            setEditingItemId(null);
+            setEditingItemData(null);
+          }}
+          onAddToCanvas={editingItemId ? handleUpdateItem : handleAddToCanvas}
+          initialData={editingItemData}
+          isEditing={!!editingItemId}
         />
       )}
     </DashboardLayout>

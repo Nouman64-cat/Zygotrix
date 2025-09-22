@@ -155,3 +155,66 @@ export const fetchPolygenicScore = async (
 
   return handleResponse<PolygenicScoreResponse>(response);
 };
+
+// Tool Management API functions
+export const createMendelianTool = async (
+  projectId: string,
+  toolData: {
+    name: string;
+    trait_configurations?: Record<string, Record<string, string>>;
+    simulation_results?: Record<string, Record<string, number>>;
+    notes?: string;
+    position?: { x: number; y: number };
+  }
+): Promise<any> => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${projectId}/tools`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(toolData),
+    }
+  );
+
+  return handleResponse<any>(response);
+};
+
+export const updateMendelianTool = async (
+  projectId: string,
+  toolId: string,
+  updates: {
+    name?: string;
+    trait_configurations?: Record<string, Record<string, string>>;
+    simulation_results?: Record<string, Record<string, number>>;
+    notes?: string;
+    position?: { x: number; y: number };
+  }
+): Promise<any> => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${projectId}/tools/${toolId}`,
+    {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(updates),
+    }
+  );
+
+  return handleResponse<any>(response);
+};
+
+export const deleteMendelianTool = async (
+  projectId: string,
+  toolId: string
+): Promise<void> => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${projectId}/tools/${toolId}`,
+    {
+      method: "DELETE",
+    }
+  );
+
+  if (!response.ok) {
+    const body = await response.text();
+    throw new Error(body || `Request failed with status ${response.status}`);
+  }
+};

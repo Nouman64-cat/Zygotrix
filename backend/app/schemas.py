@@ -95,8 +95,12 @@ class MendelianSimulationRequest(BaseModel):
         elif isinstance(value, dict):
             mapping = value
         else:
-            raise TypeError("Genotype payload must be a mapping of trait keys to genotypes.")
-        return {key: str(genotype).replace(" ", "") for key, genotype in mapping.items()}
+            raise TypeError(
+                "Genotype payload must be a mapping of trait keys to genotypes."
+            )
+        return {
+            key: str(genotype).replace(" ", "") for key, genotype in mapping.items()
+        }
 
 
 class MendelianSimulationResponse(BaseModel):
@@ -111,11 +115,11 @@ class MendelianSimulationResponse(BaseModel):
 
 class GenotypeRequest(BaseModel):
     """Request for getting possible genotypes for traits."""
-    
+
     trait_keys: List[str] = Field(
-        ..., 
+        ...,
         json_schema_extra={"example": ["eye_color", "hair_color"]},
-        description="List of trait keys to get genotypes for (max 5)"
+        description="List of trait keys to get genotypes for (max 5)",
     )
 
     @field_validator("trait_keys")
@@ -128,10 +132,9 @@ class GenotypeRequest(BaseModel):
 
 class GenotypeResponse(BaseModel):
     """Response containing possible genotypes for requested traits."""
-    
+
     genotypes: Dict[str, List[str]] = Field(
-        ...,
-        description="Mapping of trait keys to lists of possible genotypes"
+        ..., description="Mapping of trait keys to lists of possible genotypes"
     )
     missing_traits: List[str] = Field(
         default_factory=list,
@@ -234,7 +237,7 @@ class PortalStatusResponse(BaseModel):
 
 class MendelianProjectTool(BaseModel):
     """Configuration for a Mendelian genetics tool within a project."""
-    
+
     id: str
     type: str = "mendelian"
     name: str
@@ -244,9 +247,35 @@ class MendelianProjectTool(BaseModel):
     position: Optional[Dict[str, float]] = None
 
 
+class MendelianToolCreateRequest(BaseModel):
+    """Request payload for creating a new Mendelian tool in a project."""
+
+    name: str
+    trait_configurations: Dict[str, Dict[str, str]] = Field(default_factory=dict)
+    simulation_results: Optional[Dict[str, Dict[str, float]]] = None
+    notes: Optional[str] = None
+    position: Optional[Dict[str, float]] = None
+
+
+class MendelianToolUpdateRequest(BaseModel):
+    """Request payload for updating a Mendelian tool."""
+
+    name: Optional[str] = None
+    trait_configurations: Optional[Dict[str, Dict[str, str]]] = None
+    simulation_results: Optional[Dict[str, Dict[str, float]]] = None
+    notes: Optional[str] = None
+    position: Optional[Dict[str, float]] = None
+
+
+class MendelianToolResponse(BaseModel):
+    """Response payload for Mendelian tool operations."""
+
+    tool: MendelianProjectTool
+
+
 class Project(BaseModel):
     """A user project containing genetics studies and tools."""
-    
+
     id: Optional[str] = None
     name: str
     description: Optional[str] = None
@@ -262,7 +291,7 @@ class Project(BaseModel):
 
 class ProjectCreateRequest(BaseModel):
     """Request payload for creating a new project."""
-    
+
     name: str
     description: Optional[str] = None
     type: str = "genetics"
@@ -272,7 +301,7 @@ class ProjectCreateRequest(BaseModel):
 
 class ProjectUpdateRequest(BaseModel):
     """Request payload for updating a project."""
-    
+
     name: Optional[str] = None
     description: Optional[str] = None
     tags: Optional[List[str]] = None
@@ -281,13 +310,13 @@ class ProjectUpdateRequest(BaseModel):
 
 class ProjectResponse(BaseModel):
     """Response payload for project operations."""
-    
+
     project: Project
 
 
 class ProjectListResponse(BaseModel):
     """Response payload for listing projects."""
-    
+
     projects: List[Project]
     total: int
     page: int
@@ -296,7 +325,7 @@ class ProjectListResponse(BaseModel):
 
 class ProjectTemplate(BaseModel):
     """A template project that users can instantiate."""
-    
+
     id: str
     name: str
     description: str
@@ -308,5 +337,5 @@ class ProjectTemplate(BaseModel):
 
 class ProjectTemplateListResponse(BaseModel):
     """Response payload for listing project templates."""
-    
+
     templates: List[ProjectTemplate]

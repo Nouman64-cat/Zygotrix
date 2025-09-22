@@ -18,6 +18,9 @@ from .schemas import (
     GenotypeResponse,
     HealthResponse,
     MendelianProjectTool,
+    MendelianToolCreateRequest,
+    MendelianToolResponse,
+    MendelianToolUpdateRequest,
     MessageResponse,
     MendelianSimulationRequest,
     MendelianSimulationResponse,
@@ -65,7 +68,7 @@ bearer_scheme = HTTPBearer(auto_error=True)
 def trait_to_info(key: str, trait: Trait) -> TraitInfo:
     # Extract Mendelian trait metadata from trait.metadata
     metadata_dict = dict(trait.metadata)
-    
+
     return TraitInfo(
         key=key,
         name=trait.name,
@@ -144,12 +147,16 @@ def login(payload: UserLoginRequest) -> AuthResponse:
 
 
 @app.get("/api/auth/me", response_model=UserProfile, tags=["Auth"])
-def read_current_user(current_user: UserProfile = Depends(get_current_user)) -> UserProfile:
+def read_current_user(
+    current_user: UserProfile = Depends(get_current_user),
+) -> UserProfile:
     return current_user
 
 
 @app.get("/api/portal/status", response_model=PortalStatusResponse, tags=["Portal"])
-def portal_status(current_user: UserProfile = Depends(get_current_user)) -> PortalStatusResponse:
+def portal_status(
+    current_user: UserProfile = Depends(get_current_user),
+) -> PortalStatusResponse:
     greeting = current_user.full_name or current_user.email
     return PortalStatusResponse(
         message=f"Welcome to the portal, {greeting}.",
@@ -165,7 +172,7 @@ def list_traits(
     gene_info: Optional[str] = None,
 ) -> TraitListResponse:
     traits = [
-        trait_to_info(key, trait) 
+        trait_to_info(key, trait)
         for key, trait in services.get_trait_registry(
             inheritance_pattern=inheritance_pattern,
             verification_status=verification_status,
@@ -176,7 +183,12 @@ def list_traits(
     return TraitListResponse(traits=traits)
 
 
-@app.post("/api/traits", response_model=TraitMutationResponse, tags=["Traits"], status_code=201)
+@app.post(
+    "/api/traits",
+    response_model=TraitMutationResponse,
+    tags=["Traits"],
+    status_code=201,
+)
 def create_trait(payload: TraitMutationPayload) -> TraitMutationResponse:
     trait_definition = {
         "name": payload.name,
@@ -185,7 +197,7 @@ def create_trait(payload: TraitMutationPayload) -> TraitMutationResponse:
         "description": payload.description or "",
         "metadata": dict(payload.metadata),
     }
-    
+
     # Add new Mendelian trait fields if provided
     if payload.inheritance_pattern:
         trait_definition["inheritance_pattern"] = payload.inheritance_pattern
@@ -195,7 +207,7 @@ def create_trait(payload: TraitMutationPayload) -> TraitMutationResponse:
         trait_definition["gene_info"] = payload.gene_info
     if payload.category:
         trait_definition["category"] = payload.category
-    
+
     trait = services.save_trait(payload.key, trait_definition)
     return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
 
@@ -203,8 +215,10 @@ def create_trait(payload: TraitMutationPayload) -> TraitMutationResponse:
 @app.put("/api/traits/{key}", response_model=TraitMutationResponse, tags=["Traits"])
 def update_trait(key: str, payload: TraitMutationPayload) -> TraitMutationResponse:
     if key != payload.key:
-        raise HTTPException(status_code=400, detail="Trait key mismatch between path and payload.")
-    
+        raise HTTPException(
+            status_code=400, detail="Trait key mismatch between path and payload."
+        )
+
     trait_definition = {
         "name": payload.name,
         "alleles": payload.alleles,
@@ -212,7 +226,7 @@ def update_trait(key: str, payload: TraitMutationPayload) -> TraitMutationRespon
         "description": payload.description or "",
         "metadata": dict(payload.metadata),
     }
-    
+
     # Add new Mendelian trait fields if provided
     if payload.inheritance_pattern:
         trait_definition["inheritance_pattern"] = payload.inheritance_pattern
@@ -222,7 +236,7 @@ def update_trait(key: str, payload: TraitMutationPayload) -> TraitMutationRespon
         trait_definition["gene_info"] = payload.gene_info
     if payload.category:
         trait_definition["category"] = payload.category
-    
+
     trait = services.save_trait(payload.key, trait_definition)
     return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
 
@@ -238,7 +252,9 @@ def remove_trait(key: str) -> Response:
     response_model=MendelianSimulationResponse,
     tags=["Mendelian"],
 )
-def simulate_mendelian(request: MendelianSimulationRequest) -> MendelianSimulationResponse:
+def simulate_mendelian(
+    request: MendelianSimulationRequest,
+) -> MendelianSimulationResponse:
     try:
         results, missing = services.simulate_mendelian_traits(
             parent1=request.parent1_genotypes,
@@ -302,7 +318,9 @@ def list_projects(
     )
 
 
-@app.post("/api/projects", response_model=ProjectResponse, status_code=201, tags=["Projects"])
+@app.post(
+    "/api/projects", response_model=ProjectResponse, status_code=201, tags=["Projects"]
+)
 def create_project(
     payload: ProjectCreateRequest,
     current_user: UserProfile = Depends(get_current_user),
@@ -318,7 +336,9 @@ def create_project(
     return ProjectResponse(project=project)
 
 
-@app.get("/api/projects/{project_id}", response_model=ProjectResponse, tags=["Projects"])
+@app.get(
+    "/api/projects/{project_id}", response_model=ProjectResponse, tags=["Projects"]
+)
 def get_project(
     project_id: str,
     current_user: UserProfile = Depends(get_current_user),
@@ -329,7 +349,9 @@ def get_project(
     return ProjectResponse(project=project)
 
 
-@app.put("/api/projects/{project_id}", response_model=ProjectResponse, tags=["Projects"])
+@app.put(
+    "/api/projects/{project_id}", response_model=ProjectResponse, tags=["Projects"]
+)
 def update_project(
     project_id: str,
     payload: ProjectUpdateRequest,
@@ -356,12 +378,86 @@ def delete_project(
     return Response(status_code=204)
 
 
-@app.get("/api/project-templates", response_model=ProjectTemplateListResponse, tags=["Projects"])
+@app.get(
+    "/api/project-templates",
+    response_model=ProjectTemplateListResponse,
+    tags=["Projects"],
+)
 def list_project_templates() -> ProjectTemplateListResponse:
     templates = services.get_project_templates()
     return ProjectTemplateListResponse(templates=templates)
 
 
+# Tool Management Endpoints
+@app.post(
+    "/api/projects/{project_id}/tools",
+    response_model=MendelianToolResponse,
+    status_code=201,
+    tags=["Tools"],
+)
+def create_mendelian_tool(
+    project_id: str,
+    payload: MendelianToolCreateRequest,
+    current_user: UserProfile = Depends(get_current_user),
+) -> MendelianToolResponse:
+    tool_data = payload.model_dump()
+    tool = services.create_tool(
+        project_id=project_id,
+        user_id=current_user.id,
+        tool_data=tool_data,
+    )
+    if not tool:
+        raise HTTPException(status_code=404, detail="Project not found")
+
+    mendelian_tool = MendelianProjectTool(**tool)
+    return MendelianToolResponse(tool=mendelian_tool)
+
+
+@app.put(
+    "/api/projects/{project_id}/tools/{tool_id}",
+    response_model=MendelianToolResponse,
+    tags=["Tools"],
+)
+def update_mendelian_tool(
+    project_id: str,
+    tool_id: str,
+    payload: MendelianToolUpdateRequest,
+    current_user: UserProfile = Depends(get_current_user),
+) -> MendelianToolResponse:
+    updates = payload.model_dump(exclude_unset=True)
+    tool = services.update_tool(
+        project_id=project_id,
+        tool_id=tool_id,
+        user_id=current_user.id,
+        updates=updates,
+    )
+    if not tool:
+        raise HTTPException(status_code=404, detail="Tool not found")
+
+    mendelian_tool = MendelianProjectTool(**tool)
+    return MendelianToolResponse(tool=mendelian_tool)
+
+
+@app.delete(
+    "/api/projects/{project_id}/tools/{tool_id}", status_code=204, tags=["Tools"]
+)
+def delete_mendelian_tool(
+    project_id: str,
+    tool_id: str,
+    current_user: UserProfile = Depends(get_current_user),
+) -> Response:
+    success = services.delete_tool(
+        project_id=project_id,
+        tool_id=tool_id,
+        user_id=current_user.id,
+    )
+    if not success:
+        raise HTTPException(status_code=404, detail="Tool not found")
+    return Response(status_code=204)
+
+
 @app.get("/", include_in_schema=False)
 def root() -> dict[str, str]:
-    return {"message": "Welcome to Zygotrix Backend. Visit /docs for API documentation."}
+    return {
+        "message": "Welcome to Zygotrix Backend. Visit /docs for API documentation."
+    }

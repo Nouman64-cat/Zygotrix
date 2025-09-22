@@ -26,7 +26,6 @@ import {
   ChevronLeftIcon,
   ChevronRightIcon,
   FolderIcon,
-  SwatchIcon,
 } from "@heroicons/react/24/outline";
 
 interface WorkspaceItem {
@@ -65,7 +64,7 @@ const ProjectWorkspace: React.FC = () => {
   const canvasRef = useRef<HTMLDivElement>(null);
 
   // Use project hook to manage project state
-  const { project, loading, error, saveProgress, updateProject } = useProject(
+  const { project, loading, error, saveProgress } = useProject(
     projectId === "new" ? undefined : projectId
   );
 

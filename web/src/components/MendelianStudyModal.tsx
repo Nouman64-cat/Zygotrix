@@ -217,6 +217,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                 onClick={handleSimulation}
                 disabled={
                   simulationLoading ||
+                  project.selectedTraits.length === 0 ||
                   !project.selectedTraits.every(
                     (trait) => trait.parent1Genotype && trait.parent2Genotype
                   )

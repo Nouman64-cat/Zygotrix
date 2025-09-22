@@ -74,6 +74,12 @@ const ProjectWorkspace: React.FC = () => {
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
 
+  // Item name editing state
+  const [editingItemNameId, setEditingItemNameId] = useState<string | null>(
+    null
+  );
+  const [editingItemName, setEditingItemName] = useState("");
+
   // Initialize project data when loaded
   useEffect(() => {
     if (project) {
@@ -437,6 +443,33 @@ const ProjectWorkspace: React.FC = () => {
     setDragOffset({ x: 0, y: 0 });
   }, []);
 
+  // Handle item name editing
+  const handleNameClick = useCallback(
+    (e: React.MouseEvent, item: WorkspaceItem) => {
+      e.stopPropagation();
+      setEditingItemNameId(item.id);
+      setEditingItemName(item.data?.name || "");
+    },
+    []
+  );
+
+  const handleNameSave = useCallback((itemId: string, newName: string) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === itemId
+          ? { ...item, data: { ...item.data, name: newName } }
+          : item
+      )
+    );
+    setEditingItemNameId(null);
+    setEditingItemName("");
+  }, []);
+
+  const handleNameCancel = useCallback(() => {
+    setEditingItemNameId(null);
+    setEditingItemName("");
+  }, []);
+
   const getDefaultSize = (type: string) => {
     switch (type) {
       case "mendelian-study":
@@ -651,9 +684,28 @@ const ProjectWorkspace: React.FC = () => {
             <div className="p-4 h-full overflow-auto">
               <div className="flex items-center mb-3">
                 <AcademicCapIcon className="h-5 w-5 text-indigo-500 mr-2" />
-                <span className="font-semibold text-sm">
-                  {item.data?.name || "Mendelian Study"}
-                </span>
+                {editingItemNameId === item.id ? (
+                  <input
+                    type="text"
+                    value={editingItemName}
+                    onChange={(e) => setEditingItemName(e.target.value)}
+                    onBlur={() => handleNameSave(item.id, editingItemName)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter")
+                        handleNameSave(item.id, editingItemName);
+                      if (e.key === "Escape") handleNameCancel();
+                    }}
+                    autoFocus
+                    className="font-semibold text-sm bg-transparent border-none outline-none focus:ring-2 focus:ring-indigo-500 rounded px-1 py-0.5 flex-1"
+                  />
+                ) : (
+                  <span
+                    className="font-semibold text-sm cursor-text hover:bg-indigo-50 rounded px-1 py-0.5 transition-colors"
+                    onClick={(e) => handleNameClick(e, item)}
+                  >
+                    {item.data?.name || "Mendelian Study"}
+                  </span>
+                )}
               </div>
               {item.data?.selectedTraits &&
                 item.data.selectedTraits.length > 0 && (

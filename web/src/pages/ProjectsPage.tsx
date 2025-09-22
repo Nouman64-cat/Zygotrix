@@ -72,6 +72,26 @@ const ProjectsPage: React.FC = () => {
     return ChartBarIcon;
   };
 
+  // Derive light/background and text color classes from a Tailwind `bg-...-500` class
+  const deriveColorVariants = (bgClass?: string) => {
+    if (!bgClass || !bgClass.startsWith("bg-")) {
+      return { tab: "bg-blue-500", bg: "bg-blue-100", text: "text-blue-600" };
+    }
+
+    // Expecting format like 'bg-blue-500' -> extract color and produce variants
+    const parts = bgClass.split("-");
+    if (parts.length >= 3) {
+      const color = parts[1];
+      return {
+        tab: `bg-${color}-500`,
+        bg: `bg-${color}-100`,
+        text: `text-${color}-600`,
+      };
+    }
+
+    return { tab: bgClass, bg: "bg-blue-100", text: "text-blue-600" };
+  };
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -239,55 +259,49 @@ const ProjectsPage: React.FC = () => {
                 </div>
 
                 {/* Color tab on the side */}
-                <div
-                  className={`absolute right-0 top-3 w-1 h-6 ${
-                    project.tools.some((tool) => tool.type === "mendelian")
-                      ? "bg-purple-500"
-                      : "bg-blue-500"
-                  } rounded-l-md`}
-                />
+                {(() => {
+                  const variants = deriveColorVariants(project.color);
+                  return (
+                    <div
+                      className={`absolute right-0 top-3 w-1 h-6 ${variants.tab} rounded-l-md`}
+                    />
+                  );
+                })()}
 
-                {/* Delete button */}
-                <button
-                  onClick={(e) => openDeleteModal(project, e)}
-                  className="absolute top-2 right-2 w-6 h-6 rounded-full cursor-pointer bg-white border border-gray-200 hover:border-red-300 hover:bg-red-50 flex items-center justify-center transition-all opacity-0 group-hover:opacity-100 z-20"
-                  title="Delete project"
-                >
-                  <TrashIcon className="h-3 w-3 text-gray-500 hover:text-red-600 transition-colors" />
-                </button>
-
-                <div className="p-3 pl-6 flex-1 flex flex-col relative">
-                  {/* Header with icon and title */}
-                  <div className="mb-2">
-                    <div className="flex items-center space-x-2 mb-1">
+                {/* Top row: icon, status, actions */}
+                <div className="p-3 flex flex-col flex-1">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center space-x-2">
                       <div
                         className={`w-5 h-5 rounded-lg flex items-center justify-center ${
-                          project.tools.some(
-                            (tool) => tool.type === "mendelian"
-                          )
-                            ? "bg-purple-100"
-                            : "bg-blue-100"
+                          deriveColorVariants(project.color).bg
                         }`}
                       >
                         <IconComponent
                           className={`h-3 w-3 ${
-                            project.tools.some(
-                              (tool) => tool.type === "mendelian"
-                            )
-                              ? "text-purple-600"
-                              : "text-blue-600"
+                            deriveColorVariants(project.color).text
                           }`}
                         />
                       </div>
+                    </div>
+
+                    <div className="flex items-center space-x-2">
                       <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
                         Active
                       </span>
+                      <button
+                        onClick={(e) => openDeleteModal(project, e)}
+                        className="p-1 cursor-pointer text-gray-400 hover:text-red-600"
+                        aria-label={`Delete ${project.name}`}
+                      >
+                        <TrashIcon className="h-4 w-4" />
+                      </button>
                     </div>
-                    <h3 className="text-xs font-semibold text-gray-900 line-clamp-2 leading-tight">
-                      {project.name}
-                    </h3>
                   </div>
 
+                  <h3 className="text-sm mt-9 font-semibold text-gray-900 line-clamp-2 leading-tight mt-3">
+                    {project.name}
+                  </h3>
                   {/* Description */}
                   <p className="text-gray-600 text-xs mb-2 line-clamp-3 flex-1">
                     {project.description ||

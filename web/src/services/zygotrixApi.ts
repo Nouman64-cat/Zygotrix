@@ -6,6 +6,8 @@ import type {
   TraitListResponse,
   TraitMutationPayload,
   TraitMutationResponse,
+  ProjectUpdateRequest,
+  ProjectResponse,
 } from "../types/api";
 
 export const API_BASE_URL =
@@ -223,4 +225,18 @@ export const deleteMendelianTool = async (
     const body = await response.text();
     throw new Error(body || `Request failed with status ${response.status}`);
   }
+};
+
+// Project Management API functions
+export const updateProject = async (
+  projectId: string,
+  updates: ProjectUpdateRequest
+): Promise<ProjectResponse> => {
+  const response = await fetch(`${API_BASE_URL}/api/projects/${projectId}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json", ...getAuthHeaders() },
+    body: JSON.stringify(updates),
+  });
+
+  return handleResponse<ProjectResponse>(response);
 };

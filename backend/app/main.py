@@ -332,6 +332,7 @@ def create_project(
         owner_id=current_user.id,
         tags=payload.tags,
         from_template=payload.from_template,
+        color=payload.color,
     )
     return ProjectResponse(project=project)
 

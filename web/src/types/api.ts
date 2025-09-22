@@ -72,6 +72,7 @@ export type Project = {
   tags: string[];
   is_template: boolean;
   template_category?: string;
+  color?: string;
 };
 
 export type ProjectCreateRequest = {
@@ -80,6 +81,7 @@ export type ProjectCreateRequest = {
   type: string;
   tags: string[];
   from_template?: string;
+  color?: string;
 };
 
 export type ProjectUpdateRequest = {
@@ -87,6 +89,7 @@ export type ProjectUpdateRequest = {
   description?: string;
   tags?: string[];
   tools?: MendelianProjectTool[];
+  color?: string;
 };
 
 export type ProjectResponse = {

@@ -911,6 +911,7 @@ def _serialize_project(document: Mapping[str, Any]) -> "Project":
         tags=document.get("tags", []),
         is_template=bool(document.get("is_template", False)),
         template_category=document.get("template_category"),
+        color=document.get("color", "bg-blue-500"),
     )
 
 
@@ -939,6 +940,7 @@ def create_project(
     owner_id: str,
     tags: List[str],
     from_template: Optional[str] = None,
+    color: Optional[str] = "bg-blue-500",
 ) -> "Project":
     """Create a new project."""
     collection = get_projects_collection(required=True)
@@ -957,6 +959,7 @@ def create_project(
         "tags": tags,
         "is_template": False,
         "template_category": None,
+        "color": color,
     }
 
     # If creating from template, copy tools

@@ -3,10 +3,12 @@ import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import MendelianStudyModal from "../components/MendelianStudyModal";
 import PunnettSquare from "../components/PunnettSquare";
+import ColorPicker from "../components/ColorPicker";
 import { useProject, useProjects } from "../hooks/useProjects";
 import {
   deleteMendelianTool,
   updateMendelianTool,
+  updateProject as updateProjectAPI,
 } from "../services/zygotrixApi";
 import type { MendelianProjectTool } from "../types/api";
 import {
@@ -21,6 +23,10 @@ import {
   PencilIcon,
   CloudArrowUpIcon,
   ExclamationTriangleIcon,
+  ChevronLeftIcon,
+  ChevronRightIcon,
+  FolderIcon,
+  SwatchIcon,
 } from "@heroicons/react/24/outline";
 
 interface WorkspaceItem {
@@ -77,6 +83,7 @@ const ProjectWorkspace: React.FC = () => {
   // Editable project details
   const [projectName, setProjectName] = useState("");
   const [projectDescription, setProjectDescription] = useState("");
+  const [projectColor, setProjectColor] = useState("bg-blue-500");
   const [isEditingName, setIsEditingName] = useState(false);
   const [isEditingDescription, setIsEditingDescription] = useState(false);
 
@@ -90,11 +97,16 @@ const ProjectWorkspace: React.FC = () => {
   const [editingItemId, setEditingItemId] = useState<string | null>(null);
   const [editingItemData, setEditingItemData] = useState<any>(null);
 
+  // Sidebar collapse state
+  const [isToolsCollapsed, setIsToolsCollapsed] = useState(true);
+  const [isProjectsCollapsed, setIsProjectsCollapsed] = useState(true);
+
   // Initialize project data when loaded
   useEffect(() => {
     if (project) {
       setProjectName(project.name);
       setProjectDescription(project.description || "Genomics Workspace");
+      setProjectColor(project.color || "bg-blue-500");
 
       // Convert project tools to workspace items
       const workspaceItems: WorkspaceItem[] = project.tools.map((tool) => ({
@@ -165,17 +177,38 @@ const ProjectWorkspace: React.FC = () => {
     }
   }, [project]); // Save project details when name or description changes
   const handleUpdateProjectDetails = useCallback(async () => {
-    if (!project) return;
+    if (!project || projectId === "new") return;
 
     try {
-      await updateProject({
+      await updateProjectAPI(projectId!, {
         name: projectName,
         description: projectDescription,
+        color: projectColor,
       });
     } catch (err) {
       console.error("Failed to update project details:", err);
     }
-  }, [project, projectName, projectDescription, updateProject]);
+  }, [project, projectId, projectName, projectDescription, projectColor]);
+
+  // Color change handler
+  const handleColorChange = useCallback(
+    async (newColor: string) => {
+      if (!project || projectId === "new") return;
+
+      setProjectColor(newColor);
+
+      try {
+        await updateProjectAPI(projectId!, {
+          color: newColor,
+        });
+      } catch (err) {
+        console.error("Failed to update project color:", err);
+        // Revert color on error
+        setProjectColor(project.color || "bg-blue-500");
+      }
+    },
+    [project, projectId]
+  );
 
   // Manual save function triggered by keyboard shortcut
   const handleManualSave = useCallback(async () => {
@@ -364,7 +397,7 @@ const ProjectWorkspace: React.FC = () => {
       return {
         id: proj.id || "",
         name: proj.name,
-        color: typeInfo.color,
+        color: proj.color || typeInfo.color, // Use project color if available, fallback to type color
         icon: typeInfo.icon,
         type: proj.type || "Unknown",
         lastUpdated: proj.updated_at ? getTimeAgo(proj.updated_at) : "Unknown",
@@ -1007,6 +1040,14 @@ const ProjectWorkspace: React.FC = () => {
           </div>
 
           <div className="flex items-center space-x-3">
+            {/* Project Color Picker */}
+            {projectId !== "new" && (
+              <ColorPicker
+                currentColor={projectColor}
+                onColorChange={handleColorChange}
+              />
+            )}
+
             {/* Save indicator */}
             {saving ? (
               <div className="flex items-center space-x-2 text-sm text-gray-500">
@@ -1046,90 +1087,190 @@ const ProjectWorkspace: React.FC = () => {
 
         <div className="flex-1 flex bg-gray-50 min-h-0 overflow-hidden">
           {/* Toolbox */}
-          <div className="w-64 bg-white border-r border-gray-200 p-4 flex-shrink-0 overflow-y-auto">
-            <h3 className="font-semibold mb-4">Tools</h3>
-            <div className="space-y-2">
-              {toolboxItems
-                .filter(
-                  (tool) =>
-                    !["mendelian-study", "punnett-square"].includes(tool.type)
-                )
-                .map((tool) => (
-                  <button
-                    key={tool.id}
-                    onClick={() =>
-                      setSelectedTool(selectedTool === tool.id ? null : tool.id)
-                    }
-                    className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
-                      selectedTool === tool.id
-                        ? "border-blue-500 bg-blue-50"
-                        : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                    }`}
-                  >
-                    <div
-                      className={`w-8 h-8 ${tool.color} rounded flex items-center justify-center mr-3`}
-                    >
-                      <tool.icon className="h-4 w-4 text-white" />
-                    </div>
-                    <span className="text-sm font-medium">{tool.label}</span>
-                  </button>
-                ))}
+          <div
+            className={`${
+              isToolsCollapsed ? "w-12" : "w-64"
+            } bg-white border-r border-gray-200 flex-shrink-0 overflow-hidden transition-all duration-300`}
+          >
+            {/* Collapse/Expand Button */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              {!isToolsCollapsed && <h3 className="font-semibold">Tools</h3>}
+              <button
+                onClick={() => setIsToolsCollapsed(!isToolsCollapsed)}
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                title={isToolsCollapsed ? "Expand Tools" : "Collapse Tools"}
+              >
+                {isToolsCollapsed ? (
+                  <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+                ) : (
+                  <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
+                )}
+              </button>
             </div>
 
-            {/* Mendelian Genetics Section */}
-            <div className="mt-6 border-t border-gray-200 pt-4">
-              <h4 className="font-semibold mb-3 text-indigo-700">
-                Mendelian Genetics
-              </h4>
-              <div className="space-y-2">
-                <button
-                  onClick={() => setShowMendelianModal(true)}
-                  className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
-                    showMendelianModal
-                      ? "border-indigo-500 bg-indigo-50"
-                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center mr-3">
-                    <AcademicCapIcon className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium">Inheritance Study</span>
-                </button>
-
-                <button
-                  onClick={() =>
-                    setSelectedTool(
-                      selectedTool === "punnett-square"
-                        ? null
-                        : "punnett-square"
+            {!isToolsCollapsed ? (
+              <div className="p-4 overflow-y-auto">
+                <div className="space-y-2">
+                  {toolboxItems
+                    .filter(
+                      (tool) =>
+                        !["mendelian-study", "punnett-square"].includes(
+                          tool.type
+                        )
                     )
-                  }
-                  className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
-                    selectedTool === "punnett-square"
-                      ? "border-pink-500 bg-pink-50"
-                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
-                  }`}
-                >
-                  <div className="w-8 h-8 bg-pink-500 rounded flex items-center justify-center mr-3">
-                    <AcademicCapIcon className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium">Punnett Square</span>
-                </button>
-              </div>
-            </div>
+                    .map((tool) => (
+                      <button
+                        key={tool.id}
+                        onClick={() =>
+                          setSelectedTool(
+                            selectedTool === tool.id ? null : tool.id
+                          )
+                        }
+                        className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
+                          selectedTool === tool.id
+                            ? "border-blue-500 bg-blue-50"
+                            : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                        }`}
+                      >
+                        <div
+                          className={`w-8 h-8 ${tool.color} rounded flex items-center justify-center mr-3`}
+                        >
+                          <tool.icon className="h-4 w-4 text-white" />
+                        </div>
+                        <span className="text-sm font-medium">
+                          {tool.label}
+                        </span>
+                      </button>
+                    ))}
+                </div>
 
-            <div className="mt-8">
-              <h4 className="font-medium text-sm text-gray-700 mb-2">
-                Instructions
-              </h4>
-              <p className="text-xs text-gray-500">
-                {selectedTool
-                  ? `Click on the canvas to add a ${
-                      toolboxItems.find((t) => t.id === selectedTool)?.label
-                    }`
-                  : "Select a tool from above, then click on the canvas to add it to your workspace."}
-              </p>
-            </div>
+                {/* Mendelian Genetics Section */}
+                <div className="mt-6 border-t border-gray-200 pt-4">
+                  <h4 className="font-semibold mb-3 text-indigo-700">
+                    Mendelian Genetics
+                  </h4>
+                  <div className="space-y-2">
+                    <button
+                      onClick={() => setShowMendelianModal(true)}
+                      className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
+                        showMendelianModal
+                          ? "border-indigo-500 bg-indigo-50"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center mr-3">
+                        <AcademicCapIcon className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="text-sm font-medium">
+                        Inheritance Study
+                      </span>
+                    </button>
+
+                    <button
+                      onClick={() =>
+                        setSelectedTool(
+                          selectedTool === "punnett-square"
+                            ? null
+                            : "punnett-square"
+                        )
+                      }
+                      className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
+                        selectedTool === "punnett-square"
+                          ? "border-pink-500 bg-pink-50"
+                          : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                      }`}
+                    >
+                      <div className="w-8 h-8 bg-pink-500 rounded flex items-center justify-center mr-3">
+                        <AcademicCapIcon className="h-4 w-4 text-white" />
+                      </div>
+                      <span className="text-sm font-medium">
+                        Punnett Square
+                      </span>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="mt-8">
+                  <h4 className="font-medium text-sm text-gray-700 mb-2">
+                    Instructions
+                  </h4>
+                  <p className="text-xs text-gray-500">
+                    {selectedTool
+                      ? `Click on the canvas to add a ${
+                          toolboxItems.find((t) => t.id === selectedTool)?.label
+                        }`
+                      : "Select a tool from above, then click on the canvas to add it to your workspace."}
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="p-2 overflow-y-auto">
+                <div className="space-y-2">
+                  {/* Regular Tools */}
+                  {toolboxItems
+                    .filter(
+                      (tool) =>
+                        !["mendelian-study", "punnett-square"].includes(
+                          tool.type
+                        )
+                    )
+                    .map((tool) => (
+                      <button
+                        key={tool.id}
+                        onClick={() =>
+                          setSelectedTool(
+                            selectedTool === tool.id ? null : tool.id
+                          )
+                        }
+                        className={`w-8 h-8 ${
+                          tool.color
+                        } rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110 ${
+                          selectedTool === tool.id
+                            ? "ring-2 ring-blue-500 ring-offset-1"
+                            : ""
+                        }`}
+                        title={tool.label}
+                      >
+                        <tool.icon className="h-4 w-4 text-white" />
+                      </button>
+                    ))}
+
+                  {/* Divider */}
+                  <div className="h-px bg-gray-200 my-2"></div>
+
+                  {/* Mendelian Genetics Tools */}
+                  <button
+                    onClick={() => setShowMendelianModal(true)}
+                    className={`w-8 h-8 bg-indigo-500 rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110 ${
+                      showMendelianModal
+                        ? "ring-2 ring-indigo-500 ring-offset-1"
+                        : ""
+                    }`}
+                    title="Inheritance Study"
+                  >
+                    <AcademicCapIcon className="h-4 w-4 text-white" />
+                  </button>
+
+                  <button
+                    onClick={() =>
+                      setSelectedTool(
+                        selectedTool === "punnett-square"
+                          ? null
+                          : "punnett-square"
+                      )
+                    }
+                    className={`w-8 h-8 bg-pink-500 rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110 ${
+                      selectedTool === "punnett-square"
+                        ? "ring-2 ring-pink-500 ring-offset-1"
+                        : ""
+                    }`}
+                    title="Punnett Square"
+                  >
+                    <AcademicCapIcon className="h-4 w-4 text-white" />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Canvas Area */}
@@ -1208,107 +1349,185 @@ const ProjectWorkspace: React.FC = () => {
           </div>
 
           {/* Right Sidebar - Existing Projects */}
-          <div className="w-64 bg-white border-l border-gray-200 p-4 flex-shrink-0 overflow-y-auto">
-            <h3 className="font-semibold mb-4">Existing Projects</h3>
-            <div className="space-y-3 ">
-              {projectsLoading ? (
-                // Loading state
-                <div className="space-y-3 ">
-                  {[...Array(3)].map((_, i) => (
-                    <div key={i} className="animate-pulse ">
-                      <div className="flex items-start space-x-3 p-3">
-                        <div className="w-8 h-8 bg-gray-200 rounded"></div>
-                        <div className="flex-1">
-                          <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                          <div className="h-3 bg-gray-200 rounded w-2/3 mb-1"></div>
-                          <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              ) : existingProjects.length > 0 ? (
-                // Real projects
-                existingProjects.map((project) => (
-                  <button
-                    key={project.id}
-                    onClick={() => navigate(`/portal/workspace/${project.id}`)}
-                    className="relative w-full text-left p-3 cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group overflow-hidden"
-                  >
-                    {/* Mini notebook binding holes */}
-                    <div className="absolute left-2 top-3 bottom-3 w-1">
-                      <div className="flex flex-col justify-start space-y-2 h-full">
-                        {[...Array(4)].map((_, i) => (
-                          <div
-                            key={i}
-                            className="w-1 h-1 rounded-full bg-gray-300"
-                          />
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex items-start space-x-3 ml-2">
-                      <div
-                        className={`w-8 h-8 ${project.color} rounded flex items-center justify-center flex-shrink-0`}
-                      >
-                        <project.icon className="h-4 w-4 text-white" />
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <h4 className="font-medium text-sm text-gray-900 truncate">
-                          {project.name}
-                        </h4>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {project.type}
-                          {project.toolCount > 0 && (
-                            <span className="ml-1 text-gray-400">
-                              • {project.toolCount} tool
-                              {project.toolCount !== 1 ? "s" : ""}
-                            </span>
-                          )}
-                        </p>
-                        <div className="flex items-center justify-between mt-1">
-                          <p className="text-xs text-gray-400">
-                            {project.lastUpdated}
-                          </p>
-                          <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
-                            Active
-                          </span>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Subtle lined effect for mini notebook */}
-                    <div className="absolute inset-0 pointer-events-none">
-                      <div className="absolute left-8 right-2 top-6 bottom-2 opacity-5">
-                        {[...Array(3)].map((_, i) => (
-                          <div
-                            key={i}
-                            className="border-b border-gray-300 h-2"
-                            style={{ marginTop: i === 0 ? 0 : "6px" }}
-                          />
-                        ))}
-                      </div>
-                    </div>
-                  </button>
-                ))
-              ) : (
-                // Empty state
-                <div className="text-center py-6">
-                  <div className="text-gray-400 text-sm">
-                    No other projects found
-                  </div>
-                </div>
+          <div
+            className={`${
+              isProjectsCollapsed ? "w-12" : "w-64"
+            } bg-white border-l border-gray-200 flex-shrink-0 overflow-hidden transition-all duration-300`}
+          >
+            {/* Collapse/Expand Button */}
+            <div className="flex items-center justify-between p-4 border-b border-gray-200">
+              <button
+                onClick={() => setIsProjectsCollapsed(!isProjectsCollapsed)}
+                className="p-1 hover:bg-gray-100 rounded transition-colors"
+                title={
+                  isProjectsCollapsed ? "Expand Projects" : "Collapse Projects"
+                }
+              >
+                {isProjectsCollapsed ? (
+                  <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
+                ) : (
+                  <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+                )}
+              </button>
+              {!isProjectsCollapsed && (
+                <h3 className="font-semibold">Existing Projects</h3>
               )}
             </div>
 
-            <div className="mt-6 pt-4 border-t border-gray-200">
-              <button
-                onClick={() => navigate("/portal/projects")}
-                className="w-full text-left p-2 text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
-              >
-                View All Projects →
-              </button>
-            </div>
+            {!isProjectsCollapsed ? (
+              <div className="p-4 overflow-y-auto">
+                <div className="space-y-3 ">
+                  {projectsLoading ? (
+                    // Loading state
+                    <div className="space-y-3 ">
+                      {[...Array(3)].map((_, i) => (
+                        <div key={i} className="animate-pulse ">
+                          <div className="flex items-start space-x-3 p-3">
+                            <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                            <div className="flex-1">
+                              <div className="h-4 bg-gray-200 rounded mb-2"></div>
+                              <div className="h-3 bg-gray-200 rounded w-2/3 mb-1"></div>
+                              <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  ) : existingProjects.length > 0 ? (
+                    // Real projects
+                    existingProjects.map((project) => (
+                      <button
+                        key={project.id}
+                        onClick={() =>
+                          navigate(`/portal/workspace/${project.id}`)
+                        }
+                        className="relative w-full text-left p-3 cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group overflow-hidden"
+                      >
+                        {/* Mini notebook binding holes */}
+                        <div className="absolute left-2 top-3 bottom-3 w-1">
+                          <div className="flex flex-col justify-start space-y-2 h-full">
+                            {[...Array(4)].map((_, i) => (
+                              <div
+                                key={i}
+                                className="w-1 h-1 rounded-full bg-gray-300"
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="flex items-start space-x-3 ml-2">
+                          <div
+                            className={`w-8 h-8 ${project.color} rounded flex items-center justify-center flex-shrink-0`}
+                          >
+                            <project.icon className="h-4 w-4 text-white" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-medium text-sm text-gray-900 truncate">
+                              {project.name}
+                            </h4>
+                            <p className="text-xs text-gray-500 mt-1">
+                              {project.type}
+                              {project.toolCount > 0 && (
+                                <span className="ml-1 text-gray-400">
+                                  • {project.toolCount} tool
+                                  {project.toolCount !== 1 ? "s" : ""}
+                                </span>
+                              )}
+                            </p>
+                            <div className="flex items-center justify-between mt-1">
+                              <p className="text-xs text-gray-400">
+                                {project.lastUpdated}
+                              </p>
+                              <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
+                                Active
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Subtle lined effect for mini notebook */}
+                        <div className="absolute inset-0 pointer-events-none">
+                          <div className="absolute left-8 right-2 top-6 bottom-2 opacity-5">
+                            {[...Array(3)].map((_, i) => (
+                              <div
+                                key={i}
+                                className="border-b border-gray-300 h-2"
+                                style={{ marginTop: i === 0 ? 0 : "6px" }}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                      </button>
+                    ))
+                  ) : (
+                    // Empty state
+                    <div className="text-center py-6">
+                      <div className="text-gray-400 text-sm">
+                        No other projects found
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                <div className="mt-6 pt-4 border-t border-gray-200">
+                  <button
+                    onClick={() => navigate("/portal/projects")}
+                    className="w-full text-left p-2 text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+                  >
+                    View All Projects →
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div className="p-2 overflow-y-auto">
+                <div className="space-y-2">
+                  {projectsLoading ? (
+                    // Loading state for collapsed
+                    <div className="space-y-2">
+                      {[...Array(3)].map((_, i) => (
+                        <div
+                          key={i}
+                          className="w-8 h-8 bg-gray-200 rounded animate-pulse"
+                        ></div>
+                      ))}
+                    </div>
+                  ) : existingProjects.length > 0 ? (
+                    // Real projects as icons
+                    existingProjects.map((project) => (
+                      <button
+                        key={project.id}
+                        onClick={() =>
+                          navigate(`/portal/workspace/${project.id}`)
+                        }
+                        className={`w-8 h-8 ${project.color} rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110`}
+                        title={`${project.name} - ${project.type}`}
+                      >
+                        <project.icon className="h-4 w-4 text-white" />
+                      </button>
+                    ))
+                  ) : (
+                    // Empty state for collapsed
+                    <div
+                      className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center"
+                      title="No projects"
+                    >
+                      <FolderIcon className="h-4 w-4 text-gray-400" />
+                    </div>
+                  )}
+
+                  {/* View All Projects button as icon */}
+                  <div className="border-t border-gray-200 pt-2 mt-2">
+                    <button
+                      onClick={() => navigate("/portal/projects")}
+                      className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110"
+                      title="View All Projects"
+                    >
+                      <ArrowLeftIcon className="h-4 w-4 text-blue-600 rotate-180" />
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       </div>

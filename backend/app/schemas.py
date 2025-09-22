@@ -287,6 +287,7 @@ class Project(BaseModel):
     tags: List[str] = Field(default_factory=list)
     is_template: bool = False
     template_category: Optional[str] = None
+    color: Optional[str] = "bg-blue-500"  # Default color
 
 
 class ProjectCreateRequest(BaseModel):
@@ -297,6 +298,7 @@ class ProjectCreateRequest(BaseModel):
     type: str = "genetics"
     tags: List[str] = Field(default_factory=list)
     from_template: Optional[str] = None
+    color: Optional[str] = "bg-blue-500"  # Default color
 
 
 class ProjectUpdateRequest(BaseModel):
@@ -306,6 +308,7 @@ class ProjectUpdateRequest(BaseModel):
     description: Optional[str] = None
     tags: Optional[List[str]] = None
     tools: Optional[List[MendelianProjectTool]] = None
+    color: Optional[str] = None
 
 
 class ProjectResponse(BaseModel):

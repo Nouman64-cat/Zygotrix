@@ -11,6 +11,11 @@ import type {
 export const API_BASE_URL =
   import.meta.env.VITE_ZYGOTRIX_API ?? "http://127.0.0.1:8000";
 
+const getAuthHeaders = (): HeadersInit => {
+  const token = localStorage.getItem("zygotrix_auth_token");
+  return token ? { Authorization: `Bearer ${token}` } : {};
+};
+
 const handleResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
     const body = await response.text();
@@ -171,7 +176,7 @@ export const createMendelianTool = async (
     `${API_BASE_URL}/api/projects/${projectId}/tools`,
     {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify(toolData),
     }
   );
@@ -194,7 +199,7 @@ export const updateMendelianTool = async (
     `${API_BASE_URL}/api/projects/${projectId}/tools/${toolId}`,
     {
       method: "PUT",
-      headers: { "Content-Type": "application/json" },
+      headers: { "Content-Type": "application/json", ...getAuthHeaders() },
       body: JSON.stringify(updates),
     }
   );
@@ -210,6 +215,7 @@ export const deleteMendelianTool = async (
     `${API_BASE_URL}/api/projects/${projectId}/tools/${toolId}`,
     {
       method: "DELETE",
+      headers: { ...getAuthHeaders() },
     }
   );
 

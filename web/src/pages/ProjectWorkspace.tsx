@@ -100,6 +100,13 @@ const ProjectWorkspace: React.FC = () => {
   const [isToolsCollapsed, setIsToolsCollapsed] = useState(true);
   const [isProjectsCollapsed, setIsProjectsCollapsed] = useState(true);
 
+  // Canvas zoom state
+  const [zoom, setZoom] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isPanning, setIsPanning] = useState(false);
+  const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
+  const [hasDragged, setHasDragged] = useState(false);
+
   // Initialize project data when loaded
   useEffect(() => {
     if (project) {
@@ -406,18 +413,25 @@ const ProjectWorkspace: React.FC = () => {
 
   const handleCanvasClick = useCallback(
     (e: React.MouseEvent) => {
-      if (!selectedTool) return;
+      // Don't place tools if user was dragging or no tool selected
+      if (!selectedTool || hasDragged) {
+        setHasDragged(false); // Reset drag state
+        return;
+      }
 
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
 
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+      // Convert screen coordinates to canvas coordinates accounting for zoom and pan
+      const screenX = e.clientX - rect.left;
+      const screenY = e.clientY - rect.top;
+      const canvasX = (screenX - panOffset.x) / zoom;
+      const canvasY = (screenY - panOffset.y) / zoom;
 
       const newItem: WorkspaceItem = {
         id: `${selectedTool}-${Date.now()}`,
         type: selectedTool as any,
-        position: { x, y },
+        position: { x: Math.max(0, canvasX), y: Math.max(0, canvasY) },
         size: getDefaultSize(selectedTool),
         data: getDefaultData(selectedTool as any),
       };
@@ -425,7 +439,7 @@ const ProjectWorkspace: React.FC = () => {
       setItems((prev) => [...prev, newItem]);
       setSelectedTool(null);
     },
-    [selectedTool]
+    [selectedTool, zoom, panOffset, hasDragged]
   );
 
   const handleAddToCanvas = useCallback((itemData: any) => {
@@ -450,13 +464,19 @@ const ProjectWorkspace: React.FC = () => {
       const item = items.find((i) => i.id === itemId);
       if (!item) return;
 
-      const offsetX = e.clientX - rect.left - item.position.x;
-      const offsetY = e.clientY - rect.top - item.position.y;
+      // Convert screen coordinates to canvas coordinates
+      const screenX = e.clientX - rect.left;
+      const screenY = e.clientY - rect.top;
+      const canvasX = (screenX - panOffset.x) / zoom;
+      const canvasY = (screenY - panOffset.y) / zoom;
+
+      const offsetX = canvasX - item.position.x;
+      const offsetY = canvasY - item.position.y;
 
       setDraggedItem(itemId);
       setDragOffset({ x: offsetX, y: offsetY });
     },
-    [items]
+    [items, zoom, panOffset]
   );
 
   const handleMouseMove = useCallback(
@@ -466,8 +486,14 @@ const ProjectWorkspace: React.FC = () => {
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
 
-      const x = e.clientX - rect.left - dragOffset.x;
-      const y = e.clientY - rect.top - dragOffset.y;
+      // Convert screen coordinates to canvas coordinates
+      const screenX = e.clientX - rect.left;
+      const screenY = e.clientY - rect.top;
+      const canvasX = (screenX - panOffset.x) / zoom;
+      const canvasY = (screenY - panOffset.y) / zoom;
+
+      const x = canvasX - dragOffset.x;
+      const y = canvasY - dragOffset.y;
 
       setItems((prev) =>
         prev.map((item) =>
@@ -477,13 +503,79 @@ const ProjectWorkspace: React.FC = () => {
         )
       );
     },
-    [draggedItem, dragOffset]
+    [draggedItem, dragOffset, zoom, panOffset]
   );
 
   const handleMouseUp = useCallback(() => {
     setDraggedItem(null);
     setDragOffset({ x: 0, y: 0 });
+    setIsPanning(false);
+    // Don't reset hasDragged here - let handleCanvasClick handle it
   }, []);
+
+  // Handle canvas zoom
+  const handleZoomIn = useCallback(() => {
+    setZoom((prevZoom) => Math.min(prevZoom * 1.2, 3));
+  }, []);
+
+  const handleZoomOut = useCallback(() => {
+    setZoom((prevZoom) => Math.max(prevZoom / 1.2, 0.25));
+  }, []);
+
+  const handleZoomReset = useCallback(() => {
+    setZoom(1);
+    setPanOffset({ x: 0, y: 0 });
+  }, []);
+
+  // Handle mouse wheel zoom
+  const handleWheel = useCallback((e: React.WheelEvent) => {
+    if (e.ctrlKey || e.metaKey) {
+      e.preventDefault();
+      const delta = -e.deltaY;
+      const zoomFactor = delta > 0 ? 1.1 : 0.9;
+      setZoom((prevZoom) => Math.max(0.25, Math.min(3, prevZoom * zoomFactor)));
+    }
+  }, []);
+
+  // Handle pan start
+  const handleCanvasMouseDown = useCallback(
+    (e: React.MouseEvent) => {
+      // Allow panning with left mouse when no tool is selected, or middle mouse/Alt+click anytime
+      if (
+        (e.button === 0 && !selectedTool) || // Left click when no tool selected
+        e.button === 1 || // Middle mouse button
+        (e.button === 0 && e.altKey) // Alt+Left click
+      ) {
+        e.preventDefault();
+        setIsPanning(true);
+        setHasDragged(false); // Reset drag state
+        setLastPanPoint({ x: e.clientX, y: e.clientY });
+      }
+    },
+    [selectedTool]
+  );
+
+  // Handle panning
+  const handleCanvasPanMove = useCallback(
+    (e: React.MouseEvent) => {
+      if (isPanning) {
+        const deltaX = e.clientX - lastPanPoint.x;
+        const deltaY = e.clientY - lastPanPoint.y;
+
+        // If there's any movement, mark as dragged
+        if (Math.abs(deltaX) > 2 || Math.abs(deltaY) > 2) {
+          setHasDragged(true);
+        }
+
+        setPanOffset((prev) => ({
+          x: prev.x + deltaX,
+          y: prev.y + deltaY,
+        }));
+        setLastPanPoint({ x: e.clientX, y: e.clientY });
+      }
+    },
+    [isPanning, lastPanPoint]
+  );
 
   // Handle item name editing
   const handleNameClick = useCallback(
@@ -961,7 +1053,7 @@ const ProjectWorkspace: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-screen min-h-screen">
+      <div className="flex flex-col h-screen min-h-screen overflow-hidden">
         {/* Header */}
         <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
           <div className="flex items-center space-x-4">
@@ -1084,7 +1176,7 @@ const ProjectWorkspace: React.FC = () => {
           </div>
         </div>
 
-        <div className="flex-1 flex bg-gray-50 min-h-0 overflow-hidden">
+        <div className="flex-1 flex bg-gray-50 min-h-0 overflow-hidden max-w-full">
           {/* Toolbox */}
           <div
             className={`${
@@ -1273,40 +1365,115 @@ const ProjectWorkspace: React.FC = () => {
           </div>
 
           {/* Canvas Area */}
-          <div className="flex-1 flex flex-col">
+          <div className="flex-1 min-w-0 flex flex-col">
+            {/* Zoom Controls */}
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex items-center space-x-2">
+              <button
+                onClick={handleZoomOut}
+                className="p-2 hover:bg-gray-100 rounded transition-colors"
+                title="Zoom Out"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M20 12H4"
+                  />
+                </svg>
+              </button>
+              <span className="text-sm font-medium text-gray-600 min-w-[3rem] text-center">
+                {Math.round(zoom * 100)}%
+              </span>
+              <button
+                onClick={handleZoomIn}
+                className="p-2 hover:bg-gray-100 rounded transition-colors"
+                title="Zoom In"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 4v16m8-8H4"
+                  />
+                </svg>
+              </button>
+              <div className="w-px h-4 bg-gray-300"></div>
+              <button
+                onClick={handleZoomReset}
+                className="p-2 hover:bg-gray-100 rounded transition-colors text-xs"
+                title="Reset Zoom"
+              >
+                Reset
+              </button>
+            </div>
+
             {/* Canvas */}
-            <div className="flex-1 relative overflow-auto">
+            <div className="flex-1 relative overflow-hidden">
               <div
                 ref={canvasRef}
-                className={`w-full min-h-full relative ${
-                  selectedTool ? "cursor-crosshair" : "cursor-default"
+                className={`w-full h-full relative ${
+                  selectedTool
+                    ? "cursor-crosshair"
+                    : isPanning
+                    ? "cursor-grabbing"
+                    : "cursor-grab"
                 }`}
                 onClick={handleCanvasClick}
-                onMouseMove={handleMouseMove}
+                onMouseMove={(e) => {
+                  handleMouseMove(e);
+                  handleCanvasPanMove(e);
+                }}
                 onMouseUp={handleMouseUp}
+                onMouseDown={handleCanvasMouseDown}
+                onWheel={handleWheel}
                 style={{
                   minHeight: "calc(100vh - 200px)",
                 }}
               >
-                {/* Grid Background */}
+                {/* Zoomable and pannable container */}
                 <div
-                  className="absolute inset-0 opacity-5"
                   style={{
-                    backgroundImage: `
+                    transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
+                    transformOrigin: "0 0",
+                    width: "100%",
+                    height: "100%",
+                    minWidth: "1200px",
+                    minHeight: "800px",
+                  }}
+                  className="relative"
+                >
+                  {/* Grid Background */}
+                  <div
+                    className="absolute inset-0 opacity-5"
+                    style={{
+                      backgroundImage: `
                   linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px),
                   linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px)
                 `,
-                    backgroundSize: "20px 20px",
-                  }}
-                />
+                      backgroundSize: "20px 20px",
+                    }}
+                  />
 
-                {/* Workspace Items */}
-                {items.map(renderWorkspaceItem)}
-
-                {/* Empty State */}
+                  {/* Workspace Items */}
+                  {items.map(renderWorkspaceItem)}
+                </div>{" "}
+                {/* Close zoomable container */}
+                {/* Empty State - outside zoomable container for proper positioning */}
                 {items.length === 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <div className="text-center max-w-md">
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="text-center max-w-md pointer-events-auto">
                       {/* Animated Icon Container */}
                       <div className="relative mb-8">
                         <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
@@ -1337,6 +1504,11 @@ const ProjectWorkspace: React.FC = () => {
                       <p className="text-gray-600 mb-6 leading-relaxed">
                         Create your genomics workspace by selecting tools from
                         the left panel and placing them anywhere on this canvas.
+                        <br />
+                        <span className="text-sm text-gray-500 mt-2 block">
+                          💡 Tip: Drag to pan around • Ctrl+scroll to zoom • Use
+                          zoom controls above
+                        </span>
                       </p>
 
                       {/* Quick Action Buttons */}
@@ -1350,7 +1522,7 @@ const ProjectWorkspace: React.FC = () => {
           {/* Right Sidebar - Existing Projects */}
           <div
             className={`${
-              isProjectsCollapsed ? "w-12" : "w-64"
+              isProjectsCollapsed ? "w-12 min-w-[3rem]" : "w-64 min-w-[16rem]"
             } bg-white border-l border-gray-200 flex-shrink-0 overflow-hidden transition-all duration-300`}
           >
             {/* Collapse/Expand Button */}

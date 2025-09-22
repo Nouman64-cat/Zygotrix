@@ -229,16 +229,16 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                     <span>Running...</span>
                   </>
                 ) : (
-                  <>
+                  <div className="cursor-pointer flex items-center justify-center space-x-2">
                     <PlayIcon className="h-5 w-5" />
                     <span>Run Simulation</span>
-                  </>
+                  </div>
                 )}
               </button>
 
               <button
                 onClick={onClose}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                className="p-2 text-gray-400 cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
               >
                 <XMarkIcon className="h-5 w-5" />
               </button>
@@ -361,7 +361,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                         </div>
                         <button
                           onClick={() => removeTrait(selectedTrait.key)}
-                          className="p-2.5 text-red-400 hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-105"
+                          className="p-2.5 text-red-400 cursor-pointer hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-105"
                         >
                           <TrashIcon className="h-5 w-5" />
                         </button>
@@ -395,7 +395,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                   e.target.value
                                 )
                               }
-                              className="w-full px-2 py-4 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gradient-to-r from-purple-50/50 to-white text-sm font-semibold shadow-sm transition-all duration-200 hover:border-purple-300 appearance-none min-w-0"
+                              className="w-full px-2 cursor-pointer py-4 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gradient-to-r from-purple-50/50 to-white text-sm font-semibold shadow-sm transition-all duration-200 hover:border-purple-300 appearance-none min-w-0"
                               style={{
                                 backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
                                 backgroundPosition: "right 0.75rem center",
@@ -451,7 +451,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                   e.target.value
                                 )
                               }
-                              className="w-full px-2 py-4 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gradient-to-r from-indigo-50/50 to-white text-sm font-semibold shadow-sm transition-all duration-200 hover:border-indigo-300 appearance-none min-w-0"
+                              className="w-full cursor-pointer px-2 py-4 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gradient-to-r from-indigo-50/50 to-white text-sm font-semibold shadow-sm transition-all duration-200 hover:border-indigo-300 appearance-none min-w-0"
                               style={{
                                 backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
                                 backgroundPosition: "right 0.75rem center",
@@ -572,7 +572,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                       key={trait.key}
                       onClick={() => addTrait(trait.key)}
                       disabled={project.selectedTraits.length >= 5}
-                      className="w-full text-left p-4 bg-white/80 backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white hover:border-purple-300 hover:shadow-md disabled:bg-gray-100 disabled:cursor-not-allowed transition-all duration-200 group"
+                      className="w-full text-left p-4 bg-white/80 cursor-pointer backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white hover:border-purple-300 hover:shadow-md disabled:bg-gray-100 disabled:cursor-not-allowed transition-all duration-200 group"
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">

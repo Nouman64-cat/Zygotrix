@@ -1,9 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import {
-  simulateMendelianTrait,
-  simulateJointPhenotypes,
-} from "../services/zygotrixApi";
+import { simulateMendelianTrait } from "../services/zygotrixApi";
 import type { TraitInfo } from "../types/api";
 import {
   deriveDefaultGenotypes,
@@ -35,8 +32,6 @@ const LiveSandbox: React.FC<LiveSandboxProps> = ({
   const [parent1, setParent1] = useState<string>("");
   const [parent2, setParent2] = useState<string>("");
   const [asPercentages, setAsPercentages] = useState<boolean>(true);
-  const [jointPhenotypeMode, setJointPhenotypeMode] = useState<boolean>(false);
-  const [selectedTraits, setSelectedTraits] = useState<string[]>([]);
 
   // Filter state
   const [inheritanceFilter, setInheritanceFilter] = useState<string>("");

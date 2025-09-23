@@ -1,6 +1,5 @@
 import type {
   GenotypeResponse,
-  JointPhenotypeSimulationRequest,
   JointPhenotypeSimulationResponse,
   MendelianSimulationResponse,
   PolygenicScoreResponse,

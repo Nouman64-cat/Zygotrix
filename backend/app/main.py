@@ -17,6 +17,8 @@ from .schemas import (
     GenotypeRequest,
     GenotypeResponse,
     HealthResponse,
+    JointPhenotypeSimulationRequest,
+    JointPhenotypeSimulationResponse,
     MendelianProjectTool,
     MendelianToolCreateRequest,
     MendelianToolResponse,
@@ -264,6 +266,39 @@ def simulate_mendelian(
             max_traits=5,
         )
         return MendelianSimulationResponse(results=results, missing_traits=missing)
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
+@app.post(
+    "/api/mendelian/simulate-joint",
+    response_model=JointPhenotypeSimulationResponse,
+    tags=["Mendelian"],
+)
+def simulate_joint_phenotypes(
+    request: JointPhenotypeSimulationRequest,
+) -> JointPhenotypeSimulationResponse:
+    """Simulate joint phenotype probabilities across multiple traits.
+
+    This endpoint calculates combined phenotype probabilities using Mendel's law
+    of independent assortment. Instead of returning separate distributions for
+    each trait, it returns a single distribution of combined phenotypes.
+
+    Example: Eye color (Bb × Bb) + Hair texture (Cc × Cc) returns:
+    - "Brown + Curly": 56.25%
+    - "Brown + Straight": 18.75%
+    - "Blue + Curly": 18.75%
+    - "Blue + Straight": 6.25%
+    """
+    try:
+        results, missing = services.simulate_joint_phenotypes(
+            parent1=request.parent1_genotypes,
+            parent2=request.parent2_genotypes,
+            trait_filter=request.trait_filter,
+            as_percentages=request.as_percentages,
+            max_traits=5,
+        )
+        return JointPhenotypeSimulationResponse(results=results, missing_traits=missing)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 

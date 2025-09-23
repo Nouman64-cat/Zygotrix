@@ -37,6 +37,18 @@ export type MendelianSimulationResponse = {
   missing_traits: string[];
 };
 
+export type JointPhenotypeSimulationRequest = {
+  parent1_genotypes: Record<string, string>;
+  parent2_genotypes: Record<string, string>;
+  trait_filter?: string[];
+  as_percentages?: boolean;
+};
+
+export type JointPhenotypeSimulationResponse = {
+  results: Record<string, number>;
+  missing_traits: string[];
+};
+
 export type GenotypeRequest = {
   trait_keys: string[];
 };

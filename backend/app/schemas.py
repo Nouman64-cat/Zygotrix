@@ -113,6 +113,61 @@ class MendelianSimulationResponse(BaseModel):
     )
 
 
+class JointPhenotypeSimulationRequest(BaseModel):
+    """Inputs required to simulate joint phenotypes across multiple Mendelian traits."""
+
+    parent1_genotypes: Dict[str, str] = Field(
+        ..., json_schema_extra={"example": {"eye_color": "Bb", "hair_texture": "Cc"}}
+    )
+    parent2_genotypes: Dict[str, str] = Field(
+        ..., json_schema_extra={"example": {"eye_color": "Bb", "hair_texture": "Cc"}}
+    )
+    trait_filter: Optional[List[str]] = Field(
+        default=None,
+        description="Restrict the response to specific trait keys if provided.",
+    )
+    as_percentages: bool = Field(
+        default=False,
+        description="Return joint phenotype distributions as 0-100 percentages instead of probabilities.",
+    )
+
+    @field_validator("parent1_genotypes", "parent2_genotypes", mode="before")
+    @classmethod
+    def _strip_spaces(cls, value: Mapping[str, str] | Dict[str, str]) -> Dict[str, str]:
+        if isinstance(value, Mapping):
+            mapping = dict(value)
+        elif isinstance(value, dict):
+            mapping = value
+        else:
+            raise TypeError(
+                "Genotype payload must be a mapping of trait keys to genotypes."
+            )
+        return {
+            key: str(genotype).replace(" ", "") for key, genotype in mapping.items()
+        }
+
+
+class JointPhenotypeSimulationResponse(BaseModel):
+    """Joint phenotype distributions returned from the simulator."""
+
+    results: Dict[str, float] = Field(
+        ...,
+        description="Dictionary mapping combined phenotype strings to their probabilities",
+        json_schema_extra={
+            "example": {
+                "Brown + Curly": 56.25,
+                "Brown + Straight": 18.75,
+                "Blue + Curly": 18.75,
+                "Blue + Straight": 6.25,
+            }
+        },
+    )
+    missing_traits: List[str] = Field(
+        default_factory=list,
+        description="Requested trait keys that were not available in the registry.",
+    )
+
+
 class GenotypeRequest(BaseModel):
     """Request for getting possible genotypes for traits."""
 

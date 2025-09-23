@@ -61,5 +61,113 @@
       "Hh": "Huntington's Disease",
       "hh": "Normal"
     }
+  },
+  {
+    "trait": "Phenylketonuria",
+    "gene": "PAH",
+    "chromosome": 12,
+    "inheritance": "recessive",
+    "alleles": ["P", "p"],
+    "phenotypes": {
+      "PP": "Normal",
+      "Pp": "Carrier",
+      "pp": "Phenylketonuria"
+    }
+  },
+  {
+    "trait": "Tay-Sachs Disease",
+    "gene": "HEXA",
+    "chromosome": 15,
+    "inheritance": "recessive",
+    "alleles": ["T", "t"],
+    "phenotypes": {
+      "TT": "Normal",
+      "Tt": "Carrier",
+      "tt": "Tay-Sachs Disease"
+    }
+  },
+  {
+    "trait": "Hemophilia A",
+    "gene": "F8",
+    "chromosome": "X",
+    "inheritance": "X-linked recessive",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Normal",
+      "Hh": "Carrier",
+      "hh": "Hemophilia A"
+    }
+  },
+  {
+    "trait": "Red-Green Color Blindness",
+    "gene": "OPN1LW",
+    "chromosome": "X",
+    "inheritance": "X-linked recessive",
+    "alleles": ["N", "c"],
+    "phenotypes": {
+      "NN": "Normal Color Vision",
+      "Nc": "Carrier (normal vision)",
+      "cc": "Red-Green Color Blindness"
+    }
+  },
+  {
+    "trait": "Achondroplasia",
+    "gene": "FGFR3",
+    "chromosome": 4,
+    "inheritance": "dominant",
+    "alleles": ["A", "a"],
+    "phenotypes": {
+      "AA": "Lethal (non-viable)",
+      "Aa": "Achondroplasia",
+      "aa": "Normal"
+    }
+  },
+  {
+    "trait": "Marfan Syndrome",
+    "gene": "FBN1",
+    "chromosome": 15,
+    "inheritance": "dominant",
+    "alleles": ["M", "m"],
+    "phenotypes": {
+      "MM": "Marfan Syndrome",
+      "Mm": "Marfan Syndrome",
+      "mm": "Normal"
+    }
+  },
+  {
+    "trait": "PTC Tasting",
+    "gene": "TAS2R38",
+    "chromosome": 7,
+    "inheritance": "dominant",
+    "alleles": ["T", "t"],
+    "phenotypes": {
+      "TT": "PTC Taster",
+      "Tt": "PTC Taster",
+      "tt": "PTC Non-taster"
+    }
+  },
+  {
+    "trait": "Lactose Intolerance",
+    "gene": "LCT",
+    "chromosome": 2,
+    "inheritance": "recessive",
+    "alleles": ["L", "l"],
+    "phenotypes": {
+      "LL": "Lactose Tolerant",
+      "Ll": "Lactose Tolerant (carrier)",
+      "ll": "Lactose Intolerance"
+    }
+  },
+  {
+    "trait": "Red Hair",
+    "gene": "MC1R",
+    "chromosome": 16,
+    "inheritance": "recessive",
+    "alleles": ["R", "r"],
+    "phenotypes": {
+      "RR": "Non-red hair",
+      "Rr": "Non-red hair (carrier)",
+      "rr": "Red hair"
+    }
   }
 ]

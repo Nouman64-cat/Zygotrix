@@ -8,6 +8,7 @@ const baseNavItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
   { label: "Playground", to: "/playground" },
+  { label: "Joint Analysis", to: "/joint-phenotype" },
 ];
 
 const Navbar: React.FC = () => {

@@ -1,5 +1,6 @@
 import React, { useMemo } from "react";
 
+import JointPhenotypeTest from "../components/JointPhenotypeTest";
 import LiveSandbox from "../components/LiveSandbox";
 import PolygenicOverview from "../components/PolygenicOverview";
 import TraitManagementSection from "../components/TraitManagementSection";
@@ -143,6 +144,16 @@ const PlaygroundPage: React.FC = () => {
           reload={reload}
           applyFilters={applyFilters}
         />
+      </section>
+
+      <section
+        className="mx-auto max-w-6xl px-6 py-12"
+        aria-labelledby="playground-joint-phenotype-heading"
+      >
+        <h2 id="playground-joint-phenotype-heading" className="sr-only">
+          Joint phenotype analysis
+        </h2>
+        <JointPhenotypeTest />
       </section>
 
       <section

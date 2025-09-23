@@ -208,10 +208,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
         name: initialData.name || prev.name,
         selectedTraits: initialData.selectedTraits || [],
         simulationResults: initialData.simulationResults || null,
-        asPercentages:
-          initialData.asPercentages !== undefined
-            ? initialData.asPercentages
-            : true,
+        asPercentages: true, // Always force to true
         notes: initialData.notes || "",
       }));
     } else {
@@ -747,20 +744,14 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                     {genotype}
                                   </span>
                                   <span className="text-sm font-semibold text-indigo-600">
-                                    {project.asPercentages
-                                      ? `${percentage.toFixed(1)}%`
-                                      : `${(percentage * 100).toFixed(1)}%`}
+                                    {`${percentage.toFixed(1)}%`}
                                   </span>
                                 </div>
                                 <div className="w-full bg-gray-200 rounded-full h-2">
                                   <div
                                     className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-300"
                                     style={{
-                                      width: `${
-                                        project.asPercentages
-                                          ? percentage
-                                          : percentage * 100
-                                      }%`,
+                                      width: `${percentage}%`,
                                     }}
                                   />
                                 </div>

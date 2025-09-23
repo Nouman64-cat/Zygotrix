@@ -1002,7 +1002,9 @@ const ProjectWorkspace: React.FC = () => {
                                     >
                                       <span>{phenotype}</span>
                                       <span className="font-mono">
-                                        {(prob * 100).toFixed(1)}%
+                                        {item.data.asPercentages
+                                          ? `${prob.toFixed(1)}%`
+                                          : `${(prob * 100).toFixed(1)}%`}
                                       </span>
                                     </div>
                                   )

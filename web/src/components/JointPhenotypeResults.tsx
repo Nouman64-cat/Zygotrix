@@ -113,6 +113,8 @@ const JointPhenotypeResults: React.FC<JointPhenotypeResultsProps> = ({
           </h4>
           <div className="space-y-3">
             {sortedResults.map(([phenotype, probability]) => {
+              // If asPercentages is true, the values from API are already percentages
+              // If asPercentages is false, the values are probabilities (0-1) and need to be converted
               const percentage = asPercentages
                 ? probability
                 : probability * 100;
@@ -143,7 +145,7 @@ const JointPhenotypeResults: React.FC<JointPhenotypeResultsProps> = ({
                   </div>
                   <div className="flex items-center gap-2 text-sm">
                     <span className="font-mono font-medium text-slate-800">
-                      {percentage.toFixed(2)}%
+                      {percentage.toFixed(1)}%
                     </span>
                   </div>
                 </div>

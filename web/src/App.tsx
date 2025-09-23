@@ -8,6 +8,7 @@ import AnalyticsPage from "./pages/AnalyticsPage";
 import ContactPage from "./pages/ContactPage";
 import DataManagementPage from "./pages/DataManagementPage";
 import HomePage from "./pages/HomePage";
+import JointPhenotypePage from "./pages/JointPhenotypePage";
 import PlaygroundPage from "./pages/PlaygroundPage";
 import PortalPage from "./pages/PortalPage";
 import PreferencesPage from "./pages/PreferencesPage";
@@ -26,6 +27,7 @@ const App: React.FC = () => {
         <Route index element={<HomePage />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="playground" element={<PlaygroundPage />} />
+        <Route path="joint-phenotype" element={<JointPhenotypePage />} />
         <Route path="contact" element={<ContactPage />} />
       </Route>
       <Route

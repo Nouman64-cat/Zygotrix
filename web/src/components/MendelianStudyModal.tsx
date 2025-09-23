@@ -77,6 +77,11 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
     trait.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+  // Number of traits available to add (filtered minus already selected)
+  const availableCount = filteredTraits.filter(
+    (t) => !project.selectedTraits.some((s) => s.key === t.key)
+  ).length;
+
   // Generate possible genotype combinations for a trait
   const getGenotypeOptions = useCallback((alleles: string[]) => {
     if (!alleles || alleles.length === 0) return [];
@@ -423,18 +428,6 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                 ) : null;
                               })()}
                             </p>
-                            {(() => {
-                              const traitInfo = traits.find(
-                                (t) => t.key === selectedTrait.key
-                              );
-                              return traitInfo?.category === "real_gene" ? (
-                                <div className="mt-1">
-                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                    ✓ Real Gene Data
-                                  </span>
-                                </div>
-                              ) : null;
-                            })()}
                           </div>
                         </div>
                         <button
@@ -608,13 +601,20 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
 
             {/* Right Column - Trait Browser */}
             <div className="w-80 p-5 bg-gradient-to-br from-purple-50/50 to-pink-50/50 overflow-y-auto">
-              <div className="flex items-center space-x-2 mb-5">
-                <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
-                  <MagnifyingGlassIcon className="h-5 w-5 text-white" />
+              <div className="flex items-center justify-between space-x-2 mb-5">
+                <div className="flex items-center space-x-2">
+                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
+                    <MagnifyingGlassIcon className="h-5 w-5 text-white" />
+                  </div>
+                  <h3 className="text-lg font-bold text-gray-900">
+                    Trait Browser
+                  </h3>
                 </div>
-                <h3 className="text-lg font-bold text-gray-900">
-                  Trait Browser
-                </h3>
+                <div>
+                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+                    {availableCount} available
+                  </span>
+                </div>
               </div>
 
               {/* Search */}
@@ -654,17 +654,17 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1">
-                            <h4 className="font-semibold text-gray-900 text-sm truncate group-hover:text-purple-700 transition-colors">
+                          <div className="flex items-center space-x-2 mb-1 flex-wrap">
+                            <h4 className="font-semibold text-gray-900 text-sm group-hover:text-purple-700 transition-colors flex-shrink-0">
                               {trait.name}
                             </h4>
                             {trait.gene && trait.chromosome && (
-                              <div className="flex items-center space-x-1">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                              <div className="flex items-center space-x-1 flex-shrink-0">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
                                   {trait.gene}
                                 </span>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
-                                  Chr {trait.chromosome}
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">
+                                  Chr&nbsp;{trait.chromosome}
                                 </span>
                               </div>
                             )}
@@ -684,13 +684,6 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                               </span>
                             )}
                           </p>
-                          {trait.category === "real_gene" && (
-                            <div className="mt-1">
-                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
-                                ✓ Real Gene Data
-                              </span>
-                            </div>
-                          )}
                         </div>
                         <div className="flex-shrink-0 ml-3">
                           <div className="p-1.5 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">

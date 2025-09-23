@@ -8,6 +8,7 @@ import { useProject, useProjects } from "../hooks/useProjects";
 import {
   deleteMendelianTool,
   updateMendelianTool,
+  createMendelianTool,
   updateProject as updateProjectAPI,
 } from "../services/zygotrixApi";
 import type { MendelianProjectTool } from "../types/api";
@@ -70,6 +71,37 @@ const ProjectWorkspace: React.FC = () => {
 
   // Use projects hook to get all projects for the sidebar
   const { projects: allProjects, loading: projectsLoading } = useProjects();
+
+  // Local storage helpers for note-type items
+  const getLocalItemsKey = (projId: string) => `zygotrix_local_items_${projId}`;
+
+  const saveLocalItems = useCallback(
+    (projId: string, localItems: WorkspaceItem[]) => {
+      if (projId && projId !== "new") {
+        try {
+          localStorage.setItem(
+            getLocalItemsKey(projId),
+            JSON.stringify(localItems)
+          );
+        } catch (error) {
+          console.warn("Failed to save local items to localStorage:", error);
+        }
+      }
+    },
+    []
+  );
+
+  const loadLocalItems = useCallback((projId: string): WorkspaceItem[] => {
+    if (!projId || projId === "new") return [];
+
+    try {
+      const stored = localStorage.getItem(getLocalItemsKey(projId));
+      return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+      console.warn("Failed to load local items from localStorage:", error);
+      return [];
+    }
+  }, []);
 
   // Workspace state
   const [items, setItems] = useState<WorkspaceItem[]>([]);
@@ -179,9 +211,49 @@ const ProjectWorkspace: React.FC = () => {
         },
         size: { width: 400, height: 300 },
       }));
-      setItems(workspaceItems);
+
+      // Preserve any existing local-only items (like note-type items) and merge with backend items
+      setItems((prevItems) => {
+        // Load persisted local items from localStorage
+        const persistedLocalItems = projectId ? loadLocalItems(projectId) : [];
+
+        // Get local-only items from current state (items not saved to backend)
+        const currentLocalOnlyItems = prevItems.filter(
+          (item) =>
+            item.type !== "mendelian-study" && // Keep non-mendelian items (like notes)
+            !workspaceItems.some((newItem) => newItem.id === item.id) // And items not in the new backend data
+        );
+
+        // Merge backend items with both persisted and current local items
+        // Remove duplicates by keeping the most recent version (current over persisted)
+        const allLocalItems = [...persistedLocalItems];
+        currentLocalOnlyItems.forEach((currentItem) => {
+          const existingIndex = allLocalItems.findIndex(
+            (item) => item.id === currentItem.id
+          );
+          if (existingIndex >= 0) {
+            allLocalItems[existingIndex] = currentItem; // Update with current version
+          } else {
+            allLocalItems.push(currentItem); // Add new item
+          }
+        });
+
+        return [...workspaceItems, ...allLocalItems];
+      });
     }
-  }, [project]); // Save project details when name or description changes
+  }, [project, projectId, loadLocalItems]);
+
+  // Persist local-only items to localStorage whenever items change
+  useEffect(() => {
+    if (projectId && projectId !== "new" && items.length > 0) {
+      const localOnlyItems = items.filter(
+        (item) => item.type !== "mendelian-study"
+      );
+      saveLocalItems(projectId, localOnlyItems);
+    }
+  }, [items, projectId, saveLocalItems]);
+
+  // Save project details when name or description changes
   const handleUpdateProjectDetails = useCallback(async () => {
     if (!project || projectId === "new") return;
 
@@ -442,18 +514,84 @@ const ProjectWorkspace: React.FC = () => {
     [selectedTool, zoom, panOffset, hasDragged]
   );
 
-  const handleAddToCanvas = useCallback((itemData: any) => {
-    const newItem: WorkspaceItem = {
-      id: `custom-${Date.now()}`,
-      type: itemData.type,
-      position: { x: 100, y: 100 },
-      size: getDefaultSize(itemData.type),
-      data: itemData.content || itemData.data || itemData,
-    };
+  const handleAddToCanvas = useCallback(
+    async (itemData: any) => {
+      const newItem: WorkspaceItem = {
+        id: `custom-${Date.now()}`,
+        type: itemData.type,
+        position: { x: 100, y: 100 },
+        size: getDefaultSize(itemData.type),
+        data: itemData.content || itemData.data || itemData,
+      };
 
-    setItems((prev) => [...prev, newItem]);
-    setShowMendelianModal(false);
-  }, []);
+      // Save to backend if in a real project
+      if (projectId && projectId !== "new") {
+        try {
+          const toolData = {
+            name: newItem.data.name || "New Mendelian Study",
+            trait_configurations:
+              newItem.data.selectedTraits?.reduce((acc: any, trait: any) => {
+                acc[trait.key] = {
+                  parent1_genotype: trait.parent1Genotype,
+                  parent2_genotype: trait.parent2Genotype,
+                };
+                return acc;
+              }, {}) || {},
+            simulation_results: newItem.data.simulationResults || null,
+            notes: newItem.data.notes || "",
+            position: newItem.position,
+          };
+
+          const result = await createMendelianTool(projectId, toolData);
+          // Update the item with the backend-generated ID
+          newItem.id = result.tool.id;
+          newItem.data = { ...newItem.data, ...result.tool };
+        } catch (error) {
+          console.error("Failed to save tool to backend:", error);
+          // Continue with local state even if backend save fails
+        }
+      }
+
+      setItems((prev) => [...prev, newItem]);
+      setShowMendelianModal(false);
+    },
+    [projectId]
+  );
+
+  // Handle note text changes
+  const handleNoteChange = useCallback(
+    async (itemId: string, noteText: string) => {
+      // Update local state immediately
+      setItems((prev) => {
+        const updatedItems = prev.map((item) =>
+          item.id === itemId
+            ? { ...item, data: { ...item.data, content: noteText } }
+            : item
+        );
+
+        // Save to backend only for mendelian-study type items in a real project
+        if (projectId && projectId !== "new") {
+          const item = prev.find((i) => i.id === itemId);
+          if (item && item.type === "mendelian-study") {
+            // Use setTimeout to avoid blocking the UI update
+            setTimeout(async () => {
+              try {
+                await updateMendelianTool(projectId, itemId, {
+                  notes: noteText,
+                });
+              } catch (error) {
+                console.error("Failed to save note to backend:", error);
+              }
+            }, 0);
+          }
+          // Note: pure "note" type items are not saved to backend - they're local only
+        }
+
+        return updatedItems;
+      });
+    },
+    [projectId]
+  );
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, itemId: string) => {
@@ -630,18 +768,22 @@ const ProjectWorkspace: React.FC = () => {
 
       // Find the item to get its data for API call
       const item = items.find((i) => i.id === itemId);
-      if (!item || item.type !== "mendelian-study") return;
+      if (!item) return;
 
       try {
-        if (projectId && projectId !== "new") {
-          // Call backend API to delete the tool
+        // Only call backend API for mendelian-study items
+        if (
+          item.type === "mendelian-study" &&
+          projectId &&
+          projectId !== "new"
+        ) {
           await deleteMendelianTool(projectId, itemId);
         }
 
-        // Remove from local state
+        // Remove from local state (works for all item types)
         setItems((prev) => prev.filter((item) => item.id !== itemId));
       } catch (error) {
-        console.error("Failed to delete Mendelian study:", error);
+        console.error("Failed to delete item:", error);
         // You could add a toast notification here
       }
     },
@@ -890,13 +1032,23 @@ const ProjectWorkspace: React.FC = () => {
             onMouseDown={(e) => handleMouseDown(e, item.id)}
           >
             <div className="p-4">
-              <div className="flex items-center mb-2">
-                <DocumentTextIcon className="h-5 w-5 text-yellow-500 mr-2" />
-                <span className="font-semibold text-sm">Note</span>
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <DocumentTextIcon className="h-5 w-5 text-yellow-500 mr-2" />
+                  <span className="font-semibold text-sm">Note</span>
+                </div>
+                <button
+                  onClick={(e) => handleDeleteItem(e, item.id)}
+                  className="text-gray-400 hover:text-red-500 p-1 transition-colors"
+                  title="Delete note"
+                >
+                  <TrashIcon className="h-4 w-4" />
+                </button>
               </div>
               <textarea
                 className="w-full h-16 text-xs border-none resize-none focus:outline-none"
-                defaultValue={item.data?.content || ""}
+                value={item.data?.content || ""}
+                onChange={(e) => handleNoteChange(item.id, e.target.value)}
                 placeholder="Add your notes..."
               />
             </div>
@@ -1012,6 +1164,19 @@ const ProjectWorkspace: React.FC = () => {
                             </div>
                           )
                         )}
+                      </div>
+                    )}
+                    {item.data.notes && (
+                      <div className="mt-3 p-2 bg-gray-50 rounded border">
+                        <div className="flex items-center mb-1">
+                          <DocumentTextIcon className="h-4 w-4 text-gray-500 mr-1" />
+                          <span className="font-medium text-xs text-gray-600">
+                            Notes
+                          </span>
+                        </div>
+                        <div className="text-xs text-gray-700 whitespace-pre-wrap break-words">
+                          {item.data.notes}
+                        </div>
                       </div>
                     )}
                   </div>

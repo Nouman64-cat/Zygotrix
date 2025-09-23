@@ -381,14 +381,60 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-indigo-600 rounded-xl flex items-center justify-center">
                             <SparklesIcon className="h-5 w-5 text-white" />
                           </div>
-                          <div>
-                            <h4 className="font-bold text-gray-900 text-base">
-                              {selectedTrait.name}
-                            </h4>
-                            <p className="text-xs text-gray-500 mt-0.5">
+                          <div className="flex-1">
+                            <div className="flex items-center space-x-2 mb-1">
+                              <h4 className="font-bold text-gray-900 text-base">
+                                {selectedTrait.name}
+                              </h4>
+                              {(() => {
+                                const traitInfo = traits.find(
+                                  (t) => t.key === selectedTrait.key
+                                );
+                                return traitInfo?.gene &&
+                                  traitInfo?.chromosome ? (
+                                  <div className="flex items-center space-x-1">
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                      {traitInfo.gene}
+                                    </span>
+                                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                      Chr {traitInfo.chromosome}
+                                    </span>
+                                  </div>
+                                ) : null;
+                              })()}
+                            </div>
+                            <p className="text-xs text-gray-500">
                               <span className="font-medium">Alleles:</span>{" "}
                               {selectedTrait.alleles.join(", ")}
+                              {(() => {
+                                const traitInfo = traits.find(
+                                  (t) => t.key === selectedTrait.key
+                                );
+                                return traitInfo?.inheritance_pattern ? (
+                                  <span className="ml-2">
+                                    |{" "}
+                                    <span className="font-medium">
+                                      Inheritance:
+                                    </span>{" "}
+                                    <span className="capitalize">
+                                      {traitInfo.inheritance_pattern}
+                                    </span>
+                                  </span>
+                                ) : null;
+                              })()}
                             </p>
+                            {(() => {
+                              const traitInfo = traits.find(
+                                (t) => t.key === selectedTrait.key
+                              );
+                              return traitInfo?.category === "real_gene" ? (
+                                <div className="mt-1">
+                                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                    ✓ Real Gene Data
+                                  </span>
+                                </div>
+                              ) : null;
+                            })()}
                           </div>
                         </div>
                         <button
@@ -608,13 +654,43 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                     >
                       <div className="flex items-center justify-between">
                         <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-gray-900 text-sm truncate group-hover:text-purple-700 transition-colors">
-                            {trait.name}
-                          </h4>
-                          <p className="text-xs text-gray-500 mt-1">
+                          <div className="flex items-center space-x-2 mb-1">
+                            <h4 className="font-semibold text-gray-900 text-sm truncate group-hover:text-purple-700 transition-colors">
+                              {trait.name}
+                            </h4>
+                            {trait.gene && trait.chromosome && (
+                              <div className="flex items-center space-x-1">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                                  {trait.gene}
+                                </span>
+                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                                  Chr {trait.chromosome}
+                                </span>
+                              </div>
+                            )}
+                          </div>
+                          <p className="text-xs text-gray-500">
                             <span className="font-medium">Alleles:</span>{" "}
                             {trait.alleles.join(", ")}
+                            {trait.inheritance_pattern && (
+                              <span className="ml-2">
+                                |{" "}
+                                <span className="font-medium">
+                                  Inheritance:
+                                </span>{" "}
+                                <span className="capitalize">
+                                  {trait.inheritance_pattern}
+                                </span>
+                              </span>
+                            )}
                           </p>
+                          {trait.category === "real_gene" && (
+                            <div className="mt-1">
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                                ✓ Real Gene Data
+                              </span>
+                            </div>
+                          )}
                         </div>
                         <div className="flex-shrink-0 ml-3">
                           <div className="p-1.5 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">

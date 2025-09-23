@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import json
+import os
 import secrets
 import string
 from datetime import datetime, timedelta, timezone
@@ -36,6 +38,56 @@ DEFAULT_TRAITS: Dict[str, Trait] = {
     "blood_type": BLOOD_TYPE,
     "hair_color": HAIR_COLOR,
 }
+
+
+def _load_real_gene_traits() -> Dict[str, Trait]:
+    """Load real gene traits from the traits_dataset.json file."""
+    # Get the directory of the current file
+    current_dir = os.path.dirname(os.path.abspath(__file__))
+    # Navigate to the data directory
+    traits_file_path = os.path.join(current_dir, "..", "data", "traits_dataset.json")
+
+    if not os.path.exists(traits_file_path):
+        return {}
+
+    try:
+        with open(traits_file_path, "r", encoding="utf-8") as f:
+            traits_data = json.load(f)
+
+        real_gene_traits = {}
+        for trait_data in traits_data:
+            # Convert trait name to key format (lowercase, underscores)
+            trait_key = trait_data["trait"].lower().replace(" ", "_").replace("-", "_")
+
+            # Create metadata with real gene information
+            metadata = {
+                "gene": trait_data["gene"],
+                "chromosome": str(trait_data["chromosome"]),
+                "inheritance_pattern": trait_data["inheritance"],
+                "category": "real_gene",
+                "verification_status": "verified",
+            }
+
+            # Create the Trait object
+            trait = Trait(
+                name=trait_data["trait"],
+                alleles=tuple(trait_data["alleles"]),
+                phenotype_map=trait_data["phenotypes"],
+                description=f"Real gene trait - {trait_data['gene']} gene on chromosome {trait_data['chromosome']}",
+                metadata=metadata,
+            )
+
+            real_gene_traits[trait_key] = trait
+
+        return real_gene_traits
+    except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
+        print(f"Warning: Could not load real gene traits: {e}")
+        return {}
+
+
+# Combine default traits with real gene traits
+REAL_GENE_TRAITS = _load_real_gene_traits()
+ALL_TRAITS = {**DEFAULT_TRAITS, **REAL_GENE_TRAITS}
 
 _mongo_client: Optional[MongoClient] = None
 _password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -307,8 +359,8 @@ def get_trait_registry(
 ) -> Dict[str, Trait]:
     """Get trait registry with optional filtering."""
 
-    # Always include default traits (unless filtered out by criteria)
-    registry = dict(DEFAULT_TRAITS)
+    # Always include all traits (default + real gene traits)
+    registry = dict(ALL_TRAITS)
 
     # If no filters are applied, get all persistent traits
     if not any([inheritance_pattern, verification_status, category, gene_info]):

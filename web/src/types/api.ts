@@ -9,6 +9,9 @@ export type TraitInfo = {
   verification_status?: string;
   gene_info?: string;
   category?: string;
+  // New fields for Level 3 - Real Genes
+  gene?: string;
+  chromosome?: number;
 };
 
 export type TraitListResponse = {

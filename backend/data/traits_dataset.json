@@ -1,0 +1,65 @@
+[
+  {
+    "trait": "ABO Blood Group",
+    "gene": "ABO",
+    "chromosome": 9,
+    "inheritance": "codominant",
+    "alleles": ["A", "B", "O"],
+    "phenotypes": {
+      "AA": "Blood Type A",
+      "AO": "Blood Type A",
+      "BB": "Blood Type B",
+      "BO": "Blood Type B",
+      "AB": "Blood Type AB",
+      "OO": "Blood Type O"
+    }
+  },
+  {
+    "trait": "Rh Factor",
+    "gene": "RHD",
+    "chromosome": 1,
+    "inheritance": "dominant",
+    "alleles": ["+", "-"],
+    "phenotypes": {
+      "++": "Rh Positive",
+      "+-": "Rh Positive",
+      "--": "Rh Negative"
+    }
+  },
+  {
+    "trait": "Sickle-Cell Anemia",
+    "gene": "HBB",
+    "chromosome": 11,
+    "inheritance": "recessive",
+    "alleles": ["H", "S"],
+    "phenotypes": {
+      "HH": "Normal Hemoglobin",
+      "HS": "Carrier (Sickle-cell trait)",
+      "SS": "Sickle-cell disease"
+    }
+  },
+  {
+    "trait": "Cystic Fibrosis",
+    "gene": "CFTR",
+    "chromosome": 7,
+    "inheritance": "recessive",
+    "alleles": ["C", "c"],
+    "phenotypes": {
+      "CC": "Normal",
+      "Cc": "Carrier",
+      "cc": "Cystic Fibrosis"
+    }
+  },
+  {
+    "trait": "Huntington's Disease",
+    "gene": "HTT",
+    "chromosome": 4,
+    "inheritance": "dominant",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Huntington's Disease",
+      "Hh": "Huntington's Disease",
+      "hh": "Normal"
+    }
+  }
+]

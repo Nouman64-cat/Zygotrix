@@ -21,6 +21,9 @@ class TraitInfo(BaseModel):
     verification_status: Optional[str] = None
     gene_info: Optional[str] = None
     category: Optional[str] = None
+    # New fields for Level 3 - Real Genes
+    gene: Optional[str] = None
+    chromosome: Optional[int] = None
 
 
 class TraitListResponse(BaseModel):

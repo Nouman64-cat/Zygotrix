@@ -1,6 +1,7 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import ColorPicker from "../ColorPicker";
+import { getTimeAgo } from "./helpers/formatHelpers";
 import {
   ArrowLeftIcon,
   CloudArrowUpIcon,
@@ -57,7 +58,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   const navigate = useNavigate();
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-4 flex items-center justify-between flex-shrink-0">
+    <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center justify-between flex-shrink-0">
       <div className="flex items-center space-x-4">
         <button
           onClick={() => navigate("/portal/projects")}
@@ -86,15 +87,17 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                 }
               }}
               autoFocus
-              className="text-xl font-semibold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 py-0.5"
+              className="text-lg font-semibold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
             />
           ) : (
-            <h1
-              className="text-xl cursor-text font-semibold cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 transition-colors"
+            <button
+              type="button"
               onClick={() => setIsEditingName(true)}
+              className="text-lg cursor-text font-semibold hover:bg-gray-50 rounded px-1 transition-colors text-left"
+              aria-label="Edit project name"
             >
               {projectName}
-            </h1>
+            </button>
           )}
 
           {isEditingDescription ? (
@@ -119,15 +122,17 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                 }
               }}
               autoFocus
-              className="text-gray-500 text-sm bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1 py-0.5"
+              className="text-gray-500 text-xs bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
             />
           ) : (
-            <p
-              className="text-gray-500 cursor-text text-sm cursor-pointer hover:bg-gray-50 rounded px-1 py-0.5 transition-colors"
+            <button
+              type="button"
               onClick={() => setIsEditingDescription(true)}
+              className="text-gray-500 text-xs hover:bg-gray-50 rounded px-1 transition-colors text-left"
+              aria-label="Edit project description"
             >
               {projectDescription}
-            </p>
+            </button>
           )}
         </div>
       </div>
@@ -141,18 +146,23 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
           />
         )}
 
-        {/* Save indicator */}
-        {saving ? (
+        {/* Save/modified indicator */}
+        {saving && (
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <CloudArrowUpIcon className="h-4 w-4 animate-pulse" />
             <span>Saving...</span>
           </div>
-        ) : project ? (
-          <div className="text-sm text-green-600 flex items-center space-x-1">
+        )}
+        {!saving && project && (
+          <div className="text-sm text-gray-600 flex items-center space-x-1">
             <CloudArrowUpIcon className="h-4 w-4" />
-            <span>Saved</span>
+            <span>
+              {project?.updated_at
+                ? getTimeAgo(project.updated_at)
+                : "Just now"}
+            </span>
           </div>
-        ) : null}
+        )}
 
         {/* Error indicator */}
         {error && (

@@ -8,25 +8,56 @@ interface ColorPickerProps {
 }
 
 const PRESET_COLORS = [
+  // Reds / Warm
+  "bg-red-400",
   "bg-red-500",
-  "bg-orange-500",
-  "bg-amber-500",
-  "bg-yellow-500",
-  "bg-lime-500",
-  "bg-green-500",
-  "bg-emerald-500",
-  "bg-teal-500",
-  "bg-cyan-500",
-  "bg-sky-500",
-  "bg-blue-500",
-  "bg-indigo-500",
-  "bg-violet-500",
-  "bg-purple-500",
-  "bg-fuchsia-500",
-  "bg-pink-500",
+  "bg-red-600",
+  "bg-rose-400",
   "bg-rose-500",
+  // Oranges / Yellows
+  "bg-orange-400",
+  "bg-orange-500",
+  "bg-amber-400",
+  "bg-amber-500",
+  "bg-yellow-400",
+  "bg-yellow-500",
+  // Greens
+  "bg-lime-400",
+  "bg-lime-500",
+  "bg-green-400",
+  "bg-green-500",
+  "bg-emerald-400",
+  "bg-emerald-500",
+  // Teals / Cyans
+  "bg-teal-400",
+  "bg-teal-500",
+  "bg-cyan-400",
+  "bg-cyan-500",
+  // Blues
+  "bg-sky-400",
+  "bg-sky-500",
+  "bg-blue-400",
+  "bg-blue-500",
+  "bg-indigo-400",
+  "bg-indigo-500",
+  // Purples
+  "bg-violet-400",
+  "bg-violet-500",
+  "bg-purple-400",
+  "bg-purple-500",
+  "bg-fuchsia-400",
+  "bg-fuchsia-500",
+  // Pinks
+  "bg-pink-400",
+  "bg-pink-500",
+  // Neutrals
+  "bg-slate-400",
   "bg-slate-500",
+  "bg-gray-400",
   "bg-gray-500",
+  "bg-neutral-400",
+  "bg-neutral-500",
+  "bg-zinc-400",
   "bg-zinc-500",
 ];
 
@@ -56,10 +87,11 @@ const ColorPicker: React.FC<ColorPickerProps> = ({
       {/* Color Picker Dropdown */}
       {isOpen && (
         <>
-          {/* Backdrop */}
-          <div
-            className="fixed inset-0 z-10"
+          {/* Backdrop (accessible) */}
+          <button
+            className="fixed inset-0 z-10 bg-transparent border-0 p-0"
             onClick={() => setIsOpen(false)}
+            aria-label="Close color picker"
           />
 
           {/* Color Grid */}

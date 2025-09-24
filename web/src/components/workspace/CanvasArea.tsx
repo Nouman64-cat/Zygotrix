@@ -50,58 +50,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
 }) => {
   return (
     <div className="flex-1 min-w-0 flex flex-col">
-      {/* Zoom Controls */}
-      <div className="absolute top-4 left-1/2 transform -translate-x-1/2 z-20 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex items-center space-x-2">
-        <button
-          onClick={handleZoomOut}
-          className="p-2 hover:bg-gray-100 rounded transition-colors"
-          title="Zoom Out"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M20 12H4"
-            />
-          </svg>
-        </button>
-        <span className="text-sm font-medium text-gray-600 min-w-[3rem] text-center">
-          {Math.round(zoom * 100)}%
-        </span>
-        <button
-          onClick={handleZoomIn}
-          className="p-2 hover:bg-gray-100 rounded transition-colors"
-          title="Zoom In"
-        >
-          <svg
-            className="w-4 h-4"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              strokeWidth={2}
-              d="M12 4v16m8-8H4"
-            />
-          </svg>
-        </button>
-        <div className="w-px h-4 bg-gray-300"></div>
-        <button
-          onClick={handleZoomReset}
-          className="p-2 hover:bg-gray-100 rounded transition-colors text-xs"
-          title="Reset Zoom"
-        >
-          Reset
-        </button>
-      </div>
+      {/* Top-center zoom controls removed - bottom-right controls used instead */}
 
       {/* Canvas */}
       <div className="flex-1 relative overflow-hidden">
@@ -215,7 +164,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
                   <br />
                   <span className="text-sm text-gray-500 mt-2 block">
                     💡 Tip: Drag to pan around • Ctrl+scroll to zoom • Use zoom
-                    controls above
+                    controls (bottom-right)
                   </span>
                 </p>
 
@@ -223,6 +172,56 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
               </div>
             </div>
           )}
+          {/* Bottom-right magnification controls */}
+          <div className="absolute bottom-4 right-4 z-30 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex items-center space-x-2">
+            <button
+              onClick={handleZoomOut}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              title="Zoom Out"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M20 12H4"
+                />
+              </svg>
+            </button>
+
+            <button
+              onClick={handleZoomReset}
+              className="px-2 py-1 text-xs bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+              title="Reset Zoom"
+            >
+              {Math.round(zoom * 100)}%
+            </button>
+
+            <button
+              onClick={handleZoomIn}
+              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              title="Zoom In"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 4v16m8-8H4"
+                />
+              </svg>
+            </button>
+          </div>
         </div>
       </div>
     </div>

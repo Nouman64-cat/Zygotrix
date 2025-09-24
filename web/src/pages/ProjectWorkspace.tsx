@@ -220,35 +220,44 @@ const ProjectWorkspace: React.FC = () => {
   // Canvas zoom with native event listener to capture Ctrl+Scroll before browser
   useEffect(() => {
     const handleCanvasWheel = (e: WheelEvent) => {
-      if (e.ctrlKey || e.metaKey) {
-        e.preventDefault();
-        e.stopPropagation();
-        e.stopImmediatePropagation();
-        const delta = -e.deltaY;
-        const zoomFactor = delta > 0 ? 1.1 : 0.9;
-        console.log("Canvas wheel zoom:", { delta, zoomFactor });
-        setZoom((prevZoom) => {
-          const newZoom = Math.max(0.25, Math.min(3, prevZoom * zoomFactor));
-          console.log("Canvas zoom changed:", { prevZoom, newZoom });
-          return newZoom;
-        });
+      try {
+        const canvasEl = canvasRef.current;
+        if (!canvasEl) return;
+
+        // Only intercept when the pointer/event is over the canvas element
+        const eventTarget = e.target as Node | null;
+        if (!eventTarget || !canvasEl.contains(eventTarget)) return;
+
+        if (e.ctrlKey || e.metaKey) {
+          // Prevent browser from zooming the page
+          e.preventDefault();
+          e.stopPropagation();
+
+          const delta = -e.deltaY;
+          const zoomFactor = delta > 0 ? 1.1 : 0.9;
+
+          setZoom((prevZoom) =>
+            Math.max(0.25, Math.min(3, prevZoom * zoomFactor))
+          );
+        }
+      } catch (err) {
+        // Fail-safe: don't break the app if something unexpected happens
+        // eslint-disable-next-line no-console
+        console.error("Error handling canvas wheel:", err);
       }
     };
 
-    const canvas = canvasRef.current;
-    if (canvas) {
-      // Add event listener directly to the canvas element with capture=true
-      canvas.addEventListener("wheel", handleCanvasWheel, {
-        passive: false,
-        capture: true,
-      });
+    // Attach to window so we can catch wheel events even when browser tries to act first
+    window.addEventListener("wheel", handleCanvasWheel, {
+      passive: false,
+      capture: true,
+    });
 
-      return () => {
-        canvas.removeEventListener("wheel", handleCanvasWheel, {
-          capture: true,
-        });
-      };
-    }
+    return () => {
+      window.removeEventListener("wheel", handleCanvasWheel, {
+        capture: true,
+      } as EventListenerOptions);
+    };
   }, []);
 
   // Settings dropdown and delete project handlers

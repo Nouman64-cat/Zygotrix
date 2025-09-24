@@ -147,6 +147,55 @@ const ProjectWorkspace: React.FC = () => {
     }
   }, [drawingStrokeColor, drawingStrokeWidth, isDrawingOnCanvas]);
 
+  // Robust one-time centering for any empty project/workspace using ResizeObserver
+  const hasCenteredRef = React.useRef(false);
+  const centerWorkspace = useCallback(() => {
+    if (!canvasRef.current) return;
+    const el = canvasRef.current;
+    const rect = el.getBoundingClientRect();
+    if (rect.width === 0 || rect.height === 0) return;
+    const innerMidpoint = 10000 / 2; // 5000
+    const newX = rect.width / 2 - innerMidpoint * zoom;
+    const newY = rect.height / 2 - innerMidpoint * zoom;
+    setPanOffset({ x: newX, y: newY });
+  }, [zoom]);
+
+  useEffect(() => {
+    // Only auto-center if there is nothing placed or drawn yet
+    if (items.length > 0 || canvasDrawings.length > 0) return;
+    if (hasCenteredRef.current) return;
+    const defaultPan = panOffset.x === 400 && panOffset.y === 300;
+    if (!defaultPan) return;
+    if (!canvasRef.current) return;
+
+    const attempt = () => {
+      centerWorkspace();
+      hasCenteredRef.current = true;
+    };
+    requestAnimationFrame(attempt);
+
+    const ro = new ResizeObserver(() => {
+      if (
+        !hasCenteredRef.current &&
+        panOffset.x === 400 &&
+        panOffset.y === 300
+      ) {
+        attempt();
+      } else if (hasCenteredRef.current) {
+        ro.disconnect();
+      }
+    });
+    ro.observe(canvasRef.current);
+    return () => ro.disconnect();
+  }, [
+    items.length,
+    canvasDrawings.length,
+    panOffset.x,
+    panOffset.y,
+    zoom,
+    centerWorkspace,
+  ]);
+
   // Initialize project data when loaded
   useEffect(() => {
     if (project) {
@@ -1159,6 +1208,7 @@ const ProjectWorkspace: React.FC = () => {
             handleZoomOut={handleZoomOut}
             handleZoomIn={handleZoomIn}
             handleZoomReset={handleZoomReset}
+            handleCenterView={centerWorkspace}
             handleCanvasClick={handleCanvasClick}
             handleMouseMove={handleMouseMove}
             handleCanvasPanMove={handleCanvasPanMove}

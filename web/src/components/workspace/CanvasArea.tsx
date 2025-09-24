@@ -25,6 +25,7 @@ interface CanvasAreaProps {
   handleZoomOut: () => void;
   handleZoomIn: () => void;
   handleZoomReset: () => void;
+  handleCenterView?: () => void;
   handleCanvasClick: (e: React.MouseEvent) => void;
   handleMouseMove: (e: React.MouseEvent) => void;
   handleCanvasPanMove: (e: React.MouseEvent) => void;
@@ -49,6 +50,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   handleZoomOut,
   handleZoomIn,
   handleZoomReset,
+  handleCenterView,
   handleCanvasClick,
   handleMouseMove,
   handleCanvasPanMove,
@@ -109,17 +111,15 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
           >
             {/* Grid Background */}
             <div
-              className="absolute opacity-5"
+              className="absolute"
               style={{
                 left: "-5000px",
                 top: "-5000px",
                 width: "20000px",
                 height: "20000px",
-                backgroundImage: `
-                  linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px),
-                  linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px)
-                `,
+                backgroundImage: `repeating-radial-gradient(circle at 10px 10px, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 2px, transparent 2px, transparent 20px)`,
                 backgroundSize: "20px 20px",
+                opacity: 0.9,
               }}
             />
 
@@ -204,50 +204,52 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
           </div>{" "}
           {/* Close zoomable container */}
           {/* Empty State - outside zoomable container for proper positioning */}
-          {items.length === 0 && (
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="text-center max-w-md pointer-events-auto">
-                {/* Animated Icon Container */}
-                <div className="relative mb-8">
-                  <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                    <CubeIcon className="h-12 w-12 text-blue-500" />
+          {items.length === 0 &&
+            !currentCanvasPath &&
+            canvasDrawings.length === 0 && (
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="text-center max-w-md pointer-events-auto">
+                  {/* Animated Icon Container */}
+                  <div className="relative mb-8">
+                    <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                      <CubeIcon className="h-12 w-12 text-blue-500" />
+                    </div>
+                    {/* Floating Icons */}
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
+                      <BeakerIcon className="h-4 w-4 text-green-500" />
+                    </div>
+                    <div
+                      className="absolute -bottom-2 -left-2 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center animate-bounce"
+                      style={{ animationDelay: "0.2s" }}
+                    >
+                      <ChartBarIcon className="h-4 w-4 text-orange-500" />
+                    </div>
+                    <div
+                      className="absolute top-1/2 -right-6 w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center animate-bounce"
+                      style={{ animationDelay: "0.4s" }}
+                    >
+                      <DocumentTextIcon className="h-3 w-3 text-purple-500" />
+                    </div>
                   </div>
-                  {/* Floating Icons */}
-                  <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
-                    <BeakerIcon className="h-4 w-4 text-green-500" />
-                  </div>
-                  <div
-                    className="absolute -bottom-2 -left-2 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center animate-bounce"
-                    style={{ animationDelay: "0.2s" }}
-                  >
-                    <ChartBarIcon className="h-4 w-4 text-orange-500" />
-                  </div>
-                  <div
-                    className="absolute top-1/2 -right-6 w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center animate-bounce"
-                    style={{ animationDelay: "0.4s" }}
-                  >
-                    <DocumentTextIcon className="h-3 w-3 text-purple-500" />
-                  </div>
+
+                  {/* Improved Content */}
+                  <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                    Start Building Your Project
+                  </h3>
+                  <p className="text-gray-600 mb-6 leading-relaxed">
+                    Create your genomics workspace by selecting tools from the
+                    left panel and placing them anywhere on this canvas.
+                    <br />
+                    <span className="text-sm text-gray-500 mt-2 block">
+                      💡 Tip: Drag to pan around • Ctrl+scroll to zoom • Use
+                      zoom controls (bottom-right)
+                    </span>
+                  </p>
+
+                  {/* Quick Action Buttons */}
                 </div>
-
-                {/* Improved Content */}
-                <h3 className="text-2xl font-bold text-gray-900 mb-3">
-                  Start Building Your Project
-                </h3>
-                <p className="text-gray-600 mb-6 leading-relaxed">
-                  Create your genomics workspace by selecting tools from the
-                  left panel and placing them anywhere on this canvas.
-                  <br />
-                  <span className="text-sm text-gray-500 mt-2 block">
-                    💡 Tip: Drag to pan around • Ctrl+scroll to zoom • Use zoom
-                    controls (bottom-right)
-                  </span>
-                </p>
-
-                {/* Quick Action Buttons */}
               </div>
-            </div>
-          )}
+            )}
           {/* Bottom-right magnification controls */}
           <div className="absolute bottom-4 right-4 z-30 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex items-center space-x-2">
             <button
@@ -277,6 +279,16 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
             >
               {Math.round(zoom * 100)}%
             </button>
+
+            {handleCenterView && (
+              <button
+                onClick={handleCenterView}
+                className="px-2 py-1 text-xs bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                title="Center View"
+              >
+                Center
+              </button>
+            )}
 
             <button
               onClick={handleZoomIn}

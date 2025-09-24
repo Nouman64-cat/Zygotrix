@@ -45,7 +45,7 @@ import {
   mergeBackendAndLocalItems,
 } from "../components/workspace/helpers/dataTransformHelpers";
 import {
-  getTimeAgo,
+  formatDate,
   getProjectTypeIcon,
 } from "../components/workspace/helpers/formatHelpers";
 import {
@@ -426,7 +426,12 @@ const ProjectWorkspace: React.FC = () => {
         color: proj.color || typeInfo.color, // Use project color if available, fallback to type color
         icon: typeInfo.icon,
         type: proj.type || "Unknown",
-        lastUpdated: proj.updated_at ? getTimeAgo(proj.updated_at) : "Unknown",
+        // Use created_at if available; show formatted absolute date
+        createdAt: proj.created_at
+          ? formatDate(proj.created_at)
+          : proj.updated_at
+          ? formatDate(proj.updated_at)
+          : "Unknown",
         toolCount: proj.tools?.length || 0,
       };
     });

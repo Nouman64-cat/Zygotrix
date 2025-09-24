@@ -6,6 +6,7 @@ import { useProjects, useProjectTemplates } from "../hooks/useProjects";
 import type { Project, ProjectTemplate } from "../types/api";
 import { MagnifyingGlassIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { PlusIcon, BeakerIcon, ChartBarIcon } from "@heroicons/react/24/solid";
+import { formatDate } from "../components/workspace/helpers/formatHelpers";
 
 const ProjectsPage: React.FC = () => {
   const navigate = useNavigate();
@@ -92,20 +93,7 @@ const ProjectsPage: React.FC = () => {
     return { tab: bgClass, bg: "bg-blue-100", text: "text-blue-600" };
   };
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    const now = new Date();
-    const diffTime = Math.abs(now.getTime() - date.getTime());
-    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-
-    if (diffDays === 1) return "1 day ago";
-    if (diffDays < 7) return `${diffDays} days ago`;
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      year: "numeric",
-    });
-  };
+  // Use shared formatDate helper for absolute formatted dates
 
   if (loading) {
     return (
@@ -311,9 +299,12 @@ const ProjectsPage: React.FC = () => {
                   {/* Footer with date */}
                   <div className="border-t border-gray-100 pt-1.5 mt-auto">
                     <div className="text-xs text-gray-500">
-                      {project.updated_at
+                      Created:{" "}
+                      {project.created_at
+                        ? formatDate(project.created_at)
+                        : project.updated_at
                         ? formatDate(project.updated_at)
-                        : "Created recently"}
+                        : "Unknown"}
                     </div>
                   </div>
                 </div>

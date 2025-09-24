@@ -35,6 +35,20 @@ export const getTimeAgo = (dateString: string): string => {
 };
 
 /**
+ * Format an ISO date string into a short human-readable date
+ */
+export const formatDate = (dateString: string): string => {
+  const date = new Date(dateString);
+  if (isNaN(date.getTime())) return dateString;
+  // Use browser locale short date
+  return new Intl.DateTimeFormat(undefined, {
+    year: "numeric",
+    month: "short",
+    day: "numeric",
+  }).format(date);
+};
+
+/**
  * Get project type icon and color based on project type
  */
 export const getProjectTypeIcon = (type: string): ProjectTypeInfo => {

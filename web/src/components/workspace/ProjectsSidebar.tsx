@@ -13,7 +13,8 @@ interface ProjectsSidebarProject {
   color: string;
   icon: React.ComponentType<{ className?: string }>;
   type: string;
-  lastUpdated: string;
+  // formatted created date or fallback
+  createdAt?: string;
   toolCount: number;
 }
 
@@ -116,7 +117,7 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
                       </p>
                       <div className="flex items-center justify-between mt-1">
                         <p className="text-xs text-gray-400">
-                          {project.lastUpdated}
+                          Created: {project.createdAt || "Unknown"}
                         </p>
                         <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
                           Active

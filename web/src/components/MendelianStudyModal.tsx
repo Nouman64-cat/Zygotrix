@@ -9,6 +9,8 @@ import {
   PlayIcon,
   DocumentPlusIcon,
 } from "@heroicons/react/24/outline";
+import { IoMale } from "react-icons/io5";
+import { GiFemale } from "react-icons/gi";
 import { useTraits } from "../hooks/useTraits";
 import { simulateMultipleMendelianTraits } from "../services/zygotrixApi";
 
@@ -453,8 +455,9 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           {/* Parent 1 */}
                           <div className="relative">
                             <div className="absolute -top-2 left-3 bg-white px-2 z-10">
-                              <label className="text-xs font-bold text-purple-700 uppercase tracking-wider">
-                                Parent 1 ♀
+                              <label className="text-xs font-bold text-purple-700 uppercase tracking-wider flex items-center space-x-1">
+                                <span>Parent 1</span>
+                                <GiFemale className="h-4 w-4 text-purple-600" />
                               </label>
                             </div>
                             <select
@@ -524,8 +527,9 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           {/* Parent 2 */}
                           <div className="relative">
                             <div className="absolute -top-2 left-3 bg-white px-2 z-10">
-                              <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider">
-                                Parent 2 ♂
+                              <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center space-x-1">
+                                <span>Parent 2</span>
+                                <IoMale className="h-4 w-4 text-indigo-600" />
                               </label>
                             </div>
                             <select
@@ -793,10 +797,13 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
             </div>
 
             <div className="flex-1 p-6 overflow-y-auto">
-              <div className="space-y-6">
+              <div className="space-y-4">
                 {Object.entries(project.simulationResults).map(
                   ([traitKey, result]) => {
                     const trait = traits.find((t) => t.key === traitKey);
+                    const selectedTrait = project.selectedTraits.find(
+                      (t) => t.key === traitKey
+                    );
 
                     // The result is already the genotype distribution (Record<string, number>)
                     // No need to access offspring_distribution
@@ -826,10 +833,33 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                         key={traitKey}
                         className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200"
                       >
-                        <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                          <span className="mr-2">🧬</span>
-                          {trait?.name || traitKey}
-                        </h4>
+                        <div className="flex items-center justify-between mb-4">
+                          <h4 className="text-lg font-semibold text-gray-900 flex items-center">
+                            <span className="mr-2">🧬</span>
+                            {trait?.name || traitKey}
+                          </h4>
+                          <div className="flex items-center space-x-4 text-sm">
+                            <div className="flex items-center space-x-2">
+                              <GiFemale className="h-4 w-4 text-purple-600" />
+                              <span className="text-gray-600">
+                                {selectedTrait?.parent1Genotype} →{" "}
+                                {trait?.phenotype_map[
+                                  selectedTrait?.parent1Genotype || ""
+                                ] || "Unknown"}
+                              </span>
+                            </div>
+                            <span className="text-gray-400 text-2xl">×</span>
+                            <div className="flex items-center space-x-2">
+                              <IoMale className="h-4 w-4 text-indigo-600" />
+                              <span className="text-gray-600">
+                                {selectedTrait?.parent2Genotype} →{" "}
+                                {trait?.phenotype_map[
+                                  selectedTrait?.parent2Genotype || ""
+                                ] || "Unknown"}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           {Object.entries(result).map(
@@ -839,9 +869,54 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                 className="bg-white rounded-lg p-4 shadow-sm"
                               >
                                 <div className="flex justify-between items-center mb-2">
-                                  <span className="font-medium text-gray-700">
-                                    {genotype}
-                                  </span>
+                                  <div className="flex flex-col">
+                                    {(() => {
+                                      // Check if the key is actually a phenotype (result of simulation)
+                                      const phenotypeValues = Object.values(
+                                        trait?.phenotype_map || {}
+                                      );
+                                      const isPhenotype =
+                                        phenotypeValues.includes(genotype);
+
+                                      if (isPhenotype) {
+                                        // If it's a phenotype, find the corresponding genotype(s)
+                                        const matchingGenotypes =
+                                          Object.entries(
+                                            trait?.phenotype_map || {}
+                                          )
+                                            .filter(
+                                              ([_, phenotype]) =>
+                                                phenotype === genotype
+                                            )
+                                            .map(([geno, _]) => geno);
+
+                                        return (
+                                          <>
+                                            <span className="font-medium text-gray-700">
+                                              {matchingGenotypes.join(", ") ||
+                                                genotype}
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                              {genotype}
+                                            </span>
+                                          </>
+                                        );
+                                      } else {
+                                        // If it's a genotype, show phenotype below
+                                        return (
+                                          <>
+                                            <span className="font-medium text-gray-700">
+                                              {genotype}
+                                            </span>
+                                            <span className="text-xs text-gray-500">
+                                              {trait?.phenotype_map[genotype] ||
+                                                "Unknown"}
+                                            </span>
+                                          </>
+                                        );
+                                      }
+                                    })()}
+                                  </div>
                                   <span className="text-sm font-semibold text-indigo-600">
                                     {`${percentage.toFixed(1)}%`}
                                   </span>

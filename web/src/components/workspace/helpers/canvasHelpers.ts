@@ -73,7 +73,7 @@ export const calculateTextAreaSize = (
   const width = Math.max(Math.abs(endPoint.x - startPoint.x), minWidth);
   const height = Math.max(Math.abs(endPoint.y - startPoint.y), minHeight);
 
-  return { x: Math.max(0, x), y: Math.max(0, y), width, height };
+  return { x, y, width, height };
 };
 
 /**
@@ -96,6 +96,6 @@ export const isValidTextAreaSize = (
 export const resetCanvasTransform = (): { zoom: number; panOffset: Point } => {
   return {
     zoom: 1,
-    panOffset: { x: 0, y: 0 },
+    panOffset: { x: 400, y: 300 },
   };
 };

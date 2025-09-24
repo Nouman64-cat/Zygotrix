@@ -101,17 +101,20 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
             style={{
               transform: `translate(${panOffset.x}px, ${panOffset.y}px) scale(${zoom})`,
               transformOrigin: "0 0",
-              width: "100%",
-              height: "100%",
-              minWidth: "1200px",
-              minHeight: "800px",
+              width: "10000px",
+              height: "10000px",
+              position: "relative",
             }}
             className="relative"
           >
             {/* Grid Background */}
             <div
-              className="absolute inset-0 opacity-5"
+              className="absolute opacity-5"
               style={{
+                left: "-5000px",
+                top: "-5000px",
+                width: "20000px",
+                height: "20000px",
                 backgroundImage: `
                   linear-gradient(rgba(0,0,0,.1) 1px, transparent 1px),
                   linear-gradient(90deg, rgba(0,0,0,.1) 1px, transparent 1px)

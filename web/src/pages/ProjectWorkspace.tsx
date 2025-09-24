@@ -104,7 +104,7 @@ const ProjectWorkspace: React.FC = () => {
 
   // Canvas zoom state
   const [zoom, setZoom] = useState(1);
-  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [panOffset, setPanOffset] = useState({ x: 400, y: 300 });
   const [isPanning, setIsPanning] = useState(false);
   const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
   const [hasDragged, setHasDragged] = useState(false);
@@ -404,7 +404,7 @@ const ProjectWorkspace: React.FC = () => {
       const newItem: WorkspaceItem = {
         id: `${selectedTool}-${Date.now()}`,
         type: selectedTool as any,
-        position: { x: Math.max(0, canvasX), y: Math.max(0, canvasY) },
+        position: { x: canvasX, y: canvasY },
         size: getDefaultSize(selectedTool),
         data: getDefaultData(selectedTool as any),
       };
@@ -538,9 +538,7 @@ const ProjectWorkspace: React.FC = () => {
 
       setItems((prev) =>
         prev.map((item) =>
-          item.id === draggedItem
-            ? { ...item, position: { x: Math.max(0, x), y: Math.max(0, y) } }
-            : item
+          item.id === draggedItem ? { ...item, position: { x, y } } : item
         )
       );
     },

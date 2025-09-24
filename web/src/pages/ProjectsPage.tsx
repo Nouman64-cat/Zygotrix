@@ -27,8 +27,20 @@ const ProjectsPage: React.FC = () => {
 
   const handleCreateProject = async (template?: ProjectTemplate) => {
     try {
+      const timestamp = new Date();
+      const pad = (n: number) => n.toString().padStart(2, "0");
+      const formattedTs = `${timestamp.getFullYear()}-${pad(
+        timestamp.getMonth() + 1
+      )}-${pad(timestamp.getDate())} ${pad(timestamp.getHours())}:${pad(
+        timestamp.getMinutes()
+      )}`;
+
+      const defaultName = template
+        ? `${template.name} Study`
+        : `New Genetics Project - ${formattedTs}`;
+
       const newProject = await createProject({
-        name: template ? `${template.name} Study` : "New Genetics Project",
+        name: defaultName,
         description: template?.description || "A new genetics research project",
         type: "genetics",
         tags: template?.tags || [],
@@ -274,9 +286,6 @@ const ProjectsPage: React.FC = () => {
                     </div>
 
                     <div className="flex items-center space-x-2">
-                      <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full font-medium">
-                        Active
-                      </span>
                       <button
                         onClick={(e) => openDeleteModal(project, e)}
                         className="p-1 cursor-pointer text-gray-400 hover:text-red-600"

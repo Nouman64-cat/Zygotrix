@@ -119,9 +119,6 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
                         <p className="text-xs text-gray-400">
                           Created: {project.createdAt || "Unknown"}
                         </p>
-                        <span className="px-1.5 py-0.5 bg-green-100 text-green-700 text-xs rounded-full">
-                          Active
-                        </span>
                       </div>
                     </div>
                   </div>

@@ -69,13 +69,14 @@ class Simulator:
                 parent2_genotypes[trait_key],
                 trait,
             )
-            phenotype_distribution = trait.phenotype_distribution(genotype_distribution)
-            phenotype_distribution = (
-                to_percentage_distribution(phenotype_distribution)
+            # Return genotype probabilities instead of phenotype aggregations
+            # This ensures that OO × AA returns only "AO: 100%" not "AA, AO: 100% Type A"
+            genotype_distribution = (
+                to_percentage_distribution(genotype_distribution)
                 if as_percentages
-                else normalize_probabilities(phenotype_distribution)
+                else normalize_probabilities(genotype_distribution)
             )
-            results[trait_key] = phenotype_distribution
+            results[trait_key] = genotype_distribution
         return results
 
     def simulate_joint_phenotypes(

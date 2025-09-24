@@ -220,7 +220,7 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
                 {/* Parent 1 */}
                 <div>
                   <h5 className="text-sm font-medium text-green-700 mb-3">
-                    Parent 1
+                    Female Parent
                   </h5>
                   <div className="space-y-3">
                     {selectedTraits.map((traitKey) => {
@@ -267,7 +267,7 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
                 {/* Parent 2 */}
                 <div>
                   <h5 className="text-sm font-medium text-blue-700 mb-3">
-                    Parent 2
+                    Male Parent
                   </h5>
                   <div className="space-y-3">
                     {selectedTraits.map((traitKey) => {

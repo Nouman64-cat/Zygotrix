@@ -456,7 +456,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           <div className="relative">
                             <div className="absolute -top-2 left-3 bg-white px-2 z-10">
                               <label className="text-xs font-bold text-purple-700 uppercase tracking-wider flex items-center space-x-1">
-                                <span>Parent 1</span>
+                                <span>Female Parent</span>
                                 <GiFemale className="h-4 w-4 text-purple-600" />
                               </label>
                             </div>
@@ -528,7 +528,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           <div className="relative">
                             <div className="absolute -top-2 left-3 bg-white px-2 z-10">
                               <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center space-x-1">
-                                <span>Parent 2</span>
+                                <span>Male Parent</span>
                                 <IoMale className="h-4 w-4 text-indigo-600" />
                               </label>
                             </div>

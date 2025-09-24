@@ -56,12 +56,14 @@ const JointPhenotypeTest: React.FC<JointPhenotypeTestProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <p className="text-sm text-slate-600">
-                  <strong>Parent 1:</strong> Eye color (Bb), Hair texture (Cc)
+                  <strong>Female Parent:</strong> Eye color (Bb), Hair texture
+                  (Cc)
                 </p>
               </div>
               <div>
                 <p className="text-sm text-slate-600">
-                  <strong>Parent 2:</strong> Eye color (Bb), Hair texture (Cc)
+                  <strong>Male Parent:</strong> Eye color (Bb), Hair texture
+                  (Cc)
                 </p>
               </div>
             </div>

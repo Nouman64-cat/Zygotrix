@@ -149,7 +149,10 @@ const ProjectWorkspace: React.FC = () => {
       // Convert project tools to workspace items
       const workspaceItems: WorkspaceItem[] = project.tools.map((tool) => ({
         id: tool.id,
-        type: tool.type as WorkspaceItem["type"],
+        // Normalize backend tool types to frontend workspace types
+        type: (tool.type === "mendelian"
+          ? "mendelian-study"
+          : tool.type) as WorkspaceItem["type"],
         position: tool.position || { x: 100, y: 100 },
         data: {
           name: tool.name,
@@ -164,35 +167,8 @@ const ProjectWorkspace: React.FC = () => {
                   tool.trait_configurations.general.parent2Genotype,
                 asPercentages:
                   tool.trait_configurations.general.asPercentages === "true",
-                // Reconstruct simulation results in the expected nested format
-                simulationResults: (() => {
-                  const flatResults = tool.simulation_results?.phenotypes;
-                  if (!flatResults || typeof flatResults !== "object") {
-                    return null;
-                  }
-
-                  // Convert flat format back to nested format for UI
-                  const nestedResults: Record<
-                    string,
-                    Record<string, number>
-                  > = {};
-                  Object.entries(flatResults).forEach(
-                    ([traitKey, probability]) => {
-                      if (typeof probability === "number") {
-                        // For now, we'll create a simple structure with the dominant phenotype
-                        // In a real scenario, you'd need to store more phenotype data
-                        nestedResults[traitKey] = {
-                          Dominant: probability,
-                          Recessive: 100 - probability,
-                        };
-                      }
-                    }
-                  );
-
-                  return Object.keys(nestedResults).length > 0
-                    ? nestedResults
-                    : null;
-                })(),
+                // Use simulation results directly without reconstruction
+                simulationResults: tool.simulation_results || null,
                 // Reconstruct selectedTraits array from saved metadata
                 selectedTraits: (() => {
                   try {
@@ -318,41 +294,9 @@ const ProjectWorkspace: React.FC = () => {
             },
           },
           simulation_results:
-            item.data.simulationResults || item.data.simulation_results
-              ? {
-                  phenotypes: (() => {
-                    const simResults =
-                      item.data.simulationResults ||
-                      item.data.simulation_results;
-                    const flattened: Record<string, number> = {};
-
-                    // Flatten the nested structure for the backend
-                    Object.entries(simResults).forEach(
-                      ([traitKey, phenotypes]) => {
-                        if (
-                          typeof phenotypes === "object" &&
-                          phenotypes !== null
-                        ) {
-                          // Get the most probable phenotype for each trait
-                          const entries = Object.entries(
-                            phenotypes as Record<string, number>
-                          );
-                          if (entries.length > 0) {
-                            // Sort by probability and take the highest
-                            const [, probability] = entries.sort(
-                              ([, a], [, b]) => b - a
-                            )[0];
-                            flattened[traitKey] =
-                              typeof probability === "number" ? probability : 0;
-                          }
-                        }
-                      }
-                    );
-
-                    return flattened;
-                  })(),
-                }
-              : undefined,
+            item.data.simulationResults ||
+            item.data.simulation_results ||
+            undefined,
           notes: item.data.notes || "",
           position: item.position,
         }));
@@ -807,8 +751,11 @@ const ProjectWorkspace: React.FC = () => {
 
   // Handle updating an existing item after editing
   const handleUpdateItem = useCallback(
-    async (updatedData: any) => {
+    async (itemData: any) => {
       if (!editingItemId) return;
+
+      // Extract the actual project data from the modal's itemData structure
+      const updatedData = itemData.content || itemData.data || itemData;
 
       try {
         if (projectId && projectId !== "new") {
@@ -828,7 +775,7 @@ const ProjectWorkspace: React.FC = () => {
           });
         }
 
-        // Update local state
+        // Update local state with the actual project data
         setItems((prev) =>
           prev.map((item) =>
             item.id === editingItemId ? { ...item, data: updatedData } : item

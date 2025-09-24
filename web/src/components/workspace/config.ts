@@ -6,11 +6,19 @@ import {
   DocumentTextIcon,
   AcademicCapIcon,
   PencilIcon,
+  HandRaisedIcon,
 } from "@heroicons/react/24/outline";
 import type { ToolboxItem } from "./types";
 import { getDefaultSize, getDefaultData } from "./utils";
 
 export const toolboxItems: ToolboxItem[] = [
+  {
+    id: "hand",
+    type: "hand",
+    label: "Hand (Pan)",
+    icon: HandRaisedIcon,
+    color: "bg-gray-500",
+  },
   {
     id: "sequence",
     type: "sequence",

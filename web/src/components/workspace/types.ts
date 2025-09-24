@@ -29,7 +29,8 @@ export interface ToolboxItem {
     | "mendelian-study"
     | "punnett-square"
     | "text-area"
-    | "drawing";
+    | "drawing"
+    | "hand"; // virtual tool for panning
   label: string;
   icon: React.ComponentType<any>;
   color: string;

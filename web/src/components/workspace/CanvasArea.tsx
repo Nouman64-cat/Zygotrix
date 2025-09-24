@@ -67,13 +67,20 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
         <div
           ref={canvasRef}
           className={`w-full h-full relative ${
+            // Eraser handled via inline custom cursor
             selectedTool === "drawing" && isEraserMode
               ? ""
-              : selectedTool
-              ? "cursor-crosshair"
-              : isPanning
+              : // If a tool is selected (not hand), show crosshair for placement
+              selectedTool
+              ? selectedTool === "hand"
+                ? isPanning
+                  ? "cursor-grabbing"
+                  : "cursor-grab"
+                : "cursor-crosshair"
+              : // No tool selected -> move/select mode -> simple arrow; show grabbing while panning
+              isPanning
               ? "cursor-grabbing"
-              : "cursor-grab"
+              : "cursor-default"
           }`}
           onClick={handleCanvasClick}
           onMouseMove={(e) => {

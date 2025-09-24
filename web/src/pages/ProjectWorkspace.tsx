@@ -199,25 +199,20 @@ const ProjectWorkspace: React.FC = () => {
     centerWorkspace,
   ]);
 
-  // Initialize project data when loaded
+  // Initialize project data when loaded (reset items per project to avoid leakage)
   useEffect(() => {
-    if (project) {
-      setProjectName(project.name);
-      setProjectDescription(project.description || "Genomics Workspace");
-      setProjectColor(project.color || "bg-blue-500");
-
-      // Convert project tools to workspace items using helper
-      const workspaceItems = projectToolsToWorkspaceItems(project.tools);
-
-      // Preserve any existing local-only items (like note-type items) and merge with backend items
-      setItems((prevItems) => {
-        const persistedLocalItems = projectId ? loadLocalItems(projectId) : [];
-        // Combine current local items with persisted ones
-        const allLocalItems = [...prevItems, ...persistedLocalItems];
-        return mergeBackendAndLocalItems(workspaceItems, allLocalItems);
-      });
-    }
-  }, [project, projectId, loadLocalItems]);
+    if (!project) return;
+    setProjectName(project.name);
+    setProjectDescription(project.description || "Genomics Workspace");
+    setProjectColor(project.color || "bg-blue-500");
+    const workspaceItems = projectToolsToWorkspaceItems(project.tools);
+    const persistedLocalItems = projectId ? loadLocalItems(projectId) : [];
+    const merged = mergeBackendAndLocalItems(
+      workspaceItems,
+      persistedLocalItems
+    );
+    setItems(merged);
+  }, [project, projectId]);
 
   // Persist local-only items to localStorage whenever items change
   useEffect(() => {
@@ -297,27 +292,29 @@ const ProjectWorkspace: React.FC = () => {
     }
   }, [project, items, saveProgress, saving]);
 
-  // Keyboard shortcut for save (Cmd+S / Ctrl+S)
+  // Keyboard shortcuts: save, escape, hand (h), move (v)
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-      if ((event.metaKey || event.ctrlKey) && event.key === "s") {
+      const key = event.key.toLowerCase();
+      if ((event.metaKey || event.ctrlKey) && key === "s") {
         event.preventDefault();
         handleManualSave();
       }
-      // Deselect any selected tool when pressing Escape
-      if (event.key === "Escape" || event.key === "Esc") {
+      if (key === "escape" || key === "esc") {
         setSelectedTool(null);
-        // also cancel any drawing/text-area in progress
         setIsDrawingTextArea(false);
         setIsDrawingOnCanvas(false);
         setCurrentCanvasPath(null);
       }
+      if (key === "h") {
+        setSelectedTool("hand");
+      }
+      if (key === "v") {
+        setSelectedTool(null); // move/select mode
+      }
     };
-
     document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, [handleManualSave]);
 
   // Canvas zoom with native event listener to capture Ctrl+Scroll before browser
@@ -438,8 +435,8 @@ const ProjectWorkspace: React.FC = () => {
 
   const handleCanvasClick = useCallback(
     (e: React.MouseEvent) => {
-      // Don't place tools if user was dragging or no tool selected
-      if (!selectedTool || hasDragged) {
+      // Don't place tools if user was dragging, no tool selected, or hand tool active
+      if (!selectedTool || selectedTool === "hand" || hasDragged) {
         setHasDragged(false); // Reset drag state
         return;
       }
@@ -604,6 +601,7 @@ const ProjectWorkspace: React.FC = () => {
 
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, itemId: string) => {
+      if (selectedTool === "hand") return; // disable dragging items in hand mode
       e.stopPropagation();
       const rect = canvasRef.current?.getBoundingClientRect();
       if (!rect) return;
@@ -624,7 +622,7 @@ const ProjectWorkspace: React.FC = () => {
       setDraggedItem(itemId);
       setDragOffset({ x: offsetX, y: offsetY });
     },
-    [items, zoom, panOffset]
+    [items, zoom, panOffset, selectedTool]
   );
 
   const handleMouseMove = useCallback(
@@ -799,9 +797,9 @@ const ProjectWorkspace: React.FC = () => {
 
       // Allow panning with left mouse when no tool is selected, or middle mouse/Alt+click anytime
       if (
-        (e.button === 0 && !selectedTool) || // Left click when no tool selected
-        e.button === 1 || // Middle mouse button
-        (e.button === 0 && e.altKey) // Alt+Left click
+        (e.button === 0 && (!selectedTool || selectedTool === "hand")) ||
+        e.button === 1 ||
+        (e.button === 0 && e.altKey)
       ) {
         e.preventDefault();
         setIsPanning(true);

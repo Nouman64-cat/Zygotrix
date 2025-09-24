@@ -66,7 +66,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         >
           <ArrowLeftIcon className="h-5 w-5" />
         </button>
-        <div>
+        <div className="flex flex-col space-y-1">
           {isEditingName ? (
             <input
               type="text"
@@ -87,13 +87,13 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                 }
               }}
               autoFocus
-              className="text-lg font-semibold bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+              className="text-lg font-extrabold text-gray-700 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
             />
           ) : (
             <button
               type="button"
               onClick={() => setIsEditingName(true)}
-              className="text-lg cursor-text font-semibold hover:bg-gray-50 rounded px-1 transition-colors text-left"
+              className="text-lg cursor-text font-extrabold text-gray-700 hover:bg-gray-50 rounded px-1 transition-colors text-left"
               aria-label="Edit project name"
             >
               {projectName}

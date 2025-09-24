@@ -5,7 +5,6 @@ import {
   ChartBarIcon,
   DocumentTextIcon,
   AcademicCapIcon,
-  ChatBubbleLeftEllipsisIcon,
 } from "@heroicons/react/24/outline";
 import type { ToolboxItem } from "./types";
 import { getDefaultSize, getDefaultData } from "./utils";
@@ -60,13 +59,14 @@ export const toolboxItems: ToolboxItem[] = [
     icon: AcademicCapIcon,
     color: "bg-pink-500",
   },
-  {
-    id: "text-area",
-    type: "text-area",
-    label: "Text Area",
-    icon: ChatBubbleLeftEllipsisIcon,
-    color: "bg-cyan-500",
-  },
+  // Text area removed from toolbox - feature deprecated/hidden
+  // {
+  //   id: "text-area",
+  //   type: "text-area",
+  //   label: "Text Area",
+  //   icon: ChatBubbleLeftEllipsisIcon,
+  //   color: "bg-cyan-500",
+  // },
 ];
 
 // Re-export utility functions for convenience

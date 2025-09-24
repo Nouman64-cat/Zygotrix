@@ -37,7 +37,9 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
   return (
     <div
       key={item.id}
-      className={`${commonClasses} border-l-4 border-l-indigo-500`}
+      className={`${commonClasses} border-l-4 border-l-indigo-500 ${
+        item.data?.__justAdded ? "ring-4 ring-indigo-300 animate-pulse" : ""
+      }`}
       style={{
         left: item.position.x,
         top: item.position.y,

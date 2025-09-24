@@ -35,7 +35,10 @@ import {
   loadCanvasDrawings,
   type CanvasDrawing,
 } from "../components/workspace/helpers/localStorageHelpers";
-import { getCanvasCoordinatesFromEvent } from "../components/workspace/helpers/coordinateHelpers";
+import {
+  getCanvasCoordinatesFromEvent,
+  screenToCanvas,
+} from "../components/workspace/helpers/coordinateHelpers";
 import {
   projectToolsToWorkspaceItems,
   workspaceItemsToProjectTools,
@@ -474,10 +477,39 @@ const ProjectWorkspace: React.FC = () => {
 
   const handleAddToCanvas = useCallback(
     async (itemData: any) => {
+      // Determine viewport-centered canvas position
+      let position = { x: 100, y: 100 };
+      try {
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (rect) {
+          const screenCenter = {
+            x: rect.left + rect.width / 2,
+            y: rect.top + rect.height / 2,
+          };
+          const canvasCoords = screenToCanvas(screenCenter, rect, {
+            zoom,
+            panOffset,
+          });
+          position = {
+            x: Math.max(
+              0,
+              canvasCoords.x - getDefaultSize(itemData.type).width / 2
+            ),
+            y: Math.max(
+              0,
+              canvasCoords.y - getDefaultSize(itemData.type).height / 2
+            ),
+          };
+        }
+      } catch (err) {
+        // eslint-disable-next-line no-console
+        console.error("Center placement failed, using fallback (100,100)", err);
+      }
+
       const newItem: WorkspaceItem = {
         id: `custom-${Date.now()}`,
         type: itemData.type,
-        position: { x: 100, y: 100 },
+        position,
         size: getDefaultSize(itemData.type),
         data: itemData.content || itemData.data || itemData,
       };
@@ -510,10 +542,24 @@ const ProjectWorkspace: React.FC = () => {
         }
       }
 
-      setItems((prev) => [...prev, newItem]);
+      setItems((prev) => [
+        ...prev,
+        { ...newItem, data: { ...newItem.data, __justAdded: true } },
+      ]);
       setShowMendelianModal(false);
+
+      // Remove highlight flag after a short delay
+      setTimeout(() => {
+        setItems((prev) =>
+          prev.map((it) =>
+            it.id === newItem.id
+              ? { ...it, data: { ...it.data, __justAdded: undefined } }
+              : it
+          )
+        );
+      }, 1200);
     },
-    [projectId]
+    [projectId, zoom, panOffset]
   );
 
   // Handle note text changes

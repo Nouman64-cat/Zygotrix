@@ -5,6 +5,7 @@ import {
   ChartBarIcon,
   DocumentTextIcon,
   AcademicCapIcon,
+  PencilIcon,
 } from "@heroicons/react/24/outline";
 import type { ToolboxItem } from "./types";
 import { getDefaultSize, getDefaultData } from "./utils";
@@ -58,6 +59,13 @@ export const toolboxItems: ToolboxItem[] = [
     label: "Punnett Square",
     icon: AcademicCapIcon,
     color: "bg-pink-500",
+  },
+  {
+    id: "drawing",
+    type: "drawing",
+    label: "Drawing",
+    icon: PencilIcon,
+    color: "bg-red-500",
   },
   // Text area removed from toolbox - feature deprecated/hidden
   // {

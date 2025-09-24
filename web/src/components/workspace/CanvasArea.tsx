@@ -7,6 +7,8 @@ import {
 } from "@heroicons/react/24/outline";
 import type { WorkspaceItem } from "./types";
 
+import type { CanvasDrawing } from "./helpers/localStorageHelpers";
+
 interface CanvasAreaProps {
   canvasRef: React.RefObject<HTMLDivElement | null>;
   selectedTool: string | null;
@@ -17,6 +19,9 @@ interface CanvasAreaProps {
   isDrawingTextArea: boolean;
   textAreaStart: { x: number; y: number };
   textAreaEnd: { x: number; y: number };
+  canvasDrawings: CanvasDrawing[];
+  currentCanvasPath: CanvasDrawing | null;
+  isEraserMode?: boolean;
   handleZoomOut: () => void;
   handleZoomIn: () => void;
   handleZoomReset: () => void;
@@ -38,6 +43,9 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   isDrawingTextArea,
   textAreaStart,
   textAreaEnd,
+  canvasDrawings,
+  currentCanvasPath,
+  isEraserMode,
   handleZoomOut,
   handleZoomIn,
   handleZoomReset,
@@ -57,7 +65,9 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
         <div
           ref={canvasRef}
           className={`w-full h-full relative ${
-            selectedTool
+            selectedTool === "drawing" && isEraserMode
+              ? ""
+              : selectedTool
               ? "cursor-crosshair"
               : isPanning
               ? "cursor-grabbing"
@@ -73,6 +83,10 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
           style={{
             minHeight: "calc(100vh - 200px)",
             touchAction: "none", // Disable touch gestures
+            cursor:
+              selectedTool === "drawing" && isEraserMode
+                ? "url(\"data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><rect x='2' y='6' width='16' height='8' rx='2' fill='%23ff69b4' stroke='%23000' stroke-width='1'/><rect x='4' y='8' width='12' height='4' rx='1' fill='%23ffffff'/></svg>\") 10 10, auto"
+                : undefined,
           }}
           onWheel={(e) => {
             // Fallback React handler in case native listener doesn't work
@@ -125,6 +139,65 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
                 </div>
               </div>
             )}
+
+            {/* Canvas Drawing SVG Overlay */}
+            <svg
+              className="absolute inset-0 w-full h-full pointer-events-none"
+              style={{
+                width: "100%",
+                height: "100%",
+                minWidth: "1200px",
+                minHeight: "800px",
+              }}
+            >
+              {/* Render saved canvas drawings */}
+              {canvasDrawings.map((drawing) => {
+                const pathString =
+                  drawing.points.length < 2
+                    ? ""
+                    : `M ${drawing.points[0].x} ${
+                        drawing.points[0].y
+                      } ${drawing.points
+                        .slice(1)
+                        .map(
+                          (point: { x: number; y: number }) =>
+                            `L ${point.x} ${point.y}`
+                        )
+                        .join(" ")}`;
+
+                return (
+                  <path
+                    key={drawing.id}
+                    d={pathString}
+                    stroke={drawing.strokeColor}
+                    strokeWidth={drawing.strokeWidth}
+                    fill="none"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  />
+                );
+              })}
+
+              {/* Render current drawing path */}
+              {currentCanvasPath && currentCanvasPath.points.length > 1 && (
+                <path
+                  d={`M ${currentCanvasPath.points[0].x} ${
+                    currentCanvasPath.points[0].y
+                  } ${currentCanvasPath.points
+                    .slice(1)
+                    .map(
+                      (point: { x: number; y: number }) =>
+                        `L ${point.x} ${point.y}`
+                    )
+                    .join(" ")}`}
+                  stroke={currentCanvasPath.strokeColor}
+                  strokeWidth={currentCanvasPath.strokeWidth}
+                  fill="none"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              )}
+            </svg>
           </div>{" "}
           {/* Close zoomable container */}
           {/* Empty State - outside zoomable container for proper positioning */}

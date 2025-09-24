@@ -15,6 +15,8 @@ export const getDefaultSize = (type: string) => {
       return { width: 250, height: 180 };
     case "text-area":
       return { width: 250, height: 120 };
+    case "drawing":
+      return { width: 400, height: 300 };
     default:
       return { width: 200, height: 150 };
   }
@@ -57,6 +59,13 @@ export const getDefaultData = (type: string) => {
         fontSize: 16,
         fontFamily: "Arial",
         color: "#000000",
+      };
+    case "drawing":
+      return {
+        paths: [],
+        strokeColor: "#000000",
+        strokeWidth: 2,
+        backgroundColor: "transparent",
       };
     default:
       return {};

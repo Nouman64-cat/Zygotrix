@@ -4,6 +4,7 @@ import {
   AcademicCapIcon,
   ChevronLeftIcon,
   ChevronRightIcon,
+  TrashIcon,
 } from "@heroicons/react/24/outline";
 
 interface ToolboxSidebarProps {
@@ -13,6 +14,7 @@ interface ToolboxSidebarProps {
   setSelectedTool: (tool: string | null) => void;
   showMendelianModal: boolean;
   setShowMendelianModal: (show: boolean) => void;
+  clearCanvasDrawings?: () => void;
 }
 
 const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
@@ -22,6 +24,7 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
   setSelectedTool,
   showMendelianModal,
   setShowMendelianModal,
+  clearCanvasDrawings,
 }) => {
   return (
     <div
@@ -185,6 +188,20 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
             >
               <AcademicCapIcon className="h-4 w-4 text-white" />
             </button>
+
+            {/* Divider */}
+            <div className="h-px bg-gray-200 my-2"></div>
+
+            {/* Canvas Drawing Actions */}
+            {clearCanvasDrawings && (
+              <button
+                onClick={clearCanvasDrawings}
+                className="w-8 h-8 bg-red-500 rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110"
+                title="Clear All Drawings"
+              >
+                <TrashIcon className="h-4 w-4 text-white" />
+              </button>
+            )}
           </div>
         </div>
       )}

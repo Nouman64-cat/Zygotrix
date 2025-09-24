@@ -26,10 +26,14 @@ import NoteComponent from "../components/workspace/tools/NoteComponent";
 import MendelianStudyComponent from "../components/workspace/tools/MendelianStudyComponent";
 import PunnettSquareComponent from "../components/workspace/tools/PunnettSquareComponent";
 import TextAreaComponent from "../components/workspace/tools/TextAreaComponent";
+import DrawingComponent from "../components/workspace/tools/DrawingComponent";
 // Helper function imports
 import {
   saveLocalItems,
   loadLocalItems,
+  saveCanvasDrawings,
+  loadCanvasDrawings,
+  type CanvasDrawing,
 } from "../components/workspace/helpers/localStorageHelpers";
 import { getCanvasCoordinatesFromEvent } from "../components/workspace/helpers/coordinateHelpers";
 import {
@@ -119,6 +123,30 @@ const ProjectWorkspace: React.FC = () => {
   const [editingTextId, setEditingTextId] = useState<string | null>(null);
   const [editingText, setEditingText] = useState("");
 
+  // Canvas drawing state
+  const [isDrawingOnCanvas, setIsDrawingOnCanvas] = useState(false);
+  const [currentCanvasPath, setCurrentCanvasPath] =
+    useState<CanvasDrawing | null>(null);
+  const [canvasDrawings, setCanvasDrawings] = useState<CanvasDrawing[]>([]);
+  const [drawingStrokeColor, setDrawingStrokeColor] = useState("#000000");
+  const [drawingStrokeWidth, setDrawingStrokeWidth] = useState(2);
+  const [isEraserMode, setIsEraserMode] = useState(false);
+
+  // Update current drawing path when color or width changes
+  useEffect(() => {
+    if (currentCanvasPath && isDrawingOnCanvas) {
+      setCurrentCanvasPath((prev) =>
+        prev
+          ? {
+              ...prev,
+              strokeColor: drawingStrokeColor,
+              strokeWidth: drawingStrokeWidth,
+            }
+          : null
+      );
+    }
+  }, [drawingStrokeColor, drawingStrokeWidth, isDrawingOnCanvas]);
+
   // Initialize project data when loaded
   useEffect(() => {
     if (project) {
@@ -148,6 +176,21 @@ const ProjectWorkspace: React.FC = () => {
       saveLocalItems(projectId, localOnlyItems);
     }
   }, [items, projectId, saveLocalItems]);
+
+  // Load canvas drawings when project loads
+  useEffect(() => {
+    if (projectId && projectId !== "new") {
+      const savedDrawings = loadCanvasDrawings(projectId);
+      setCanvasDrawings(savedDrawings);
+    }
+  }, [projectId, loadCanvasDrawings]);
+
+  // Persist canvas drawings to localStorage whenever they change
+  useEffect(() => {
+    if (projectId && projectId !== "new" && canvasDrawings.length > 0) {
+      saveCanvasDrawings(projectId, canvasDrawings);
+    }
+  }, [canvasDrawings, projectId, saveCanvasDrawings]);
 
   // Save project details when name or description changes
   const handleUpdateProjectDetails = useCallback(async () => {
@@ -336,6 +379,11 @@ const ProjectWorkspace: React.FC = () => {
         return;
       }
 
+      // Special handling for drawing tool - don't place as component
+      if (selectedTool === "drawing") {
+        return; // Drawing is handled via mouse down/move/up events
+      }
+
       // Special handling for text-area tool - don't place immediately
       if (selectedTool === "text-area") {
         return; // Text areas are placed via mouse down/up events
@@ -500,6 +548,19 @@ const ProjectWorkspace: React.FC = () => {
   );
 
   const handleMouseUp = useCallback(() => {
+    // Handle canvas drawing completion
+    if (isDrawingOnCanvas && currentCanvasPath) {
+      // Only save path if it has more than one point
+      if (currentCanvasPath.points.length > 1) {
+        setCanvasDrawings((prev) => [...prev, currentCanvasPath]);
+      }
+
+      setIsDrawingOnCanvas(false);
+      setCurrentCanvasPath(null);
+      setHasDragged(false);
+      return;
+    }
+
     // Handle text area completion using helper functions
     if (isDrawingTextArea) {
       // Only create text area if it has meaningful size
@@ -530,7 +591,13 @@ const ProjectWorkspace: React.FC = () => {
     setDragOffset({ x: 0, y: 0 });
     setIsPanning(false);
     // Don't reset hasDragged here - let handleCanvasClick handle it
-  }, [isDrawingTextArea, textAreaStart, textAreaEnd]);
+  }, [
+    isDrawingOnCanvas,
+    currentCanvasPath,
+    isDrawingTextArea,
+    textAreaStart,
+    textAreaEnd,
+  ]);
 
   // Handle canvas zoom using imported helpers
   const handleZoomIn = useCallback(() => {
@@ -550,6 +617,61 @@ const ProjectWorkspace: React.FC = () => {
   // Handle pan start
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      // Handle canvas drawing
+      if (selectedTool === "drawing" && e.button === 0) {
+        e.preventDefault();
+        e.stopPropagation();
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const canvasCoords = getCanvasCoordinatesFromEvent(e, canvasRef, {
+          zoom,
+          panOffset,
+        });
+        if (!canvasCoords) return;
+
+        // Handle eraser mode
+        if (isEraserMode) {
+          // Find and remove drawing paths near the click point
+          const eraserRadius = 10; // Adjust this for eraser sensitivity
+          const pathsToRemove: string[] = [];
+
+          canvasDrawings.forEach((drawing) => {
+            const isNearPath = drawing.points.some((point) => {
+              const distanceX = Math.abs(point.x - canvasCoords.x);
+              const distanceY = Math.abs(point.y - canvasCoords.y);
+              return distanceX <= eraserRadius && distanceY <= eraserRadius;
+            });
+
+            if (isNearPath) {
+              pathsToRemove.push(drawing.id);
+            }
+          });
+
+          if (pathsToRemove.length > 0) {
+            setCanvasDrawings((prev) =>
+              prev.filter((drawing) => !pathsToRemove.includes(drawing.id))
+            );
+          }
+
+          setHasDragged(false);
+          return;
+        }
+
+        // Handle normal drawing mode
+        const newPath = {
+          id: `canvas-path-${Date.now()}`,
+          points: [canvasCoords],
+          strokeColor: drawingStrokeColor,
+          strokeWidth: drawingStrokeWidth,
+        };
+
+        setCurrentCanvasPath(newPath);
+        setIsDrawingOnCanvas(true);
+        setHasDragged(false);
+        return;
+      }
+
       // Handle text area drawing
       if (selectedTool === "text-area" && e.button === 0) {
         e.preventDefault();
@@ -584,9 +706,69 @@ const ProjectWorkspace: React.FC = () => {
     [selectedTool, zoom, panOffset]
   );
 
-  // Handle panning and text area drawing
+  // Handle panning, text area drawing, and canvas drawing
   const handleCanvasPanMove = useCallback(
     (e: React.MouseEvent) => {
+      // Handle eraser drag mode
+      if (selectedTool === "drawing" && isEraserMode && e.buttons === 1) {
+        e.preventDefault();
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const canvasCoords = getCanvasCoordinatesFromEvent(e, canvasRef, {
+          zoom,
+          panOffset,
+        });
+        if (!canvasCoords) return;
+
+        // Find and remove drawing paths near the current position while dragging
+        const eraserRadius = 10;
+        const pathsToRemove: string[] = [];
+
+        canvasDrawings.forEach((drawing) => {
+          const isNearPath = drawing.points.some((point) => {
+            const distanceX = Math.abs(point.x - canvasCoords.x);
+            const distanceY = Math.abs(point.y - canvasCoords.y);
+            return distanceX <= eraserRadius && distanceY <= eraserRadius;
+          });
+
+          if (isNearPath) {
+            pathsToRemove.push(drawing.id);
+          }
+        });
+
+        if (pathsToRemove.length > 0) {
+          setCanvasDrawings((prev) =>
+            prev.filter((drawing) => !pathsToRemove.includes(drawing.id))
+          );
+        }
+
+        setHasDragged(true);
+        return;
+      }
+
+      if (isDrawingOnCanvas && currentCanvasPath) {
+        e.preventDefault();
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const canvasCoords = getCanvasCoordinatesFromEvent(e, canvasRef, {
+          zoom,
+          panOffset,
+        });
+        if (!canvasCoords) return;
+
+        setCurrentCanvasPath((prev) => {
+          if (!prev) return null;
+          return {
+            ...prev,
+            points: [...prev.points, canvasCoords],
+          };
+        });
+        setHasDragged(true);
+        return;
+      }
+
       if (isDrawingTextArea) {
         const rect = canvasRef.current?.getBoundingClientRect();
         if (!rect) return;
@@ -623,7 +805,15 @@ const ProjectWorkspace: React.FC = () => {
         setLastPanPoint({ x: e.clientX, y: e.clientY });
       }
     },
-    [isPanning, lastPanPoint, isDrawingTextArea, zoom, panOffset]
+    [
+      isPanning,
+      lastPanPoint,
+      isDrawingTextArea,
+      isDrawingOnCanvas,
+      currentCanvasPath,
+      zoom,
+      panOffset,
+    ]
   );
 
   // Handle item name editing
@@ -671,6 +861,42 @@ const ProjectWorkspace: React.FC = () => {
     setEditingItemNameId(null);
     setEditingItemName("");
   }, []);
+
+  // Drawing-specific handlers
+  const handleDrawingNameClick = useCallback(
+    (e: React.MouseEvent, itemId: string, currentName: string) => {
+      e.stopPropagation();
+      setEditingItemNameId(itemId);
+      setEditingItemName(currentName);
+    },
+    []
+  );
+
+  const handleDrawingEditItem = useCallback(
+    (itemId: string, field: string, value: any) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? { ...item, data: { ...item.data, [field]: value } }
+            : item
+        )
+      );
+    },
+    []
+  );
+
+  const handleDrawingDeleteItem = useCallback((itemId: string) => {
+    setItems((prev) => prev.filter((item) => item.id !== itemId));
+  }, []);
+
+  // Clear all canvas drawings
+  const clearCanvasDrawings = useCallback(() => {
+    setCanvasDrawings([]);
+    if (projectId && projectId !== "new") {
+      // Clear from localStorage
+      localStorage.removeItem(`zygotrix_canvas_drawings_${projectId}`);
+    }
+  }, [projectId]);
 
   // Handle item deletion
   const handleDeleteItem = useCallback(
@@ -854,6 +1080,23 @@ const ProjectWorkspace: React.FC = () => {
           />
         );
 
+      case "drawing":
+        return (
+          <DrawingComponent
+            item={item}
+            commonClasses={commonClasses}
+            editingItemNameId={editingItemNameId}
+            editingItemName={editingItemName}
+            setEditingItemName={setEditingItemName}
+            onMouseDown={handleMouseDown}
+            onNameClick={handleDrawingNameClick}
+            onNameSave={handleNameSave}
+            onNameCancel={handleNameCancel}
+            onEditItem={handleDrawingEditItem}
+            onDeleteItem={handleDrawingDeleteItem}
+          />
+        );
+
       default:
         return null;
     }
@@ -898,6 +1141,7 @@ const ProjectWorkspace: React.FC = () => {
             setSelectedTool={setSelectedTool}
             showMendelianModal={showMendelianModal}
             setShowMendelianModal={setShowMendelianModal}
+            clearCanvasDrawings={clearCanvasDrawings}
           />
 
           {/* Canvas Area */}
@@ -911,6 +1155,9 @@ const ProjectWorkspace: React.FC = () => {
             isDrawingTextArea={isDrawingTextArea}
             textAreaStart={textAreaStart}
             textAreaEnd={textAreaEnd}
+            canvasDrawings={canvasDrawings}
+            currentCanvasPath={currentCanvasPath}
+            isEraserMode={isEraserMode}
             handleZoomOut={handleZoomOut}
             handleZoomIn={handleZoomIn}
             handleZoomReset={handleZoomReset}
@@ -931,6 +1178,177 @@ const ProjectWorkspace: React.FC = () => {
           />
         </div>
       </div>
+
+      {/* Modern Drawing Controls Panel - Samsung Notes Style */}
+      {selectedTool === "drawing" && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-white rounded-2xl shadow-xl border border-gray-100 p-3">
+          <div className="flex items-center space-x-3">
+            {/* Mode Toggle Buttons */}
+            <div className="flex bg-gray-100 rounded-xl p-1">
+              <button
+                onClick={() => setIsEraserMode(false)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  !isEraserMode
+                    ? "bg-white shadow-sm text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M13.586 3.586a2 2 0 112.828 2.828l-.793.793-2.828-2.828.793-.793zM11.379 5.793L3 14.172V17h2.828l8.38-8.379-2.83-2.828z" />
+                </svg>
+                <span className="text-sm font-medium">Draw</span>
+              </button>
+              <button
+                onClick={() => setIsEraserMode(true)}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  isEraserMode
+                    ? "bg-white shadow-sm text-pink-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M8.707 7.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4a1 1 0 00-1.414-1.414L11 7.586 8.707 5.293z" />
+                  <path
+                    fillRule="evenodd"
+                    d="M3 5a2 2 0 012-2h1a1 1 0 010 2H5v7h2l1 2h4l1-2h2V5h-1a1 1 0 110-2h1a2 2 0 012 2v10a2 2 0 01-2 2H5a2 2 0 01-2-2V5z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span className="text-sm font-medium">Erase</span>
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-8 bg-gray-200"></div>
+
+            {/* Drawing Controls - only show when in draw mode */}
+            {!isEraserMode && (
+              <>
+                {/* Color Palette */}
+                <div className="flex items-center space-x-2">
+                  <span className="text-xs text-gray-500 font-medium">
+                    Color
+                  </span>
+                  <div className="flex space-x-1">
+                    {[
+                      "#000000",
+                      "#FF0000",
+                      "#00FF00",
+                      "#0000FF",
+                      "#FFFF00",
+                      "#FF00FF",
+                      "#00FFFF",
+                    ].map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => setDrawingStrokeColor(color)}
+                        className={`w-6 h-6 rounded-full border-2 transition-all ${
+                          drawingStrokeColor === color
+                            ? "border-gray-400 scale-110"
+                            : "border-gray-200 hover:border-gray-300"
+                        }`}
+                        style={{ backgroundColor: color }}
+                      />
+                    ))}
+                    <input
+                      type="color"
+                      value={drawingStrokeColor}
+                      onChange={(e) => setDrawingStrokeColor(e.target.value)}
+                      className="w-6 h-6 rounded-full border-2 border-gray-200 cursor-pointer"
+                    />
+                  </div>
+                </div>
+
+                {/* Divider */}
+                <div className="w-px h-8 bg-gray-200"></div>
+
+                {/* Brush Size */}
+                <div className="flex items-center space-x-3">
+                  <span className="text-xs text-gray-500 font-medium">
+                    Size
+                  </span>
+                  <div className="flex items-center space-x-2">
+                    <div
+                      className="rounded-full bg-current transition-all"
+                      style={{
+                        width: `${Math.max(4, drawingStrokeWidth * 2)}px`,
+                        height: `${Math.max(4, drawingStrokeWidth * 2)}px`,
+                        color: drawingStrokeColor,
+                      }}
+                    />
+                    <input
+                      type="range"
+                      min="1"
+                      max="12"
+                      value={drawingStrokeWidth}
+                      onChange={(e) =>
+                        setDrawingStrokeWidth(parseInt(e.target.value))
+                      }
+                      className="w-16 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                    />
+                    <span className="text-xs text-gray-500 w-4 text-center">
+                      {drawingStrokeWidth}
+                    </span>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Action Buttons */}
+            <div className="flex space-x-2 ml-4">
+              {/* Clear All */}
+              <button
+                onClick={() => setCanvasDrawings([])}
+                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="Clear All Drawings"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+
+              {/* Close */}
+              <button
+                onClick={() => setSelectedTool(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Exit Drawing Mode"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Mendelian Study Modal */}
       {showMendelianModal && (

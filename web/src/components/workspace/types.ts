@@ -11,7 +11,8 @@ export interface WorkspaceItem {
     | "note"
     | "mendelian-study"
     | "punnett-square"
-    | "text-area";
+    | "text-area"
+    | "drawing";
   position: { x: number; y: number };
   data: any;
   size: { width: number; height: number };
@@ -27,7 +28,8 @@ export interface ToolboxItem {
     | "note"
     | "mendelian-study"
     | "punnett-square"
-    | "text-area";
+    | "text-area"
+    | "drawing";
   label: string;
   icon: React.ComponentType<any>;
   color: string;

@@ -301,6 +301,14 @@ const ProjectWorkspace: React.FC = () => {
         event.preventDefault();
         handleManualSave();
       }
+      // Deselect any selected tool when pressing Escape
+      if (event.key === "Escape" || event.key === "Esc") {
+        setSelectedTool(null);
+        // also cancel any drawing/text-area in progress
+        setIsDrawingTextArea(false);
+        setIsDrawingOnCanvas(false);
+        setCurrentCanvasPath(null);
+      }
     };
 
     document.addEventListener("keydown", handleKeyDown);

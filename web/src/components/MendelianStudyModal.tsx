@@ -478,17 +478,32 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                               <option value="" className="text-gray-500">
                                 Select genotype
                               </option>
-                              {getGenotypeOptions(selectedTrait.alleles).map(
-                                (genotype) => (
-                                  <option
-                                    key={genotype}
-                                    value={genotype}
-                                    className="font-semibold"
-                                  >
-                                    {genotype}
-                                  </option>
-                                )
-                              )}
+                              {getGenotypeOptions(selectedTrait.alleles)
+                                .filter((genotype) => {
+                                  const traitInfo = traits.find(
+                                    (t) => t.key === selectedTrait.key
+                                  );
+                                  const phenotype =
+                                    traitInfo?.phenotype_map[genotype];
+                                  return phenotype && phenotype !== "Unknown";
+                                })
+                                .map((genotype) => {
+                                  const traitInfo = traits.find(
+                                    (t) => t.key === selectedTrait.key
+                                  );
+                                  const phenotype =
+                                    traitInfo?.phenotype_map[genotype] ||
+                                    "Unknown";
+                                  return (
+                                    <option
+                                      key={genotype}
+                                      value={genotype}
+                                      className="font-semibold"
+                                    >
+                                      {genotype} → {phenotype}
+                                    </option>
+                                  );
+                                })}
                             </select>
                             {selectedTrait.parent1Genotype && (
                               <div className="absolute -bottom-1 right-3 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
@@ -534,17 +549,32 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                               <option value="" className="text-gray-500">
                                 Select genotype
                               </option>
-                              {getGenotypeOptions(selectedTrait.alleles).map(
-                                (genotype) => (
-                                  <option
-                                    key={genotype}
-                                    value={genotype}
-                                    className="font-semibold"
-                                  >
-                                    {genotype}
-                                  </option>
-                                )
-                              )}
+                              {getGenotypeOptions(selectedTrait.alleles)
+                                .filter((genotype) => {
+                                  const traitInfo = traits.find(
+                                    (t) => t.key === selectedTrait.key
+                                  );
+                                  const phenotype =
+                                    traitInfo?.phenotype_map[genotype];
+                                  return phenotype && phenotype !== "Unknown";
+                                })
+                                .map((genotype) => {
+                                  const traitInfo = traits.find(
+                                    (t) => t.key === selectedTrait.key
+                                  );
+                                  const phenotype =
+                                    traitInfo?.phenotype_map[genotype] ||
+                                    "Unknown";
+                                  return (
+                                    <option
+                                      key={genotype}
+                                      value={genotype}
+                                      className="font-semibold"
+                                    >
+                                      {genotype} → {phenotype}
+                                    </option>
+                                  );
+                                })}
                             </select>
                             {selectedTrait.parent2Genotype && (
                               <div className="absolute -bottom-1 right-3 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">

@@ -243,13 +243,20 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           >
                             <option value="">Select genotype</option>
-                            {getGenotypeOptions(trait.alleles).map(
-                              (genotype) => (
-                                <option key={genotype} value={genotype}>
-                                  {genotype}
-                                </option>
-                              )
-                            )}
+                            {getGenotypeOptions(trait.alleles)
+                              .filter((genotype) => {
+                                const phenotype = trait.phenotype_map[genotype];
+                                return phenotype && phenotype !== "Unknown";
+                              })
+                              .map((genotype) => {
+                                const phenotype =
+                                  trait.phenotype_map[genotype] || "Unknown";
+                                return (
+                                  <option key={genotype} value={genotype}>
+                                    {genotype} → {phenotype}
+                                  </option>
+                                );
+                              })}
                           </select>
                         </div>
                       );
@@ -283,13 +290,20 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
                             className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
                           >
                             <option value="">Select genotype</option>
-                            {getGenotypeOptions(trait.alleles).map(
-                              (genotype) => (
-                                <option key={genotype} value={genotype}>
-                                  {genotype}
-                                </option>
-                              )
-                            )}
+                            {getGenotypeOptions(trait.alleles)
+                              .filter((genotype) => {
+                                const phenotype = trait.phenotype_map[genotype];
+                                return phenotype && phenotype !== "Unknown";
+                              })
+                              .map((genotype) => {
+                                const phenotype =
+                                  trait.phenotype_map[genotype] || "Unknown";
+                                return (
+                                  <option key={genotype} value={genotype}>
+                                    {genotype} → {phenotype}
+                                  </option>
+                                );
+                              })}
                           </select>
                         </div>
                       );

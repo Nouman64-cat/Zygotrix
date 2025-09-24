@@ -871,50 +871,29 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                 <div className="flex justify-between items-center mb-2">
                                   <div className="flex flex-col">
                                     {(() => {
-                                      // Check if the key is actually a phenotype (result of simulation)
-                                      const phenotypeValues = Object.values(
-                                        trait?.phenotype_map || {}
+                                      // The backend now returns genotype keys, so always treat them as genotypes
+                                      // Display genotype with phenotype below
+                                      return (
+                                        <>
+                                          <span className="font-medium text-gray-700">
+                                            {genotype}
+                                          </span>
+                                          <span className="text-xs text-gray-500">
+                                            {(() => {
+                                              const phenotype =
+                                                trait?.phenotype_map?.[
+                                                  genotype
+                                                ];
+                                              console.log(
+                                                `Debug: genotype=${genotype}, trait=${trait?.name}, phenotype_map=`,
+                                                trait?.phenotype_map,
+                                                `result=${phenotype}`
+                                              );
+                                              return phenotype || "Unknown";
+                                            })()}
+                                          </span>
+                                        </>
                                       );
-                                      const isPhenotype =
-                                        phenotypeValues.includes(genotype);
-
-                                      if (isPhenotype) {
-                                        // If it's a phenotype, find the corresponding genotype(s)
-                                        const matchingGenotypes =
-                                          Object.entries(
-                                            trait?.phenotype_map || {}
-                                          )
-                                            .filter(
-                                              ([_, phenotype]) =>
-                                                phenotype === genotype
-                                            )
-                                            .map(([geno, _]) => geno);
-
-                                        return (
-                                          <>
-                                            <span className="font-medium text-gray-700">
-                                              {matchingGenotypes.join(", ") ||
-                                                genotype}
-                                            </span>
-                                            <span className="text-xs text-gray-500">
-                                              {genotype}
-                                            </span>
-                                          </>
-                                        );
-                                      } else {
-                                        // If it's a genotype, show phenotype below
-                                        return (
-                                          <>
-                                            <span className="font-medium text-gray-700">
-                                              {genotype}
-                                            </span>
-                                            <span className="text-xs text-gray-500">
-                                              {trait?.phenotype_map[genotype] ||
-                                                "Unknown"}
-                                            </span>
-                                          </>
-                                        );
-                                      }
                                     })()}
                                   </div>
                                   <span className="text-sm font-semibold text-indigo-600">

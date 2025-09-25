@@ -25,14 +25,14 @@ const Footer: React.FC = () => {
   return (
     <footer className="relative mt-[-1px] bg-slate-950 text-slate-200">
       <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#10B981]/40 to-transparent" />
-      <div className="mx-auto flex max-w-7xl flex-col gap-12 px-6 py-16 lg:flex-row lg:justify-between">
-        <div className="max-w-sm space-y-4">
-          <div className="inline-flex items-center gap-3">
+      <div className="mx-auto flex max-w-7xl flex-col gap-8 px-6 py-12 lg:flex-row lg:justify-between">
+        <div className="max-w-sm space-y-3">
+          <div className="inline-flex items-center gap-2">
             <div>
-              <img src={logo} alt="Zygotrix" className="w-[4rem]" />
+              <img src={logo} alt="Zygotrix" className="w-[3rem]" />
             </div>
             <div className="leading-tight">
-              <p className="text-lg font-semibold uppercase tracking-[0.35em] text-white">
+              <p className="text-base font-semibold uppercase tracking-[0.35em] text-white">
                 Zygotrix
               </p>
               <p className="text-xs font-medium text-white/70">

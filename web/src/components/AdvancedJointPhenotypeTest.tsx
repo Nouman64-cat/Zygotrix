@@ -158,21 +158,21 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Controls */}
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-        <div className="space-y-6">
+      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+        <div className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-base font-semibold text-slate-900">
                 Custom Joint Phenotype Analysis
               </h3>
-              <p className="text-sm text-slate-600 mt-1">
+              <p className="text-xs text-slate-600 mt-1">
                 Select 2-5 traits and configure parent genotypes for joint
                 analysis
               </p>
             </div>
             <button
               onClick={runExampleTest}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-sm"
+              className="px-3 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors text-xs"
             >
               Load Example
             </button>
@@ -180,14 +180,14 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
 
           {/* Trait Selection */}
           <div>
-            <h4 className="text-sm font-medium text-slate-700 mb-3">
+            <h4 className="text-sm font-medium text-slate-700 mb-2">
               Select Traits ({selectedTraits.length}/5)
             </h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2">
               {traits.slice(0, 10).map((trait) => (
                 <label
                   key={trait.key}
-                  className={`flex items-center p-3 border rounded-lg cursor-pointer transition-colors ${
+                  className={`flex items-center p-2 border rounded-lg cursor-pointer transition-colors ${
                     selectedTraits.includes(trait.key)
                       ? "border-blue-500 bg-blue-50"
                       : "border-gray-200 hover:border-gray-300"
@@ -197,10 +197,10 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
                     type="checkbox"
                     checked={selectedTraits.includes(trait.key)}
                     onChange={() => handleTraitToggle(trait.key)}
-                    className="mr-3"
+                    className="mr-2"
                   />
                   <div>
-                    <div className="font-medium text-sm">{trait.name}</div>
+                    <div className="font-medium text-xs">{trait.name}</div>
                     <div className="text-xs text-gray-500">
                       Alleles: {trait.alleles.join(", ")}
                     </div>
@@ -213,16 +213,16 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
           {/* Genotype Configuration */}
           {selectedTraits.length > 0 && (
             <div>
-              <h4 className="text-sm font-medium text-slate-700 mb-3">
+              <h4 className="text-sm font-medium text-slate-700 mb-2">
                 Configure Parent Genotypes
               </h4>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
                 {/* Parent 1 */}
                 <div>
-                  <h5 className="text-sm font-medium text-green-700 mb-3">
+                  <h5 className="text-sm font-medium text-green-700 mb-2">
                     Female Parent
                   </h5>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {selectedTraits.map((traitKey) => {
                       const trait = traits.find((t) => t.key === traitKey);
                       if (!trait) return null;
@@ -240,7 +240,7 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
                                 e.target.value
                               )
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                           >
                             <option value="">Select genotype</option>
                             {getGenotypeOptions(trait.alleles)
@@ -266,10 +266,10 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
 
                 {/* Parent 2 */}
                 <div>
-                  <h5 className="text-sm font-medium text-blue-700 mb-3">
+                  <h5 className="text-sm font-medium text-blue-700 mb-2">
                     Male Parent
                   </h5>
-                  <div className="space-y-3">
+                  <div className="space-y-2">
                     {selectedTraits.map((traitKey) => {
                       const trait = traits.find((t) => t.key === traitKey);
                       if (!trait) return null;
@@ -287,7 +287,7 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
                                 e.target.value
                               )
                             }
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+                            className="w-full px-2 py-1 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 text-xs"
                           >
                             <option value="">Select genotype</option>
                             {getGenotypeOptions(trait.alleles)
@@ -315,11 +315,11 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
           )}
 
           {/* Run Simulation Button */}
-          <div className="pt-4 border-t border-gray-200">
+          <div className="pt-3 border-t border-gray-200">
             <button
               onClick={runSimulation}
               disabled={!canSimulate || isLoading}
-              className={`w-full py-3 px-4 rounded-lg font-medium transition-colors ${
+              className={`w-full py-2 px-4 rounded-lg font-medium text-sm transition-colors ${
                 canSimulate && !isLoading
                   ? "bg-blue-600 text-white hover:bg-blue-700"
                   : "bg-gray-300 text-gray-500 cursor-not-allowed"
@@ -330,15 +330,15 @@ const AdvancedJointPhenotypeTest: React.FC<AdvancedJointPhenotypeTestProps> = ({
                 : "Run Joint Phenotype Analysis"}
             </button>
             {!canSimulate && selectedTraits.length > 0 && (
-              <p className="text-xs text-gray-500 mt-2 text-center">
+              <p className="text-xs text-gray-500 mt-1 text-center">
                 Select at least 2 traits and configure all parent genotypes
               </p>
             )}
           </div>
 
           {error && (
-            <div className="p-3 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-sm text-red-800">
+            <div className="p-2 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-xs text-red-800">
                 <strong>Error:</strong> {error}
               </p>
             </div>

@@ -17,18 +17,20 @@ const HeroSection: React.FC<HeroSectionProps> = ({ stats, polygenic }) => {
     <header className="relative overflow-hidden">
       <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/10 via-transparent to-[#10B981]/10" />
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-16 px-6 pb-24 pt-16 lg:grid-cols-2 lg:pb-32">
+      <section className="relative z-10 mx-auto grid max-w-7xl gap-8 px-6 pb-16 pt-12 lg:grid-cols-2 lg:pb-20">
         <div>
-          <span className="inline-block rounded-full bg-[#10B981]/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#10B981]">
+          <span className="inline-block rounded-full bg-[#10B981]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#10B981]">
             Precision genetics
           </span>
-          <h1 className="mt-6 text-4xl font-bold leading-tight text-[#1E3A8A] sm:text-5xl lg:text-6xl">
+          <h1 className="mt-4 text-3xl font-bold leading-tight text-[#1E3A8A] sm:text-4xl lg:text-5xl">
             Model inheritance with scientific clarity and creative control.
           </h1>
-          <p className="mt-6 max-w-xl text-lg text-slate-600">
-            Zygotrix Engine combines rigorously tested Mendelian calculators, additive polygenic scoring, and expressive trait definitions so your team can explore the next generation of genetic scenarios.
+          <p className="mt-4 max-w-xl text-base text-slate-600">
+            Zygotrix Engine combines rigorously tested Mendelian calculators,
+            additive polygenic scoring, and expressive trait definitions so your
+            team can explore the next generation of genetic scenarios.
           </p>
-          <div className="mt-8 flex flex-wrap gap-4">
+          <div className="mt-6 flex flex-wrap gap-3">
             <Link
               to="/playground"
               className="inline-flex items-center justify-center rounded-full bg-[#1E3A8A] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#1E3A8A]/30 transition hover:bg-[#162b63]"
@@ -42,11 +44,13 @@ const HeroSection: React.FC<HeroSectionProps> = ({ stats, polygenic }) => {
               Learn about Zygotrix
             </Link>
           </div>
-          <dl className="mt-12 grid gap-8 text-[#1E3A8A] sm:grid-cols-3">
+          <dl className="mt-8 grid gap-6 text-[#1E3A8A] sm:grid-cols-3">
             {stats.map((stat) => (
               <div key={stat.label}>
-                <dt className="text-sm uppercase tracking-[0.25em] text-[#4B5563]">{stat.label}</dt>
-                <dd className="mt-2 text-3xl font-bold">{stat.value}</dd>
+                <dt className="text-xs uppercase tracking-[0.25em] text-[#4B5563]">
+                  {stat.label}
+                </dt>
+                <dd className="mt-1 text-2xl font-bold">{stat.value}</dd>
               </div>
             ))}
           </dl>
@@ -57,8 +61,12 @@ const HeroSection: React.FC<HeroSectionProps> = ({ stats, polygenic }) => {
           <div className="relative space-y-6">
             <div className="overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-300/40 ring-1 ring-white/60">
               <div className="bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] px-8 py-6 text-white">
-                <p className="text-xs uppercase tracking-[0.4em]">Mendelian preview</p>
-                <p className="mt-2 text-2xl font-semibold">Eye color outcomes</p>
+                <p className="text-xs uppercase tracking-[0.4em]">
+                  Mendelian preview
+                </p>
+                <p className="mt-2 text-2xl font-semibold">
+                  Eye color outcomes
+                </p>
               </div>
               <div className="space-y-6 px-8 py-6">
                 <div className="flex items-center justify-between text-sm text-slate-500">
@@ -76,7 +84,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ stats, polygenic }) => {
                       <span>50%</span>
                     </div>
                     <div className="mt-2 h-3 w-full rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6]" style={{ width: "50%" }} />
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6]"
+                        style={{ width: "50%" }}
+                      />
                     </div>
                   </div>
                   <div>
@@ -85,7 +96,10 @@ const HeroSection: React.FC<HeroSectionProps> = ({ stats, polygenic }) => {
                       <span>50%</span>
                     </div>
                     <div className="mt-2 h-3 w-full rounded-full bg-slate-100">
-                      <div className="h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#10B981]" style={{ width: "50%" }} />
+                      <div
+                        className="h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#10B981]"
+                        style={{ width: "50%" }}
+                      />
                     </div>
                   </div>
                 </div>

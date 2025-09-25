@@ -55,14 +55,14 @@ const PlaygroundPage: React.FC = () => {
         className="border-b border-slate-200 bg-white"
         aria-labelledby="playground-heading"
       >
-        <div className="mx-auto flex max-w-6xl flex-col gap-8 px-6 py-12 lg:flex-row lg:items-start lg:justify-between">
-          <div className="max-w-2xl space-y-4">
+        <div className="mx-auto flex max-w-6xl flex-col gap-6 px-6 py-8 lg:flex-row lg:items-start lg:justify-between">
+          <div className="max-w-2xl space-y-3">
             <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#1E3A8A]">
               Playground
             </p>
             <h1
               id="playground-heading"
-              className="text-3xl font-bold text-[#1E3A8A] sm:text-4xl"
+              className="text-2xl font-bold text-[#1E3A8A] sm:text-3xl"
             >
               Experiment quickly with live inheritance simulations
             </h1>
@@ -71,7 +71,7 @@ const PlaygroundPage: React.FC = () => {
               the trait registry without leaving the page.
             </p>
             <div
-              className="flex flex-wrap items-center gap-3"
+              className="flex flex-wrap items-center gap-2"
               role="navigation"
               aria-label="Playground shortcuts"
             >
@@ -99,18 +99,18 @@ const PlaygroundPage: React.FC = () => {
 
           <div className="flex-1">
             <dl
-              className="grid gap-4 sm:grid-cols-2"
+              className="grid gap-3 sm:grid-cols-2"
               aria-label="Playground metrics"
             >
               {metrics.map((metric) => (
                 <div
                   key={metric.label}
-                  className="flex h-full flex-col rounded-3xl border border-slate-200 bg-slate-100/60 p-5 shadow-sm"
+                  className="flex h-full flex-col rounded-2xl border border-slate-200 bg-slate-100/60 p-4 shadow-sm"
                 >
                   <dt className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
                     {metric.label}
                   </dt>
-                  <dd className="mt-2 text-2xl font-semibold text-[#1E3A8A]">
+                  <dd className="mt-1 text-xl font-semibold text-[#1E3A8A]">
                     {metric.value}
                   </dd>
                   <p className="mt-1 text-xs text-slate-600">
@@ -131,7 +131,7 @@ const PlaygroundPage: React.FC = () => {
       </header>
 
       <section
-        className="mx-auto max-w-6xl px-6 py-12"
+        className="mx-auto max-w-6xl px-6 py-8"
         aria-labelledby="playground-sandbox-heading"
       >
         <h2 id="playground-sandbox-heading" className="sr-only">
@@ -147,7 +147,7 @@ const PlaygroundPage: React.FC = () => {
       </section>
 
       <section
-        className="mx-auto max-w-6xl px-6 py-12"
+        className="mx-auto max-w-6xl px-6 py-8"
         aria-labelledby="playground-joint-phenotype-heading"
       >
         <h2 id="playground-joint-phenotype-heading" className="sr-only">
@@ -157,7 +157,7 @@ const PlaygroundPage: React.FC = () => {
       </section>
 
       <section
-        className="mx-auto max-w-6xl px-6 pb-16"
+        className="mx-auto max-w-6xl px-6 pb-12"
         aria-labelledby="playground-management-heading"
       >
         <h2 id="playground-management-heading" className="sr-only">

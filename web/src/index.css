@@ -47,11 +47,25 @@
 }
 
 body {
-  @apply text-slate-700 antialiased;
+  @apply text-slate-700 antialiased leading-snug;
 }
 
 * {
   @apply box-border;
+}
+
+/* Improve overall spacing compactness */
+.space-y-6 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1rem;
+}
+
+.space-y-8 > :not([hidden]) ~ :not([hidden]) {
+  margin-top: 1.5rem;
+}
+
+/* Make buttons more compact by default */
+button:not(.btn-large) {
+  @apply leading-none;
 }
 
 /* Custom slider styles for drawing controls */

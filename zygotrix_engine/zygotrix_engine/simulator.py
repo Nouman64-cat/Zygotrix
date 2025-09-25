@@ -36,8 +36,8 @@ class Simulator:
         parent2_genotypes: Mapping[str, str],
         as_percentages: bool = False,
         max_traits: int = 5,
-    ) -> Dict[str, Dict[str, float]]:
-        """Generate phenotype probability distributions for Mendelian traits.
+    ) -> Dict[str, Dict[str, Dict[str, float]]]:
+        """Generate genotypic and phenotypic probability distributions for Mendelian traits.
 
         Args:
             parent1_genotypes: Mapping of trait keys to genotypes for parent 1
@@ -46,7 +46,8 @@ class Simulator:
             max_traits: Maximum number of traits allowed (default: 5)
 
         Returns:
-            Dictionary mapping trait keys to phenotype probability distributions
+            Dictionary mapping trait keys to both genotypic and phenotypic probability distributions
+            Format: {trait_key: {"genotypic_ratios": {...}, "phenotypic_ratios": {...}}}
 
         Raises:
             ValueError: If more than max_traits are provided
@@ -59,7 +60,7 @@ class Simulator:
                 f"Maximum {max_traits} traits allowed, got {len(trait_keys)}"
             )
 
-        results: Dict[str, Dict[str, float]] = {}
+        results: Dict[str, Dict[str, Dict[str, float]]] = {}
         for trait_key in trait_keys:
             if trait_key not in self.trait_registry:
                 continue
@@ -69,14 +70,26 @@ class Simulator:
                 parent2_genotypes[trait_key],
                 trait,
             )
-            # Return genotype probabilities instead of phenotype aggregations
-            # This ensures that OO × AA returns only "AO: 100%" not "AA, AO: 100% Type A"
-            genotype_distribution = (
+            
+            # Calculate both genotypic and phenotypic distributions
+            genotype_probs = (
                 to_percentage_distribution(genotype_distribution)
                 if as_percentages
                 else normalize_probabilities(genotype_distribution)
             )
-            results[trait_key] = genotype_distribution
+            
+            phenotype_distribution = trait.phenotype_distribution(genotype_distribution)
+            phenotype_probs = (
+                to_percentage_distribution(phenotype_distribution)
+                if as_percentages
+                else normalize_probabilities(phenotype_distribution)
+            )
+            
+            # Return both genotypic and phenotypic ratios
+            results[trait_key] = {
+                "genotypic_ratios": genotype_probs,
+                "phenotypic_ratios": phenotype_probs
+            }
         return results
 
     def simulate_joint_phenotypes(

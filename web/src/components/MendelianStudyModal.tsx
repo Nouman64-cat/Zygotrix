@@ -805,12 +805,12 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                       (t) => t.key === traitKey
                     );
 
-                    // The result is already the genotype distribution (Record<string, number>)
-                    // No need to access offspring_distribution
+                    // The result now contains both genotypic_ratios and phenotypic_ratios
                     if (
                       !result ||
                       typeof result !== "object" ||
-                      Object.keys(result).length === 0
+                      !result.genotypic_ratios ||
+                      !result.phenotypic_ratios
                     ) {
                       return (
                         <div
@@ -861,56 +861,88 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          {Object.entries(result).map(
-                            ([genotype, percentage]) => (
-                              <div
-                                key={genotype}
-                                className="bg-white rounded-lg p-4 shadow-sm"
-                              >
-                                <div className="flex justify-between items-center mb-2">
-                                  <div className="flex flex-col">
-                                    {(() => {
-                                      // The backend now returns genotype keys, so always treat them as genotypes
-                                      // Display genotype with phenotype below
-                                      return (
-                                        <>
-                                          <span className="font-medium text-gray-700">
-                                            {genotype}
-                                          </span>
-                                          <span className="text-xs text-gray-500">
-                                            {(() => {
-                                              const phenotype =
-                                                trait?.phenotype_map?.[
-                                                  genotype
-                                                ];
-                                              console.log(
-                                                `Debug: genotype=${genotype}, trait=${trait?.name}, phenotype_map=`,
-                                                trait?.phenotype_map,
-                                                `result=${phenotype}`
-                                              );
-                                              return phenotype || "Unknown";
-                                            })()}
-                                          </span>
-                                        </>
-                                      );
-                                    })()}
-                                  </div>
-                                  <span className="text-sm font-semibold text-indigo-600">
-                                    {`${percentage.toFixed(1)}%`}
-                                  </span>
-                                </div>
-                                <div className="w-full bg-gray-200 rounded-full h-2">
+                        {/* Display both genotypic and phenotypic ratios (horizontal bars) */}
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                          {/* Genotypic Ratios Section */}
+                          <div>
+                            <h5 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
+                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
+                              Genotypic Ratios
+                            </h5>
+                            <div className="space-y-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100">
+                              {Object.entries(result.genotypic_ratios).map(
+                                ([genotype, percentage]) => (
                                   <div
-                                    className="bg-gradient-to-r from-indigo-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                                    style={{
-                                      width: `${percentage}%`,
-                                    }}
-                                  />
-                                </div>
-                              </div>
-                            )
-                          )}
+                                    key={genotype}
+                                    className="flex items-center gap-3"
+                                  >
+                                    <div className="w-24 text-xs">
+                                      <div className="font-medium text-gray-800">
+                                        {genotype}
+                                      </div>
+                                      <div className="text-xs text-gray-500">
+                                        {trait?.phenotype_map?.[genotype] ||
+                                          "Unknown"}
+                                      </div>
+                                    </div>
+
+                                    <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-blue-100">
+                                      <div
+                                        className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
+                                        style={{
+                                          width: `${Math.max(percentage, 2)}%`,
+                                        }}
+                                      />
+                                    </div>
+
+                                    <div className="w-12 text-right text-xs font-semibold text-blue-600">
+                                      {`${percentage.toFixed(1)}%`}
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
+
+                          {/* Phenotypic Ratios Section */}
+                          <div>
+                            <h5 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
+                              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                              Phenotypic Ratios
+                            </h5>
+                            <div className="space-y-2 bg-green-50/30 rounded-lg p-3 border border-green-100">
+                              {Object.entries(result.phenotypic_ratios).map(
+                                ([phenotype, percentage]) => (
+                                  <div
+                                    key={phenotype}
+                                    className="flex items-center gap-3"
+                                  >
+                                    <div className="w-28 text-xs">
+                                      <div className="font-semibold text-gray-800">
+                                        {phenotype}
+                                      </div>
+                                      <div className="text-xs text-gray-500">
+                                        Phenotype
+                                      </div>
+                                    </div>
+
+                                    <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-green-100">
+                                      <div
+                                        className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all"
+                                        style={{
+                                          width: `${Math.max(percentage, 2)}%`,
+                                        }}
+                                      />
+                                    </div>
+
+                                    <div className="w-12 text-right text-xs font-semibold text-green-600">
+                                      {`${percentage.toFixed(1)}%`}
+                                    </div>
+                                  </div>
+                                )
+                              )}
+                            </div>
+                          </div>
                         </div>
                       </div>
                     );

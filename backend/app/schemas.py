@@ -106,10 +106,21 @@ class MendelianSimulationRequest(BaseModel):
         }
 
 
-class MendelianSimulationResponse(BaseModel):
-    """Phenotype distributions returned from the simulator."""
+class TraitSimulationResult(BaseModel):
+    """Simulation results for a single trait containing both genotypic and phenotypic ratios."""
 
-    results: Dict[str, Dict[str, float]]
+    genotypic_ratios: Dict[str, float] = Field(
+        ..., description="Genotype to probability mapping (e.g., {'BB': 25.0, 'Bb': 50.0, 'bb': 25.0})"
+    )
+    phenotypic_ratios: Dict[str, float] = Field(
+        ..., description="Phenotype to probability mapping (e.g., {'Brown': 75.0, 'Blue': 25.0})"
+    )
+
+
+class MendelianSimulationResponse(BaseModel):
+    """Genotypic and phenotypic distributions returned from the simulator."""
+
+    results: Dict[str, TraitSimulationResult]
     missing_traits: List[str] = Field(
         default_factory=list,
         description="Requested trait keys that were not available in the registry.",

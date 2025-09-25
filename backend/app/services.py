@@ -421,7 +421,7 @@ def simulate_mendelian_traits(
     trait_filter: Iterable[str] | None,
     as_percentages: bool,
     max_traits: int = 5,
-) -> Tuple[Dict[str, Dict[str, float]], List[str]]:
+    ) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
     """Run Mendelian simulations and optionally filter trait outputs.
 
     Args:
@@ -456,7 +456,7 @@ def simulate_mendelian_traits(
         as_percentages=as_percentages,
         max_traits=max_traits,
     )
-    ordered_results: Dict[str, Dict[str, float]] = {}
+    ordered_results: Dict[str, Dict[str, Dict[str, float]]] = {}
     for key in registry.keys() if not trait_filter else trait_filter:
         if key in results:
             ordered_results[key] = results[key]

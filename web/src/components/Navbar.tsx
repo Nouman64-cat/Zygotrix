@@ -40,13 +40,13 @@ const Navbar: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 from-slate-900/95 via-slate-900/80 to-transparent backdrop-blur-lg">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
-        <Link to="/" className="group flex items-center gap-3">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        <Link to="/" className="group flex items-center gap-2">
           <div>
-            <img src={logo} alt="Zygotrix" className="w-[4rem]" />
+            <img src={logo} alt="Zygotrix" className="w-[3rem]" />
           </div>
           <div className="leading-tight">
-            <p className="text-base font-semibold uppercase tracking-[0.35em] text-gray">
+            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-gray">
               Zygotrix
             </p>
             <p className="text-xs font-medium text-gray/70">

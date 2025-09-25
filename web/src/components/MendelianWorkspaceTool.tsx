@@ -319,22 +319,22 @@ const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
         )}
 
         {project.simulationResults && (
-          <div className="space-y-3">
+          <div className="space-y-2">
             <h4 className="text-sm font-medium text-slate-700">
               Simulation Results:
             </h4>
-            <div className="space-y-2">
+            <div className="space-y-1">
               {Object.entries(project.simulationResults)
                 .sort(([, a], [, b]) => b - a)
                 .map(([phenotype, probability]) => (
                   <div
                     key={phenotype}
-                    className="flex items-center justify-between p-2 bg-slate-50 rounded"
+                    className="flex items-center justify-between p-2 bg-slate-50 rounded text-sm"
                   >
-                    <span className="text-sm font-medium text-slate-700">
+                    <span className="font-medium text-slate-700">
                       {phenotype}
                     </span>
-                    <span className="text-sm text-slate-600 font-mono">
+                    <span className="text-slate-600 font-mono">
                       {project.asPercentages
                         ? `${probability.toFixed(1)}%`
                         : probability.toFixed(3)}

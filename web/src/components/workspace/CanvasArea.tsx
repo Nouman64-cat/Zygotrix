@@ -7,7 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import type { WorkspaceItem } from "./types";
 
-import type { CanvasDrawing } from "./helpers/localStorageHelpers";
+import type { CanvasDrawing, LineDrawing } from "./helpers/localStorageHelpers";
 
 interface CanvasAreaProps {
   canvasRef: React.RefObject<HTMLDivElement | null>;
@@ -21,7 +21,12 @@ interface CanvasAreaProps {
   textAreaEnd: { x: number; y: number };
   canvasDrawings: CanvasDrawing[];
   currentCanvasPath: CanvasDrawing | null;
+  lineDrawings: LineDrawing[];
+  isDrawingLine: boolean;
+  lineStartPoint: { x: number; y: number };
+  lineEndPoint: { x: number; y: number };
   isEraserMode?: boolean;
+  isLineEraserMode?: boolean;
   handleZoomOut: () => void;
   handleZoomIn: () => void;
   handleZoomReset: () => void;
@@ -46,7 +51,12 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   textAreaEnd,
   canvasDrawings,
   currentCanvasPath,
+  lineDrawings,
+  isDrawingLine,
+  lineStartPoint,
+  lineEndPoint,
   isEraserMode,
+  isLineEraserMode,
   handleZoomOut,
   handleZoomIn,
   handleZoomReset,
@@ -58,6 +68,13 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   handleCanvasMouseDown,
   renderWorkspaceItem,
 }) => {
+  console.log(
+    "CanvasArea received lineDrawings:",
+    lineDrawings,
+    "isDrawingLine:",
+    isDrawingLine
+  );
+
   return (
     <div className="flex-1 min-w-0 flex flex-col">
       {/* Top-center zoom controls removed - bottom-right controls used instead */}
@@ -95,6 +112,8 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
             cursor:
               selectedTool === "drawing" && isEraserMode
                 ? "url(\"data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><rect x='2' y='6' width='16' height='8' rx='2' fill='%23ff69b4' stroke='%23000' stroke-width='1'/><rect x='4' y='8' width='12' height='4' rx='1' fill='%23ffffff'/></svg>\") 10 10, auto"
+                : selectedTool === "line" && isLineEraserMode
+                ? "url(\"data:image/svg+xml;charset=utf-8,<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 20 20'><circle cx='10' cy='10' r='8' fill='%23ff4444' stroke='%23000' stroke-width='2'/><path d='M6 6 l8 8 M14 6 l-8 8' stroke='%23fff' stroke-width='2' stroke-linecap='round'/></svg>\") 10 10, auto"
                 : undefined,
           }}
           onWheel={(e) => {
@@ -160,6 +179,19 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
                 minHeight: "800px",
               }}
             >
+              {/* SVG marker definition for arrowheads */}
+              <defs>
+                <marker
+                  id="arrowhead"
+                  markerWidth="10"
+                  markerHeight="7"
+                  refX="9"
+                  refY="3.5"
+                  orient="auto"
+                >
+                  <polygon points="0 0, 10 3.5, 0 7" fill="currentColor" />
+                </marker>
+              </defs>
               {/* Render saved canvas drawings */}
               {canvasDrawings.map((drawing) => {
                 const pathString =
@@ -205,6 +237,39 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
                   fill="none"
                   strokeLinecap="round"
                   strokeLinejoin="round"
+                />
+              )}
+
+              {/* Render saved line drawings */}
+              {lineDrawings.map((line) => (
+                <line
+                  key={line.id}
+                  x1={line.startPoint.x}
+                  y1={line.startPoint.y}
+                  x2={line.endPoint.x}
+                  y2={line.endPoint.y}
+                  stroke={line.strokeColor}
+                  strokeWidth={line.strokeWidth}
+                  strokeLinecap="round"
+                  markerEnd={
+                    line.arrowType === "end" ? "url(#arrowhead)" : undefined
+                  }
+                  style={{ color: line.strokeColor }}
+                />
+              ))}
+
+              {/* Render current line being drawn */}
+              {isDrawingLine && (
+                <line
+                  x1={lineStartPoint.x}
+                  y1={lineStartPoint.y}
+                  x2={lineEndPoint.x}
+                  y2={lineEndPoint.y}
+                  stroke="#666"
+                  strokeWidth={2}
+                  strokeLinecap="round"
+                  strokeDasharray="5,5"
+                  opacity={0.7}
                 />
               )}
             </svg>

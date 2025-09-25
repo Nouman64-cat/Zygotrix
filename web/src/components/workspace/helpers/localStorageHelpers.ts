@@ -56,6 +56,18 @@ export interface CanvasDrawing {
 }
 
 /**
+ * Line drawing interface for storage
+ */
+export interface LineDrawing {
+  id: string;
+  startPoint: { x: number; y: number };
+  endPoint: { x: number; y: number };
+  strokeColor: string;
+  strokeWidth: number;
+  arrowType: "none" | "end"; // no arrow or arrow at end
+}
+
+/**
  * Generate the localStorage key for a project's canvas drawings
  */
 export const getCanvasDrawingsKey = (projectId: string): string => {
@@ -92,6 +104,38 @@ export const loadCanvasDrawings = (projectId: string): CanvasDrawing[] => {
     return stored ? JSON.parse(stored) : [];
   } catch (error) {
     console.warn("Failed to load canvas drawings from localStorage:", error);
+    return [];
+  }
+};
+
+/** Line drawing storage helpers */
+export const getLineDrawingsKey = (projectId: string): string => {
+  return `zygotrix_line_drawings_${projectId}`;
+};
+
+export const saveLineDrawings = (
+  projectId: string,
+  lines: LineDrawing[]
+): void => {
+  if (projectId && projectId !== "new") {
+    try {
+      localStorage.setItem(
+        getLineDrawingsKey(projectId),
+        JSON.stringify(lines)
+      );
+    } catch (error) {
+      console.warn("Failed to save line drawings to localStorage:", error);
+    }
+  }
+};
+
+export const loadLineDrawings = (projectId: string): LineDrawing[] => {
+  if (!projectId || projectId === "new") return [];
+  try {
+    const stored = localStorage.getItem(getLineDrawingsKey(projectId));
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.warn("Failed to load line drawings from localStorage:", error);
     return [];
   }
 };

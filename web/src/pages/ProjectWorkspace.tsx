@@ -34,6 +34,9 @@ import {
   saveCanvasDrawings,
   loadCanvasDrawings,
   type CanvasDrawing,
+  loadLineDrawings,
+  saveLineDrawings,
+  type LineDrawing,
 } from "../components/workspace/helpers/localStorageHelpers";
 import {
   getCanvasCoordinatesFromEvent,
@@ -135,6 +138,25 @@ const ProjectWorkspace: React.FC = () => {
   const [drawingStrokeWidth, setDrawingStrokeWidth] = useState(2);
   const [isEraserMode, setIsEraserMode] = useState(false);
 
+  // Line drawing state
+  const [lineDrawings, setLineDrawings] = useState<LineDrawing[]>([]);
+  const [isDrawingLine, setIsDrawingLine] = useState(false);
+  const [lineStartPoint, setLineStartPoint] = useState({ x: 0, y: 0 });
+  const [lineEndPoint, setLineEndPoint] = useState({ x: 0, y: 0 });
+  const [lineArrowType, setLineArrowType] = useState<"none" | "end">("none");
+
+  // Line eraser mode (similar to drawing eraser mode)
+  const [isLineEraserMode, setIsLineEraserMode] = useState(false);
+  // Active line erasing drag state
+  const [isErasingLines, setIsErasingLines] = useState(false);
+
+  // Use ref for immediate access to current eraser mode (performance optimization)
+  const isLineEraserModeRef = useRef(isLineEraserMode);
+  useEffect(() => {
+    isLineEraserModeRef.current = isLineEraserMode;
+    console.log("Line eraser mode changed to:", isLineEraserMode);
+  }, [isLineEraserMode]);
+
   // Update current drawing path when color or width changes
   useEffect(() => {
     if (currentCanvasPath && isDrawingOnCanvas) {
@@ -224,13 +246,39 @@ const ProjectWorkspace: React.FC = () => {
     }
   }, [items, projectId, saveLocalItems]);
 
-  // Load canvas drawings when project loads
+  // Load canvas drawings and line drawings when project loads
   useEffect(() => {
     if (projectId && projectId !== "new") {
+      console.log("Loading line drawings for project:", projectId);
       const savedDrawings = loadCanvasDrawings(projectId);
       setCanvasDrawings(savedDrawings);
+      let savedLines = loadLineDrawings(projectId);
+      console.log("Loaded line drawings:", {
+        projectId,
+        savedLinesCount: savedLines.length,
+        savedLines,
+      });
+      if (savedLines.length === 0) {
+        // Fallback: if project was just created, try migrating from a temporary key
+        const tempLines = loadLineDrawings("new");
+        if (tempLines.length > 0) {
+          console.log(
+            "Migrating line drawings from temporary 'new' key to project:",
+            projectId
+          );
+          savedLines = tempLines;
+          // Persist under real project id
+          saveLineDrawings(projectId, tempLines);
+        }
+      }
+      setLineDrawings(savedLines);
+    } else {
+      console.log("Skipped loading line drawings:", {
+        projectId,
+        reason: !projectId ? "No projectId" : "projectId is 'new'",
+      });
     }
-  }, [projectId, loadCanvasDrawings]);
+  }, [projectId, loadCanvasDrawings, loadLineDrawings]);
 
   // Persist canvas drawings to localStorage whenever they change
   useEffect(() => {
@@ -238,6 +286,58 @@ const ProjectWorkspace: React.FC = () => {
       saveCanvasDrawings(projectId, canvasDrawings);
     }
   }, [canvasDrawings, projectId, saveCanvasDrawings]);
+
+  // Persist line drawings to localStorage whenever they change
+  useEffect(() => {
+    if (projectId && projectId !== "new" && lineDrawings.length > 0) {
+      console.log("Saving line drawings to localStorage:", {
+        projectId,
+        lineCount: lineDrawings.length,
+        lines: lineDrawings,
+      });
+      saveLineDrawings(projectId, lineDrawings);
+    } else {
+      console.log("Skipped saving line drawings:", {
+        projectId,
+        lineCount: lineDrawings.length,
+        reason: !projectId
+          ? "No projectId"
+          : projectId === "new"
+          ? "projectId is 'new'"
+          : "lineDrawings array is empty",
+      });
+    }
+  }, [lineDrawings, projectId, saveLineDrawings]);
+
+  // When projectId becomes a real id (was previously 'new' or undefined), persist any in-memory drawings/lines
+  const prevProjectIdRef = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (
+      projectId &&
+      projectId !== "new" &&
+      prevProjectIdRef.current &&
+      prevProjectIdRef.current === "new"
+    ) {
+      // Project just transitioned from temporary 'new' id; persist current drawings/lines
+      if (canvasDrawings.length > 0) {
+        saveCanvasDrawings(projectId, canvasDrawings);
+      }
+      if (lineDrawings.length > 0) {
+        saveLineDrawings(projectId, lineDrawings);
+      }
+      console.log(
+        "Persisted drawings & lines after projectId transition from 'new' ->",
+        projectId
+      );
+    }
+    prevProjectIdRef.current = projectId;
+  }, [
+    projectId,
+    canvasDrawings,
+    lineDrawings,
+    saveCanvasDrawings,
+    saveLineDrawings,
+  ]);
 
   // Save project details when name or description changes
   const handleUpdateProjectDetails = useCallback(async () => {
@@ -283,14 +383,28 @@ const ProjectWorkspace: React.FC = () => {
 
       // Convert workspace items back to project tools using helper
       const projectTools = workspaceItemsToProjectTools(items);
-
       await saveProgress(projectTools);
+      // Also persist drawings (lines & freehand) explicitly on manual save for redundancy
+      if (projectId && projectId !== "new") {
+        saveCanvasDrawings(projectId, canvasDrawings);
+        saveLineDrawings(projectId, lineDrawings);
+      }
     } catch (err) {
       console.error("Failed to save progress:", err);
     } finally {
       setSaving(false);
     }
-  }, [project, items, saveProgress, saving]);
+  }, [
+    project,
+    items,
+    canvasDrawings,
+    lineDrawings,
+    projectId,
+    saveProgress,
+    saving,
+    saveCanvasDrawings,
+    saveLineDrawings,
+  ]);
 
   // Keyboard shortcuts: save, escape, hand (h), move (v)
   useEffect(() => {
@@ -409,6 +523,85 @@ const ProjectWorkspace: React.FC = () => {
     }
   }, [showSettingsDropdown]);
 
+  // Handle document-level mouse events during line drawing
+  useEffect(() => {
+    if (!isDrawingLine) return;
+
+    const handleDocumentMouseMove = (event: MouseEvent) => {
+      if (!canvasRef.current) return;
+
+      const rect = canvasRef.current.getBoundingClientRect();
+      const canvasCoords = {
+        x: (event.clientX - rect.left - panOffset.x) / zoom,
+        y: (event.clientY - rect.top - panOffset.y) / zoom,
+      };
+
+      console.log(
+        "Document mouse move - updating line end point to:",
+        canvasCoords
+      );
+      setLineEndPoint(canvasCoords);
+      setHasDragged(true);
+    };
+
+    const handleDocumentMouseUp = () => {
+      console.log("Document mouse up - ending line drawing");
+
+      // Only create line if it has meaningful length (> 1 pixel)
+      const distance = Math.sqrt(
+        Math.pow(lineEndPoint.x - lineStartPoint.x, 2) +
+          Math.pow(lineEndPoint.y - lineStartPoint.y, 2)
+      );
+
+      console.log(
+        "Line drawing completed - distance:",
+        distance,
+        "from:",
+        lineStartPoint,
+        "to:",
+        lineEndPoint
+      );
+
+      if (distance > 1) {
+        const newLine: LineDrawing = {
+          id: `line-${Date.now()}`,
+          startPoint: lineStartPoint,
+          endPoint: lineEndPoint,
+          strokeColor: drawingStrokeColor,
+          strokeWidth: drawingStrokeWidth,
+          arrowType: lineArrowType,
+        };
+
+        console.log("Creating new line:", newLine);
+        setLineDrawings((prev) => {
+          const newArray = [...prev, newLine];
+          console.log("Updated lineDrawings array:", newArray);
+          return newArray;
+        });
+      }
+
+      setIsDrawingLine(false);
+      setHasDragged(false);
+    };
+
+    document.addEventListener("mousemove", handleDocumentMouseMove);
+    document.addEventListener("mouseup", handleDocumentMouseUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleDocumentMouseMove);
+      document.removeEventListener("mouseup", handleDocumentMouseUp);
+    };
+  }, [
+    isDrawingLine,
+    panOffset,
+    zoom,
+    lineStartPoint,
+    lineEndPoint,
+    drawingStrokeColor,
+    drawingStrokeWidth,
+    lineArrowType,
+  ]);
+
   // Helper functions are now imported from formatHelpers
 
   // Process real projects for the sidebar
@@ -449,6 +642,11 @@ const ProjectWorkspace: React.FC = () => {
       // Special handling for text-area tool - don't place immediately
       if (selectedTool === "text-area") {
         return; // Text areas are placed via mouse down/up events
+      }
+
+      // Special handling for line tool - don't place as component
+      if (selectedTool === "line") {
+        return; // Line drawing is handled via mouse down/move/up events
       }
 
       const rect = canvasRef.current?.getBoundingClientRect();
@@ -691,6 +889,9 @@ const ProjectWorkspace: React.FC = () => {
       return;
     }
 
+    // Line drawing completion is now handled by document event listener
+    // Line eraser stays active (no auto-deselection)
+
     setDraggedItem(null);
     setDragOffset({ x: 0, y: 0 });
     setIsPanning(false);
@@ -701,7 +902,100 @@ const ProjectWorkspace: React.FC = () => {
     isDrawingTextArea,
     textAreaStart,
     textAreaEnd,
+    isDrawingLine,
+    lineStartPoint,
+    lineEndPoint,
+    drawingStrokeColor,
+    drawingStrokeWidth,
+    lineArrowType,
   ]);
+
+  // Function to erase lines near a given point (uses functional state update to avoid stale closures)
+  const eraseLineAtPoint = useCallback((point: { x: number; y: number }) => {
+    const eraserRadius = 15; // Radius in pixels to detect line intersection
+
+    setLineDrawings((prev) => {
+      if (!prev.length) return prev; // fast path
+
+      let erasedCount = 0;
+      const remaining = prev.filter((line) => {
+        const { startPoint, endPoint } = line;
+        const lineVector = {
+          x: endPoint.x - startPoint.x,
+          y: endPoint.y - startPoint.y,
+        };
+        const pointVector = {
+          x: point.x - startPoint.x,
+          y: point.y - startPoint.y,
+        };
+        const lineLengthSquared =
+          lineVector.x * lineVector.x + lineVector.y * lineVector.y;
+
+        let distance: number;
+        if (lineLengthSquared === 0) {
+          // Degenerate line (point)
+          distance = Math.sqrt(
+            pointVector.x * pointVector.x + pointVector.y * pointVector.y
+          );
+        } else {
+          const t = Math.max(
+            0,
+            Math.min(
+              1,
+              (pointVector.x * lineVector.x + pointVector.y * lineVector.y) /
+                lineLengthSquared
+            )
+          );
+          const closestPoint = {
+            x: startPoint.x + t * lineVector.x,
+            y: startPoint.y + t * lineVector.y,
+          };
+          distance = Math.sqrt(
+            Math.pow(point.x - closestPoint.x, 2) +
+              Math.pow(point.y - closestPoint.y, 2)
+          );
+        }
+
+        const shouldErase = distance <= eraserRadius;
+        if (shouldErase) erasedCount++;
+        return !shouldErase;
+      });
+
+      if (erasedCount > 0) {
+        console.log(`Erased ${erasedCount} line(s) at point`, point);
+      }
+      return remaining;
+    });
+  }, []);
+
+  // While user is actively dragging in eraser mode for lines, erase continuously (placed after eraseLineAtPoint so dependency is defined)
+  useEffect(() => {
+    if (!isErasingLines) return;
+
+    const handleDocMove = (event: MouseEvent) => {
+      if (!canvasRef.current) return;
+      const rect = canvasRef.current.getBoundingClientRect();
+      const canvasCoords = {
+        x: (event.clientX - rect.left - panOffset.x) / zoom,
+        y: (event.clientY - rect.top - panOffset.y) / zoom,
+      };
+      eraseLineAtPoint(canvasCoords);
+      console.log("eraseLineAtPoint invoked from document mousemove");
+    };
+
+    const handleDocUp = () => {
+      setIsErasingLines(false);
+      console.log("Document mouseup - ending line erasing");
+    };
+
+    document.addEventListener("mousemove", handleDocMove);
+    document.addEventListener("mouseup", handleDocUp);
+
+    return () => {
+      document.removeEventListener("mousemove", handleDocMove);
+      document.removeEventListener("mouseup", handleDocUp);
+    };
+  }, [isErasingLines, panOffset, zoom, eraseLineAtPoint]);
 
   // Handle canvas zoom using imported helpers
   const handleZoomIn = useCallback(() => {
@@ -721,6 +1015,12 @@ const ProjectWorkspace: React.FC = () => {
   // Handle pan start
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
+      console.log(
+        "Mouse down - Current eraser mode:",
+        isLineEraserModeRef.current,
+        "Selected tool:",
+        selectedTool
+      );
       // Handle canvas drawing
       if (selectedTool === "drawing" && e.button === 0) {
         e.preventDefault();
@@ -795,7 +1095,67 @@ const ProjectWorkspace: React.FC = () => {
         return;
       }
 
-      // Allow panning with left mouse when no tool is selected, or middle mouse/Alt+click anytime
+      // Handle line drawing (only when not in eraser mode)
+      if (
+        selectedTool === "line" &&
+        !isLineEraserModeRef.current &&
+        e.button === 0
+      ) {
+        e.preventDefault();
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const canvasCoords = getCanvasCoordinatesFromEvent(e, canvasRef, {
+          zoom,
+          panOffset,
+        });
+        if (!canvasCoords) return;
+
+        console.log(
+          "Line drawing started at:",
+          canvasCoords,
+          "eraser mode:",
+          isLineEraserModeRef.current
+        );
+        setIsDrawingLine(true);
+        setLineStartPoint(canvasCoords);
+        setLineEndPoint(canvasCoords);
+        setHasDragged(false);
+        // Ensure erasing state is off if switching back to drawing
+        if (isErasingLines) setIsErasingLines(false);
+        return;
+      }
+
+      // Handle line eraser mode (when line tool is selected with eraser mode on)
+      if (
+        selectedTool === "line" &&
+        isLineEraserModeRef.current &&
+        e.button === 0
+      ) {
+        e.preventDefault();
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const canvasCoords = getCanvasCoordinatesFromEvent(e, canvasRef, {
+          zoom,
+          panOffset,
+        });
+        if (!canvasCoords) return;
+
+        console.log(
+          "Line erasing started at:",
+          canvasCoords,
+          "eraser mode:",
+          isLineEraserModeRef.current
+        );
+
+        // Immediately check for lines to erase at the click point
+        eraseLineAtPoint(canvasCoords);
+        console.log("eraseLineAtPoint invoked from mouse down");
+        // Start continuous erasing until mouseup
+        setIsErasingLines(true);
+        return;
+      } // Allow panning with left mouse when no tool is selected, or middle mouse/Alt+click anytime
       if (
         (e.button === 0 && (!selectedTool || selectedTool === "hand")) ||
         e.button === 1 ||
@@ -813,6 +1173,12 @@ const ProjectWorkspace: React.FC = () => {
   // Handle panning, text area drawing, and canvas drawing
   const handleCanvasPanMove = useCallback(
     (e: React.MouseEvent) => {
+      if (selectedTool === "line") {
+        console.log(
+          "Mouse move detected with line tool selected, isDrawingLine:",
+          isDrawingLine
+        );
+      }
       // Handle eraser drag mode
       if (selectedTool === "drawing" && isEraserMode && e.buttons === 1) {
         e.preventDefault();
@@ -851,6 +1217,29 @@ const ProjectWorkspace: React.FC = () => {
         return;
       }
 
+      // Handle line eraser drag mode
+      if (
+        selectedTool === "line" &&
+        isLineEraserModeRef.current &&
+        e.buttons === 1
+      ) {
+        e.preventDefault();
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const canvasCoords = getCanvasCoordinatesFromEvent(e, canvasRef, {
+          zoom,
+          panOffset,
+        });
+        if (!canvasCoords) return;
+
+        // Erase lines while dragging
+        eraseLineAtPoint(canvasCoords);
+        console.log("eraseLineAtPoint invoked from drag");
+        setHasDragged(true);
+        return;
+      }
+
       if (isDrawingOnCanvas && currentCanvasPath) {
         e.preventDefault();
         const rect = canvasRef.current?.getBoundingClientRect();
@@ -884,6 +1273,22 @@ const ProjectWorkspace: React.FC = () => {
         if (!canvasCoords) return;
 
         setTextAreaEnd(canvasCoords);
+        setHasDragged(true);
+        return;
+      }
+
+      if (isDrawingLine) {
+        const rect = canvasRef.current?.getBoundingClientRect();
+        if (!rect) return;
+
+        const canvasCoords = getCanvasCoordinatesFromEvent(e, canvasRef, {
+          zoom,
+          panOffset,
+        });
+        if (!canvasCoords) return;
+
+        console.log("Line drawing move to:", canvasCoords);
+        setLineEndPoint(canvasCoords);
         setHasDragged(true);
         return;
       }
@@ -1261,7 +1666,12 @@ const ProjectWorkspace: React.FC = () => {
             textAreaEnd={textAreaEnd}
             canvasDrawings={canvasDrawings}
             currentCanvasPath={currentCanvasPath}
+            lineDrawings={lineDrawings}
+            isDrawingLine={isDrawingLine}
+            lineStartPoint={lineStartPoint}
+            lineEndPoint={lineEndPoint}
             isEraserMode={isEraserMode}
+            isLineEraserMode={isLineEraserMode}
             handleZoomOut={handleZoomOut}
             handleZoomIn={handleZoomIn}
             handleZoomReset={handleZoomReset}
@@ -1435,6 +1845,223 @@ const ProjectWorkspace: React.FC = () => {
                 onClick={() => setSelectedTool(null)}
                 className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
                 title="Exit Drawing Mode"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M6 18L18 6M6 6l12 12"
+                  />
+                </svg>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Line Controls Panel */}
+      {selectedTool === "line" && (
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-white rounded-2xl shadow-xl border border-gray-100 p-3">
+          <div className="flex items-center space-x-3">
+            {/* Debug: Show current mode */}
+            <div className="text-xs text-gray-500">
+              Mode: {isLineEraserMode ? "ERASE" : "DRAW"}
+            </div>
+            {/* Arrow Type Selection */}
+            <div className="flex bg-gray-100 rounded-xl p-1">
+              <button
+                onClick={() => setLineArrowType("none")}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  lineArrowType === "none"
+                    ? "bg-white shadow-sm text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <div className="w-6 h-1 bg-current rounded"></div>
+                <span className="text-sm font-medium">Line</span>
+              </button>
+              <button
+                onClick={() => setLineArrowType("end")}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  lineArrowType === "end"
+                    ? "bg-white shadow-sm text-green-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <div className="flex items-center">
+                  <div className="w-4 h-1 bg-current rounded-l"></div>
+                  <div className="w-0 h-0 border-l-4 border-l-current border-t-2 border-t-transparent border-b-2 border-b-transparent"></div>
+                </div>
+                <span className="text-sm font-medium">Arrow</span>
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-8 bg-gray-200"></div>
+
+            {/* Mode Toggle Buttons */}
+            <div className="flex bg-gray-100 rounded-xl p-1">
+              <button
+                onClick={() => {
+                  console.log("Switching to Draw mode");
+                  setIsLineEraserMode(false);
+                }}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  !isLineEraserMode
+                    ? "bg-white shadow-sm text-blue-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
+                  />
+                </svg>
+                <span className="text-sm font-medium">Draw</span>
+              </button>
+              <button
+                onClick={() => {
+                  console.log("Switching to Erase mode");
+                  setIsLineEraserMode(true);
+                }}
+                className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
+                  isLineEraserMode
+                    ? "bg-white shadow-sm text-red-600"
+                    : "text-gray-600 hover:text-gray-800"
+                }`}
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+                <span className="text-sm font-medium">Erase</span>
+              </button>
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-8 bg-gray-200"></div>
+
+            {/* Color Palette */}
+            <div className="flex items-center space-x-2">
+              <span className="text-xs text-gray-500 font-medium">Color</span>
+              <div className="flex space-x-1">
+                {[
+                  "#000000",
+                  "#FF0000",
+                  "#00FF00",
+                  "#0000FF",
+                  "#FFFF00",
+                  "#FF00FF",
+                  "#00FFFF",
+                ].map((color) => (
+                  <button
+                    key={color}
+                    onClick={() => setDrawingStrokeColor(color)}
+                    className={`w-6 h-6 rounded-full border-2 transition-all ${
+                      drawingStrokeColor === color
+                        ? "border-gray-400 scale-110"
+                        : "border-gray-200 hover:border-gray-300"
+                    }`}
+                    style={{ backgroundColor: color }}
+                  />
+                ))}
+                <input
+                  type="color"
+                  value={drawingStrokeColor}
+                  onChange={(e) => setDrawingStrokeColor(e.target.value)}
+                  className="w-6 h-6 rounded-full border-2 border-gray-200 cursor-pointer"
+                />
+              </div>
+            </div>
+
+            {/* Divider */}
+            <div className="w-px h-8 bg-gray-200"></div>
+
+            {/* Line Width */}
+            <div className="flex items-center space-x-3">
+              <span className="text-xs text-gray-500 font-medium">Width</span>
+              <div className="flex items-center space-x-2">
+                <div
+                  className="rounded-full bg-current transition-all"
+                  style={{
+                    width: `${Math.max(4, drawingStrokeWidth * 2)}px`,
+                    height: `${Math.max(4, drawingStrokeWidth * 2)}px`,
+                    color: drawingStrokeColor,
+                  }}
+                />
+                <input
+                  type="range"
+                  min="1"
+                  max="8"
+                  value={drawingStrokeWidth}
+                  onChange={(e) =>
+                    setDrawingStrokeWidth(parseInt(e.target.value))
+                  }
+                  className="w-16 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                />
+                <span className="text-xs text-gray-500 w-4 text-center">
+                  {drawingStrokeWidth}
+                </span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex space-x-2 ml-4">
+              {/* Clear All Lines */}
+              <button
+                onClick={() => {
+                  setLineDrawings([]);
+                  // Explicitly clear from localStorage when user intentionally clears all lines
+                  if (projectId && projectId !== "new") {
+                    saveLineDrawings(projectId, []);
+                  }
+                }}
+                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                title="Clear All Lines"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"
+                  />
+                </svg>
+              </button>
+
+              {/* Close */}
+              <button
+                onClick={() => setSelectedTool(null)}
+                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                title="Exit Line Mode"
               >
                 <svg
                   className="w-4 h-4"

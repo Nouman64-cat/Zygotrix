@@ -7,6 +7,7 @@ import {
   AcademicCapIcon,
   PencilIcon,
   HandRaisedIcon,
+  ArrowRightIcon,
 } from "@heroicons/react/24/outline";
 import type { ToolboxItem } from "./types";
 import { getDefaultSize, getDefaultData } from "./utils";
@@ -74,6 +75,13 @@ export const toolboxItems: ToolboxItem[] = [
     label: "Drawing",
     icon: PencilIcon,
     color: "bg-red-500",
+  },
+  {
+    id: "line",
+    type: "line",
+    label: "Line",
+    icon: ArrowRightIcon,
+    color: "bg-teal-500",
   },
   // Text area removed from toolbox - feature deprecated/hidden
   // {

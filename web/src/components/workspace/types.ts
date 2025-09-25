@@ -30,6 +30,7 @@ export interface ToolboxItem {
     | "punnett-square"
     | "text-area"
     | "drawing"
+    | "line" // virtual tool for line drawing
     | "hand"; // virtual tool for panning
   label: string;
   icon: React.ComponentType<any>;

@@ -11,6 +11,8 @@ import HomePage from "./pages/HomePage";
 import JointPhenotypePage from "./pages/JointPhenotypePage";
 import PlaygroundPage from "./pages/PlaygroundPage";
 import PortalPage from "./pages/PortalPage";
+import BlogsPage from "./pages/BlogsPage";
+import BlogDetailPage from "./pages/BlogDetailPage";
 import PreferencesPage from "./pages/PreferencesPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProjectWorkspace from "./pages/ProjectWorkspace";
@@ -29,6 +31,8 @@ const App: React.FC = () => {
         <Route path="playground" element={<PlaygroundPage />} />
         <Route path="joint-phenotype" element={<JointPhenotypePage />} />
         <Route path="contact" element={<ContactPage />} />
+        <Route path="blogs" element={<BlogsPage />} />
+        <Route path="blogs/:slug" element={<BlogDetailPage />} />
       </Route>
       <Route
         path="portal"

@@ -7,6 +7,7 @@ import logo from "../../public/zygotrix-logo.png";
 const baseNavItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
+  { label: "Blogs", to: "/blogs" },
   { label: "Playground", to: "/playground" },
   { label: "Joint Analysis", to: "/joint-phenotype" },
 ];

@@ -2,9 +2,10 @@ import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 
-import { fetchBlogBySlug } from "../services/hygraphApi";
-import type { BlogDetail } from "../types/blog";
-import { FiCalendar, FiClock, FiShare2 } from "react-icons/fi";
+import { fetchBlogBySlug, fetchBlogs } from "../services/hygraphApi";
+import type { BlogDetail, BlogListEntry } from "../types/blog";
+import RelatedBlogs from "../components/blog/RelatedBlogs";
+import { FiCalendar, FiClock, FiShare2, FiArrowLeft } from "react-icons/fi";
 
 // Runtime check for a globally-provided DOMPurify (optional).
 const getDOMPurifySanitizer = (): ((html: string) => string) | null => {
@@ -32,6 +33,7 @@ const BlogDetailPage: React.FC = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [allBlogs, setAllBlogs] = useState<BlogListEntry[]>([]);
 
   const estimateReadingTime = (content: string | undefined | null) => {
     if (!content) return 1;
@@ -148,6 +150,20 @@ const BlogDetailPage: React.FC = () => {
     return () => controller.abort();
   }, [slug]);
 
+  // Fetch list of all blogs to power related-posts
+  useEffect(() => {
+    const controller = new AbortController();
+    fetchBlogs(controller.signal)
+      .then((data) => {
+        setAllBlogs(data.blogs || []);
+      })
+      .catch((err) => {
+        // non-fatal
+        console.error("Failed to load blog list for related posts", err);
+      });
+    return () => controller.abort();
+  }, []);
+
   return (
     <div className="bg-slate-50 pb-24">
       {/* Hero Image */}
@@ -165,7 +181,7 @@ const BlogDetailPage: React.FC = () => {
         )}
       </div>
 
-      <div className="mx-auto mt-8 w-full max-w-3xl px-4 sm:px-6 lg:px-8 relative z-20">
+      <div className="mx-auto mt-8 w-full max-w-4xl relative z-20">
         {isLoading && (
           <div className="rounded-3xl bg-white p-8 shadow-xl">
             <div className="mb-4 h-4 w-1/3 animate-pulse rounded-full bg-slate-200" />
@@ -194,49 +210,48 @@ const BlogDetailPage: React.FC = () => {
         )}
         {/* Blog Content */}
         <article className=" px-4 sm:px-6 lg:px-8 pb-20">
+          {/* Meta Info + Share */}
+          <div className="flex items-center justify-between text-sm text-slate-500 border-slate-200 pb-6">
+            <div className="flex items-center space-x-6">
+              <div className="flex items-center">
+                <FiCalendar className="mr-2 h-4 w-4" />
+                <span>{blog ? formatDate(blog.date) : ""}</span>
+              </div>
+              <div className="flex items-center">
+                <FiClock className="mr-2 h-4 w-4" />
+                <span>
+                  {blog ? `${estimateReadingTime(blog.content)} min read` : ""}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex items-center space-x-3">
+              <button
+                onClick={handleShare}
+                className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 hover:bg-slate-50"
+              >
+                <FiShare2 className="h-4 w-4" />
+                <span>Share</span>
+              </button>
+              {copied && (
+                <span className="text-sm text-green-600">Link copied</span>
+              )}
+            </div>
+          </div>
           {/* Title */}
           <header className="mb-8">
+            <div className="mb-4">
+              <Link
+                to="/blogs"
+                className="inline-flex items-center text-sm text-slate-600 hover:text-slate-900"
+              >
+                <FiArrowLeft className="mr-2 h-4 w-4" /> Back to all articles
+              </Link>
+            </div>
+
             <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-slate-900 mb-6 leading-tight">
               {blog?.title}
             </h1>
-
-            {/* Excerpt */}
-            {blog?.excerpt && (
-              <p className="text-xl text-slate-600 leading-relaxed mb-6">
-                {blog?.excerpt}
-              </p>
-            )}
-
-            {/* Meta Info + Share */}
-            <div className="flex items-center justify-between text-sm text-slate-500 border-b border-slate-200 pb-6">
-              <div className="flex items-center space-x-6">
-                <div className="flex items-center">
-                  <FiCalendar className="mr-2 h-4 w-4" />
-                  <span>{blog ? formatDate(blog.date) : ""}</span>
-                </div>
-                <div className="flex items-center">
-                  <FiClock className="mr-2 h-4 w-4" />
-                  <span>
-                    {blog
-                      ? `${estimateReadingTime(blog.content)} min read`
-                      : ""}
-                  </span>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleShare}
-                  className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-3 py-1 text-sm text-slate-700 hover:bg-slate-50"
-                >
-                  <FiShare2 className="h-4 w-4" />
-                  <span>Share</span>
-                </button>
-                {copied && (
-                  <span className="text-sm text-green-600">Link copied</span>
-                )}
-              </div>
-            </div>
           </header>
 
           {/* Blog Content */}
@@ -256,7 +271,39 @@ const BlogDetailPage: React.FC = () => {
               </ReactMarkdown>
             )}
           </div>
+
+          {/* Tags */}
+          {blog?.tags && blog.tags.length > 0 && (
+            <div className="mt-10 flex flex-wrap gap-2">
+              {blog.tags.map((tag) => (
+                <span
+                  key={tag.slug}
+                  className="rounded-full bg-blue-50 px-3 py-1 text-xs font-medium text-blue-600"
+                >
+                  #{tag.title}
+                </span>
+              ))}
+            </div>
+          )}
+
+          <div className="mt-10 flex justify-between text-sm text-slate-500">
+            <Link to="/blogs" className="font-semibold text-blue-600">
+              Back to all articles
+            </Link>
+            <span>Published {blog ? formatDate(blog.date) : ""}</span>
+          </div>
         </article>
+
+        {/* Related posts */}
+        {blog && (
+          <div className="mx-auto mt-8 w-full max-w-4xl px-4 sm:px-6 lg:px-8">
+            <RelatedBlogs
+              currentSlug={blog.slug}
+              categories={blog.categories ?? []}
+              blogs={allBlogs}
+            />
+          </div>
+        )}
       </div>
     </div>
   );

@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useState } from "react";
 import { Link } from "react-router-dom";
+import { FiShare2 } from "react-icons/fi";
 
 import type { BlogListEntry } from "../../types/blog";
 
@@ -18,6 +19,38 @@ const formatDate = (value: string): string => {
 };
 
 const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleShare = async (e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    try {
+      const url = `${window.location.origin}/blogs/${blog.slug}`;
+      if ((navigator as any).share) {
+        await (navigator as any).share({
+          title: blog.title,
+          text: blog.excerpt ?? undefined,
+          url,
+        });
+        return;
+      }
+
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+        setCopied(true);
+        window.setTimeout(() => setCopied(false), 2000);
+        return;
+      }
+
+      // Fallback
+      // eslint-disable-next-line no-alert
+      window.prompt("Copy this link:", url);
+    } catch (err) {
+      // ignore
+      // eslint-disable-next-line no-console
+      console.error("Share failed", err);
+    }
+  };
   return (
     <article className="group flex flex-col overflow-hidden rounded-3xl border border-slate-200/60 bg-white shadow-sm transition hover:-translate-y-1 hover:shadow-lg">
       <Link to={`/blogs/${blog.slug}`} aria-label={`Read ${blog.title}`}>
@@ -31,27 +64,24 @@ const BlogCard: React.FC<BlogCardProps> = ({ blog }) => {
             />
           ) : (
             <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-blue-100 via-indigo-100 to-purple-100 text-blue-600">
-              <span className="text-lg font-semibold">{blog.title.charAt(0)}</span>
+              <span className="text-lg font-semibold">
+                {blog.title.charAt(0)}
+              </span>
             </div>
           )}
         </div>
       </Link>
       <div className="flex flex-1 flex-col gap-4 p-6">
-        <div className="flex items-center gap-3 text-xs font-medium text-slate-500">
+        <div className="flex items-center justify-between gap-3 text-xs font-medium text-slate-500">
           <span>{formatDate(blog.date)}</span>
-          {blog.categories.length > 0 && (
-            <span className="flex items-center gap-2">
-              {blog.categories.slice(0, 2).map((category) => (
-                <span
-                  key={category.slug}
-                  className="rounded-full bg-blue-50 px-3 py-1 text-[11px] font-semibold text-blue-600"
-                >
-                  {category.title}
-                </span>
-              ))}
-              {blog.categories.length > 2 && <span>+{blog.categories.length - 2}</span>}
-            </span>
-          )}
+          <button
+            onClick={handleShare}
+            className="inline-flex items-center gap-2 rounded-md border border-slate-200 bg-white px-2 py-1 text-xs text-slate-700 hover:bg-slate-50"
+            aria-label={`Share ${blog.title}`}
+          >
+            <FiShare2 className="h-4 w-4" />
+            <span>{copied ? "Copied" : "Share"}</span>
+          </button>
         </div>
         <div className="space-y-3">
           <h3 className="text-xl font-semibold text-slate-900">

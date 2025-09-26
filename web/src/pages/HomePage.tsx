@@ -4,15 +4,12 @@ import CTASection from "../components/CTASection";
 import FeatureHighlights from "../components/FeatureHighlights";
 import HeroSection from "../components/HeroSection";
 import WorkflowSection from "../components/WorkflowSection";
-import { featureCards, stats, workflow } from "../data/content";
-import { usePolygenicScore } from "../hooks/usePolygenicScore";
+import { featureCards, workflow } from "../data/content";
 
 const HomePage: React.FC = () => {
-  const { score, loading, error } = usePolygenicScore();
-
   return (
     <>
-      <HeroSection stats={stats} polygenic={{ score, loading, error }} />
+      <HeroSection />
       <FeatureHighlights cards={featureCards} />
       <WorkflowSection steps={workflow} />
       <CTASection />

@@ -1,116 +1,98 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import DNAStrand from "./DNAStrand";
+import GeneticCode from "./GeneticCode";
+import DNAHelix from "./DNAHelix";
 
-import PolygenicOverview from "./PolygenicOverview";
-
-type HeroSectionProps = {
-  stats: { value: string; label: string }[];
-  polygenic: {
-    score: number | null;
-    loading: boolean;
-    error: string | null;
-  };
-};
-
-const HeroSection: React.FC<HeroSectionProps> = ({ stats, polygenic }) => {
+const HeroSection: React.FC = () => {
   return (
-    <header className="relative overflow-hidden">
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/10 via-transparent to-[#10B981]/10" />
+    <header className="relative overflow-hidden min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
+      {/* Animated Background */}
+      <div className="absolute inset-0">
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/5 via-transparent to-[#10B981]/5" />
 
-      <section className="relative z-10 mx-auto grid max-w-7xl gap-8 px-6 pb-16 pt-12 lg:grid-cols-2 lg:pb-20">
-        <div>
-          <span className="inline-block rounded-full bg-[#10B981]/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#10B981]">
-            Precision genetics
-          </span>
-          <h1 className="mt-4 text-3xl font-bold leading-tight text-[#1E3A8A] sm:text-4xl lg:text-5xl">
-            Model inheritance with scientific clarity and creative control.
-          </h1>
-          <p className="mt-4 max-w-xl text-base text-slate-600">
-            Zygotrix Engine combines rigorously tested Mendelian calculators,
-            additive polygenic scoring, and expressive trait definitions so your
-            team can explore the next generation of genetic scenarios.
-          </p>
-          <div className="mt-6 flex flex-wrap gap-3">
-            <Link
-              to="/playground"
-              className="inline-flex items-center justify-center rounded-full bg-[#1E3A8A] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#1E3A8A]/30 transition hover:bg-[#162b63]"
-            >
-              Explore the playground
-            </Link>
-            <Link
-              to="/about"
-              className="inline-flex items-center justify-center rounded-full border border-[#1E3A8A]/20 px-6 py-3 text-sm font-semibold text-[#1E3A8A] transition hover:border-[#1E3A8A]/40"
-            >
-              Learn about Zygotrix
-            </Link>
+        {/* Large DNA Helix Background */}
+        <div className="absolute -right-32 -top-20 w-96 h-96 opacity-10 animate-spin-slow">
+          <DNAHelix />
+        </div>
+
+        {/* Molecular Grid Pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.02]"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20px 20px, #1E3A8A 1px, transparent 1px)`,
+            backgroundSize: "40px 40px",
+          }}
+        />
+      </div>
+
+      <section className="relative z-10 mx-auto grid max-w-7xl gap-12 px-6 pb-16 pt-20 lg:grid-cols-2 lg:pb-20 lg:pt-32">
+        <div className="relative">
+          {/* Genetic Code Animation */}
+          <GeneticCode />
+
+          <div className="relative z-10">
+            <div className="flex items-center gap-3 mb-6">
+              <span className="inline-block rounded-full bg-gradient-to-r from-[#10B981]/20 to-[#1E3A8A]/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#1E3A8A]">
+                <span className="inline-block w-2 h-2 bg-[#10B981] rounded-full mr-2 animate-pulse"></span>{" "}
+                Precision Genetics
+              </span>
+            </div>
+
+            <h1 className="text-4xl font-bold leading-tight text-[#1E3A8A] sm:text-5xl lg:text-6xl xl:text-7xl">
+              <span className="inline-block bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] bg-clip-text text-transparent">
+                Engineer
+              </span>{" "}
+              <br />
+              the Future of{" "}
+              <span className="relative">
+                <span className="inline-block bg-gradient-to-r from-[#10B981] via-[#059669] to-[#047857] bg-clip-text text-transparent">
+                  Genetics
+                </span>
+                <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-[#10B981] to-[#1E3A8A] rounded-full" />
+              </span>
+            </h1>
+
+            <p className="mt-6 max-w-2xl text-lg text-slate-600 leading-relaxed">
+              Harness the power of{" "}
+              <span className="font-semibold text-[#1E3A8A]">
+                Zygotrix Engine
+              </span>{" "}
+              to model complex genetic inheritance patterns with unprecedented
+              precision. Combine Mendelian genetics, polygenic scoring, and
+              advanced trait modeling to unlock new possibilities in genetic
+              research and simulation.
+            </p>
+
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                to="/playground"
+                className="group relative inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-8 py-4 text-base font-semibold text-white shadow-xl shadow-[#1E3A8A]/30 transition-all duration-300 hover:shadow-2xl hover:shadow-[#1E3A8A]/40 hover:scale-105"
+              >
+                <span className="relative z-10 flex items-center gap-2">
+                  Explore Genetic Playground
+                  <svg
+                    className="w-4 h-4 transition-transform group-hover:translate-x-1"
+                    fill="currentColor"
+                    viewBox="0 0 20 20"
+                  >
+                    <path
+                      fillRule="evenodd"
+                      d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"
+                      clipRule="evenodd"
+                    />
+                  </svg>
+                </span>
+                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#3B82F6] to-[#10B981] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
+              </Link>
+            </div>
           </div>
-          <dl className="mt-8 grid gap-6 text-[#1E3A8A] sm:grid-cols-3">
-            {stats.map((stat) => (
-              <div key={stat.label}>
-                <dt className="text-xs uppercase tracking-[0.25em] text-[#4B5563]">
-                  {stat.label}
-                </dt>
-                <dd className="mt-1 text-2xl font-bold">{stat.value}</dd>
-              </div>
-            ))}
-          </dl>
         </div>
 
         <div className="relative">
-          <div className="absolute -left-8 -top-10 h-72 w-72 rounded-full bg-gradient-to-br from-[#1E3A8A]/30 via-[#3B82F6]/20 to-[#10B981]/20 blur-3xl" />
-          <div className="relative space-y-6">
-            <div className="overflow-hidden rounded-3xl bg-white shadow-2xl shadow-slate-300/40 ring-1 ring-white/60">
-              <div className="bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] px-8 py-6 text-white">
-                <p className="text-xs uppercase tracking-[0.4em]">
-                  Mendelian preview
-                </p>
-                <p className="mt-2 text-2xl font-semibold">
-                  Eye color outcomes
-                </p>
-              </div>
-              <div className="space-y-6 px-8 py-6">
-                <div className="flex items-center justify-between text-sm text-slate-500">
-                  <span>Parent A</span>
-                  <span className="font-semibold text-slate-700">Bb</span>
-                </div>
-                <div className="flex items-center justify-between text-sm text-slate-500">
-                  <span>Parent B</span>
-                  <span className="font-semibold text-slate-700">bb</span>
-                </div>
-                <div className="space-y-4">
-                  <div>
-                    <div className="flex items-center justify-between text-sm font-medium text-slate-600">
-                      <span>Brown phenotype</span>
-                      <span>50%</span>
-                    </div>
-                    <div className="mt-2 h-3 w-full rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6]"
-                        style={{ width: "50%" }}
-                      />
-                    </div>
-                  </div>
-                  <div>
-                    <div className="flex items-center justify-between text-sm font-medium text-slate-600">
-                      <span>Blue phenotype</span>
-                      <span>50%</span>
-                    </div>
-                    <div className="mt-2 h-3 w-full rounded-full bg-slate-100">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#10B981]"
-                        style={{ width: "50%" }}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <PolygenicOverview
-              score={polygenic.score}
-              loading={polygenic.loading}
-              error={polygenic.error}
-            />
+          {/* Interactive DNA Helix with ATCG Base Pairs */}
+          <div className="relative w-full h-full flex items-center justify-center">
+            <DNAStrand />
           </div>
         </div>
       </section>

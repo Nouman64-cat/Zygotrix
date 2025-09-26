@@ -84,12 +84,12 @@ const Navbar: React.FC = () => {
             <>
               <Link
                 to="/signin"
-                className="inline-flex items-center justify-center rounded-full border border-white/20 px-5 py-2 text-sm font-semibold text-white transition hover:border-white/40 hover:text-white"
+                className="inline-flex items-center justify-center rounded-full border border-gray/20 px-5 py-2 text-sm font-semibold text-gray transition hover:bg-white hover:border-white hover:text-[#1E3A8A]"
               >
                 Sign in
               </Link>
               <Link
-                to="/signin"
+                to="/signup"
                 className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#1E3A8A] shadow-lg shadow-black/20 transition hover:shadow-black/40"
               >
                 Get started

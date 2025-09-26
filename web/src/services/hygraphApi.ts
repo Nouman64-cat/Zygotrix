@@ -1,4 +1,9 @@
-import type { BlogDetail, BlogListEntry, CategorySummary, TagSummary } from "../types/blog";
+import type {
+  BlogDetail,
+  BlogListEntry,
+  CategorySummary,
+  TagSummary,
+} from "../types/blog";
 
 const HYGRAPH_ENDPOINT =
   import.meta.env.VITE_HYGRAPH_ENDPOINT ||
@@ -24,6 +29,7 @@ const BLOGS_QUERY = `query BlogsPageData {
     slug
     title
     content {
+      html
       markdown
     }
     authors {
@@ -96,7 +102,11 @@ interface BlogsQueryResult {
     categories: Array<{ slug: string; title: string }>;
     tags: Array<{ slug: string; title: string }>;
   }>;
-  categories: Array<{ description: string | null; slug: string; title: string }>;
+  categories: Array<{
+    description: string | null;
+    slug: string;
+    title: string;
+  }>;
   tags: Array<{ slug: string; title: string }>;
 }
 
@@ -142,7 +152,9 @@ const executeGraphQL = async <T>(
   return payload.data;
 };
 
-const mapBlogToListEntry = (blog: BlogsQueryResult["blogs"][number]): BlogListEntry => ({
+const mapBlogToListEntry = (
+  blog: BlogsQueryResult["blogs"][number]
+): BlogListEntry => ({
   slug: blog.slug,
   title: blog.title,
   excerpt: blog.excerpt,
@@ -162,7 +174,9 @@ const mapBlogToListEntry = (blog: BlogsQueryResult["blogs"][number]): BlogListEn
   })),
 });
 
-const mapBlogToDetail = (blog: BlogsQueryResult["blogs"][number]): BlogDetail => ({
+const mapBlogToDetail = (
+  blog: BlogsQueryResult["blogs"][number]
+): BlogDetail => ({
   ...mapBlogToListEntry(blog),
   content: blog.content?.markdown ?? "",
 });
@@ -174,7 +188,11 @@ export const fetchBlogs = async (
   categories: CategorySummary[];
   tags: TagSummary[];
 }> => {
-  const data = await executeGraphQL<BlogsQueryResult>(BLOGS_QUERY, undefined, signal);
+  const data = await executeGraphQL<BlogsQueryResult>(
+    BLOGS_QUERY,
+    undefined,
+    signal
+  );
 
   return {
     blogs: data.blogs.map(mapBlogToListEntry),

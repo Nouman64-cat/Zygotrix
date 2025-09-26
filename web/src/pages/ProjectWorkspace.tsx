@@ -58,6 +58,7 @@ import {
   calculateTextAreaSize,
   isValidTextAreaSize,
   resetCanvasTransform,
+  DEFAULT_ZOOM_LIMITS,
 } from "../components/workspace/helpers/canvasHelpers";
 
 const ProjectWorkspace: React.FC = () => {
@@ -111,9 +112,142 @@ const ProjectWorkspace: React.FC = () => {
   // Canvas zoom state
   const [zoom, setZoom] = useState(1);
   const [panOffset, setPanOffset] = useState({ x: 400, y: 300 });
+  const [targetZoom, setTargetZoom] = useState(1);
+  const [targetPanOffset, setTargetPanOffset] = useState({ x: 400, y: 300 });
   const [isPanning, setIsPanning] = useState(false);
   const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
   const [hasDragged, setHasDragged] = useState(false);
+
+  const adjustZoom = useCallback(
+    (
+      zoomUpdater: (previousZoom: number) => number,
+      focusPoint?: { x: number; y: number }
+    ) => {
+      const canvasEl = canvasRef.current;
+      const rect = canvasEl?.getBoundingClientRect();
+      const target =
+        focusPoint ??
+        (rect ? { x: rect.width / 2, y: rect.height / 2 } : undefined);
+
+      // Compute using currently displayed zoom/pan so the focus point remains anchored
+      const currentZoom = zoomRef.current ?? zoom;
+      const currentPan = panRef.current ?? panOffset;
+
+      const nextZoomRaw = zoomUpdater(currentZoom);
+      const clampedZoom = Math.max(
+        DEFAULT_ZOOM_LIMITS.min,
+        Math.min(DEFAULT_ZOOM_LIMITS.max, nextZoomRaw)
+      );
+
+      if (!target || clampedZoom === currentZoom || currentZoom === 0) {
+        setTargetZoom(clampedZoom);
+        return;
+      }
+
+      const focusCanvasX = (target.x - currentPan.x) / currentZoom;
+      const focusCanvasY = (target.y - currentPan.y) / currentZoom;
+
+      setTargetZoom(clampedZoom);
+      setTargetPanOffset({
+        x: target.x - focusCanvasX * clampedZoom,
+        y: target.y - focusCanvasY * clampedZoom,
+      });
+    },
+    [canvasRef]
+  );
+
+  // Refs to hold current values for RAF loop and event handlers
+  const zoomRef = React.useRef(zoom);
+  const panRef = React.useRef(panOffset);
+  const rafRef = React.useRef<number | null>(null);
+  const isPanningRef = React.useRef(isPanning);
+  useEffect(() => {
+    isPanningRef.current = isPanning;
+  }, [isPanning]);
+
+  useEffect(() => {
+    zoomRef.current = zoom;
+  }, [zoom]);
+  useEffect(() => {
+    panRef.current = panOffset;
+  }, [panOffset]);
+
+  // Smoothly animate zoom/pan towards target values using requestAnimationFrame
+  useEffect(() => {
+    const ease = 0.22; // easing factor per frame (0 < ease < 1)
+
+    const step = () => {
+      // If user is actively panning, pause the zoom animation to avoid conflicting transforms
+      if (isPanningRef.current) {
+        rafRef.current = null;
+        return;
+      }
+      const curZoom = zoomRef.current;
+      const curPan = panRef.current;
+      const dz = targetZoom - curZoom;
+      const dx = targetPanOffset.x - curPan.x;
+      const dy = targetPanOffset.y - curPan.y;
+
+      // If changes are very small, snap to targets and stop animation
+      if (Math.abs(dz) < 0.0005 && Math.abs(dx) < 0.5 && Math.abs(dy) < 0.5) {
+        if (curZoom !== targetZoom) setZoom(targetZoom);
+        if (curPan.x !== targetPanOffset.x || curPan.y !== targetPanOffset.y)
+          setPanOffset({ x: targetPanOffset.x, y: targetPanOffset.y });
+        rafRef.current = null;
+        return;
+      }
+
+      const nextZoom = curZoom + dz * ease;
+      const nextPanX = curPan.x + dx * ease;
+      const nextPanY = curPan.y + dy * ease;
+
+      // Clamp pan so the large content (10000x10000) doesn't drift out of view
+      const rect = canvasRef.current?.getBoundingClientRect();
+      let clampedX = nextPanX;
+      let clampedY = nextPanY;
+      if (rect) {
+        const contentW = 10000 * nextZoom;
+        const contentH = 10000 * nextZoom;
+        if (contentW <= rect.width) {
+          clampedX = (rect.width - contentW) / 2;
+        } else {
+          const minX = rect.width - contentW; // negative
+          const maxX = 0;
+          clampedX = Math.max(minX, Math.min(maxX, nextPanX));
+        }
+
+        if (contentH <= rect.height) {
+          clampedY = (rect.height - contentH) / 2;
+        } else {
+          const minY = rect.height - contentH; // negative
+          const maxY = 0;
+          clampedY = Math.max(minY, Math.min(maxY, nextPanY));
+        }
+      }
+
+      setZoom(nextZoom);
+      setPanOffset({ x: clampedX, y: clampedY });
+
+      rafRef.current = window.requestAnimationFrame(step);
+    };
+
+    // kick off animation only if targets differ
+    if (
+      Math.abs(targetZoom - zoomRef.current) > 0.0005 ||
+      Math.abs(targetPanOffset.x - panRef.current.x) > 0.5 ||
+      Math.abs(targetPanOffset.y - panRef.current.y) > 0.5
+    ) {
+      if (rafRef.current == null)
+        rafRef.current = window.requestAnimationFrame(step);
+    }
+
+    return () => {
+      if (rafRef.current != null) {
+        window.cancelAnimationFrame(rafRef.current);
+        rafRef.current = null;
+      }
+    };
+  }, [targetZoom, targetPanOffset]);
 
   // Settings dropdown and delete confirmation state
   const [showSettingsDropdown, setShowSettingsDropdown] = useState(false);
@@ -447,12 +581,14 @@ const ProjectWorkspace: React.FC = () => {
           e.preventDefault();
           e.stopPropagation();
 
+          const rect = canvasEl.getBoundingClientRect();
           const delta = -e.deltaY;
           const zoomFactor = delta > 0 ? 1.1 : 0.9;
 
-          setZoom((prevZoom) =>
-            Math.max(0.25, Math.min(3, prevZoom * zoomFactor))
-          );
+          adjustZoom((prevZoom) => prevZoom * zoomFactor, {
+            x: e.clientX - rect.left,
+            y: e.clientY - rect.top,
+          });
         }
       } catch (err) {
         // Fail-safe: don't break the app if something unexpected happens
@@ -472,7 +608,7 @@ const ProjectWorkspace: React.FC = () => {
         capture: true,
       } as EventListenerOptions);
     };
-  }, []);
+  }, [adjustZoom]);
 
   // Settings dropdown and delete project handlers
   const handleDeleteProject = useCallback(async () => {
@@ -999,12 +1135,12 @@ const ProjectWorkspace: React.FC = () => {
 
   // Handle canvas zoom using imported helpers
   const handleZoomIn = useCallback(() => {
-    setZoom((prevZoom) => zoomIn(prevZoom));
-  }, []);
+    adjustZoom((prevZoom) => zoomIn(prevZoom));
+  }, [adjustZoom]);
 
   const handleZoomOut = useCallback(() => {
-    setZoom((prevZoom) => zoomOut(prevZoom));
-  }, []);
+    adjustZoom((prevZoom) => zoomOut(prevZoom));
+  }, [adjustZoom]);
 
   const handleZoomReset = useCallback(() => {
     const transform = resetCanvasTransform();

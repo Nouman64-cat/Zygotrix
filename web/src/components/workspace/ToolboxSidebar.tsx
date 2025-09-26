@@ -30,7 +30,7 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
     <div
       className={`${
         isToolsCollapsed ? "w-12" : "w-64"
-      } bg-white border-r border-gray-200 flex-shrink-0 overflow-hidden transition-all duration-300`}
+      } bg-white border-r border-gray-200 flex-shrink-0 overflow-hidden transition-all duration-300 flex flex-col h-screen`}
     >
       {/* Collapse/Expand Button */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
@@ -49,7 +49,7 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
       </div>
 
       {!isToolsCollapsed ? (
-        <div className="p-4 overflow-y-auto">
+        <div className="p-4 flex-1 overflow-y-auto">
           <div className="space-y-2">
             {toolboxItems
               .filter(
@@ -132,7 +132,7 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
           </div>
         </div>
       ) : (
-        <div className="p-2 overflow-y-auto">
+        <div className="p-2 flex-1 overflow-y-auto">
           <div className="space-y-2">
             {/* Regular Tools */}
             {toolboxItems

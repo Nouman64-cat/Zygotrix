@@ -1,6 +1,7 @@
 import React, { useState, useCallback } from "react";
 import { useTraits } from "../hooks/useTraits";
 import { simulateMendelianTrait } from "../services/zygotrixApi";
+import type { MendelianSimulationTraitResult } from "../types/api";
 
 interface MendelianWorkspaceToolProps {
   onAddToCanvas: (item: any) => void;
@@ -12,7 +13,7 @@ interface MendelianProject {
   selectedTrait: string;
   parent1Genotype: string;
   parent2Genotype: string;
-  simulationResults: Record<string, number> | null;
+  simulationResults: MendelianSimulationTraitResult | null;
   asPercentages: boolean;
   notes: string;
 }
@@ -319,28 +320,61 @@ const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
         )}
 
         {project.simulationResults && (
-          <div className="space-y-2">
+          <div className="space-y-3">
             <h4 className="text-sm font-medium text-slate-700">
               Simulation Results:
             </h4>
-            <div className="space-y-1">
-              {Object.entries(project.simulationResults)
-                .sort(([, a], [, b]) => b - a)
-                .map(([phenotype, probability]) => (
-                  <div
-                    key={phenotype}
-                    className="flex items-center justify-between p-2 bg-slate-50 rounded text-sm"
-                  >
-                    <span className="font-medium text-slate-700">
-                      {phenotype}
-                    </span>
-                    <span className="text-slate-600 font-mono">
-                      {project.asPercentages
-                        ? `${probability.toFixed(1)}%`
-                        : probability.toFixed(3)}
-                    </span>
-                  </div>
-                ))}
+
+            <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-3 space-y-2">
+              <h5 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
+                Genotypic Ratios
+              </h5>
+              {Object.entries(project.simulationResults.genotypic_ratios).map(
+                ([genotype, percentage]) => {
+                  if (typeof percentage !== "number" || Number.isNaN(percentage)) {
+                    return null;
+                  }
+                  return (
+                    <div
+                      key={genotype}
+                      className="flex items-center justify-between text-xs text-blue-800"
+                    >
+                      <span className="font-medium">{genotype}</span>
+                      <span className="font-mono">
+                        {project.asPercentages
+                          ? `${percentage.toFixed(1)}%`
+                          : percentage.toFixed(3)}
+                      </span>
+                    </div>
+                  );
+                }
+              )}
+            </div>
+
+            <div className="rounded-lg border border-green-100 bg-green-50/40 p-3 space-y-2">
+              <h5 className="text-xs font-semibold text-green-700 uppercase tracking-wide">
+                Phenotypic Ratios
+              </h5>
+              {Object.entries(project.simulationResults.phenotypic_ratios).map(
+                ([phenotype, percentage]) => {
+                  if (typeof percentage !== "number" || Number.isNaN(percentage)) {
+                    return null;
+                  }
+                  return (
+                    <div
+                      key={phenotype}
+                      className="flex items-center justify-between text-xs text-green-800"
+                    >
+                      <span className="font-medium">{phenotype}</span>
+                      <span className="font-mono">
+                        {project.asPercentages
+                          ? `${percentage.toFixed(1)}%`
+                          : percentage.toFixed(3)}
+                      </span>
+                    </div>
+                  );
+                }
+              )}
             </div>
           </div>
         )}

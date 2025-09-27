@@ -28,6 +28,9 @@ class Settings:
     mongodb_traits_collection: str = os.getenv("MONGODB_TRAITS_COLLECTION", "traits")
     mongodb_users_collection: str = os.getenv("MONGODB_USERS_COLLECTION", "users")
     mongodb_pending_signups_collection: str = os.getenv("MONGODB_PENDING_SIGNUPS_COLLECTION", "pending_signups")
+    mongodb_project_lines_collection: str = os.getenv(
+        "MONGODB_PROJECT_LINES_COLLECTION", "project_lines"
+    )
     auth_secret_key: str = os.getenv("AUTH_SECRET_KEY", "change-me-in-prod")
     auth_token_ttl_minutes: int = _get_int("AUTH_TOKEN_TTL_MINUTES", 60)
     auth_jwt_algorithm: str = os.getenv("AUTH_JWT_ALGORITHM", "HS256")

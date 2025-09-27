@@ -30,14 +30,25 @@ from zygotrix_engine import (
 
 from .config import get_settings
 
-if TYPE_CHECKING:
-    from .schemas import Project, ProjectTemplate
-
+# Default built-in trait registry. Kept at module runtime (not only for type checking)
 DEFAULT_TRAITS: Dict[str, Trait] = {
     "eye_color": EYE_COLOR,
     "blood_type": BLOOD_TYPE,
     "hair_color": HAIR_COLOR,
 }
+
+
+if TYPE_CHECKING:
+    # Import Pydantic schema types for type checkers only to avoid circular imports
+    from .schemas import (
+        Project,
+        ProjectLine,
+        ProjectLinePayload,
+        ProjectLineSaveResponse,
+        ProjectLineSaveSummary,
+        ProjectLineSnapshot,
+        ProjectTemplate,
+    )
 
 
 def _load_real_gene_traits() -> Dict[str, Trait]:
@@ -284,6 +295,27 @@ def get_projects_collection(required: bool = False) -> Optional[Collection]:
         collection.create_index("owner_id")
         collection.create_index("created_at")
         collection.create_index("is_template")
+    except PyMongoError:
+        pass
+    return collection
+
+
+def get_project_lines_collection(required: bool = False) -> Optional[Collection]:
+    client = get_mongo_client()
+    if client is None:
+        if required:
+            raise HTTPException(
+                status_code=503, detail="MongoDB connection is not configured."
+            )
+        return None
+
+    settings = get_settings()
+    database = client[settings.mongodb_db_name]
+    collection = database[settings.mongodb_project_lines_collection]
+    try:
+        collection.create_index([("project_id", 1), ("line_id", 1)], unique=True)
+        collection.create_index("project_id")
+        collection.create_index("updated_at")
     except PyMongoError:
         pass
     return collection
@@ -1012,6 +1044,48 @@ def _serialize_project(document: Mapping[str, Any]) -> "Project":
     )
 
 
+def _serialize_project_line(document: Mapping[str, Any]) -> ProjectLine:
+    # Import ProjectLine and related types here to avoid runtime import when TYPE_CHECKING is used
+    from .schemas import ProjectLine, ProjectLinePoint
+    from typing import cast, Literal
+
+    updated_at = _ensure_utc(document.get("updated_at")) or datetime.now(timezone.utc)
+
+    start_point_doc = document.get("start_point", {})
+    end_point_doc = document.get("end_point", {})
+
+    def _coerce_point(data: Mapping[str, Any]) -> Dict[str, float]:
+        try:
+            return {
+                "x": float(data.get("x", 0.0)),
+                "y": float(data.get("y", 0.0)),
+            }
+        except (TypeError, ValueError):
+            return {"x": 0.0, "y": 0.0}
+
+    start = ProjectLinePoint(**_coerce_point(start_point_doc))
+    end = ProjectLinePoint(**_coerce_point(end_point_doc))
+
+    arrow_raw = str(document.get("arrow_type", "none"))
+    if arrow_raw not in ("none", "end"):
+        arrow_raw = "none"
+    arrow = cast(Literal["none", "end"], arrow_raw)
+
+    return ProjectLine(
+        id=str(document.get("line_id", "")),
+        project_id=str(document.get("project_id", "")),
+        start_point=start,
+        end_point=end,
+        stroke_color=str(document.get("stroke_color", "#000000")),
+        stroke_width=float(document.get("stroke_width", 1.0)),
+        arrow_type=arrow,
+        is_deleted=bool(document.get("is_deleted", False)),
+        updated_at=updated_at,
+        version=int(document.get("version", 0)),
+        origin=document.get("origin"),
+    )
+
+
 def get_user_projects(
     user_id: str, page: int = 1, page_size: int = 20
 ) -> Tuple[List["Project"], int]:
@@ -1094,6 +1168,22 @@ def get_project(project_id: str, user_id: str) -> Optional["Project"]:
     return _serialize_project(project_doc)
 
 
+def _project_accessible(project_id: str, user_id: str) -> bool:
+    collection = get_projects_collection(required=True)
+    assert collection is not None, "Projects collection is required"
+
+    try:
+        object_id = ObjectId(project_id)
+    except Exception:
+        return False
+
+    doc = collection.find_one(
+        {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}},
+        projection={"_id": 1},
+    )
+    return doc is not None
+
+
 def update_project(
     project_id: str,
     user_id: str,
@@ -1148,6 +1238,200 @@ def delete_project(project_id: str, user_id: str) -> bool:
 
     return result.deleted_count > 0
 
+
+def get_project_line_snapshot(
+    project_id: str, user_id: str
+) -> Optional[ProjectLineSnapshot]:
+    # Import here to avoid runtime circular imports and keep imports local to usage
+    from .schemas import ProjectLineSnapshot
+
+    if not _project_accessible(project_id, user_id):
+        return None
+
+    collection = get_project_lines_collection(required=True)
+    assert collection is not None, "Project lines collection is required"
+
+    try:
+        cursor = collection.find({"project_id": project_id}).sort("line_id", 1)
+    except PyMongoError:
+        cursor = []
+
+    lines = [_serialize_project_line(doc) for doc in cursor]
+    snapshot_version = max((line.version for line in lines), default=0)
+    return ProjectLineSnapshot(lines=lines, snapshot_version=snapshot_version)
+
+
+def _client_line_wins(existing_doc: Mapping[str, Any], payload: ProjectLinePayload) -> bool:
+        # Deletions always override non‑deleted versions
+    existing_deleted = bool(existing_doc.get("is_deleted", False))
+    if payload.is_deleted and not existing_deleted:
+        return True
+    if not payload.is_deleted and existing_deleted:
+        return False
+    
+    existing_version = int(existing_doc.get("version", 0))
+    payload_version = int(payload.version)
+
+    if payload_version > existing_version:
+        return True
+    if payload_version < existing_version:
+        return False
+
+    existing_updated = _ensure_utc(existing_doc.get("updated_at")) or datetime.min.replace(
+        tzinfo=timezone.utc
+    )
+    payload_updated = _ensure_utc(payload.updated_at) or datetime.min.replace(
+        tzinfo=timezone.utc
+    )
+
+    if payload_updated > existing_updated:
+        return True
+    if payload_updated < existing_updated:
+        return False
+
+    existing_origin = str(existing_doc.get("origin") or "")
+    payload_origin = payload.origin or ""
+
+    if payload_origin and existing_origin:
+        if payload_origin < existing_origin:
+            return True
+        if payload_origin > existing_origin:
+            return False
+    elif payload_origin and not existing_origin:
+        return True
+
+    return False
+
+
+def _line_payload_to_document(
+    project_id: str,
+    payload: ProjectLinePayload,
+    version: int,
+    updated_at: datetime,
+) -> Dict[str, Any]:
+    return {
+        "project_id": project_id,
+        "line_id": payload.id,
+        "start_point": payload.start_point.model_dump(),
+        "end_point": payload.end_point.model_dump(),
+        "stroke_color": payload.stroke_color,
+        "stroke_width": float(payload.stroke_width),
+        "arrow_type": payload.arrow_type,
+        "is_deleted": bool(payload.is_deleted),
+        "updated_at": updated_at,
+        "version": int(version),
+        "origin": payload.origin,
+    }
+
+
+def save_project_lines(
+    project_id: str,
+    user_id: str,
+    lines: List[ProjectLinePayload],
+) -> Optional[ProjectLineSaveResponse]:
+    # Verify the user has access to the project
+    if not _project_accessible(project_id, user_id):
+        return None
+
+    collection = get_project_lines_collection(required=True)
+    assert collection is not None, "Project lines collection is required"
+
+    # Import runtime schema classes locally to avoid circular imports
+    from .schemas import (
+        ProjectLineSaveSummary,
+        ProjectLineSaveResponse,
+        ProjectLineSnapshot,
+    )
+
+    summary = ProjectLineSaveSummary()
+    now = datetime.now(timezone.utc)
+
+    # 1. Tombstone any missing lines (lines present in DB but absent in the incoming payload)
+    incoming_ids = {p.id for p in lines if p.id}
+    try:
+        existing_docs = list(collection.find({"project_id": project_id}))
+    except PyMongoError:
+        existing_docs = []
+
+    for doc in existing_docs:
+        line_id = str(doc.get("line_id"))
+        if line_id and line_id not in incoming_ids and not doc.get("is_deleted", False):
+            # Mark the line as deleted with a new version and updated timestamp
+            version = int(doc.get("version", 0)) + 1
+            filter_query = {"project_id": project_id, "line_id": line_id}
+            try:
+                collection.update_one(
+                    filter_query,
+                    {
+                        "$set": {
+                            "is_deleted": True,
+                            "version": version,
+                            "updated_at": now,
+                        }
+                    },
+                )
+                summary.deleted += 1
+            except PyMongoError:
+                summary.ignored += 1
+                continue
+
+    # 2. Process each incoming payload
+    for payload in lines:
+        if not payload.id:
+            summary.ignored += 1
+            continue
+
+        filter_query = {"project_id": project_id, "line_id": payload.id}
+
+        try:
+            existing_doc = collection.find_one(filter_query)
+        except PyMongoError:
+            existing_doc = None
+
+        if existing_doc is None:
+            # Insert new line
+            version = max(int(payload.version), 0) + 1
+            document = _line_payload_to_document(project_id, payload, version, now)
+            document["created_at"] = now
+            try:
+                collection.insert_one(document)
+                if payload.is_deleted:
+                    summary.deleted += 1
+                else:
+                    summary.created += 1
+            except DuplicateKeyError:
+                # Rare race: treat as update in next iteration
+                summary.ignored += 1
+            continue
+
+        # Decide if the client’s update should win
+        if not _client_line_wins(existing_doc, payload):
+            summary.ignored += 1
+            continue
+
+        # Update existing line with new data
+        version = int(existing_doc.get("version", 0)) + 1
+        document = _line_payload_to_document(project_id, payload, version, now)
+        try:
+            collection.update_one(filter_query, {"$set": document})
+            if payload.is_deleted and not existing_doc.get("is_deleted", False):
+                summary.deleted += 1
+            elif not payload.is_deleted:
+                summary.updated += 1
+        except PyMongoError:
+            summary.ignored += 1
+            continue
+
+    # 3. Fetch the snapshot and return the response
+    snapshot = get_project_line_snapshot(project_id, user_id)
+    if snapshot is None:
+        return None
+
+    return ProjectLineSaveResponse(
+        lines=snapshot.lines,
+        snapshot_version=snapshot.snapshot_version,
+        summary=summary,
+    )
 
 def create_tool(
     project_id: str,

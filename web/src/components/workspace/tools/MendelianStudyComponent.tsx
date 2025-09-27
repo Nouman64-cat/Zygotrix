@@ -105,34 +105,86 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
               ))}
             </div>
             {item.data.simulationResults && (
-              <div className="space-y-1">
+              <div className="space-y-2">
                 <div className="font-medium">Results:</div>
                 {Object.entries(item.data.simulationResults).map(
-                  ([traitKey, results]: [string, any]) => (
-                    <div key={traitKey} className="bg-slate-50 p-2 rounded">
-                      <div className="font-medium text-xs mb-1">
-                        {item.data.selectedTraits.find(
-                          (t: any) => t.key === traitKey
-                        )?.name || traitKey}
+                  ([traitKey, result]) => {
+                    if (
+                      !result ||
+                      typeof result !== "object" ||
+                      !result.genotypic_ratios ||
+                      !result.phenotypic_ratios
+                    ) {
+                      return null;
+                    }
+
+                    const traitLabel =
+                      item.data.selectedTraits.find(
+                        (t: any) => t.key === traitKey
+                      )?.name || traitKey;
+
+                    return (
+                      <div key={traitKey} className="bg-slate-50 p-2 rounded space-y-2">
+                        <div className="font-medium text-xs mb-1">{traitLabel}</div>
+
+                        <div className="space-y-1">
+                          <div className="text-[10px] font-semibold text-blue-600 uppercase">
+                            Genotypic
+                          </div>
+                          {Object.entries(result.genotypic_ratios).map(
+                            ([genotype, percentage]) => {
+                              if (
+                                typeof percentage !== "number" ||
+                                Number.isNaN(percentage)
+                              ) {
+                                return null;
+                              }
+                              const display = item.data.asPercentages
+                                ? `${percentage.toFixed(1)}%`
+                                : `${(percentage * 100).toFixed(1)}%`;
+                              return (
+                                <div
+                                  key={genotype}
+                                  className="flex justify-between text-xs"
+                                >
+                                  <span>{genotype}</span>
+                                  <span className="font-mono">{display}</span>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
+
+                        <div className="space-y-1">
+                          <div className="text-[10px] font-semibold text-green-600 uppercase">
+                            Phenotypic
+                          </div>
+                          {Object.entries(result.phenotypic_ratios).map(
+                            ([phenotype, percentage]) => {
+                              if (
+                                typeof percentage !== "number" ||
+                                Number.isNaN(percentage)
+                              ) {
+                                return null;
+                              }
+                              const display = item.data.asPercentages
+                                ? `${percentage.toFixed(1)}%`
+                                : `${(percentage * 100).toFixed(1)}%`;
+                              return (
+                                <div
+                                  key={phenotype}
+                                  className="flex justify-between text-xs"
+                                >
+                                  <span>{phenotype}</span>
+                                  <span className="font-mono">{display}</span>
+                                </div>
+                              );
+                            }
+                          )}
+                        </div>
                       </div>
-                      {results &&
-                        Object.entries(results).map(
-                          ([phenotype, prob]: [string, any]) => (
-                            <div
-                              key={phenotype}
-                              className="flex justify-between text-xs"
-                            >
-                              <span>{phenotype}</span>
-                              <span className="font-mono">
-                                {item.data.asPercentages
-                                  ? `${prob.toFixed(1)}%`
-                                  : `${(prob * 100).toFixed(1)}%`}
-                              </span>
-                            </div>
-                          )
-                        )}
-                    </div>
-                  )
+                    );
+                  }
                 )}
               </div>
             )}

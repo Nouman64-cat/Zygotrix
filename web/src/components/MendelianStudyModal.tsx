@@ -13,6 +13,7 @@ import { IoMale } from "react-icons/io5";
 import { GiFemale } from "react-icons/gi";
 import { useTraits } from "../hooks/useTraits";
 import { simulateMultipleMendelianTraits } from "../services/zygotrixApi";
+import type { MendelianSimulationTraitResult } from "../types/api";
 
 interface MendelianStudyModalProps {
   onClose: () => void;
@@ -33,7 +34,7 @@ interface MendelianProject {
   id: string;
   name: string;
   selectedTraits: SelectedTrait[];
-  simulationResults: Record<string, Record<string, number>> | null;
+  simulationResults: Record<string, MendelianSimulationTraitResult> | null;
   asPercentages: boolean;
   notes: string;
 }

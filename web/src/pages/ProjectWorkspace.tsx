@@ -35,7 +35,6 @@ import {
   loadCanvasDrawings,
   type CanvasDrawing,
   loadLineDrawings,
-  saveLineDrawings,
   type LineDrawing,
 } from "../components/workspace/helpers/localStorageHelpers";
 import {
@@ -60,6 +59,23 @@ import {
   resetCanvasTransform,
   DEFAULT_ZOOM_LIMITS,
 } from "../components/workspace/helpers/canvasHelpers";
+import {
+  ensureDeviceId,
+  getStoredLines,
+  getLinesForSave,
+  isProjectDirty as isProjectLinesDirty,
+  markProjectDirty as markProjectLinesDirty,
+  recordServerSnapshot,
+  replaceProjectLines as replaceStoredProjectLines,
+  upsertManyLines,
+  upsertStoredLine,
+  type StoredLineRecord,
+} from "../services/workspaceLocalStore";
+import {
+  fetchProjectLines,
+  saveProjectLines as saveProjectLinesApi,
+} from "../services/projectApi";
+import type { ProjectLineSaveSummary } from "../types/api";
 
 const ProjectWorkspace: React.FC = () => {
   const { projectId } = useParams();
@@ -274,6 +290,11 @@ const ProjectWorkspace: React.FC = () => {
 
   // Line drawing state
   const [lineDrawings, setLineDrawings] = useState<LineDrawing[]>([]);
+  const [linesDirty, setLinesDirty] = useState(false);
+  const [lineSaveSummary, setLineSaveSummary] =
+    useState<ProjectLineSaveSummary | null>(null);
+  const deviceIdRef = useRef<string>(ensureDeviceId());
+  const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isDrawingLine, setIsDrawingLine] = useState(false);
   const [lineStartPoint, setLineStartPoint] = useState({ x: 0, y: 0 });
   const [lineEndPoint, setLineEndPoint] = useState({ x: 0, y: 0 });
@@ -290,6 +311,39 @@ const ProjectWorkspace: React.FC = () => {
     isLineEraserModeRef.current = isLineEraserMode;
     console.log("Line eraser mode changed to:", isLineEraserMode);
   }, [isLineEraserMode]);
+
+  const mapStoredLineToDrawing = useCallback(
+    (record: StoredLineRecord): LineDrawing => ({
+      id: record.id,
+      startPoint: record.start_point,
+      endPoint: record.end_point,
+      strokeColor: record.stroke_color,
+      strokeWidth: record.stroke_width,
+      arrowType: record.arrow_type === "end" ? "end" : "none",
+      isDeleted: record.is_deleted,
+      updatedAt: record.updated_at,
+      version: record.version,
+      origin: record.origin ?? null,
+    }),
+    []
+  );
+
+  const mapDrawingToStoredLine = useCallback(
+    (projectIdValue: string, line: LineDrawing): StoredLineRecord => ({
+      id: line.id,
+      project_id: projectIdValue,
+      start_point: line.startPoint,
+      end_point: line.endPoint,
+      stroke_color: line.strokeColor,
+      stroke_width: line.strokeWidth,
+      arrow_type: line.arrowType,
+      is_deleted: Boolean(line.isDeleted),
+      updated_at: line.updatedAt ?? new Date().toISOString(),
+      version: line.version ?? 0,
+      origin: line.origin ?? deviceIdRef.current,
+    }),
+    []
+  );
 
   // Update current drawing path when color or width changes
   useEffect(() => {
@@ -380,39 +434,114 @@ const ProjectWorkspace: React.FC = () => {
     }
   }, [items, projectId, saveLocalItems]);
 
-  // Load canvas drawings and line drawings when project loads
+  // Load canvas drawings when project loads
   useEffect(() => {
     if (projectId && projectId !== "new") {
-      console.log("Loading line drawings for project:", projectId);
       const savedDrawings = loadCanvasDrawings(projectId);
       setCanvasDrawings(savedDrawings);
-      let savedLines = loadLineDrawings(projectId);
-      console.log("Loaded line drawings:", {
-        projectId,
-        savedLinesCount: savedLines.length,
-        savedLines,
-      });
-      if (savedLines.length === 0) {
-        // Fallback: if project was just created, try migrating from a temporary key
-        const tempLines = loadLineDrawings("new");
-        if (tempLines.length > 0) {
-          console.log(
-            "Migrating line drawings from temporary 'new' key to project:",
-            projectId
+    }
+  }, [projectId, loadCanvasDrawings]);
+
+  useEffect(() => {
+    const handleOnline = () => setIsOffline(false);
+    const handleOffline = () => {
+      setIsOffline(true);
+      setLinesDirty(true);
+    };
+
+    window.addEventListener("online", handleOnline);
+    window.addEventListener("offline", handleOffline);
+
+    return () => {
+      window.removeEventListener("online", handleOnline);
+      window.removeEventListener("offline", handleOffline);
+    };
+  }, []);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const hydrateLines = async () => {
+      if (!projectId || projectId === "new") {
+        setLineDrawings([]);
+        setLinesDirty(false);
+        return;
+      }
+
+      try {
+        let records = await getStoredLines(projectId, { includeDeleted: true });
+
+        if (!records.length) {
+          const legacy = loadLineDrawings(projectId);
+          if (legacy.length) {
+            const now = new Date().toISOString();
+            const migrated: StoredLineRecord[] = legacy.map((line, index) => ({
+              id: line.id || `legacy-line-${index}`,
+              project_id: projectId,
+              start_point: line.startPoint,
+              end_point: line.endPoint,
+              stroke_color: line.strokeColor,
+              stroke_width: line.strokeWidth,
+              arrow_type: line.arrowType,
+              is_deleted: Boolean(line.isDeleted),
+              updated_at: line.updatedAt ?? now,
+              version: line.version ?? 1,
+              origin: line.origin ?? deviceIdRef.current,
+            }));
+            if (migrated.length) {
+              await upsertManyLines(migrated);
+              records = migrated;
+            }
+          }
+        }
+
+        if (!cancelled) {
+          setLineDrawings(
+            records
+              .filter((record) => !record.is_deleted)
+              .map(mapStoredLineToDrawing)
           );
-          savedLines = tempLines;
-          // Persist under real project id
-          saveLineDrawings(projectId, tempLines);
+          const dirty = await isProjectLinesDirty(projectId);
+          if (!cancelled) {
+            setLinesDirty(dirty || isOffline);
+          }
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load workspace lines", error);
         }
       }
-      setLineDrawings(savedLines);
-    } else {
-      console.log("Skipped loading line drawings:", {
-        projectId,
-        reason: !projectId ? "No projectId" : "projectId is 'new'",
-      });
-    }
-  }, [projectId, loadCanvasDrawings, loadLineDrawings]);
+
+      if (cancelled || isOffline) {
+        return;
+      }
+
+      try {
+        const snapshot = await fetchProjectLines(projectId);
+        await recordServerSnapshot(projectId, snapshot);
+
+        if (cancelled) return;
+
+        setLineDrawings(
+          snapshot.lines
+            .filter((record) => !record.is_deleted)
+            .map(mapStoredLineToDrawing)
+        );
+        setLinesDirty(false);
+      } catch (error) {
+        if (!cancelled) {
+          console.warn("Failed to pull line snapshot", error);
+          setLinesDirty(true);
+        }
+      }
+    };
+
+    void hydrateLines();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, isOffline, mapStoredLineToDrawing]);
 
   // Persist canvas drawings to localStorage whenever they change
   useEffect(() => {
@@ -421,56 +550,63 @@ const ProjectWorkspace: React.FC = () => {
     }
   }, [canvasDrawings, projectId, saveCanvasDrawings]);
 
-  // Persist line drawings to localStorage whenever they change
-  useEffect(() => {
-    if (projectId && projectId !== "new" && lineDrawings.length > 0) {
-      console.log("Saving line drawings to localStorage:", {
-        projectId,
-        lineCount: lineDrawings.length,
-        lines: lineDrawings,
-      });
-      saveLineDrawings(projectId, lineDrawings);
-    } else {
-      console.log("Skipped saving line drawings:", {
-        projectId,
-        lineCount: lineDrawings.length,
-        reason: !projectId
-          ? "No projectId"
-          : projectId === "new"
-          ? "projectId is 'new'"
-          : "lineDrawings array is empty",
-      });
-    }
-  }, [lineDrawings, projectId, saveLineDrawings]);
-
   // When projectId becomes a real id (was previously 'new' or undefined), persist any in-memory drawings/lines
   const prevProjectIdRef = useRef<string | undefined>(undefined);
   useEffect(() => {
-    if (
-      projectId &&
-      projectId !== "new" &&
-      prevProjectIdRef.current &&
-      prevProjectIdRef.current === "new"
-    ) {
-      // Project just transitioned from temporary 'new' id; persist current drawings/lines
-      if (canvasDrawings.length > 0) {
-        saveCanvasDrawings(projectId, canvasDrawings);
+    let cancelled = false;
+
+    const migrateFromNewProject = async () => {
+      if (
+        projectId &&
+        projectId !== "new" &&
+        prevProjectIdRef.current === "new"
+      ) {
+        if (canvasDrawings.length > 0) {
+          saveCanvasDrawings(projectId, canvasDrawings);
+        }
+
+        try {
+          const stagedLines = await getStoredLines("new", {
+            includeDeleted: true,
+          });
+          if (!cancelled && stagedLines.length) {
+            const reassigned = stagedLines.map((record) => ({
+              ...record,
+              project_id: projectId,
+            }));
+            await replaceStoredProjectLines(projectId, reassigned);
+            await replaceStoredProjectLines("new", []);
+            if (!cancelled) {
+              setLineDrawings(
+                reassigned
+                  .filter((record) => !record.is_deleted)
+                  .map(mapStoredLineToDrawing)
+              );
+            }
+            await markProjectLinesDirty(projectId);
+            if (!cancelled) {
+              setLinesDirty(true);
+            }
+          }
+        } catch (migrationError) {
+          if (!cancelled) {
+            console.error("Failed to migrate staged lines to new project", migrationError);
+          }
+        }
       }
-      if (lineDrawings.length > 0) {
-        saveLineDrawings(projectId, lineDrawings);
-      }
-      console.log(
-        "Persisted drawings & lines after projectId transition from 'new' ->",
-        projectId
-      );
-    }
-    prevProjectIdRef.current = projectId;
+      prevProjectIdRef.current = projectId;
+    };
+
+    void migrateFromNewProject();
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     projectId,
     canvasDrawings,
-    lineDrawings,
     saveCanvasDrawings,
-    saveLineDrawings,
+    mapStoredLineToDrawing,
   ]);
 
   // Save project details when name or description changes
@@ -518,10 +654,27 @@ const ProjectWorkspace: React.FC = () => {
       // Convert workspace items back to project tools using helper
       const projectTools = workspaceItemsToProjectTools(items);
       await saveProgress(projectTools);
-      // Also persist drawings (lines & freehand) explicitly on manual save for redundancy
+
       if (projectId && projectId !== "new") {
         saveCanvasDrawings(projectId, canvasDrawings);
-        saveLineDrawings(projectId, lineDrawings);
+
+        try {
+          const payload = await getLinesForSave(projectId);
+          const response = await saveProjectLinesApi(projectId, payload);
+          await recordServerSnapshot(projectId, response);
+
+          setLineDrawings(
+            response.lines
+              .filter((record) => !record.is_deleted)
+              .map(mapStoredLineToDrawing)
+          );
+          setLineSaveSummary(response.summary);
+          setLinesDirty(false);
+        } catch (lineError) {
+          console.error("Failed to sync workspace lines:", lineError);
+          setLineSaveSummary(null);
+          setLinesDirty(true);
+        }
       }
     } catch (err) {
       console.error("Failed to save progress:", err);
@@ -532,12 +685,11 @@ const ProjectWorkspace: React.FC = () => {
     project,
     items,
     canvasDrawings,
-    lineDrawings,
     projectId,
     saveProgress,
     saving,
     saveCanvasDrawings,
-    saveLineDrawings,
+    mapStoredLineToDrawing,
   ]);
 
   // Keyboard shortcuts: save, escape, hand (h), move (v)
@@ -699,21 +851,47 @@ const ProjectWorkspace: React.FC = () => {
       );
 
       if (distance > 1) {
+        const lineId = window.crypto?.randomUUID
+          ? `line-${window.crypto.randomUUID()}`
+          : `line-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+        const nowIso = new Date().toISOString();
         const newLine: LineDrawing = {
-          id: `line-${Date.now()}`,
+          id: lineId,
           startPoint: lineStartPoint,
           endPoint: lineEndPoint,
           strokeColor: drawingStrokeColor,
           strokeWidth: drawingStrokeWidth,
           arrowType: lineArrowType,
+          isDeleted: false,
+          updatedAt: nowIso,
+          version: 1,
+          origin: deviceIdRef.current,
         };
 
         console.log("Creating new line:", newLine);
-        setLineDrawings((prev) => {
-          const newArray = [...prev, newLine];
-          console.log("Updated lineDrawings array:", newArray);
-          return newArray;
-        });
+        setLineDrawings((prev) => [...prev, newLine]);
+        setLineSaveSummary(null);
+
+        const storageProjectId =
+          projectId && projectId !== "new" ? projectId : "new";
+        void upsertStoredLine(
+          mapDrawingToStoredLine(storageProjectId, newLine)
+        )
+          .then(() => {
+            if (projectId && projectId !== "new") {
+              return markProjectLinesDirty(projectId);
+            }
+            return undefined;
+          })
+          .then(() => {
+            setLinesDirty(true);
+            setLineSaveSummary(null);
+          })
+          .catch((persistError) => {
+            console.error("Failed to persist line locally:", persistError);
+            setLinesDirty(true);
+            setLineSaveSummary(null);
+          });
       }
 
       setIsDrawingLine(false);
@@ -1047,62 +1225,106 @@ const ProjectWorkspace: React.FC = () => {
   ]);
 
   // Function to erase lines near a given point (uses functional state update to avoid stale closures)
-  const eraseLineAtPoint = useCallback((point: { x: number; y: number }) => {
-    const eraserRadius = 15; // Radius in pixels to detect line intersection
+  const eraseLineAtPoint = useCallback(
+    (point: { x: number; y: number }) => {
+      const eraserRadius = 15;
+      const linesToDelete: LineDrawing[] = [];
 
-    setLineDrawings((prev) => {
-      if (!prev.length) return prev; // fast path
+      setLineDrawings((prev) => {
+        if (!prev.length) return prev;
 
-      let erasedCount = 0;
-      const remaining = prev.filter((line) => {
-        const { startPoint, endPoint } = line;
-        const lineVector = {
-          x: endPoint.x - startPoint.x,
-          y: endPoint.y - startPoint.y,
-        };
-        const pointVector = {
-          x: point.x - startPoint.x,
-          y: point.y - startPoint.y,
-        };
-        const lineLengthSquared =
-          lineVector.x * lineVector.x + lineVector.y * lineVector.y;
+        const remaining: LineDrawing[] = [];
 
-        let distance: number;
-        if (lineLengthSquared === 0) {
-          // Degenerate line (point)
-          distance = Math.sqrt(
-            pointVector.x * pointVector.x + pointVector.y * pointVector.y
-          );
-        } else {
-          const t = Math.max(
-            0,
-            Math.min(
-              1,
-              (pointVector.x * lineVector.x + pointVector.y * lineVector.y) /
-                lineLengthSquared
-            )
-          );
-          const closestPoint = {
-            x: startPoint.x + t * lineVector.x,
-            y: startPoint.y + t * lineVector.y,
+        prev.forEach((line) => {
+          const { startPoint, endPoint } = line;
+          const lineVector = {
+            x: endPoint.x - startPoint.x,
+            y: endPoint.y - startPoint.y,
           };
-          distance = Math.sqrt(
-            Math.pow(point.x - closestPoint.x, 2) +
-              Math.pow(point.y - closestPoint.y, 2)
-          );
+          const pointVector = {
+            x: point.x - startPoint.x,
+            y: point.y - startPoint.y,
+          };
+          const lineLengthSquared =
+            lineVector.x * lineVector.x + lineVector.y * lineVector.y;
+
+          let distance: number;
+          if (lineLengthSquared === 0) {
+            distance = Math.sqrt(
+              pointVector.x * pointVector.x + pointVector.y * pointVector.y
+            );
+          } else {
+            const t = Math.max(
+              0,
+              Math.min(
+                1,
+                (pointVector.x * lineVector.x + pointVector.y * lineVector.y) /
+                  lineLengthSquared
+              )
+            );
+            const closestPoint = {
+              x: startPoint.x + t * lineVector.x,
+              y: startPoint.y + t * lineVector.y,
+            };
+            distance = Math.sqrt(
+              Math.pow(point.x - closestPoint.x, 2) +
+                Math.pow(point.y - closestPoint.y, 2)
+            );
+          }
+
+          const shouldErase = distance <= eraserRadius;
+          if (shouldErase) {
+            linesToDelete.push(line);
+          } else {
+            remaining.push(line);
+          }
+        });
+
+        if (linesToDelete.length > 0) {
+          console.log(`Erased ${linesToDelete.length} line(s) at point`, point);
         }
 
-        const shouldErase = distance <= eraserRadius;
-        if (shouldErase) erasedCount++;
-        return !shouldErase;
+        return remaining;
       });
 
-      if (erasedCount > 0) {
-        console.log(`Erased ${erasedCount} line(s) at point`, point);
+      if (!linesToDelete.length) {
+        return;
       }
-      return remaining;
-    });
-  }, []);
+
+      setLineSaveSummary(null);
+
+      const storageProjectId =
+        projectId && projectId !== "new" ? projectId : "new";
+
+      const persistOperations = linesToDelete.map((line) => {
+        const tombstone: LineDrawing = {
+          ...line,
+          isDeleted: true,
+          updatedAt: new Date().toISOString(),
+          version: (line.version ?? 0) + 1,
+          origin: line.origin ?? deviceIdRef.current,
+        };
+        const storedRecord = mapDrawingToStoredLine(storageProjectId, tombstone);
+        return upsertStoredLine(storedRecord);
+      });
+
+      void Promise.all(persistOperations)
+        .then(() => {
+          if (projectId && projectId !== "new") {
+            return markProjectLinesDirty(projectId);
+          }
+          return undefined;
+        })
+        .then(() => {
+          setLinesDirty(true);
+          setLineSaveSummary(null);
+        })
+        .catch((persistError) =>
+          console.error("Failed to persist tombstoned lines", persistError)
+        );
+    },
+    [projectId, mapDrawingToStoredLine]
+  );
 
   // While user is actively dragging in eraser mode for lines, erase continuously (placed after eraseLineAtPoint so dependency is defined)
   useEffect(() => {
@@ -1775,6 +1997,9 @@ const ProjectWorkspace: React.FC = () => {
           handleManualSave={handleManualSave}
           handleSettingsClick={handleSettingsClick}
           handleDeleteClick={handleDeleteClick}
+          linesDirty={linesDirty}
+          isOffline={isOffline}
+          lineSaveSummary={lineSaveSummary}
         />
 
         <div className="flex-1 flex bg-gray-50 min-h-0 overflow-hidden max-w-full">
@@ -2169,11 +2394,49 @@ const ProjectWorkspace: React.FC = () => {
               {/* Clear All Lines */}
               <button
                 onClick={() => {
-                  setLineDrawings([]);
-                  // Explicitly clear from localStorage when user intentionally clears all lines
-                  if (projectId && projectId !== "new") {
-                    saveLineDrawings(projectId, []);
+                  if (!lineDrawings.length) {
+                    return;
                   }
+
+                  const linesSnapshot = [...lineDrawings];
+                  setLineDrawings([]);
+                  setLineSaveSummary(null);
+
+                  const storageProjectId =
+                    projectId && projectId !== "new" ? projectId : "new";
+
+                  const operations = linesSnapshot.map((line) => {
+                    const tombstone: LineDrawing = {
+                      ...line,
+                      isDeleted: true,
+                      updatedAt: new Date().toISOString(),
+                      version: (line.version ?? 0) + 1,
+                      origin: line.origin ?? deviceIdRef.current,
+                    };
+                    const stored = mapDrawingToStoredLine(
+                      storageProjectId,
+                      tombstone
+                    );
+                    return upsertStoredLine(stored);
+                  });
+
+                  void Promise.all(operations)
+                    .then(() => {
+                      if (projectId && projectId !== "new") {
+                        return markProjectLinesDirty(projectId);
+                      }
+                      return undefined;
+                    })
+                    .then(() => {
+                      setLinesDirty(true);
+                      setLineSaveSummary(null);
+                    })
+                    .catch((persistError) =>
+                      console.error(
+                        "Failed to persist cleared line tombstones",
+                        persistError
+                      )
+                    );
                 }}
                 className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
                 title="Clear All Lines"

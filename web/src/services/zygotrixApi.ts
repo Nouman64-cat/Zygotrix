@@ -2,6 +2,7 @@ import type {
   GenotypeResponse,
   JointPhenotypeSimulationResponse,
   MendelianSimulationResponse,
+  MendelianSimulationTraitResult,
   PolygenicScoreResponse,
   TraitInfo,
   TraitListResponse,
@@ -190,7 +191,7 @@ export const createMendelianTool = async (
   toolData: {
     name: string;
     trait_configurations?: Record<string, Record<string, string>>;
-    simulation_results?: Record<string, Record<string, number>>;
+    simulation_results?: Record<string, MendelianSimulationTraitResult>;
     notes?: string;
     position?: { x: number; y: number };
   }
@@ -213,7 +214,7 @@ export const updateMendelianTool = async (
   updates: {
     name?: string;
     trait_configurations?: Record<string, Record<string, string>>;
-    simulation_results?: Record<string, Record<string, number>>;
+    simulation_results?: Record<string, MendelianSimulationTraitResult>;
     notes?: string;
     position?: { x: number; y: number };
   }

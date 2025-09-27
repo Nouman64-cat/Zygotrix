@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Dict, List, Mapping, Optional
+from typing import Dict, List, Literal, Mapping, Optional
 
 from pydantic import BaseModel, EmailStr, Field, SecretStr, field_validator
 
@@ -304,6 +304,13 @@ class PortalStatusResponse(BaseModel):
     accessed_at: datetime
 
 
+class MendelianSimulationResult(BaseModel):
+    """Stores genotypic and phenotypic ratio percentages for a trait."""
+
+    genotypic_ratios: Dict[str, float] = Field(default_factory=dict)
+    phenotypic_ratios: Dict[str, float] = Field(default_factory=dict)
+
+
 class MendelianProjectTool(BaseModel):
     """Configuration for a Mendelian genetics tool within a project."""
 
@@ -311,7 +318,7 @@ class MendelianProjectTool(BaseModel):
     type: str = "mendelian"
     name: str
     trait_configurations: Dict[str, Dict[str, str]] = Field(default_factory=dict)
-    simulation_results: Optional[Dict[str, Dict[str, float]]] = None
+    simulation_results: Optional[Dict[str, MendelianSimulationResult]] = None
     notes: Optional[str] = None
     position: Optional[Dict[str, float]] = None
 
@@ -321,7 +328,7 @@ class MendelianToolCreateRequest(BaseModel):
 
     name: str
     trait_configurations: Dict[str, Dict[str, str]] = Field(default_factory=dict)
-    simulation_results: Optional[Dict[str, Dict[str, float]]] = None
+    simulation_results: Optional[Dict[str, MendelianSimulationResult]] = None
     notes: Optional[str] = None
     position: Optional[Dict[str, float]] = None
 
@@ -331,7 +338,7 @@ class MendelianToolUpdateRequest(BaseModel):
 
     name: Optional[str] = None
     trait_configurations: Optional[Dict[str, Dict[str, str]]] = None
-    simulation_results: Optional[Dict[str, Dict[str, float]]] = None
+    simulation_results: Optional[Dict[str, MendelianSimulationResult]] = None
     notes: Optional[str] = None
     position: Optional[Dict[str, float]] = None
 
@@ -340,6 +347,62 @@ class MendelianToolResponse(BaseModel):
     """Response payload for Mendelian tool operations."""
 
     tool: MendelianProjectTool
+
+
+class ProjectLinePoint(BaseModel):
+    """2D coordinate expressed in workspace canvas space."""
+
+    x: float
+    y: float
+
+
+class ProjectLinePayload(BaseModel):
+    """Client-submitted representation of a workspace connector line."""
+
+    id: str
+    start_point: ProjectLinePoint
+    end_point: ProjectLinePoint
+    stroke_color: str
+    stroke_width: float
+    arrow_type: Literal["none", "end"] = "none"
+    is_deleted: bool = False
+    updated_at: datetime
+    version: int = 0
+    origin: Optional[str] = None
+
+
+class ProjectLine(ProjectLinePayload):
+    """Canonical representation of a connector line persisted on the server."""
+
+    project_id: str
+
+
+class ProjectLineSnapshot(BaseModel):
+    """Canonical snapshot of all lines for a project."""
+
+    lines: List[ProjectLine]
+    snapshot_version: int = 0
+
+
+class ProjectLineSaveSummary(BaseModel):
+    """Server-side summary of the last save merge operation."""
+
+    created: int = 0
+    updated: int = 0
+    deleted: int = 0
+    ignored: int = 0
+
+
+class ProjectLineSaveRequest(BaseModel):
+    """Batch of line mutations submitted by the client."""
+
+    lines: List[ProjectLinePayload] = Field(default_factory=list)
+
+
+class ProjectLineSaveResponse(ProjectLineSnapshot):
+    """Response payload returned after processing a save request."""
+
+    summary: ProjectLineSaveSummary = Field(default_factory=ProjectLineSaveSummary)
 
 
 class Project(BaseModel):

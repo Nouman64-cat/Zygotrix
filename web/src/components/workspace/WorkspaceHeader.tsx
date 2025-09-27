@@ -9,6 +9,7 @@ import {
   Cog6ToothIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
+import type { ProjectLineSaveSummary } from "../../types/api";
 
 interface WorkspaceHeaderProps {
   projectId: string | undefined;
@@ -31,6 +32,9 @@ interface WorkspaceHeaderProps {
   handleManualSave: () => void;
   handleSettingsClick: () => void;
   handleDeleteClick: () => void;
+  linesDirty: boolean;
+  isOffline: boolean;
+  lineSaveSummary: ProjectLineSaveSummary | null;
 }
 
 const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
@@ -54,6 +58,9 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   handleManualSave,
   handleSettingsClick,
   handleDeleteClick,
+  linesDirty,
+  isOffline,
+  lineSaveSummary,
 }) => {
   const navigate = useNavigate();
 
@@ -147,13 +154,26 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         )}
 
         {/* Save/modified indicator */}
-        {saving && (
+        {saving ? (
           <div className="flex items-center space-x-2 text-sm text-gray-500">
             <CloudArrowUpIcon className="h-4 w-4 animate-pulse" />
             <span>Saving...</span>
           </div>
-        )}
-        {!saving && project && (
+        ) : linesDirty ? (
+          <div className="flex items-center space-x-2 text-sm text-amber-600">
+            <CloudArrowUpIcon className="h-4 w-4" />
+            <span>Unsaved changes</span>
+          </div>
+        ) : lineSaveSummary ? (
+          <div className="flex items-center space-x-2 text-sm text-emerald-600">
+            <CloudArrowUpIcon className="h-4 w-4" />
+            <span>
+              Saved c/u/d/i: {lineSaveSummary.created}/
+              {lineSaveSummary.updated}/{lineSaveSummary.deleted}/
+              {lineSaveSummary.ignored}
+            </span>
+          </div>
+        ) : project ? (
           <div className="text-sm text-gray-600 flex items-center space-x-1">
             <CloudArrowUpIcon className="h-4 w-4" />
             <span>
@@ -161,6 +181,13 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                 ? getTimeAgo(project.updated_at)
                 : "Just now"}
             </span>
+          </div>
+        ) : null}
+
+        {isOffline && (
+          <div className="flex items-center space-x-1 text-xs text-amber-700">
+            <ExclamationTriangleIcon className="h-4 w-4" />
+            <span>Offline</span>
           </div>
         )}
 

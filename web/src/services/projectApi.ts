@@ -3,6 +3,9 @@ import type {
   ProjectCreateRequest,
   ProjectListResponse,
   ProjectResponse,
+  ProjectLinePayload,
+  ProjectLineSaveResponse,
+  ProjectLineSnapshot,
   ProjectTemplate,
   ProjectTemplateListResponse,
   ProjectUpdateRequest,
@@ -112,4 +115,35 @@ export const saveProjectProgress = async (
   tools: any[]
 ): Promise<Project> => {
   return updateProject(projectId, { tools });
+};
+
+export const fetchProjectLines = async (
+  projectId: string,
+  signal?: AbortSignal
+): Promise<ProjectLineSnapshot> => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${projectId}/lines`,
+    {
+      headers: getAuthHeaders(),
+      signal,
+    }
+  );
+
+  return handleResponse<ProjectLineSnapshot>(response);
+};
+
+export const saveProjectLines = async (
+  projectId: string,
+  lines: ProjectLinePayload[]
+): Promise<ProjectLineSaveResponse> => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${projectId}/lines/save`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ lines }),
+    }
+  );
+
+  return handleResponse<ProjectLineSaveResponse>(response);
 };

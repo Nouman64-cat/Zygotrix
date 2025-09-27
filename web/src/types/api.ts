@@ -35,8 +35,13 @@ export type TraitMutationResponse = {
   trait: TraitInfo;
 };
 
+export type MendelianSimulationTraitResult = {
+  genotypic_ratios: Record<string, number>;
+  phenotypic_ratios: Record<string, number>;
+};
+
 export type MendelianSimulationResponse = {
-  results: Record<string, Record<string, number>>;
+  results: Record<string, MendelianSimulationTraitResult>;
   missing_traits: string[];
 };
 
@@ -70,7 +75,7 @@ export type MendelianProjectTool = {
   type: string;
   name: string;
   trait_configurations: Record<string, Record<string, string>>;
-  simulation_results?: Record<string, Record<string, number>>;
+  simulation_results?: Record<string, MendelianSimulationTraitResult>;
   notes?: string;
   position?: { x: number; y: number };
 };
@@ -130,4 +135,46 @@ export type ProjectTemplate = {
 
 export type ProjectTemplateListResponse = {
   templates: ProjectTemplate[];
+};
+
+export type ProjectLinePoint = {
+  x: number;
+  y: number;
+};
+
+export type ProjectLinePayload = {
+  id: string;
+  start_point: ProjectLinePoint;
+  end_point: ProjectLinePoint;
+  stroke_color: string;
+  stroke_width: number;
+  arrow_type: "none" | "end";
+  is_deleted: boolean;
+  updated_at: string;
+  version: number;
+  origin?: string | null;
+};
+
+export type ProjectLine = ProjectLinePayload & {
+  project_id: string;
+};
+
+export type ProjectLineSnapshot = {
+  lines: ProjectLine[];
+  snapshot_version: number;
+};
+
+export type ProjectLineSaveSummary = {
+  created: number;
+  updated: number;
+  deleted: number;
+  ignored: number;
+};
+
+export type ProjectLineSaveResponse = ProjectLineSnapshot & {
+  summary: ProjectLineSaveSummary;
+};
+
+export type ProjectLineSaveRequest = {
+  lines: ProjectLinePayload[];
 };

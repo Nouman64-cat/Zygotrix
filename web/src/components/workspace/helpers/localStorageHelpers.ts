@@ -65,6 +65,11 @@ export interface LineDrawing {
   strokeColor: string;
   strokeWidth: number;
   arrowType: "none" | "end"; // no arrow or arrow at end
+  // Local-first metadata for sync tracking (optional for legacy records)
+  version?: number;
+  updatedAt?: string;
+  isDeleted?: boolean;
+  origin?: string | null;
 }
 
 /**

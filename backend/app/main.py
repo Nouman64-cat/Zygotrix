@@ -33,6 +33,9 @@ from .schemas import (
     ProjectCreateRequest,
     ProjectListResponse,
     ProjectResponse,
+    ProjectLineSaveRequest,
+    ProjectLineSaveResponse,
+    ProjectLineSnapshot,
     ProjectTemplate,
     ProjectTemplateListResponse,
     ProjectUpdateRequest,
@@ -482,6 +485,37 @@ def update_mendelian_tool(
 
     mendelian_tool = MendelianProjectTool(**tool)
     return MendelianToolResponse(tool=mendelian_tool)
+
+
+@app.get(
+    "/api/projects/{project_id}/lines",
+    response_model=ProjectLineSnapshot,
+    tags=["Projects"],
+)
+def get_project_lines(
+    project_id: str,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectLineSnapshot:
+    snapshot = services.get_project_line_snapshot(project_id, current_user.id)
+    if snapshot is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return snapshot
+
+
+@app.post(
+    "/api/projects/{project_id}/lines/save",
+    response_model=ProjectLineSaveResponse,
+    tags=["Projects"],
+)
+def save_project_lines(
+    project_id: str,
+    payload: ProjectLineSaveRequest,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectLineSaveResponse:
+    result = services.save_project_lines(project_id, current_user.id, payload.lines)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return result
 
 
 @app.delete(

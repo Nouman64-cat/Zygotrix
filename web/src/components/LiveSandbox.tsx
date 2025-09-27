@@ -1,7 +1,10 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
 import { simulateMendelianTrait } from "../services/zygotrixApi";
-import type { TraitInfo } from "../types/api";
+import type {
+  MendelianSimulationTraitResult,
+  TraitInfo,
+} from "../types/api";
 import {
   deriveDefaultGenotypes,
   sanitizeDiploidGenotype,
@@ -38,10 +41,8 @@ const LiveSandbox: React.FC<LiveSandboxProps> = ({
   const [verificationFilter, setVerificationFilter] = useState<string>("");
   const [categoryFilter, setCategoryFilter] = useState<string>("");
 
-  const [simulationResult, setSimulationResult] = useState<Record<
-    string,
-    number
-  > | null>(null);
+  const [simulationResult, setSimulationResult] =
+    useState<MendelianSimulationTraitResult | null>(null);
   const [simulationLoading, setSimulationLoading] = useState(false);
   const [simulationError, setSimulationError] = useState<string | null>(null);
   const [missingTraits, setMissingTraits] = useState<string[]>([]);
@@ -629,46 +630,85 @@ const LiveSandbox: React.FC<LiveSandboxProps> = ({
             )}
 
             {simulationResult && (
-              <div className="mt-8 space-y-4">
-                <div className="flex items-center gap-3">
-                  <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
-                    Result distribution
-                  </p>
-                  <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">
-                    Sorted by likelihood
-                  </span>
-                </div>
-                <div className="space-y-3">
-                  {Object.entries(simulationResult)
-                    .sort(([, a], [, b]) => b - a)
-                    .map(([phenotype, probability]) => (
-                      <div
-                        key={phenotype}
-                        className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
-                      >
-                        <div className="flex items-center justify-between">
-                          <span className="font-semibold text-[#1E3A8A]">
-                            {phenotype}
-                          </span>
-                          <span className="font-mono text-slate-600">
-                            {asPercentages
-                              ? `${probability.toFixed(1)}%`
-                              : probability.toFixed(3)}
-                          </span>
-                        </div>
-                        <div className="mt-2 h-2 w-full rounded-full bg-white">
+              <div className="mt-8 space-y-6">
+                <div>
+                  <div className="flex items-center gap-3">
+                    <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
+                      Phenotypic distribution
+                    </p>
+                    <span className="rounded-full bg-slate-100 px-3 py-1 text-[11px] font-semibold text-slate-600">
+                      Sorted by likelihood
+                    </span>
+                  </div>
+                  <div className="mt-3 space-y-3">
+                    {Object.entries(simulationResult.phenotypic_ratios)
+                      .sort(([, a], [, b]) => b - a)
+                      .map(([phenotype, percentage]) => {
+                        if (typeof percentage !== "number" || Number.isNaN(percentage)) {
+                          return null;
+                        }
+                        const displayValue = asPercentages
+                          ? percentage
+                          : percentage * 100;
+
+                        return (
                           <div
-                            className="h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#10B981]"
-                            style={{
-                              width: `${Math.min(
-                                100,
-                                asPercentages ? probability : probability * 100
-                              )}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                    ))}
+                            key={phenotype}
+                            className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-700"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-[#1E3A8A]">
+                                {phenotype}
+                              </span>
+                              <span className="font-mono text-slate-600">
+                                {`${displayValue.toFixed(1)}%`}
+                              </span>
+                            </div>
+                            <div className="mt-2 h-2 w-full rounded-full bg-white">
+                              <div
+                                className="h-full rounded-full bg-gradient-to-r from-[#3B82F6] to-[#10B981]"
+                                style={{
+                                  width: `${Math.min(100, displayValue)}%`,
+                                }}
+                              />
+                            </div>
+                          </div>
+                        );
+                      })}
+                  </div>
+                </div>
+
+                <div>
+                  <p className="text-sm font-semibold uppercase tracking-[0.25em] text-slate-500">
+                    Genotypic distribution
+                  </p>
+                  <div className="mt-3 grid gap-2 md:grid-cols-2">
+                    {Object.entries(simulationResult.genotypic_ratios).map(
+                      ([genotype, percentage]) => {
+                        if (typeof percentage !== "number" || Number.isNaN(percentage)) {
+                          return null;
+                        }
+                        const displayValue = asPercentages
+                          ? percentage
+                          : percentage * 100;
+                        return (
+                          <div
+                            key={genotype}
+                            className="rounded-xl border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700"
+                          >
+                            <div className="flex items-center justify-between">
+                              <span className="font-semibold text-slate-800">
+                                {genotype}
+                              </span>
+                              <span className="font-mono text-slate-600">
+                                {`${displayValue.toFixed(1)}%`}
+                              </span>
+                            </div>
+                          </div>
+                        );
+                      }
+                    )}
+                  </div>
                 </div>
               </div>
             )}

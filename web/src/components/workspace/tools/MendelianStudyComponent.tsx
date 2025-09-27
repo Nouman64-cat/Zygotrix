@@ -5,6 +5,7 @@ import {
   TrashIcon,
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
+import type { MendelianSimulationTraitResult } from "../../../types/api";
 import type { WorkspaceItem } from "../types";
 
 interface MendelianStudyComponentProps {
@@ -34,6 +35,9 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
   onEditItem,
   onDeleteItem,
 }) => {
+  const simulationResults = (item.data?.simulationResults ?? null) as
+    | Record<string, MendelianSimulationTraitResult>
+    | null;
   return (
     <div
       key={item.id}
@@ -104,11 +108,11 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
                 </div>
               ))}
             </div>
-            {item.data.simulationResults && (
+            {simulationResults && (
               <div className="space-y-2">
                 <div className="font-medium">Results:</div>
-                {Object.entries(item.data.simulationResults).map(
-                  ([traitKey, result]) => {
+                {Object.keys(simulationResults).map((traitKey) => {
+                  const result = simulationResults[traitKey];
                     if (
                       !result ||
                       typeof result !== "object" ||

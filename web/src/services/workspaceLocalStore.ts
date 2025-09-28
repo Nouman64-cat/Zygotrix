@@ -185,21 +185,21 @@ const writeMeta = async (meta: ProjectMetaRecord): Promise<void> =>
 
 const updateMeta = async (
   projectId: string,
-  updater: (existing: ProjectMetaRecord | undefined) => ProjectMetaRecord
+  updater: (existing: ProjectMetaRecord | undefined) => Partial<ProjectMetaRecord>
 ): Promise<void> => {
   const existing = await readMeta(projectId);
-  const next = updater(existing);
-  await writeMeta({
+  const updates = updater(existing) ?? {};
+  const merged: ProjectMetaRecord = {
+    ...(existing ?? { project_id: projectId }),
+    ...updates,
     project_id: projectId,
-    ...existing,
-    ...next,
     updated_at: new Date().toISOString(),
-  });
+  };
+  await writeMeta(merged);
 };
 
 export const markLinesDirty = async (projectId: string): Promise<void> => {
-  await updateMeta(projectId, (existing) => ({
-    ...existing,
+  await updateMeta(projectId, () => ({
     lines_dirty: true,
   }));
 };
@@ -209,7 +209,6 @@ export const clearLinesDirty = async (
   snapshotVersion?: number
 ): Promise<void> => {
   await updateMeta(projectId, (existing) => ({
-    ...existing,
     lines_dirty: false,
     line_snapshot_version:
       snapshotVersion ?? existing?.line_snapshot_version ?? 0,
@@ -220,8 +219,7 @@ export const setLineSnapshotVersion = async (
   projectId: string,
   snapshotVersion: number
 ): Promise<void> => {
-  await updateMeta(projectId, (existing) => ({
-    ...existing,
+  await updateMeta(projectId, () => ({
     line_snapshot_version: snapshotVersion,
   }));
 };
@@ -232,8 +230,7 @@ export const areLinesDirty = async (projectId: string): Promise<boolean> => {
 };
 
 export const markNotesDirty = async (projectId: string): Promise<void> => {
-  await updateMeta(projectId, (existing) => ({
-    ...existing,
+  await updateMeta(projectId, () => ({
     notes_dirty: true,
   }));
 };
@@ -243,7 +240,6 @@ export const clearNotesDirty = async (
   snapshotVersion?: number
 ): Promise<void> => {
   await updateMeta(projectId, (existing) => ({
-    ...existing,
     notes_dirty: false,
     note_snapshot_version:
       snapshotVersion ?? existing?.note_snapshot_version ?? 0,
@@ -254,8 +250,7 @@ export const setNoteSnapshotVersion = async (
   projectId: string,
   snapshotVersion: number
 ): Promise<void> => {
-  await updateMeta(projectId, (existing) => ({
-    ...existing,
+  await updateMeta(projectId, () => ({
     note_snapshot_version: snapshotVersion,
   }));
 };
@@ -266,8 +261,7 @@ export const areNotesDirty = async (projectId: string): Promise<boolean> => {
 };
 
 export const markDrawingsDirty = async (projectId: string): Promise<void> => {
-  await updateMeta(projectId, (existing) => ({
-    ...existing,
+  await updateMeta(projectId, () => ({
     drawings_dirty: true,
   }));
 };
@@ -277,7 +271,6 @@ export const clearDrawingsDirty = async (
   snapshotVersion?: number
 ): Promise<void> => {
   await updateMeta(projectId, (existing) => ({
-    ...existing,
     drawings_dirty: false,
     drawing_snapshot_version:
       snapshotVersion ?? existing?.drawing_snapshot_version ?? 0,
@@ -288,8 +281,7 @@ export const setDrawingSnapshotVersion = async (
   projectId: string,
   snapshotVersion: number
 ): Promise<void> => {
-  await updateMeta(projectId, (existing) => ({
-    ...existing,
+  await updateMeta(projectId, () => ({
     drawing_snapshot_version: snapshotVersion,
   }));
 };

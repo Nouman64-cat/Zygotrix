@@ -53,6 +53,10 @@ export interface CanvasDrawing {
   points: { x: number; y: number }[];
   strokeColor: string;
   strokeWidth: number;
+  updatedAt?: string;
+  version?: number;
+  isDeleted?: boolean;
+  origin?: string | null;
 }
 
 /**

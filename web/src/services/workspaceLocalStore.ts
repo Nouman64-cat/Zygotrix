@@ -1,20 +1,34 @@
 import type {
+  ProjectDrawing,
+  ProjectDrawingPayload,
+  ProjectDrawingSnapshot,
   ProjectLine,
   ProjectLinePayload,
   ProjectLineSnapshot,
+  ProjectNote,
+  ProjectNotePayload,
+  ProjectNoteSnapshot,
 } from "../types/api";
 
 const DB_NAME = "zygotrix-workspace";
-const DB_VERSION = 2;
+const DB_VERSION = 3;
 const LINE_STORE = "workspace_lines";
+const NOTE_STORE = "workspace_notes";
+const DRAWING_STORE = "workspace_drawings";
 const META_STORE = "workspace_meta";
 
 export type StoredLineRecord = ProjectLine;
+export type StoredNoteRecord = ProjectNote;
+export type StoredDrawingRecord = ProjectDrawing;
 
 type ProjectMetaRecord = {
   project_id: string;
-  dirty: boolean;
-  snapshot_version?: number;
+  lines_dirty?: boolean;
+  notes_dirty?: boolean;
+  drawings_dirty?: boolean;
+  line_snapshot_version?: number;
+  note_snapshot_version?: number;
+  drawing_snapshot_version?: number;
   updated_at?: string;
 };
 
@@ -55,6 +69,26 @@ const openDatabase = (): Promise<IDBDatabase> => {
             { unique: false }
           );
         }
+        if (!db.objectStoreNames.contains(NOTE_STORE)) {
+          const noteStore = db.createObjectStore(NOTE_STORE, { keyPath: "id" });
+          noteStore.createIndex("project_id", "project_id", { unique: false });
+          noteStore.createIndex(
+            "project_updated_at",
+            ["project_id", "updated_at"],
+            { unique: false }
+          );
+        }
+        if (!db.objectStoreNames.contains(DRAWING_STORE)) {
+          const drawingStore = db.createObjectStore(DRAWING_STORE, {
+            keyPath: "id",
+          });
+          drawingStore.createIndex("project_id", "project_id", { unique: false });
+          drawingStore.createIndex(
+            "project_updated_at",
+            ["project_id", "updated_at"],
+            { unique: false }
+          );
+        }
         if (!db.objectStoreNames.contains(META_STORE)) {
           db.createObjectStore(META_STORE, { keyPath: "project_id" });
         }
@@ -64,9 +98,11 @@ const openDatabase = (): Promise<IDBDatabase> => {
         const db = request.result;
 
         const hasLineStore = db.objectStoreNames.contains(LINE_STORE);
+        const hasNoteStore = db.objectStoreNames.contains(NOTE_STORE);
+        const hasDrawingStore = db.objectStoreNames.contains(DRAWING_STORE);
         const hasMetaStore = db.objectStoreNames.contains(META_STORE);
 
-        if (!hasLineStore || !hasMetaStore) {
+        if (!hasLineStore || !hasNoteStore || !hasDrawingStore || !hasMetaStore) {
           resetDatabase(db)
             .then(() => openDatabase().then(resolve).catch(reject))
             .catch(reject);
@@ -142,52 +178,125 @@ const readMeta = async (projectId: string): Promise<ProjectMetaRecord | undefine
   });
 };
 
-const writeMeta = async (
-  meta: ProjectMetaRecord
-): Promise<void> =>
+const writeMeta = async (meta: ProjectMetaRecord): Promise<void> =>
   withStore<void>(META_STORE, "readwrite", (store) => {
     store.put(meta);
   });
 
-export const markProjectDirty = async (projectId: string): Promise<void> => {
+const updateMeta = async (
+  projectId: string,
+  updater: (existing: ProjectMetaRecord | undefined) => ProjectMetaRecord
+): Promise<void> => {
   const existing = await readMeta(projectId);
+  const next = updater(existing);
   await writeMeta({
     project_id: projectId,
-    dirty: true,
-    snapshot_version: existing?.snapshot_version,
+    ...existing,
+    ...next,
     updated_at: new Date().toISOString(),
   });
 };
 
-export const clearProjectDirty = async (
+export const markLinesDirty = async (projectId: string): Promise<void> => {
+  await updateMeta(projectId, (existing) => ({
+    ...existing,
+    lines_dirty: true,
+  }));
+};
+
+export const clearLinesDirty = async (
   projectId: string,
   snapshotVersion?: number
 ): Promise<void> => {
-  const existing = await readMeta(projectId);
-  await writeMeta({
-    project_id: projectId,
-    dirty: false,
-    snapshot_version: snapshotVersion ?? existing?.snapshot_version ?? 0,
-    updated_at: new Date().toISOString(),
-  });
+  await updateMeta(projectId, (existing) => ({
+    ...existing,
+    lines_dirty: false,
+    line_snapshot_version:
+      snapshotVersion ?? existing?.line_snapshot_version ?? 0,
+  }));
 };
 
-export const setSnapshotVersion = async (
+export const setLineSnapshotVersion = async (
   projectId: string,
   snapshotVersion: number
 ): Promise<void> => {
-  const existing = await readMeta(projectId);
-  await writeMeta({
-    project_id: projectId,
-    dirty: existing?.dirty ?? false,
-    snapshot_version: snapshotVersion,
-    updated_at: new Date().toISOString(),
-  });
+  await updateMeta(projectId, (existing) => ({
+    ...existing,
+    line_snapshot_version: snapshotVersion,
+  }));
 };
 
-export const isProjectDirty = async (projectId: string): Promise<boolean> => {
+export const areLinesDirty = async (projectId: string): Promise<boolean> => {
   const meta = await readMeta(projectId);
-  return Boolean(meta?.dirty);
+  return Boolean(meta?.lines_dirty);
+};
+
+export const markNotesDirty = async (projectId: string): Promise<void> => {
+  await updateMeta(projectId, (existing) => ({
+    ...existing,
+    notes_dirty: true,
+  }));
+};
+
+export const clearNotesDirty = async (
+  projectId: string,
+  snapshotVersion?: number
+): Promise<void> => {
+  await updateMeta(projectId, (existing) => ({
+    ...existing,
+    notes_dirty: false,
+    note_snapshot_version:
+      snapshotVersion ?? existing?.note_snapshot_version ?? 0,
+  }));
+};
+
+export const setNoteSnapshotVersion = async (
+  projectId: string,
+  snapshotVersion: number
+): Promise<void> => {
+  await updateMeta(projectId, (existing) => ({
+    ...existing,
+    note_snapshot_version: snapshotVersion,
+  }));
+};
+
+export const areNotesDirty = async (projectId: string): Promise<boolean> => {
+  const meta = await readMeta(projectId);
+  return Boolean(meta?.notes_dirty);
+};
+
+export const markDrawingsDirty = async (projectId: string): Promise<void> => {
+  await updateMeta(projectId, (existing) => ({
+    ...existing,
+    drawings_dirty: true,
+  }));
+};
+
+export const clearDrawingsDirty = async (
+  projectId: string,
+  snapshotVersion?: number
+): Promise<void> => {
+  await updateMeta(projectId, (existing) => ({
+    ...existing,
+    drawings_dirty: false,
+    drawing_snapshot_version:
+      snapshotVersion ?? existing?.drawing_snapshot_version ?? 0,
+  }));
+};
+
+export const setDrawingSnapshotVersion = async (
+  projectId: string,
+  snapshotVersion: number
+): Promise<void> => {
+  await updateMeta(projectId, (existing) => ({
+    ...existing,
+    drawing_snapshot_version: snapshotVersion,
+  }));
+};
+
+export const areDrawingsDirty = async (projectId: string): Promise<boolean> => {
+  const meta = await readMeta(projectId);
+  return Boolean(meta?.drawings_dirty);
 };
 
 export const getStoredLines = async (
@@ -297,13 +406,225 @@ export const getLinesForSave = async (
   }));
 };
 
-export const recordServerSnapshot = async (
+export const recordLineSnapshot = async (
   projectId: string,
   snapshot: ProjectLineSnapshot
 ): Promise<void> => {
   await replaceProjectLines(projectId, snapshot.lines);
-  await setSnapshotVersion(projectId, snapshot.snapshot_version);
-  await clearProjectDirty(projectId, snapshot.snapshot_version);
+  await setLineSnapshotVersion(projectId, snapshot.snapshot_version);
+  await clearLinesDirty(projectId, snapshot.snapshot_version);
+};
+
+export const getStoredNotes = async (
+  projectId: string,
+  options: { includeDeleted?: boolean } = {}
+): Promise<StoredNoteRecord[]> => {
+  const includeDeleted = options.includeDeleted ?? true;
+  const db = await openDatabase();
+
+  const readNotes = () =>
+    new Promise<StoredNoteRecord[]>((resolve, reject) => {
+      let tx: IDBTransaction;
+      try {
+        tx = db.transaction(NOTE_STORE, "readonly");
+      } catch (error) {
+        reject(error);
+        return;
+      }
+
+      const store = tx.objectStore(NOTE_STORE);
+      const index = store.index("project_id");
+      const request = index.openCursor(IDBKeyRange.only(projectId));
+      const records: StoredNoteRecord[] = [];
+
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) {
+          resolve(records);
+          return;
+        }
+        const value = cursor.value as StoredNoteRecord;
+        if (includeDeleted || !value.is_deleted) {
+          records.push(value);
+        }
+        cursor.continue();
+      };
+
+      request.onerror = () =>
+        reject(request.error ?? new Error("Failed to read notes"));
+    });
+
+  try {
+    return await readNotes();
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "NotFoundError") {
+      await resetDatabase(db);
+      await openDatabase();
+      return getStoredNotes(projectId, options);
+    }
+    throw error;
+  }
+};
+
+export const upsertStoredNote = async (note: StoredNoteRecord): Promise<void> =>
+  withStore<void>(NOTE_STORE, "readwrite", (store) => {
+    store.put(note);
+  });
+
+export const replaceProjectNotes = async (
+  projectId: string,
+  notes: StoredNoteRecord[]
+): Promise<void> =>
+  withStore<void>(NOTE_STORE, "readwrite", (store, tx) => {
+    const index = store.index("project_id");
+    const request = index.openCursor(IDBKeyRange.only(projectId));
+
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (cursor) {
+        cursor.delete();
+        cursor.continue();
+        return;
+      }
+
+      for (const note of notes) {
+        store.put(note);
+      }
+    };
+
+    request.onerror = () => tx.abort();
+  });
+
+export const getNotesForSave = async (
+  projectId: string
+): Promise<ProjectNotePayload[]> => {
+  const notes = await getStoredNotes(projectId, { includeDeleted: true });
+  return notes.map((note) => ({
+    id: note.id,
+    content: note.content,
+    position: note.position,
+    size: note.size,
+    is_deleted: note.is_deleted,
+    updated_at: note.updated_at,
+    version: note.version,
+    origin: note.origin,
+  }));
+};
+
+export const recordNoteSnapshot = async (
+  projectId: string,
+  snapshot: ProjectNoteSnapshot
+): Promise<void> => {
+  await replaceProjectNotes(projectId, snapshot.notes);
+  await setNoteSnapshotVersion(projectId, snapshot.snapshot_version);
+  await clearNotesDirty(projectId, snapshot.snapshot_version);
+};
+
+export const getStoredDrawings = async (
+  projectId: string,
+  options: { includeDeleted?: boolean } = {}
+): Promise<StoredDrawingRecord[]> => {
+  const includeDeleted = options.includeDeleted ?? true;
+  const db = await openDatabase();
+
+  const readDrawings = () =>
+    new Promise<StoredDrawingRecord[]>((resolve, reject) => {
+      let tx: IDBTransaction;
+      try {
+        tx = db.transaction(DRAWING_STORE, "readonly");
+      } catch (error) {
+        reject(error);
+        return;
+      }
+
+      const store = tx.objectStore(DRAWING_STORE);
+      const index = store.index("project_id");
+      const request = index.openCursor(IDBKeyRange.only(projectId));
+      const records: StoredDrawingRecord[] = [];
+
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) {
+          resolve(records);
+          return;
+        }
+        const value = cursor.value as StoredDrawingRecord;
+        if (includeDeleted || !value.is_deleted) {
+          records.push(value);
+        }
+        cursor.continue();
+      };
+
+      request.onerror = () =>
+        reject(request.error ?? new Error("Failed to read drawings"));
+    });
+
+  try {
+    return await readDrawings();
+  } catch (error) {
+    if (error instanceof DOMException && error.name === "NotFoundError") {
+      await resetDatabase(db);
+      await openDatabase();
+      return getStoredDrawings(projectId, options);
+    }
+    throw error;
+  }
+};
+
+export const upsertStoredDrawing = async (
+  drawing: StoredDrawingRecord
+): Promise<void> =>
+  withStore<void>(DRAWING_STORE, "readwrite", (store) => {
+    store.put(drawing);
+  });
+
+export const replaceProjectDrawings = async (
+  projectId: string,
+  drawings: StoredDrawingRecord[]
+): Promise<void> =>
+  withStore<void>(DRAWING_STORE, "readwrite", (store, tx) => {
+    const index = store.index("project_id");
+    const request = index.openCursor(IDBKeyRange.only(projectId));
+
+    request.onsuccess = () => {
+      const cursor = request.result;
+      if (cursor) {
+        cursor.delete();
+        cursor.continue();
+        return;
+      }
+
+      for (const drawing of drawings) {
+        store.put(drawing);
+      }
+    };
+
+    request.onerror = () => tx.abort();
+  });
+
+export const getDrawingsForSave = async (
+  projectId: string
+): Promise<ProjectDrawingPayload[]> => {
+  const drawings = await getStoredDrawings(projectId, { includeDeleted: true });
+  return drawings.map((drawing) => ({
+    id: drawing.id,
+    points: drawing.points,
+    stroke_color: drawing.stroke_color,
+    stroke_width: drawing.stroke_width,
+    is_deleted: drawing.is_deleted,
+    updated_at: drawing.updated_at,
+    version: drawing.version,
+    origin: drawing.origin,
+  }));
+};
+
+export const recordDrawingSnapshot = async (
+  projectId: string,
+  snapshot: ProjectDrawingSnapshot
+): Promise<void> => {
+  await replaceProjectDrawings(projectId, snapshot.drawings);
+  await setDrawingSnapshotVersion(projectId, snapshot.snapshot_version);
+  await clearDrawingsDirty(projectId, snapshot.snapshot_version);
 };
 
 const DEVICE_ID_KEY = "zygotrix_device_id";

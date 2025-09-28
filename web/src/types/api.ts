@@ -178,3 +178,83 @@ export type ProjectLineSaveResponse = ProjectLineSnapshot & {
 export type ProjectLineSaveRequest = {
   lines: ProjectLinePayload[];
 };
+
+export type ProjectNoteSize = {
+  width: number;
+  height: number;
+};
+
+export type ProjectNotePayload = {
+  id: string;
+  content: string;
+  position: ProjectLinePoint;
+  size: ProjectNoteSize;
+  is_deleted: boolean;
+  updated_at: string;
+  version: number;
+  origin?: string | null;
+};
+
+export type ProjectNote = ProjectNotePayload & {
+  project_id: string;
+};
+
+export type ProjectNoteSnapshot = {
+  notes: ProjectNote[];
+  snapshot_version: number;
+};
+
+export type ProjectNoteSaveSummary = {
+  created: number;
+  updated: number;
+  deleted: number;
+  ignored: number;
+};
+
+export type ProjectNoteSaveResponse = ProjectNoteSnapshot & {
+  summary: ProjectNoteSaveSummary;
+};
+
+export type ProjectNoteSaveRequest = {
+  notes: ProjectNotePayload[];
+};
+
+export type ProjectDrawingPoint = {
+  x: number;
+  y: number;
+};
+
+export type ProjectDrawingPayload = {
+  id: string;
+  points: ProjectDrawingPoint[];
+  stroke_color: string;
+  stroke_width: number;
+  is_deleted: boolean;
+  updated_at: string;
+  version: number;
+  origin?: string | null;
+};
+
+export type ProjectDrawing = ProjectDrawingPayload & {
+  project_id: string;
+};
+
+export type ProjectDrawingSnapshot = {
+  drawings: ProjectDrawing[];
+  snapshot_version: number;
+};
+
+export type ProjectDrawingSaveSummary = {
+  created: number;
+  updated: number;
+  deleted: number;
+  ignored: number;
+};
+
+export type ProjectDrawingSaveResponse = ProjectDrawingSnapshot & {
+  summary: ProjectDrawingSaveSummary;
+};
+
+export type ProjectDrawingSaveRequest = {
+  drawings: ProjectDrawingPayload[];
+};

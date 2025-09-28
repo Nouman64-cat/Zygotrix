@@ -88,6 +88,9 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
             selectedTool === "drawing" && isEraserMode
               ? ""
               : // If a tool is selected (not hand), show crosshair for placement
+              selectedTool === "line" && isLineEraserMode
+              ? "cursor-default"
+              :
               selectedTool
               ? selectedTool === "hand"
                 ? isPanning

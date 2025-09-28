@@ -96,7 +96,8 @@ export const mergeBackendAndLocalItems = (
   // Get local-only items (items not saved to backend)
   const localOnlyItems = localItems.filter(
     (item) =>
-      item.type !== "mendelian-study" && // Keep non-mendelian items (like notes)
+      item.type !== "mendelian-study" &&
+      item.type !== "note" &&
       !backendItems.some((newItem) => newItem.id === item.id) // And items not in the new backend data
   );
 

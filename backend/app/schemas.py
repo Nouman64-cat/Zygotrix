@@ -405,6 +405,114 @@ class ProjectLineSaveResponse(ProjectLineSnapshot):
     summary: ProjectLineSaveSummary = Field(default_factory=ProjectLineSaveSummary)
 
 
+class ProjectNoteSize(BaseModel):
+    """Dimensions for a workspace note."""
+
+    width: float
+    height: float
+
+
+class ProjectNotePayload(BaseModel):
+    """Client-submitted representation of a workspace note."""
+
+    id: str
+    content: str
+    position: ProjectLinePoint
+    size: ProjectNoteSize
+    is_deleted: bool = False
+    updated_at: datetime
+    version: int = 0
+    origin: Optional[str] = None
+
+
+class ProjectNote(ProjectNotePayload):
+    """Canonical representation of a workspace note stored on the server."""
+
+    project_id: str
+
+
+class ProjectNoteSaveSummary(BaseModel):
+    """Summary counts for note save operations."""
+
+    created: int = 0
+    updated: int = 0
+    deleted: int = 0
+    ignored: int = 0
+
+
+class ProjectNoteSnapshot(BaseModel):
+    """Snapshot of all notes for a project."""
+
+    notes: List[ProjectNote]
+    snapshot_version: int = 0
+
+
+class ProjectNoteSaveRequest(BaseModel):
+    """Batch of note mutations submitted by the client."""
+
+    notes: List[ProjectNotePayload] = Field(default_factory=list)
+
+
+class ProjectNoteSaveResponse(ProjectNoteSnapshot):
+    """Response payload returned after saving notes."""
+
+    summary: ProjectNoteSaveSummary = Field(default_factory=ProjectNoteSaveSummary)
+
+
+class ProjectDrawingPoint(BaseModel):
+    """Single coordinate in a freehand drawing."""
+
+    x: float
+    y: float
+
+
+class ProjectDrawingPayload(BaseModel):
+    """Client-submitted representation of a freehand drawing."""
+
+    id: str
+    points: List[ProjectDrawingPoint]
+    stroke_color: str
+    stroke_width: float
+    is_deleted: bool = False
+    updated_at: datetime
+    version: int = 0
+    origin: Optional[str] = None
+
+
+class ProjectDrawing(ProjectDrawingPayload):
+    """Canonical representation of a freehand drawing stored on the server."""
+
+    project_id: str
+
+
+class ProjectDrawingSaveSummary(BaseModel):
+    """Summary counts for drawing save operations."""
+
+    created: int = 0
+    updated: int = 0
+    deleted: int = 0
+    ignored: int = 0
+
+
+class ProjectDrawingSnapshot(BaseModel):
+    """Snapshot of all drawings for a project."""
+
+    drawings: List[ProjectDrawing]
+    snapshot_version: int = 0
+
+
+class ProjectDrawingSaveRequest(BaseModel):
+    """Batch of drawing mutations submitted by the client."""
+
+    drawings: List[ProjectDrawingPayload] = Field(default_factory=list)
+
+
+class ProjectDrawingSaveResponse(ProjectDrawingSnapshot):
+    """Response payload returned after saving drawings."""
+
+    summary: ProjectDrawingSaveSummary = Field(default_factory=ProjectDrawingSaveSummary)
+
+
 class Project(BaseModel):
     """A user project containing genetics studies and tools."""
 

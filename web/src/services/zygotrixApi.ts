@@ -11,6 +11,7 @@ import type {
   ProjectUpdateRequest,
   ProjectResponse,
 } from "../types/api";
+import { parseJsonResponse, parseVoidResponse } from "./http";
 
 export const API_BASE_URL =
   import.meta.env.VITE_ZYGOTRIX_API ?? "http://127.0.0.1:8000";
@@ -18,14 +19,6 @@ export const API_BASE_URL =
 const getAuthHeaders = (): HeadersInit => {
   const token = localStorage.getItem("zygotrix_auth_token");
   return token ? { Authorization: `Bearer ${token}` } : {};
-};
-
-const handleResponse = async <T>(response: Response): Promise<T> => {
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(body || `Request failed with status ${response.status}`);
-  }
-  return (await response.json()) as T;
 };
 
 export const fetchTraits = async (
@@ -49,7 +42,7 @@ export const fetchTraits = async (
   }
 
   const response = await fetch(url.toString(), { signal });
-  const payload = await handleResponse<TraitListResponse>(response);
+  const payload = await parseJsonResponse<TraitListResponse>(response);
   return payload.traits;
 };
 
@@ -61,7 +54,7 @@ export const createTrait = async (
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(payload),
   });
-  return handleResponse<TraitMutationResponse>(response);
+  return parseJsonResponse<TraitMutationResponse>(response);
 };
 
 export const updateTrait = async (
@@ -76,7 +69,7 @@ export const updateTrait = async (
       body: JSON.stringify(payload),
     }
   );
-  return handleResponse<TraitMutationResponse>(response);
+  return parseJsonResponse<TraitMutationResponse>(response);
 };
 
 export const deleteTrait = async (key: string): Promise<void> => {
@@ -86,10 +79,7 @@ export const deleteTrait = async (key: string): Promise<void> => {
       method: "DELETE",
     }
   );
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(body || `Delete failed with status ${response.status}`);
-  }
+  await parseVoidResponse(response);
 };
 
 export const simulateMendelianTrait = async (
@@ -109,7 +99,7 @@ export const simulateMendelianTrait = async (
     }),
   });
 
-  return handleResponse<MendelianSimulationResponse>(response);
+  return parseJsonResponse<MendelianSimulationResponse>(response);
 };
 
 export const simulateMultipleMendelianTraits = async (
@@ -129,7 +119,7 @@ export const simulateMultipleMendelianTraits = async (
     }),
   });
 
-  return handleResponse<MendelianSimulationResponse>(response);
+  return parseJsonResponse<MendelianSimulationResponse>(response);
 };
 
 export const simulateJointPhenotypes = async (
@@ -149,7 +139,7 @@ export const simulateJointPhenotypes = async (
     }),
   });
 
-  return handleResponse<JointPhenotypeSimulationResponse>(response);
+  return parseJsonResponse<JointPhenotypeSimulationResponse>(response);
 };
 
 export const fetchTraitGenotypes = async (
@@ -163,7 +153,7 @@ export const fetchTraitGenotypes = async (
     }),
   });
 
-  return handleResponse<GenotypeResponse>(response);
+  return parseJsonResponse<GenotypeResponse>(response);
 };
 
 export const fetchPolygenicScore = async (
@@ -182,7 +172,7 @@ export const fetchPolygenicScore = async (
     signal,
   });
 
-  return handleResponse<PolygenicScoreResponse>(response);
+  return parseJsonResponse<PolygenicScoreResponse>(response);
 };
 
 // Tool Management API functions
@@ -205,7 +195,7 @@ export const createMendelianTool = async (
     }
   );
 
-  return handleResponse<any>(response);
+  return parseJsonResponse<any>(response);
 };
 
 export const updateMendelianTool = async (
@@ -228,7 +218,7 @@ export const updateMendelianTool = async (
     }
   );
 
-  return handleResponse<any>(response);
+  return parseJsonResponse<any>(response);
 };
 
 export const deleteMendelianTool = async (
@@ -243,10 +233,7 @@ export const deleteMendelianTool = async (
     }
   );
 
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(body || `Request failed with status ${response.status}`);
-  }
+  await parseVoidResponse(response);
 };
 
 // Project Management API functions
@@ -260,5 +247,5 @@ export const updateProject = async (
     body: JSON.stringify(updates),
   });
 
-  return handleResponse<ProjectResponse>(response);
+  return parseJsonResponse<ProjectResponse>(response);
 };

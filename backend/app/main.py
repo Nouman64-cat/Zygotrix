@@ -36,6 +36,12 @@ from .schemas import (
     ProjectLineSaveRequest,
     ProjectLineSaveResponse,
     ProjectLineSnapshot,
+    ProjectNoteSaveRequest,
+    ProjectNoteSaveResponse,
+    ProjectNoteSnapshot,
+    ProjectDrawingSaveRequest,
+    ProjectDrawingSaveResponse,
+    ProjectDrawingSnapshot,
     ProjectTemplate,
     ProjectTemplateListResponse,
     ProjectUpdateRequest,
@@ -513,6 +519,70 @@ def save_project_lines(
     current_user: UserProfile = Depends(get_current_user),
 ) -> ProjectLineSaveResponse:
     result = services.save_project_lines(project_id, current_user.id, payload.lines)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return result
+
+
+@app.get(
+    "/api/projects/{project_id}/notes",
+    response_model=ProjectNoteSnapshot,
+    tags=["Projects"],
+)
+def get_project_notes(
+    project_id: str,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectNoteSnapshot:
+    snapshot = services.get_project_note_snapshot(project_id, current_user.id)
+    if snapshot is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return snapshot
+
+
+@app.post(
+    "/api/projects/{project_id}/notes/save",
+    response_model=ProjectNoteSaveResponse,
+    tags=["Projects"],
+)
+def save_project_notes(
+    project_id: str,
+    payload: ProjectNoteSaveRequest,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectNoteSaveResponse:
+    result = services.save_project_notes(project_id, current_user.id, payload.notes)
+    if result is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return result
+
+
+@app.get(
+    "/api/projects/{project_id}/drawings",
+    response_model=ProjectDrawingSnapshot,
+    tags=["Projects"],
+)
+def get_project_drawings(
+    project_id: str,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectDrawingSnapshot:
+    snapshot = services.get_project_drawing_snapshot(project_id, current_user.id)
+    if snapshot is None:
+        raise HTTPException(status_code=404, detail="Project not found")
+    return snapshot
+
+
+@app.post(
+    "/api/projects/{project_id}/drawings/save",
+    response_model=ProjectDrawingSaveResponse,
+    tags=["Projects"],
+)
+def save_project_drawings(
+    project_id: str,
+    payload: ProjectDrawingSaveRequest,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ProjectDrawingSaveResponse:
+    result = services.save_project_drawings(
+        project_id, current_user.id, payload.drawings
+    )
     if result is None:
         raise HTTPException(status_code=404, detail="Project not found")
     return result

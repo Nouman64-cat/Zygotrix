@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import ColorPicker from "../ColorPicker";
 import { getTimeAgo } from "./helpers/formatHelpers";
@@ -9,7 +9,11 @@ import {
   Cog6ToothIcon,
   TrashIcon,
 } from "@heroicons/react/24/outline";
-import type { ProjectLineSaveSummary } from "../../types/api";
+import type {
+  ProjectDrawingSaveSummary,
+  ProjectLineSaveSummary,
+  ProjectNoteSaveSummary,
+} from "../../types/api";
 
 interface WorkspaceHeaderProps {
   projectId: string | undefined;
@@ -32,9 +36,13 @@ interface WorkspaceHeaderProps {
   handleManualSave: () => void;
   handleSettingsClick: () => void;
   handleDeleteClick: () => void;
-  linesDirty: boolean;
+  workspaceDirty: boolean;
   isOffline: boolean;
-  lineSaveSummary: ProjectLineSaveSummary | null;
+  saveSummary: {
+    lines: ProjectLineSaveSummary | null;
+    notes: ProjectNoteSaveSummary | null;
+    drawings: ProjectDrawingSaveSummary | null;
+  };
 }
 
 const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
@@ -58,11 +66,32 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   handleManualSave,
   handleSettingsClick,
   handleDeleteClick,
-  linesDirty,
+  workspaceDirty,
   isOffline,
-  lineSaveSummary,
+  saveSummary,
 }) => {
   const navigate = useNavigate();
+
+  const aggregatedSummary = useMemo(() => {
+    const totals = { created: 0, updated: 0, deleted: 0, ignored: 0 };
+    const { lines, notes, drawings } = saveSummary;
+
+    const summaries = [lines, notes, drawings].filter(
+      (summary): summary is
+        | ProjectLineSaveSummary
+        | ProjectNoteSaveSummary
+        | ProjectDrawingSaveSummary => Boolean(summary)
+    );
+
+    for (const summary of summaries) {
+      totals.created += summary.created;
+      totals.updated += summary.updated;
+      totals.deleted += summary.deleted;
+      totals.ignored += summary.ignored;
+    }
+
+    return { totals, hasSummary: summaries.length > 0 };
+  }, [saveSummary]);
 
   return (
     <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center justify-between flex-shrink-0">
@@ -159,18 +188,19 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             <CloudArrowUpIcon className="h-4 w-4 animate-pulse" />
             <span>Saving...</span>
           </div>
-        ) : linesDirty ? (
+        ) : workspaceDirty ? (
           <div className="flex items-center space-x-2 text-sm text-amber-600">
             <CloudArrowUpIcon className="h-4 w-4" />
             <span>Unsaved changes</span>
           </div>
-        ) : lineSaveSummary ? (
+        ) : aggregatedSummary.hasSummary ? (
           <div className="flex items-center space-x-2 text-sm text-emerald-600">
             <CloudArrowUpIcon className="h-4 w-4" />
             <span>
-              Saved c/u/d/i: {lineSaveSummary.created}/
-              {lineSaveSummary.updated}/{lineSaveSummary.deleted}/
-              {lineSaveSummary.ignored}
+              Saved (c/u/d/i): {aggregatedSummary.totals.created}/
+              {aggregatedSummary.totals.updated}/
+              {aggregatedSummary.totals.deleted}/
+              {aggregatedSummary.totals.ignored}
             </span>
           </div>
         ) : project ? (

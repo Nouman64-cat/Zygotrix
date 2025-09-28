@@ -1,4 +1,4 @@
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
 import MendelianStudyModal from "../components/MendelianStudyModal";
@@ -63,19 +63,43 @@ import {
   ensureDeviceId,
   getStoredLines,
   getLinesForSave,
-  isProjectDirty as isProjectLinesDirty,
-  markProjectDirty as markProjectLinesDirty,
-  recordServerSnapshot,
+  getStoredNotes,
+  getNotesForSave,
+  getStoredDrawings,
+  getDrawingsForSave,
+  areLinesDirty,
+  areNotesDirty,
+  areDrawingsDirty,
+  markLinesDirty,
+  markNotesDirty,
+  markDrawingsDirty,
+  recordLineSnapshot,
+  recordNoteSnapshot,
+  recordDrawingSnapshot,
   replaceProjectLines as replaceStoredProjectLines,
+  replaceProjectNotes as replaceStoredProjectNotes,
+  replaceProjectDrawings as replaceStoredProjectDrawings,
   upsertManyLines,
   upsertStoredLine,
+  upsertStoredNote,
+  upsertStoredDrawing,
   type StoredLineRecord,
+  type StoredNoteRecord,
+  type StoredDrawingRecord,
 } from "../services/workspaceLocalStore";
 import {
   fetchProjectLines,
   saveProjectLines as saveProjectLinesApi,
+  fetchProjectNotes,
+  saveProjectNotes as saveProjectNotesApi,
+  fetchProjectDrawings,
+  saveProjectDrawings as saveProjectDrawingsApi,
 } from "../services/projectApi";
-import type { ProjectLineSaveSummary } from "../types/api";
+import type {
+  ProjectDrawingSaveSummary,
+  ProjectLineSaveSummary,
+  ProjectNoteSaveSummary,
+} from "../types/api";
 
 const ProjectWorkspace: React.FC = () => {
   const { projectId } = useParams();
@@ -293,6 +317,12 @@ const ProjectWorkspace: React.FC = () => {
   const [linesDirty, setLinesDirty] = useState(false);
   const [lineSaveSummary, setLineSaveSummary] =
     useState<ProjectLineSaveSummary | null>(null);
+  const [notesDirty, setNotesDirty] = useState(false);
+  const [noteSaveSummary, setNoteSaveSummary] =
+    useState<ProjectNoteSaveSummary | null>(null);
+  const [drawingsDirty, setDrawingsDirty] = useState(false);
+  const [drawingSaveSummary, setDrawingSaveSummary] =
+    useState<ProjectDrawingSaveSummary | null>(null);
   const deviceIdRef = useRef<string>(ensureDeviceId());
   const [isOffline, setIsOffline] = useState(!navigator.onLine);
   const [isDrawingLine, setIsDrawingLine] = useState(false);
@@ -343,6 +373,83 @@ const ProjectWorkspace: React.FC = () => {
       origin: line.origin ?? deviceIdRef.current,
     }),
     []
+  );
+
+  const mapStoredNoteToItem = useCallback(
+    (record: StoredNoteRecord): WorkspaceItem => ({
+      id: record.id,
+      type: "note",
+      position: { x: record.position.x, y: record.position.y },
+      size: { width: record.size.width, height: record.size.height },
+      data: {
+        content: record.content,
+        updatedAt: record.updated_at,
+        version: record.version,
+        origin: record.origin ?? null,
+      },
+    }),
+    []
+  );
+
+  const mapItemToStoredNote = useCallback(
+    (projectIdValue: string, item: WorkspaceItem): StoredNoteRecord => ({
+      id: item.id,
+      project_id: projectIdValue,
+      content: item.data?.content ?? "",
+      position: {
+        x: item.position.x,
+        y: item.position.y,
+      },
+      size: {
+        width: item.size.width,
+        height: item.size.height,
+      },
+      is_deleted: Boolean(item.data?.isDeleted),
+      updated_at: item.data?.updatedAt ?? new Date().toISOString(),
+      version: item.data?.version ?? 0,
+      origin: item.data?.origin ?? deviceIdRef.current,
+    }),
+    []
+  );
+
+  const mapStoredDrawingToCanvas = useCallback(
+    (record: StoredDrawingRecord): CanvasDrawing => ({
+      id: record.id,
+      points: record.points.map((point) => ({ x: point.x, y: point.y })),
+      strokeColor: record.stroke_color,
+      strokeWidth: record.stroke_width,
+      updatedAt: record.updated_at,
+      version: record.version,
+      origin: record.origin ?? null,
+      isDeleted: record.is_deleted,
+    }),
+    []
+  );
+
+  const mapCanvasToStoredDrawing = useCallback(
+    (projectIdValue: string, drawing: CanvasDrawing): StoredDrawingRecord => ({
+      id: drawing.id,
+      project_id: projectIdValue,
+      points: drawing.points.map((point) => ({ x: point.x, y: point.y })),
+      stroke_color: drawing.strokeColor,
+      stroke_width: drawing.strokeWidth,
+      is_deleted: Boolean(drawing.isDeleted),
+      updated_at: drawing.updatedAt ?? new Date().toISOString(),
+      version: drawing.version ?? 0,
+      origin: drawing.origin ?? deviceIdRef.current,
+    }),
+    []
+  );
+
+  const workspaceDirty = linesDirty || notesDirty || drawingsDirty;
+
+  const workspaceSaveSummary = useMemo(
+    () => ({
+      lines: lineSaveSummary,
+      notes: noteSaveSummary,
+      drawings: drawingSaveSummary,
+    }),
+    [lineSaveSummary, noteSaveSummary, drawingSaveSummary]
   );
 
   // Update current drawing path when color or width changes
@@ -428,7 +535,7 @@ const ProjectWorkspace: React.FC = () => {
   useEffect(() => {
     if (projectId && projectId !== "new" && items.length > 0) {
       const localOnlyItems = items.filter(
-        (item) => item.type !== "mendelian-study"
+        (item) => item.type !== "mendelian-study" && item.type !== "note"
       );
       saveLocalItems(projectId, localOnlyItems);
     }
@@ -447,6 +554,8 @@ const ProjectWorkspace: React.FC = () => {
     const handleOffline = () => {
       setIsOffline(true);
       setLinesDirty(true);
+      setNotesDirty(true);
+      setDrawingsDirty(true);
     };
 
     window.addEventListener("online", handleOnline);
@@ -501,7 +610,7 @@ const ProjectWorkspace: React.FC = () => {
               .filter((record) => !record.is_deleted)
               .map(mapStoredLineToDrawing)
           );
-          const dirty = await isProjectLinesDirty(projectId);
+          const dirty = await areLinesDirty(projectId);
           if (!cancelled) {
             setLinesDirty(dirty || isOffline);
           }
@@ -518,7 +627,7 @@ const ProjectWorkspace: React.FC = () => {
 
       try {
         const snapshot = await fetchProjectLines(projectId);
-        await recordServerSnapshot(projectId, snapshot);
+        await recordLineSnapshot(projectId, snapshot);
 
         if (cancelled) return;
 
@@ -542,6 +651,205 @@ const ProjectWorkspace: React.FC = () => {
       cancelled = true;
     };
   }, [projectId, isOffline, mapStoredLineToDrawing]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const hydrateNotes = async () => {
+      if (!projectId) {
+        if (!cancelled) {
+          setItems((prev) => prev.filter((item) => item.type !== "note"));
+          setNotesDirty(false);
+        }
+        return;
+      }
+
+      const storageProjectId = projectId === "new" ? "new" : projectId;
+
+      try {
+        let records = await getStoredNotes(storageProjectId, {
+          includeDeleted: true,
+        });
+
+        if (!records.length) {
+          const legacyNotes = loadLocalItems(projectId).filter(
+            (legacy) => legacy.type === "note"
+          );
+          if (legacyNotes.length) {
+            const nowIso = new Date().toISOString();
+            records = legacyNotes.map((legacy) => ({
+              id: legacy.id,
+              project_id: storageProjectId,
+              content: legacy.data?.content ?? "",
+              position: {
+                x: legacy.position.x,
+                y: legacy.position.y,
+              },
+              size: {
+                width: legacy.size.width,
+                height: legacy.size.height,
+              },
+              is_deleted: false,
+              updated_at: legacy.data?.updatedAt ?? nowIso,
+              version: legacy.data?.version ?? 0,
+              origin: legacy.data?.origin ?? deviceIdRef.current,
+            }));
+
+            await Promise.all(records.map((note) => upsertStoredNote(note)));
+          }
+        }
+
+        if (!cancelled) {
+          setItems((prev) => {
+            const withoutNotes = prev.filter((item) => item.type !== "note");
+            const noteItems = records
+              .filter((record) => !record.is_deleted)
+              .map(mapStoredNoteToItem);
+            return [...withoutNotes, ...noteItems];
+          });
+
+          if (projectId !== "new") {
+            const dirty = await areNotesDirty(projectId);
+            if (!cancelled) {
+              setNotesDirty(dirty || isOffline);
+            }
+          } else if (!cancelled) {
+            setNotesDirty(false);
+          }
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load workspace notes", error);
+          setNotesDirty(true);
+        }
+      }
+
+      if (cancelled || projectId === "new" || isOffline) {
+        return;
+      }
+
+      try {
+        const snapshot = await fetchProjectNotes(projectId);
+        await recordNoteSnapshot(projectId, snapshot);
+
+        if (cancelled) return;
+
+        setItems((prev) => {
+          const withoutNotes = prev.filter((item) => item.type !== "note");
+          const noteItems = snapshot.notes
+            .filter((record) => !record.is_deleted)
+            .map(mapStoredNoteToItem);
+          return [...withoutNotes, ...noteItems];
+        });
+        setNotesDirty(false);
+      } catch (error) {
+        if (!cancelled) {
+          console.warn("Failed to pull note snapshot", error);
+          setNotesDirty(true);
+        }
+      }
+    };
+
+    void hydrateNotes();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, isOffline, mapStoredNoteToItem]);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const hydrateDrawings = async () => {
+      if (!projectId) {
+        if (!cancelled) {
+          setCanvasDrawings([]);
+          setDrawingsDirty(false);
+        }
+        return;
+      }
+
+      const storageProjectId = projectId === "new" ? "new" : projectId;
+
+      try {
+        let records = await getStoredDrawings(storageProjectId, {
+          includeDeleted: true,
+        });
+
+        if (!records.length) {
+          const legacy = loadCanvasDrawings(projectId);
+          if (legacy.length) {
+            const nowIso = new Date().toISOString();
+            records = legacy.map((drawing) => ({
+              id: drawing.id,
+              project_id: storageProjectId,
+              points: drawing.points.map((point) => ({
+                x: point.x,
+                y: point.y,
+              })),
+              stroke_color: drawing.strokeColor,
+              stroke_width: drawing.strokeWidth,
+              is_deleted: Boolean(drawing.isDeleted),
+              updated_at: drawing.updatedAt ?? nowIso,
+              version: drawing.version ?? 0,
+              origin: drawing.origin ?? deviceIdRef.current,
+            }));
+
+            await Promise.all(records.map((drawing) => upsertStoredDrawing(drawing)));
+          }
+        }
+
+        if (!cancelled) {
+          const active = records
+            .filter((record) => !record.is_deleted)
+            .map(mapStoredDrawingToCanvas);
+          setCanvasDrawings(active);
+
+          if (projectId !== "new") {
+            const dirty = await areDrawingsDirty(projectId);
+            if (!cancelled) {
+              setDrawingsDirty(dirty || isOffline);
+            }
+          } else if (!cancelled) {
+            setDrawingsDirty(false);
+          }
+        }
+      } catch (error) {
+        if (!cancelled) {
+          console.error("Failed to load workspace drawings", error);
+          setDrawingsDirty(true);
+        }
+      }
+
+      if (cancelled || projectId === "new" || isOffline) {
+        return;
+      }
+
+      try {
+        const snapshot = await fetchProjectDrawings(projectId);
+        await recordDrawingSnapshot(projectId, snapshot);
+
+        if (cancelled) return;
+
+        const active = snapshot.drawings
+          .filter((record) => !record.is_deleted)
+          .map(mapStoredDrawingToCanvas);
+        setCanvasDrawings(active);
+        setDrawingsDirty(false);
+      } catch (error) {
+        if (!cancelled) {
+          console.warn("Failed to pull drawing snapshot", error);
+          setDrawingsDirty(true);
+        }
+      }
+    };
+
+    void hydrateDrawings();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [projectId, isOffline, mapStoredDrawingToCanvas]);
 
   // Persist canvas drawings to localStorage whenever they change
   useEffect(() => {
@@ -583,7 +891,7 @@ const ProjectWorkspace: React.FC = () => {
                   .map(mapStoredLineToDrawing)
               );
             }
-            await markProjectLinesDirty(projectId);
+            await markLinesDirty(projectId);
             if (!cancelled) {
               setLinesDirty(true);
             }
@@ -591,6 +899,68 @@ const ProjectWorkspace: React.FC = () => {
         } catch (migrationError) {
           if (!cancelled) {
             console.error("Failed to migrate staged lines to new project", migrationError);
+          }
+        }
+
+        try {
+          const stagedNotes = await getStoredNotes("new", {
+            includeDeleted: true,
+          });
+          if (!cancelled && stagedNotes.length) {
+            const reassignedNotes = stagedNotes.map((record) => ({
+              ...record,
+              project_id: projectId,
+            }));
+            await replaceStoredProjectNotes(projectId, reassignedNotes);
+            await replaceStoredProjectNotes("new", []);
+            if (!cancelled) {
+              setItems((prev) => {
+                const withoutNotes = prev.filter((item) => item.type !== "note");
+                const noteItems = reassignedNotes
+                  .filter((record) => !record.is_deleted)
+                  .map(mapStoredNoteToItem);
+                return [...withoutNotes, ...noteItems];
+              });
+            }
+            await markNotesDirty(projectId);
+            if (!cancelled) {
+              setNotesDirty(true);
+            }
+          }
+        } catch (migrationError) {
+          if (!cancelled) {
+            console.error("Failed to migrate staged notes to new project", migrationError);
+          }
+        }
+
+        try {
+          const stagedDrawings = await getStoredDrawings("new", {
+            includeDeleted: true,
+          });
+          if (!cancelled && stagedDrawings.length) {
+            const reassignedDrawings = stagedDrawings.map((record) => ({
+              ...record,
+              project_id: projectId,
+            }));
+            await replaceStoredProjectDrawings(projectId, reassignedDrawings);
+            await replaceStoredProjectDrawings("new", []);
+            if (!cancelled) {
+              const active = reassignedDrawings
+                .filter((record) => !record.is_deleted)
+                .map(mapStoredDrawingToCanvas);
+              setCanvasDrawings(active);
+            }
+            await markDrawingsDirty(projectId);
+            if (!cancelled) {
+              setDrawingsDirty(true);
+            }
+          }
+        } catch (migrationError) {
+          if (!cancelled) {
+            console.error(
+              "Failed to migrate staged drawings to new project",
+              migrationError
+            );
           }
         }
       }
@@ -607,6 +977,8 @@ const ProjectWorkspace: React.FC = () => {
     canvasDrawings,
     saveCanvasDrawings,
     mapStoredLineToDrawing,
+    mapStoredNoteToItem,
+    mapStoredDrawingToCanvas,
   ]);
 
   // Save project details when name or description changes
@@ -661,7 +1033,7 @@ const ProjectWorkspace: React.FC = () => {
         try {
           const payload = await getLinesForSave(projectId);
           const response = await saveProjectLinesApi(projectId, payload);
-          await recordServerSnapshot(projectId, response);
+          await recordLineSnapshot(projectId, response);
 
           setLineDrawings(
             response.lines
@@ -674,6 +1046,46 @@ const ProjectWorkspace: React.FC = () => {
           console.error("Failed to sync workspace lines:", lineError);
           setLineSaveSummary(null);
           setLinesDirty(true);
+        }
+
+        try {
+          const notePayload = await getNotesForSave(projectId);
+          const noteResponse = await saveProjectNotesApi(projectId, notePayload);
+          await recordNoteSnapshot(projectId, noteResponse);
+
+          setItems((prev) => {
+            const withoutNotes = prev.filter((item) => item.type !== "note");
+            const noteItems = noteResponse.notes
+              .filter((record) => !record.is_deleted)
+              .map(mapStoredNoteToItem);
+            return [...withoutNotes, ...noteItems];
+          });
+          setNoteSaveSummary(noteResponse.summary);
+          setNotesDirty(false);
+        } catch (noteError) {
+          console.error("Failed to sync workspace notes:", noteError);
+          setNoteSaveSummary(null);
+          setNotesDirty(true);
+        }
+
+        try {
+          const drawingPayload = await getDrawingsForSave(projectId);
+          const drawingResponse = await saveProjectDrawingsApi(
+            projectId,
+            drawingPayload
+          );
+          await recordDrawingSnapshot(projectId, drawingResponse);
+
+          const activeDrawings = drawingResponse.drawings
+            .filter((record) => !record.is_deleted)
+            .map(mapStoredDrawingToCanvas);
+          setCanvasDrawings(activeDrawings);
+          setDrawingSaveSummary(drawingResponse.summary);
+          setDrawingsDirty(false);
+        } catch (drawingError) {
+          console.error("Failed to sync workspace drawings:", drawingError);
+          setDrawingSaveSummary(null);
+          setDrawingsDirty(true);
         }
       }
     } catch (err) {
@@ -690,6 +1102,8 @@ const ProjectWorkspace: React.FC = () => {
     saving,
     saveCanvasDrawings,
     mapStoredLineToDrawing,
+    mapStoredNoteToItem,
+    mapStoredDrawingToCanvas,
   ]);
 
   // Keyboard shortcuts: save, escape, hand (h), move (v)
@@ -879,7 +1293,7 @@ const ProjectWorkspace: React.FC = () => {
         )
           .then(() => {
             if (projectId && projectId !== "new") {
-              return markProjectLinesDirty(projectId);
+              return markLinesDirty(projectId);
             }
             return undefined;
           })
@@ -983,8 +1397,38 @@ const ProjectWorkspace: React.FC = () => {
         data: getDefaultData(selectedTool as any),
       };
 
+      if (newItem.type === "note") {
+        setNoteSaveSummary(null);
+        const nowIso = new Date().toISOString();
+        newItem.data = {
+          content: "",
+          updatedAt: nowIso,
+          version: 0,
+          origin: deviceIdRef.current,
+        };
+      }
+
       setItems((prev) => [...prev, newItem]);
       setSelectedTool(null);
+
+      if (newItem.type === "note") {
+        const storageProjectId =
+          projectId && projectId !== "new" ? projectId : "new";
+        const storedRecord = mapItemToStoredNote(storageProjectId, newItem);
+        void upsertStoredNote(storedRecord)
+          .then(() => {
+            if (projectId && projectId !== "new") {
+              return markNotesDirty(projectId);
+            }
+            return undefined;
+          })
+          .then(() => {
+            setNotesDirty(true);
+          })
+          .catch((persistError) =>
+            console.error("Failed to persist note locally:", persistError)
+          );
+      }
     },
     [selectedTool, zoom, panOffset, hasDragged]
   );
@@ -1079,13 +1523,32 @@ const ProjectWorkspace: React.FC = () => {
   // Handle note text changes
   const handleNoteChange = useCallback(
     async (itemId: string, noteText: string) => {
+      const nowIso = new Date().toISOString();
+      let storedRecord: StoredNoteRecord | null = null;
+
       // Update local state immediately
       setItems((prev) => {
         const updatedItems = prev.map((item) =>
           item.id === itemId
-            ? { ...item, data: { ...item.data, content: noteText } }
+            ? {
+                ...item,
+                data: {
+                  ...item.data,
+                  content: noteText,
+                  updatedAt: nowIso,
+                  version: (item.data?.version ?? 0) + 1,
+                },
+              }
             : item
         );
+
+        if (projectId) {
+          const projectKey = projectId !== "new" ? projectId : "new";
+          const updatedItem = updatedItems.find((item) => item.id === itemId);
+          if (updatedItem) {
+            storedRecord = mapItemToStoredNote(projectKey, updatedItem);
+          }
+        }
 
         // Save to backend only for mendelian-study type items in a real project
         if (projectId && projectId !== "new") {
@@ -1107,8 +1570,26 @@ const ProjectWorkspace: React.FC = () => {
 
         return updatedItems;
       });
+
+      setNoteSaveSummary(null);
+
+      if (storedRecord) {
+        void upsertStoredNote(storedRecord)
+          .then(() => {
+            if (projectId && projectId !== "new") {
+              return markNotesDirty(projectId);
+            }
+            return undefined;
+          })
+          .then(() => {
+            setNotesDirty(true);
+          })
+          .catch((persistError) =>
+            console.error("Failed to persist note update", persistError)
+          );
+      }
     },
-    [projectId]
+    [projectId, mapItemToStoredNote]
   );
 
   const handleMouseDown = useCallback(
@@ -1168,7 +1649,33 @@ const ProjectWorkspace: React.FC = () => {
     if (isDrawingOnCanvas && currentCanvasPath) {
       // Only save path if it has more than one point
       if (currentCanvasPath.points.length > 1) {
-        setCanvasDrawings((prev) => [...prev, currentCanvasPath]);
+        const finalizedPath: CanvasDrawing = {
+          ...currentCanvasPath,
+          updatedAt: new Date().toISOString(),
+          version: (currentCanvasPath.version ?? 0) + 1,
+          isDeleted: false,
+        };
+        setCanvasDrawings((prev) => [...prev, finalizedPath]);
+        setDrawingSaveSummary(null);
+
+        const storageProjectId =
+          projectId && projectId !== "new" ? projectId : "new";
+
+        void upsertStoredDrawing(
+          mapCanvasToStoredDrawing(storageProjectId, finalizedPath)
+        )
+          .then(() => {
+            if (projectId && projectId !== "new") {
+              return markDrawingsDirty(projectId);
+            }
+            return undefined;
+          })
+          .then(() => {
+            setDrawingsDirty(true);
+          })
+          .catch((persistError) =>
+            console.error("Failed to persist drawing locally:", persistError)
+          );
       }
 
       setIsDrawingOnCanvas(false);
@@ -1206,6 +1713,33 @@ const ProjectWorkspace: React.FC = () => {
     // Line drawing completion is now handled by document event listener
     // Line eraser stays active (no auto-deselection)
 
+    if (draggedItem) {
+      const draggedNote = items.find(
+        (workspaceItem) => workspaceItem.id === draggedItem
+      );
+      if (draggedNote && draggedNote.type === "note") {
+        const storageProjectId =
+          projectId && projectId !== "new" ? projectId : "new";
+        const storedRecord = mapItemToStoredNote(
+          storageProjectId,
+          draggedNote
+        );
+        void upsertStoredNote(storedRecord)
+          .then(() => {
+            if (projectId && projectId !== "new") {
+              return markNotesDirty(projectId);
+            }
+            return undefined;
+          })
+          .then(() => {
+            setNotesDirty(true);
+          })
+          .catch((persistError) =>
+            console.error("Failed to persist note position", persistError)
+          );
+      }
+    }
+
     setDraggedItem(null);
     setDragOffset({ x: 0, y: 0 });
     setIsPanning(false);
@@ -1222,6 +1756,13 @@ const ProjectWorkspace: React.FC = () => {
     drawingStrokeColor,
     drawingStrokeWidth,
     lineArrowType,
+    projectId,
+    mapCanvasToStoredDrawing,
+    markDrawingsDirty,
+    draggedItem,
+    items,
+    mapItemToStoredNote,
+    markNotesDirty,
   ]);
 
   // Function to erase lines near a given point (uses functional state update to avoid stale closures)
@@ -1311,7 +1852,7 @@ const ProjectWorkspace: React.FC = () => {
       void Promise.all(persistOperations)
         .then(() => {
           if (projectId && projectId !== "new") {
-            return markProjectLinesDirty(projectId);
+            return markLinesDirty(projectId);
           }
           return undefined;
         })
@@ -1426,6 +1967,10 @@ const ProjectWorkspace: React.FC = () => {
           points: [canvasCoords],
           strokeColor: drawingStrokeColor,
           strokeWidth: drawingStrokeWidth,
+          updatedAt: new Date().toISOString(),
+          version: 0,
+          isDeleted: false,
+          origin: deviceIdRef.current,
         };
 
         setCurrentCanvasPath(newPath);
@@ -1525,7 +2070,15 @@ const ProjectWorkspace: React.FC = () => {
         setLastPanPoint({ x: e.clientX, y: e.clientY });
       }
     },
-    [selectedTool, zoom, panOffset]
+    [
+      selectedTool,
+      zoom,
+      panOffset,
+      canvasDrawings,
+      projectId,
+      mapCanvasToStoredDrawing,
+      markDrawingsDirty,
+    ]
   );
 
   // Handle panning, text area drawing, and canvas drawing
@@ -1566,9 +2119,47 @@ const ProjectWorkspace: React.FC = () => {
         });
 
         if (pathsToRemove.length > 0) {
+          const removedDrawings = canvasDrawings.filter((drawing) =>
+            pathsToRemove.includes(drawing.id)
+          );
+
           setCanvasDrawings((prev) =>
             prev.filter((drawing) => !pathsToRemove.includes(drawing.id))
           );
+          setDrawingSaveSummary(null);
+
+          if (removedDrawings.length) {
+            const storageProjectId =
+              projectId && projectId !== "new" ? projectId : "new";
+            const operations = removedDrawings.map((drawing) => {
+              const tombstone: CanvasDrawing = {
+                ...drawing,
+                isDeleted: true,
+                updatedAt: new Date().toISOString(),
+                version: (drawing.version ?? 0) + 1,
+              };
+              return upsertStoredDrawing(
+                mapCanvasToStoredDrawing(storageProjectId, tombstone)
+              );
+            });
+
+            void Promise.all(operations)
+              .then(() => {
+                if (projectId && projectId !== "new") {
+                  return markDrawingsDirty(projectId);
+                }
+                return undefined;
+              })
+              .then(() => {
+                setDrawingsDirty(true);
+              })
+              .catch((persistError) =>
+                console.error(
+                  "Failed to persist erased drawing tombstones",
+                  persistError
+                )
+              );
+          }
         }
 
         setHasDragged(true);
@@ -1614,6 +2205,7 @@ const ProjectWorkspace: React.FC = () => {
           return {
             ...prev,
             points: [...prev.points, canvasCoords],
+            updatedAt: new Date().toISOString(),
           };
         });
         setHasDragged(true);
@@ -1758,12 +2350,51 @@ const ProjectWorkspace: React.FC = () => {
 
   // Clear all canvas drawings
   const clearCanvasDrawings = useCallback(() => {
-    setCanvasDrawings([]);
-    if (projectId && projectId !== "new") {
-      // Clear from localStorage
-      localStorage.removeItem(`zygotrix_canvas_drawings_${projectId}`);
+    if (!canvasDrawings.length) {
+      return;
     }
-  }, [projectId]);
+
+    const storageProjectId =
+      projectId && projectId !== "new" ? projectId : "new";
+
+    const tombstones = canvasDrawings.map((drawing) => ({
+      ...drawing,
+      isDeleted: true,
+      updatedAt: new Date().toISOString(),
+      version: (drawing.version ?? 0) + 1,
+    }));
+
+    setCanvasDrawings([]);
+    setDrawingSaveSummary(null);
+
+    const persistOperations = tombstones.map((drawing) =>
+      upsertStoredDrawing(mapCanvasToStoredDrawing(storageProjectId, drawing))
+    );
+
+    void Promise.all(persistOperations)
+      .then(() => {
+        if (projectId && projectId !== "new") {
+          return markDrawingsDirty(projectId);
+        }
+        return undefined;
+      })
+      .then(() => {
+        setDrawingsDirty(true);
+      })
+      .catch((persistError) =>
+        console.error("Failed to persist drawing tombstones", persistError)
+      );
+
+    if (projectId && projectId !== "new") {
+      saveCanvasDrawings(projectId, []);
+    }
+  }, [
+    canvasDrawings,
+    projectId,
+    mapCanvasToStoredDrawing,
+    markDrawingsDirty,
+    saveCanvasDrawings,
+  ]);
 
   // Handle item deletion
   const handleDeleteItem = useCallback(
@@ -1784,6 +2415,22 @@ const ProjectWorkspace: React.FC = () => {
           await deleteMendelianTool(projectId, itemId);
         }
 
+        if (item.type === "note") {
+          const storageProjectId =
+            projectId && projectId !== "new" ? projectId : "new";
+          const tombstone: StoredNoteRecord = {
+            ...mapItemToStoredNote(storageProjectId, item),
+            is_deleted: true,
+            updated_at: new Date().toISOString(),
+            version: (item.data?.version ?? 0) + 1,
+          };
+          await upsertStoredNote(tombstone);
+          if (projectId && projectId !== "new") {
+            await markNotesDirty(projectId);
+            setNotesDirty(true);
+          }
+        }
+
         // Remove from local state (works for all item types)
         setItems((prev) => prev.filter((item) => item.id !== itemId));
       } catch (error) {
@@ -1791,7 +2438,7 @@ const ProjectWorkspace: React.FC = () => {
         // You could add a toast notification here
       }
     },
-    [items, projectId]
+    [items, projectId, mapItemToStoredNote]
   );
 
   // Handle item editing
@@ -1997,9 +2644,9 @@ const ProjectWorkspace: React.FC = () => {
           handleManualSave={handleManualSave}
           handleSettingsClick={handleSettingsClick}
           handleDeleteClick={handleDeleteClick}
-          linesDirty={linesDirty}
+          workspaceDirty={workspaceDirty}
           isOffline={isOffline}
-          lineSaveSummary={lineSaveSummary}
+          saveSummary={workspaceSaveSummary}
         />
 
         <div className="flex-1 flex bg-gray-50 min-h-0 overflow-hidden max-w-full">
@@ -2423,7 +3070,7 @@ const ProjectWorkspace: React.FC = () => {
                   void Promise.all(operations)
                     .then(() => {
                       if (projectId && projectId !== "new") {
-                        return markProjectLinesDirty(projectId);
+                        return markLinesDirty(projectId);
                       }
                       return undefined;
                     })

@@ -47,6 +47,16 @@ if TYPE_CHECKING:
         ProjectLineSaveResponse,
         ProjectLineSaveSummary,
         ProjectLineSnapshot,
+        ProjectNote,
+        ProjectNotePayload,
+        ProjectNoteSaveResponse,
+        ProjectNoteSaveSummary,
+        ProjectNoteSnapshot,
+        ProjectDrawing,
+        ProjectDrawingPayload,
+        ProjectDrawingSaveResponse,
+        ProjectDrawingSaveSummary,
+        ProjectDrawingSnapshot,
         ProjectTemplate,
     )
 
@@ -314,6 +324,48 @@ def get_project_lines_collection(required: bool = False) -> Optional[Collection]
     collection = database[settings.mongodb_project_lines_collection]
     try:
         collection.create_index([("project_id", 1), ("line_id", 1)], unique=True)
+        collection.create_index("project_id")
+        collection.create_index("updated_at")
+    except PyMongoError:
+        pass
+    return collection
+
+
+def get_project_notes_collection(required: bool = False) -> Optional[Collection]:
+    client = get_mongo_client()
+    if client is None:
+        if required:
+            raise HTTPException(
+                status_code=503, detail="MongoDB connection is not configured."
+            )
+        return None
+
+    settings = get_settings()
+    database = client[settings.mongodb_db_name]
+    collection = database[settings.mongodb_project_notes_collection]
+    try:
+        collection.create_index([("project_id", 1), ("note_id", 1)], unique=True)
+        collection.create_index("project_id")
+        collection.create_index("updated_at")
+    except PyMongoError:
+        pass
+    return collection
+
+
+def get_project_drawings_collection(required: bool = False) -> Optional[Collection]:
+    client = get_mongo_client()
+    if client is None:
+        if required:
+            raise HTTPException(
+                status_code=503, detail="MongoDB connection is not configured."
+            )
+        return None
+
+    settings = get_settings()
+    database = client[settings.mongodb_db_name]
+    collection = database[settings.mongodb_project_drawings_collection]
+    try:
+        collection.create_index([("project_id", 1), ("drawing_id", 1)], unique=True)
         collection.create_index("project_id")
         collection.create_index("updated_at")
     except PyMongoError:
@@ -1086,6 +1138,93 @@ def _serialize_project_line(document: Mapping[str, Any]) -> ProjectLine:
     )
 
 
+def _serialize_project_note(document: Mapping[str, Any]) -> "ProjectNote":
+    from .schemas import ProjectLinePoint, ProjectNote, ProjectNoteSize
+
+    updated_at = _ensure_utc(document.get("updated_at")) or datetime.now(timezone.utc)
+
+    position_doc = document.get("position", {})
+    size_doc = document.get("size", {})
+
+    def _coerce_point(data: Mapping[str, Any]) -> Dict[str, float]:
+        try:
+            return {
+                "x": float(data.get("x", 0.0)),
+                "y": float(data.get("y", 0.0)),
+            }
+        except (TypeError, ValueError):
+            return {"x": 0.0, "y": 0.0}
+
+    def _coerce_size(data: Mapping[str, Any]) -> Dict[str, float]:
+        try:
+            return {
+                "width": float(data.get("width", 200.0)),
+                "height": float(data.get("height", 120.0)),
+            }
+        except (TypeError, ValueError):
+            return {"width": 200.0, "height": 120.0}
+
+    position = ProjectLinePoint(**_coerce_point(position_doc))
+    size = ProjectNoteSize(**_coerce_size(size_doc))
+
+    origin_value = document.get("origin")
+    origin = str(origin_value) if origin_value is not None else None
+
+    return ProjectNote(
+        id=str(document.get("note_id", "")),
+        project_id=str(document.get("project_id", "")),
+        content=str(document.get("content", "")),
+        position=position,
+        size=size,
+        is_deleted=bool(document.get("is_deleted", False)),
+        updated_at=updated_at,
+        version=int(document.get("version", 0)),
+        origin=origin,
+    )
+
+
+def _serialize_project_drawing(document: Mapping[str, Any]) -> "ProjectDrawing":
+    from .schemas import ProjectDrawing, ProjectDrawingPoint
+
+    updated_at = _ensure_utc(document.get("updated_at")) or datetime.now(timezone.utc)
+
+    points_doc = document.get("points", [])
+    points: List[ProjectDrawingPoint] = []
+    if isinstance(points_doc, (list, tuple)):
+        for point in points_doc:
+            if isinstance(point, Mapping):
+                try:
+                    points.append(
+                        ProjectDrawingPoint(
+                            x=float(point.get("x", 0.0)),
+                            y=float(point.get("y", 0.0)),
+                        )
+                    )
+                except (TypeError, ValueError):
+                    continue
+
+    origin_value = document.get("origin")
+    origin = str(origin_value) if origin_value is not None else None
+
+    stroke_width_raw = document.get("stroke_width", 2.0)
+    try:
+        stroke_width = float(stroke_width_raw)
+    except (TypeError, ValueError):
+        stroke_width = 2.0
+
+    return ProjectDrawing(
+        id=str(document.get("drawing_id", "")),
+        project_id=str(document.get("project_id", "")),
+        points=points,
+        stroke_color=str(document.get("stroke_color", "#000000")),
+        stroke_width=stroke_width,
+        is_deleted=bool(document.get("is_deleted", False)),
+        updated_at=updated_at,
+        version=int(document.get("version", 0)),
+        origin=origin,
+    )
+
+
 def get_user_projects(
     user_id: str, page: int = 1, page_size: int = 20
 ) -> Tuple[List["Project"], int]:
@@ -1324,6 +1463,122 @@ def _line_payload_to_document(
     }
 
 
+def _client_note_wins(existing_doc: Mapping[str, Any], payload: "ProjectNotePayload") -> bool:
+    existing_deleted = bool(existing_doc.get("is_deleted", False))
+    if payload.is_deleted and not existing_deleted:
+        return True
+    if not payload.is_deleted and existing_deleted:
+        return False
+
+    existing_version = int(existing_doc.get("version", 0))
+    if payload.version > existing_version:
+        return True
+    if payload.version < existing_version:
+        return False
+
+    existing_updated = _ensure_utc(existing_doc.get("updated_at")) or datetime.min.replace(
+        tzinfo=timezone.utc
+    )
+    payload_updated = _ensure_utc(payload.updated_at) or datetime.min.replace(
+        tzinfo=timezone.utc
+    )
+
+    if payload_updated > existing_updated:
+        return True
+    if payload_updated < existing_updated:
+        return False
+
+    existing_origin = str(existing_doc.get("origin") or "")
+    payload_origin = payload.origin or ""
+    if payload_origin and existing_origin:
+        if payload_origin < existing_origin:
+            return True
+        if payload_origin > existing_origin:
+            return False
+    elif payload_origin and not existing_origin:
+        return True
+
+    return False
+
+
+def _note_payload_to_document(
+    project_id: str,
+    payload: "ProjectNotePayload",
+    version: int,
+    updated_at: datetime,
+) -> Dict[str, Any]:
+    return {
+        "project_id": project_id,
+        "note_id": payload.id,
+        "content": payload.content,
+        "position": payload.position.model_dump(),
+        "size": payload.size.model_dump(),
+        "is_deleted": bool(payload.is_deleted),
+        "updated_at": updated_at,
+        "version": int(version),
+        "origin": payload.origin,
+    }
+
+
+def _client_drawing_wins(
+    existing_doc: Mapping[str, Any], payload: "ProjectDrawingPayload"
+) -> bool:
+    existing_deleted = bool(existing_doc.get("is_deleted", False))
+    if payload.is_deleted and not existing_deleted:
+        return True
+    if not payload.is_deleted and existing_deleted:
+        return False
+
+    existing_version = int(existing_doc.get("version", 0))
+    if payload.version > existing_version:
+        return True
+    if payload.version < existing_version:
+        return False
+
+    existing_updated = _ensure_utc(existing_doc.get("updated_at")) or datetime.min.replace(
+        tzinfo=timezone.utc
+    )
+    payload_updated = _ensure_utc(payload.updated_at) or datetime.min.replace(
+        tzinfo=timezone.utc
+    )
+
+    if payload_updated > existing_updated:
+        return True
+    if payload_updated < existing_updated:
+        return False
+
+    existing_origin = str(existing_doc.get("origin") or "")
+    payload_origin = payload.origin or ""
+    if payload_origin and existing_origin:
+        if payload_origin < existing_origin:
+            return True
+        if payload_origin > existing_origin:
+            return False
+    elif payload_origin and not existing_origin:
+        return True
+
+    return False
+
+
+def _drawing_payload_to_document(
+    project_id: str,
+    payload: "ProjectDrawingPayload",
+    version: int,
+    updated_at: datetime,
+) -> Dict[str, Any]:
+    return {
+        "project_id": project_id,
+        "drawing_id": payload.id,
+        "points": [point.model_dump() for point in payload.points],
+        "stroke_color": payload.stroke_color,
+        "stroke_width": float(payload.stroke_width),
+        "is_deleted": bool(payload.is_deleted),
+        "updated_at": updated_at,
+        "version": int(version),
+        "origin": payload.origin,
+    }
+
+
 def save_project_lines(
     project_id: str,
     user_id: str,
@@ -1429,6 +1684,248 @@ def save_project_lines(
 
     return ProjectLineSaveResponse(
         lines=snapshot.lines,
+       snapshot_version=snapshot.snapshot_version,
+        summary=summary,
+    )
+
+
+def get_project_note_snapshot(
+    project_id: str, user_id: str
+) -> Optional[ProjectNoteSnapshot]:
+    from .schemas import ProjectNoteSnapshot
+
+    if not _project_accessible(project_id, user_id):
+        return None
+
+    collection = get_project_notes_collection(required=True)
+    assert collection is not None, "Project notes collection is required"
+
+    try:
+        cursor = collection.find({"project_id": project_id}).sort("note_id", 1)
+    except PyMongoError:
+        cursor = []
+
+    notes = [_serialize_project_note(doc) for doc in cursor]
+    snapshot_version = max((note.version for note in notes), default=0)
+    return ProjectNoteSnapshot(notes=notes, snapshot_version=snapshot_version)
+
+
+def save_project_notes(
+    project_id: str,
+    user_id: str,
+    notes: List[ProjectNotePayload],
+) -> Optional[ProjectNoteSaveResponse]:
+    from .schemas import (
+        ProjectNotePayload,
+        ProjectNoteSaveResponse,
+        ProjectNoteSaveSummary,
+    )
+
+    if not _project_accessible(project_id, user_id):
+        return None
+
+    collection = get_project_notes_collection(required=True)
+    assert collection is not None, "Project notes collection is required"
+
+    summary = ProjectNoteSaveSummary()
+    now = datetime.now(timezone.utc)
+
+    incoming_ids = {payload.id for payload in notes if payload.id}
+    try:
+        existing_docs = list(collection.find({"project_id": project_id}))
+    except PyMongoError:
+        existing_docs = []
+
+    for doc in existing_docs:
+        note_id = str(doc.get("note_id"))
+        if note_id and note_id not in incoming_ids and not doc.get("is_deleted", False):
+            version = int(doc.get("version", 0)) + 1
+            filter_query = {"project_id": project_id, "note_id": note_id}
+            try:
+                collection.update_one(
+                    filter_query,
+                    {
+                        "$set": {
+                            "is_deleted": True,
+                            "version": version,
+                            "updated_at": now,
+                        }
+                    },
+                )
+                summary.deleted += 1
+            except PyMongoError:
+                summary.ignored += 1
+
+    for payload in notes:
+        if not payload.id:
+            summary.ignored += 1
+            continue
+
+        filter_query = {"project_id": project_id, "note_id": payload.id}
+
+        try:
+            existing_doc = collection.find_one(filter_query)
+        except PyMongoError:
+            existing_doc = None
+
+        if existing_doc is None:
+            version = max(int(payload.version), 0) + 1
+            document = _note_payload_to_document(project_id, payload, version, now)
+            document["created_at"] = now
+            try:
+                collection.insert_one(document)
+                if payload.is_deleted:
+                    summary.deleted += 1
+                else:
+                    summary.created += 1
+            except DuplicateKeyError:
+                summary.ignored += 1
+            continue
+
+        if not _client_note_wins(existing_doc, payload):
+            summary.ignored += 1
+            continue
+
+        version = int(existing_doc.get("version", 0)) + 1
+        document = _note_payload_to_document(project_id, payload, version, now)
+        try:
+            collection.update_one(filter_query, {"$set": document})
+            if payload.is_deleted and not existing_doc.get("is_deleted", False):
+                summary.deleted += 1
+            elif not payload.is_deleted:
+                summary.updated += 1
+        except PyMongoError:
+            summary.ignored += 1
+
+    snapshot = get_project_note_snapshot(project_id, user_id)
+    if snapshot is None:
+        return None
+
+    return ProjectNoteSaveResponse(
+        notes=snapshot.notes,
+        snapshot_version=snapshot.snapshot_version,
+        summary=summary,
+    )
+
+
+def get_project_drawing_snapshot(
+    project_id: str, user_id: str
+) -> Optional[ProjectDrawingSnapshot]:
+    from .schemas import ProjectDrawingSnapshot
+
+    if not _project_accessible(project_id, user_id):
+        return None
+
+    collection = get_project_drawings_collection(required=True)
+    assert collection is not None, "Project drawings collection is required"
+
+    try:
+        cursor = collection.find({"project_id": project_id}).sort("drawing_id", 1)
+    except PyMongoError:
+        cursor = []
+
+    drawings = [_serialize_project_drawing(doc) for doc in cursor]
+    snapshot_version = max((drawing.version for drawing in drawings), default=0)
+    return ProjectDrawingSnapshot(drawings=drawings, snapshot_version=snapshot_version)
+
+
+def save_project_drawings(
+    project_id: str,
+    user_id: str,
+    drawings: List[ProjectDrawingPayload],
+) -> Optional[ProjectDrawingSaveResponse]:
+    from .schemas import (
+        ProjectDrawingPayload,
+        ProjectDrawingSaveResponse,
+        ProjectDrawingSaveSummary,
+    )
+
+    if not _project_accessible(project_id, user_id):
+        return None
+
+    collection = get_project_drawings_collection(required=True)
+    assert collection is not None, "Project drawings collection is required"
+
+    summary = ProjectDrawingSaveSummary()
+    now = datetime.now(timezone.utc)
+
+    incoming_ids = {payload.id for payload in drawings if payload.id}
+    try:
+        existing_docs = list(collection.find({"project_id": project_id}))
+    except PyMongoError:
+        existing_docs = []
+
+    for doc in existing_docs:
+        drawing_id = str(doc.get("drawing_id"))
+        if (
+            drawing_id
+            and drawing_id not in incoming_ids
+            and not doc.get("is_deleted", False)
+        ):
+            version = int(doc.get("version", 0)) + 1
+            filter_query = {"project_id": project_id, "drawing_id": drawing_id}
+            try:
+                collection.update_one(
+                    filter_query,
+                    {
+                        "$set": {
+                            "is_deleted": True,
+                            "version": version,
+                            "updated_at": now,
+                        }
+                    },
+                )
+                summary.deleted += 1
+            except PyMongoError:
+                summary.ignored += 1
+
+    for payload in drawings:
+        if not payload.id:
+            summary.ignored += 1
+            continue
+
+        filter_query = {"project_id": project_id, "drawing_id": payload.id}
+
+        try:
+            existing_doc = collection.find_one(filter_query)
+        except PyMongoError:
+            existing_doc = None
+
+        if existing_doc is None:
+            version = max(int(payload.version), 0) + 1
+            document = _drawing_payload_to_document(project_id, payload, version, now)
+            document["created_at"] = now
+            try:
+                collection.insert_one(document)
+                if payload.is_deleted:
+                    summary.deleted += 1
+                else:
+                    summary.created += 1
+            except DuplicateKeyError:
+                summary.ignored += 1
+            continue
+
+        if not _client_drawing_wins(existing_doc, payload):
+            summary.ignored += 1
+            continue
+
+        version = int(existing_doc.get("version", 0)) + 1
+        document = _drawing_payload_to_document(project_id, payload, version, now)
+        try:
+            collection.update_one(filter_query, {"$set": document})
+            if payload.is_deleted and not existing_doc.get("is_deleted", False):
+                summary.deleted += 1
+            elif not payload.is_deleted:
+                summary.updated += 1
+        except PyMongoError:
+            summary.ignored += 1
+
+    snapshot = get_project_drawing_snapshot(project_id, user_id)
+    if snapshot is None:
+        return None
+
+    return ProjectDrawingSaveResponse(
+        drawings=snapshot.drawings,
         snapshot_version=snapshot.snapshot_version,
         summary=summary,
     )

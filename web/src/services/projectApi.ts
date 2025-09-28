@@ -6,21 +6,20 @@ import type {
   ProjectLinePayload,
   ProjectLineSaveResponse,
   ProjectLineSnapshot,
+  ProjectNotePayload,
+  ProjectNoteSaveResponse,
+  ProjectNoteSnapshot,
+  ProjectDrawingPayload,
+  ProjectDrawingSaveResponse,
+  ProjectDrawingSnapshot,
   ProjectTemplate,
   ProjectTemplateListResponse,
   ProjectUpdateRequest,
 } from "../types/api";
+import { parseJsonResponse, parseVoidResponse } from "./http";
 
 export const API_BASE_URL =
   import.meta.env.VITE_ZYGOTRIX_API ?? "http://127.0.0.1:8000";
-
-const handleResponse = async <T>(response: Response): Promise<T> => {
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(body || `Request failed with status ${response.status}`);
-  }
-  return (await response.json()) as T;
-};
 
 const getAuthHeaders = (): HeadersInit => {
   const token = localStorage.getItem("zygotrix_auth_token");
@@ -43,8 +42,7 @@ export const fetchProjects = async (
     headers: getAuthHeaders(),
     signal,
   });
-
-  return handleResponse<ProjectListResponse>(response);
+  return parseJsonResponse<ProjectListResponse>(response);
 };
 
 export const fetchProject = async (
@@ -56,7 +54,7 @@ export const fetchProject = async (
     signal,
   });
 
-  const result = await handleResponse<ProjectResponse>(response);
+  const result = await parseJsonResponse<ProjectResponse>(response);
   return result.project;
 };
 
@@ -69,7 +67,7 @@ export const createProject = async (
     body: JSON.stringify(payload),
   });
 
-  const result = await handleResponse<ProjectResponse>(response);
+  const result = await parseJsonResponse<ProjectResponse>(response);
   return result.project;
 };
 
@@ -83,7 +81,7 @@ export const updateProject = async (
     body: JSON.stringify(payload),
   });
 
-  const result = await handleResponse<ProjectResponse>(response);
+  const result = await parseJsonResponse<ProjectResponse>(response);
   return result.project;
 };
 
@@ -92,11 +90,7 @@ export const deleteProject = async (projectId: string): Promise<void> => {
     method: "DELETE",
     headers: getAuthHeaders(),
   });
-
-  if (!response.ok) {
-    const body = await response.text();
-    throw new Error(body || `Delete failed with status ${response.status}`);
-  }
+  await parseVoidResponse(response);
 };
 
 export const fetchProjectTemplates = async (
@@ -106,7 +100,7 @@ export const fetchProjectTemplates = async (
     signal,
   });
 
-  const result = await handleResponse<ProjectTemplateListResponse>(response);
+  const result = await parseJsonResponse<ProjectTemplateListResponse>(response);
   return result.templates;
 };
 
@@ -115,6 +109,64 @@ export const saveProjectProgress = async (
   tools: any[]
 ): Promise<Project> => {
   return updateProject(projectId, { tools });
+};
+
+export const fetchProjectNotes = async (
+  projectId: string,
+  signal?: AbortSignal
+): Promise<ProjectNoteSnapshot> => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${projectId}/notes`,
+    {
+      headers: getAuthHeaders(),
+      signal,
+    }
+  );
+  return parseJsonResponse<ProjectNoteSnapshot>(response);
+};
+
+export const saveProjectNotes = async (
+  projectId: string,
+  notes: ProjectNotePayload[]
+): Promise<ProjectNoteSaveResponse> => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${projectId}/notes/save`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ notes }),
+    }
+  );
+  return parseJsonResponse<ProjectNoteSaveResponse>(response);
+};
+
+export const fetchProjectDrawings = async (
+  projectId: string,
+  signal?: AbortSignal
+): Promise<ProjectDrawingSnapshot> => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${projectId}/drawings`,
+    {
+      headers: getAuthHeaders(),
+      signal,
+    }
+  );
+  return parseJsonResponse<ProjectDrawingSnapshot>(response);
+};
+
+export const saveProjectDrawings = async (
+  projectId: string,
+  drawings: ProjectDrawingPayload[]
+): Promise<ProjectDrawingSaveResponse> => {
+  const response = await fetch(
+    `${API_BASE_URL}/api/projects/${projectId}/drawings/save`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ drawings }),
+    }
+  );
+  return parseJsonResponse<ProjectDrawingSaveResponse>(response);
 };
 
 export const fetchProjectLines = async (
@@ -128,8 +180,7 @@ export const fetchProjectLines = async (
       signal,
     }
   );
-
-  return handleResponse<ProjectLineSnapshot>(response);
+  return parseJsonResponse<ProjectLineSnapshot>(response);
 };
 
 export const saveProjectLines = async (
@@ -144,6 +195,5 @@ export const saveProjectLines = async (
       body: JSON.stringify({ lines }),
     }
   );
-
-  return handleResponse<ProjectLineSaveResponse>(response);
+  return parseJsonResponse<ProjectLineSaveResponse>(response);
 };

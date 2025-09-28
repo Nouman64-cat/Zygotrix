@@ -1524,11 +1524,10 @@ const ProjectWorkspace: React.FC = () => {
   const handleNoteChange = useCallback(
     async (itemId: string, noteText: string) => {
       const nowIso = new Date().toISOString();
-      let storedRecord: StoredNoteRecord | null = null;
+      const projectKey = projectId && projectId !== "new" ? projectId : "new";
 
-      // Update local state immediately
-      setItems((prev) => {
-        const updatedItems = prev.map((item) =>
+      setItems((prev) =>
+        prev.map((item) =>
           item.id === itemId
             ? {
                 ...item,
@@ -1540,56 +1539,57 @@ const ProjectWorkspace: React.FC = () => {
                 },
               }
             : item
-        );
-
-        if (projectId) {
-          const projectKey = projectId !== "new" ? projectId : "new";
-          const updatedItem = updatedItems.find((item) => item.id === itemId);
-          if (updatedItem) {
-            storedRecord = mapItemToStoredNote(projectKey, updatedItem);
-          }
-        }
-
-        // Save to backend only for mendelian-study type items in a real project
-        if (projectId && projectId !== "new") {
-          const item = prev.find((i) => i.id === itemId);
-          if (item && item.type === "mendelian-study") {
-            // Use setTimeout to avoid blocking the UI update
-            setTimeout(async () => {
-              try {
-                await updateMendelianTool(projectId, itemId, {
-                  notes: noteText,
-                });
-              } catch (error) {
-                console.error("Failed to save note to backend:", error);
-              }
-            }, 0);
-          }
-          // Note: pure "note" type items are not saved to backend - they're local only
-        }
-
-        return updatedItems;
-      });
+        )
+      );
 
       setNoteSaveSummary(null);
 
-      if (storedRecord) {
-        void upsertStoredNote(storedRecord)
-          .then(() => {
-            if (projectId && projectId !== "new") {
-              return markNotesDirty(projectId);
-            }
-            return undefined;
-          })
-          .then(() => {
-            setNotesDirty(true);
-          })
-          .catch((persistError) =>
-            console.error("Failed to persist note update", persistError)
-          );
+      const existingItem = items.find((item) => item.id === itemId);
+      const persistedItem = existingItem
+        ? {
+            ...existingItem,
+            data: {
+              ...existingItem.data,
+              content: noteText,
+              updatedAt: nowIso,
+              version: (existingItem.data?.version ?? 0) + 1,
+            },
+          }
+        : null;
+
+      if (projectId && projectId !== "new" && existingItem?.type === "mendelian-study") {
+        setTimeout(async () => {
+          try {
+            await updateMendelianTool(projectId, itemId, {
+              notes: noteText,
+            });
+          } catch (error) {
+            console.error("Failed to save note to backend:", error);
+          }
+        }, 0);
       }
+
+      if (!persistedItem || !projectId) {
+        return;
+      }
+
+      const storedRecord = mapItemToStoredNote(projectKey, persistedItem);
+
+      void upsertStoredNote(storedRecord)
+        .then(() => {
+          if (projectId && projectId !== "new") {
+            return markNotesDirty(projectId);
+          }
+          return undefined;
+        })
+        .then(() => {
+          setNotesDirty(true);
+        })
+        .catch((persistError) =>
+          console.error("Failed to persist note update", persistError)
+        );
     },
-    [projectId, mapItemToStoredNote]
+    [projectId, items, mapItemToStoredNote, updateMendelianTool]
   );
 
   const handleMouseDown = useCallback(
@@ -1768,70 +1768,63 @@ const ProjectWorkspace: React.FC = () => {
   // Function to erase lines near a given point (uses functional state update to avoid stale closures)
   const eraseLineAtPoint = useCallback(
     (point: { x: number; y: number }) => {
+      if (!lineDrawings.length) {
+        return;
+      }
+
       const eraserRadius = 15;
       const linesToDelete: LineDrawing[] = [];
 
-      setLineDrawings((prev) => {
-        if (!prev.length) return prev;
+      const remaining = lineDrawings.filter((line) => {
+        const { startPoint, endPoint } = line;
+        const lineVector = {
+          x: endPoint.x - startPoint.x,
+          y: endPoint.y - startPoint.y,
+        };
+        const pointVector = {
+          x: point.x - startPoint.x,
+          y: point.y - startPoint.y,
+        };
+        const lineLengthSquared =
+          lineVector.x * lineVector.x + lineVector.y * lineVector.y;
 
-        const remaining: LineDrawing[] = [];
-
-        prev.forEach((line) => {
-          const { startPoint, endPoint } = line;
-          const lineVector = {
-            x: endPoint.x - startPoint.x,
-            y: endPoint.y - startPoint.y,
+        let distance: number;
+        if (lineLengthSquared === 0) {
+          distance = Math.sqrt(
+            pointVector.x * pointVector.x + pointVector.y * pointVector.y
+          );
+        } else {
+          const t = Math.max(
+            0,
+            Math.min(
+              1,
+              (pointVector.x * lineVector.x + pointVector.y * lineVector.y) /
+                lineLengthSquared
+            )
+          );
+          const closestPoint = {
+            x: startPoint.x + t * lineVector.x,
+            y: startPoint.y + t * lineVector.y,
           };
-          const pointVector = {
-            x: point.x - startPoint.x,
-            y: point.y - startPoint.y,
-          };
-          const lineLengthSquared =
-            lineVector.x * lineVector.x + lineVector.y * lineVector.y;
-
-          let distance: number;
-          if (lineLengthSquared === 0) {
-            distance = Math.sqrt(
-              pointVector.x * pointVector.x + pointVector.y * pointVector.y
-            );
-          } else {
-            const t = Math.max(
-              0,
-              Math.min(
-                1,
-                (pointVector.x * lineVector.x + pointVector.y * lineVector.y) /
-                  lineLengthSquared
-              )
-            );
-            const closestPoint = {
-              x: startPoint.x + t * lineVector.x,
-              y: startPoint.y + t * lineVector.y,
-            };
-            distance = Math.sqrt(
-              Math.pow(point.x - closestPoint.x, 2) +
-                Math.pow(point.y - closestPoint.y, 2)
-            );
-          }
-
-          const shouldErase = distance <= eraserRadius;
-          if (shouldErase) {
-            linesToDelete.push(line);
-          } else {
-            remaining.push(line);
-          }
-        });
-
-        if (linesToDelete.length > 0) {
-          console.log(`Erased ${linesToDelete.length} line(s) at point`, point);
+          distance = Math.sqrt(
+            Math.pow(point.x - closestPoint.x, 2) +
+              Math.pow(point.y - closestPoint.y, 2)
+          );
         }
 
-        return remaining;
+        const shouldErase = distance <= eraserRadius;
+        if (shouldErase) {
+          linesToDelete.push(line);
+        }
+        return !shouldErase;
       });
 
       if (!linesToDelete.length) {
         return;
       }
 
+      console.log(`Erased ${linesToDelete.length} line(s) at point`, point);
+      setLineDrawings(remaining);
       setLineSaveSummary(null);
 
       const storageProjectId =
@@ -1864,7 +1857,7 @@ const ProjectWorkspace: React.FC = () => {
           console.error("Failed to persist tombstoned lines", persistError)
         );
     },
-    [projectId, mapDrawingToStoredLine]
+    [lineDrawings, projectId, mapDrawingToStoredLine]
   );
 
   // While user is actively dragging in eraser mode for lines, erase continuously (placed after eraseLineAtPoint so dependency is defined)

@@ -5,39 +5,7 @@ import {
   ChartBarIcon,
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
-import type { WorkspaceItem } from "./types";
-
-import type { CanvasDrawing, LineDrawing } from "./helpers/localStorageHelpers";
-
-interface CanvasAreaProps {
-  canvasRef: React.RefObject<HTMLDivElement | null>;
-  selectedTool: string | null;
-  isPanning: boolean;
-  panOffset: { x: number; y: number };
-  zoom: number;
-  items: WorkspaceItem[];
-  isDrawingTextArea: boolean;
-  textAreaStart: { x: number; y: number };
-  textAreaEnd: { x: number; y: number };
-  canvasDrawings: CanvasDrawing[];
-  currentCanvasPath: CanvasDrawing | null;
-  lineDrawings: LineDrawing[];
-  isDrawingLine: boolean;
-  lineStartPoint: { x: number; y: number };
-  lineEndPoint: { x: number; y: number };
-  isEraserMode?: boolean;
-  isLineEraserMode?: boolean;
-  handleZoomOut: () => void;
-  handleZoomIn: () => void;
-  handleZoomReset: () => void;
-  handleCenterView?: () => void;
-  handleCanvasClick: (e: React.MouseEvent) => void;
-  handleMouseMove: (e: React.MouseEvent) => void;
-  handleCanvasPanMove: (e: React.MouseEvent) => void;
-  handleMouseUp: (e: React.MouseEvent) => void;
-  handleCanvasMouseDown: (e: React.MouseEvent) => void;
-  renderWorkspaceItem: (item: WorkspaceItem) => React.ReactNode;
-}
+import type { CanvasAreaProps } from "./types";
 
 const CanvasArea: React.FC<CanvasAreaProps> = ({
   canvasRef,
@@ -68,13 +36,6 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
   handleCanvasMouseDown,
   renderWorkspaceItem,
 }) => {
-  console.log(
-    "CanvasArea received lineDrawings:",
-    lineDrawings,
-    "isDrawingLine:",
-    isDrawingLine
-  );
-
   return (
     <div className="flex-1 min-w-0 flex flex-col">
       {/* Top-center zoom controls removed - bottom-right controls used instead */}
@@ -90,8 +51,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
               : // If a tool is selected (not hand), show crosshair for placement
               selectedTool === "line" && isLineEraserMode
               ? "cursor-default"
-              :
-              selectedTool
+              : selectedTool
               ? selectedTool === "hand"
                 ? isPanning
                   ? "cursor-grabbing"

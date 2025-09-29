@@ -13,9 +13,9 @@ import DeleteConfirmationModal from "../components/modals/DeleteConfirmationModa
 import { useProject, useProjects } from "../hooks/useProjects";
 import type { WorkspaceItem } from "../components/workspace/types";
 import { getDefaultSize, getDefaultData } from "../components/workspace/config";
-import ToolboxSidebar from "../components/workspace/ToolboxSidebar";
+import ToolboxSidebar from "../components/workspace/sidebar/ToolboxSidebar";
 import WorkspaceHeader from "../components/workspace/WorkspaceHeader";
-import ProjectsSidebar from "../components/workspace/ProjectsSidebar";
+import ProjectsSidebar from "../components/workspace/sidebar/ProjectsSidebar";
 import CanvasArea from "../components/workspace/CanvasArea";
 import SequenceComponent from "../components/workspace/tools/SequenceComponent";
 import VariantComponent from "../components/workspace/tools/VariantComponent";
@@ -342,7 +342,6 @@ const ProjectWorkspace: React.FC = () => {
   const isLineEraserModeRef = useRef(isLineEraserMode);
   useEffect(() => {
     isLineEraserModeRef.current = isLineEraserMode;
-    console.log("Line eraser mode changed to:", isLineEraserMode);
   }, [isLineEraserMode]);
 
   const mapStoredLineToDrawing = useCallback(
@@ -1254,30 +1253,15 @@ const ProjectWorkspace: React.FC = () => {
         y: (event.clientY - rect.top - panOffset.y) / zoom,
       };
 
-      console.log(
-        "Document mouse move - updating line end point to:",
-        canvasCoords
-      );
       setLineEndPoint(canvasCoords);
       setHasDragged(true);
     };
 
     const handleDocumentMouseUp = () => {
-      console.log("Document mouse up - ending line drawing");
-
       // Only create line if it has meaningful length (> 1 pixel)
       const distance = Math.sqrt(
         Math.pow(lineEndPoint.x - lineStartPoint.x, 2) +
           Math.pow(lineEndPoint.y - lineStartPoint.y, 2)
-      );
-
-      console.log(
-        "Line drawing completed - distance:",
-        distance,
-        "from:",
-        lineStartPoint,
-        "to:",
-        lineEndPoint
       );
 
       if (distance > 1) {
@@ -1298,7 +1282,6 @@ const ProjectWorkspace: React.FC = () => {
           origin: deviceIdRef.current,
         };
 
-        console.log("Creating new line:", newLine);
         setLineDrawings((prev) => [...prev, newLine]);
         setLineSaveSummary(null);
 
@@ -1838,7 +1821,6 @@ const ProjectWorkspace: React.FC = () => {
         return;
       }
 
-      console.log(`Erased ${linesToDelete.length} line(s) at point`, point);
       setLineDrawings(remaining);
       setLineSaveSummary(null);
 
@@ -1890,12 +1872,10 @@ const ProjectWorkspace: React.FC = () => {
         y: (event.clientY - rect.top - panOffset.y) / zoom,
       };
       eraseLineAtPoint(canvasCoords);
-      console.log("eraseLineAtPoint invoked from document mousemove");
     };
 
     const handleDocUp = () => {
       setIsErasingLines(false);
-      console.log("Document mouseup - ending line erasing");
     };
 
     document.addEventListener("mousemove", handleDocMove);
@@ -1925,12 +1905,6 @@ const ProjectWorkspace: React.FC = () => {
   // Handle pan start
   const handleCanvasMouseDown = useCallback(
     (e: React.MouseEvent) => {
-      console.log(
-        "Mouse down - Current eraser mode:",
-        isLineEraserModeRef.current,
-        "Selected tool:",
-        selectedTool
-      );
       // Handle canvas drawing
       if (selectedTool === "drawing" && e.button === 0) {
         e.preventDefault();
@@ -2025,12 +1999,6 @@ const ProjectWorkspace: React.FC = () => {
         });
         if (!canvasCoords) return;
 
-        console.log(
-          "Line drawing started at:",
-          canvasCoords,
-          "eraser mode:",
-          isLineEraserModeRef.current
-        );
         setIsDrawingLine(true);
         setLineStartPoint(canvasCoords);
         setLineEndPoint(canvasCoords);
@@ -2056,16 +2024,8 @@ const ProjectWorkspace: React.FC = () => {
         });
         if (!canvasCoords) return;
 
-        console.log(
-          "Line erasing started at:",
-          canvasCoords,
-          "eraser mode:",
-          isLineEraserModeRef.current
-        );
-
         // Immediately check for lines to erase at the click point
         eraseLineAtPoint(canvasCoords);
-        console.log("eraseLineAtPoint invoked from mouse down");
         // Start continuous erasing until mouseup
         setIsErasingLines(true);
         return;
@@ -2096,10 +2056,6 @@ const ProjectWorkspace: React.FC = () => {
   const handleCanvasPanMove = useCallback(
     (e: React.MouseEvent) => {
       if (selectedTool === "line") {
-        console.log(
-          "Mouse move detected with line tool selected, isDrawingLine:",
-          isDrawingLine
-        );
       }
       // Handle eraser drag mode
       if (selectedTool === "drawing" && isEraserMode && e.buttons === 1) {
@@ -2195,7 +2151,6 @@ const ProjectWorkspace: React.FC = () => {
 
         // Erase lines while dragging
         eraseLineAtPoint(canvasCoords);
-        console.log("eraseLineAtPoint invoked from drag");
         setHasDragged(true);
         return;
       }
@@ -2248,7 +2203,6 @@ const ProjectWorkspace: React.FC = () => {
         });
         if (!canvasCoords) return;
 
-        console.log("Line drawing move to:", canvasCoords);
         setLineEndPoint(canvasCoords);
         setHasDragged(true);
         return;
@@ -2923,7 +2877,6 @@ const ProjectWorkspace: React.FC = () => {
             <div className="flex bg-gray-100 rounded-xl p-1">
               <button
                 onClick={() => {
-                  console.log("Switching to Draw mode");
                   setIsLineEraserMode(false);
                 }}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
@@ -2949,7 +2902,6 @@ const ProjectWorkspace: React.FC = () => {
               </button>
               <button
                 onClick={() => {
-                  console.log("Switching to Erase mode");
                   setIsLineEraserMode(true);
                 }}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${

@@ -50,7 +50,6 @@ const PreferencesPage: React.FC = () => {
 
   const handleSave = () => {
     // Here you would typically save to backend
-    console.log("Preferences saved:", preferences);
     // Show success message
   };
 

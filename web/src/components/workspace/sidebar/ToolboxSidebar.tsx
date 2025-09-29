@@ -1,5 +1,5 @@
 import React from "react";
-import { toolboxItems } from "./config";
+import { toolboxItems } from "../config";
 import {
   AcademicCapIcon,
   ChevronLeftIcon,

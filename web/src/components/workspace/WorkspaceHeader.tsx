@@ -14,36 +14,7 @@ import type {
   ProjectLineSaveSummary,
   ProjectNoteSaveSummary,
 } from "../../types/api";
-
-interface WorkspaceHeaderProps {
-  projectId: string | undefined;
-  project: any;
-  projectName: string;
-  setProjectName: (name: string) => void;
-  projectDescription: string;
-  setProjectDescription: (description: string) => void;
-  projectColor: string;
-  isEditingName: boolean;
-  setIsEditingName: (editing: boolean) => void;
-  isEditingDescription: boolean;
-  setIsEditingDescription: (editing: boolean) => void;
-  saving: boolean;
-  loading: boolean;
-  error: any;
-  showSettingsDropdown: boolean;
-  handleUpdateProjectDetails: () => void;
-  handleColorChange: (color: string) => void;
-  handleManualSave: () => void;
-  handleSettingsClick: () => void;
-  handleDeleteClick: () => void;
-  workspaceDirty: boolean;
-  isOffline: boolean;
-  saveSummary: {
-    lines: ProjectLineSaveSummary | null;
-    notes: ProjectNoteSaveSummary | null;
-    drawings: ProjectDrawingSaveSummary | null;
-  };
-}
+import type { WorkspaceHeaderProps } from "./types";
 
 const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   projectId,

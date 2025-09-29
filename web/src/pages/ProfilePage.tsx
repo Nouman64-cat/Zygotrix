@@ -19,7 +19,6 @@ const ProfilePage: React.FC = () => {
   const handleSave = () => {
     setIsEditing(false);
     // Here you would typically save to backend
-    console.log("Profile saved:", profileData);
   };
 
   const handleCancel = () => {

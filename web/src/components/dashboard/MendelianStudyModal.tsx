@@ -199,12 +199,22 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
               </div>
             }
             rightActions={
-              <button
-                onClick={onClose}
-                className="p-2 text-gray-400 cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
-              >
-                <XMarkIcon className="h-5 w-5" />
-              </button>
+              <>
+                <SimulationButton
+                  project={project}
+                  setProject={setProject}
+                  traits={traits}
+                  setSimulationError={setSimulationError}
+                  setShowResultsModal={setShowResultsModal}
+                  disabled={project.selectedTraits.length === 0}
+                />
+                <button
+                  onClick={onClose}
+                  className="p-2 text-gray-400 cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                >
+                  <XMarkIcon className="h-5 w-5" />
+                </button>
+              </>
             }
           />
 
@@ -311,6 +321,10 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                   e.target.value
                                 )
                               }
+                              phenotypeMap={
+                                traits.find((t) => t.key === selectedTrait.key)
+                                  ?.phenotype_map || {}
+                              }
                             />
                             {selectedTrait.parent1Genotype && (
                               <div className="absolute -bottom-1 right-3 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
@@ -356,6 +370,10 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                   e.target.value
                                 )
                               }
+                              phenotypeMap={
+                                traits.find((t) => t.key === selectedTrait.key)
+                                  ?.phenotype_map || {}
+                              }
                             />
                             {selectedTrait.parent2Genotype && (
                               <div className="absolute -bottom-1 right-3 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
@@ -382,16 +400,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                   <p className="text-red-800 text-sm">{simulationError}</p>
                 </div>
               )}
-              <div className="mt-8 flex justify-end">
-                <SimulationButton
-                  project={project}
-                  setProject={setProject}
-                  traits={traits}
-                  setSimulationError={setSimulationError}
-                  setShowResultsModal={setShowResultsModal}
-                  disabled={project.selectedTraits.length === 0}
-                />
-              </div>
+              {/* SimulationButton moved to header */}
             </div>
 
             {/* Right Column - Trait Browser */}

@@ -10,27 +10,44 @@ const GenotypicRatios: React.FC<GenotypicRatiosProps> = ({
   traitKey,
 }) => {
   if (traitKey === "abo_blood_group") {
+    // Map backend keys to I notation
     const genotypeMap: Record<string, string> = {
+      AA: "IᴬIᴬ",
       AB: "IᴬIᴮ",
+      BB: "IᴮIᴮ",
       AO: "Iᴬi",
       BO: "Iᴮi",
       OO: "ii",
     };
-    const order = ["AB", "AO", "BO", "OO"];
+    // Show only genotypes present in the backend result, in a logical order
+    const order = ["AA", "AB", "BB", "AO", "BO", "OO"];
     return (
       <div className="grid grid-cols-2 gap-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100 mb-4">
-        {order.map((backendGenotype) => (
-          <div
-            key={backendGenotype}
-            className="flex flex-col items-center justify-center p-2"
-          >
-            <span
-              style={{ fontSize: "1.25em", fontWeight: 600, color: "#1e293b" }}
+        {order
+          .filter(
+            (backendGenotype) => genotypicRatios[backendGenotype] !== undefined
+          )
+          .map((backendGenotype) => (
+            <div
+              key={backendGenotype}
+              className="flex flex-col items-center justify-center p-2"
             >
-              {genotypeMap[backendGenotype]}
-            </span>
-          </div>
-        ))}
+              <span
+                style={{
+                  fontSize: "1.25em",
+                  fontWeight: 600,
+                  color: "#1e293b",
+                }}
+              >
+                {genotypeMap[backendGenotype] || backendGenotype}
+              </span>
+              <span className="text-xs text-blue-700 font-semibold mt-1">
+                {genotypicRatios[backendGenotype] !== undefined
+                  ? `${genotypicRatios[backendGenotype].toFixed(1)}%`
+                  : "0.0%"}
+              </span>
+            </div>
+          ))}
       </div>
     );
   }

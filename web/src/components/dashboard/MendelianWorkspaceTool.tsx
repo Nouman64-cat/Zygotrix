@@ -329,28 +329,68 @@ const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
               <h5 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
                 Genotypic Ratios
               </h5>
-              {Object.entries(project.simulationResults.genotypic_ratios).map(
-                ([genotype, percentage]) => {
-                  if (
-                    typeof percentage !== "number" ||
-                    Number.isNaN(percentage)
-                  ) {
-                    return null;
+              {project.selectedTrait === "abo_blood_group" ? (
+                <div className="grid grid-cols-3 gap-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100 mb-4">
+                  {(() => {
+                    // Map backend keys to I notation (expanded for all possible genotypes)
+                    const genotypeMap: Record<string, string> = {
+                      AA: "IᴬIᴬ",
+                      AO: "Iᴬi",
+                      BB: "IᴮIᴮ",
+                      BO: "Iᴮi",
+                      AB: "IᴬIᴮ",
+                      OO: "ii",
+                    };
+                    // Order for 2x3 grid
+                    const order = ["AA", "AO", "BB", "BO", "AB", "OO"];
+                    return order.map((backendGenotype) => (
+                      <div
+                        key={backendGenotype}
+                        className="flex flex-col items-center justify-center p-2"
+                      >
+                        <span
+                          style={{
+                            fontSize: "1.25em",
+                            fontWeight: 600,
+                            color: "#1e293b",
+                          }}
+                        >
+                          {genotypeMap[backendGenotype]}
+                        </span>
+                        <span className="text-xs font-semibold text-blue-600 mt-1">
+                          {project.simulationResults?.genotypic_ratios[
+                            backendGenotype
+                          ]?.toFixed(1) || "0.0"}
+                          %
+                        </span>
+                      </div>
+                    ));
+                  })()}
+                </div>
+              ) : (
+                Object.entries(project.simulationResults.genotypic_ratios).map(
+                  ([genotype, percentage]) => {
+                    if (
+                      typeof percentage !== "number" ||
+                      Number.isNaN(percentage)
+                    ) {
+                      return null;
+                    }
+                    return (
+                      <div
+                        key={genotype}
+                        className="flex items-center justify-between text-xs text-blue-800"
+                      >
+                        <span className="font-medium">{genotype}</span>
+                        <span className="font-mono">
+                          {project.asPercentages
+                            ? `${percentage.toFixed(1)}%`
+                            : percentage.toFixed(3)}
+                        </span>
+                      </div>
+                    );
                   }
-                  return (
-                    <div
-                      key={genotype}
-                      className="flex items-center justify-between text-xs text-blue-800"
-                    >
-                      <span className="font-medium">{genotype}</span>
-                      <span className="font-mono">
-                        {project.asPercentages
-                          ? `${percentage.toFixed(1)}%`
-                          : percentage.toFixed(3)}
-                      </span>
-                    </div>
-                  );
-                }
+                )
               )}
             </div>
 

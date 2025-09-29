@@ -35,9 +35,10 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
   onEditItem,
   onDeleteItem,
 }) => {
-  const simulationResults = (item.data?.simulationResults ?? null) as
-    | Record<string, MendelianSimulationTraitResult>
-    | null;
+  const simulationResults = (item.data?.simulationResults ?? null) as Record<
+    string,
+    MendelianSimulationTraitResult
+  > | null;
   return (
     <div
       key={item.id}
@@ -113,29 +114,88 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
                 <div className="font-medium">Results:</div>
                 {Object.keys(simulationResults).map((traitKey) => {
                   const result = simulationResults[traitKey];
-                    if (
-                      !result ||
-                      typeof result !== "object" ||
-                      !result.genotypic_ratios ||
-                      !result.phenotypic_ratios
-                    ) {
-                      return null;
-                    }
+                  if (
+                    !result ||
+                    typeof result !== "object" ||
+                    !result.genotypic_ratios ||
+                    !result.phenotypic_ratios
+                  ) {
+                    return null;
+                  }
 
-                    const traitLabel =
-                      item.data.selectedTraits.find(
-                        (t: any) => t.key === traitKey
-                      )?.name || traitKey;
+                  const traitLabel =
+                    item.data.selectedTraits.find(
+                      (t: any) => t.key === traitKey
+                    )?.name || traitKey;
 
-                    return (
-                      <div key={traitKey} className="bg-slate-50 p-2 rounded space-y-2">
-                        <div className="font-medium text-xs mb-1">{traitLabel}</div>
+                  return (
+                    <div
+                      key={traitKey}
+                      className="bg-slate-50 p-2 rounded space-y-2"
+                    >
+                      <div className="font-medium text-xs mb-1">
+                        {traitLabel}
+                      </div>
 
-                        <div className="space-y-1">
-                          <div className="text-[10px] font-semibold text-blue-600 uppercase">
-                            Genotypic
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-semibold text-blue-600 uppercase">
+                          Genotypic
+                        </div>
+                        {traitKey === "abo_blood_group" ? (
+                          <div className="grid grid-cols-3 gap-2 bg-blue-50/30 rounded-lg p-2 border border-blue-100 mb-2">
+                            {(() => {
+                              const genotypeMap: Record<string, string> = {
+                                AA: "IᴬIᴬ",
+                                AO: "Iᴬi",
+                                BB: "IᴮIᴮ",
+                                BO: "Iᴮi",
+                                AB: "IᴬIᴮ",
+                                OO: "ii",
+                              };
+                              const order = [
+                                "AA",
+                                "AO",
+                                "BB",
+                                "BO",
+                                "AB",
+                                "OO",
+                              ];
+                              return order.map((backendGenotype) => {
+                                const percentage =
+                                  result.genotypic_ratios[backendGenotype];
+                                if (
+                                  typeof percentage !== "number" ||
+                                  Number.isNaN(percentage)
+                                ) {
+                                  return null;
+                                }
+                                const display = item.data.asPercentages
+                                  ? `${percentage.toFixed(1)}%`
+                                  : `${(percentage * 100).toFixed(1)}%`;
+                                return (
+                                  <div
+                                    key={backendGenotype}
+                                    className="flex flex-col items-center justify-center p-1"
+                                  >
+                                    <span
+                                      style={{
+                                        fontSize: "1.1em",
+                                        fontWeight: 600,
+                                        color: "#1e293b",
+                                      }}
+                                    >
+                                      {genotypeMap[backendGenotype]}
+                                    </span>
+                                    <span className="text-xs font-semibold text-blue-600 mt-1">
+                                      {display}
+                                    </span>
+                                  </div>
+                                );
+                              });
+                            })()}
                           </div>
-                          {Object.entries(result.genotypic_ratios).map(
+                        ) : (
+                          Object.entries(result.genotypic_ratios).map(
                             ([genotype, percentage]) => {
                               if (
                                 typeof percentage !== "number" ||
@@ -156,40 +216,40 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
                                 </div>
                               );
                             }
-                          )}
-                        </div>
-
-                        <div className="space-y-1">
-                          <div className="text-[10px] font-semibold text-green-600 uppercase">
-                            Phenotypic
-                          </div>
-                          {Object.entries(result.phenotypic_ratios).map(
-                            ([phenotype, percentage]) => {
-                              if (
-                                typeof percentage !== "number" ||
-                                Number.isNaN(percentage)
-                              ) {
-                                return null;
-                              }
-                              const display = item.data.asPercentages
-                                ? `${percentage.toFixed(1)}%`
-                                : `${(percentage * 100).toFixed(1)}%`;
-                              return (
-                                <div
-                                  key={phenotype}
-                                  className="flex justify-between text-xs"
-                                >
-                                  <span>{phenotype}</span>
-                                  <span className="font-mono">{display}</span>
-                                </div>
-                              );
-                            }
-                          )}
-                        </div>
+                          )
+                        )}
                       </div>
-                    );
-                  }
-                )}
+
+                      <div className="space-y-1">
+                        <div className="text-[10px] font-semibold text-green-600 uppercase">
+                          Phenotypic
+                        </div>
+                        {Object.entries(result.phenotypic_ratios).map(
+                          ([phenotype, percentage]) => {
+                            if (
+                              typeof percentage !== "number" ||
+                              Number.isNaN(percentage)
+                            ) {
+                              return null;
+                            }
+                            const display = item.data.asPercentages
+                              ? `${percentage.toFixed(1)}%`
+                              : `${(percentage * 100).toFixed(1)}%`;
+                            return (
+                              <div
+                                key={phenotype}
+                                className="flex justify-between text-xs"
+                              >
+                                <span>{phenotype}</span>
+                                <span className="font-mono">{display}</span>
+                              </div>
+                            );
+                          }
+                        )}
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
             {item.data.notes && (

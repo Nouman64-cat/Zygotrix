@@ -1,22 +1,16 @@
 import React, { useState, useCallback } from "react";
 import { useTraits } from "../../hooks/useTraits";
 import { simulateMendelianTrait } from "../../services/mendelian.api";
-import type { MendelianSimulationTraitResult } from "../../types/api";
-
-interface MendelianWorkspaceToolProps {
-  onAddToCanvas: (item: any) => void;
-}
-
-interface MendelianProject {
-  id: string;
-  name: string;
-  selectedTrait: string;
-  parent1Genotype: string;
-  parent2Genotype: string;
-  simulationResults: MendelianSimulationTraitResult | null;
-  asPercentages: boolean;
-  notes: string;
-}
+import type { MendelianProject, MendelianWorkspaceToolProps } from "./types";
+import { getDefaultGenotype } from "./helpers";
+import LabeledInput from "./LabeledInput";
+import LabeledTextarea from "./LabeledTextarea";
+import LabeledSelect from "./LabeledSelect";
+import RadioGroup from "./RadioGroup";
+import TraitInfoCard from "./TraitInfoCard";
+import SimulationResults from "./SimulationResults";
+import LoadingSkeleton from "./LoadingSkeleton";
+import ErrorAlert from "./ErrorAlert";
 
 const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
   onAddToCanvas,
@@ -43,15 +37,12 @@ const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
     (traitKey: string) => {
       const trait = traits.find((t) => t.key === traitKey);
       if (trait) {
-        // Set default genotypes based on trait alleles
         const alleles = trait.alleles;
         setProject((prev) => ({
           ...prev,
           selectedTrait: traitKey,
-          parent1Genotype:
-            alleles.length >= 2 ? `${alleles[0]}${alleles[1]}` : "",
-          parent2Genotype:
-            alleles.length >= 2 ? `${alleles[0]}${alleles[1]}` : "",
+          parent1Genotype: getDefaultGenotype(alleles),
+          parent2Genotype: getDefaultGenotype(alleles),
           simulationResults: null,
         }));
       }
@@ -112,25 +103,11 @@ const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
   }, [project, selectedTraitInfo, onAddToCanvas]);
 
   if (loading) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-        <div className="animate-pulse space-y-4">
-          <div className="h-4 bg-slate-200 rounded w-3/4"></div>
-          <div className="h-4 bg-slate-200 rounded w-1/2"></div>
-          <div className="h-4 bg-slate-200 rounded w-2/3"></div>
-        </div>
-      </div>
-    );
+    return <LoadingSkeleton />;
   }
 
   if (error) {
-    return (
-      <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6">
-        <div className="text-red-600 text-sm">
-          Error loading traits: {error}
-        </div>
-      </div>
-    );
+    return <ErrorAlert message={`Error loading traits: ${error}`} />;
   }
 
   return (
@@ -152,153 +129,75 @@ const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
       </div>
 
       {/* Project Name */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-slate-700">
-          Study Name
-        </label>
-        <input
-          type="text"
-          value={project.name}
-          onChange={(e) =>
-            setProject((prev) => ({ ...prev, name: e.target.value }))
-          }
-          className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Enter study name..."
-        />
-      </div>
+      <LabeledInput
+        label="Study Name"
+        value={project.name}
+        onChange={(e) =>
+          setProject((prev) => ({ ...prev, name: e.target.value }))
+        }
+        placeholder="Enter study name..."
+      />
 
       {/* Trait Selection */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-slate-700">
-          Select Trait
-        </label>
-        <select
-          value={project.selectedTrait}
-          onChange={(e) => handleTraitChange(e.target.value)}
-          className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-        >
-          <option value="">Choose a trait...</option>
-          {traits.map((trait) => (
-            <option key={trait.key} value={trait.key}>
-              {trait.name} {trait.verification_status === "verified" ? "✓" : ""}
-            </option>
-          ))}
-        </select>
-        {selectedTraitInfo && (
-          <div className="mt-2 p-3 bg-slate-50 rounded-md">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="text-sm font-medium text-slate-700">
-                {selectedTraitInfo.name}
-              </span>
-              {selectedTraitInfo.verification_status && (
-                <span
-                  className={`text-xs px-2 py-1 rounded-full ${
-                    selectedTraitInfo.verification_status === "verified"
-                      ? "bg-green-100 text-green-700"
-                      : "bg-amber-100 text-amber-700"
-                  }`}
-                >
-                  {selectedTraitInfo.verification_status}
-                </span>
-              )}
-              {selectedTraitInfo.inheritance_pattern && (
-                <span className="text-xs px-2 py-1 rounded-full bg-blue-100 text-blue-700">
-                  {selectedTraitInfo.inheritance_pattern.replace("_", " ")}
-                </span>
-              )}
-            </div>
-            <p className="text-xs text-slate-600">
-              {selectedTraitInfo.description}
-            </p>
-            <div className="mt-2 flex gap-2">
-              <span className="text-xs text-slate-500">Alleles:</span>
-              {selectedTraitInfo.alleles.map((allele) => (
-                <span
-                  key={allele}
-                  className="text-xs bg-slate-200 px-2 py-1 rounded font-mono"
-                >
-                  {allele}
-                </span>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
+      <LabeledSelect
+        label="Select Trait"
+        value={project.selectedTrait}
+        onChange={(e) => handleTraitChange(e.target.value)}
+        options={traits.map((trait) => ({
+          value: trait.key,
+          label: `${trait.name} ${
+            trait.verification_status === "verified" ? "✓" : ""
+          }`.trim(),
+        }))}
+      />
+      {selectedTraitInfo && <TraitInfoCard traitInfo={selectedTraitInfo} />}
 
       {/* Parent Genotypes */}
       {selectedTraitInfo && (
         <div className="grid grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700">
-              Parent A Genotype
-            </label>
-            <input
-              type="text"
-              value={project.parent1Genotype}
-              onChange={(e) =>
-                setProject((prev) => ({
-                  ...prev,
-                  parent1Genotype: e.target.value.slice(0, 2),
-                }))
-              }
-              maxLength={2}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-center"
-              placeholder="e.g. Aa"
-            />
-          </div>
-          <div className="space-y-2">
-            <label className="block text-sm font-medium text-slate-700">
-              Parent B Genotype
-            </label>
-            <input
-              type="text"
-              value={project.parent2Genotype}
-              onChange={(e) =>
-                setProject((prev) => ({
-                  ...prev,
-                  parent2Genotype: e.target.value.slice(0, 2),
-                }))
-              }
-              maxLength={2}
-              className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent font-mono text-center"
-              placeholder="e.g. aa"
-            />
-          </div>
+          <LabeledInput
+            label="Parent A Genotype"
+            value={project.parent1Genotype}
+            onChange={(e) =>
+              setProject((prev) => ({
+                ...prev,
+                parent1Genotype: e.target.value.slice(0, 2),
+              }))
+            }
+            maxLength={2}
+            placeholder="e.g. Aa"
+            className="font-mono text-center"
+          />
+          <LabeledInput
+            label="Parent B Genotype"
+            value={project.parent2Genotype}
+            onChange={(e) =>
+              setProject((prev) => ({
+                ...prev,
+                parent2Genotype: e.target.value.slice(0, 2),
+              }))
+            }
+            maxLength={2}
+            placeholder="e.g. aa"
+            className="font-mono text-center"
+          />
         </div>
       )}
 
       {/* Output Format */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-slate-700">
-          Output Format
-        </label>
-        <div className="flex items-center space-x-4">
-          <label className="flex items-center">
-            <input
-              type="radio"
-              checked={project.asPercentages}
-              onChange={() =>
-                setProject((prev) => ({ ...prev, asPercentages: true }))
-              }
-              className="mr-2"
-            />
-            <span className="text-sm text-slate-600">Percentages</span>
-          </label>
-          <label className="flex items-center">
-            <input
-              type="radio"
-              checked={!project.asPercentages}
-              onChange={() =>
-                setProject((prev) => ({ ...prev, asPercentages: false }))
-              }
-              className="mr-2"
-            />
-            <span className="text-sm text-slate-600">Probabilities</span>
-          </label>
-        </div>
-      </div>
+      <RadioGroup
+        label="Output Format"
+        options={[
+          { value: true, label: "Percentages" },
+          { value: false, label: "Probabilities" },
+        ]}
+        value={project.asPercentages}
+        onChange={(val) =>
+          setProject((prev) => ({ ...prev, asPercentages: val as boolean }))
+        }
+      />
 
-      {/* Simulation Button */}
+      {/* Simulation Button & Results */}
       <div className="space-y-4">
         <button
           onClick={handleSimulation}
@@ -313,134 +212,26 @@ const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
           {simulationLoading ? "Running Simulation..." : "Run Simulation"}
         </button>
 
-        {simulationError && (
-          <div className="p-3 bg-red-50 border border-red-200 rounded-md">
-            <p className="text-sm text-red-600">{simulationError}</p>
-          </div>
-        )}
+        {simulationError && <ErrorAlert message={simulationError} />}
 
         {project.simulationResults && (
-          <div className="space-y-3">
-            <h4 className="text-sm font-medium text-slate-700">
-              Simulation Results:
-            </h4>
-
-            <div className="rounded-lg border border-blue-100 bg-blue-50/40 p-3 space-y-2">
-              <h5 className="text-xs font-semibold text-blue-700 uppercase tracking-wide">
-                Genotypic Ratios
-              </h5>
-              {project.selectedTrait === "abo_blood_group" ? (
-                <div className="grid grid-cols-3 gap-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100 mb-4">
-                  {(() => {
-                    // Map backend keys to I notation (expanded for all possible genotypes)
-                    const genotypeMap: Record<string, string> = {
-                      AA: "IᴬIᴬ",
-                      AO: "Iᴬi",
-                      BB: "IᴮIᴮ",
-                      BO: "Iᴮi",
-                      AB: "IᴬIᴮ",
-                      OO: "ii",
-                    };
-                    // Order for 2x3 grid
-                    const order = ["AA", "AO", "BB", "BO", "AB", "OO"];
-                    return order.map((backendGenotype) => (
-                      <div
-                        key={backendGenotype}
-                        className="flex flex-col items-center justify-center p-2"
-                      >
-                        <span
-                          style={{
-                            fontSize: "1.25em",
-                            fontWeight: 600,
-                            color: "#1e293b",
-                          }}
-                        >
-                          {genotypeMap[backendGenotype]}
-                        </span>
-                        <span className="text-xs font-semibold text-blue-600 mt-1">
-                          {project.simulationResults?.genotypic_ratios[
-                            backendGenotype
-                          ]?.toFixed(1) || "0.0"}
-                          %
-                        </span>
-                      </div>
-                    ));
-                  })()}
-                </div>
-              ) : (
-                Object.entries(project.simulationResults.genotypic_ratios).map(
-                  ([genotype, percentage]) => {
-                    if (
-                      typeof percentage !== "number" ||
-                      Number.isNaN(percentage)
-                    ) {
-                      return null;
-                    }
-                    return (
-                      <div
-                        key={genotype}
-                        className="flex items-center justify-between text-xs text-blue-800"
-                      >
-                        <span className="font-medium">{genotype}</span>
-                        <span className="font-mono">
-                          {project.asPercentages
-                            ? `${percentage.toFixed(1)}%`
-                            : percentage.toFixed(3)}
-                        </span>
-                      </div>
-                    );
-                  }
-                )
-              )}
-            </div>
-
-            <div className="rounded-lg border border-green-100 bg-green-50/40 p-3 space-y-2">
-              <h5 className="text-xs font-semibold text-green-700 uppercase tracking-wide">
-                Phenotypic Ratios
-              </h5>
-              {Object.entries(project.simulationResults.phenotypic_ratios).map(
-                ([phenotype, percentage]) => {
-                  if (
-                    typeof percentage !== "number" ||
-                    Number.isNaN(percentage)
-                  ) {
-                    return null;
-                  }
-                  return (
-                    <div
-                      key={phenotype}
-                      className="flex items-center justify-between text-xs text-green-800"
-                    >
-                      <span className="font-medium">{phenotype}</span>
-                      <span className="font-mono">
-                        {project.asPercentages
-                          ? `${percentage.toFixed(1)}%`
-                          : percentage.toFixed(3)}
-                      </span>
-                    </div>
-                  );
-                }
-              )}
-            </div>
-          </div>
+          <SimulationResults
+            results={project.simulationResults}
+            selectedTrait={project.selectedTrait}
+            asPercentages={project.asPercentages}
+          />
         )}
       </div>
 
       {/* Notes */}
-      <div className="space-y-2">
-        <label className="block text-sm font-medium text-slate-700">
-          Study Notes
-        </label>
-        <textarea
-          value={project.notes}
-          onChange={(e) =>
-            setProject((prev) => ({ ...prev, notes: e.target.value }))
-          }
-          rows={3}
-          className="w-full px-3 py-2 border border-slate-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          placeholder="Add notes about your study..."
-        />
-      </div>
+      <LabeledTextarea
+        label="Study Notes"
+        value={project.notes}
+        onChange={(e) =>
+          setProject((prev) => ({ ...prev, notes: e.target.value }))
+        }
+        placeholder="Add notes about your study..."
+      />
 
       {/* Add to Canvas */}
       <button

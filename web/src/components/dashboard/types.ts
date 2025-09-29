@@ -43,3 +43,10 @@ export interface SimulationButtonProps {
   setShowResultsModal: React.Dispatch<React.SetStateAction<boolean>>;
   disabled: boolean;
 }
+
+export interface MendelianStudyModalProps {
+  onClose: () => void;
+  onAddToCanvas: (item: any) => void;
+  initialData?: any;
+  isEditing?: boolean;
+}

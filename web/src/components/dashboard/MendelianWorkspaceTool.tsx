@@ -1,7 +1,10 @@
 import React, { useState, useCallback } from "react";
 import { useTraits } from "../../hooks/useTraits";
 import { simulateMendelianTrait } from "../../services/mendelian.api";
-import type { MendelianProject, MendelianWorkspaceToolProps } from "./types";
+import type {
+  SingleTraitMendelianProject as MendelianProject,
+  MendelianWorkspaceToolProps,
+} from "./types";
 import { getDefaultGenotype } from "./helpers";
 import LabeledInput from "./LabeledInput";
 import LabeledTextarea from "./LabeledTextarea";

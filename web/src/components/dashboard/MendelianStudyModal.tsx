@@ -1,19 +1,23 @@
 import React, { useState, useCallback, useEffect } from "react";
 import {
   XMarkIcon,
-  MagnifyingGlassIcon,
-  PlusIcon,
   BeakerIcon,
   SparklesIcon,
   TrashIcon,
-  PlayIcon,
-  DocumentPlusIcon,
 } from "@heroicons/react/24/outline";
-import { IoMale } from "react-icons/io5";
-import { GiFemale } from "react-icons/gi";
+import HeaderBar from "./HeaderBar";
+import TraitSelector from "./TraitSelector";
+import LabeledInput from "./LabeledInput";
+import LabeledTextarea from "./LabeledTextarea";
+import SimulationButton from "./SimulationButton";
+import EmptyState from "./EmptyState";
+import ParentGenotypeSelect from "./ParentGenotypeSelect";
 import { useTraits } from "../../hooks/useTraits";
-import { simulateMultipleMendelianTraits } from "../../services/mendelian.api";
 import type { MendelianSimulationTraitResult } from "../../types/api";
+import { GiFemale } from "react-icons/gi";
+import { IoMale } from "react-icons/io5";
+
+import SimulationResultsModal from "../modals/SimulationResultsModal";
 
 interface MendelianStudyModalProps {
   onClose: () => void;
@@ -45,7 +49,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
   initialData,
   isEditing = false,
 }) => {
-  const { traits, loading, error } = useTraits();
+  const { traits } = useTraits();
   const [showResultsModal, setShowResultsModal] = useState(false);
   const [project, setProject] = useState<MendelianProject>(() => {
     if (initialData && isEditing) {
@@ -72,7 +76,6 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
   });
 
   const [searchTerm, setSearchTerm] = useState("");
-  const [simulationLoading, setSimulationLoading] = useState(false);
   const [simulationError, setSimulationError] = useState<string | null>(null);
 
   // Filter traits based on search term
@@ -106,7 +109,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
     }
 
     // Remove duplicates and sort
-    return [...new Set(options)].sort();
+    return [...new Set(options)].sort((a, b) => a.localeCompare(b));
   }, []);
 
   // Add a trait to selection
@@ -158,38 +161,6 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
   };
 
   // Handle simulation
-  const handleSimulation = async () => {
-    setSimulationLoading(true);
-    setSimulationError(null);
-
-    try {
-      // Prepare data for API call
-      const parent1Genotypes = project.selectedTraits.reduce((acc, trait) => {
-        acc[trait.key] = trait.parent1Genotype;
-        return acc;
-      }, {} as Record<string, string>);
-
-      const parent2Genotypes = project.selectedTraits.reduce((acc, trait) => {
-        acc[trait.key] = trait.parent2Genotype;
-        return acc;
-      }, {} as Record<string, string>);
-
-      const response = await simulateMultipleMendelianTraits(
-        parent1Genotypes,
-        parent2Genotypes,
-        project.selectedTraits.map((t) => t.key),
-        project.asPercentages
-      );
-
-      setProject((prev) => ({ ...prev, simulationResults: response.results }));
-      setShowResultsModal(true);
-    } catch (error) {
-      console.error("Simulation failed:", error);
-      setSimulationError("Simulation failed. Please try again.");
-    } finally {
-      setSimulationLoading(false);
-    }
-  };
 
   // Handle adding to canvas
   const handleAddToCanvas = useCallback(() => {
@@ -238,88 +209,46 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
       <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
         <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-[85vh] overflow-hidden flex flex-col border border-gray-100">
           {/* Primary Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-indigo-50 to-purple-50">
-            <div className="flex items-center space-x-3">
+          <HeaderBar
+            title="Study Setup"
+            subtitle="Configure your Mendelian genetics study"
+            leftIcon={
               <div className="p-2 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg">
                 <BeakerIcon className="h-6 w-6 text-white" />
               </div>
-              <div>
-                <h2 className="text-xl font-bold text-gray-900">Study Setup</h2>
-                <p className="text-sm text-gray-600">
-                  Configure your Mendelian genetics study
-                </p>
-              </div>
-            </div>
-
-            <div className="flex items-center space-x-3">
-              <button
-                onClick={handleSimulation}
-                disabled={
-                  simulationLoading ||
-                  project.selectedTraits.length === 0 ||
-                  !project.selectedTraits.every(
-                    (trait) => trait.parent1Genotype && trait.parent2Genotype
-                  )
-                }
-                className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-lg font-medium hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2 shadow-lg"
-              >
-                {simulationLoading ? (
-                  <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                    <span>Running...</span>
-                  </>
-                ) : (
-                  <div className="cursor-pointer flex items-center justify-center space-x-2">
-                    <PlayIcon className="h-5 w-5" />
-                    <span>Run Simulation</span>
-                  </div>
-                )}
-              </button>
-
+            }
+            rightActions={
               <button
                 onClick={onClose}
                 className="p-2 text-gray-400 cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
               >
                 <XMarkIcon className="h-5 w-5" />
               </button>
-            </div>
-          </div>
+            }
+          />
 
           {/* Main Content Area */}
           <div className="flex flex-1 overflow-hidden">
             {/* Left Column - Study Details */}
             <div className="w-80 p-5 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 border-r border-gray-200 overflow-y-auto">
-              {/* Study Name */}
-              <div className="mb-6">
-                <label className="block text-sm font-medium text-gray-700 mb-2">
-                  📊 Study Name
-                </label>
-                <input
-                  type="text"
-                  value={project.name}
-                  onChange={(e) =>
-                    setProject((prev) => ({ ...prev, name: e.target.value }))
-                  }
-                  placeholder="Enter study name..."
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-200 bg-white/80 backdrop-blur-sm text-sm"
-                />
-              </div>
-
-              {/* Notes */}
-              <div className="mb-4">
-                <label className="flex items-center text-sm font-medium text-gray-700 mb-2">
-                  📝 Notes (Optional)
-                </label>
-                <textarea
-                  value={project.notes}
-                  onChange={(e) =>
-                    setProject((prev) => ({ ...prev, notes: e.target.value }))
-                  }
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 resize-none transition-all duration-200 bg-white/80 backdrop-blur-sm text-sm"
-                  placeholder="Add any notes about this study..."
-                />
-              </div>
+              <LabeledInput
+                label="📊 Study Name"
+                value={project.name}
+                onChange={(e) =>
+                  setProject((prev) => ({ ...prev, name: e.target.value }))
+                }
+                placeholder="Enter study name..."
+                className="mb-6"
+              />
+              <LabeledTextarea
+                label="📝 Notes (Optional)"
+                value={project.notes}
+                onChange={(e) =>
+                  setProject((prev) => ({ ...prev, notes: e.target.value }))
+                }
+                placeholder="Add any notes about this study..."
+                className="mb-4"
+              />
             </div>
 
             {/* Middle Column - Selected Traits Configuration */}
@@ -346,25 +275,26 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
               </div>
 
               {project.selectedTraits.length === 0 ? (
-                <div className="text-center py-16">
-                  <div className="relative mb-6">
-                    <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                      <SparklesIcon className="h-12 w-12 text-purple-500" />
+                <EmptyState
+                  message="Start Your Genetic Study"
+                  icon={
+                    <div className="relative mb-6">
+                      <div className="w-24 h-24 bg-gradient-to-br from-purple-100 to-indigo-100 rounded-3xl flex items-center justify-center mx-auto mb-4 shadow-lg">
+                        <SparklesIcon className="h-12 w-12 text-purple-500" />
+                      </div>
+                      {/* Floating DNA icons */}
+                      <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center animate-bounce">
+                        <span className="text-lg">🧬</span>
+                      </div>
+                      <div
+                        className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-indigo-100 to-blue-100 rounded-full flex items-center justify-center animate-bounce"
+                        style={{ animationDelay: "0.2s" }}
+                      >
+                        <span className="text-sm">⚗️</span>
+                      </div>
                     </div>
-                    {/* Floating DNA icons */}
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center animate-bounce">
-                      <span className="text-lg">🧬</span>
-                    </div>
-                    <div
-                      className="absolute -bottom-2 -left-2 w-6 h-6 bg-gradient-to-r from-indigo-100 to-blue-100 rounded-full flex items-center justify-center animate-bounce"
-                      style={{ animationDelay: "0.2s" }}
-                    >
-                      <span className="text-sm">⚗️</span>
-                    </div>
-                  </div>
-                  <h3 className="text-xl font-bold text-gray-900 mb-3">
-                    Start Your Genetic Study
-                  </h3>
+                  }
+                >
                   <p className="text-sm text-gray-500 max-w-sm mx-auto leading-relaxed">
                     Select traits from the browser on the right to begin
                     configuring your Mendelian inheritance study
@@ -375,7 +305,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                       Browse traits to get started
                     </span>
                   </div>
-                </div>
+                </EmptyState>
               ) : (
                 <div className="space-y-5">
                   {project.selectedTraits.map((selectedTrait) => (
@@ -461,8 +391,19 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                 <GiFemale className="h-4 w-4 text-purple-600" />
                               </label>
                             </div>
-                            <select
+                            <ParentGenotypeSelect
+                              label="Female Parent"
                               value={selectedTrait.parent1Genotype}
+                              options={getGenotypeOptions(
+                                selectedTrait.alleles
+                              ).filter((genotype) => {
+                                const traitInfo = traits.find(
+                                  (t) => t.key === selectedTrait.key
+                                );
+                                const phenotype =
+                                  traitInfo?.phenotype_map[genotype];
+                                return phenotype && phenotype !== "Unknown";
+                              })}
                               onChange={(e) =>
                                 updateTraitGenotype(
                                   selectedTrait.key,
@@ -470,45 +411,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                   e.target.value
                                 )
                               }
-                              className="w-full px-2 cursor-pointer py-4 border-2 border-purple-200 rounded-xl focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-gradient-to-r from-purple-50/50 to-white text-sm font-semibold shadow-sm transition-all duration-200 hover:border-purple-300 appearance-none min-w-0"
-                              style={{
-                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-                                backgroundPosition: "right 0.75rem center",
-                                backgroundRepeat: "no-repeat",
-                                backgroundSize: "1.5em 1.5em",
-                                paddingRight: "3rem",
-                              }}
-                            >
-                              <option value="" className="text-gray-500">
-                                Select genotype
-                              </option>
-                              {getGenotypeOptions(selectedTrait.alleles)
-                                .filter((genotype) => {
-                                  const traitInfo = traits.find(
-                                    (t) => t.key === selectedTrait.key
-                                  );
-                                  const phenotype =
-                                    traitInfo?.phenotype_map[genotype];
-                                  return phenotype && phenotype !== "Unknown";
-                                })
-                                .map((genotype) => {
-                                  const traitInfo = traits.find(
-                                    (t) => t.key === selectedTrait.key
-                                  );
-                                  const phenotype =
-                                    traitInfo?.phenotype_map[genotype] ||
-                                    "Unknown";
-                                  return (
-                                    <option
-                                      key={genotype}
-                                      value={genotype}
-                                      className="font-semibold"
-                                    >
-                                      {genotype} → {phenotype}
-                                    </option>
-                                  );
-                                })}
-                            </select>
+                            />
                             {selectedTrait.parent1Genotype && (
                               <div className="absolute -bottom-1 right-3 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
                                 ✓
@@ -533,8 +436,19 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                 <IoMale className="h-4 w-4 text-indigo-600" />
                               </label>
                             </div>
-                            <select
+                            <ParentGenotypeSelect
+                              label="Male Parent"
                               value={selectedTrait.parent2Genotype}
+                              options={getGenotypeOptions(
+                                selectedTrait.alleles
+                              ).filter((genotype) => {
+                                const traitInfo = traits.find(
+                                  (t) => t.key === selectedTrait.key
+                                );
+                                const phenotype =
+                                  traitInfo?.phenotype_map[genotype];
+                                return phenotype && phenotype !== "Unknown";
+                              })}
                               onChange={(e) =>
                                 updateTraitGenotype(
                                   selectedTrait.key,
@@ -542,45 +456,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                   e.target.value
                                 )
                               }
-                              className="w-full cursor-pointer px-2 py-4 border-2 border-indigo-200 rounded-xl focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-gradient-to-r from-indigo-50/50 to-white text-sm font-semibold shadow-sm transition-all duration-200 hover:border-indigo-300 appearance-none min-w-0"
-                              style={{
-                                backgroundImage: `url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 20 20'%3e%3cpath stroke='%236b7280' stroke-linecap='round' stroke-linejoin='round' stroke-width='1.5' d='m6 8 4 4 4-4'/%3e%3c/svg%3e")`,
-                                backgroundPosition: "right 0.75rem center",
-                                backgroundRepeat: "no-repeat",
-                                backgroundSize: "1.5em 1.5em",
-                                paddingRight: "3rem",
-                              }}
-                            >
-                              <option value="" className="text-gray-500">
-                                Select genotype
-                              </option>
-                              {getGenotypeOptions(selectedTrait.alleles)
-                                .filter((genotype) => {
-                                  const traitInfo = traits.find(
-                                    (t) => t.key === selectedTrait.key
-                                  );
-                                  const phenotype =
-                                    traitInfo?.phenotype_map[genotype];
-                                  return phenotype && phenotype !== "Unknown";
-                                })
-                                .map((genotype) => {
-                                  const traitInfo = traits.find(
-                                    (t) => t.key === selectedTrait.key
-                                  );
-                                  const phenotype =
-                                    traitInfo?.phenotype_map[genotype] ||
-                                    "Unknown";
-                                  return (
-                                    <option
-                                      key={genotype}
-                                      value={genotype}
-                                      className="font-semibold"
-                                    >
-                                      {genotype} → {phenotype}
-                                    </option>
-                                  );
-                                })}
-                            </select>
+                            />
                             {selectedTrait.parent2Genotype && (
                               <div className="absolute -bottom-1 right-3 bg-green-500 text-white text-xs px-2 py-0.5 rounded-full">
                                 ✓
@@ -632,104 +508,28 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                   <p className="text-red-800 text-sm">{simulationError}</p>
                 </div>
               )}
+              <div className="mt-8 flex justify-end">
+                <SimulationButton
+                  project={project}
+                  setProject={setProject}
+                  traits={traits}
+                  setSimulationError={setSimulationError}
+                  setShowResultsModal={setShowResultsModal}
+                  disabled={project.selectedTraits.length === 0}
+                />
+              </div>
             </div>
 
             {/* Right Column - Trait Browser */}
             <div className="w-80 p-5 bg-gradient-to-br from-purple-50/50 to-pink-50/50 overflow-y-auto">
-              <div className="flex items-center justify-between space-x-2 mb-5">
-                <div className="flex items-center space-x-2">
-                  <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
-                    <MagnifyingGlassIcon className="h-5 w-5 text-white" />
-                  </div>
-                  <h3 className="text-lg font-bold text-gray-900">
-                    Trait Browser
-                  </h3>
-                </div>
-                <div>
-                  <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
-                    {availableCount} available
-                  </span>
-                </div>
-              </div>
-
-              {/* Search */}
-              <div className="mb-4">
-                <div className="relative">
-                  <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-                  <input
-                    type="text"
-                    value={searchTerm}
-                    onChange={(e) => setSearchTerm(e.target.value)}
-                    placeholder="Search traits..."
-                    className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white/80 backdrop-blur-sm text-sm"
-                  />
-                </div>
-              </div>
-
-              {/* Trait List */}
-              <div className="space-y-3">
-                {loading ? (
-                  <div className="text-center py-8">
-                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-                    <p className="text-sm text-gray-500 mt-2">
-                      Loading traits...
-                    </p>
-                  </div>
-                ) : error ? (
-                  <div className="text-center py-8">
-                    <p className="text-sm text-red-600">Error loading traits</p>
-                  </div>
-                ) : (
-                  filteredTraits.map((trait) => (
-                    <button
-                      key={trait.key}
-                      onClick={() => addTrait(trait.key)}
-                      disabled={project.selectedTraits.length >= 5}
-                      className="w-full text-left p-4 bg-white/80 cursor-pointer backdrop-blur-sm border border-gray-200 rounded-xl hover:bg-white hover:border-purple-300 hover:shadow-md disabled:bg-gray-100 disabled:cursor-not-allowed transition-all duration-200 group"
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex items-center space-x-2 mb-1 flex-wrap">
-                            <h4 className="font-semibold text-gray-900 text-sm group-hover:text-purple-700 transition-colors flex-shrink-0">
-                              {trait.name}
-                            </h4>
-                            {trait.gene && trait.chromosome && (
-                              <div className="flex items-center space-x-1 flex-shrink-0">
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
-                                  {trait.gene}
-                                </span>
-                                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">
-                                  Chr&nbsp;{trait.chromosome}
-                                </span>
-                              </div>
-                            )}
-                          </div>
-                          <p className="text-xs text-gray-500">
-                            <span className="font-medium">Alleles:</span>{" "}
-                            {trait.alleles.join(", ")}
-                            {trait.inheritance_pattern && (
-                              <span className="ml-2">
-                                |{" "}
-                                <span className="font-medium">
-                                  Inheritance:
-                                </span>{" "}
-                                <span className="capitalize">
-                                  {trait.inheritance_pattern}
-                                </span>
-                              </span>
-                            )}
-                          </p>
-                        </div>
-                        <div className="flex-shrink-0 ml-3">
-                          <div className="p-1.5 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-                            <PlusIcon className="h-4 w-4 text-purple-600 group-hover:scale-110 transition-transform" />
-                          </div>
-                        </div>
-                      </div>
-                    </button>
-                  ))
-                )}
-              </div>
+              <TraitSelector
+                searchTerm={searchTerm}
+                onSearch={(e) => setSearchTerm(e.target.value)}
+                availableCount={availableCount}
+                onAddTrait={addTrait}
+                filteredTraits={filteredTraits}
+                selectedTraits={project.selectedTraits}
+              />
 
               {project.selectedTraits.length >= 5 && (
                 <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
@@ -760,238 +560,14 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
         </div>
       </div>
 
-      {/* Results Modal */}
-      {showResultsModal && project.simulationResults && (
-        <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-          <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
-              <div className="flex items-center space-x-3">
-                <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg">
-                  <BeakerIcon className="h-6 w-6 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-xl font-bold text-gray-900">
-                    Simulation Results
-                  </h2>
-                  <p className="text-sm text-gray-600">
-                    Offspring trait predictions
-                  </p>
-                </div>
-              </div>
-
-              <div className="flex items-center space-x-3">
-                <button
-                  onClick={handleAddToCanvas}
-                  className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 flex items-center space-x-2 shadow-lg"
-                >
-                  <DocumentPlusIcon className="h-5 w-5" />
-                  <span>Add to Canvas</span>
-                </button>
-
-                <button
-                  onClick={() => setShowResultsModal(false)}
-                  className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
-                >
-                  <XMarkIcon className="h-5 w-5" />
-                </button>
-              </div>
-            </div>
-
-            <div className="flex-1 p-6 overflow-y-auto">
-              <div className="space-y-4">
-                {Object.entries(project.simulationResults).map(
-                  ([traitKey, result]) => {
-                    const trait = traits.find((t) => t.key === traitKey);
-                    const selectedTrait = project.selectedTraits.find(
-                      (t) => t.key === traitKey
-                    );
-
-                    // The result now contains both genotypic_ratios and phenotypic_ratios
-                    if (
-                      !result ||
-                      typeof result !== "object" ||
-                      !result.genotypic_ratios ||
-                      !result.phenotypic_ratios
-                    ) {
-                      return (
-                        <div
-                          key={traitKey}
-                          className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-6 border border-red-200"
-                        >
-                          <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                            <span className="mr-2">⚠️</span>
-                            {trait?.name || traitKey}
-                          </h4>
-                          <p className="text-red-600">
-                            No simulation data available for this trait.
-                          </p>
-                        </div>
-                      );
-                    }
-
-                    return (
-                      <div
-                        key={traitKey}
-                        className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200"
-                      >
-                        <div className="flex items-center justify-between mb-4">
-                          <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                            <span className="mr-2">🧬</span>
-                            {trait?.name || traitKey}
-                          </h4>
-                          <div className="flex items-center space-x-4 text-sm">
-                            <div className="flex items-center space-x-2">
-                              <GiFemale className="h-4 w-4 text-purple-600" />
-                              <span className="text-gray-600">
-                                {selectedTrait?.parent1Genotype} →{" "}
-                                {trait?.phenotype_map[
-                                  selectedTrait?.parent1Genotype || ""
-                                ] || "Unknown"}
-                              </span>
-                            </div>
-                            <span className="text-gray-400 text-2xl">×</span>
-                            <div className="flex items-center space-x-2">
-                              <IoMale className="h-4 w-4 text-indigo-600" />
-                              <span className="text-gray-600">
-                                {selectedTrait?.parent2Genotype} →{" "}
-                                {trait?.phenotype_map[
-                                  selectedTrait?.parent2Genotype || ""
-                                ] || "Unknown"}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-
-                        {/* Display both genotypic and phenotypic ratios (horizontal bars) */}
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
-                          {/* Genotypic Ratios Section */}
-                          <div>
-                            <h5 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
-                              <span className="w-2 h-2 bg-blue-500 rounded-full mr-2"></span>
-                              Genotypic Ratios
-                            </h5>
-                            {traitKey === "abo_blood_group" ? (
-                              <>
-                                <div className="grid grid-cols-2 gap-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100 mb-4">
-                                  {(() => {
-                                    // Map backend keys to I notation
-                                    const genotypeMap: Record<string, string> =
-                                      {
-                                        AB: "IᴬIᴮ",
-                                        AO: "Iᴬi",
-                                        BO: "Iᴮi",
-                                        OO: "ii",
-                                      };
-                                    // Order for 2x2 grid
-                                    const order = ["AB", "AO", "BO", "OO"];
-                                    return order.map((backendGenotype) => (
-                                      <div
-                                        key={backendGenotype}
-                                        className="flex flex-col items-center justify-center p-2"
-                                      >
-                                        <span
-                                          style={{
-                                            fontSize: "1.25em",
-                                            fontWeight: 600,
-                                            color: "#1e293b",
-                                          }}
-                                        >
-                                          {genotypeMap[backendGenotype]}
-                                        </span>
-                                        <span className="text-xs font-semibold text-blue-600 mt-1">
-                                          {result.genotypic_ratios[
-                                            backendGenotype
-                                          ]?.toFixed(1) || "0.0"}
-                                          %
-                                        </span>
-                                      </div>
-                                    ));
-                                  })()}
-                                </div>
-                              </>
-                            ) : (
-                              <div className="space-y-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100">
-                                {Object.entries(result.genotypic_ratios).map(
-                                  ([genotype, percentage]) => (
-                                    <div
-                                      key={genotype}
-                                      className="flex items-center gap-3"
-                                    >
-                                      <div className="w-24 text-xs">
-                                        <div className="font-medium text-gray-800">
-                                          {genotype}
-                                        </div>
-                                      </div>
-                                      <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-blue-100">
-                                        <div
-                                          className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
-                                          style={{
-                                            width: `${Math.max(
-                                              percentage,
-                                              2
-                                            )}%`,
-                                          }}
-                                        />
-                                      </div>
-                                      <div className="w-12 text-right text-xs font-semibold text-blue-600">
-                                        {`${percentage.toFixed(1)}%`}
-                                      </div>
-                                    </div>
-                                  )
-                                )}
-                              </div>
-                            )}
-                          </div>
-
-                          {/* Phenotypic Ratios Section */}
-                          <div>
-                            <h5 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
-                              <span className="w-2 h-2 bg-green-500 rounded-full mr-2"></span>
-                              Phenotypic Ratios
-                            </h5>
-                            <div className="space-y-2 bg-green-50/30 rounded-lg p-3 border border-green-100">
-                              {Object.entries(result.phenotypic_ratios).map(
-                                ([phenotype, percentage]) => (
-                                  <div
-                                    key={phenotype}
-                                    className="flex items-center gap-3"
-                                  >
-                                    <div className="w-28 text-xs">
-                                      <div className="font-semibold text-gray-800">
-                                        {phenotype}
-                                      </div>
-                                      {/* <div className="text-xs text-gray-500">
-                                        Phenotype
-                                      </div> */}
-                                    </div>
-
-                                    <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-green-100">
-                                      <div
-                                        className="h-full bg-gradient-to-r from-green-500 to-green-400 transition-all"
-                                        style={{
-                                          width: `${Math.max(percentage, 2)}%`,
-                                        }}
-                                      />
-                                    </div>
-
-                                    <div className="w-12 text-right text-xs font-semibold text-green-600">
-                                      {`${percentage.toFixed(1)}%`}
-                                    </div>
-                                  </div>
-                                )
-                              )}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  }
-                )}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
+      <SimulationResultsModal
+        open={showResultsModal}
+        onClose={() => setShowResultsModal(false)}
+        simulationResults={project.simulationResults || {}}
+        selectedTraits={project.selectedTraits}
+        traits={traits}
+        onAddToCanvas={handleAddToCanvas}
+      />
     </>
   );
 };

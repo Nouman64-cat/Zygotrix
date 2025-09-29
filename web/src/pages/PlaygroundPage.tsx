@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 
 import JointPhenotypeTest from "../components/marketing_site/joint_analysis/JointPhenotypeTest";
 import PolygenicOverview from "../components/dashboard/PolygenicOverview";
-import TraitManagementSection from "../components/dashboard/TraitManagementSection";
 import { usePolygenicScore } from "../hooks/usePolygenicScore";
 import { useTraits } from "../hooks/useTraits";
 import LiveSandbox from "../components/marketing_site/playground/LiveSandbox";
@@ -163,12 +162,6 @@ const PlaygroundPage: React.FC = () => {
         <h2 id="playground-management-heading" className="sr-only">
           Trait management
         </h2>
-        <TraitManagementSection
-          traits={traits}
-          loading={loading}
-          error={error}
-          reload={reload}
-        />
       </section>
     </main>
   );

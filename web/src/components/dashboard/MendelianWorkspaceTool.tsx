@@ -1,6 +1,6 @@
 import React, { useState, useCallback } from "react";
 import { useTraits } from "../../hooks/useTraits";
-import { simulateMendelianTrait } from "../../services/zygotrixApi";
+import { simulateMendelianTrait } from "../../services/mendelian.api";
 import type { MendelianSimulationTraitResult } from "../../types/api";
 
 interface MendelianWorkspaceToolProps {

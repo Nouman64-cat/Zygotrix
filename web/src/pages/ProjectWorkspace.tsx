@@ -11,13 +11,6 @@ import MendelianStudyModal from "../components/dashboard/MendelianStudyModal";
 
 import DeleteConfirmationModal from "../components/modals/DeleteConfirmationModal";
 import { useProject, useProjects } from "../hooks/useProjects";
-import {
-  deleteMendelianTool,
-  updateMendelianTool,
-  createMendelianTool,
-  updateProject as updateProjectAPI,
-} from "../services/zygotrixApi";
-
 import type { WorkspaceItem } from "../components/workspace/types";
 import { getDefaultSize, getDefaultData } from "../components/workspace/config";
 import ToolboxSidebar from "../components/workspace/ToolboxSidebar";
@@ -94,13 +87,17 @@ import {
   type StoredDrawingRecord,
 } from "../services/workspaceLocalStore";
 import {
-  fetchProjectLines,
-  saveProjectLines as saveProjectLinesApi,
-  fetchProjectNotes,
-  saveProjectNotes as saveProjectNotesApi,
+  createMendelianTool,
+  deleteMendelianTool,
   fetchProjectDrawings,
+  fetchProjectLines,
+  fetchProjectNotes,
   saveProjectDrawings as saveProjectDrawingsApi,
-} from "../services/projectApi";
+  saveProjectLines as saveProjectLinesApi,
+  saveProjectNotes as saveProjectNotesApi,
+  updateMendelianTool,
+  updateProject as updateProjectAPI,
+} from "../services/projects.api";
 import type {
   ProjectDrawingSaveSummary,
   ProjectLineSaveSummary,

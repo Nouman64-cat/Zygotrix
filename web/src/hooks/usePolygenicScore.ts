@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { fetchPolygenicScore } from "../services/zygotrixApi";
+import { fetchPolygenicScore } from "../services/mendelian.api";
 
 type PolygenicHook = {
   score: number | null;

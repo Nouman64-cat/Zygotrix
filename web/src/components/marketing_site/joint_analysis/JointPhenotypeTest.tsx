@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { simulateJointPhenotypes } from "../../../services/zygotrixApi";
+import { simulateJointPhenotypes } from "../../../services/mendelian.api";
 import JointPhenotypeResults from "./JointPhenotypeResults";
 
 interface JointPhenotypeTestProps {

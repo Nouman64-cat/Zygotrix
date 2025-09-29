@@ -7,7 +7,7 @@ import React, {
   useState,
 } from "react";
 
-import { fetchCurrentUser, signIn as signInRequest } from "../services/authApi";
+import { fetchCurrentUser, signIn as signInRequest } from "../services/auth.api";
 import type { AuthResponse, SignInPayload, UserProfile } from "../types/auth";
 
 const STORAGE_KEY = "zygotrix_auth_token";

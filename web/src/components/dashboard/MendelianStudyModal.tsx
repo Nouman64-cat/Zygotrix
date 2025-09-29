@@ -12,7 +12,7 @@ import {
 import { IoMale } from "react-icons/io5";
 import { GiFemale } from "react-icons/gi";
 import { useTraits } from "../../hooks/useTraits";
-import { simulateMultipleMendelianTraits } from "../../services/zygotrixApi";
+import { simulateMultipleMendelianTraits } from "../../services/mendelian.api";
 import type { MendelianSimulationTraitResult } from "../../types/api";
 
 interface MendelianStudyModalProps {

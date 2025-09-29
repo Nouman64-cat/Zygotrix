@@ -1,14 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { fetchTraits } from "../services/zygotrixApi";
+import { fetchTraits, type TraitFilters } from "../services/traits.api";
 import type { TraitInfo } from "../types/api";
-
-type TraitFilters = {
-  inheritance_pattern?: string;
-  verification_status?: string;
-  category?: string;
-  gene_info?: string;
-};
 
 type TraitsHook = {
   traits: TraitInfo[];

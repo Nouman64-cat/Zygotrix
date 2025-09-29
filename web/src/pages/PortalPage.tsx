@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
 import { useAuth } from "../context/AuthContext";
-import { fetchPortalStatus } from "../services/authApi";
+import { fetchPortalStatus } from "../services/auth.api";
 import DashboardLayout from "../layouts/DashboardLayout";
 
 const PortalPage: React.FC = () => {

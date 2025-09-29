@@ -5,7 +5,7 @@ import type {
   ProjectTemplate,
   ProjectUpdateRequest,
 } from "../types/api";
-import * as projectApi from "../services/projectApi";
+import * as projectApi from "../services/projects.api";
 
 export const useProjects = (page: number = 1, pageSize: number = 20) => {
   const [projects, setProjects] = useState<Project[]>([]);

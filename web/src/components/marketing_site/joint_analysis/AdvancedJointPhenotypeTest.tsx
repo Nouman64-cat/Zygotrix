@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from "react";
-import {
-  fetchTraits,
-  simulateJointPhenotypes,
-} from "../../../services/zygotrixApi";
+import { fetchTraits } from "../../../services/traits.api";
+import { simulateJointPhenotypes } from "../../../services/mendelian.api";
 import JointPhenotypeResults from "./JointPhenotypeResults";
 import type { TraitInfo } from "../../../types/api";
 

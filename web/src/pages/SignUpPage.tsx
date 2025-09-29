@@ -6,7 +6,7 @@ import {
   requestSignupOtp,
   resendSignupOtp,
   verifySignupOtp,
-} from "../services/authApi";
+} from "../services/auth.api";
 import type { SignupInitiateResponse } from "../types/auth";
 
 const formatExpiry = (value: string | null): string | null => {

@@ -1,7 +1,7 @@
 import React from "react";
 import { Route, Routes } from "react-router-dom";
 
-import RequireAuth from "./components/RequireAuth";
+import RequireAuth from "./components/dashboard/RequireAuth";
 import MainLayout from "./layouts/MainLayout";
 import AboutPage from "./pages/AboutPage";
 import AnalyticsPage from "./pages/AnalyticsPage";

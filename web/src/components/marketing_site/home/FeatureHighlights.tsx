@@ -1,7 +1,7 @@
 import React from "react";
 
-import { Icon } from "./Icon";
-import type { IconKey } from "./Icon";
+import { Icon } from "../../universal/Icon";
+import type { IconKey } from "../../universal/Icon";
 
 type FeatureCard = {
   title: string;
@@ -26,7 +26,9 @@ const FeatureHighlights: React.FC<FeatureHighlightsProps> = ({ cards }) => {
             Everything you need to explore inheritance scenarios end-to-end.
           </h2>
           <p className="mt-4 text-base text-slate-600">
-            Each module is lightweight, documented, and decoupled so you can drop Zygotrix Engine into notebooks, APIs, or decision-support tools.
+            Each module is lightweight, documented, and decoupled so you can
+            drop Zygotrix Engine into notebooks, APIs, or decision-support
+            tools.
           </p>
         </div>
         <div className="mt-16 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
@@ -40,8 +42,12 @@ const FeatureHighlights: React.FC<FeatureHighlightsProps> = ({ cards }) => {
               >
                 <Icon name={feature.icon} />
               </div>
-              <h3 className="text-xl font-semibold text-[#1E3A8A]">{feature.title}</h3>
-              <p className="text-sm leading-relaxed text-slate-600">{feature.description}</p>
+              <h3 className="text-xl font-semibold text-[#1E3A8A]">
+                {feature.title}
+              </h3>
+              <p className="text-sm leading-relaxed text-slate-600">
+                {feature.description}
+              </p>
               <div className="mt-auto flex items-center gap-2 text-sm font-semibold text-[#3B82F6] opacity-0 transition group-hover:opacity-100">
                 <span>Learn more</span>
                 <span aria-hidden>{"->"}</span>

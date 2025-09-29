@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import logo from "../../public/zygotrix-logo.png";
+import logo from "../../../public/zygotrix-logo.png";
 const footerLinks = [
   {
     heading: "Navigation",

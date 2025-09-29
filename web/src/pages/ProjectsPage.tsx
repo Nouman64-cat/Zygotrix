@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
-import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
+import DeleteConfirmationModal from "../components/modals/DeleteConfirmationModal";
 import { useProjects, useProjectTemplates } from "../hooks/useProjects";
 import type { Project, ProjectTemplate } from "../types/api";
 import { MagnifyingGlassIcon, TrashIcon } from "@heroicons/react/24/outline";

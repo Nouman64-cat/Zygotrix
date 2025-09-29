@@ -1,6 +1,6 @@
 import React from "react";
 import { AcademicCapIcon } from "@heroicons/react/24/outline";
-import PunnettSquare from "../../PunnettSquare";
+import PunnettSquare from "../../dashboard/PunnettSquare";
 import type { WorkspaceItem } from "../types";
 
 interface PunnettSquareComponentProps {

@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import { FiShare2 } from "react-icons/fi";
 
-import type { BlogListEntry } from "../../types/blog";
+import type { BlogListEntry } from "../../../types/blog";
 
 interface BlogCardProps {
   blog: BlogListEntry;

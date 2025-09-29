@@ -1,6 +1,6 @@
 import React, { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import ColorPicker from "../ColorPicker";
+import ColorPicker from "./ColorPicker";
 import { getTimeAgo } from "./helpers/formatHelpers";
 import {
   ArrowLeftIcon,
@@ -77,7 +77,9 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
     const { lines, notes, drawings } = saveSummary;
 
     const summaries = [lines, notes, drawings].filter(
-      (summary): summary is
+      (
+        summary
+      ): summary is
         | ProjectLineSaveSummary
         | ProjectNoteSaveSummary
         | ProjectDrawingSaveSummary => Boolean(summary)

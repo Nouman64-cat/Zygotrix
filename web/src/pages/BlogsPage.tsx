@@ -1,13 +1,9 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 
-import BlogCard from "../components/blog/BlogCard";
+import BlogCard from "../components/marketing_site/blog/BlogCard";
 import { fetchBlogs } from "../services/hygraphApi";
-import type {
-  BlogListEntry,
-  CategorySummary,
-  TagSummary,
-} from "../types/blog";
+import type { BlogListEntry, CategorySummary, TagSummary } from "../types/blog";
 
 const BlogsPage: React.FC = () => {
   const [blogs, setBlogs] = useState<BlogListEntry[]>([]);
@@ -85,7 +81,9 @@ const BlogsPage: React.FC = () => {
 
         {!isLoading && error && (
           <div className="mx-auto max-w-xl rounded-3xl border border-red-200 bg-red-50 p-6 text-center text-sm text-red-600">
-            <p className="font-semibold">We couldn't load the latest articles.</p>
+            <p className="font-semibold">
+              We couldn't load the latest articles.
+            </p>
             <p className="mt-2">
               {error}. Try reloading this page or check back later.
             </p>
@@ -132,7 +130,7 @@ const BlogsPage: React.FC = () => {
 
         {!isLoading && !error && (
           <div className="text-center text-sm text-slate-500">
-            Looking for something specific? Explore all stories on our {" "}
+            Looking for something specific? Explore all stories on our{" "}
             <Link to="/contact" className="font-semibold text-blue-600">
               contact page
             </Link>{" "}

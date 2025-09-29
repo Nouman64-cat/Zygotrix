@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import type { BlogListEntry } from "../../types/blog";
+import type { BlogListEntry } from "../../../types/blog";
 
 interface RelatedBlogsProps {
   currentSlug?: string;

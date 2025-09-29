@@ -1,8 +1,8 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
 
-import { useAuth } from "../context/AuthContext";
-import logo from "../../public/zygotrix-logo.png";
+import { useAuth } from "../../context/AuthContext";
+import logo from "../../../public/zygotrix-logo.png";
 
 const baseNavItems = [
   { label: "Home", to: "/" },

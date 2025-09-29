@@ -1,9 +1,15 @@
-import React, { useState, useRef, useCallback, useEffect, useMemo } from "react";
+import React, {
+  useState,
+  useRef,
+  useCallback,
+  useEffect,
+  useMemo,
+} from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DashboardLayout from "../layouts/DashboardLayout";
-import MendelianStudyModal from "../components/MendelianStudyModal";
+import MendelianStudyModal from "../components/dashboard/MendelianStudyModal";
 
-import DeleteConfirmationModal from "../components/DeleteConfirmationModal";
+import DeleteConfirmationModal from "../components/modals/DeleteConfirmationModal";
 import { useProject, useProjects } from "../hooks/useProjects";
 import {
   deleteMendelianTool,
@@ -795,7 +801,9 @@ const ProjectWorkspace: React.FC = () => {
               origin: drawing.origin ?? deviceIdRef.current,
             }));
 
-            await Promise.all(records.map((drawing) => upsertStoredDrawing(drawing)));
+            await Promise.all(
+              records.map((drawing) => upsertStoredDrawing(drawing))
+            );
           }
         }
 
@@ -898,7 +906,10 @@ const ProjectWorkspace: React.FC = () => {
           }
         } catch (migrationError) {
           if (!cancelled) {
-            console.error("Failed to migrate staged lines to new project", migrationError);
+            console.error(
+              "Failed to migrate staged lines to new project",
+              migrationError
+            );
           }
         }
 
@@ -915,7 +926,9 @@ const ProjectWorkspace: React.FC = () => {
             await replaceStoredProjectNotes("new", []);
             if (!cancelled) {
               setItems((prev) => {
-                const withoutNotes = prev.filter((item) => item.type !== "note");
+                const withoutNotes = prev.filter(
+                  (item) => item.type !== "note"
+                );
                 const noteItems = reassignedNotes
                   .filter((record) => !record.is_deleted)
                   .map(mapStoredNoteToItem);
@@ -929,7 +942,10 @@ const ProjectWorkspace: React.FC = () => {
           }
         } catch (migrationError) {
           if (!cancelled) {
-            console.error("Failed to migrate staged notes to new project", migrationError);
+            console.error(
+              "Failed to migrate staged notes to new project",
+              migrationError
+            );
           }
         }
 
@@ -1050,7 +1066,10 @@ const ProjectWorkspace: React.FC = () => {
 
         try {
           const notePayload = await getNotesForSave(projectId);
-          const noteResponse = await saveProjectNotesApi(projectId, notePayload);
+          const noteResponse = await saveProjectNotesApi(
+            projectId,
+            notePayload
+          );
           await recordNoteSnapshot(projectId, noteResponse);
 
           setItems((prev) => {
@@ -1288,9 +1307,7 @@ const ProjectWorkspace: React.FC = () => {
 
         const storageProjectId =
           projectId && projectId !== "new" ? projectId : "new";
-        void upsertStoredLine(
-          mapDrawingToStoredLine(storageProjectId, newLine)
-        )
+        void upsertStoredLine(mapDrawingToStoredLine(storageProjectId, newLine))
           .then(() => {
             if (projectId && projectId !== "new") {
               return markLinesDirty(projectId);
@@ -1557,7 +1574,11 @@ const ProjectWorkspace: React.FC = () => {
           }
         : null;
 
-      if (projectId && projectId !== "new" && existingItem?.type === "mendelian-study") {
+      if (
+        projectId &&
+        projectId !== "new" &&
+        existingItem?.type === "mendelian-study"
+      ) {
         setTimeout(async () => {
           try {
             await updateMendelianTool(projectId, itemId, {
@@ -1720,10 +1741,7 @@ const ProjectWorkspace: React.FC = () => {
       if (draggedNote && draggedNote.type === "note") {
         const storageProjectId =
           projectId && projectId !== "new" ? projectId : "new";
-        const storedRecord = mapItemToStoredNote(
-          storageProjectId,
-          draggedNote
-        );
+        const storedRecord = mapItemToStoredNote(storageProjectId, draggedNote);
         void upsertStoredNote(storedRecord)
           .then(() => {
             if (projectId && projectId !== "new") {
@@ -1838,7 +1856,10 @@ const ProjectWorkspace: React.FC = () => {
           version: (line.version ?? 0) + 1,
           origin: line.origin ?? deviceIdRef.current,
         };
-        const storedRecord = mapDrawingToStoredLine(storageProjectId, tombstone);
+        const storedRecord = mapDrawingToStoredLine(
+          storageProjectId,
+          tombstone
+        );
         return upsertStoredLine(storedRecord);
       });
 

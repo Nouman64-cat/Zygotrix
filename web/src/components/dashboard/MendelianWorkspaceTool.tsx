@@ -1,7 +1,7 @@
 import React, { useState, useCallback } from "react";
-import { useTraits } from "../hooks/useTraits";
-import { simulateMendelianTrait } from "../services/zygotrixApi";
-import type { MendelianSimulationTraitResult } from "../types/api";
+import { useTraits } from "../../hooks/useTraits";
+import { simulateMendelianTrait } from "../../services/zygotrixApi";
+import type { MendelianSimulationTraitResult } from "../../types/api";
 
 interface MendelianWorkspaceToolProps {
   onAddToCanvas: (item: any) => void;
@@ -331,7 +331,10 @@ const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
               </h5>
               {Object.entries(project.simulationResults.genotypic_ratios).map(
                 ([genotype, percentage]) => {
-                  if (typeof percentage !== "number" || Number.isNaN(percentage)) {
+                  if (
+                    typeof percentage !== "number" ||
+                    Number.isNaN(percentage)
+                  ) {
                     return null;
                   }
                   return (
@@ -357,7 +360,10 @@ const MendelianWorkspaceTool: React.FC<MendelianWorkspaceToolProps> = ({
               </h5>
               {Object.entries(project.simulationResults.phenotypic_ratios).map(
                 ([phenotype, percentage]) => {
-                  if (typeof percentage !== "number" || Number.isNaN(percentage)) {
+                  if (
+                    typeof percentage !== "number" ||
+                    Number.isNaN(percentage)
+                  ) {
                     return null;
                   }
                   return (

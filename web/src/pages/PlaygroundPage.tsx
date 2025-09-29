@@ -1,11 +1,11 @@
 import React, { useMemo } from "react";
 
-import JointPhenotypeTest from "../components/JointPhenotypeTest";
-import LiveSandbox from "../components/LiveSandbox";
-import PolygenicOverview from "../components/PolygenicOverview";
-import TraitManagementSection from "../components/TraitManagementSection";
+import JointPhenotypeTest from "../components/marketing_site/joint_analysis/JointPhenotypeTest";
+import PolygenicOverview from "../components/dashboard/PolygenicOverview";
+import TraitManagementSection from "../components/dashboard/TraitManagementSection";
 import { usePolygenicScore } from "../hooks/usePolygenicScore";
 import { useTraits } from "../hooks/useTraits";
+import LiveSandbox from "../components/marketing_site/playground/LiveSandbox";
 
 const DEFAULT_BUNDLED_TRAITS = 3;
 

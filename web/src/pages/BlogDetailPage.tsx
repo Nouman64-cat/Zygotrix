@@ -4,7 +4,7 @@ import ReactMarkdown from "react-markdown";
 
 import { fetchBlogBySlug, fetchBlogs } from "../services/hygraphApi";
 import type { BlogDetail, BlogListEntry } from "../types/blog";
-import RelatedBlogs from "../components/blog/RelatedBlogs";
+import RelatedBlogs from "../components/marketing_site/blog/RelatedBlogs";
 import { FiCalendar, FiClock, FiShare2, FiArrowLeft } from "react-icons/fi";
 
 // Runtime check for a globally-provided DOMPurify (optional).

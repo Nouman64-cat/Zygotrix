@@ -1,14 +1,14 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 
-import { simulateMendelianTrait } from "../services/zygotrixApi";
+import { simulateMendelianTrait } from "../../../services/zygotrixApi";
 import type {
   MendelianSimulationTraitResult,
   TraitInfo,
-} from "../types/api";
+} from "../../../types/api";
 import {
   deriveDefaultGenotypes,
   sanitizeDiploidGenotype,
-} from "../utils/genetics";
+} from "../../../utils/genetics";
 
 type LiveSandboxProps = {
   traits: TraitInfo[];
@@ -644,7 +644,10 @@ const LiveSandbox: React.FC<LiveSandboxProps> = ({
                     {Object.entries(simulationResult.phenotypic_ratios)
                       .sort(([, a], [, b]) => b - a)
                       .map(([phenotype, percentage]) => {
-                        if (typeof percentage !== "number" || Number.isNaN(percentage)) {
+                        if (
+                          typeof percentage !== "number" ||
+                          Number.isNaN(percentage)
+                        ) {
                           return null;
                         }
                         const displayValue = asPercentages
@@ -685,7 +688,10 @@ const LiveSandbox: React.FC<LiveSandboxProps> = ({
                   <div className="mt-3 grid gap-2 md:grid-cols-2">
                     {Object.entries(simulationResult.genotypic_ratios).map(
                       ([genotype, percentage]) => {
-                        if (typeof percentage !== "number" || Number.isNaN(percentage)) {
+                        if (
+                          typeof percentage !== "number" ||
+                          Number.isNaN(percentage)
+                        ) {
                           return null;
                         }
                         const displayValue = asPercentages

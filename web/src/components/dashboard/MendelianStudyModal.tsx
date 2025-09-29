@@ -11,9 +11,9 @@ import {
 } from "@heroicons/react/24/outline";
 import { IoMale } from "react-icons/io5";
 import { GiFemale } from "react-icons/gi";
-import { useTraits } from "../hooks/useTraits";
-import { simulateMultipleMendelianTraits } from "../services/zygotrixApi";
-import type { MendelianSimulationTraitResult } from "../types/api";
+import { useTraits } from "../../hooks/useTraits";
+import { simulateMultipleMendelianTraits } from "../../services/zygotrixApi";
+import type { MendelianSimulationTraitResult } from "../../types/api";
 
 interface MendelianStudyModalProps {
   onClose: () => void;

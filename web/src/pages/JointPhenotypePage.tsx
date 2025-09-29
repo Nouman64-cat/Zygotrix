@@ -1,7 +1,7 @@
 import React from "react";
 
-import AdvancedJointPhenotypeTest from "../components/AdvancedJointPhenotypeTest";
-import JointPhenotypeTest from "../components/JointPhenotypeTest";
+import AdvancedJointPhenotypeTest from "../components/marketing_site/joint_analysis/AdvancedJointPhenotypeTest";
+import JointPhenotypeTest from "../components/marketing_site/joint_analysis/JointPhenotypeTest";
 
 const JointPhenotypePage: React.FC = () => {
   return (
@@ -92,39 +92,6 @@ const JointPhenotypePage: React.FC = () => {
             Quick Example Test
           </h3>
           <JointPhenotypeTest />
-        </div>
-
-        {/* Educational Information */}
-        <div className="mt-16 rounded-2xl bg-gradient-to-r from-blue-50 to-indigo-50 p-8">
-          <h3 className="text-2xl font-semibold text-gray-900 mb-4">
-            Understanding Independent Assortment
-          </h3>
-          <div className="prose max-w-none text-gray-700">
-            <p className="mb-4">
-              <strong>Mendel's Second Law</strong> (Law of Independent
-              Assortment) states that different genes assort independently
-              during gamete formation. This means that the inheritance of one
-              trait does not affect the inheritance of another trait.
-            </p>
-            <p className="mb-4">
-              When analyzing multiple traits together, we multiply the
-              individual probabilities to get joint probabilities. For example,
-              if eye color has a 75% chance of being brown and hair texture has
-              a 75% chance of being curly, then the probability of having both
-              brown eyes and curly hair is 75% × 75% = 56.25%.
-            </p>
-            <div className="mt-6 p-4 bg-white rounded-lg border border-blue-200">
-              <h4 className="font-semibold text-blue-900 mb-2">
-                Example Calculation:
-              </h4>
-              <ul className="list-disc list-inside space-y-1 text-sm">
-                <li>Brown + Curly: 75% × 75% = 56.25%</li>
-                <li>Brown + Straight: 75% × 25% = 18.75%</li>
-                <li>Blue + Curly: 25% × 75% = 18.75%</li>
-                <li>Blue + Straight: 25% × 25% = 6.25%</li>
-              </ul>
-            </div>
-          </div>
         </div>
       </section>
     </main>

@@ -1,7 +1,11 @@
 import React, { useMemo, useState } from "react";
 
-import type { TraitInfo } from "../types/api";
-import { createTrait, deleteTrait, updateTrait } from "../services/zygotrixApi";
+import type { TraitInfo } from "../../types/api";
+import {
+  createTrait,
+  deleteTrait,
+  updateTrait,
+} from "../../services/zygotrixApi";
 
 type TraitManagementSectionProps = {
   traits: TraitInfo[];

@@ -1,7 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import logo from "../../public/zygotrix-logo.png";
-import { useAuth } from "../context/AuthContext";
+import logo from "../../../public/zygotrix-logo.png";
+import { useAuth } from "../../context/AuthContext";
 
 interface DashboardHeaderProps {
   onMenuToggle?: () => void;

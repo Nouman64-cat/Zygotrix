@@ -206,7 +206,13 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                   traits={traits}
                   setSimulationError={setSimulationError}
                   setShowResultsModal={setShowResultsModal}
-                  disabled={project.selectedTraits.length === 0}
+                  disabled={
+                    project.selectedTraits.length === 0 ||
+                    project.selectedTraits.some(
+                      (trait) =>
+                        !trait.parent1Genotype || !trait.parent2Genotype
+                    )
+                  }
                 />
                 <button
                   onClick={onClose}

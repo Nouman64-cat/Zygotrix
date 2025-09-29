@@ -881,10 +881,10 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                       <div className="font-medium text-gray-800">
                                         {genotype}
                                       </div>
-                                      <div className="text-xs text-gray-500">
+                                      {/* <div className="text-xs text-gray-500">
                                         {trait?.phenotype_map?.[genotype] ||
                                           "Unknown"}
-                                      </div>
+                                      </div> */}
                                     </div>
 
                                     <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-blue-100">
@@ -922,9 +922,9 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                       <div className="font-semibold text-gray-800">
                                         {phenotype}
                                       </div>
-                                      <div className="text-xs text-gray-500">
+                                      {/* <div className="text-xs text-gray-500">
                                         Phenotype
-                                      </div>
+                                      </div> */}
                                     </div>
 
                                     <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-green-100">

@@ -6,7 +6,7 @@ import React, {
   useMemo,
 } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import DashboardLayout from "../layouts/DashboardLayout";
+import WorkspaceLayout from "../layouts/WorkspaceLayout";
 import MendelianStudyModal from "../components/dashboard/MendelianStudyModal";
 
 import DeleteConfirmationModal from "../components/modals/DeleteConfirmationModal";
@@ -2628,40 +2628,36 @@ const ProjectWorkspace: React.FC = () => {
   };
 
   return (
-    <DashboardLayout>
-      <div
-        className="flex flex-col overflow-hidden -m-4 lg:-m-6"
-        style={{ height: "calc(100vh - 5rem)" }}
-      >
-        {/* Header */}
-        <WorkspaceHeader
-          projectId={projectId}
-          project={project}
-          projectName={projectName}
-          setProjectName={setProjectName}
-          projectDescription={projectDescription}
-          setProjectDescription={setProjectDescription}
-          projectColor={projectColor}
-          isEditingName={isEditingName}
-          setIsEditingName={setIsEditingName}
-          isEditingDescription={isEditingDescription}
-          setIsEditingDescription={setIsEditingDescription}
-          saving={saving}
-          loading={loading}
-          error={error}
-          showSettingsDropdown={showSettingsDropdown}
-          handleUpdateProjectDetails={handleUpdateProjectDetails}
-          handleColorChange={handleColorChange}
-          handleManualSave={handleManualSave}
-          handleSettingsClick={handleSettingsClick}
-          handleDeleteClick={handleDeleteClick}
-          workspaceDirty={workspaceDirty}
-          isOffline={isOffline}
-          saveSummary={workspaceSaveSummary}
-        />
-
-        <div className="flex-1 flex bg-gray-50 min-h-0 overflow-hidden max-w-full">
-          {/* Toolbox */}
+    <>
+      <WorkspaceLayout
+        header={
+          <WorkspaceHeader
+            projectId={projectId}
+            project={project}
+            projectName={projectName}
+            setProjectName={setProjectName}
+            projectDescription={projectDescription}
+            setProjectDescription={setProjectDescription}
+            projectColor={projectColor}
+            isEditingName={isEditingName}
+            setIsEditingName={setIsEditingName}
+            isEditingDescription={isEditingDescription}
+            setIsEditingDescription={setIsEditingDescription}
+            saving={saving}
+            loading={loading}
+            error={error}
+            showSettingsDropdown={showSettingsDropdown}
+            handleUpdateProjectDetails={handleUpdateProjectDetails}
+            handleColorChange={handleColorChange}
+            handleManualSave={handleManualSave}
+            handleSettingsClick={handleSettingsClick}
+            handleDeleteClick={handleDeleteClick}
+            workspaceDirty={workspaceDirty}
+            isOffline={isOffline}
+            saveSummary={workspaceSaveSummary}
+          />
+        }
+        leftSidebar={
           <ToolboxSidebar
             isToolsCollapsed={isToolsCollapsed}
             setIsToolsCollapsed={setIsToolsCollapsed}
@@ -2671,47 +2667,46 @@ const ProjectWorkspace: React.FC = () => {
             setShowMendelianModal={setShowMendelianModal}
             clearCanvasDrawings={clearCanvasDrawings}
           />
-
-          {/* Canvas Area */}
-          <CanvasArea
-            canvasRef={canvasRef}
-            selectedTool={selectedTool}
-            isPanning={isPanning}
-            panOffset={panOffset}
-            zoom={zoom}
-            items={items}
-            isDrawingTextArea={isDrawingTextArea}
-            textAreaStart={textAreaStart}
-            textAreaEnd={textAreaEnd}
-            canvasDrawings={canvasDrawings}
-            currentCanvasPath={currentCanvasPath}
-            lineDrawings={lineDrawings}
-            isDrawingLine={isDrawingLine}
-            lineStartPoint={lineStartPoint}
-            lineEndPoint={lineEndPoint}
-            isEraserMode={isEraserMode}
-            isLineEraserMode={isLineEraserMode}
-            handleZoomOut={handleZoomOut}
-            handleZoomIn={handleZoomIn}
-            handleZoomReset={handleZoomReset}
-            handleCenterView={centerWorkspace}
-            handleCanvasClick={handleCanvasClick}
-            handleMouseMove={handleMouseMove}
-            handleCanvasPanMove={handleCanvasPanMove}
-            handleMouseUp={handleMouseUp}
-            handleCanvasMouseDown={handleCanvasMouseDown}
-            renderWorkspaceItem={renderWorkspaceItem}
-          />
-
-          {/* Right Sidebar - Existing Projects */}
+        }
+        rightSidebar={
           <ProjectsSidebar
             isProjectsCollapsed={isProjectsCollapsed}
             setIsProjectsCollapsed={setIsProjectsCollapsed}
             existingProjects={existingProjects}
             projectsLoading={projectsLoading}
           />
-        </div>
-      </div>
+        }
+      >
+        <CanvasArea
+          canvasRef={canvasRef}
+          selectedTool={selectedTool}
+          isPanning={isPanning}
+          panOffset={panOffset}
+          zoom={zoom}
+          items={items}
+          isDrawingTextArea={isDrawingTextArea}
+          textAreaStart={textAreaStart}
+          textAreaEnd={textAreaEnd}
+          canvasDrawings={canvasDrawings}
+          currentCanvasPath={currentCanvasPath}
+          lineDrawings={lineDrawings}
+          isDrawingLine={isDrawingLine}
+          lineStartPoint={lineStartPoint}
+          lineEndPoint={lineEndPoint}
+          isEraserMode={isEraserMode}
+          isLineEraserMode={isLineEraserMode}
+          handleZoomOut={handleZoomOut}
+          handleZoomIn={handleZoomIn}
+          handleZoomReset={handleZoomReset}
+          handleCenterView={centerWorkspace}
+          handleCanvasClick={handleCanvasClick}
+          handleMouseMove={handleMouseMove}
+          handleCanvasPanMove={handleCanvasPanMove}
+          handleMouseUp={handleMouseUp}
+          handleCanvasMouseDown={handleCanvasMouseDown}
+          renderWorkspaceItem={renderWorkspaceItem}
+        />
+      </WorkspaceLayout>
 
       {/* Modern Drawing Controls Panel - Samsung Notes Style */}
       {selectedTool === "drawing" && (
@@ -3161,7 +3156,7 @@ const ProjectWorkspace: React.FC = () => {
         projectName={project?.name || ""}
         isDeleting={isDeleting}
       />
-    </DashboardLayout>
+    </>
   );
 };
 

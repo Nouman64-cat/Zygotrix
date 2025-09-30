@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BeakerIcon,
   DocumentPlusIcon,
@@ -9,6 +9,8 @@ import { IoMale } from "react-icons/io5";
 import GenotypicRatios from "../dashboard/GenotypicRatios";
 import PhenotypicRatios from "../dashboard/PhenotypicRatios";
 import { getAboGenotypeMap } from "../dashboard/helpers";
+import HowTheseResultsButton from "./HowTheseResultsButton";
+import PunnettSquareModal from "./PunnettSquareModal";
 
 interface SimulationResultsModalProps {
   open: boolean;
@@ -27,6 +29,10 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
   traits,
   selectedTraits,
 }) => {
+  const [punnettModalTraitKey, setPunnettModalTraitKey] = useState<
+    string | null
+  >(null);
+
   if (!open || !simulationResults) return null;
 
   return (
@@ -59,7 +65,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+              className="p-2 text-gray-400 cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
@@ -97,7 +103,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                 return (
                   <div
                     key={traitKey}
-                    className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200"
+                    className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200 flex flex-col relative"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg font-semibold text-gray-900 flex items-center">
@@ -144,7 +150,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                         })()}
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start flex-1">
                       <GenotypicRatios
                         genotypicRatios={result.genotypic_ratios}
                         traitKey={traitKey}
@@ -153,6 +159,23 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                         phenotypicRatios={result.phenotypic_ratios}
                       />
                     </div>
+                    <div className="flex justify-end mt-4">
+                      <HowTheseResultsButton
+                        onClick={() => setPunnettModalTraitKey(traitKey)}
+                      />
+                    </div>
+                    {punnettModalTraitKey === traitKey &&
+                      selectedTrait &&
+                      trait && (
+                        <PunnettSquareModal
+                          open={true}
+                          onClose={() => setPunnettModalTraitKey(null)}
+                          parent1Genotype={selectedTrait.parent1Genotype}
+                          parent2Genotype={selectedTrait.parent2Genotype}
+                          alleles={selectedTrait.alleles}
+                          traitName={trait.name}
+                        />
+                      )}
                   </div>
                 );
               }

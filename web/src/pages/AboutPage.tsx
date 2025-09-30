@@ -152,7 +152,7 @@ const AboutPage: React.FC = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-base font-semibold text-[#1E3A8A]">
-                    Tooba Noor ul Eman
+                    Tooba Noor ul Ieman
                   </div>
                   <div className="text-xs text-slate-600 mt-1">
                     Independent Researcher, BS Biochemistry

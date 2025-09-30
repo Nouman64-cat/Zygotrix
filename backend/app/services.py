@@ -30,13 +30,6 @@ from zygotrix_engine import (
 
 from .config import get_settings
 
-# Default built-in trait registry. Kept at module runtime (not only for type checking)
-DEFAULT_TRAITS: Dict[str, Trait] = {
-    "eye_color": EYE_COLOR,
-    "blood_type": BLOOD_TYPE,
-    "hair_color": HAIR_COLOR,
-}
-
 
 if TYPE_CHECKING:
     # Import Pydantic schema types for type checkers only to avoid circular imports
@@ -106,9 +99,8 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
         return {}
 
 
-# Combine default traits with real gene traits
 REAL_GENE_TRAITS = _load_real_gene_traits()
-ALL_TRAITS = {**DEFAULT_TRAITS, **REAL_GENE_TRAITS}
+ALL_TRAITS = dict(REAL_GENE_TRAITS)
 
 _mongo_client: Optional[MongoClient] = None
 _password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
@@ -505,7 +497,7 @@ def simulate_mendelian_traits(
     trait_filter: Iterable[str] | None,
     as_percentages: bool,
     max_traits: int = 5,
-    ) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
+) -> Tuple[Dict[str, Dict[str, Dict[str, float]]], List[str]]:
     """Run Mendelian simulations and optionally filter trait outputs.
 
     Args:
@@ -1400,14 +1392,16 @@ def get_project_line_snapshot(
     return ProjectLineSnapshot(lines=lines, snapshot_version=snapshot_version)
 
 
-def _client_line_wins(existing_doc: Mapping[str, Any], payload: ProjectLinePayload) -> bool:
-        # Deletions always override non‑deleted versions
+def _client_line_wins(
+    existing_doc: Mapping[str, Any], payload: ProjectLinePayload
+) -> bool:
+    # Deletions always override non‑deleted versions
     existing_deleted = bool(existing_doc.get("is_deleted", False))
     if payload.is_deleted and not existing_deleted:
         return True
     if not payload.is_deleted and existing_deleted:
         return False
-    
+
     existing_version = int(existing_doc.get("version", 0))
     payload_version = int(payload.version)
 
@@ -1416,9 +1410,9 @@ def _client_line_wins(existing_doc: Mapping[str, Any], payload: ProjectLinePaylo
     if payload_version < existing_version:
         return False
 
-    existing_updated = _ensure_utc(existing_doc.get("updated_at")) or datetime.min.replace(
-        tzinfo=timezone.utc
-    )
+    existing_updated = _ensure_utc(
+        existing_doc.get("updated_at")
+    ) or datetime.min.replace(tzinfo=timezone.utc)
     payload_updated = _ensure_utc(payload.updated_at) or datetime.min.replace(
         tzinfo=timezone.utc
     )
@@ -1463,7 +1457,9 @@ def _line_payload_to_document(
     }
 
 
-def _client_note_wins(existing_doc: Mapping[str, Any], payload: "ProjectNotePayload") -> bool:
+def _client_note_wins(
+    existing_doc: Mapping[str, Any], payload: "ProjectNotePayload"
+) -> bool:
     existing_deleted = bool(existing_doc.get("is_deleted", False))
     if payload.is_deleted and not existing_deleted:
         return True
@@ -1476,9 +1472,9 @@ def _client_note_wins(existing_doc: Mapping[str, Any], payload: "ProjectNotePayl
     if payload.version < existing_version:
         return False
 
-    existing_updated = _ensure_utc(existing_doc.get("updated_at")) or datetime.min.replace(
-        tzinfo=timezone.utc
-    )
+    existing_updated = _ensure_utc(
+        existing_doc.get("updated_at")
+    ) or datetime.min.replace(tzinfo=timezone.utc)
     payload_updated = _ensure_utc(payload.updated_at) or datetime.min.replace(
         tzinfo=timezone.utc
     )
@@ -1535,9 +1531,9 @@ def _client_drawing_wins(
     if payload.version < existing_version:
         return False
 
-    existing_updated = _ensure_utc(existing_doc.get("updated_at")) or datetime.min.replace(
-        tzinfo=timezone.utc
-    )
+    existing_updated = _ensure_utc(
+        existing_doc.get("updated_at")
+    ) or datetime.min.replace(tzinfo=timezone.utc)
     payload_updated = _ensure_utc(payload.updated_at) or datetime.min.replace(
         tzinfo=timezone.utc
     )
@@ -1684,7 +1680,7 @@ def save_project_lines(
 
     return ProjectLineSaveResponse(
         lines=snapshot.lines,
-       snapshot_version=snapshot.snapshot_version,
+        snapshot_version=snapshot.snapshot_version,
         summary=summary,
     )
 
@@ -1929,6 +1925,7 @@ def save_project_drawings(
         snapshot_version=snapshot.snapshot_version,
         summary=summary,
     )
+
 
 def create_tool(
     project_id: str,

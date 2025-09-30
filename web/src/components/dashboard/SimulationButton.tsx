@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { simulateMultipleMendelianTraits } from "../../services/mendelian.api";
-// ...existing code...
+import { sanitizeDiploidGenotype } from "../../utils/genetics";
 import type { SimulationButtonProps } from "./types";
 
 const SimulationButton: React.FC<SimulationButtonProps> = ({
@@ -22,8 +22,15 @@ const SimulationButton: React.FC<SimulationButtonProps> = ({
       const parent2Genotypes: Record<string, string> = {};
       const traitKeys: string[] = [];
       project.selectedTraits.forEach((trait) => {
-        parent1Genotypes[trait.key] = trait.parent1Genotype;
-        parent2Genotypes[trait.key] = trait.parent2Genotype;
+        // Sanitize using allele list for multi-character alleles
+        parent1Genotypes[trait.key] = sanitizeDiploidGenotype(
+          trait.parent1Genotype,
+          trait.alleles
+        );
+        parent2Genotypes[trait.key] = sanitizeDiploidGenotype(
+          trait.parent2Genotype,
+          trait.alleles
+        );
         traitKeys.push(trait.key);
       });
 
@@ -32,6 +39,10 @@ const SimulationButton: React.FC<SimulationButtonProps> = ({
         setLoading(false);
         return;
       }
+
+      // Debug: Log outgoing genotypes
+      console.log("Simulate: parent1Genotypes", parent1Genotypes);
+      console.log("Simulate: parent2Genotypes", parent2Genotypes);
 
       const response = await simulateMultipleMendelianTraits(
         parent1Genotypes,

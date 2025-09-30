@@ -565,10 +565,18 @@ const LiveSandbox: React.FC<LiveSandboxProps> = ({
                   <input
                     id="parent-a"
                     value={parent1}
-                    maxLength={2}
-                    onChange={(event) =>
-                      setParent1(sanitizeDiploidGenotype(event.target.value))
-                    }
+                    // Remove maxLength for multi-char alleles
+                    onChange={(event) => {
+                      const trait = activeTrait;
+                      setParent1(
+                        trait && trait.alleles.length > 0
+                          ? sanitizeDiploidGenotype(
+                              event.target.value,
+                              trait.alleles
+                            )
+                          : sanitizeDiploidGenotype(event.target.value)
+                      );
+                    }}
                     placeholder="e.g. Bb"
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-[#10B981] focus:outline-none"
                   />
@@ -583,10 +591,18 @@ const LiveSandbox: React.FC<LiveSandboxProps> = ({
                   <input
                     id="parent-b"
                     value={parent2}
-                    maxLength={2}
-                    onChange={(event) =>
-                      setParent2(sanitizeDiploidGenotype(event.target.value))
-                    }
+                    // Remove maxLength for multi-char alleles
+                    onChange={(event) => {
+                      const trait = activeTrait;
+                      setParent2(
+                        trait && trait.alleles.length > 0
+                          ? sanitizeDiploidGenotype(
+                              event.target.value,
+                              trait.alleles
+                            )
+                          : sanitizeDiploidGenotype(event.target.value)
+                      );
+                    }}
                     placeholder="e.g. bb"
                     className="w-full rounded-2xl border border-slate-200 px-4 py-3 text-sm text-slate-700 placeholder:text-slate-400 focus:border-[#10B981] focus:outline-none"
                   />

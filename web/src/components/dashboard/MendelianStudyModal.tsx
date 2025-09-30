@@ -74,24 +74,22 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
   const getGenotypeOptions = useCallback((alleles: string[]) => {
     if (!alleles || alleles.length === 0) return [];
 
-    const options = [];
-
-    // Generate all possible combinations
+    const options: string[] = [];
+    // For multi-character alleles, generate all diploid combinations
     for (let i = 0; i < alleles.length; i++) {
       for (let j = i; j < alleles.length; j++) {
         if (i === j) {
-          // Homozygous
-          options.push(alleles[i] + alleles[i]);
+          options.push(`${alleles[i]}${alleles[i]}`);
         } else {
-          // Heterozygous - add both orders
-          options.push(alleles[i] + alleles[j]);
-          options.push(alleles[j] + alleles[i]);
+          options.push(`${alleles[i]}${alleles[j]}`);
+          options.push(`${alleles[j]}${alleles[i]}`);
         }
       }
     }
-
-    // Remove duplicates and sort
-    return [...new Set(options)].sort((a, b) => a.localeCompare(b));
+    // Remove duplicates and sort by string length then alphabetically
+    return [...new Set(options)].sort(
+      (a, b) => a.length - b.length || a.localeCompare(b)
+    );
   }, []);
 
   // Add a trait to selection

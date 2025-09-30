@@ -11,10 +11,25 @@ interface PunnettSquareModalProps {
 }
 
 // Utility to generate Punnett square grid
-function getPunnettSquare(parent1: string, parent2: string) {
-  if (parent1.length !== 2 || parent2.length !== 2) return [];
-  const p1 = [parent1[0], parent1[1]];
-  const p2 = [parent2[0], parent2[1]];
+// Helper to split a diploid genotype string into two alleles, given the list of possible alleles
+function splitGenotype(
+  genotype: string,
+  alleles: string[]
+): [string, string] | null {
+  for (let i = 1; i < genotype.length; ++i) {
+    const a1 = genotype.slice(0, i);
+    const a2 = genotype.slice(i);
+    if (alleles.includes(a1) && alleles.includes(a2)) {
+      return [a1, a2];
+    }
+  }
+  return null;
+}
+
+function getPunnettSquare(parent1: string, parent2: string, alleles: string[]) {
+  const p1 = splitGenotype(parent1, alleles);
+  const p2 = splitGenotype(parent2, alleles);
+  if (!p1 || !p2) return [];
   return [
     [p1[0] + p2[0], p1[0] + p2[1]],
     [p1[1] + p2[0], p1[1] + p2[1]],
@@ -26,16 +41,20 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
   onClose,
   parent1Genotype,
   parent2Genotype,
+  alleles,
   traitName,
 }) => {
   if (!open) return null;
-  const grid = getPunnettSquare(parent1Genotype, parent2Genotype);
+  const grid = getPunnettSquare(parent1Genotype, parent2Genotype, alleles);
+  const p1Split = splitGenotype(parent1Genotype, alleles) || ["", ""];
+  const p2Split = splitGenotype(parent2Genotype, alleles) || ["", ""];
   const isAbo = traitName.toLowerCase().includes("abo");
   const isRh = traitName.toLowerCase().includes("rh");
   const aboMap = getAboGenotypeMap();
   const rhMap = getRhGenotypeMap();
   // Helper to format genotype in I notation if ABO, or standardized if Rh
   function formatGenotype(genotype: string) {
+    if (!genotype) return "";
     if (isAbo) {
       const sorted = genotype.split("").sort().join("");
       if (aboMap[genotype]) return aboMap[genotype];
@@ -83,13 +102,13 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
             <div className="grid grid-cols-3 grid-rows-3 gap-0 border border-blue-200 rounded overflow-hidden">
               <div className="bg-blue-50"></div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
-                {formatGenotype(parent2Genotype[0])}
+                {formatGenotype(p2Split[0])}
               </div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
-                {formatGenotype(parent2Genotype[1])}
+                {formatGenotype(p2Split[1])}
               </div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
-                {formatGenotype(parent1Genotype[0])}
+                {formatGenotype(p1Split[0])}
               </div>
               <div className="bg-white flex items-center justify-center min-w-[60px] min-h-[40px]">
                 {formatGenotype(grid[0]?.[0])}
@@ -98,7 +117,7 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
                 {formatGenotype(grid[0]?.[1])}
               </div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
-                {formatGenotype(parent1Genotype[1])}
+                {formatGenotype(p1Split[1])}
               </div>
               <div className="bg-white flex items-center justify-center min-w-[60px] min-h-[40px]">
                 {formatGenotype(grid[1]?.[0])}

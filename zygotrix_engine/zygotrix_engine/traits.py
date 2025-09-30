@@ -20,20 +20,22 @@ class Trait:
     metadata: Mapping[str, str] = field(default_factory=dict)
 
     def canonical_genotype(self, genotype: str) -> str:
-        """Return a canonical representation of a genotype for the trait."""
+        """Return a canonical representation of a genotype for the trait, supporting multi-character alleles."""
 
         cleaned = genotype.replace(" ", "")
-        if len(cleaned) != 2:
+        # Try to split cleaned into two alleles from self.alleles
+        found = None
+        for i in range(1, len(cleaned)):
+            allele1 = cleaned[:i]
+            allele2 = cleaned[i:]
+            if allele1 in self.alleles and allele2 in self.alleles:
+                found = (allele1, allele2)
+                break
+        if not found:
             raise ValueError(
-                f"Trait '{self.name}' expects diploid genotypes of length 2, got '{genotype}'."
+                f"Trait '{self.name}' expects a diploid genotype composed of two valid alleles (got '{genotype}'). Allowed: {self.alleles}."
             )
-
-        alleles = list(cleaned)
-        for allele in alleles:
-            if allele not in self.alleles:
-                raise ValueError(
-                    f"Allele '{allele}' is not valid for trait '{self.name}'. Allowed: {self.alleles}."
-                )
+        alleles = list(found)
         order = {symbol: index for index, symbol in enumerate(self.alleles)}
         alleles.sort(key=lambda value: order[value])
         return "".join(alleles)
@@ -54,13 +56,17 @@ class Trait:
             genotype = sorted((allele_a, allele_b), key=lambda value: order[value])
             yield "".join(genotype)
 
-    def phenotype_distribution(self, genotype_probabilities: Mapping[str, float]) -> Dict[str, float]:
+    def phenotype_distribution(
+        self, genotype_probabilities: Mapping[str, float]
+    ) -> Dict[str, float]:
         """Aggregate genotype probabilities into phenotype probabilities."""
 
         phenotype_probs: Dict[str, float] = {}
         for genotype, probability in genotype_probabilities.items():
             phenotype = self.phenotype_for(genotype)
-            phenotype_probs[phenotype] = phenotype_probs.get(phenotype, 0.0) + probability
+            phenotype_probs[phenotype] = (
+                phenotype_probs.get(phenotype, 0.0) + probability
+            )
         return normalize_probabilities(phenotype_probs)
 
 

@@ -108,10 +108,21 @@ class MendelianCalculator:
 
     @staticmethod
     def _gamete_distribution(genotype: str, trait: Trait) -> Dict[str, float]:
-        """Probabilities for each allele contributed by a parent genotype."""
-
+        """Probabilities for each allele contributed by a parent genotype, supporting multi-character alleles."""
         canonical = trait.canonical_genotype(genotype)
-        allele_counts = Counter(canonical)
+        # Split canonical into two alleles based on trait.alleles
+        found = None
+        for i in range(1, len(canonical)):
+            allele1 = canonical[:i]
+            allele2 = canonical[i:]
+            if allele1 in trait.alleles and allele2 in trait.alleles:
+                found = (allele1, allele2)
+                break
+        if not found:
+            raise ValueError(
+                f"Could not split genotype '{canonical}' into two alleles for trait '{trait.name}'."
+            )
+        allele_counts = Counter(found)
         total = sum(allele_counts.values())
         distribution = {
             allele: count / total for allele, count in allele_counts.items()

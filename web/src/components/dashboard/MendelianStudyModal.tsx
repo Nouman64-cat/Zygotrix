@@ -330,9 +330,9 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           </div>
                         </div>
 
-                        <div className="grid grid-cols-1 lg:grid-cols-3 items-center">
+                        <div className="flex items-center justify-between flex-wrap gap-2 lg:gap-4">
                           {/* Parent 1 */}
-                          <div className="relative">
+                          <div className="relative flex-1 min-w-[140px]">
                             <div className="absolute -top-2 left-3 bg-white px-2 z-10">
                               <label className="text-xs font-bold text-purple-700 uppercase tracking-wider flex items-center space-x-1">
                                 <span>Female Parent</span>
@@ -372,8 +372,8 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           </div>
 
                           {/* Cross Symbol */}
-                          <div className="flex justify-center">
-                            <div className="w-14 h-14 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center border-2 border-purple-200 shadow-sm">
+                          <div className="flex justify-center items-center mx-2">
+                            <div className="w-12 h-12 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center border-2 border-purple-200 shadow-sm">
                               <span className="text-2xl font-bold text-purple-600">
                                 ×
                               </span>
@@ -381,7 +381,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           </div>
 
                           {/* Parent 2 */}
-                          <div className="relative">
+                          <div className="relative flex-1 min-w-[140px]">
                             <div className="absolute -top-2 left-3 bg-white px-2 z-10">
                               <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center space-x-1">
                                 <span>Male Parent</span>
@@ -425,6 +425,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                         <GenotypeStatus
                           parent1Genotype={selectedTrait.parent1Genotype}
                           parent2Genotype={selectedTrait.parent2Genotype}
+                          traitKey={selectedTrait.key}
                         />
                       </div>
                     </div>

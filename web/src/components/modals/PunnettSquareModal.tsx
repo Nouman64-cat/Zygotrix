@@ -1,5 +1,5 @@
 import React from "react";
-import { getAboGenotypeMap } from "../dashboard/helpers";
+import { getAboGenotypeMap, getRhGenotypeMap } from "../dashboard/helpers";
 
 interface PunnettSquareModalProps {
   open: boolean;
@@ -31,22 +31,30 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
   if (!open) return null;
   const grid = getPunnettSquare(parent1Genotype, parent2Genotype);
   const isAbo = traitName.toLowerCase().includes("abo");
-  const genotypeMap = getAboGenotypeMap();
-  // Helper to format genotype in I notation if ABO
+  const isRh = traitName.toLowerCase().includes("rh");
+  const aboMap = getAboGenotypeMap();
+  const rhMap = getRhGenotypeMap();
+  // Helper to format genotype in I notation if ABO, or standardized if Rh
   function formatGenotype(genotype: string) {
-    if (!isAbo) return genotype;
-    // Try all permutations for mapping
-    const sorted = genotype.split("").sort().join("");
-    // Map to backend keys
-    if (genotypeMap[genotype]) return genotypeMap[genotype];
-    if (genotypeMap[sorted]) return genotypeMap[sorted];
-    // Try to match AO, OA, BO, OB, etc.
-    if (["AO", "OA"].includes(genotype)) return genotypeMap["AO"];
-    if (["BO", "OB"].includes(genotype)) return genotypeMap["BO"];
-    if (["AB", "BA"].includes(genotype)) return genotypeMap["AB"];
-    if (["AA"].includes(genotype)) return genotypeMap["AA"];
-    if (["BB"].includes(genotype)) return genotypeMap["BB"];
-    if (["OO"].includes(genotype)) return genotypeMap["OO"];
+    if (isAbo) {
+      const sorted = genotype.split("").sort().join("");
+      if (aboMap[genotype]) return aboMap[genotype];
+      if (aboMap[sorted]) return aboMap[sorted];
+      if (["AO", "OA"].includes(genotype)) return aboMap["AO"];
+      if (["BO", "OB"].includes(genotype)) return aboMap["BO"];
+      if (["AB", "BA"].includes(genotype)) return aboMap["AB"];
+      if (["AA"].includes(genotype)) return aboMap["AA"];
+      if (["BB"].includes(genotype)) return aboMap["BB"];
+      if (["OO"].includes(genotype)) return aboMap["OO"];
+      return genotype;
+    }
+    if (isRh) {
+      if (rhMap[genotype]) return rhMap[genotype].display;
+      // Try to normalize order
+      if (rhMap[genotype.split("").reverse().join("")])
+        return rhMap[genotype.split("").reverse().join("")].display;
+      return genotype;
+    }
     return genotype;
   }
   return (

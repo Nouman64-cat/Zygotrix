@@ -1,4 +1,5 @@
 import React from "react";
+import { getAboGenotypeMap, getRhGenotypeMap } from "./helpers";
 
 interface PunnettSquareProps {
   parent1Genotype: string;
@@ -13,19 +14,37 @@ const PunnettSquare: React.FC<PunnettSquareProps> = ({
   phenotypeMap,
   className = "",
 }) => {
+  // Helper: detect if trait is Rh
+  const isRh =
+    parent1Genotype.startsWith("Rh") || parent2Genotype.startsWith("Rh");
+
   // Extract alleles from genotypes
-  const parent1Alleles = parent1Genotype.split("");
-  const parent2Alleles = parent2Genotype.split("");
+  const parent1Alleles = isRh
+    ? [parent1Genotype.slice(0, 3), parent1Genotype.slice(3)]
+    : parent1Genotype.split("");
+  const parent2Alleles = isRh
+    ? [parent2Genotype.slice(0, 3), parent2Genotype.slice(3)]
+    : parent2Genotype.split("");
 
   // Generate all possible offspring combinations
   const generateOffspring = () => {
     const offspring = [];
     for (const allele1 of parent1Alleles) {
       for (const allele2 of parent2Alleles) {
-        const genotype = [allele1, allele2].sort().join("");
+        let genotype = isRh
+          ? allele1 + allele2
+          : [allele1, allele2].sort().join("");
+        let phenotype = phenotypeMap[genotype] || "Unknown";
+        if (isRh) {
+          const rhMap = getRhGenotypeMap();
+          if (rhMap[genotype]) {
+            phenotype = rhMap[genotype].phenotype;
+            genotype = rhMap[genotype].display;
+          }
+        }
         offspring.push({
           genotype,
-          phenotype: phenotypeMap[genotype] || "Unknown",
+          phenotype,
         });
       }
     }
@@ -90,7 +109,7 @@ const PunnettSquare: React.FC<PunnettSquareProps> = ({
                 className="w-16 h-16 bg-blue-100 border border-slate-300 flex items-center justify-center"
               >
                 <span className="font-mono font-semibold text-blue-800">
-                  {allele}
+                  {isRh ? allele : allele}
                 </span>
               </div>
             ))}
@@ -101,14 +120,23 @@ const PunnettSquare: React.FC<PunnettSquareProps> = ({
                 {/* Parent 1 allele */}
                 <div className="w-16 h-16 bg-green-100 border border-slate-300 flex items-center justify-center">
                   <span className="font-mono font-semibold text-green-800">
-                    {allele1}
+                    {isRh ? allele1 : allele1}
                   </span>
                 </div>
 
                 {/* Offspring combinations */}
                 {parent2Alleles.map((allele2, j) => {
-                  const genotype = [allele1, allele2].sort().join("");
-                  const phenotype = phenotypeMap[genotype] || "Unknown";
+                  let genotype = isRh
+                    ? allele1 + allele2
+                    : [allele1, allele2].sort().join("");
+                  let phenotype = phenotypeMap[genotype] || "Unknown";
+                  if (isRh) {
+                    const rhMap = getRhGenotypeMap();
+                    if (rhMap[genotype]) {
+                      phenotype = rhMap[genotype].phenotype;
+                      genotype = rhMap[genotype].display;
+                    }
+                  }
                   return (
                     <div
                       key={j}

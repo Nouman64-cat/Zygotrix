@@ -19,11 +19,11 @@
     "gene": "RHD",
     "chromosome": 1,
     "inheritance": "dominant",
-    "alleles": ["+", "-"],
+    "alleles": ["Rh+", "Rh-"],
     "phenotypes": {
-      "++": "Rh Positive",
-      "+-": "Rh Positive",
-      "--": "Rh Negative"
+      "Rh+Rh+": "Rh Positive",
+      "Rh+Rh-": "Rh Positive",
+      "Rh-Rh-": "Rh Negative"
     }
   },
   {

@@ -1,4 +1,25 @@
 /**
+ * Returns a mapping of Rh backend genotype keys to standardized notation and phenotype
+ */
+export function getRhGenotypeMap(): Record<
+  string,
+  { display: string; phenotype: string }
+> {
+  return {
+    "Rh+Rh+": { display: "Rh+Rh+", phenotype: "Rh+" },
+    "Rh+Rh-": { display: "Rh+Rh-", phenotype: "Rh+" },
+    "Rh-Rh+": { display: "Rh-Rh+", phenotype: "Rh+" },
+    "Rh-Rh-": { display: "Rh-Rh-", phenotype: "Rh-" },
+  };
+}
+
+/**
+ * Returns the display order for Rh genotypes
+ */
+export function getRhGenotypeOrder(): string[] {
+  return ["Rh+Rh+", "Rh+Rh-", "Rh-Rh-"];
+}
+/**
  * Generate all possible genotype combinations for a set of alleles.
  * Includes homozygous and heterozygous (both orders), deduplicated and sorted.
  */

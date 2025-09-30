@@ -30,7 +30,10 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
   if (!open || !simulationResults) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      style={{ fontFamily: "Axiforma, sans-serif" }}
+    >
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
           <div className="flex items-center space-x-3">

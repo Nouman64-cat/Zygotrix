@@ -22,32 +22,39 @@ const GenotypicRatios: React.FC<GenotypicRatiosProps> = ({
     // Show only genotypes present in the backend result, in a logical order
     const order = ["AA", "AB", "BB", "AO", "BO", "OO"];
     return (
-      <div className="grid grid-cols-2 gap-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100 mb-4">
-        {order
-          .filter(
-            (backendGenotype) => genotypicRatios[backendGenotype] !== undefined
-          )
-          .map((backendGenotype) => (
-            <div
-              key={backendGenotype}
-              className="flex flex-col items-center justify-center p-2"
-            >
-              <span
-                style={{
-                  fontSize: "1.25em",
-                  fontWeight: 600,
-                  color: "#1e293b",
-                }}
+      <div>
+        <h5 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
+          <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+          <span>Genotypic Ratios</span>
+        </h5>
+        <div className="flex flex-row flex-wrap gap-4 bg-blue-50/30 rounded-lg p-3 border border-blue-100 mb-4 justify-center">
+          {order
+            .filter(
+              (backendGenotype) =>
+                genotypicRatios[backendGenotype] !== undefined
+            )
+            .map((backendGenotype) => (
+              <div
+                key={backendGenotype}
+                className="flex flex-col items-center justify-center min-w-[60px]"
               >
-                {genotypeMap[backendGenotype] || backendGenotype}
-              </span>
-              <span className="text-xs text-blue-700 font-semibold mt-1">
-                {genotypicRatios[backendGenotype] !== undefined
-                  ? `${genotypicRatios[backendGenotype].toFixed(1)}%`
-                  : "0.0%"}
-              </span>
-            </div>
-          ))}
+                <span
+                  style={{
+                    fontSize: "1.25em",
+                    fontWeight: 600,
+                    color: "#1e293b",
+                  }}
+                >
+                  {genotypeMap[backendGenotype] || backendGenotype}
+                </span>
+                <span className="text-xs text-blue-700 font-semibold mt-1">
+                  {genotypicRatios[backendGenotype] !== undefined
+                    ? `${genotypicRatios[backendGenotype].toFixed(1)}%`
+                    : "0.0%"}
+                </span>
+              </div>
+            ))}
+        </div>
       </div>
     );
   }

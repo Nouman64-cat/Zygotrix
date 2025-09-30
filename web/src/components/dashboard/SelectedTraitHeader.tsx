@@ -1,6 +1,7 @@
 import React from "react";
 import { SparklesIcon, TrashIcon } from "@heroicons/react/24/outline";
 import type { TraitInfo } from "../../types/api";
+import { getAboGenotypeMap } from "./helpers";
 
 interface SelectedTraitHeaderProps {
   selectedTrait: {
@@ -42,7 +43,18 @@ const SelectedTraitHeader: React.FC<SelectedTraitHeaderProps> = ({
           </div>
           <p className="text-xs text-gray-500">
             <span className="font-medium">Alleles:</span>{" "}
-            {selectedTrait.alleles.join(", ")}
+            {selectedTrait.key === "abo_blood_group"
+              ? (() => {
+                  const alleleMap: Record<string, string> = {
+                    A: "Iᴬ",
+                    B: "Iᴮ",
+                    O: "i",
+                  };
+                  return selectedTrait.alleles
+                    .map((a: string) => alleleMap[a] || a)
+                    .join(", ");
+                })()
+              : selectedTrait.alleles.join(", ")}
             {traitInfo?.inheritance_pattern && (
               <span className="ml-2">
                 | <span className="font-medium">Inheritance:</span>{" "}

@@ -8,6 +8,7 @@ import { GiFemale } from "react-icons/gi";
 import { IoMale } from "react-icons/io5";
 import GenotypicRatios from "../dashboard/GenotypicRatios";
 import PhenotypicRatios from "../dashboard/PhenotypicRatios";
+import { getAboGenotypeMap } from "../dashboard/helpers";
 
 interface SimulationResultsModalProps {
   open: boolean;
@@ -101,25 +102,43 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                         {trait?.name || traitKey}
                       </h4>
                       <div className="flex items-center space-x-4 text-sm">
-                        <div className="flex items-center space-x-2">
-                          <GiFemale className="h-4 w-4 text-purple-600" />
-                          <span className="text-gray-600">
-                            {selectedTrait?.parent1Genotype} →{" "}
-                            {trait?.phenotype_map[
-                              selectedTrait?.parent1Genotype || ""
-                            ] || "Unknown"}
-                          </span>
-                        </div>
-                        <span className="text-gray-400 text-2xl">×</span>
-                        <div className="flex items-center space-x-2">
-                          <IoMale className="h-4 w-4 text-indigo-600" />
-                          <span className="text-gray-600">
-                            {selectedTrait?.parent2Genotype} →{" "}
-                            {trait?.phenotype_map[
-                              selectedTrait?.parent2Genotype || ""
-                            ] || "Unknown"}
-                          </span>
-                        </div>
+                        {(() => {
+                          const isAbo = traitKey === "abo_blood_group";
+                          const genotypeMap = getAboGenotypeMap();
+                          const parent1 =
+                            isAbo && selectedTrait?.parent1Genotype
+                              ? genotypeMap[selectedTrait.parent1Genotype] ||
+                                selectedTrait.parent1Genotype
+                              : selectedTrait?.parent1Genotype;
+                          const parent2 =
+                            isAbo && selectedTrait?.parent2Genotype
+                              ? genotypeMap[selectedTrait.parent2Genotype] ||
+                                selectedTrait.parent2Genotype
+                              : selectedTrait?.parent2Genotype;
+                          return (
+                            <>
+                              <div className="flex items-center space-x-2">
+                                <GiFemale className="h-4 w-4 text-purple-600" />
+                                <span className="text-gray-600">
+                                  {parent1} →{" "}
+                                  {trait?.phenotype_map[
+                                    selectedTrait?.parent1Genotype || ""
+                                  ] || "Unknown"}
+                                </span>
+                              </div>
+                              <span className="text-gray-400 text-2xl">×</span>
+                              <div className="flex items-center space-x-2">
+                                <IoMale className="h-4 w-4 text-indigo-600" />
+                                <span className="text-gray-600">
+                                  {parent2} →{" "}
+                                  {trait?.phenotype_map[
+                                    selectedTrait?.parent2Genotype || ""
+                                  ] || "Unknown"}
+                                </span>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">

@@ -52,23 +52,29 @@ const GenotypicRatios: React.FC<GenotypicRatiosProps> = ({
     );
   }
   return (
-    <div className="space-y-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100">
-      {Object.entries(genotypicRatios).map(([genotype, percentage]) => (
-        <div key={genotype} className="flex items-center gap-3">
-          <div className="w-24 text-xs">
-            <div className="font-medium text-gray-800">{genotype}</div>
+    <div>
+      <h5 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
+        <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
+        <span>Genotypic Ratios</span>
+      </h5>
+      <div className="space-y-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100">
+        {Object.entries(genotypicRatios).map(([genotype, percentage]) => (
+          <div key={genotype} className="flex items-center gap-3">
+            <div className="w-24 text-xs">
+              <div className="font-medium text-gray-800">{genotype}</div>
+            </div>
+            <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-blue-100">
+              <div
+                className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
+                style={{ width: `${Math.max(percentage, 2)}%` }}
+              />
+            </div>
+            <div className="w-12 text-right text-xs font-semibold text-blue-600">
+              {`${percentage.toFixed(1)}%`}
+            </div>
           </div>
-          <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-blue-100">
-            <div
-              className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
-              style={{ width: `${Math.max(percentage, 2)}%` }}
-            />
-          </div>
-          <div className="w-12 text-right text-xs font-semibold text-blue-600">
-            {`${percentage.toFixed(1)}%`}
-          </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };

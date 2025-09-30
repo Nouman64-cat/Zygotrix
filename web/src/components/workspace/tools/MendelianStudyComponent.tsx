@@ -7,6 +7,7 @@ import {
 } from "@heroicons/react/24/outline";
 import type { MendelianSimulationTraitResult } from "../../../types/api";
 import type { WorkspaceItem } from "../types";
+import { getAboGenotypeMap } from "../../dashboard/helpers";
 
 interface MendelianStudyComponentProps {
   item: WorkspaceItem;
@@ -102,12 +103,25 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
               <div className="font-medium">
                 Traits ({item.data.selectedTraits.length}):
               </div>
-              {item.data.selectedTraits.map((trait: any, index: number) => (
-                <div key={index} className="text-xs text-gray-600 mt-1">
-                  {trait.name}: {trait.parent1Genotype} ×{" "}
-                  {trait.parent2Genotype}
-                </div>
-              ))}
+              {item.data.selectedTraits.map((trait: any, index: number) => {
+                const isAbo = trait.key === "abo_blood_group";
+                const genotypeMap = getAboGenotypeMap();
+                const parent1 =
+                  isAbo && trait.parent1Genotype
+                    ? genotypeMap[trait.parent1Genotype] ||
+                      trait.parent1Genotype
+                    : trait.parent1Genotype;
+                const parent2 =
+                  isAbo && trait.parent2Genotype
+                    ? genotypeMap[trait.parent2Genotype] ||
+                      trait.parent2Genotype
+                    : trait.parent2Genotype;
+                return (
+                  <div key={index} className="text-xs text-gray-600 mt-1">
+                    {trait.name}: {parent1} × {parent2}
+                  </div>
+                );
+              })}
             </div>
             {simulationResults && (
               <div className="space-y-2">

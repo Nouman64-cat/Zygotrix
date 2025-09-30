@@ -16,6 +16,7 @@ import ParentGenotypeSelect from "./ParentGenotypeSelect";
 import { useTraits } from "../../hooks/useTraits";
 import { GiFemale } from "react-icons/gi";
 import { IoMale } from "react-icons/io5";
+import { getAboGenotypeMap } from "./helpers";
 
 import SimulationResultsModal from "../modals/SimulationResultsModal";
 import type {
@@ -275,6 +276,37 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                 <EmptyState message="Start Your Genetic Study" />
               ) : (
                 <div className="space-y-5">
+                  {/* Trait summary section (top of each trait card) */}
+                  <div className="mb-4">
+                    <div className="bg-indigo-50 p-2 rounded">
+                      <div className="font-medium text-xs">
+                        Traits ({project.selectedTraits.length}):
+                      </div>
+                      {project.selectedTraits.map((trait, index) => {
+                        const isAbo = trait.key === "abo_blood_group";
+                        const genotypeMap = getAboGenotypeMap();
+                        const parent1 =
+                          isAbo && trait.parent1Genotype
+                            ? genotypeMap[trait.parent1Genotype] ||
+                              trait.parent1Genotype
+                            : trait.parent1Genotype;
+                        const parent2 =
+                          isAbo && trait.parent2Genotype
+                            ? genotypeMap[trait.parent2Genotype] ||
+                              trait.parent2Genotype
+                            : trait.parent2Genotype;
+                        return (
+                          <div
+                            key={index}
+                            className="text-xs text-gray-600 mt-1"
+                          >
+                            {trait.name}: {parent1} × {parent2}
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+
                   {project.selectedTraits.map((selectedTrait) => (
                     <div
                       key={selectedTrait.key}

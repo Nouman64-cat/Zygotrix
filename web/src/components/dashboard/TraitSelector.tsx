@@ -1,5 +1,6 @@
 import React from "react";
 import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
+import { getAboGenotypeMap } from "./helpers";
 
 interface TraitSelectorProps {
   searchTerm: string;
@@ -101,7 +102,19 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
                 </div>
                 <p className="text-xs text-gray-500">
                   <span className="font-medium">Alleles:</span>{" "}
-                  {trait.alleles.join(", ")}
+                  {trait.key === "abo_blood_group"
+                    ? (() => {
+                        // Map ABO alleles to I notation
+                        const alleleMap: Record<string, string> = {
+                          A: "Iᴬ",
+                          B: "Iᴮ",
+                          O: "i",
+                        };
+                        return trait.alleles
+                          .map((a: string) => alleleMap[a] || a)
+                          .join(", ");
+                      })()
+                    : trait.alleles.join(", ")}
                   {trait.inheritance_pattern && (
                     <span className="ml-2">
                       | <span className="font-medium">Inheritance:</span>{" "}

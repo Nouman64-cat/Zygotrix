@@ -48,7 +48,9 @@ const SelectedTraitHeader: React.FC<SelectedTraitHeaderProps> = ({
               <span className="ml-2">
                 | <span className="font-medium">Inheritance:</span>{" "}
                 <span className="capitalize">
-                  {traitInfo.inheritance_pattern}
+                  {selectedTrait.key === "rh_factor"
+                    ? "Rh+ is dominant over Rh-"
+                    : traitInfo.inheritance_pattern}
                 </span>
               </span>
             )}

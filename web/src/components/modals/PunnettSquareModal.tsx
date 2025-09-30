@@ -102,13 +102,31 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
             <div className="grid grid-cols-3 grid-rows-3 gap-0 border border-blue-200 rounded overflow-hidden">
               <div className="bg-blue-50"></div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
-                {formatGenotype(p2Split[0])}
+                {isAbo ? (
+                  <span>
+                    I<sup>{p2Split[0]}</sup>
+                  </span>
+                ) : (
+                  formatGenotype(p2Split[0])
+                )}
               </div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
-                {formatGenotype(p2Split[1])}
+                {isAbo ? (
+                  <span>
+                    I<sup>{p2Split[1]}</sup>
+                  </span>
+                ) : (
+                  formatGenotype(p2Split[1])
+                )}
               </div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
-                {formatGenotype(p1Split[0])}
+                {isAbo ? (
+                  <span>
+                    I<sup>{p1Split[0]}</sup>
+                  </span>
+                ) : (
+                  formatGenotype(p1Split[0])
+                )}
               </div>
               <div className="bg-white flex items-center justify-center min-w-[60px] min-h-[40px]">
                 {formatGenotype(grid[0]?.[0])}
@@ -117,7 +135,13 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
                 {formatGenotype(grid[0]?.[1])}
               </div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
-                {formatGenotype(p1Split[1])}
+                {isAbo ? (
+                  <span>
+                    I<sup>{p1Split[1]}</sup>
+                  </span>
+                ) : (
+                  formatGenotype(p1Split[1])
+                )}
               </div>
               <div className="bg-white flex items-center justify-center min-w-[60px] min-h-[40px]">
                 {formatGenotype(grid[1]?.[0])}

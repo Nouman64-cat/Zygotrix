@@ -59,7 +59,7 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
     if (isRh) {
       let alleles = genotype.match(/Rh\+|Rh\-/g);
       if (alleles) {
-        alleles.sort((a, b) => (a === "Rh+" ? -1 : 1));
+        alleles.sort((a) => (a === "Rh+" ? -1 : 1));
         const norm = alleles.join("");
         if (rhMap[norm]) return rhMap[norm].display;
         if (rhMap[alleles.slice().reverse().join("")])

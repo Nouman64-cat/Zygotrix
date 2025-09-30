@@ -55,6 +55,34 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
   // Helper to format genotype in I notation if ABO, or standardized if Rh
   function formatGenotype(genotype: string) {
     if (!genotype) return "";
+    // For Rh, always put Rh+ first
+    if (isRh) {
+      let alleles = genotype.match(/Rh\+|Rh\-/g);
+      if (alleles) {
+        alleles.sort((a, b) => (a === "Rh+" ? -1 : 1));
+        const norm = alleles.join("");
+        if (rhMap[norm]) return rhMap[norm].display;
+        if (rhMap[alleles.slice().reverse().join("")])
+          return rhMap[alleles.slice().reverse().join("")].display;
+        return norm;
+      }
+      // fallback
+      if (rhMap[genotype]) return rhMap[genotype].display;
+      if (rhMap[genotype.split("").reverse().join("")])
+        return rhMap[genotype.split("").reverse().join("")].display;
+      return genotype;
+    }
+    // For other traits, put capital or + first
+    if (genotype.length === 2) {
+      let a1 = genotype[0],
+        a2 = genotype[1];
+      // Capital letter or + is dominant
+      const isDominant = (a: string) => /[A-Z]/.test(a) || a.includes("+");
+      if (!isDominant(a1) && isDominant(a2)) {
+        [a1, a2] = [a2, a1];
+      }
+      genotype = a1 + a2;
+    }
     if (isAbo) {
       const sorted = genotype.split("").sort().join("");
       if (aboMap[genotype]) return aboMap[genotype];
@@ -65,13 +93,6 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
       if (["AA"].includes(genotype)) return aboMap["AA"];
       if (["BB"].includes(genotype)) return aboMap["BB"];
       if (["OO"].includes(genotype)) return aboMap["OO"];
-      return genotype;
-    }
-    if (isRh) {
-      if (rhMap[genotype]) return rhMap[genotype].display;
-      // Try to normalize order
-      if (rhMap[genotype.split("").reverse().join("")])
-        return rhMap[genotype.split("").reverse().join("")].display;
       return genotype;
     }
     return genotype;
@@ -103,27 +124,39 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
               <div className="bg-blue-50"></div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
                 {isAbo ? (
-                  <span>
-                    I<sup>{p2Split[0]}</sup>
-                  </span>
+                  p2Split[0] === "O" ? (
+                    <span>i</span>
+                  ) : (
+                    <span>
+                      I<sup>{p2Split[0]}</sup>
+                    </span>
+                  )
                 ) : (
                   formatGenotype(p2Split[0])
                 )}
               </div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
                 {isAbo ? (
-                  <span>
-                    I<sup>{p2Split[1]}</sup>
-                  </span>
+                  p2Split[1] === "O" ? (
+                    <span>i</span>
+                  ) : (
+                    <span>
+                      I<sup>{p2Split[1]}</sup>
+                    </span>
+                  )
                 ) : (
                   formatGenotype(p2Split[1])
                 )}
               </div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
                 {isAbo ? (
-                  <span>
-                    I<sup>{p1Split[0]}</sup>
-                  </span>
+                  p1Split[0] === "O" ? (
+                    <span>i</span>
+                  ) : (
+                    <span>
+                      I<sup>{p1Split[0]}</sup>
+                    </span>
+                  )
                 ) : (
                   formatGenotype(p1Split[0])
                 )}
@@ -136,9 +169,13 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
               </div>
               <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
                 {isAbo ? (
-                  <span>
-                    I<sup>{p1Split[1]}</sup>
-                  </span>
+                  p1Split[1] === "O" ? (
+                    <span>i</span>
+                  ) : (
+                    <span>
+                      I<sup>{p1Split[1]}</sup>
+                    </span>
+                  )
                 ) : (
                   formatGenotype(p1Split[1])
                 )}

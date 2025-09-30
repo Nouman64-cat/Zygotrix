@@ -5,29 +5,27 @@ interface ParentGenotypeSelectProps {
   value: string;
   options: string[];
   onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  phenotypeMap: Record<string, string>;
 }
 
 const ParentGenotypeSelect: React.FC<ParentGenotypeSelectProps> = ({
-  label,
   value,
   options,
   onChange,
+  phenotypeMap,
 }) => (
-  <div className="flex flex-col space-y-1">
-    <label className="text-xs font-medium text-gray-700">{label}</label>
-    <select
-      value={value}
-      onChange={onChange}
-      className="px-2 py-1 border border-gray-300 rounded"
-    >
-      <option value="">Select genotype</option>
-      {options.map((opt) => (
-        <option key={opt} value={opt}>
-          {opt}
-        </option>
-      ))}
-    </select>
-  </div>
+  <select
+    value={value}
+    onChange={onChange}
+    className="w-full rounded-lg border-2 border-gray-200 focus:border-purple-400 focus:ring-2 cursor-pointer focus:ring-purple-200 bg-white py-4 px-1 text-gray-700 font-semibold shadow-sm transition-all duration-200"
+  >
+    <option value="">Select genotype</option>
+    {options.map((opt) => (
+      <option key={opt} value={opt}>
+        {opt} {phenotypeMap[opt] ? `-- ${phenotypeMap[opt]}` : ""}
+      </option>
+    ))}
+  </select>
 );
 
 export default ParentGenotypeSelect;

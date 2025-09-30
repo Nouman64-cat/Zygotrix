@@ -6,21 +6,8 @@ import {
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import type { MendelianSimulationTraitResult } from "../../../types/api";
-import type { WorkspaceItem } from "../types";
-
-interface MendelianStudyComponentProps {
-  item: WorkspaceItem;
-  commonClasses: string;
-  editingItemNameId: string | null;
-  editingItemName: string;
-  setEditingItemName: (name: string) => void;
-  onMouseDown: (e: React.MouseEvent, itemId: string) => void;
-  onNameClick: (e: React.MouseEvent, item: WorkspaceItem) => void;
-  onNameSave: (itemId: string, name: string) => void;
-  onNameCancel: () => void;
-  onEditItem: (e: React.MouseEvent, item: WorkspaceItem) => void;
-  onDeleteItem: (e: React.MouseEvent, itemId: string) => void;
-}
+import { getAboGenotypeMap } from "../../dashboard/helpers";
+import type { MendelianStudyComponentProps } from "../../dashboard/types";
 
 const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
   item,
@@ -102,12 +89,25 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
               <div className="font-medium">
                 Traits ({item.data.selectedTraits.length}):
               </div>
-              {item.data.selectedTraits.map((trait: any, index: number) => (
-                <div key={index} className="text-xs text-gray-600 mt-1">
-                  {trait.name}: {trait.parent1Genotype} ×{" "}
-                  {trait.parent2Genotype}
-                </div>
-              ))}
+              {item.data.selectedTraits.map((trait: any, index: number) => {
+                const isAbo = trait.key === "abo_blood_group";
+                const genotypeMap = getAboGenotypeMap();
+                const parent1 =
+                  isAbo && trait.parent1Genotype
+                    ? genotypeMap[trait.parent1Genotype] ||
+                      trait.parent1Genotype
+                    : trait.parent1Genotype;
+                const parent2 =
+                  isAbo && trait.parent2Genotype
+                    ? genotypeMap[trait.parent2Genotype] ||
+                      trait.parent2Genotype
+                    : trait.parent2Genotype;
+                return (
+                  <div key={index} className="text-xs text-gray-600 mt-1">
+                    {trait.name}: {parent1} × {parent2}
+                  </div>
+                );
+              })}
             </div>
             {simulationResults && (
               <div className="space-y-2">

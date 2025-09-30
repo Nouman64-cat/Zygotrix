@@ -58,7 +58,7 @@ const SimulationButton: React.FC<SimulationButtonProps> = ({
     <button
       onClick={handleSimulation}
       disabled={disabled || loading}
-      className="bg-gradient-to-r from-green-500 to-emerald-600 text-white py-3 px-6 rounded-lg font-medium hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2 shadow-lg"
+      className="bg-gradient-to-r from-green-500 cursor-pointer to-emerald-600 text-white py-3 px-6 rounded-lg font-medium hover:from-green-600 hover:to-emerald-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all duration-200 flex items-center space-x-2 shadow-lg"
     >
       {loading ? (
         <>
@@ -66,7 +66,23 @@ const SimulationButton: React.FC<SimulationButtonProps> = ({
           <span>Running...</span>
         </>
       ) : (
-        <span>Run Simulation</span>
+        <>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            className="h-5 w-5 mr-2"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M5 3v18l15-9-15-9z"
+            />
+          </svg>
+          <span>Run Simulation</span>
+        </>
       )}
     </button>
   );

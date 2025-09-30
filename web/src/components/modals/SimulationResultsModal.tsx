@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   BeakerIcon,
   DocumentPlusIcon,
@@ -8,6 +8,9 @@ import { GiFemale } from "react-icons/gi";
 import { IoMale } from "react-icons/io5";
 import GenotypicRatios from "../dashboard/GenotypicRatios";
 import PhenotypicRatios from "../dashboard/PhenotypicRatios";
+import { getAboGenotypeMap } from "../dashboard/helpers";
+import HowTheseResultsButton from "./HowTheseResultsButton";
+import PunnettSquareModal from "./PunnettSquareModal";
 
 interface SimulationResultsModalProps {
   open: boolean;
@@ -26,10 +29,17 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
   traits,
   selectedTraits,
 }) => {
+  const [punnettModalTraitKey, setPunnettModalTraitKey] = useState<
+    string | null
+  >(null);
+
   if (!open || !simulationResults) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+    <div
+      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      style={{ fontFamily: "Axiforma, sans-serif" }}
+    >
       <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
         <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
           <div className="flex items-center space-x-3">
@@ -55,7 +65,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
             </button>
             <button
               onClick={onClose}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+              className="p-2 text-gray-400 cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
             >
               <XMarkIcon className="h-5 w-5" />
             </button>
@@ -93,7 +103,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                 return (
                   <div
                     key={traitKey}
-                    className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200"
+                    className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200 flex flex-col relative"
                   >
                     <div className="flex items-center justify-between mb-4">
                       <h4 className="text-lg font-semibold text-gray-900 flex items-center">
@@ -101,28 +111,46 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                         {trait?.name || traitKey}
                       </h4>
                       <div className="flex items-center space-x-4 text-sm">
-                        <div className="flex items-center space-x-2">
-                          <GiFemale className="h-4 w-4 text-purple-600" />
-                          <span className="text-gray-600">
-                            {selectedTrait?.parent1Genotype} →{" "}
-                            {trait?.phenotype_map[
-                              selectedTrait?.parent1Genotype || ""
-                            ] || "Unknown"}
-                          </span>
-                        </div>
-                        <span className="text-gray-400 text-2xl">×</span>
-                        <div className="flex items-center space-x-2">
-                          <IoMale className="h-4 w-4 text-indigo-600" />
-                          <span className="text-gray-600">
-                            {selectedTrait?.parent2Genotype} →{" "}
-                            {trait?.phenotype_map[
-                              selectedTrait?.parent2Genotype || ""
-                            ] || "Unknown"}
-                          </span>
-                        </div>
+                        {(() => {
+                          const isAbo = traitKey === "abo_blood_group";
+                          const genotypeMap = getAboGenotypeMap();
+                          const parent1 =
+                            isAbo && selectedTrait?.parent1Genotype
+                              ? genotypeMap[selectedTrait.parent1Genotype] ||
+                                selectedTrait.parent1Genotype
+                              : selectedTrait?.parent1Genotype;
+                          const parent2 =
+                            isAbo && selectedTrait?.parent2Genotype
+                              ? genotypeMap[selectedTrait.parent2Genotype] ||
+                                selectedTrait.parent2Genotype
+                              : selectedTrait?.parent2Genotype;
+                          return (
+                            <>
+                              <div className="flex items-center space-x-2">
+                                <GiFemale className="h-4 w-4 text-purple-600" />
+                                <span className="text-gray-600">
+                                  {parent1} →{" "}
+                                  {trait?.phenotype_map[
+                                    selectedTrait?.parent1Genotype || ""
+                                  ] || "Unknown"}
+                                </span>
+                              </div>
+                              <span className="text-gray-400 text-2xl">×</span>
+                              <div className="flex items-center space-x-2">
+                                <IoMale className="h-4 w-4 text-indigo-600" />
+                                <span className="text-gray-600">
+                                  {parent2} →{" "}
+                                  {trait?.phenotype_map[
+                                    selectedTrait?.parent2Genotype || ""
+                                  ] || "Unknown"}
+                                </span>
+                              </div>
+                            </>
+                          );
+                        })()}
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start flex-1">
                       <GenotypicRatios
                         genotypicRatios={result.genotypic_ratios}
                         traitKey={traitKey}
@@ -131,6 +159,23 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                         phenotypicRatios={result.phenotypic_ratios}
                       />
                     </div>
+                    <div className="flex justify-end mt-4">
+                      <HowTheseResultsButton
+                        onClick={() => setPunnettModalTraitKey(traitKey)}
+                      />
+                    </div>
+                    {punnettModalTraitKey === traitKey &&
+                      selectedTrait &&
+                      trait && (
+                        <PunnettSquareModal
+                          open={true}
+                          onClose={() => setPunnettModalTraitKey(null)}
+                          parent1Genotype={selectedTrait.parent1Genotype}
+                          parent2Genotype={selectedTrait.parent2Genotype}
+                          alleles={selectedTrait.alleles}
+                          traitName={trait.name}
+                        />
+                      )}
                   </div>
                 );
               }

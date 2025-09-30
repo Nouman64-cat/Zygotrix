@@ -1,5 +1,5 @@
 import React from "react";
-import { getAboGenotypeMap, getRhGenotypeMap } from "./helpers";
+import { getRhGenotypeMap } from "./helpers";
 
 interface PunnettSquareProps {
   parent1Genotype: string;

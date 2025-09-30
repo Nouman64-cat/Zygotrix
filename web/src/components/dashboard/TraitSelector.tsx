@@ -1,7 +1,5 @@
 import React from "react";
 import { MagnifyingGlassIcon, PlusIcon } from "@heroicons/react/24/outline";
-import { getAboGenotypeMap } from "./helpers";
-
 interface TraitSelectorProps {
   searchTerm: string;
   onSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;

@@ -26,7 +26,6 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
   onClose,
   parent1Genotype,
   parent2Genotype,
-  alleles,
   traitName,
 }) => {
   if (!open) return null;

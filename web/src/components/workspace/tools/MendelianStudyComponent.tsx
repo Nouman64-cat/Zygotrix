@@ -6,22 +6,8 @@ import {
   DocumentTextIcon,
 } from "@heroicons/react/24/outline";
 import type { MendelianSimulationTraitResult } from "../../../types/api";
-import type { WorkspaceItem } from "../types";
 import { getAboGenotypeMap } from "../../dashboard/helpers";
-
-interface MendelianStudyComponentProps {
-  item: WorkspaceItem;
-  commonClasses: string;
-  editingItemNameId: string | null;
-  editingItemName: string;
-  setEditingItemName: (name: string) => void;
-  onMouseDown: (e: React.MouseEvent, itemId: string) => void;
-  onNameClick: (e: React.MouseEvent, item: WorkspaceItem) => void;
-  onNameSave: (itemId: string, name: string) => void;
-  onNameCancel: () => void;
-  onEditItem: (e: React.MouseEvent, item: WorkspaceItem) => void;
-  onDeleteItem: (e: React.MouseEvent, itemId: string) => void;
-}
+import type { MendelianStudyComponentProps } from "../../dashboard/types";
 
 const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
   item,

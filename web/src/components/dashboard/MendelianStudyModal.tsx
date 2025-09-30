@@ -230,7 +230,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
             {/* Left Column - Study Details */}
             <div className="w-80 p-5 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 border-r border-gray-200 overflow-y-auto">
               <LabeledInput
-                label="📊 Study Name"
+                label="Study Name"
                 value={project.name}
                 onChange={(e) =>
                   setProject((prev) => ({ ...prev, name: e.target.value }))
@@ -239,7 +239,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                 className="mb-6"
               />
               <LabeledTextarea
-                label="📝 Notes (Optional)"
+                label="Notes (Optional)"
                 value={project.notes}
                 onChange={(e) =>
                   setProject((prev) => ({ ...prev, notes: e.target.value }))

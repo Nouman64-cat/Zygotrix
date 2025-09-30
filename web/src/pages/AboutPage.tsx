@@ -1,4 +1,5 @@
 import React from "react";
+import { FaLinkedin, FaGithub } from "react-icons/fa";
 
 import logo from "../../public/zygotrix-logo.png";
 
@@ -64,6 +65,114 @@ const AboutPage: React.FC = () => {
                   Merging Mendelian logic, polygenic scoring, and thoughtful
                   interaction design into a single learning platform.
                 </p>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        {/* Teams section */}
+        <div className="mt-10 grid gap-8 lg:grid-cols-[1.4fr,1fr]">
+          <div className="rounded-3xl border border-white/70 bg-white/95 p-8 shadow-xl shadow-slate-200/60">
+            <h2 className="text-xl font-semibold text-[#1E3A8A]">Team</h2>
+            <p className="mt-3 text-sm text-slate-600">
+              Core contributors and collaborators who help steer Zygotrix.
+            </p>
+
+            <div className="mt-6 grid gap-6 sm:grid-cols-2">
+              {/* Member: Nouman Ejaz */}
+              <div className="relative flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 shadow-lg transition hover:shadow-xl">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4 overflow-hidden">
+                  <img
+                    src="https://gravatar.com/avatar/05ed2a266f4c7ec07bd9c099c0b2362998b6a27ff94a01626bece2b4bb614af5?v=1757321900000&size=256&d=initials"
+                    alt="Nouman Ejaz avatar"
+                    className="h-16 w-16 object-cover"
+                  />
+                </div>
+                <div className="text-center">
+                  <div className="text-base font-semibold text-[#1E3A8A]">
+                    Nouman Ejaz
+                  </div>
+                  <div className="text-xs text-slate-600 mt-1">
+                    Software Engineer
+                  </div>
+                  <span className="mt-2 inline-block rounded-full bg-[#1E3A8A]/10 px-3 py-1 text-xs font-semibold text-[#1E3A8A]">
+                    Founder
+                  </span>
+                  <span className="mt-2 ml-2 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
+                    Maintainer
+                  </span>
+                </div>
+                {/* Social links bottom right */}
+                <div className="absolute bottom-4 right-4 flex gap-3">
+                  <a
+                    href="https://www.linkedin.com/in/nouman-ejaz-64251125b/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-700 hover:text-[#0A66C2] cursor-pointer transition-colors"
+                    aria-label="LinkedIn"
+                  >
+                    <FaLinkedin className="h-5 cursor-pointer w-5" />
+                  </a>
+                  <a
+                    href="https://github.com/Nouman64-cat"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-700 hover:text-black cursor-pointer transition-colors"
+                    aria-label="GitHub"
+                  >
+                    <FaGithub className="h-5 w-5" />
+                  </a>
+                </div>
+              </div>
+
+              {/* Member: Tooba Noor ul Eman */}
+              <div className="relative flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 shadow-lg transition hover:shadow-xl">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4">
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    className="h-8 w-8 text-[#1E3A8A]"
+                  >
+                    <circle
+                      cx="12"
+                      cy="8"
+                      r="3"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                    />
+                    <path
+                      d="M4 20c1.5-4 6-6 8-6s6.5 2 8 6"
+                      stroke="currentColor"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </div>
+                <div className="text-center">
+                  <div className="text-base font-semibold text-[#1E3A8A]">
+                    Tooba Noor ul Eman
+                  </div>
+                  <div className="text-xs text-slate-600 mt-1">
+                    Independent Researcher, BS Biochemistry
+                  </div>
+                  <span className="mt-2 inline-block rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+                    Contributor
+                  </span>
+                </div>
+                {/* Social links bottom right */}
+                <div className="absolute bottom-4 right-4 flex gap-3">
+                  <a
+                    href="https://www.linkedin.com/in/tooba-noor-540556358/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-700 hover:text-[#0A66C2] cursor-pointer transition-colors"
+                    aria-label="LinkedIn"
+                  >
+                    <FaLinkedin className="h-5 w-5" />
+                  </a>
+                </div>
               </div>
             </div>
           </div>

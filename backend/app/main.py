@@ -25,6 +25,7 @@ from .routes.projects import router as project_router
 from .routes.portal import router as portal_router
 from .routes.project_templates import router as project_templates_router
 from .services.trait_db_setup import create_trait_indexes
+from .config import get_settings
 from .utils import trait_to_info
 
 app = FastAPI(
@@ -49,6 +50,10 @@ app.add_middleware(
 @app.on_event("startup")
 async def startup_event():
     """Initialize database indexes on application startup."""
+    settings = get_settings()
+    if settings.traits_json_only:
+        print("ℹ️ JSON-only mode enabled: skipping MongoDB index initialization for traits")
+        return
     try:
         create_trait_indexes()
         print("✅ Trait management database indexes initialized")

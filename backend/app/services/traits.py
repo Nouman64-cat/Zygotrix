@@ -19,6 +19,7 @@ import itertools
 from packaging import version as pkg_version
 
 from zygotrix_engine import Trait, Simulator, PolygenicCalculator
+from ..config import get_settings
 from ..schema.traits import (
     TraitInfo,
     TraitCreatePayload,
@@ -35,37 +36,76 @@ from .common import get_traits_collection, ensure_utc
 
 
 def _load_real_gene_traits() -> Dict[str, Trait]:
+    """Load traits from JSON file. Supports both real-gene and simplified traits.
+
+    JSON schema (flexible):
+    - Required: trait (str), alleles (list[str]), phenotypes (dict[str,str])
+    - Optional: gene (str), chromosome (int|str), inheritance (str)
+
+    Behavior:
+    - If gene and chromosome are present: category=real_gene, verification_status=verified
+    - Otherwise: category=simple_trait, verification_status=simplified
+    - Missing/bad entries are skipped individually (do not abort entire load)
+    """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     traits_file_path = os.path.join(
         current_dir, "..", "..", "data", "traits_dataset.json"
     )
     if not os.path.exists(traits_file_path):
         return {}
+    real_gene_traits: Dict[str, Trait] = {}
     try:
         with open(traits_file_path, "r", encoding="utf-8") as f:
             traits_data = json.load(f)
-        real_gene_traits = {}
-        for trait_data in traits_data:
-            trait_key = trait_data["trait"].lower().replace(" ", "_").replace("-", "_")
+    except (json.JSONDecodeError, FileNotFoundError) as e:
+        print(f"Warning: Could not load traits dataset file: {e}")
+        return {}
+
+    for idx, trait_data in enumerate(traits_data):
+        try:
+            name = trait_data.get("trait")
+            alleles = trait_data.get("alleles")
+            phenotypes = trait_data.get("phenotypes")
+            if not name or not isinstance(alleles, (list, tuple)) or not isinstance(phenotypes, dict):
+                raise ValueError("Missing required fields: trait, alleles, phenotypes")
+
+            trait_key = str(name).lower().replace(" ", "_").replace("-", "_")
+
+            gene = trait_data.get("gene")
+            chromosome_val = trait_data.get("chromosome")
+            inheritance = trait_data.get("inheritance")
+
+            is_real_gene = gene is not None and chromosome_val is not None and str(chromosome_val) != ""
+
             metadata = {
-                "gene": trait_data["gene"],
-                "chromosome": str(trait_data["chromosome"]),
-                "inheritance_pattern": trait_data["inheritance"],
-                "category": "real_gene",
-                "verification_status": "verified",
+                "inheritance_pattern": inheritance,
+                "category": "real_gene" if is_real_gene else "simple_trait",
+                "verification_status": "verified" if is_real_gene else "simplified",
             }
+            if gene is not None:
+                metadata["gene"] = gene
+            if chromosome_val is not None:
+                metadata["chromosome"] = str(chromosome_val)
+
+            description = (
+                f"Real gene trait - {gene} gene on chromosome {chromosome_val}"
+                if is_real_gene
+                else trait_data.get("description", "")
+            )
+
             trait = Trait(
-                name=trait_data["trait"],
-                alleles=tuple(trait_data["alleles"]),
-                phenotype_map=trait_data["phenotypes"],
-                description=f"Real gene trait - {trait_data['gene']} gene on chromosome {trait_data['chromosome']}",
+                name=name,
+                alleles=tuple(str(a) for a in alleles),
+                phenotype_map={str(k): str(v) for k, v in phenotypes.items()},
+                description=description,
                 metadata=metadata,
             )
             real_gene_traits[trait_key] = trait
-        return real_gene_traits
-    except (json.JSONDecodeError, KeyError, FileNotFoundError) as e:
-        print(f"Warning: Could not load real gene traits: {e}")
-        return {}
+        except Exception as e:
+            print(f"Warning: Skipping trait at index {idx}: {e}")
+            continue
+
+    return real_gene_traits
 
 
 REAL_GENE_TRAITS = _load_real_gene_traits()
@@ -171,7 +211,11 @@ def get_trait_registry(
     category: Optional[str] = None,
     gene_info: Optional[str] = None,
 ) -> Dict[str, Trait]:
+    settings = get_settings()
     registry = dict(ALL_TRAITS)
+    if settings.traits_json_only:
+        # JSON-only: do not merge DB traits
+        return registry
     if not any([inheritance_pattern, verification_status, category, gene_info]):
         registry.update(fetch_persistent_traits())
     else:
@@ -681,8 +725,14 @@ def get_traits(
         List[TraitInfo]: Filtered traits from JSON file, database (public), and user's private traits
     """
     all_traits: List[TraitInfo] = []
+    settings = get_settings()
 
     try:
+        # If JSON-only mode, serve only JSON traits regardless of owned_only
+        if settings.traits_json_only:
+            json_traits = _filter_json_traits(filters)
+            return json_traits
+
         # If owned_only is set, do not include JSON traits and require owner_id
         if not filters.owned_only:
             # 1. Get traits from traits_dataset.json (always public)
@@ -695,6 +745,9 @@ def get_traits(
         
         # 2. Get traits from database with access control
         try:
+            if settings.traits_json_only:
+                # Shouldn't reach here due to early return, but guard anyway
+                return all_traits
             collection = get_traits_collection(required=False)
             if collection is None:
                 print("DEBUG: No MongoDB connection available, skipping database traits")
@@ -764,6 +817,16 @@ def get_trait_by_key(key: str, owner_id: Optional[str] = None) -> Optional[Trait
     Returns:
         Optional[TraitInfo]: The trait if found and accessible
     """
+    settings = get_settings()
+    # JSON-only: search only JSON traits
+    if settings.traits_json_only:
+        # Build filters-less view from JSON and match by key
+        # trait_key building matches _load_real_gene_traits keying
+        for k, t in REAL_GENE_TRAITS.items():
+            if k == key:
+                return _convert_json_trait_to_trait_info(k, t)
+        return None
+
     try:
         collection = cast(Collection, get_traits_collection(required=True))
 

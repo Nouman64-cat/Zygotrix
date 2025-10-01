@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from typing import Optional, List
 from ..services import traits as trait_services
+from ..config import get_settings
 from ..services import auth as auth_services
 from ..schema.traits import (
     TraitListResponse,
@@ -82,7 +83,12 @@ def list_traits(
     )
 
     # Get traits with access control
-    traits = trait_services.get_traits(filters, current_user_id)
+    settings = get_settings()
+    if settings.traits_json_only:
+        # Serve only JSON traits; ignore DB and access control
+        traits = trait_services.get_traits(filters, None)
+    else:
+        traits = trait_services.get_traits(filters, current_user_id)
 
     return TraitListResponse(traits=traits)
 
@@ -106,6 +112,10 @@ def create_trait(
     - Sets owner_id from JWT token
     - Defaults to private visibility and draft status
     """
+    # JSON-only mode: disable writes
+    settings = get_settings()
+    if settings.traits_json_only:
+        raise HTTPException(status_code=405, detail="Trait creation disabled in JSON-only mode")
     # Authenticate user
     if not credentials or not credentials.credentials:
         raise HTTPException(
@@ -166,6 +176,10 @@ def update_trait(
     - Bumps version automatically
     - Keeps audit trail of changes
     """
+    # JSON-only mode: disable writes
+    settings = get_settings()
+    if settings.traits_json_only:
+        raise HTTPException(status_code=405, detail="Trait updates disabled in JSON-only mode")
     # Authenticate user
     if not credentials or not credentials.credentials:
         raise HTTPException(
@@ -194,6 +208,10 @@ def delete_trait(
     - Only the trait owner can delete
     - Performs soft delete by setting status to 'deprecated'
     """
+    # JSON-only mode: disable writes
+    settings = get_settings()
+    if settings.traits_json_only:
+        raise HTTPException(status_code=405, detail="Trait deletion disabled in JSON-only mode")
     # Authenticate user
     if not credentials or not credentials.credentials:
         raise HTTPException(

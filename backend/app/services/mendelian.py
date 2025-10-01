@@ -2,7 +2,7 @@ from typing import Mapping, Iterable, List, Dict, Tuple
 from zygotrix_engine import Simulator
 from .traits import filter_traits
 
-# Mendelian simulation services
+# Mendelian simulation services (registry construction already respects JSON-only mode via get_trait_registry)
 
 
 def simulate_mendelian_traits(

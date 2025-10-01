@@ -21,6 +21,13 @@ def _get_int(name: str, default: int) -> int:
         return default
 
 
+def _get_bool(name: str, default: bool) -> bool:
+    value = os.getenv(name)
+    if value is None:
+        return default
+    return value.strip().lower() in {"1", "true", "yes", "on"}
+
+
 @dataclass(frozen=True)
 class Settings:
     mongodb_uri: str = os.getenv("MONGODB_URI", "")
@@ -46,6 +53,8 @@ class Settings:
     resend_api_key: str = os.getenv("RESEND_API_KEY", "")
     resend_from_email: str = os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev")
     signup_otp_ttl_minutes: int = _get_int("SIGNUP_OTP_TTL_MINUTES", 10)
+    # Trait source control: when true, serve traits from JSON only and disable trait CRUD
+    traits_json_only: bool = _get_bool("TRAITS_JSON_ONLY", False)
 
 
 @lru_cache(maxsize=1)

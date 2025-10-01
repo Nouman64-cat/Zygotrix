@@ -169,5 +169,175 @@
       "Rr": "Non-red hair (carrier)",
       "rr": "Red hair"
     }
+  },
+  {
+    "trait": "Hair Color",
+    "inheritance": "dominant",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Brown",
+      "Hh": "Brown",
+      "hh": "Blonde"
+    }
+  },
+  {
+    "trait": "Eye Color (Brown Dominant)",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["B", "b"],
+    "phenotypes": {
+      "BB": "Brown",
+      "Bb": "Brown",
+      "bb": "Blue"
+    }
+  },
+  {
+    "trait": "Hair Color (Dark Dominant)",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Dark",
+      "Hh": "Dark",
+      "hh": "Light"
+    }
+  },
+  {
+    "trait": "Hair Texture",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["C", "c"],
+    "phenotypes": {
+      "CC": "Curly",
+      "Cc": "Curly",
+      "cc": "Straight"
+    }
+  },
+  {
+    "trait": "Albinism",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["A", "a"],
+    "phenotypes": {
+      "AA": "Normal pigmentation",
+      "Aa": "Normal pigmentation",
+      "aa": "Albinism"
+    }
+  },
+  {
+    "trait": "Freckles",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["F", "f"],
+    "phenotypes": {
+      "FF": "Freckles",
+      "Ff": "Freckles",
+      "ff": "No freckles"
+    }
+  },
+  {
+    "trait": "Dimples",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["D", "d"],
+    "phenotypes": {
+      "DD": "Dimples",
+      "Dd": "Dimples",
+      "dd": "No dimples"
+    }
+  },
+  {
+    "trait": "Cleft Chin",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["C", "c"],
+    "phenotypes": {
+      "CC": "Cleft chin",
+      "Cc": "Cleft chin",
+      "cc": "Smooth chin"
+    }
+  },
+  {
+    "trait": "Forehead Shape",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["W", "w"],
+    "phenotypes": {
+      "WW": "Widow's peak",
+      "Ww": "Widow's peak",
+      "ww": "Straight hairline"
+    }
+  },
+  {
+    "trait": "Unibrow",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["U", "u"],
+    "phenotypes": {
+      "UU": "Unibrow",
+      "Uu": "Unibrow",
+      "uu": "Separate eyebrows"
+    }
+  },
+  {
+    "trait": "Earlobe Attachment",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["E", "e"],
+    "phenotypes": {
+      "EE": "Free earlobes",
+      "Ee": "Free earlobes",
+      "ee": "Attached earlobes"
+    }
+  },
+  {
+    "trait": "Darwin's Tubercle",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["T", "t"],
+    "phenotypes": {
+      "TT": "Tubercle present",
+      "Tt": "Tubercle present",
+      "tt": "Tubercle absent"
+    }
+  },
+  {
+    "trait": "Tongue Rolling",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["R", "r"],
+    "phenotypes": {
+      "RR": "Can roll tongue",
+      "Rr": "Can roll tongue",
+      "rr": "Cannot roll tongue"
+    }
+  },
+  {
+    "trait": "Hitchhiker's Thumb",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Straight thumb",
+      "Hh": "Straight thumb",
+      "hh": "Hitchhiker's thumb"
+    }
+  },
+  {
+    "trait": "Mid-Digital Hair",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["M", "m"],
+    "phenotypes": {
+      "MM": "Hair present",
+      "Mm": "Hair present",
+      "mm": "Hair absent"
+    }
+  },
+  {
+    "trait": "Bent Little Finger",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["B", "b"],
+    "phenotypes": {
+      "BB": "Bent finger",
+      "Bb": "Bent finger",
+      "bb": "Straight finger"
+    }
+  },
+  {
+    "trait": "Interlocking Fingers Habit",
+    "inheritance": "autosomal",
+    "alleles": ["L", "R"],
+    "phenotypes": {
+      "LL": "Left thumb on top",
+      "LR": "Variable",
+      "RR": "Right thumb on top"
+    }
   }
 ]

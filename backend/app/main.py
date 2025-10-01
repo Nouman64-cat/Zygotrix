@@ -50,7 +50,10 @@ from .schemas import (
     UserProfile,
 )
 
+
 from .routes.auth import router as auth_router
+from .routes.traits import router as trait_router
+from .utils import trait_to_info
 
 app = FastAPI(
     title="Zygotrix Backend",
@@ -71,34 +74,7 @@ app.add_middleware(
 bearer_scheme = HTTPBearer(auto_error=True)
 
 app.include_router(auth_router)
-
-
-def trait_to_info(key: str, trait: Trait) -> TraitInfo:
-    # Extract Mendelian trait metadata from trait.metadata
-    metadata_dict = dict(trait.metadata)
-
-    # Extract chromosome as integer if present
-    chromosome = None
-    if "chromosome" in metadata_dict:
-        try:
-            chromosome = int(metadata_dict["chromosome"])
-        except (ValueError, TypeError):
-            chromosome = None
-
-    return TraitInfo(
-        key=key,
-        name=trait.name,
-        description=trait.description or None,
-        alleles=list(trait.alleles),
-        phenotype_map=dict(trait.phenotype_map),
-        metadata=metadata_dict,
-        inheritance_pattern=metadata_dict.get("inheritance_pattern"),
-        verification_status=metadata_dict.get("verification_status"),
-        gene_info=metadata_dict.get("gene_info"),
-        category=metadata_dict.get("category"),
-        gene=metadata_dict.get("gene"),
-        chromosome=chromosome,
-    )
+app.include_router(trait_router)
 
 
 def get_current_user(
@@ -112,89 +88,6 @@ def get_current_user(
 @app.head("/health", response_model=HealthResponse, tags=["System"])
 def health() -> HealthResponse:
     return HealthResponse()
-
-
-@app.get("/api/traits", response_model=TraitListResponse, tags=["Traits"])
-def list_traits(
-    inheritance_pattern: Optional[str] = None,
-    verification_status: Optional[str] = None,
-    category: Optional[str] = None,
-    gene_info: Optional[str] = None,
-) -> TraitListResponse:
-    traits = [
-        trait_to_info(key, trait)
-        for key, trait in services.get_trait_registry(
-            inheritance_pattern=inheritance_pattern,
-            verification_status=verification_status,
-            category=category,
-            gene_info=gene_info,
-        ).items()
-    ]
-    return TraitListResponse(traits=traits)
-
-
-@app.post(
-    "/api/traits",
-    response_model=TraitMutationResponse,
-    tags=["Traits"],
-    status_code=201,
-)
-def create_trait(payload: TraitMutationPayload) -> TraitMutationResponse:
-    trait_definition = {
-        "name": payload.name,
-        "alleles": payload.alleles,
-        "phenotype_map": dict(payload.phenotype_map),
-        "description": payload.description or "",
-        "metadata": dict(payload.metadata),
-    }
-
-    # Add new Mendelian trait fields if provided
-    if payload.inheritance_pattern:
-        trait_definition["inheritance_pattern"] = payload.inheritance_pattern
-    if payload.verification_status:
-        trait_definition["verification_status"] = payload.verification_status
-    if payload.gene_info:
-        trait_definition["gene_info"] = payload.gene_info
-    if payload.category:
-        trait_definition["category"] = payload.category
-
-    trait = services.save_trait(payload.key, trait_definition)
-    return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
-
-
-@app.put("/api/traits/{key}", response_model=TraitMutationResponse, tags=["Traits"])
-def update_trait(key: str, payload: TraitMutationPayload) -> TraitMutationResponse:
-    if key != payload.key:
-        raise HTTPException(
-            status_code=400, detail="Trait key mismatch between path and payload."
-        )
-
-    trait_definition = {
-        "name": payload.name,
-        "alleles": payload.alleles,
-        "phenotype_map": dict(payload.phenotype_map),
-        "description": payload.description or "",
-        "metadata": dict(payload.metadata),
-    }
-
-    # Add new Mendelian trait fields if provided
-    if payload.inheritance_pattern:
-        trait_definition["inheritance_pattern"] = payload.inheritance_pattern
-    if payload.verification_status:
-        trait_definition["verification_status"] = payload.verification_status
-    if payload.gene_info:
-        trait_definition["gene_info"] = payload.gene_info
-    if payload.category:
-        trait_definition["category"] = payload.category
-
-    trait = services.save_trait(payload.key, trait_definition)
-    return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
-
-
-@app.delete("/api/traits/{key}", status_code=204, tags=["Traits"])
-def remove_trait(key: str) -> Response:
-    services.delete_trait(key)
-    return Response(status_code=204)
 
 
 @app.post(

@@ -127,28 +127,12 @@ const AboutPage: React.FC = () => {
 
               {/* Member: Tooba Noor ul Eman */}
               <div className="relative flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 shadow-lg transition hover:shadow-xl">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4">
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    className="h-8 w-8 text-[#1E3A8A]"
-                  >
-                    <circle
-                      cx="12"
-                      cy="8"
-                      r="3"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                    />
-                    <path
-                      d="M4 20c1.5-4 6-6 8-6s6.5 2 8 6"
-                      stroke="currentColor"
-                      strokeWidth="1.5"
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                    />
-                  </svg>
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4 overflow-hidden">
+                  <img
+                    src="/tooba.jpg"
+                    alt="Tooba Noor ul Eman"
+                    className="h-16 w-16 object-cover"
+                  />
                 </div>
                 <div className="text-center">
                   <div className="text-base font-semibold text-[#1E3A8A]">

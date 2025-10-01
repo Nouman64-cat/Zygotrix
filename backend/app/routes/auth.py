@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from datetime import datetime, timezone
-from .. import services
+
 from ..schema.auth import (
     AuthResponse,
     SignupInitiateRequest,
@@ -12,6 +12,7 @@ from ..schema.auth import (
     UserLoginRequest,
     UserProfile,
 )
+from ..services import auth as services
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 

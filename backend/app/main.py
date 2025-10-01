@@ -11,7 +11,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from zygotrix_engine import Trait
 
-from . import services
+from .services import auth as auth_services
+from .services import polygenic as polygenic_services
 from .schema.common import HealthResponse
 from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.auth import UserProfile
@@ -21,6 +22,8 @@ from .routes.auth import router as auth_router
 from .routes.traits import router as trait_router
 from .routes.mendelian import router as mendelian_router
 from .routes.projects import router as project_router
+from .routes.portal import router as portal_router
+from .routes.project_templates import router as project_templates_router
 from .utils import trait_to_info
 
 app = FastAPI(
@@ -39,18 +42,21 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-bearer_scheme = HTTPBearer(auto_error=True)
-
+# Register routers
 app.include_router(auth_router)
 app.include_router(trait_router)
 app.include_router(mendelian_router)
 app.include_router(project_router)
+app.include_router(portal_router)
+app.include_router(project_templates_router)
+
+bearer_scheme = HTTPBearer(auto_error=True)
 
 
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> UserProfile:
-    user = services.resolve_user_from_token(credentials.credentials)
+    user = auth_services.resolve_user_from_token(credentials.credentials)
     return UserProfile(**user)
 
 
@@ -66,7 +72,7 @@ def health() -> HealthResponse:
     tags=["Polygenic"],
 )
 def polygenic_score(request: PolygenicScoreRequest) -> PolygenicScoreResponse:
-    score = services.calculate_polygenic_score(
+    score = polygenic_services.calculate_polygenic_score(
         parent1_genotype=request.parent1_genotype,
         parent2_genotype=request.parent2_genotype,
         weights=request.weights,

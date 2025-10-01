@@ -28,8 +28,13 @@ const SignInPage: React.FC = () => {
   const { signIn, isAuthenticating } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
-  const redirectTo =
-    (location.state as LocationState | null)?.from?.pathname ?? "/portal";
+
+  // Check for redirect URL in multiple places: URL params, then location state, then default
+  const searchParams = new URLSearchParams(location.search);
+  const redirectParam = searchParams.get("redirect");
+  const stateRedirect = (location.state as LocationState | null)?.from
+    ?.pathname;
+  const redirectTo = redirectParam || stateRedirect || "/portal";
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -39,7 +44,9 @@ const SignInPage: React.FC = () => {
 
   useEffect(() => {
     if ((location.state as LocationState | null)?.fromSignup) {
-      setFlashMessage("Account verified. Please sign in with your credentials.");
+      setFlashMessage(
+        "Account verified. Please sign in with your credentials."
+      );
     }
   }, [location.state]);
 

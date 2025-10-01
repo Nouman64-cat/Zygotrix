@@ -193,6 +193,8 @@ class TraitFilters(BaseModel):
     search: Optional[str] = None
     status: Optional[TraitStatus] = None
     visibility: Optional[TraitVisibility] = None
+    # If true, only return traits owned by the authenticated user (no system/JSON traits).
+    owned_only: Optional[bool] = None
 
 
 # Legacy alias for backward compatibility

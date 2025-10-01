@@ -13,6 +13,7 @@ interface TraitEditorProps {
   onSave: (traitData: TraitCreatePayload | TraitUpdatePayload) => Promise<void>;
   onCancel: () => void;
   isLoading?: boolean;
+  dummyData?: TraitCreatePayload | null;
 }
 
 const TraitEditor: React.FC<TraitEditorProps> = ({
@@ -21,6 +22,7 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
   onSave,
   onCancel,
   isLoading = false,
+  dummyData,
 }) => {
   const [formData, setFormData] = useState<TraitCreatePayload>({
     key: "",
@@ -74,6 +76,38 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
       setPhenotypeEntries(
         entries.length > 0 ? entries : [{ genotype: "", phenotype: "" }]
       );
+    } else if (dummyData) {
+      // Use dummy data when available for new trait creation
+      setFormData({
+        key: dummyData.key,
+        name: dummyData.name,
+        alleles: dummyData.alleles,
+        phenotype_map: dummyData.phenotype_map,
+        category: dummyData.category || "physical_traits",
+        inheritance_pattern:
+          dummyData.inheritance_pattern || "autosomal_dominant",
+        gene_info: dummyData.gene_info || {
+          gene: "",
+          chromosome: "",
+          locus: "",
+        },
+        verification_status: dummyData.verification_status || "experimental",
+        visibility: dummyData.visibility || "private",
+        tags: dummyData.tags || [],
+        references: dummyData.references || [],
+        description: dummyData.description || "",
+      });
+
+      // Convert dummy data phenotype_map to entries for editing
+      const entries = Object.entries(dummyData.phenotype_map).map(
+        ([genotype, phenotype]) => ({
+          genotype,
+          phenotype,
+        })
+      );
+      setPhenotypeEntries(
+        entries.length > 0 ? entries : [{ genotype: "", phenotype: "" }]
+      );
     } else {
       // Reset form for new trait
       setFormData({
@@ -97,7 +131,7 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
       setPhenotypeEntries([{ genotype: "", phenotype: "" }]);
     }
     setErrors({});
-  }, [trait, mode]);
+  }, [trait, mode, dummyData]);
 
   const validateGenotypes = (
     validEntries: Array<{ genotype: string; phenotype: string }>

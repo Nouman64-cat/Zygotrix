@@ -15,6 +15,8 @@ import {
 import TraitFiltersComponent from "../components/traits/TraitFilters";
 import TraitListComponent from "../components/traits/TraitList";
 import TraitEditor from "../components/traits/TraitEditor";
+import { isDevelopment } from "../utils/env";
+import { generateDummyTraitData } from "../utils/dummyTraitData";
 
 const TraitManagementPage: React.FC = () => {
   const [traits, setTraits] = useState<TraitInfo[]>([]);
@@ -24,6 +26,7 @@ const TraitManagementPage: React.FC = () => {
   const [editMode, setEditMode] = useState<"create" | "edit">("create");
   const [filters, setFilters] = useState<ITraitFilters>({});
   const [searchQuery, setSearchQuery] = useState("");
+  const [dummyData, setDummyData] = useState<TraitCreatePayload | null>(null);
 
   // Fetch traits with filters
   const loadTraits = useCallback(async () => {
@@ -32,6 +35,7 @@ const TraitManagementPage: React.FC = () => {
       const fetchedTraits = await fetchTraits(undefined, {
         ...filters,
         search: searchQuery,
+        owned_only: true,
       });
       setTraits(fetchedTraits);
     } catch (error) {
@@ -58,6 +62,17 @@ const TraitManagementPage: React.FC = () => {
     setSelectedTrait(trait);
     setEditMode("edit");
     setShowEditor(true);
+  };
+
+  // Handle creating a new trait with dummy data (development only)
+  const handleCreateTraitWithDummyData = () => {
+    if (isDevelopment()) {
+      const dummyTraitData = generateDummyTraitData();
+      setDummyData(dummyTraitData);
+      setSelectedTrait(null);
+      setEditMode("create");
+      setShowEditor(true);
+    }
   };
 
   // Handle saving a trait (create or update)
@@ -108,6 +123,7 @@ const TraitManagementPage: React.FC = () => {
   const handleCloseEditor = () => {
     setShowEditor(false);
     setSelectedTrait(null);
+    setDummyData(null);
   };
 
   // Handle filter changes
@@ -137,25 +153,49 @@ const TraitManagementPage: React.FC = () => {
                     Create, edit, and manage genetic traits for your simulations
                   </p>
                 </div>
-                <button
-                  onClick={handleCreateTrait}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
-                >
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <div className="flex items-center gap-3">
+                  {isDevelopment() && (
+                    <button
+                      onClick={handleCreateTraitWithDummyData}
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      title="Create a new trait with pre-filled dummy data for development"
+                    >
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M13 10V3L4 14h7v7l9-11h-7z"
+                        />
+                      </svg>
+                      Create Trait (Dev)
+                    </button>
+                  )}
+                  <button
+                    onClick={handleCreateTrait}
+                    className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M12 4v16m8-8H4"
-                    />
-                  </svg>
-                  Create Trait
-                </button>
+                    <svg
+                      className="w-5 h-5"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 4v16m8-8H4"
+                      />
+                    </svg>
+                    Create Trait
+                  </button>
+                </div>
               </div>
             </div>
           </div>
@@ -190,6 +230,7 @@ const TraitManagementPage: React.FC = () => {
               mode={editMode}
               onSave={handleSaveTrait}
               onCancel={handleCloseEditor}
+              dummyData={dummyData}
             />
           </div>
         )}

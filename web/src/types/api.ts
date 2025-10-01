@@ -97,6 +97,7 @@ export type TraitFilters = {
   search?: string;
   status?: TraitStatus;
   visibility?: TraitVisibility;
+  owned_only?: boolean;
 };
 
 export type TraitCreateResponse = {

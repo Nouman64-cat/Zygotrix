@@ -8,20 +8,17 @@ from typing import (
     Optional,
     Tuple,
     List,
-    Dict as DictType,
     Union,
     Iterable,
+    cast,
 )
-from bson import ObjectId
 from fastapi import HTTPException
 from pymongo.errors import PyMongoError, DuplicateKeyError
 from pymongo.collection import Collection
 import itertools
-import re
 from packaging import version as pkg_version
 
 from zygotrix_engine import Trait, Simulator, PolygenicCalculator
-from ..config import get_settings
 from ..schema.traits import (
     TraitInfo,
     TraitCreatePayload,
@@ -217,7 +214,10 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
 
     # Handle gene_info conversion
     gene_info = document.get("gene_info")
-    if isinstance(gene_info, dict):
+    # Some legacy docs might have gene_info as a string (gene symbol)
+    if isinstance(gene_info, str):
+        gene_info = GeneInfo(gene=gene_info, chromosome=str(document.get("chromosome", "")), locus=None)
+    elif isinstance(gene_info, dict):
         gene_info = GeneInfo(**gene_info)
     elif gene_info is None and document.get("gene"):
         # Backward compatibility: convert legacy gene field
@@ -235,7 +235,7 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
         validation_rules = ValidationRules()
 
     # Create TraitInfo with all fields
-    trait_data = {
+    trait_data: Dict[str, Any] = {
         "key": document.get("key", ""),
         "name": document.get("name", ""),
         "alleles": document.get("alleles", []),
@@ -251,7 +251,10 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
         "version": document.get("version", "1.0.0"),
         "status": TraitStatus(document.get("status", "draft")),
         "owner_id": document.get("owner_id", ""),
-        "visibility": TraitVisibility(document.get("visibility", "private")),
+        # Backward-compatibility: if visibility missing, treat as PUBLIC so it surfaces in selectors
+        "visibility": TraitVisibility(
+            document.get("visibility", TraitVisibility.PUBLIC.value)
+        ),
         "tags": document.get("tags", []),
         "validation_rules": validation_rules,
         "test_case_seed": document.get("test_case_seed"),
@@ -351,9 +354,13 @@ def _validate_version_format(
 ) -> List[str]:
     """Validate version format if provided."""
     errors = []
-    if hasattr(payload, "version") and payload.version:
+    # Traits currently don't expose a user-settable version in payloads;
+    # keep backward-compatible validation in case a version is provided dynamically.
+    payload_any: Any = payload
+    version_value = getattr(payload_any, "version", None)
+    if version_value:
         try:
-            pkg_version.Version(payload.version)
+            pkg_version.Version(str(version_value))
         except pkg_version.InvalidVersion:
             errors.append("Invalid version format (use semantic versioning)")
     return errors
@@ -413,7 +420,7 @@ def create_trait(
         HTTPException: If creation fails or validation errors occur
     """
     try:
-        collection = get_traits_collection(required=True)
+        collection = cast(Collection, get_traits_collection(required=True))
 
         # Validate trait data
         validation_rules = _validate_trait_data(payload)
@@ -470,6 +477,8 @@ def create_trait(
 
         # Retrieve and return created trait
         created_doc = collection.find_one({"_id": result.inserted_id})
+        if not created_doc:
+            raise HTTPException(status_code=500, detail="Failed to retrieve created trait")
         return _serialize_trait_document(created_doc)
 
     except DuplicateKeyError:
@@ -487,10 +496,20 @@ def _build_access_control_query(owner_id: Optional[str]) -> Dict[str, Any]:
         return {
             "$or": [
                 {"owner_id": owner_id},
+                # Public traits
                 {"visibility": TraitVisibility.PUBLIC.value},
+                # Backward-compatibility: traits without visibility are considered public
+                {"visibility": {"$exists": False}},
+                # Legacy flag
+                {"is_public": True},
             ]
         }
-    return {"visibility": TraitVisibility.PUBLIC.value}
+    # Anonymous users can see public traits and legacy docs missing visibility
+    return {"$or": [
+        {"visibility": TraitVisibility.PUBLIC.value},
+        {"visibility": {"$exists": False}},
+        {"is_public": True},
+    ]}
 
 
 def _apply_basic_filters(query: Dict[str, Any], filters: TraitFilters) -> None:
@@ -530,72 +549,208 @@ def _apply_visibility_filter(
     query: Dict[str, Any], visibility: TraitVisibility, owner_id: Optional[str]
 ) -> None:
     """Apply visibility filter to MongoDB query."""
+    # When an explicit visibility filter is applied, respect it but
+    # treat missing visibility as PUBLIC for backward compatibility.
+    if visibility == TraitVisibility.PUBLIC:
+        vis_condition: Dict[str, Any] = {
+            "$or": [
+                {"visibility": TraitVisibility.PUBLIC.value},
+                {"visibility": {"$exists": False}},
+                {"is_public": True},
+            ]
+        }
+    else:
+        vis_condition = {"visibility": visibility.value}
+
     if owner_id:
         access_control = {
             "$or": [
                 {"owner_id": owner_id},
                 {"visibility": TraitVisibility.PUBLIC.value},
+                {"visibility": {"$exists": False}},
+                {"is_public": True},
             ]
         }
-        visibility_filter = {"visibility": visibility.value}
-
-        query["$and"] = [access_control, visibility_filter]
+        query["$and"] = [access_control, vis_condition]
     else:
-        query["visibility"] = visibility.value
+        # Anonymous users: only visibility filter applies
+        query.update(vis_condition)
+
+
+def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
+    """Convert a Trait object from traits_dataset.json to TraitInfo."""
+    now = datetime.now(timezone.utc)
+    
+    # Extract metadata from the trait
+    metadata = trait.metadata or {}
+    
+    # Create gene_info if gene information exists
+    gene_info = None
+    if metadata.get("gene") and metadata.get("chromosome"):
+        gene_info = GeneInfo(
+            gene=metadata["gene"],
+            chromosome=str(metadata["chromosome"]),
+        )
+    
+    return TraitInfo(
+        key=key,
+        name=trait.name,
+        alleles=list(trait.alleles),
+        phenotype_map=trait.phenotype_map,
+        inheritance_pattern=metadata.get("inheritance_pattern"),
+        verification_status=metadata.get("verification_status", "verified"),
+        category=metadata.get("category", "genetics"),
+        gene_info=gene_info,
+        allele_freq={},
+        epistasis_hint=None,
+        education_note=None,
+        references=[],
+        version="1.0.0",
+        status=TraitStatus.ACTIVE,
+        owner_id="system",  # System-provided traits
+        visibility=TraitVisibility.PUBLIC,  # JSON traits are public
+        tags=["genetics", "reference"] if metadata.get("category") == "real_gene" else [],
+        validation_rules=ValidationRules(passed=True, errors=[]),
+        test_case_seed=None,
+        created_at=now,
+        updated_at=now,
+        created_by="system",
+        updated_by="system",
+        # Legacy fields
+        description=trait.description,
+        metadata=metadata,
+        gene=metadata.get("gene"),
+        chromosome=int(metadata["chromosome"]) if metadata.get("chromosome") and str(metadata["chromosome"]).isdigit() else None,
+    )
+
+
+def _filter_json_traits(filters: TraitFilters) -> List[TraitInfo]:
+    """Filter traits from traits_dataset.json based on criteria."""
+    json_traits = []
+    
+    for key, trait in REAL_GENE_TRAITS.items():
+        # Convert to TraitInfo
+        trait_info = _convert_json_trait_to_trait_info(key, trait)
+        
+        # Apply filters
+        if filters.inheritance_pattern and trait_info.inheritance_pattern != filters.inheritance_pattern:
+            continue
+            
+        if filters.verification_status and trait_info.verification_status != filters.verification_status:
+            continue
+            
+        if filters.category and trait_info.category != filters.category:
+            continue
+            
+        if filters.gene and trait_info.gene_info:
+            if filters.gene.lower() not in trait_info.gene_info.gene.lower():
+                continue
+                
+        if filters.tags and not any(tag in trait_info.tags for tag in filters.tags):
+            continue
+            
+        if filters.status and trait_info.status != filters.status:
+            continue
+            
+        if filters.visibility and trait_info.visibility != filters.visibility:
+            continue
+            
+        # Text search
+        if filters.search:
+            search_text = filters.search.lower()
+            searchable_text = f"{trait_info.name} {trait_info.gene_info.gene if trait_info.gene_info else ''} {trait_info.category or ''} {' '.join(trait_info.tags)}".lower()
+            if search_text not in searchable_text:
+                continue
+        
+        json_traits.append(trait_info)
+    
+    return json_traits
 
 
 def get_traits(
     filters: TraitFilters, owner_id: Optional[str] = None
 ) -> List[TraitInfo]:
     """
-    Get traits with filtering.
+    Get traits with filtering from all sources.
 
     Args:
         filters: Filtering criteria
         owner_id: Current user's ID (for access control)
 
     Returns:
-        List[TraitInfo]: Filtered traits
+        List[TraitInfo]: Filtered traits from JSON file, database (public), and user's private traits
     """
+    all_traits: List[TraitInfo] = []
+
     try:
-        collection = get_traits_collection(required=True)
+        # If owned_only is set, do not include JSON traits and require owner_id
+        if not filters.owned_only:
+            # 1. Get traits from traits_dataset.json (always public)
+            json_traits = _filter_json_traits(filters)
+            all_traits.extend(json_traits)
+            print(f"DEBUG: Added {len(json_traits)} traits from JSON file")
+        elif not owner_id:
+            # No authenticated user; nothing to return for owned_only
+            return []
+        
+        # 2. Get traits from database with access control
+        try:
+            collection = get_traits_collection(required=False)
+            if collection is None:
+                print("DEBUG: No MongoDB connection available, skipping database traits")
+                return all_traits
+            
+            # Build query
+            if filters.owned_only and owner_id:
+                # Only current user's traits
+                query: Dict[str, Any] = {"owner_id": owner_id}
+            else:
+                # Access control: public + (owner's private if authenticated)
+                query = _build_access_control_query(owner_id)
 
-        # Build query with access control
-        query = _build_access_control_query(owner_id)
+            # Apply basic filters
+            _apply_basic_filters(query, filters)
 
-        # Apply basic filters
-        _apply_basic_filters(query, filters)
+            # Apply gene filter
+            if filters.gene:
+                _apply_gene_filter(query, filters.gene)
 
-        # Apply gene filter
-        if filters.gene:
-            _apply_gene_filter(query, filters.gene)
+            # Apply visibility filter (overrides access control) only when not owned_only
+            if filters.visibility and not filters.owned_only:
+                _apply_visibility_filter(query, filters.visibility, owner_id)
 
-        # Apply visibility filter (overrides access control)
-        if filters.visibility:
-            _apply_visibility_filter(query, filters.visibility, owner_id)
+            # Text search
+            if filters.search:
+                query["$text"] = {"$search": filters.search}
 
-        # Text search
-        if filters.search:
-            query["$text"] = {"$search": filters.search}
+            print(f"DEBUG: MongoDB query: {query}")
+            # Execute query
+            cursor = collection.find(query).sort("updated_at", -1)
 
-        # Execute query
-        cursor = collection.find(query).sort("updated_at", -1)
+            # Convert to TraitInfo objects
+            db_trait_count = 0
+            for doc in cursor:
+                try:
+                    trait = _serialize_trait_document(doc)
+                    all_traits.append(trait)
+                    db_trait_count += 1
+                except Exception as e:
+                    # Log error but continue with other traits
+                    print(f"Error serializing trait {doc.get('key', 'unknown')}: {e}")
+                    continue
+            
+            print(f"DEBUG: Added {db_trait_count} traits from database")
+            
+        except Exception as e:
+            print(f"DEBUG: Error accessing database: {e}")
+            # Continue without database traits
 
-        # Convert to TraitInfo objects
-        traits = []
-        for doc in cursor:
-            try:
-                trait = _serialize_trait_document(doc)
-                traits.append(trait)
-            except Exception as e:
-                # Log error but continue with other traits
-                print(f"Error serializing trait {doc.get('key', 'unknown')}: {e}")
-                continue
+        return all_traits
 
-        return traits
-
-    except PyMongoError as e:
-        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+    except Exception as e:
+        print(f"DEBUG: Unexpected error in get_traits: {e}")
+        # Return at least the JSON traits if there's an error
+        return all_traits if all_traits else []
 
 
 def get_trait_by_key(key: str, owner_id: Optional[str] = None) -> Optional[TraitInfo]:
@@ -610,17 +765,21 @@ def get_trait_by_key(key: str, owner_id: Optional[str] = None) -> Optional[Trait
         Optional[TraitInfo]: The trait if found and accessible
     """
     try:
-        collection = get_traits_collection(required=True)
+        collection = cast(Collection, get_traits_collection(required=True))
 
-        # Build query with access control
-        query = {"key": key}
+        # Build query with access control (legacy docs without visibility are treated as public)
+        query: Dict[str, Any] = {"key": key}
         if owner_id:
             query["$or"] = [
                 {"owner_id": owner_id},
                 {"visibility": TraitVisibility.PUBLIC.value},
+                {"visibility": {"$exists": False}},
             ]
         else:
-            query["visibility"] = TraitVisibility.PUBLIC.value
+            query["$or"] = [
+                {"visibility": TraitVisibility.PUBLIC.value},
+                {"visibility": {"$exists": False}},
+            ]
 
         doc = collection.find_one(query)
         return _serialize_trait_document(doc) if doc else None
@@ -723,7 +882,7 @@ def update_trait(
         HTTPException: If trait not found, access denied, or validation fails
     """
     try:
-        collection = get_traits_collection(required=True)
+        collection = cast(Collection, get_traits_collection(required=True))
 
         # Find existing trait (only owner can update)
         existing_doc = collection.find_one({"key": key, "owner_id": owner_id})
@@ -772,6 +931,8 @@ def update_trait(
 
         # Return updated trait
         updated_doc = collection.find_one({"key": key, "owner_id": owner_id})
+        if not updated_doc:
+            raise HTTPException(status_code=500, detail="Failed to retrieve updated trait")
         return _serialize_trait_document(updated_doc)
 
     except PyMongoError as e:
@@ -793,7 +954,7 @@ def delete_trait(key: str, owner_id: str) -> bool:
         HTTPException: If trait not found or access denied
     """
     try:
-        collection = get_traits_collection(required=True)
+        collection = cast(Collection, get_traits_collection(required=True))
 
         # Soft delete: set status to deprecated
         result = collection.update_one(

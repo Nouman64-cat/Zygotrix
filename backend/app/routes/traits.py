@@ -46,6 +46,10 @@ def list_traits(
     visibility: Optional[TraitVisibility] = Query(
         None, description="Filter by visibility"
     ),
+    owned_only: Optional[bool] = Query(
+        None,
+        description="If true, only return traits owned by the authenticated user",
+    ),
 ) -> TraitListResponse:
     """
     List traits with filtering and access control.
@@ -58,7 +62,7 @@ def list_traits(
     current_user_id = None
     if credentials and credentials.credentials:
         try:
-            current_user = auth_services.get_current_user(credentials.credentials)
+            current_user = auth_services.resolve_user_from_token(credentials.credentials)
             current_user_id = current_user.get("id")
         except HTTPException:
             # Invalid token, continue as anonymous user
@@ -74,6 +78,7 @@ def list_traits(
         search=search,
         status=status,
         visibility=visibility,
+        owned_only=owned_only,
     )
 
     # Get traits with access control
@@ -107,7 +112,7 @@ def create_trait(
             status_code=401, detail="Authentication required to create traits"
         )
 
-    current_user = auth_services.get_current_user(credentials.credentials)
+    current_user = auth_services.resolve_user_from_token(credentials.credentials)
     user_id = current_user.get("id")
 
     if not user_id:
@@ -133,7 +138,7 @@ def get_trait_by_key(
     current_user_id = None
     if credentials and credentials.credentials:
         try:
-            current_user = auth_services.get_current_user(credentials.credentials)
+            current_user = auth_services.resolve_user_from_token(credentials.credentials)
             current_user_id = current_user.get("id")
         except HTTPException:
             # Invalid token, continue as anonymous user
@@ -167,7 +172,7 @@ def update_trait(
             status_code=401, detail="Authentication required to update traits"
         )
 
-    current_user = auth_services.get_current_user(credentials.credentials)
+    current_user = auth_services.resolve_user_from_token(credentials.credentials)
     user_id = current_user.get("id")
 
     if not user_id:
@@ -195,7 +200,7 @@ def delete_trait(
             status_code=401, detail="Authentication required to delete traits"
         )
 
-    current_user = auth_services.get_current_user(credentials.credentials)
+    current_user = auth_services.resolve_user_from_token(credentials.credentials)
     user_id = current_user.get("id")
 
     if not user_id:

@@ -339,5 +339,345 @@
       "LR": "Variable",
       "RR": "Right thumb on top"
     }
+  },
+  {
+    "trait": "Neurofibromatosis Type 1",
+    "gene": "NF1",
+    "chromosome": 17,
+    "inheritance": "dominant",
+    "alleles": ["N", "n"],
+    "phenotypes": {
+      "NN": "Neurofibromatosis Type 1",
+      "Nn": "Neurofibromatosis Type 1",
+      "nn": "Unaffected"
+    }
+  },
+  {
+    "trait": "Osteogenesis Imperfecta (Type I)",
+    "gene": "COL1A1",
+    "chromosome": 17,
+    "inheritance": "dominant",
+    "alleles": ["O", "o"],
+    "phenotypes": {
+      "OO": "Osteogenesis Imperfecta",
+      "Oo": "Osteogenesis Imperfecta",
+      "oo": "Unaffected"
+    }
+  },
+  {
+    "trait": "Familial Hypercholesterolemia",
+    "gene": "LDLR",
+    "chromosome": 19,
+    "inheritance": "dominant",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Severe FH",
+      "Hh": "Heterozygous FH",
+      "hh": "Normal cholesterol"
+    }
+  },
+  {
+    "trait": "Hereditary Hemochromatosis",
+    "gene": "HFE",
+    "chromosome": 6,
+    "inheritance": "recessive",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Unaffected",
+      "Hh": "Carrier",
+      "hh": "Hemochromatosis"
+    }
+  },
+  {
+    "trait": "Alpha-1 Antitrypsin Deficiency",
+    "gene": "SERPINA1",
+    "chromosome": 14,
+    "inheritance": "recessive",
+    "alleles": ["A", "a"],
+    "phenotypes": {
+      "AA": "Unaffected",
+      "Aa": "Carrier",
+      "aa": "A1AT Deficiency"
+    }
+  },
+  {
+    "trait": "Maple Syrup Urine Disease (Classic)",
+    "gene": "BCKDHA",
+    "chromosome": 19,
+    "inheritance": "recessive",
+    "alleles": ["M", "m"],
+    "phenotypes": {
+      "MM": "Unaffected",
+      "Mm": "Carrier",
+      "mm": "MSUD"
+    }
+  },
+  {
+    "trait": "Wilson Disease",
+    "gene": "ATP7B",
+    "chromosome": 13,
+    "inheritance": "recessive",
+    "alleles": ["W", "w"],
+    "phenotypes": {
+      "WW": "Unaffected",
+      "Ww": "Carrier",
+      "ww": "Wilson Disease"
+    }
+  },
+  {
+    "trait": "Congenital Hypothyroidism (TPO-related)",
+    "gene": "TPO",
+    "chromosome": 2,
+    "inheritance": "recessive",
+    "alleles": ["T", "t"],
+    "phenotypes": {
+      "TT": "Unaffected",
+      "Tt": "Carrier",
+      "tt": "Congenital Hypothyroidism"
+    }
+  },
+  {
+    "trait": "Autosomal Dominant Polycystic Kidney Disease",
+    "gene": "PKD1",
+    "chromosome": 16,
+    "inheritance": "dominant",
+    "alleles": ["K", "k"],
+    "phenotypes": {
+      "KK": "ADPKD",
+      "Kk": "ADPKD",
+      "kk": "Unaffected"
+    }
+  },
+  {
+    "trait": "Retinoblastoma Predisposition",
+    "gene": "RB1",
+    "chromosome": 13,
+    "inheritance": "dominant",
+    "alleles": ["R", "r"],
+    "phenotypes": {
+      "RR": "High risk Retinoblastoma",
+      "Rr": "High risk Retinoblastoma",
+      "rr": "Baseline risk"
+    }
+  },
+  {
+    "trait": "Li-Fraumeni Syndrome",
+    "gene": "TP53",
+    "chromosome": 17,
+    "inheritance": "dominant",
+    "alleles": ["P", "p"],
+    "phenotypes": {
+      "PP": "Li-Fraumeni Syndrome",
+      "Pp": "Li-Fraumeni Syndrome",
+      "pp": "Unaffected"
+    }
+  },
+  {
+    "trait": "Hemophilia B",
+    "gene": "F9",
+    "chromosome": "X",
+    "inheritance": "X-linked recessive",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Normal",
+      "Hh": "Carrier (typically asymptomatic)",
+      "hh": "Hemophilia B"
+    }
+  },
+  {
+    "trait": "G6PD Deficiency",
+    "gene": "G6PD",
+    "chromosome": "X",
+    "inheritance": "X-linked recessive",
+    "alleles": ["G", "g"],
+    "phenotypes": {
+      "GG": "Normal enzyme",
+      "Gg": "Carrier (usually normal)",
+      "gg": "G6PD Deficiency"
+    }
+  },
+  {
+    "trait": "Duchenne Muscular Dystrophy",
+    "gene": "DMD",
+    "chromosome": "X",
+    "inheritance": "X-linked recessive",
+    "alleles": ["D", "d"],
+    "phenotypes": {
+      "DD": "Normal",
+      "Dd": "Carrier (usually normal)",
+      "dd": "Duchenne Muscular Dystrophy"
+    }
+  },
+  {
+    "trait": "Beta-Thalassemia",
+    "gene": "HBB",
+    "chromosome": 11,
+    "inheritance": "recessive",
+    "alleles": ["B", "b"],
+    "phenotypes": {
+      "BB": "Unaffected",
+      "Bb": "Carrier (trait)",
+      "bb": "Beta-Thalassemia"
+    }
+  },
+  {
+    "trait": "Oculocutaneous Albinism Type 1",
+    "gene": "TYR",
+    "chromosome": 11,
+    "inheritance": "recessive",
+    "alleles": ["Y", "y"],
+    "phenotypes": {
+      "YY": "Normal pigmentation",
+      "Yy": "Carrier",
+      "yy": "OCA1 Albinism"
+    }
+  },
+  {
+    "trait": "Hereditary Breast/Ovarian Cancer Predisposition",
+    "gene": "BRCA1",
+    "chromosome": 17,
+    "inheritance": "dominant",
+    "alleles": ["B", "b"],
+    "phenotypes": {
+      "BB": "High cancer risk",
+      "Bb": "High cancer risk",
+      "bb": "Baseline risk"
+    }
+  },
+  {
+    "trait": "Postaxial Polydactyly (Simplified)",
+    "gene": "GLI3",
+    "chromosome": 7,
+    "inheritance": "dominant",
+    "alleles": ["P", "p"],
+    "phenotypes": {
+      "PP": "Polydactyly",
+      "Pp": "Polydactyly",
+      "pp": "Normal digits"
+    }
+  },
+  {
+    "trait": "Waardenburg Syndrome Type 1",
+    "gene": "PAX3",
+    "chromosome": 2,
+    "inheritance": "dominant",
+    "alleles": ["W", "w"],
+    "phenotypes": {
+      "WW": "Waardenburg Syndrome",
+      "Ww": "Waardenburg Syndrome",
+      "ww": "Unaffected"
+    }
+  },
+  {
+    "trait": "Gilbert Syndrome",
+    "gene": "UGT1A1",
+    "chromosome": 2,
+    "inheritance": "recessive",
+    "alleles": ["U", "u"],
+    "phenotypes": {
+      "UU": "Unaffected",
+      "Uu": "Carrier (often mild bilirubin elevation)",
+      "uu": "Gilbert Syndrome"
+    }
+  },
+  {
+    "trait": "Widow's Peak",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["W", "w"],
+    "phenotypes": {
+      "WW": "Widow's peak",
+      "Ww": "Widow's peak",
+      "ww": "Straight hairline"
+    }
+  },
+  {
+    "trait": "Attached Earlobes",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["E", "e"],
+    "phenotypes": {
+      "EE": "Free earlobes",
+      "Ee": "Free earlobes",
+      "ee": "Attached earlobes"
+    }
+  },
+  {
+    "trait": "Tongue Rolling Ability",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["R", "r"],
+    "phenotypes": {
+      "RR": "Can roll tongue",
+      "Rr": "Can roll tongue",
+      "rr": "Cannot roll tongue"
+    }
+  },
+  {
+    "trait": "Hitchhiker's Thumb",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Straight thumb",
+      "Hh": "Straight thumb",
+      "hh": "Hitchhiker's thumb"
+    }
+  },
+  {
+    "trait": "Bent Little Finger",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["B", "b"],
+    "phenotypes": {
+      "BB": "Bent finger",
+      "Bb": "Bent finger",
+      "bb": "Straight finger"
+    }
+  },
+  {
+    "trait": "Mid-Digital Hair",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["M", "m"],
+    "phenotypes": {
+      "MM": "Hair present",
+      "Mm": "Hair present",
+      "mm": "Hair absent"
+    }
+  },
+  {
+    "trait": "Cleft Chin",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["C", "c"],
+    "phenotypes": {
+      "CC": "Cleft chin",
+      "Cc": "Cleft chin",
+      "cc": "Smooth chin"
+    }
+  },
+  {
+    "trait": "Darwin's Tubercle",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["D", "d"],
+    "phenotypes": {
+      "DD": "Tubercle present",
+      "Dd": "Tubercle present",
+      "dd": "Tubercle absent"
+    }
+  },
+  {
+    "trait": "Hand Clasping Preference",
+    "inheritance": "autosomal",
+    "alleles": ["L", "R"],
+    "phenotypes": {
+      "LL": "Left thumb on top",
+      "LR": "Variable",
+      "RR": "Right thumb on top"
+    }
+  },
+  {
+    "trait": "Hair Whorl Direction",
+    "inheritance": "autosomal",
+    "alleles": ["C", "A"],
+    "phenotypes": {
+      "CC": "Clockwise",
+      "CA": "Clockwise",
+      "AA": "Counter-clockwise"
+    }
   }
 ]

@@ -73,12 +73,6 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
             # Convert trait name to key format (lowercase, underscores)
             trait_key = trait_data["trait"].lower().replace(" ", "_").replace("-", "_")
 
-            # Debug print for alleles and phenotypes
-            if trait_key == "rh_factor":
-                print(f"[DEBUG] Loading trait: {trait_key}")
-                print(f"[DEBUG]   Alleles: {trait_data['alleles']}")
-                print(f"[DEBUG]   Phenotypes: {trait_data['phenotypes']}")
-
             # Create metadata with real gene information
             metadata = {
                 "gene": trait_data["gene"],

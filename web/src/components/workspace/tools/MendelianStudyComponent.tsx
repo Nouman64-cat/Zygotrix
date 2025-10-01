@@ -36,7 +36,7 @@ const MendelianStudyComponent: React.FC<MendelianStudyComponentProps> = ({
         left: item.position.x,
         top: item.position.y,
         width: item.size.width,
-        height: item.size.height,
+        // height removed so content determines height
       }}
       onMouseDown={(e) => onMouseDown(e, item.id)}
     >

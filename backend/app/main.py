@@ -24,6 +24,7 @@ from .routes.mendelian import router as mendelian_router
 from .routes.projects import router as project_router
 from .routes.portal import router as portal_router
 from .routes.project_templates import router as project_templates_router
+from .services.trait_db_setup import create_trait_indexes
 from .utils import trait_to_info
 
 app = FastAPI(
@@ -41,6 +42,19 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# Register routers
+# Initialize database on startup
+@app.on_event("startup")
+async def startup_event():
+    """Initialize database indexes on application startup."""
+    try:
+        create_trait_indexes()
+        print("✅ Trait management database indexes initialized")
+    except Exception as e:
+        print(f"⚠️  Warning: Could not initialize trait indexes: {e}")
+
 
 # Register routers
 app.include_router(auth_router)

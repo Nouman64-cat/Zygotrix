@@ -1,96 +1,205 @@
-from fastapi import APIRouter, HTTPException, Response
-from typing import Optional
+from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from typing import Optional, List
 from ..services import traits as trait_services
+from ..services import auth as auth_services
 from ..schema.traits import (
     TraitListResponse,
+    TraitCreateResponse,
+    TraitUpdateResponse,
+    TraitCreatePayload,
+    TraitUpdatePayload,
+    TraitFilters,
+    TraitInfo,
+    TraitStatus,
+    TraitVisibility,
+    # Legacy aliases
     TraitMutationResponse,
     TraitMutationPayload,
-    TraitInfo,
 )
 from zygotrix_engine import Trait
 from ..utils import trait_to_info
 
 router = APIRouter(prefix="/api/traits", tags=["Traits"])
+security = HTTPBearer(auto_error=False)
+
+# Constants
+INVALID_TOKEN_MESSAGE = "Invalid authentication token"
 
 
 @router.get("/", response_model=TraitListResponse, tags=["Traits"])
 def list_traits(
-    inheritance_pattern: Optional[str] = None,
-    verification_status: Optional[str] = None,
-    category: Optional[str] = None,
-    gene_info: Optional[str] = None,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    inheritance_pattern: Optional[str] = Query(
+        None, description="Filter by inheritance pattern"
+    ),
+    verification_status: Optional[str] = Query(
+        None, description="Filter by verification status"
+    ),
+    category: Optional[str] = Query(None, description="Filter by category"),
+    gene: Optional[str] = Query(None, description="Filter by gene name"),
+    tags: Optional[List[str]] = Query(None, description="Filter by tags"),
+    search: Optional[str] = Query(
+        None, description="Text search in name, gene, category, tags"
+    ),
+    status: Optional[TraitStatus] = Query(None, description="Filter by status"),
+    visibility: Optional[TraitVisibility] = Query(
+        None, description="Filter by visibility"
+    ),
 ) -> TraitListResponse:
-    traits = [
-        trait_to_info(key, trait)
-        for key, trait in trait_services.get_trait_registry(
-            inheritance_pattern=inheritance_pattern,
-            verification_status=verification_status,
-            category=category,
-            gene_info=gene_info,
-        ).items()
-    ]
+    """
+    List traits with filtering and access control.
+
+    - Public traits are visible to everyone
+    - Private/team traits are only visible to the owner
+    - Authentication is optional but provides access to user's private traits
+    """
+    # Get current user ID if authenticated
+    current_user_id = None
+    if credentials and credentials.credentials:
+        try:
+            current_user = auth_services.get_current_user(credentials.credentials)
+            current_user_id = current_user.get("id")
+        except HTTPException:
+            # Invalid token, continue as anonymous user
+            pass
+
+    # Build filters
+    filters = TraitFilters(
+        inheritance_pattern=inheritance_pattern,
+        verification_status=verification_status,
+        category=category,
+        gene=gene,
+        tags=tags,
+        search=search,
+        status=status,
+        visibility=visibility,
+    )
+
+    # Get traits with access control
+    traits = trait_services.get_traits(filters, current_user_id)
+
     return TraitListResponse(traits=traits)
 
 
 @router.post(
     "/",
-    response_model=TraitMutationResponse,
+    response_model=TraitCreateResponse,
     tags=["Traits"],
     status_code=201,
 )
-def create_trait(payload: TraitMutationPayload) -> TraitMutationResponse:
-    trait_definition = {
-        "name": payload.name,
-        "alleles": payload.alleles,
-        "phenotype_map": dict(payload.phenotype_map),
-        "description": payload.description or "",
-        "metadata": dict(payload.metadata),
-    }
+def create_trait(
+    payload: TraitCreatePayload,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> TraitCreateResponse:
+    """
+    Create a new trait (requires authentication).
 
-    # Add new Mendelian trait fields if provided
-    if payload.inheritance_pattern:
-        trait_definition["inheritance_pattern"] = payload.inheritance_pattern
-    if payload.verification_status:
-        trait_definition["verification_status"] = payload.verification_status
-    if payload.gene_info:
-        trait_definition["gene_info"] = payload.gene_info
-    if payload.category:
-        trait_definition["category"] = payload.category
-
-    trait = trait_services.save_trait(payload.key, trait_definition)
-    return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
-
-
-@router.put("/{key}", response_model=TraitMutationResponse, tags=["Traits"])
-def update_trait(key: str, payload: TraitMutationPayload) -> TraitMutationResponse:
-    if key != payload.key:
+    - Validates alleles are non-empty
+    - Canonicalizes genotypes in phenotype_map
+    - Ensures full coverage in phenotype_map
+    - Sets owner_id from JWT token
+    - Defaults to private visibility and draft status
+    """
+    # Authenticate user
+    if not credentials or not credentials.credentials:
         raise HTTPException(
-            status_code=400, detail="Trait key mismatch between path and payload."
+            status_code=401, detail="Authentication required to create traits"
         )
 
-    trait_definition = {
-        "name": payload.name,
-        "alleles": payload.alleles,
-        "phenotype_map": dict(payload.phenotype_map),
-        "description": payload.description or "",
-        "metadata": dict(payload.metadata),
-    }
+    current_user = auth_services.get_current_user(credentials.credentials)
+    user_id = current_user.get("id")
 
-    # Add new Mendelian trait fields if provided
-    if payload.inheritance_pattern:
-        trait_definition["inheritance_pattern"] = payload.inheritance_pattern
-    if payload.verification_status:
-        trait_definition["verification_status"] = payload.verification_status
-    if payload.gene_info:
-        trait_definition["gene_info"] = payload.gene_info
-    if payload.category:
-        trait_definition["category"] = payload.category
+    if not user_id:
+        raise HTTPException(status_code=401, detail=INVALID_TOKEN_MESSAGE)
 
-    trait = trait_services.save_trait(payload.key, trait_definition)
-    return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
+    # Create trait
+    trait = trait_services.create_trait(payload, user_id, user_id)
+
+    return TraitCreateResponse(trait=trait)
+
+
+@router.get("/{key}", response_model=TraitInfo, tags=["Traits"])
+def get_trait_by_key(
+    key: str, credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+) -> TraitInfo:
+    """
+    Get a specific trait by key.
+
+    - Public traits are accessible to everyone
+    - Private traits are only accessible to the owner
+    """
+    # Get current user ID if authenticated
+    current_user_id = None
+    if credentials and credentials.credentials:
+        try:
+            current_user = auth_services.get_current_user(credentials.credentials)
+            current_user_id = current_user.get("id")
+        except HTTPException:
+            # Invalid token, continue as anonymous user
+            pass
+
+    trait = trait_services.get_trait_by_key(key, current_user_id)
+    if not trait:
+        raise HTTPException(
+            status_code=404, detail=f"Trait '{key}' not found or access denied"
+        )
+
+    return trait
+
+
+@router.put("/{key}", response_model=TraitUpdateResponse, tags=["Traits"])
+def update_trait(
+    key: str,
+    payload: TraitUpdatePayload,
+    credentials: HTTPAuthorizationCredentials = Depends(security),
+) -> TraitUpdateResponse:
+    """
+    Update an existing trait (requires ownership).
+
+    - Only the trait owner can update
+    - Bumps version automatically
+    - Keeps audit trail of changes
+    """
+    # Authenticate user
+    if not credentials or not credentials.credentials:
+        raise HTTPException(
+            status_code=401, detail="Authentication required to update traits"
+        )
+
+    current_user = auth_services.get_current_user(credentials.credentials)
+    user_id = current_user.get("id")
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail=INVALID_TOKEN_MESSAGE)
+
+    # Update trait
+    trait = trait_services.update_trait(key, payload, user_id, user_id)
+
+    return TraitUpdateResponse(trait=trait)
 
 
 @router.delete("/{key}", status_code=204, tags=["Traits"])
-def remove_trait(key: str) -> Response:
-    trait_services.delete_trait(key)
-    return Response(status_code=204)
+def delete_trait(
+    key: str, credentials: HTTPAuthorizationCredentials = Depends(security)
+):
+    """
+    Soft delete a trait (set status to deprecated).
+
+    - Only the trait owner can delete
+    - Performs soft delete by setting status to 'deprecated'
+    """
+    # Authenticate user
+    if not credentials or not credentials.credentials:
+        raise HTTPException(
+            status_code=401, detail="Authentication required to delete traits"
+        )
+
+    current_user = auth_services.get_current_user(credentials.credentials)
+    user_id = current_user.get("id")
+
+    if not user_id:
+        raise HTTPException(status_code=401, detail=INVALID_TOKEN_MESSAGE)
+
+    # Delete trait
+    trait_services.delete_trait(key, user_id)

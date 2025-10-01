@@ -1,15 +1,44 @@
+export type GeneInfo = {
+  gene: string;
+  chromosome: string;
+  locus?: string;
+};
+
+export type ValidationRules = {
+  passed: boolean;
+  errors: string[];
+};
+
+export type TraitStatus = "draft" | "active" | "deprecated";
+export type TraitVisibility = "private" | "team" | "public";
+
 export type TraitInfo = {
   key: string;
   name: string;
-  description?: string;
   alleles: string[];
   phenotype_map: Record<string, string>;
-  metadata?: Record<string, string>;
   inheritance_pattern?: string;
   verification_status?: string;
-  gene_info?: string;
   category?: string;
-  // New fields for Level 3 - Real Genes
+  gene_info?: GeneInfo;
+  allele_freq?: Record<string, number>;
+  epistasis_hint?: string;
+  education_note?: string;
+  references: string[];
+  version: string;
+  status: TraitStatus;
+  owner_id: string;
+  visibility: TraitVisibility;
+  tags: string[];
+  validation_rules: ValidationRules;
+  test_case_seed?: string;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  updated_by: string;
+  // Legacy fields for backward compatibility
+  description?: string;
+  metadata?: Record<string, string>;
   gene?: string;
   chromosome?: number;
 };
@@ -18,22 +47,69 @@ export type TraitListResponse = {
   traits: TraitInfo[];
 };
 
-export type TraitMutationPayload = {
+export type TraitCreatePayload = {
   key: string;
   name: string;
   alleles: string[];
   phenotype_map: Record<string, string>;
-  description?: string;
-  metadata?: Record<string, string>;
   inheritance_pattern?: string;
   verification_status?: string;
-  gene_info?: string;
   category?: string;
+  gene_info?: GeneInfo;
+  allele_freq?: Record<string, number>;
+  epistasis_hint?: string;
+  education_note?: string;
+  references?: string[];
+  visibility?: TraitVisibility;
+  tags?: string[];
+  test_case_seed?: string;
+  // Legacy fields for backward compatibility
+  description?: string;
+  metadata?: Record<string, string>;
 };
 
-export type TraitMutationResponse = {
+export type TraitUpdatePayload = {
+  name?: string;
+  alleles?: string[];
+  phenotype_map?: Record<string, string>;
+  inheritance_pattern?: string;
+  verification_status?: string;
+  category?: string;
+  gene_info?: GeneInfo;
+  allele_freq?: Record<string, number>;
+  epistasis_hint?: string;
+  education_note?: string;
+  references?: string[];
+  visibility?: TraitVisibility;
+  tags?: string[];
+  test_case_seed?: string;
+  // Legacy fields for backward compatibility
+  description?: string;
+  metadata?: Record<string, string>;
+};
+
+export type TraitFilters = {
+  inheritance_pattern?: string;
+  verification_status?: string;
+  category?: string;
+  gene?: string;
+  tags?: string[];
+  search?: string;
+  status?: TraitStatus;
+  visibility?: TraitVisibility;
+};
+
+export type TraitCreateResponse = {
   trait: TraitInfo;
 };
+
+export type TraitUpdateResponse = {
+  trait: TraitInfo;
+};
+
+// Legacy aliases for backward compatibility (deprecated - use TraitCreatePayload/TraitUpdatePayload)
+// export type TraitMutationPayload = TraitCreatePayload;
+// export type TraitMutationResponse = TraitCreateResponse;
 
 export type MendelianSimulationTraitResult = {
   genotypic_ratios: Record<string, number>;

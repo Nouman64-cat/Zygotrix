@@ -573,7 +573,13 @@ const ProjectWorkspace: React.FC = () => {
     let cancelled = false;
 
     const hydrateLines = async () => {
-      if (!projectId || projectId === "new") {
+      if (
+        !projectId ||
+        projectId === "new" ||
+        projectId === "null" ||
+        projectId === "None" ||
+        projectId === ""
+      ) {
         setLineDrawings([]);
         setLinesDirty(false);
         return;
@@ -658,7 +664,12 @@ const ProjectWorkspace: React.FC = () => {
     let cancelled = false;
 
     const hydrateNotes = async () => {
-      if (!projectId) {
+      if (
+        !projectId ||
+        projectId === "null" ||
+        projectId === "None" ||
+        projectId === ""
+      ) {
         if (!cancelled) {
           setItems((prev) => prev.filter((item) => item.type !== "note"));
           setNotesDirty(false);
@@ -763,7 +774,12 @@ const ProjectWorkspace: React.FC = () => {
     let cancelled = false;
 
     const hydrateDrawings = async () => {
-      if (!projectId) {
+      if (
+        !projectId ||
+        projectId === "null" ||
+        projectId === "None" ||
+        projectId === ""
+      ) {
         if (!cancelled) {
           setCanvasDrawings([]);
           setDrawingsDirty(false);

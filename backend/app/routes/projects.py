@@ -185,6 +185,8 @@ def get_project_lines(
     project_id: str,
     current_user: UserProfile = Depends(get_current_user),
 ) -> ProjectLineSnapshot:
+    if project_id in ("null", "None", None, ""):
+        raise HTTPException(status_code=400, detail="Invalid project ID")
     snapshot = get_project_line_snapshot(project_id, current_user.id)
     if snapshot is None:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -208,6 +210,8 @@ def get_project_notes(
     project_id: str,
     current_user: UserProfile = Depends(get_current_user),
 ) -> ProjectNoteSnapshot:
+    if project_id in ("null", "None", None, ""):
+        raise HTTPException(status_code=400, detail="Invalid project ID")
     snapshot = get_project_note_snapshot(project_id, current_user.id)
     if snapshot is None:
         raise HTTPException(status_code=404, detail="Project not found")
@@ -231,6 +235,8 @@ def get_project_drawings(
     project_id: str,
     current_user: UserProfile = Depends(get_current_user),
 ) -> ProjectDrawingSnapshot:
+    if project_id in ("null", "None", None, ""):
+        raise HTTPException(status_code=400, detail="Invalid project ID")
     snapshot = get_project_drawing_snapshot(project_id, current_user.id)
     if snapshot is None:
         raise HTTPException(status_code=404, detail="Project not found")

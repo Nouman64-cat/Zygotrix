@@ -1,9 +1,26 @@
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Mapping
 from datetime import datetime, timezone
 from bson import ObjectId
 from fastapi import HTTPException
 from pymongo.errors import PyMongoError, DuplicateKeyError
 from app.config import get_settings
+
+
+def _serialize_project_doc(document: Mapping[str, Any]) -> Dict[str, Any]:
+    """Convert a MongoDB project document into an API-friendly dict.
+
+    - Copies all fields
+    - Converts ObjectId in _id to a string id
+    - Removes the original _id key
+    """
+    data: Dict[str, Any] = dict(document)
+    if data.get("_id") is not None:
+        try:
+            data["id"] = str(data["_id"])  # expose as string id
+        finally:
+            data.pop("_id", None)
+    return data
+
 
 # Project CRUD and registry
 
@@ -20,7 +37,7 @@ def get_user_projects(
     query = {"owner_id": user_id, "is_template": {"$ne": True}}
     total = collection.count_documents(query)
     cursor = collection.find(query).sort("updated_at", -1).skip(skip).limit(page_size)
-    projects = [Project.model_validate(doc) for doc in cursor]
+    projects = [Project.model_validate(_serialize_project_doc(doc)) for doc in cursor]
     return projects, total
 
 
@@ -75,10 +92,10 @@ def get_project(project_id: str, user_id: str) -> Optional[Any]:
     query = {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}}
     print(f"[DEBUG] get_project query: {query}")
     project_doc = collection.find_one(query)
-    print(f"[DEBUG] get_project result: {project_doc}")
+    print(f"[DEBUG] get_project raw result: {project_doc}")
     if not project_doc:
         return None
-    return Project.model_validate(project_doc)
+    return Project.model_validate(_serialize_project_doc(project_doc))
 
 
 def update_project(
@@ -109,10 +126,10 @@ def update_project(
         {"$set": updates},
         return_document=True,
     )
-    print(f"[DEBUG] update_project result: {result}")
+    print(f"[DEBUG] update_project raw result: {result}")
     if not result:
         return None
-    return Project.model_validate(result)
+    return Project.model_validate(_serialize_project_doc(result))
 
 
 def delete_project(project_id: str, user_id: str) -> bool:

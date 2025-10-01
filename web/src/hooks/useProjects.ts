@@ -97,7 +97,13 @@ export const useProject = (projectId: string | undefined) => {
   const [error, setError] = useState<string | null>(null);
 
   const loadProject = useCallback(async () => {
-    if (!projectId) {
+    // Guard against invalid project IDs
+    if (
+      !projectId ||
+      projectId === "null" ||
+      projectId === "None" ||
+      projectId === ""
+    ) {
       setProject(null);
       setLoading(false);
       return;

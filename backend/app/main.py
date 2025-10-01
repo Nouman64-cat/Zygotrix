@@ -53,6 +53,7 @@ from .schemas import (
 
 from .routes.auth import router as auth_router
 from .routes.traits import router as trait_router
+from .routes.mendelian import router as mendelian_router
 from .utils import trait_to_info
 
 app = FastAPI(
@@ -75,6 +76,7 @@ bearer_scheme = HTTPBearer(auto_error=True)
 
 app.include_router(auth_router)
 app.include_router(trait_router)
+app.include_router(mendelian_router)
 
 
 def get_current_user(
@@ -88,77 +90,6 @@ def get_current_user(
 @app.head("/health", response_model=HealthResponse, tags=["System"])
 def health() -> HealthResponse:
     return HealthResponse()
-
-
-@app.post(
-    "/api/mendelian/simulate",
-    response_model=MendelianSimulationResponse,
-    tags=["Mendelian"],
-)
-def simulate_mendelian(
-    request: MendelianSimulationRequest,
-) -> MendelianSimulationResponse:
-    try:
-        results, missing = services.simulate_mendelian_traits(
-            parent1=request.parent1_genotypes,
-            parent2=request.parent2_genotypes,
-            trait_filter=request.trait_filter,
-            as_percentages=request.as_percentages,
-            max_traits=5,
-        )
-        return MendelianSimulationResponse(results=results, missing_traits=missing)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@app.post(
-    "/api/mendelian/simulate-joint",
-    response_model=JointPhenotypeSimulationResponse,
-    tags=["Mendelian"],
-)
-def simulate_joint_phenotypes(
-    request: JointPhenotypeSimulationRequest,
-) -> JointPhenotypeSimulationResponse:
-    """Simulate joint phenotype probabilities across multiple traits.
-
-    This endpoint calculates combined phenotype probabilities using Mendel's law
-    of independent assortment. Instead of returning separate distributions for
-    each trait, it returns a single distribution of combined phenotypes.
-
-    Example: Eye color (Bb × Bb) + Hair texture (Cc × Cc) returns:
-    - "Brown + Curly": 56.25%
-    - "Brown + Straight": 18.75%
-    - "Blue + Curly": 18.75%
-    - "Blue + Straight": 6.25%
-    """
-    try:
-        results, missing = services.simulate_joint_phenotypes(
-            parent1=request.parent1_genotypes,
-            parent2=request.parent2_genotypes,
-            trait_filter=request.trait_filter,
-            as_percentages=request.as_percentages,
-            max_traits=5,
-        )
-        return JointPhenotypeSimulationResponse(results=results, missing_traits=missing)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-
-
-@app.post(
-    "/api/mendelian/genotypes",
-    response_model=GenotypeResponse,
-    tags=["Mendelian"],
-)
-def get_trait_genotypes(request: GenotypeRequest) -> GenotypeResponse:
-    """Get possible genotypes for given trait keys."""
-    try:
-        genotypes, missing = services.get_possible_genotypes_for_traits(
-            trait_keys=request.trait_keys,
-            max_traits=5,
-        )
-        return GenotypeResponse(genotypes=genotypes, missing_traits=missing)
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
 
 
 @app.post(

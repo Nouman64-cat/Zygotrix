@@ -126,7 +126,6 @@ def update_project(
         {"$set": updates},
         return_document=True,
     )
-    print(f"[DEBUG] update_project raw result: {result}")
     if not result:
         return None
     return Project.model_validate(_serialize_project_doc(result))

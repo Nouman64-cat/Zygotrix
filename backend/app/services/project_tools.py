@@ -10,7 +10,7 @@ def _project_accessible(project_id: str, user_id: str) -> bool:
     return project is not None
 
 
-from typing import List, Optional, Dict
+from typing import List, Optional, Dict, Any
 from app.schema.projects import (
     ProjectLinePayload,
     ProjectLineSaveResponse,
@@ -26,7 +26,8 @@ from app.schema.projects import (
     MendelianProjectTool,
 )
 
-# The following are stubs. Actual logic should be migrated from the old services.py
+# The following functions implement project workspace functionality
+# for saving and retrieving lines, notes, and drawings.
 
 from bson import ObjectId
 from datetime import datetime, timezone
@@ -37,6 +38,36 @@ from app.services.common import (
     get_project_notes_collection,
     get_project_drawings_collection,
 )
+
+
+def _serialize_project_line(document: Dict[str, Any]) -> "ProjectLine":
+    """Convert MongoDB line document to ProjectLine model."""
+    from app.schema.projects import ProjectLine
+
+    data = dict(document)
+    if "_id" in data:
+        data.pop("_id")
+    return ProjectLine(**data)
+
+
+def _serialize_project_note(document: Dict[str, Any]) -> "ProjectNote":
+    """Convert MongoDB note document to ProjectNote model."""
+    from app.schema.projects import ProjectNote
+
+    data = dict(document)
+    if "_id" in data:
+        data.pop("_id")
+    return ProjectNote(**data)
+
+
+def _serialize_project_drawing(document: Dict[str, Any]) -> "ProjectDrawing":
+    """Convert MongoDB drawing document to ProjectDrawing model."""
+    from app.schema.projects import ProjectDrawing
+
+    data = dict(document)
+    if "_id" in data:
+        data.pop("_id")
+    return ProjectDrawing(**data)
 
 
 def create_tool(project_id: str, user_id: str, tool_data: Dict) -> Optional[Dict]:
@@ -132,10 +163,50 @@ def get_project_line_snapshot(
 def save_project_lines(
     project_id: str, user_id: str, lines: List[ProjectLinePayload]
 ) -> Optional[ProjectLineSaveResponse]:
-    # Logic migrated from old services.py
-    # ...existing code...
-    # For brevity, call the original implementation from services.py if needed
-    pass
+    from app.schema.projects import ProjectLineSaveResponse, ProjectLineSaveSummary
+
+    if not _project_accessible(project_id, user_id):
+        return None
+
+    collection = get_project_lines_collection(required=True)
+    assert collection is not None, "Project lines collection is required"
+
+    summary = ProjectLineSaveSummary()
+
+    for line_payload in lines:
+        line_doc = {
+            "id": line_payload.id,
+            "project_id": project_id,
+            "start_point": {
+                "x": line_payload.start_point.x,
+                "y": line_payload.start_point.y,
+            },
+            "end_point": {"x": line_payload.end_point.x, "y": line_payload.end_point.y},
+            "stroke_color": line_payload.stroke_color,
+            "stroke_width": line_payload.stroke_width,
+            "arrow_type": line_payload.arrow_type,
+            "is_deleted": line_payload.is_deleted,
+            "updated_at": line_payload.updated_at,
+            "version": line_payload.version,
+            "origin": line_payload.origin,
+        }
+        try:
+            collection.replace_one(
+                {"project_id": project_id, "id": line_payload.id}, line_doc, upsert=True
+            )
+            summary.updated += 1
+        except Exception:
+            summary.ignored += 1
+
+    # Return updated snapshot
+    snapshot = get_project_line_snapshot(project_id, user_id)
+    if snapshot:
+        return ProjectLineSaveResponse(
+            lines=snapshot.lines,
+            snapshot_version=snapshot.snapshot_version,
+            summary=summary,
+        )
+    return None
 
 
 def get_project_note_snapshot(
@@ -159,10 +230,48 @@ def get_project_note_snapshot(
 def save_project_notes(
     project_id: str, user_id: str, notes: List[ProjectNotePayload]
 ) -> Optional[ProjectNoteSaveResponse]:
-    # Logic migrated from old services.py
-    # ...existing code...
-    # For brevity, call the original implementation from services.py if needed
-    pass
+    from app.schema.projects import ProjectNoteSaveResponse, ProjectNoteSaveSummary
+
+    if not _project_accessible(project_id, user_id):
+        return None
+
+    collection = get_project_notes_collection(required=True)
+    assert collection is not None, "Project notes collection is required"
+
+    summary = ProjectNoteSaveSummary()
+
+    for note_payload in notes:
+        note_doc = {
+            "id": note_payload.id,
+            "project_id": project_id,
+            "content": note_payload.content,
+            "position": {"x": note_payload.position.x, "y": note_payload.position.y},
+            "size": {
+                "width": note_payload.size.width,
+                "height": note_payload.size.height,
+            },
+            "is_deleted": note_payload.is_deleted,
+            "updated_at": note_payload.updated_at,
+            "version": note_payload.version,
+            "origin": note_payload.origin,
+        }
+        try:
+            collection.replace_one(
+                {"project_id": project_id, "id": note_payload.id}, note_doc, upsert=True
+            )
+            summary.updated += 1
+        except Exception:
+            summary.ignored += 1
+
+    # Return updated snapshot
+    snapshot = get_project_note_snapshot(project_id, user_id)
+    if snapshot:
+        return ProjectNoteSaveResponse(
+            notes=snapshot.notes,
+            snapshot_version=snapshot.snapshot_version,
+            summary=summary,
+        )
+    return None
 
 
 def get_project_drawing_snapshot(
@@ -186,7 +295,47 @@ def get_project_drawing_snapshot(
 def save_project_drawings(
     project_id: str, user_id: str, drawings: List[ProjectDrawingPayload]
 ) -> Optional[ProjectDrawingSaveResponse]:
-    # Logic migrated from old services.py
-    # ...existing code...
-    # For brevity, call the original implementation from services.py if needed
-    pass
+    from app.schema.projects import (
+        ProjectDrawingSaveResponse,
+        ProjectDrawingSaveSummary,
+    )
+
+    if not _project_accessible(project_id, user_id):
+        return None
+
+    collection = get_project_drawings_collection(required=True)
+    assert collection is not None, "Project drawings collection is required"
+
+    summary = ProjectDrawingSaveSummary()
+
+    for drawing_payload in drawings:
+        drawing_doc = {
+            "id": drawing_payload.id,
+            "project_id": project_id,
+            "points": [{"x": p.x, "y": p.y} for p in drawing_payload.points],
+            "stroke_color": drawing_payload.stroke_color,
+            "stroke_width": drawing_payload.stroke_width,
+            "is_deleted": drawing_payload.is_deleted,
+            "updated_at": drawing_payload.updated_at,
+            "version": drawing_payload.version,
+            "origin": drawing_payload.origin,
+        }
+        try:
+            collection.replace_one(
+                {"project_id": project_id, "id": drawing_payload.id},
+                drawing_doc,
+                upsert=True,
+            )
+            summary.updated += 1
+        except Exception:
+            summary.ignored += 1
+
+    # Return updated snapshot
+    snapshot = get_project_drawing_snapshot(project_id, user_id)
+    if snapshot:
+        return ProjectDrawingSaveResponse(
+            drawings=snapshot.drawings,
+            snapshot_version=snapshot.snapshot_version,
+            summary=summary,
+        )
+    return None

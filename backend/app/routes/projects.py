@@ -147,7 +147,7 @@ def create_mendelian_tool(
     current_user: UserProfile = Depends(get_current_user),
 ) -> MendelianToolResponse:
     tool_data = payload.model_dump()
-    tool = services.create_tool(
+    tool = create_tool(
         project_id=project_id,
         user_id=current_user.id,
         tool_data=tool_data,

@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
 from typing import Optional
-from .. import services
+from ..services import mendelian as mendelian_services
 from ..schema.mendelian import (
     MendelianSimulationRequest,
     MendelianSimulationResponse,
@@ -18,7 +18,7 @@ def simulate_mendelian(
     request: MendelianSimulationRequest,
 ) -> MendelianSimulationResponse:
     try:
-        results, missing = services.simulate_mendelian_traits(
+        results, missing = mendelian_services.simulate_mendelian_traits(
             parent1=request.parent1_genotypes,
             parent2=request.parent2_genotypes,
             trait_filter=request.trait_filter,
@@ -35,7 +35,7 @@ def simulate_joint_phenotypes(
     request: JointPhenotypeSimulationRequest,
 ) -> JointPhenotypeSimulationResponse:
     try:
-        results, missing = services.simulate_joint_phenotypes(
+        results, missing = mendelian_services.simulate_joint_phenotypes(
             parent1=request.parent1_genotypes,
             parent2=request.parent2_genotypes,
             trait_filter=request.trait_filter,
@@ -51,7 +51,7 @@ def simulate_joint_phenotypes(
 def get_trait_genotypes(request: GenotypeRequest) -> GenotypeResponse:
     """Get possible genotypes for given trait keys."""
     try:
-        genotypes, missing = services.get_possible_genotypes_for_traits(
+        possible_genotypes = mendelian_services.get_possible_genotypes_for_traits(
             trait_keys=request.trait_keys,
             max_traits=5,
         )

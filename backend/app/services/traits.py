@@ -4,14 +4,16 @@ from typing import Any, Dict, Mapping, Optional, Tuple, List, Iterable
 from zygotrix_engine import Trait, Simulator, PolygenicCalculator
 from fastapi import HTTPException
 from pymongo.errors import PyMongoError
-from .config import get_settings
+from ..config import get_settings
 
 # Trait loading and registry
 
 
 def _load_real_gene_traits() -> Dict[str, Trait]:
     current_dir = os.path.dirname(os.path.abspath(__file__))
-    traits_file_path = os.path.join(current_dir, "..", "data", "traits_dataset.json")
+    traits_file_path = os.path.join(
+        current_dir, "..", "..", "data", "traits_dataset.json"
+    )
     if not os.path.exists(traits_file_path):
         return {}
     try:
@@ -81,7 +83,7 @@ def _build_trait_from_document(document: Mapping[str, object]) -> Trait:
 
 
 def fetch_persistent_traits() -> Dict[str, Trait]:
-    from .services import get_traits_collection
+    from .common import get_traits_collection
 
     collection = get_traits_collection()
     if collection is None:
@@ -108,7 +110,7 @@ def fetch_filtered_traits(
     category: Optional[str] = None,
     gene_info: Optional[str] = None,
 ) -> Dict[str, Trait]:
-    from .services import get_traits_collection
+    from .common import get_traits_collection
 
     collection = get_traits_collection()
     if collection is None:
@@ -169,3 +171,26 @@ from functools import lru_cache
 @lru_cache(maxsize=1)
 def get_polygenic_calculator() -> PolygenicCalculator:
     return PolygenicCalculator()
+
+
+def filter_traits(
+    trait_filter: Iterable[str] | None,
+) -> Tuple[Dict[str, Trait], List[str]]:
+    """Filter traits by keys and return registry and missing keys."""
+    registry = get_trait_registry()
+
+    if trait_filter is None:
+        return registry, []
+
+    trait_keys = set(trait_filter)
+    available_keys = set(registry.keys())
+
+    # Find missing traits
+    missing = list(trait_keys - available_keys)
+
+    # Filter registry to only include requested traits that exist
+    filtered_registry = {
+        key: registry[key] for key in trait_keys if key in available_keys
+    }
+
+    return filtered_registry, missing

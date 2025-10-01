@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException, Response
 from typing import Optional
-from .. import services
+from ..services import traits as trait_services
 from ..schema.traits import (
     TraitListResponse,
     TraitMutationResponse,
@@ -22,7 +22,7 @@ def list_traits(
 ) -> TraitListResponse:
     traits = [
         trait_to_info(key, trait)
-        for key, trait in services.get_trait_registry(
+        for key, trait in trait_services.get_trait_registry(
             inheritance_pattern=inheritance_pattern,
             verification_status=verification_status,
             category=category,
@@ -57,7 +57,7 @@ def create_trait(payload: TraitMutationPayload) -> TraitMutationResponse:
     if payload.category:
         trait_definition["category"] = payload.category
 
-    trait = services.save_trait(payload.key, trait_definition)
+    trait = trait_services.save_trait(payload.key, trait_definition)
     return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
 
 
@@ -86,11 +86,11 @@ def update_trait(key: str, payload: TraitMutationPayload) -> TraitMutationRespon
     if payload.category:
         trait_definition["category"] = payload.category
 
-    trait = services.save_trait(payload.key, trait_definition)
+    trait = trait_services.save_trait(payload.key, trait_definition)
     return TraitMutationResponse(trait=trait_to_info(payload.key, trait))
 
 
 @router.delete("/{key}", status_code=204, tags=["Traits"])
 def remove_trait(key: str) -> Response:
-    services.delete_trait(key)
+    trait_services.delete_trait(key)
     return Response(status_code=204)

@@ -42,6 +42,17 @@ def get_projects_collection(required: bool = False):
     return db["projects"]
 
 
+def get_traits_collection(required: bool = False):
+    client = get_mongo_client()
+    if client is None:
+        if required:
+            raise HTTPException(status_code=503, detail="MongoDB client not available")
+        return None
+    settings = get_settings()
+    db = client[settings.mongodb_db_name]
+    return db["traits"]
+
+
 from datetime import datetime, timezone
 from typing import Optional, Mapping, Dict
 from fastapi import HTTPException

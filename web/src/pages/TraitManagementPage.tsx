@@ -1,8 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
-import TraitListComponent from "../components/traits/TraitList";
-import TraitEditor from "../components/traits/TraitEditor";
-import TraitFiltersComponent from "../components/traits/TraitFilters";
 import type {
   TraitInfo,
   TraitFilters as ITraitFilters,
@@ -15,6 +12,9 @@ import {
   updateTrait,
   deleteTrait,
 } from "../services/traits.api";
+import TraitFiltersComponent from "../components/traits/TraitFilters";
+import TraitListComponent from "../components/traits/TraitList";
+import TraitEditor from "../components/traits/TraitEditor";
 
 const TraitManagementPage: React.FC = () => {
   const [traits, setTraits] = useState<TraitInfo[]>([]);

@@ -1,6 +1,7 @@
 from datetime import datetime, timedelta, timezone
-from typing import Optional, Dict, Any, Mapping
+from typing import Optional, Dict, Any, Mapping, cast
 from bson import ObjectId
+from pymongo.collection import Collection
 import secrets, string, httpx, jwt
 from fastapi import HTTPException
 from passlib.context import CryptContext
@@ -79,7 +80,7 @@ def get_users_collection(required: bool = False):
 
 
 def get_pending_signups_collection(required: bool = False):
-    from .services import get_mongo_client
+    from .common import get_mongo_client
 
     client = get_mongo_client()
     if client is None:
@@ -105,7 +106,7 @@ def get_pending_signups_collection(required: bool = False):
 def _insert_user_document(
     email: str, password_hash: str, full_name: Optional[str]
 ) -> Dict[str, Any]:
-    collection = get_users_collection(required=True)
+    collection = cast(Collection, get_users_collection(required=True))
     name = _clean_full_name(full_name)
     document = {
         "email": _normalize_email(email),
@@ -431,6 +432,12 @@ def resolve_user_from_token(token: str) -> Dict[str, Any]:
     if not isinstance(user_id, str):
         raise HTTPException(status_code=401, detail="Invalid authentication token.")
     return get_user_by_id(user_id)
+
+
+# Alias for backward compatibility
+def get_current_user(token: str) -> Dict[str, Any]:
+    """Get current user from token - alias for resolve_user_from_token for backward compatibility."""
+    return resolve_user_from_token(token)
 
 
 def build_auth_response(user: Dict[str, Any]) -> Dict[str, Any]:

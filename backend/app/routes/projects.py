@@ -5,7 +5,7 @@ from app.services.projects import (
     create_project,
     get_project,
     update_project,
-    delete_project,
+    delete_project as delete_project_service,
 )
 from app.services.project_tools import (
     create_tool,
@@ -128,7 +128,7 @@ def delete_project(
     project_id: str,
     current_user: UserProfile = Depends(get_current_user),
 ) -> Response:
-    success = delete_project(project_id=project_id, user_id=current_user.id)
+    success = delete_project_service(project_id=project_id, user_id=current_user.id)
     if not success:
         raise HTTPException(status_code=404, detail="Project not found")
     return Response(status_code=204)

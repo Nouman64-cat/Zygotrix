@@ -9,8 +9,6 @@ import { fetchUserProjects } from "../services/project.api";
 const PortalPage: React.FC = () => {
   // ...existing code...
   const { user, token } = useAuth();
-  const [statusMessage, setStatusMessage] = useState<string>("");
-  const [error, setError] = useState<string>("");
   const [projectCount, setProjectCount] = useState<number | null>(null);
 
   useEffect(() => {
@@ -18,38 +16,26 @@ const PortalPage: React.FC = () => {
     const loadStatus = async () => {
       // ...existing code...
       if (!token) {
-        setStatusMessage("");
         setProjectCount(null);
         return;
       }
       try {
-        const response = await fetchPortalStatus(token);
-        if (isMounted) {
-          setStatusMessage(response.message);
-          setError("");
-        }
-      } catch (err) {
-        if (isMounted) {
-          setError(
-            "We could not verify your portal access just now. Please try again."
-          );
-        }
+        await fetchPortalStatus(token);
+        // statusMessage and error are unused, so skip setting them
+      } catch {
+        // No-op: error state not used
       }
       // Fetch project count
       try {
-        // ...existing code...
         const projectRes = await fetchUserProjects(token, 1, 1);
-        // ...existing code...
         if (isMounted) {
           const count =
             typeof projectRes.total === "number"
               ? projectRes.total
               : Number(projectRes.total) || 0;
           setProjectCount(count);
-          // ...existing code...
         }
-      } catch (err) {
-        // ...existing code...
+      } catch {
         if (isMounted) setProjectCount(null);
       }
     };
@@ -143,37 +129,6 @@ const PortalPage: React.FC = () => {
         </svg>
       ),
       color: "bg-orange-500",
-    },
-  ];
-
-  const recentActivity = [
-    {
-      id: 1,
-      action: "Completed simulation",
-      target: "Height prediction model",
-      time: "2 hours ago",
-      status: "success",
-    },
-    {
-      id: 2,
-      action: "Added new trait",
-      target: "Eye color variations",
-      time: "4 hours ago",
-      status: "info",
-    },
-    {
-      id: 3,
-      action: "Shared results",
-      target: "Polygenic score analysis",
-      time: "1 day ago",
-      status: "info",
-    },
-    {
-      id: 4,
-      action: "Data upload",
-      target: "1000 Genomes subset",
-      time: "2 days ago",
-      status: "success",
     },
   ];
 

@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState } from "react";
 
-import { fetchTraits, type TraitFilters } from "../services/traits.api";
-import type { TraitInfo } from "../types/api";
+import { fetchTraits } from "../services/traits.api";
+import type { TraitInfo, TraitFilters } from "../types/api";
 
 type TraitsHook = {
   traits: TraitInfo[];

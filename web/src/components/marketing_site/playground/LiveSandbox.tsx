@@ -421,7 +421,10 @@ const LiveSandbox: React.FC<LiveSandboxProps> = ({
                               GENE:
                             </span>
                             <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[9px] font-semibold text-emerald-700">
-                              {activeTrait.gene_info}
+                              {activeTrait.gene_info.gene}
+                              {activeTrait.gene_info.chromosome
+                                ? ` (Chr ${activeTrait.gene_info.chromosome})`
+                                : ""}
                             </span>
                           </div>
                         )}

@@ -1,5 +1,5 @@
 from zygotrix_engine import Trait
-from .schemas import TraitInfo
+from .schema.traits import TraitInfo
 
 
 def trait_to_info(key: str, trait: Trait) -> TraitInfo:

@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 from typing import Optional
 from .. import services
-from ..schemas import (
+from ..schema.mendelian import (
     MendelianSimulationRequest,
     MendelianSimulationResponse,
     JointPhenotypeSimulationRequest,

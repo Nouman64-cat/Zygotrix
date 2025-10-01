@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Response
 from typing import Optional
 from .. import services
-from ..schemas import (
+from ..schema.projects import (
     ProjectListResponse,
     ProjectResponse,
     ProjectCreateRequest,
@@ -20,8 +20,8 @@ from ..schemas import (
     ProjectDrawingSaveRequest,
     ProjectDrawingSaveResponse,
     ProjectDrawingSnapshot,
-    UserProfile,
 )
+from ..schema.auth import UserProfile
 from ..routes.auth import get_current_user
 
 router = APIRouter(prefix="/api/projects", tags=["Projects"])

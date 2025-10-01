@@ -12,12 +12,9 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from zygotrix_engine import Trait
 
 from . import services
-from .schemas import (
-    HealthResponse,
-    PolygenicScoreRequest,
-    PolygenicScoreResponse,
-    UserProfile,
-)
+from .schema.common import HealthResponse
+from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
+from .schema.auth import UserProfile
 
 
 from .routes.auth import router as auth_router

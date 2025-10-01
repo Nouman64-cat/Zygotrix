@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, Response
 from typing import Optional
 from .. import services
-from ..schemas import (
+from ..schema.traits import (
     TraitListResponse,
     TraitMutationResponse,
     TraitMutationPayload,

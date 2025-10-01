@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from datetime import datetime, timezone
 from .. import services
-from ..schemas import (
+from ..schema.auth import (
     AuthResponse,
     SignupInitiateRequest,
     SignupInitiateResponse,

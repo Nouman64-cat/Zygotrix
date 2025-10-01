@@ -4,17 +4,22 @@ import { Link } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { fetchPortalStatus } from "../services/auth.api";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { fetchUserProjects } from "../services/project.api";
 
 const PortalPage: React.FC = () => {
+  // ...existing code...
   const { user, token } = useAuth();
   const [statusMessage, setStatusMessage] = useState<string>("");
   const [error, setError] = useState<string>("");
+  const [projectCount, setProjectCount] = useState<number | null>(null);
 
   useEffect(() => {
     let isMounted = true;
     const loadStatus = async () => {
+      // ...existing code...
       if (!token) {
         setStatusMessage("");
+        setProjectCount(null);
         return;
       }
       try {
@@ -30,106 +35,35 @@ const PortalPage: React.FC = () => {
           );
         }
       }
+      // Fetch project count
+      try {
+        // ...existing code...
+        const projectRes = await fetchUserProjects(token, 1, 1);
+        // ...existing code...
+        if (isMounted) {
+          const count =
+            typeof projectRes.total === "number"
+              ? projectRes.total
+              : Number(projectRes.total) || 0;
+          setProjectCount(count);
+          // ...existing code...
+        }
+      } catch (err) {
+        // ...existing code...
+        if (isMounted) setProjectCount(null);
+      }
     };
-
     loadStatus();
     return () => {
       isMounted = false;
     };
   }, [token]);
 
-  const stats = [
-    {
-      name: "Active Simulations",
-      value: "12",
-      change: "+2.3%",
-      changeType: "positive" as const,
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M13 10V3L4 14h7v7l9-11h-7z"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Stored Traits",
-      value: "247",
-      change: "+12.5%",
-      changeType: "positive" as const,
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Data Processed",
-      value: "1.2TB",
-      change: "+4.1%",
-      changeType: "positive" as const,
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
-          />
-        </svg>
-      ),
-    },
-    {
-      name: "Collaborators",
-      value: "8",
-      change: "+1",
-      changeType: "positive" as const,
-      icon: (
-        <svg
-          className="w-6 h-6"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"
-          />
-        </svg>
-      ),
-    },
-  ];
-
   const quickActions = [
     {
       title: "Start New Simulation",
       description: "Launch a new Mendelian or polygenic simulation",
-      href: "/playground",
+      href: "/portal/projects",
       icon: (
         <svg
           className="w-8 h-8"
@@ -258,64 +192,32 @@ const PortalPage: React.FC = () => {
                 today.
               </p>
             </div>
-            <div className="hidden sm:block">
-              <div className="text-right">
-                <p className="text-sm text-slate-500">Last login</p>
-                <p className="text-lg font-semibold text-slate-900">
-                  {new Date().toLocaleDateString()}
-                </p>
-              </div>
-            </div>
+            <div></div>
           </div>
-
-          {/* Status Messages */}
-          {statusMessage && (
-            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
-              <p className="text-blue-800 text-sm">{statusMessage}</p>
-            </div>
-          )}
-
-          {error && (
-            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-              <p className="text-red-800 text-sm">{error}</p>
-            </div>
-          )}
         </div>
-
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
-          {stats.map((stat) => (
-            <div
-              key={stat.name}
-              className="bg-white rounded-lg shadow-sm border border-slate-200 p-6"
-            >
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-medium text-slate-600">
-                    {stat.name}
-                  </p>
-                  <p className="text-3xl font-bold text-slate-900">
-                    {stat.value}
-                  </p>
-                </div>
-                <div className="text-slate-400">{stat.icon}</div>
-              </div>
-              <div className="mt-4 flex items-center">
-                <span
-                  className={`text-sm font-medium ${
-                    stat.changeType === "positive"
-                      ? "text-green-600"
-                      : "text-red-600"
-                  }`}
-                >
-                  {stat.change}
-                </span>
-                <span className="text-sm text-slate-500 ml-2">
-                  from last month
-                </span>
-              </div>
+        {/* Stats */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="bg-white rounded-lg border border-indigo-100 shadow flex flex-col items-center justify-center p-6">
+            <div className="flex items-center justify-center w-12 h-12 rounded-full bg-indigo-50 mb-3">
+              <svg
+                className="w-7 h-7 text-indigo-500"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 17v-2a4 4 0 018 0v2m-4-6a4 4 0 100-8 4 4 0 000 8zm6 8a2 2 0 01-2 2H7a2 2 0 01-2-2v-5a2 2 0 012-2h10a2 2 0 012 2v5z"
+                />
+              </svg>
             </div>
-          ))}
+            <div className="text-3xl font-bold text-indigo-700">
+              {projectCount ?? "-"}
+            </div>
+            <div className="mt-2 text-sm text-slate-600">Your Projects</div>
+          </div>
         </div>
 
         {/* Quick Actions */}
@@ -344,44 +246,6 @@ const PortalPage: React.FC = () => {
                   </div>
                 </div>
               </Link>
-            ))}
-          </div>
-        </div>
-
-        {/* Recent Activity */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-slate-900">
-              Recent Activity
-            </h2>
-            <Link
-              to="/portal/activity"
-              className="text-sm text-blue-600 hover:text-blue-700 font-medium"
-            >
-              View all
-            </Link>
-          </div>
-          <div className="space-y-4">
-            {recentActivity.map((activity) => (
-              <div
-                key={activity.id}
-                className="flex items-center gap-4 p-3 rounded-lg hover:bg-slate-50"
-              >
-                <div
-                  className={`w-2 h-2 rounded-full ${
-                    activity.status === "success"
-                      ? "bg-green-500"
-                      : "bg-blue-500"
-                  }`}
-                />
-                <div className="flex-1">
-                  <p className="text-sm text-slate-900">
-                    <span className="font-medium">{activity.action}</span>{" "}
-                    {activity.target}
-                  </p>
-                  <p className="text-xs text-slate-500">{activity.time}</p>
-                </div>
-              </div>
             ))}
           </div>
         </div>

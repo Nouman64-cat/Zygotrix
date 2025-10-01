@@ -241,10 +241,16 @@ const ProjectsPage: React.FC = () => {
             const IconComponent = getProjectIcon(project);
 
             return (
-              <button
+              <div
                 key={project.id}
                 onClick={() => navigate(`/portal/workspace/${project.id}`)}
+                role="button"
+                tabIndex={0}
                 className="relative bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer aspect-[3/4] min-h-[180px] flex flex-col w-full text-left border border-gray-200 hover:border-gray-300 group overflow-hidden"
+                onKeyPress={(e) => {
+                  if (e.key === "Enter" || e.key === " ")
+                    navigate(`/portal/workspace/${project.id}`);
+                }}
               >
                 {/* Notebook binding holes */}
                 <div className="absolute left-2 top-3 bottom-3 w-1 z-10">
@@ -287,7 +293,10 @@ const ProjectsPage: React.FC = () => {
 
                     <div className="flex items-center space-x-2">
                       <button
-                        onClick={(e) => openDeleteModal(project, e)}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          openDeleteModal(project, e);
+                        }}
                         className="p-1 cursor-pointer text-gray-400 hover:text-red-600"
                         aria-label={`Delete ${project.name}`}
                       >
@@ -330,7 +339,7 @@ const ProjectsPage: React.FC = () => {
                     ))}
                   </div>
                 </div>
-              </button>
+              </div>
             );
           })}
         </div>

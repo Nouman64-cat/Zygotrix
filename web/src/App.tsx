@@ -18,6 +18,7 @@ import ProfilePage from "./pages/ProfilePage";
 import ProjectWorkspace from "./pages/ProjectWorkspace";
 import SettingsPage from "./pages/SettingsPage";
 import TraitManagementPage from "./pages/TraitManagementPage";
+import BrowseTraitsPage from "./pages/BrowseTraitsPage";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import ProjectsPage from "./pages/ProjectsPage";
@@ -55,6 +56,14 @@ const App: React.FC = () => {
         element={
           <RequireAuth>
             <TraitManagementPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="portal/browse-traits"
+        element={
+          <RequireAuth>
+            <BrowseTraitsPage />
           </RequireAuth>
         }
       />

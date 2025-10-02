@@ -263,7 +263,7 @@ const PortalPage: React.FC = () => {
               actionButton={{
                 label: "Browse Traits",
                 onClick: () => {
-                  navigate("/portal/browse");
+                  navigate("/portal/browse-traits");
                 },
                 variant: "secondary",
               }}

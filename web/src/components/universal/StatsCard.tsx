@@ -25,60 +25,80 @@ const StatsCard: React.FC<StatsCardProps> = ({
   actionButton,
   className = "",
 }) => {
+  // Format large numbers (1K, 1M, 1B)
+  const formatBigNumber = (num: number): string => {
+    if (num >= 1000000000) {
+      return (num / 1000000000).toFixed(1).replace(/\.0$/, "") + "B";
+    }
+    if (num >= 1000000) {
+      return (num / 1000000).toFixed(1).replace(/\.0$/, "") + "M";
+    }
+    if (num >= 1000) {
+      return (num / 1000).toFixed(1).replace(/\.0$/, "") + "K";
+    }
+    return num.toString();
+  };
+
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 p-6 ${className}`}
+      className={`bg-gradient-to-br from-blue-50/40 to-white rounded-lg border border-gray-100 shadow-sm hover:shadow-md transition-all duration-200 p-4 ${className}`}
     >
-      <div className="flex items-center justify-between">
-        <div className="flex-1">
-          <div className="flex items-center gap-3 mb-2">
-            {icon && <div className="text-blue-600">{icon}</div>}
-            <h3 className="text-sm font-medium text-gray-500 uppercase tracking-wide">
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-2">
+            {icon && (
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-blue-100 text-blue-600 flex-shrink-0">
+                <div className="w-4 h-4">{icon}</div>
+              </div>
+            )}
+            <h3 className="text-sm font-medium text-gray-600 truncate">
               {title}
             </h3>
           </div>
 
-          <div className="mb-2">
+          <div className="mb-1">
             {(() => {
               if (loading) {
                 return (
                   <div className="flex items-center gap-2">
-                    <div className="animate-spin h-6 w-6 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                    <span className="text-gray-500">Loading...</span>
+                    <div className="animate-spin h-5 w-5 border-2 border-blue-400 border-t-transparent rounded-full"></div>
+                    <span className="text-gray-500 text-sm">Loading...</span>
                   </div>
                 );
               }
 
               if (error) {
                 return (
-                  <div className="text-red-600 text-sm">
+                  <div className="text-red-600 text-xs">
                     <span className="font-medium">Error:</span> {error}
                   </div>
                 );
               }
 
               return (
-                <div className="text-3xl font-bold text-gray-900">
-                  {value !== null ? value.toLocaleString() : "—"}
+                <div className="text-2xl font-bold text-gray-900">
+                  {value !== null ? formatBigNumber(value) : "—"}
                 </div>
               );
             })()}
           </div>
 
           {description && !loading && !error && (
-            <p className="text-sm text-gray-600">{description}</p>
+            <p className="text-xs text-gray-500 leading-tight">{description}</p>
           )}
         </div>
 
         {actionButton && !loading && !error && (
-          <div className="ml-4">
+          <div className="flex-shrink-0">
             <button
               onClick={actionButton.onClick}
-              className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors ${
-                actionButton.variant === "secondary"
-                  ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                  : "bg-blue-600 text-white hover:bg-blue-700"
-              }`}
+              className={`px-3 py-1.5 text-xs font-medium rounded-md shadow-sm transition-all duration-150 cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-offset-1
+                ${
+                  actionButton.variant === "secondary"
+                    ? "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                    : "bg-blue-600 text-white hover:bg-blue-700"
+                }
+              `}
             >
               {actionButton.label}
             </button>

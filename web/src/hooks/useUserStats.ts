@@ -1,11 +1,15 @@
 import { useState, useEffect } from "react";
 import { useAuth } from "../context/AuthContext";
-import { fetchUserTraitsCount } from "../services/traits.api";
+import {
+  fetchUserTraitsCount,
+  fetchPublicTraitsCount,
+} from "../services/traits.api";
 import { fetchUserProjects } from "../services/project.api";
 
 export interface UserStats {
   traitsCount: number | null;
   projectsCount: number | null;
+  publicTraitsCount: number | null;
   loading: boolean;
   error: string | null;
 }
@@ -20,6 +24,7 @@ export const useUserStats = (): UserStats => {
   const [stats, setStats] = useState<UserStats>({
     traitsCount: null,
     projectsCount: null,
+    publicTraitsCount: null,
     loading: false,
     error: null,
   });
@@ -29,6 +34,7 @@ export const useUserStats = (): UserStats => {
       setStats({
         traitsCount: null,
         projectsCount: null,
+        publicTraitsCount: null,
         loading: false,
         error: null,
       });
@@ -44,11 +50,13 @@ export const useUserStats = (): UserStats => {
       setStats((prev) => ({ ...prev, loading: true, error: null }));
 
       try {
-        // Fetch both stats in parallel
-        const [traitsCount, projectsResponse] = await Promise.all([
-          fetchUserTraitsCount(controller.signal),
-          fetchUserProjects(token, 1, 1), // Fetch minimal data just for count
-        ]);
+        // Fetch all stats in parallel
+        const [traitsCount, projectsResponse, publicTraitsCount] =
+          await Promise.all([
+            fetchUserTraitsCount(controller.signal),
+            fetchUserProjects(token, 1, 1), // Fetch minimal data just for count
+            fetchPublicTraitsCount(controller.signal),
+          ]);
 
         if (!isMounted) return;
 
@@ -60,6 +68,7 @@ export const useUserStats = (): UserStats => {
         setStats({
           traitsCount,
           projectsCount,
+          publicTraitsCount,
           loading: false,
           error: null,
         });

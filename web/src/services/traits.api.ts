@@ -42,6 +42,21 @@ export const fetchUserTraitsCount = async (
 };
 
 /**
+ * Fetch public traits count from traits_dataset.json
+ * - Returns count of all public traits available in the system
+ * - No authentication required
+ */
+export const fetchPublicTraitsCount = async (
+  signal?: AbortSignal
+): Promise<number> => {
+  const response = await API.get<TraitListResponse>(API_ROUTES.traits.root, {
+    signal,
+    params: { owned_only: false },
+  });
+  return response.data.traits.length;
+};
+
+/**
  * Get a specific trait by key
  * - Public traits are accessible to everyone
  * - Private traits are only accessible to the owner

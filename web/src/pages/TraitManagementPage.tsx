@@ -33,7 +33,7 @@ const TraitManagementPage: React.FC = () => {
     id: string;
     name: string;
   } | null>(null);
-  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
+  const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const mainContentRef = useRef<HTMLDivElement>(null);
 
   // Clear messages after timeout

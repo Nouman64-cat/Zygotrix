@@ -5,11 +5,13 @@ import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useUserStats } from "../hooks/useUserStats";
 import StatsCard from "../components/universal/StatsCard";
+import UserStatsChart from "../components/charts/UserStatsChart";
 
 const PortalPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { traitsCount, projectsCount, loading, error } = useUserStats();
+  const { traitsCount, projectsCount, publicTraitsCount, loading, error } =
+    useUserStats();
 
   const quickActions = [
     {
@@ -176,7 +178,7 @@ const PortalPage: React.FC = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatsCard
               title="Your Traits"
               value={traitsCount}
@@ -236,7 +238,47 @@ const PortalPage: React.FC = () => {
                 variant: "secondary",
               }}
             />
+
+            <StatsCard
+              title="Public Traits"
+              value={publicTraitsCount}
+              loading={loading}
+              error={error}
+              description="Available reference traits from dataset"
+              icon={
+                <svg
+                  className="w-6 h-6"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"
+                  />
+                </svg>
+              }
+              actionButton={{
+                label: "Browse Traits",
+                onClick: () => {
+                  navigate("/portal/browse");
+                },
+                variant: "secondary",
+              }}
+            />
           </div>
+
+          {/* User Stats Chart */}
+          <UserStatsChart
+            traitsCount={traitsCount}
+            projectsCount={projectsCount}
+            publicTraitsCount={publicTraitsCount}
+            loading={loading}
+            error={error}
+            className="col-span-full"
+          />
         </div>
 
         {/* Quick Actions Sidebar */}
@@ -265,13 +307,13 @@ const PortalPage: React.FC = () => {
                   to={action.href}
                   className="block p-4 border border-slate-200 rounded-lg hover:border-slate-300 hover:shadow-md hover:bg-slate-50 transition-all duration-200 group"
                 >
-                  <div className="flex items-center gap-4">
+                  <div className="flex items-center gap-4 cursor-pointer">
                     <div
-                      className={`p-2.5 rounded-lg ${action.color} text-white flex-shrink-0 group-hover:scale-105 transition-transform duration-200`}
+                      className={`p-2.5 rounded-lg ${action.color} text-white flex-shrink-0 group-hover:scale-105 transition-transform duration-200 cursor-pointer`}
                     >
                       {action.icon}
                     </div>
-                    <h3 className="font-medium text-slate-900 group-hover:text-slate-700 transition-colors duration-200">
+                    <h3 className="font-medium text-slate-900 group-hover:text-slate-700 transition-colors duration-200 cursor-pointer">
                       {action.title}
                     </h3>
                   </div>

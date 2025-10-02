@@ -11,6 +11,7 @@ import PhenotypicRatios from "../dashboard/PhenotypicRatios";
 import { getAboGenotypeMap } from "../dashboard/helpers";
 import HowTheseResultsButton from "./HowTheseResultsButton";
 import PunnettSquareModal from "./PunnettSquareModal";
+import { explainSimulationResults } from "../../services/gemini.api";
 
 interface SimulationResultsModalProps {
   open: boolean;
@@ -32,6 +33,43 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
   const [punnettModalTraitKey, setPunnettModalTraitKey] = useState<
     string | null
   >(null);
+  const [aiExplanation, setAiExplanation] = useState<Record<string, string>>(
+    {}
+  );
+  const [loadingAi, setLoadingAi] = useState<Record<string, boolean>>({});
+  const [aiError, setAiError] = useState<Record<string, string>>({});
+
+  const handleAskAI = async (
+    traitKey: string,
+    result: any,
+    selectedTrait: any,
+    trait: any
+  ) => {
+    setLoadingAi((prev) => ({ ...prev, [traitKey]: true }));
+    setAiError((prev) => ({ ...prev, [traitKey]: "" }));
+
+    try {
+      const explanation = await explainSimulationResults(
+        trait?.name || traitKey,
+        selectedTrait?.parent1Genotype || "",
+        selectedTrait?.parent2Genotype || "",
+        result.genotypic_ratios,
+        result.phenotypic_ratios
+      );
+
+      setAiExplanation((prev) => ({ ...prev, [traitKey]: explanation }));
+    } catch (error) {
+      setAiError((prev) => ({
+        ...prev,
+        [traitKey]:
+          error instanceof Error
+            ? error.message
+            : "Failed to get AI explanation",
+      }));
+    } finally {
+      setLoadingAi((prev) => ({ ...prev, [traitKey]: false }));
+    }
+  };
 
   if (!open || !simulationResults) return null;
 
@@ -159,11 +197,60 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                         phenotypicRatios={result.phenotypic_ratios}
                       />
                     </div>
-                    <div className="flex justify-end mt-4">
+                    <div className="flex justify-between items-start mt-4">
+                      <button
+                        onClick={() =>
+                          handleAskAI(traitKey, result, selectedTrait, trait)
+                        }
+                        disabled={loadingAi[traitKey]}
+                        className="bg-gradient-to-r from-purple-500 to-pink-600 text-white py-2 px-4 rounded-lg font-medium hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center space-x-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        {loadingAi[traitKey] ? (
+                          <>
+                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                            <span>Asking AI...</span>
+                          </>
+                        ) : (
+                          <>
+                            <span>🤖</span>
+                            <span>Ask AI</span>
+                          </>
+                        )}
+                      </button>
                       <HowTheseResultsButton
                         onClick={() => setPunnettModalTraitKey(traitKey)}
                       />
                     </div>
+
+                    {/* AI Explanation Display */}
+                    {aiExplanation[traitKey] && (
+                      <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-lg">🤖</span>
+                          <h5 className="font-semibold text-gray-900">
+                            AI Explanation
+                          </h5>
+                        </div>
+                        <p className="text-sm text-gray-700 leading-relaxed">
+                          {aiExplanation[traitKey]}
+                        </p>
+                      </div>
+                    )}
+
+                    {/* AI Error Display */}
+                    {aiError[traitKey] && (
+                      <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="text-lg">⚠️</span>
+                          <h5 className="font-semibold text-red-900">
+                            AI Error
+                          </h5>
+                        </div>
+                        <p className="text-sm text-red-700">
+                          {aiError[traitKey]}
+                        </p>
+                      </div>
+                    )}
                     {punnettModalTraitKey === traitKey &&
                       selectedTrait &&
                       trait && (

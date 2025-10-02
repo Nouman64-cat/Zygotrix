@@ -43,7 +43,7 @@ export const fetchUserTraitsCount = async (
 
 /**
  * Fetch public traits count from traits_dataset.json
- * - Returns count of all public traits available in the system
+ * - Returns count of only system-owned traits from the reference dataset
  * - No authentication required
  */
 export const fetchPublicTraitsCount = async (
@@ -53,7 +53,11 @@ export const fetchPublicTraitsCount = async (
     signal,
     params: { owned_only: false },
   });
-  return response.data.traits.length;
+  // Filter to only count system-owned traits (from the reference dataset)
+  const systemTraits = response.data.traits.filter(
+    (trait) => trait.owner_id === "system"
+  );
+  return systemTraits.length;
 };
 
 /**

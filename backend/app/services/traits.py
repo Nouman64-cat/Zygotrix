@@ -75,31 +75,47 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
 
             trait_key = str(name).lower().replace(" ", "_").replace("-", "_")
 
-            gene = trait_data.get("gene")
-            chromosome_val = trait_data.get("chromosome")
+            # Handle new array format for genes and chromosomes
+            genes = trait_data.get("gene", [])
+            chromosomes = trait_data.get("chromosome", [])
+            trait_type = trait_data.get("type", "unknown")
             inheritance = trait_data.get("inheritance")
 
-            is_real_gene = (
-                gene is not None
-                and chromosome_val is not None
-                and str(chromosome_val) != ""
-            )
+            # Ensure genes and chromosomes are lists
+            if not isinstance(genes, list):
+                genes = [genes] if genes is not None else []
+            if not isinstance(chromosomes, list):
+                chromosomes = [chromosomes] if chromosomes is not None else []
+
+            is_real_gene = len(genes) > 0 and len(chromosomes) > 0
 
             metadata = {
                 "inheritance_pattern": inheritance,
                 "category": "real_gene" if is_real_gene else "simple_trait",
                 "verification_status": "verified" if is_real_gene else "simplified",
+                "trait_type": trait_type,
             }
-            if gene is not None:
-                metadata["gene"] = gene
-            if chromosome_val is not None:
-                metadata["chromosome"] = str(chromosome_val)
 
-            description = (
-                f"Real gene trait - {gene} gene on chromosome {chromosome_val}"
-                if is_real_gene
-                else trait_data.get("description", "")
-            )
+            # Store both new array format and legacy single values for backward compatibility
+            if genes:
+                metadata["genes"] = ",".join(str(g) for g in genes)
+                metadata["gene"] = str(genes[0])  # Legacy single gene field
+            if chromosomes:
+                metadata["chromosomes"] = ",".join(str(c) for c in chromosomes)
+                metadata["chromosome"] = str(
+                    chromosomes[0]
+                )  # Legacy single chromosome field
+
+            # Create description based on trait type
+            if is_real_gene:
+                if trait_type == "polygenic":
+                    gene_list = ", ".join(genes)
+                    chr_list = ", ".join(str(c) for c in chromosomes)
+                    description = f"Polygenic trait - genes: {gene_list} on chromosomes: {chr_list}"
+                else:
+                    description = f"Monogenic trait - {genes[0]} gene on chromosome {chromosomes[0]}"
+            else:
+                description = trait_data.get("description", "")
 
             trait = Trait(
                 name=name,
@@ -269,13 +285,34 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
     # Some legacy docs might have gene_info as a string (gene symbol)
     if isinstance(gene_info, str):
         gene_info = GeneInfo(
-            gene=gene_info, chromosome=str(document.get("chromosome", "")), locus=None
+            genes=[gene_info],
+            chromosomes=[str(document.get("chromosome", ""))],
+            gene=gene_info,
+            chromosome=str(document.get("chromosome", "")),
+            locus=None,
         )
     elif isinstance(gene_info, dict):
-        gene_info = GeneInfo(**gene_info)
+        # Handle both new format and legacy format
+        if "genes" in gene_info and "chromosomes" in gene_info:
+            gene_info = GeneInfo(**gene_info)
+        elif "gene" in gene_info and "chromosome" in gene_info:
+            # Convert legacy format to new format
+            gene_info = GeneInfo(
+                genes=[gene_info["gene"]] if gene_info["gene"] else [],
+                chromosomes=(
+                    [str(gene_info["chromosome"])] if gene_info["chromosome"] else []
+                ),
+                gene=gene_info["gene"],
+                chromosome=str(gene_info["chromosome"]),
+                locus=gene_info.get("locus"),
+            )
+        else:
+            gene_info = GeneInfo(**gene_info)
     elif gene_info is None and document.get("gene"):
         # Backward compatibility: convert legacy gene field
         gene_info = GeneInfo(
+            genes=[document.get("gene", "")],
+            chromosomes=[str(document.get("chromosome", ""))],
             gene=document.get("gene", ""),
             chromosome=str(document.get("chromosome", "")),
             locus=None,
@@ -637,55 +674,10 @@ def _apply_visibility_filter(
 
 def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
     """Convert a Trait object from traits_dataset.json to TraitInfo."""
-    now = datetime.now(timezone.utc)
+    # Use the updated trait_to_info function instead of duplicating logic
+    from ..utils import trait_to_info
 
-    # Extract metadata from the trait
-    metadata = trait.metadata or {}
-
-    # Create gene_info if gene information exists
-    gene_info = None
-    if metadata.get("gene") and metadata.get("chromosome"):
-        gene_info = GeneInfo(
-            gene=metadata["gene"],
-            chromosome=str(metadata["chromosome"]),
-        )
-
-    return TraitInfo(
-        key=key,
-        name=trait.name,
-        alleles=list(trait.alleles),
-        phenotype_map=trait.phenotype_map,
-        inheritance_pattern=metadata.get("inheritance_pattern"),
-        verification_status=metadata.get("verification_status", "verified"),
-        category=metadata.get("category", "genetics"),
-        gene_info=gene_info,
-        allele_freq={},
-        epistasis_hint=None,
-        education_note=None,
-        references=[],
-        version="1.0.0",
-        status=TraitStatus.ACTIVE,
-        owner_id="system",  # System-provided traits
-        visibility=TraitVisibility.PUBLIC,  # JSON traits are public
-        tags=(
-            ["genetics", "reference"] if metadata.get("category") == "real_gene" else []
-        ),
-        validation_rules=ValidationRules(passed=True, errors=[]),
-        test_case_seed=None,
-        created_at=now,
-        updated_at=now,
-        created_by="system",
-        updated_by="system",
-        # Legacy fields
-        description=trait.description,
-        metadata=metadata,
-        gene=metadata.get("gene"),
-        chromosome=(
-            int(metadata["chromosome"])
-            if metadata.get("chromosome") and str(metadata["chromosome"]).isdigit()
-            else None
-        ),
-    )
+    return trait_to_info(key, trait)
 
 
 def _filter_json_traits(filters: TraitFilters) -> List[TraitInfo]:

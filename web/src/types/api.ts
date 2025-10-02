@@ -1,6 +1,6 @@
 export type GeneInfo = {
-  gene: string;
-  chromosome: string;
+  genes: string[];
+  chromosomes: string[];
   locus?: string;
 };
 
@@ -36,6 +36,11 @@ export type TraitInfo = {
   updated_at: string;
   created_by: string;
   updated_by: string;
+  // New fields for updated dataset format
+  genes?: string[];
+  chromosomes?: string[];
+  trait_type?: string; // "monogenic" or "polygenic"
+
   // Legacy fields for backward compatibility
   description?: string;
   metadata?: Record<string, string>;

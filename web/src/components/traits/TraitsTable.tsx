@@ -1,5 +1,82 @@
 import React, { useState, useMemo } from "react";
 import type { TraitInfo } from "../../types/api";
+import { SparklesIcon } from "@heroicons/react/24/outline";
+
+// Helper functions to extract genes and chromosomes from traits
+const getGenesArray = (trait: TraitInfo): string[] => {
+  // Check new array format first
+  if (trait.genes && Array.isArray(trait.genes) && trait.genes.length > 0) {
+    return trait.genes;
+  }
+
+  // Fall back to gene_info array format
+  if (
+    trait.gene_info?.genes &&
+    Array.isArray(trait.gene_info.genes) &&
+    trait.gene_info.genes.length > 0
+  ) {
+    return trait.gene_info.genes;
+  }
+
+  // Fall back to legacy single gene field
+  if (trait.gene) {
+    return [trait.gene];
+  }
+
+  return [];
+};
+
+const getChromosomesArray = (trait: TraitInfo): string[] => {
+  // Check new array format first
+  if (
+    trait.chromosomes &&
+    Array.isArray(trait.chromosomes) &&
+    trait.chromosomes.length > 0
+  ) {
+    return trait.chromosomes.map(String);
+  }
+
+  // Fall back to gene_info array format
+  if (
+    trait.gene_info?.chromosomes &&
+    Array.isArray(trait.gene_info.chromosomes) &&
+    trait.gene_info.chromosomes.length > 0
+  ) {
+    return trait.gene_info.chromosomes.map(String);
+  }
+
+  // Fall back to legacy single chromosome field
+  if (trait.chromosome !== undefined && trait.chromosome !== null) {
+    return [String(trait.chromosome)];
+  }
+
+  return [];
+};
+
+// Helper function to get trait type styling
+const getTraitTypeStyle = (traitType: string | undefined) => {
+  if (!traitType) return null;
+
+  const styles = {
+    monogenic: {
+      indicator: "bg-blue-500",
+      badge: "bg-blue-100 text-blue-800",
+      label: "Monogenic",
+    },
+    polygenic: {
+      indicator: "bg-violet-500",
+      badge: "bg-violet-100 text-violet-800",
+      label: "Polygenic",
+    },
+    other: {
+      indicator: "bg-orange-500",
+      badge: "bg-orange-100 text-orange-800",
+      label: "Other",
+    },
+  };
+
+  return styles[traitType as keyof typeof styles] || styles.other;
+};
 
 interface TraitsTableProps {
   traits: TraitInfo[];
@@ -25,7 +102,7 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
     direction: "asc",
   });
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 20;
 
   // Filter and sort traits
   const filteredAndSortedTraits = useMemo(() => {
@@ -35,7 +112,9 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
         trait.name.toLowerCase().includes(searchLower) ||
         trait.key.toLowerCase().includes(searchLower) ||
         trait.category?.toLowerCase().includes(searchLower) ||
-        trait.gene_info?.gene?.toLowerCase().includes(searchLower) ||
+        getGenesArray(trait).some((gene) =>
+          gene.toLowerCase().includes(searchLower)
+        ) ||
         trait.gene?.toLowerCase().includes(searchLower) ||
         trait.inheritance_pattern?.toLowerCase().includes(searchLower)
       );
@@ -199,21 +278,22 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
               </th>
               <th className="px-4 py-3 text-left">
                 <button
-                  onClick={() => handleSort("gene")}
+                  onClick={() => handleSort("trait_type")}
                   className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide hover:text-gray-700 cursor-pointer"
                 >
-                  Gene
-                  {getSortIcon("gene")}
+                  Type
+                  {getSortIcon("trait_type")}
                 </button>
               </th>
               <th className="px-4 py-3 text-left">
-                <button
-                  onClick={() => handleSort("chromosome")}
-                  className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide hover:text-gray-700 cursor-pointer"
-                >
-                  Chromosome
-                  {getSortIcon("chromosome")}
-                </button>
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  Genes
+                </span>
+              </th>
+              <th className="px-4 py-3 text-left">
+                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                  Chromosomes
+                </span>
               </th>
               <th className="px-4 py-3 text-left">
                 <button
@@ -249,14 +329,76 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                     <div className="font-medium text-gray-900">
                       {trait.name}
                     </div>
-                    <div className="text-sm text-gray-500">{trait.key}</div>
                   </div>
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700">
-                  {trait.gene_info?.gene || trait.gene || "—"}
+                <td className="px-4 py-3">
+                  {(() => {
+                    const typeStyle = getTraitTypeStyle(trait.trait_type);
+                    if (!typeStyle)
+                      return <span className="text-gray-400">—</span>;
+
+                    return (
+                      <div className="flex items-center space-x-2">
+                        <div
+                          className={`w-3 h-3 rounded-full ${typeStyle.indicator}`}
+                        ></div>
+                        <span
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${typeStyle.badge}`}
+                        >
+                          {typeStyle.label}
+                        </span>
+                      </div>
+                    );
+                  })()}
                 </td>
                 <td className="px-4 py-3 text-sm text-gray-700">
-                  {trait.gene_info?.chromosome || trait.chromosome || "—"}
+                  {(() => {
+                    const genes = getGenesArray(trait);
+                    if (genes.length === 0) return "—";
+                    if (genes.length === 1) return genes[0];
+                    return (
+                      <div className="flex flex-wrap gap-1">
+                        {genes.slice(0, 2).map((gene) => (
+                          <span
+                            key={gene}
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                          >
+                            {gene}
+                          </span>
+                        ))}
+                        {genes.length > 2 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                            +{genes.length - 2} more
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </td>
+                <td className="px-4 py-3 text-sm text-gray-700">
+                  {(() => {
+                    const chromosomes = getChromosomesArray(trait);
+                    if (chromosomes.length === 0) return "—";
+                    if (chromosomes.length === 1)
+                      return `Chr ${chromosomes[0]}`;
+                    return (
+                      <div className="flex flex-wrap gap-1">
+                        {chromosomes.slice(0, 3).map((chr) => (
+                          <span
+                            key={chr}
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+                          >
+                            Chr {chr}
+                          </span>
+                        ))}
+                        {chromosomes.length > 3 && (
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                            +{chromosomes.length - 3} more
+                          </span>
+                        )}
+                      </div>
+                    );
+                  })()}
                 </td>
                 <td className="px-4 py-3">
                   <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
@@ -271,22 +413,10 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                 <td className="px-4 py-3 text-center">
                   <button
                     onClick={() => onTraitClick(trait)}
-                    className="inline-flex items-center px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
                   >
-                    <svg
-                      className="w-4 h-4 mr-1"
-                      fill="none"
-                      stroke="currentColor"
-                      viewBox="0 0 24 24"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth={2}
-                        d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
-                      />
-                    </svg>
-                    Learn More
+                    <SparklesIcon className="w-4 h-4" />
+                    <p className="font-medium">Ask AI</p>
                   </button>
                 </td>
               </tr>

@@ -1,8 +1,9 @@
 [
   {
     "trait": "ABO Blood Group",
-    "gene": "ABO",
-    "chromosome": 9,
+    "gene": ["ABO"],
+    "chromosome": [9],
+    "type": "monogenic",
     "inheritance": "codominant",
     "alleles": ["A", "B", "O"],
     "phenotypes": {
@@ -16,8 +17,9 @@
   },
   {
     "trait": "Rh Factor",
-    "gene": "RHD",
-    "chromosome": 1,
+    "gene": ["RHD"],
+    "chromosome": [1],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["Rh+", "Rh-"],
     "phenotypes": {
@@ -28,8 +30,9 @@
   },
   {
     "trait": "Sickle-Cell Anemia",
-    "gene": "HBB",
-    "chromosome": 11,
+    "gene": ["HBB"],
+    "chromosome": [11],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["H", "S"],
     "phenotypes": {
@@ -40,8 +43,9 @@
   },
   {
     "trait": "Cystic Fibrosis",
-    "gene": "CFTR",
-    "chromosome": 7,
+    "gene": ["CFTR"],
+    "chromosome": [7],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["C", "c"],
     "phenotypes": {
@@ -52,8 +56,9 @@
   },
   {
     "trait": "Huntington's Disease",
-    "gene": "HTT",
-    "chromosome": 4,
+    "gene": ["HTT"],
+    "chromosome": [4],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["H", "h"],
     "phenotypes": {
@@ -64,8 +69,9 @@
   },
   {
     "trait": "Phenylketonuria",
-    "gene": "PAH",
-    "chromosome": 12,
+    "gene": ["PAH"],
+    "chromosome": [12],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["P", "p"],
     "phenotypes": {
@@ -76,8 +82,9 @@
   },
   {
     "trait": "Tay-Sachs Disease",
-    "gene": "HEXA",
-    "chromosome": 15,
+    "gene": ["HEXA"],
+    "chromosome": [15],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["T", "t"],
     "phenotypes": {
@@ -88,8 +95,9 @@
   },
   {
     "trait": "Hemophilia A",
-    "gene": "F8",
-    "chromosome": "X",
+    "gene": ["F8"],
+    "chromosome": ["X"],
+    "type": "monogenic",
     "inheritance": "X-linked recessive",
     "alleles": ["H", "h"],
     "phenotypes": {
@@ -100,8 +108,9 @@
   },
   {
     "trait": "Red-Green Color Blindness",
-    "gene": "OPN1LW",
-    "chromosome": "X",
+    "gene": ["OPN1LW"],
+    "chromosome": ["X"],
+    "type": "monogenic",
     "inheritance": "X-linked recessive",
     "alleles": ["N", "c"],
     "phenotypes": {
@@ -112,8 +121,9 @@
   },
   {
     "trait": "Achondroplasia",
-    "gene": "FGFR3",
-    "chromosome": 4,
+    "gene": ["FGFR3"],
+    "chromosome": [4],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["A", "a"],
     "phenotypes": {
@@ -124,8 +134,9 @@
   },
   {
     "trait": "Marfan Syndrome",
-    "gene": "FBN1",
-    "chromosome": 15,
+    "gene": ["FBN1"],
+    "chromosome": [15],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["M", "m"],
     "phenotypes": {
@@ -136,8 +147,9 @@
   },
   {
     "trait": "PTC Tasting",
-    "gene": "TAS2R38",
-    "chromosome": 7,
+    "gene": ["TAS2R38"],
+    "chromosome": [7],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["T", "t"],
     "phenotypes": {
@@ -148,8 +160,9 @@
   },
   {
     "trait": "Lactose Intolerance",
-    "gene": "LCT",
-    "chromosome": 2,
+    "gene": ["LCT"],
+    "chromosome": [2],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["L", "l"],
     "phenotypes": {
@@ -160,8 +173,9 @@
   },
   {
     "trait": "Red Hair",
-    "gene": "MC1R",
-    "chromosome": 16,
+    "gene": ["MC1R"],
+    "chromosome": [16],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["R", "r"],
     "phenotypes": {
@@ -172,46 +186,54 @@
   },
   {
     "trait": "Hair Color",
+    "gene": [
+      "MC1R",
+      "OCA2",
+      "HERC2",
+      "SLC24A4",
+      "SLC45A2",
+      "TYR",
+      "ASIP",
+      "KITLG"
+    ],
+    "chromosome": [16, 15, 15, 14, 5, 11, 20, 12],
+    "type": "polygenic",
     "inheritance": "dominant",
     "alleles": ["H", "h"],
-    "phenotypes": {
-      "HH": "Brown",
-      "Hh": "Brown",
-      "hh": "Blonde"
-    }
+    "phenotypes": { "HH": "Brown", "Hh": "Brown", "hh": "Blonde" }
   },
   {
     "trait": "Eye Color (Brown Dominant)",
+    "gene": ["HERC2", "OCA2", "SLC24A4", "SLC45A2", "TYR"],
+    "chromosome": [15, 15, 14, 5, 11],
+    "type": "polygenic",
     "inheritance": "autosomal_dominant",
     "alleles": ["B", "b"],
-    "phenotypes": {
-      "BB": "Brown",
-      "Bb": "Brown",
-      "bb": "Blue"
-    }
+    "phenotypes": { "BB": "Brown", "Bb": "Brown", "bb": "Blue" }
   },
   {
     "trait": "Hair Color (Dark Dominant)",
+    "gene": ["MC1R", "OCA2", "HERC2", "SLC24A4", "SLC45A2", "TYR"],
+    "chromosome": [16, 15, 15, 14, 5, 11],
+    "type": "polygenic",
     "inheritance": "autosomal_dominant",
     "alleles": ["H", "h"],
-    "phenotypes": {
-      "HH": "Dark",
-      "Hh": "Dark",
-      "hh": "Light"
-    }
+    "phenotypes": { "HH": "Dark", "Hh": "Dark", "hh": "Light" }
   },
   {
     "trait": "Hair Texture",
+    "gene": ["TCHH", "EDAR", "PRSS53"],
+    "chromosome": [1, 2, 16],
+    "type": "polygenic",
     "inheritance": "autosomal_dominant",
     "alleles": ["C", "c"],
-    "phenotypes": {
-      "CC": "Curly",
-      "Cc": "Curly",
-      "cc": "Straight"
-    }
+    "phenotypes": { "CC": "Curly", "Cc": "Curly", "cc": "Straight" }
   },
   {
     "trait": "Albinism",
+    "gene": ["TYR", "OCA2", "TYRP1", "SLC45A2", "SLC24A5", "DCT"],
+    "chromosome": [11, 15, 9, 5, 15, 13],
+    "type": "polygenic",
     "inheritance": "autosomal_recessive",
     "alleles": ["A", "a"],
     "phenotypes": {
@@ -222,46 +244,18 @@
   },
   {
     "trait": "Freckles",
+    "gene": ["MC1R", "BNC2", "IRF4", "OCA2/HERC2"],
+    "chromosome": [16, 9, 6, 15],
+    "type": "polygenic",
     "inheritance": "autosomal_dominant",
     "alleles": ["F", "f"],
-    "phenotypes": {
-      "FF": "Freckles",
-      "Ff": "Freckles",
-      "ff": "No freckles"
-    }
-  },
-  {
-    "trait": "Dimples",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["D", "d"],
-    "phenotypes": {
-      "DD": "Dimples",
-      "Dd": "Dimples",
-      "dd": "No dimples"
-    }
-  },
-  {
-    "trait": "Cleft Chin",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["C", "c"],
-    "phenotypes": {
-      "CC": "Cleft chin",
-      "Cc": "Cleft chin",
-      "cc": "Smooth chin"
-    }
-  },
-  {
-    "trait": "Forehead Shape",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["W", "w"],
-    "phenotypes": {
-      "WW": "Widow's peak",
-      "Ww": "Widow's peak",
-      "ww": "Straight hairline"
-    }
+    "phenotypes": { "FF": "Freckles", "Ff": "Freckles", "ff": "No freckles" }
   },
   {
     "trait": "Unibrow",
+    "gene": ["PAX3"],
+    "chromosome": [2],
+    "type": "monogenic",
     "inheritance": "autosomal_dominant",
     "alleles": ["U", "u"],
     "phenotypes": {
@@ -271,79 +265,10 @@
     }
   },
   {
-    "trait": "Earlobe Attachment",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["E", "e"],
-    "phenotypes": {
-      "EE": "Free earlobes",
-      "Ee": "Free earlobes",
-      "ee": "Attached earlobes"
-    }
-  },
-  {
-    "trait": "Darwin's Tubercle",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["T", "t"],
-    "phenotypes": {
-      "TT": "Tubercle present",
-      "Tt": "Tubercle present",
-      "tt": "Tubercle absent"
-    }
-  },
-  {
-    "trait": "Tongue Rolling",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["R", "r"],
-    "phenotypes": {
-      "RR": "Can roll tongue",
-      "Rr": "Can roll tongue",
-      "rr": "Cannot roll tongue"
-    }
-  },
-  {
-    "trait": "Hitchhiker's Thumb",
-    "inheritance": "autosomal_recessive",
-    "alleles": ["H", "h"],
-    "phenotypes": {
-      "HH": "Straight thumb",
-      "Hh": "Straight thumb",
-      "hh": "Hitchhiker's thumb"
-    }
-  },
-  {
-    "trait": "Mid-Digital Hair",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["M", "m"],
-    "phenotypes": {
-      "MM": "Hair present",
-      "Mm": "Hair present",
-      "mm": "Hair absent"
-    }
-  },
-  {
-    "trait": "Bent Little Finger",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["B", "b"],
-    "phenotypes": {
-      "BB": "Bent finger",
-      "Bb": "Bent finger",
-      "bb": "Straight finger"
-    }
-  },
-  {
-    "trait": "Interlocking Fingers Habit",
-    "inheritance": "autosomal",
-    "alleles": ["L", "R"],
-    "phenotypes": {
-      "LL": "Left thumb on top",
-      "LR": "Variable",
-      "RR": "Right thumb on top"
-    }
-  },
-  {
     "trait": "Neurofibromatosis Type 1",
-    "gene": "NF1",
-    "chromosome": 17,
+    "gene": ["NF1"],
+    "chromosome": [17],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["N", "n"],
     "phenotypes": {
@@ -354,8 +279,9 @@
   },
   {
     "trait": "Osteogenesis Imperfecta (Type I)",
-    "gene": "COL1A1",
-    "chromosome": 17,
+    "gene": ["COL1A1"],
+    "chromosome": [17],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["O", "o"],
     "phenotypes": {
@@ -366,8 +292,9 @@
   },
   {
     "trait": "Familial Hypercholesterolemia",
-    "gene": "LDLR",
-    "chromosome": 19,
+    "gene": ["LDLR"],
+    "chromosome": [19],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["H", "h"],
     "phenotypes": {
@@ -378,8 +305,9 @@
   },
   {
     "trait": "Hereditary Hemochromatosis",
-    "gene": "HFE",
-    "chromosome": 6,
+    "gene": ["HFE"],
+    "chromosome": [6],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["H", "h"],
     "phenotypes": {
@@ -390,8 +318,9 @@
   },
   {
     "trait": "Alpha-1 Antitrypsin Deficiency",
-    "gene": "SERPINA1",
-    "chromosome": 14,
+    "gene": ["SERPINA1"],
+    "chromosome": [14],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["A", "a"],
     "phenotypes": {
@@ -402,8 +331,9 @@
   },
   {
     "trait": "Maple Syrup Urine Disease (Classic)",
-    "gene": "BCKDHA",
-    "chromosome": 19,
+    "gene": ["BCKDHA"],
+    "chromosome": [19],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["M", "m"],
     "phenotypes": {
@@ -414,8 +344,9 @@
   },
   {
     "trait": "Wilson Disease",
-    "gene": "ATP7B",
-    "chromosome": 13,
+    "gene": ["ATP7B"],
+    "chromosome": [13],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["W", "w"],
     "phenotypes": {
@@ -426,8 +357,9 @@
   },
   {
     "trait": "Congenital Hypothyroidism (TPO-related)",
-    "gene": "TPO",
-    "chromosome": 2,
+    "gene": ["TPO"],
+    "chromosome": [2],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["T", "t"],
     "phenotypes": {
@@ -438,20 +370,18 @@
   },
   {
     "trait": "Autosomal Dominant Polycystic Kidney Disease",
-    "gene": "PKD1",
-    "chromosome": 16,
+    "gene": ["PKD1"],
+    "chromosome": [16],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["K", "k"],
-    "phenotypes": {
-      "KK": "ADPKD",
-      "Kk": "ADPKD",
-      "kk": "Unaffected"
-    }
+    "phenotypes": { "KK": "ADPKD", "Kk": "ADPKD", "kk": "Unaffected" }
   },
   {
     "trait": "Retinoblastoma Predisposition",
-    "gene": "RB1",
-    "chromosome": 13,
+    "gene": ["RB1"],
+    "chromosome": [13],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["R", "r"],
     "phenotypes": {
@@ -462,8 +392,9 @@
   },
   {
     "trait": "Li-Fraumeni Syndrome",
-    "gene": "TP53",
-    "chromosome": 17,
+    "gene": ["TP53"],
+    "chromosome": [17],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["P", "p"],
     "phenotypes": {
@@ -474,8 +405,9 @@
   },
   {
     "trait": "Hemophilia B",
-    "gene": "F9",
-    "chromosome": "X",
+    "gene": ["F9"],
+    "chromosome": ["X"],
+    "type": "monogenic",
     "inheritance": "X-linked recessive",
     "alleles": ["H", "h"],
     "phenotypes": {
@@ -486,8 +418,9 @@
   },
   {
     "trait": "G6PD Deficiency",
-    "gene": "G6PD",
-    "chromosome": "X",
+    "gene": ["G6PD"],
+    "chromosome": ["X"],
+    "type": "monogenic",
     "inheritance": "X-linked recessive",
     "alleles": ["G", "g"],
     "phenotypes": {
@@ -498,8 +431,9 @@
   },
   {
     "trait": "Duchenne Muscular Dystrophy",
-    "gene": "DMD",
-    "chromosome": "X",
+    "gene": ["DMD"],
+    "chromosome": ["X"],
+    "type": "monogenic",
     "inheritance": "X-linked recessive",
     "alleles": ["D", "d"],
     "phenotypes": {
@@ -510,8 +444,9 @@
   },
   {
     "trait": "Beta-Thalassemia",
-    "gene": "HBB",
-    "chromosome": 11,
+    "gene": ["HBB"],
+    "chromosome": [11],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["B", "b"],
     "phenotypes": {
@@ -522,8 +457,9 @@
   },
   {
     "trait": "Oculocutaneous Albinism Type 1",
-    "gene": "TYR",
-    "chromosome": 11,
+    "gene": ["TYR"],
+    "chromosome": [11],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["Y", "y"],
     "phenotypes": {
@@ -534,8 +470,9 @@
   },
   {
     "trait": "Hereditary Breast/Ovarian Cancer Predisposition",
-    "gene": "BRCA1",
-    "chromosome": 17,
+    "gene": ["BRCA1", "BRCA2"],
+    "chromosome": [17, 13],
+    "type": "polygenic",
     "inheritance": "dominant",
     "alleles": ["B", "b"],
     "phenotypes": {
@@ -546,8 +483,9 @@
   },
   {
     "trait": "Postaxial Polydactyly (Simplified)",
-    "gene": "GLI3",
-    "chromosome": 7,
+    "gene": ["GLI3"],
+    "chromosome": [7],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["P", "p"],
     "phenotypes": {
@@ -558,8 +496,9 @@
   },
   {
     "trait": "Waardenburg Syndrome Type 1",
-    "gene": "PAX3",
-    "chromosome": 2,
+    "gene": ["PAX3"],
+    "chromosome": [2],
+    "type": "monogenic",
     "inheritance": "dominant",
     "alleles": ["W", "w"],
     "phenotypes": {
@@ -570,114 +509,15 @@
   },
   {
     "trait": "Gilbert Syndrome",
-    "gene": "UGT1A1",
-    "chromosome": 2,
+    "gene": ["UGT1A1"],
+    "chromosome": [2],
+    "type": "monogenic",
     "inheritance": "recessive",
     "alleles": ["U", "u"],
     "phenotypes": {
       "UU": "Unaffected",
       "Uu": "Carrier (often mild bilirubin elevation)",
       "uu": "Gilbert Syndrome"
-    }
-  },
-  {
-    "trait": "Widow's Peak",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["W", "w"],
-    "phenotypes": {
-      "WW": "Widow's peak",
-      "Ww": "Widow's peak",
-      "ww": "Straight hairline"
-    }
-  },
-  {
-    "trait": "Attached Earlobes",
-    "inheritance": "autosomal_recessive",
-    "alleles": ["E", "e"],
-    "phenotypes": {
-      "EE": "Free earlobes",
-      "Ee": "Free earlobes",
-      "ee": "Attached earlobes"
-    }
-  },
-  {
-    "trait": "Tongue Rolling Ability",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["R", "r"],
-    "phenotypes": {
-      "RR": "Can roll tongue",
-      "Rr": "Can roll tongue",
-      "rr": "Cannot roll tongue"
-    }
-  },
-  {
-    "trait": "Hitchhiker's Thumb",
-    "inheritance": "autosomal_recessive",
-    "alleles": ["H", "h"],
-    "phenotypes": {
-      "HH": "Straight thumb",
-      "Hh": "Straight thumb",
-      "hh": "Hitchhiker's thumb"
-    }
-  },
-  {
-    "trait": "Bent Little Finger",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["B", "b"],
-    "phenotypes": {
-      "BB": "Bent finger",
-      "Bb": "Bent finger",
-      "bb": "Straight finger"
-    }
-  },
-  {
-    "trait": "Mid-Digital Hair",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["M", "m"],
-    "phenotypes": {
-      "MM": "Hair present",
-      "Mm": "Hair present",
-      "mm": "Hair absent"
-    }
-  },
-  {
-    "trait": "Cleft Chin",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["C", "c"],
-    "phenotypes": {
-      "CC": "Cleft chin",
-      "Cc": "Cleft chin",
-      "cc": "Smooth chin"
-    }
-  },
-  {
-    "trait": "Darwin's Tubercle",
-    "inheritance": "autosomal_dominant",
-    "alleles": ["D", "d"],
-    "phenotypes": {
-      "DD": "Tubercle present",
-      "Dd": "Tubercle present",
-      "dd": "Tubercle absent"
-    }
-  },
-  {
-    "trait": "Hand Clasping Preference",
-    "inheritance": "autosomal",
-    "alleles": ["L", "R"],
-    "phenotypes": {
-      "LL": "Left thumb on top",
-      "LR": "Variable",
-      "RR": "Right thumb on top"
-    }
-  },
-  {
-    "trait": "Hair Whorl Direction",
-    "inheritance": "autosomal",
-    "alleles": ["C", "A"],
-    "phenotypes": {
-      "CC": "Clockwise",
-      "CA": "Clockwise",
-      "AA": "Counter-clockwise"
     }
   }
 ]

@@ -27,9 +27,7 @@ const BrowseTraitsPage: React.FC = () => {
       // Filter to only show traits from the dataset (system-provided traits)
       const datasetTraits = publicTraits.filter(
         (trait: TraitInfo) =>
-          trait.owner_id === "system" ||
-          trait.created_by === "system" ||
-          trait.verification_status === "verified"
+          trait.owner_id === "system" || trait.created_by === "system"
       );
 
       setTraits(datasetTraits);

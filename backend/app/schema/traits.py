@@ -24,9 +24,13 @@ class TraitVisibility(str, Enum):
 class GeneInfo(BaseModel):
     """Gene information for traits."""
 
-    gene: str
-    chromosome: str
+    genes: Optional[List[str]] = Field(default_factory=list)
+    chromosomes: Optional[List[str]] = Field(default_factory=list)
     locus: Optional[str] = None
+
+    # Legacy fields for backward compatibility
+    gene: Optional[str] = None
+    chromosome: Optional[str] = None
 
 
 class ValidationRules(BaseModel):
@@ -55,15 +59,22 @@ class TraitInfo(BaseModel):
     references: List[str] = Field(default_factory=list)
     version: str = "1.0.0"
     status: TraitStatus = TraitStatus.DRAFT
-    owner_id: str
-    visibility: TraitVisibility = TraitVisibility.PRIVATE
+    owner_id: Optional[str] = None  # Optional for JSON-loaded traits
+    visibility: TraitVisibility = (
+        TraitVisibility.PUBLIC
+    )  # JSON traits are public by default
     tags: List[str] = Field(default_factory=list)
     validation_rules: ValidationRules = Field(default_factory=ValidationRules)
     test_case_seed: Optional[str] = None
-    created_at: datetime
-    updated_at: datetime
-    created_by: str
-    updated_by: str
+    created_at: Optional[datetime] = None  # Optional for JSON-loaded traits
+    updated_at: Optional[datetime] = None  # Optional for JSON-loaded traits
+    created_by: Optional[str] = None  # Optional for JSON-loaded traits
+    updated_by: Optional[str] = None  # Optional for JSON-loaded traits
+
+    # New fields for updated dataset format
+    genes: Optional[List[str]] = Field(default_factory=list)
+    chromosomes: Optional[List[str]] = Field(default_factory=list)
+    trait_type: Optional[str] = None  # "monogenic" or "polygenic"
 
     # Legacy fields for backward compatibility
     description: Optional[str] = None

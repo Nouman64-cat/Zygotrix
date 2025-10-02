@@ -1,4 +1,6 @@
 import React, { useState } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import {
   BeakerIcon,
   DocumentPlusIcon,
@@ -6,12 +8,32 @@ import {
 } from "@heroicons/react/24/outline";
 import { GiFemale } from "react-icons/gi";
 import { IoMale } from "react-icons/io5";
+import { HiSparkles } from "react-icons/hi2";
 import GenotypicRatios from "../dashboard/GenotypicRatios";
 import PhenotypicRatios from "../dashboard/PhenotypicRatios";
 import { getAboGenotypeMap } from "../dashboard/helpers";
 import HowTheseResultsButton from "./HowTheseResultsButton";
 import PunnettSquareModal from "./PunnettSquareModal";
 import { explainSimulationResults } from "../../services/gemini.api";
+
+// Markdown components for styling
+const markdownComponents = {
+  p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
+    <p className="mb-2 text-gray-700" {...props}>
+      {children}
+    </p>
+  ),
+  strong: ({ children, ...props }: React.HTMLAttributes<HTMLElement>) => (
+    <strong className="font-semibold text-gray-900" {...props}>
+      {children}
+    </strong>
+  ),
+  em: ({ children, ...props }: React.HTMLAttributes<HTMLElement>) => (
+    <em className="italic text-gray-700" {...props}>
+      {children}
+    </em>
+  ),
+};
 
 interface SimulationResultsModalProps {
   open: boolean;
@@ -36,8 +58,27 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
   const [aiExplanation, setAiExplanation] = useState<Record<string, string>>(
     {}
   );
+  const [aiExplanationCache, setAiExplanationCache] = useState<
+    Record<string, string>
+  >({});
   const [loadingAi, setLoadingAi] = useState<Record<string, boolean>>({});
   const [aiError, setAiError] = useState<Record<string, string>>({});
+  const [showAiExplanation, setShowAiExplanation] = useState<
+    Record<string, boolean>
+  >({});
+
+  // Create a unique cache key for memoization
+  const createCacheKey = (
+    traitKey: string,
+    selectedTrait: any,
+    result: any
+  ) => {
+    const parent1 = selectedTrait?.parent1Genotype || "";
+    const parent2 = selectedTrait?.parent2Genotype || "";
+    const genotypicRatios = JSON.stringify(result.genotypic_ratios);
+    const phenotypicRatios = JSON.stringify(result.phenotypic_ratios);
+    return `${traitKey}-${parent1}-${parent2}-${genotypicRatios}-${phenotypicRatios}`;
+  };
 
   const handleAskAI = async (
     traitKey: string,
@@ -45,6 +86,18 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
     selectedTrait: any,
     trait: any
   ) => {
+    const cacheKey = createCacheKey(traitKey, selectedTrait, result);
+
+    // Check if we already have this explanation cached
+    if (aiExplanationCache[cacheKey]) {
+      setAiExplanation((prev) => ({
+        ...prev,
+        [traitKey]: aiExplanationCache[cacheKey],
+      }));
+      setShowAiExplanation((prev) => ({ ...prev, [traitKey]: true }));
+      return;
+    }
+
     setLoadingAi((prev) => ({ ...prev, [traitKey]: true }));
     setAiError((prev) => ({ ...prev, [traitKey]: "" }));
 
@@ -57,7 +110,10 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
         result.phenotypic_ratios
       );
 
+      // Cache the explanation and show it
+      setAiExplanationCache((prev) => ({ ...prev, [cacheKey]: explanation }));
       setAiExplanation((prev) => ({ ...prev, [traitKey]: explanation }));
+      setShowAiExplanation((prev) => ({ ...prev, [traitKey]: true }));
     } catch (error) {
       setAiError((prev) => ({
         ...prev,
@@ -66,9 +122,19 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
             ? error.message
             : "Failed to get AI explanation",
       }));
+      setShowAiExplanation((prev) => ({ ...prev, [traitKey]: true }));
     } finally {
       setLoadingAi((prev) => ({ ...prev, [traitKey]: false }));
     }
+  };
+
+  const handleCloseAIExplanation = (traitKey: string) => {
+    setShowAiExplanation((prev) => ({ ...prev, [traitKey]: false }));
+    setAiError((prev) => {
+      const newState = { ...prev };
+      delete newState[traitKey];
+      return newState;
+    });
   };
 
   if (!open || !simulationResults) return null;
@@ -197,22 +263,22 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                         phenotypicRatios={result.phenotypic_ratios}
                       />
                     </div>
-                    <div className="flex justify-between items-start mt-4">
+                    <div className="flex justify-end items-center gap-3 mt-4">
                       <button
                         onClick={() =>
                           handleAskAI(traitKey, result, selectedTrait, trait)
                         }
                         disabled={loadingAi[traitKey]}
-                        className="bg-gradient-to-r from-purple-500 to-pink-600 text-white py-2 px-4 rounded-lg font-medium hover:from-purple-600 hover:to-pink-700 transition-all duration-200 flex items-center space-x-2 shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-white border border-blue-200 text-blue-700 py-2 px-4 rounded-lg font-medium hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 flex items-center space-x-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
                       >
                         {loadingAi[traitKey] ? (
                           <>
-                            <div className="animate-spin h-4 w-4 border-2 border-white border-t-transparent rounded-full"></div>
+                            <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
                             <span>Asking AI...</span>
                           </>
                         ) : (
                           <>
-                            <span>🤖</span>
+                            <HiSparkles className="h-4 w-4" />
                             <span>Ask AI</span>
                           </>
                         )}
@@ -223,28 +289,49 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                     </div>
 
                     {/* AI Explanation Display */}
-                    {aiExplanation[traitKey] && (
-                      <div className="mt-4 p-4 bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg border border-purple-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-lg">🤖</span>
-                          <h5 className="font-semibold text-gray-900">
-                            AI Explanation
-                          </h5>
+                    {showAiExplanation[traitKey] && aiExplanation[traitKey] && (
+                      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <HiSparkles className="h-5 w-5 text-blue-600" />
+                            <h5 className="font-semibold text-gray-900">
+                              AI Explanation
+                            </h5>
+                          </div>
+                          <button
+                            onClick={() => handleCloseAIExplanation(traitKey)}
+                            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-white rounded-full transition-colors"
+                          >
+                            <XMarkIcon className="h-4 w-4" />
+                          </button>
                         </div>
-                        <p className="text-sm text-gray-700 leading-relaxed">
-                          {aiExplanation[traitKey]}
-                        </p>
+                        <div className="text-sm leading-relaxed">
+                          <ReactMarkdown
+                            remarkPlugins={[remarkGfm]}
+                            components={markdownComponents}
+                          >
+                            {aiExplanation[traitKey]}
+                          </ReactMarkdown>
+                        </div>
                       </div>
                     )}
 
                     {/* AI Error Display */}
-                    {aiError[traitKey] && (
+                    {showAiExplanation[traitKey] && aiError[traitKey] && (
                       <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
-                        <div className="flex items-center gap-2 mb-2">
-                          <span className="text-lg">⚠️</span>
-                          <h5 className="font-semibold text-red-900">
-                            AI Error
-                          </h5>
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <span className="text-lg">⚠️</span>
+                            <h5 className="font-semibold text-red-900">
+                              AI Error
+                            </h5>
+                          </div>
+                          <button
+                            onClick={() => handleCloseAIExplanation(traitKey)}
+                            className="p-1 text-red-400 hover:text-red-600 hover:bg-white rounded-full transition-colors"
+                          >
+                            <XMarkIcon className="h-4 w-4" />
+                          </button>
                         </div>
                         <p className="text-sm text-red-700">
                           {aiError[traitKey]}

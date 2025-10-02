@@ -257,7 +257,7 @@ const TraitManagementPage: React.FC = () => {
                   {isDevelopment() && (
                     <button
                       onClick={handleCreateTraitWithDummyData}
-                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2"
+                      className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 cursor-pointer"
                       title="Create a new trait with pre-filled dummy data for development"
                     >
                       <svg
@@ -278,7 +278,7 @@ const TraitManagementPage: React.FC = () => {
                   )}
                   <button
                     onClick={handleCreateTrait}
-                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:shadow-lg gap-2"
+                    className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-lg shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-all duration-200 hover:shadow-lg gap-2 cursor-pointer"
                     disabled={loading}
                   >
                     <svg
@@ -310,7 +310,7 @@ const TraitManagementPage: React.FC = () => {
               <button
                 onClick={loadTraits}
                 disabled={loading}
-                className="flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                className="flex items-center space-x-1 text-sm text-gray-500 hover:text-gray-700 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
                 title="Refresh traits"
               >
                 <svg
@@ -346,7 +346,7 @@ const TraitManagementPage: React.FC = () => {
                 <div className="flex bg-white border border-gray-300 rounded-md">
                   <button
                     onClick={() => setViewMode("grid")}
-                    className={`px-3 py-1 text-sm font-medium rounded-l-md transition-colors ${
+                    className={`px-3 py-1 text-sm font-medium rounded-l-md transition-colors cursor-pointer ${
                       viewMode === "grid"
                         ? "bg-blue-100 text-blue-700 border-blue-300"
                         : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -364,7 +364,7 @@ const TraitManagementPage: React.FC = () => {
                   </button>
                   <button
                     onClick={() => setViewMode("list")}
-                    className={`px-3 py-1 text-sm font-medium rounded-r-md transition-colors ${
+                    className={`px-3 py-1 text-sm font-medium rounded-r-md transition-colors cursor-pointer ${
                       viewMode === "list"
                         ? "bg-blue-100 text-blue-700 border-blue-300"
                         : "text-gray-700 hover:text-gray-900 hover:bg-gray-50"
@@ -461,7 +461,7 @@ const TraitManagementPage: React.FC = () => {
           <span className="flex-1">{error}</span>
           <button
             onClick={() => setError(null)}
-            className="ml-2 text-red-200 hover:text-white flex-shrink-0"
+            className="ml-2 text-red-200 hover:text-white flex-shrink-0 cursor-pointer"
             aria-label="Close error message"
           >
             <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
@@ -512,7 +512,7 @@ const TraitManagementPage: React.FC = () => {
               <div className="flex space-x-3 justify-end">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors cursor-pointer"
                   disabled={loading}
                 >
                   Cancel
@@ -520,7 +520,7 @@ const TraitManagementPage: React.FC = () => {
                 <button
                   onClick={confirmDelete}
                   disabled={loading}
-                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-colors flex items-center space-x-2"
+                  className="px-4 py-2 text-sm font-medium text-white bg-red-600 border border-transparent rounded-md hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors flex items-center space-x-2"
                 >
                   {loading && (
                     <svg

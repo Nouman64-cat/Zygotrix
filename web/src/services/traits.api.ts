@@ -27,6 +27,21 @@ export const fetchTraits = async (
 };
 
 /**
+ * Fetch user-owned traits count
+ * - Returns count of traits created by the authenticated user
+ * - Requires authentication
+ */
+export const fetchUserTraitsCount = async (
+  signal?: AbortSignal
+): Promise<number> => {
+  const response = await API.get<TraitListResponse>(API_ROUTES.traits.root, {
+    signal,
+    params: { owned_only: true },
+  });
+  return response.data.traits.length;
+};
+
+/**
  * Get a specific trait by key
  * - Public traits are accessible to everyone
  * - Private traits are only accessible to the owner

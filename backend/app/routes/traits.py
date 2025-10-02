@@ -63,7 +63,9 @@ def list_traits(
     current_user_id = None
     if credentials and credentials.credentials:
         try:
-            current_user = auth_services.resolve_user_from_token(credentials.credentials)
+            current_user = auth_services.resolve_user_from_token(
+                credentials.credentials
+            )
             current_user_id = current_user.get("id")
         except HTTPException:
             # Invalid token, continue as anonymous user
@@ -115,7 +117,9 @@ def create_trait(
     # JSON-only mode: disable writes
     settings = get_settings()
     if settings.traits_json_only:
-        raise HTTPException(status_code=405, detail="Trait creation disabled in JSON-only mode")
+        raise HTTPException(
+            status_code=405, detail="Trait creation disabled in JSON-only mode"
+        )
     # Authenticate user
     if not credentials or not credentials.credentials:
         raise HTTPException(
@@ -148,7 +152,9 @@ def get_trait_by_key(
     current_user_id = None
     if credentials and credentials.credentials:
         try:
-            current_user = auth_services.resolve_user_from_token(credentials.credentials)
+            current_user = auth_services.resolve_user_from_token(
+                credentials.credentials
+            )
             current_user_id = current_user.get("id")
         except HTTPException:
             # Invalid token, continue as anonymous user
@@ -179,7 +185,9 @@ def update_trait(
     # JSON-only mode: disable writes
     settings = get_settings()
     if settings.traits_json_only:
-        raise HTTPException(status_code=405, detail="Trait updates disabled in JSON-only mode")
+        raise HTTPException(
+            status_code=405, detail="Trait updates disabled in JSON-only mode"
+        )
     # Authenticate user
     if not credentials or not credentials.credentials:
         raise HTTPException(
@@ -211,7 +219,9 @@ def delete_trait(
     # JSON-only mode: disable writes
     settings = get_settings()
     if settings.traits_json_only:
-        raise HTTPException(status_code=405, detail="Trait deletion disabled in JSON-only mode")
+        raise HTTPException(
+            status_code=405, detail="Trait deletion disabled in JSON-only mode"
+        )
     # Authenticate user
     if not credentials or not credentials.credentials:
         raise HTTPException(

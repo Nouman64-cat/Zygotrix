@@ -66,7 +66,11 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
             name = trait_data.get("trait")
             alleles = trait_data.get("alleles")
             phenotypes = trait_data.get("phenotypes")
-            if not name or not isinstance(alleles, (list, tuple)) or not isinstance(phenotypes, dict):
+            if (
+                not name
+                or not isinstance(alleles, (list, tuple))
+                or not isinstance(phenotypes, dict)
+            ):
                 raise ValueError("Missing required fields: trait, alleles, phenotypes")
 
             trait_key = str(name).lower().replace(" ", "_").replace("-", "_")
@@ -75,7 +79,11 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
             chromosome_val = trait_data.get("chromosome")
             inheritance = trait_data.get("inheritance")
 
-            is_real_gene = gene is not None and chromosome_val is not None and str(chromosome_val) != ""
+            is_real_gene = (
+                gene is not None
+                and chromosome_val is not None
+                and str(chromosome_val) != ""
+            )
 
             metadata = {
                 "inheritance_pattern": inheritance,
@@ -260,7 +268,9 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
     gene_info = document.get("gene_info")
     # Some legacy docs might have gene_info as a string (gene symbol)
     if isinstance(gene_info, str):
-        gene_info = GeneInfo(gene=gene_info, chromosome=str(document.get("chromosome", "")), locus=None)
+        gene_info = GeneInfo(
+            gene=gene_info, chromosome=str(document.get("chromosome", "")), locus=None
+        )
     elif isinstance(gene_info, dict):
         gene_info = GeneInfo(**gene_info)
     elif gene_info is None and document.get("gene"):
@@ -522,7 +532,9 @@ def create_trait(
         # Retrieve and return created trait
         created_doc = collection.find_one({"_id": result.inserted_id})
         if not created_doc:
-            raise HTTPException(status_code=500, detail="Failed to retrieve created trait")
+            raise HTTPException(
+                status_code=500, detail="Failed to retrieve created trait"
+            )
         return _serialize_trait_document(created_doc)
 
     except DuplicateKeyError:
@@ -549,11 +561,13 @@ def _build_access_control_query(owner_id: Optional[str]) -> Dict[str, Any]:
             ]
         }
     # Anonymous users can see public traits and legacy docs missing visibility
-    return {"$or": [
-        {"visibility": TraitVisibility.PUBLIC.value},
-        {"visibility": {"$exists": False}},
-        {"is_public": True},
-    ]}
+    return {
+        "$or": [
+            {"visibility": TraitVisibility.PUBLIC.value},
+            {"visibility": {"$exists": False}},
+            {"is_public": True},
+        ]
+    }
 
 
 def _apply_basic_filters(query: Dict[str, Any], filters: TraitFilters) -> None:
@@ -624,10 +638,10 @@ def _apply_visibility_filter(
 def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
     """Convert a Trait object from traits_dataset.json to TraitInfo."""
     now = datetime.now(timezone.utc)
-    
+
     # Extract metadata from the trait
     metadata = trait.metadata or {}
-    
+
     # Create gene_info if gene information exists
     gene_info = None
     if metadata.get("gene") and metadata.get("chromosome"):
@@ -635,7 +649,7 @@ def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
             gene=metadata["gene"],
             chromosome=str(metadata["chromosome"]),
         )
-    
+
     return TraitInfo(
         key=key,
         name=trait.name,
@@ -653,7 +667,9 @@ def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
         status=TraitStatus.ACTIVE,
         owner_id="system",  # System-provided traits
         visibility=TraitVisibility.PUBLIC,  # JSON traits are public
-        tags=["genetics", "reference"] if metadata.get("category") == "real_gene" else [],
+        tags=(
+            ["genetics", "reference"] if metadata.get("category") == "real_gene" else []
+        ),
         validation_rules=ValidationRules(passed=True, errors=[]),
         test_case_seed=None,
         created_at=now,
@@ -664,50 +680,60 @@ def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
         description=trait.description,
         metadata=metadata,
         gene=metadata.get("gene"),
-        chromosome=int(metadata["chromosome"]) if metadata.get("chromosome") and str(metadata["chromosome"]).isdigit() else None,
+        chromosome=(
+            int(metadata["chromosome"])
+            if metadata.get("chromosome") and str(metadata["chromosome"]).isdigit()
+            else None
+        ),
     )
 
 
 def _filter_json_traits(filters: TraitFilters) -> List[TraitInfo]:
     """Filter traits from traits_dataset.json based on criteria."""
     json_traits = []
-    
+
     for key, trait in REAL_GENE_TRAITS.items():
         # Convert to TraitInfo
         trait_info = _convert_json_trait_to_trait_info(key, trait)
-        
+
         # Apply filters
-        if filters.inheritance_pattern and trait_info.inheritance_pattern != filters.inheritance_pattern:
+        if (
+            filters.inheritance_pattern
+            and trait_info.inheritance_pattern != filters.inheritance_pattern
+        ):
             continue
-            
-        if filters.verification_status and trait_info.verification_status != filters.verification_status:
+
+        if (
+            filters.verification_status
+            and trait_info.verification_status != filters.verification_status
+        ):
             continue
-            
+
         if filters.category and trait_info.category != filters.category:
             continue
-            
+
         if filters.gene and trait_info.gene_info:
             if filters.gene.lower() not in trait_info.gene_info.gene.lower():
                 continue
-                
+
         if filters.tags and not any(tag in trait_info.tags for tag in filters.tags):
             continue
-            
+
         if filters.status and trait_info.status != filters.status:
             continue
-            
+
         if filters.visibility and trait_info.visibility != filters.visibility:
             continue
-            
+
         # Text search
         if filters.search:
             search_text = filters.search.lower()
             searchable_text = f"{trait_info.name} {trait_info.gene_info.gene if trait_info.gene_info else ''} {trait_info.category or ''} {' '.join(trait_info.tags)}".lower()
             if search_text not in searchable_text:
                 continue
-        
+
         json_traits.append(trait_info)
-    
+
     return json_traits
 
 
@@ -742,7 +768,7 @@ def get_traits(
         elif not owner_id:
             # No authenticated user; nothing to return for owned_only
             return []
-        
+
         # 2. Get traits from database with access control
         try:
             if settings.traits_json_only:
@@ -750,9 +776,11 @@ def get_traits(
                 return all_traits
             collection = get_traits_collection(required=False)
             if collection is None:
-                print("DEBUG: No MongoDB connection available, skipping database traits")
+                print(
+                    "DEBUG: No MongoDB connection available, skipping database traits"
+                )
                 return all_traits
-            
+
             # Build query
             if filters.owned_only and owner_id:
                 # Only current user's traits
@@ -774,9 +802,31 @@ def get_traits(
 
             # Text search
             if filters.search:
-                query["$text"] = {"$search": filters.search}
+                search_term = str(filters.search)
+                # MongoDB $text search ignores very short tokens (e.g., 1-2 letters)
+                # Fallback to case-insensitive regex for short queries so searches like 'W' work.
+                if len(search_term) >= 3:
+                    query["$text"] = {"$search": search_term}
+                else:
+                    regex = {"$regex": search_term, "$options": "i"}
+                    search_conditions = [
+                        {"name": regex},
+                        {"key": regex},
+                        {"tags": regex},
+                        {"gene_info.gene": regex},  # legacy/structured gene field
+                        {"gene": regex},  # legacy gene field
+                    ]
 
-            print(f"DEBUG: MongoDB query: {query}")
+                    # If the query already contains an $or (e.g., access control), combine with $and
+                    if "$or" in query:
+                        query["$and"] = [
+                            {"$or": query["$or"]},
+                            {"$or": search_conditions},
+                        ]
+                        del query["$or"]
+                    else:
+                        query["$or"] = search_conditions
+
             # Execute query
             cursor = collection.find(query).sort("updated_at", -1)
 
@@ -791,9 +841,9 @@ def get_traits(
                     # Log error but continue with other traits
                     print(f"Error serializing trait {doc.get('key', 'unknown')}: {e}")
                     continue
-            
+
             print(f"DEBUG: Added {db_trait_count} traits from database")
-            
+
         except Exception as e:
             print(f"DEBUG: Error accessing database: {e}")
             # Continue without database traits
@@ -995,7 +1045,9 @@ def update_trait(
         # Return updated trait
         updated_doc = collection.find_one({"key": key, "owner_id": owner_id})
         if not updated_doc:
-            raise HTTPException(status_code=500, detail="Failed to retrieve updated trait")
+            raise HTTPException(
+                status_code=500, detail="Failed to retrieve updated trait"
+            )
         return _serialize_trait_document(updated_doc)
 
     except PyMongoError as e:

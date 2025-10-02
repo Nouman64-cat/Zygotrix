@@ -390,18 +390,6 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                         </div>
                       </div>
                     )}
-                    {punnettModalTraitKey === traitKey &&
-                      selectedTrait &&
-                      trait && (
-                        <PunnettSquareModal
-                          open={true}
-                          onClose={() => setPunnettModalTraitKey(null)}
-                          parent1Genotype={selectedTrait.parent1Genotype}
-                          parent2Genotype={selectedTrait.parent2Genotype}
-                          alleles={selectedTrait.alleles}
-                          traitName={trait.name}
-                        />
-                      )}
                   </div>
                 );
               }
@@ -409,6 +397,28 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Independent Punnett Square Modal - Rendered outside main modal */}
+      {punnettModalTraitKey &&
+        (() => {
+          const trait = traits.find((t) => t.key === punnettModalTraitKey);
+          const selectedTrait = selectedTraits.find(
+            (t: any) => t.key === punnettModalTraitKey
+          );
+          if (trait && selectedTrait) {
+            return (
+              <PunnettSquareModal
+                open={true}
+                onClose={() => setPunnettModalTraitKey(null)}
+                parent1Genotype={selectedTrait.parent1Genotype}
+                parent2Genotype={selectedTrait.parent2Genotype}
+                alleles={selectedTrait.alleles}
+                traitName={trait.name}
+              />
+            );
+          }
+          return null;
+        })()}
     </div>
   );
 };

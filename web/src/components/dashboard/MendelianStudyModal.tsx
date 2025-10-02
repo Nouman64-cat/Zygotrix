@@ -64,11 +64,6 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
     trait.name.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  // Number of traits available to add (filtered minus already selected)
-  const availableCount = filteredTraits.filter(
-    (t) => !project.selectedTraits.some((s) => s.key === t.key)
-  ).length;
-
   // Generate possible genotype combinations for a trait
   const getGenotypeOptions = useCallback((alleles: string[]) => {
     if (!alleles || alleles.length === 0) return [];
@@ -494,7 +489,6 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
               <TraitSelector
                 searchTerm={searchTerm}
                 onSearch={(e) => setSearchTerm(e.target.value)}
-                availableCount={availableCount}
                 onAddTrait={addTrait}
                 filteredTraits={filteredTraits}
                 selectedTraits={project.selectedTraits}

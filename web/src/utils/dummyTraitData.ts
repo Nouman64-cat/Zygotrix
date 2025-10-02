@@ -19,8 +19,8 @@ export const generateDummyTraitData = (): TraitCreatePayload => {
       verification_status: "simplified",
       category: "physical_traits",
       gene_info: {
-        gene: "HERC2",
-        chromosome: "15",
+        genes: ["HERC2"],
+        chromosomes: ["15"],
         locus: "15q13.1",
       },
       description:
@@ -44,8 +44,8 @@ export const generateDummyTraitData = (): TraitCreatePayload => {
       verification_status: "experimental",
       category: "physical_traits",
       gene_info: {
-        gene: "TCHH",
-        chromosome: "1",
+        genes: ["TCHH"],
+        chromosomes: ["1"],
         locus: "1q21.3",
       },
       description:
@@ -69,8 +69,8 @@ export const generateDummyTraitData = (): TraitCreatePayload => {
       verification_status: "simplified",
       category: "physical_traits",
       gene_info: {
-        gene: "WIDOWS",
-        chromosome: "2",
+        genes: ["WIDOWS"],
+        chromosomes: ["2"],
         locus: "2p21",
       },
       description:
@@ -93,8 +93,8 @@ export const generateDummyTraitData = (): TraitCreatePayload => {
       verification_status: "verified",
       category: "sensory_traits",
       gene_info: {
-        gene: "TAS2R38",
-        chromosome: "7",
+        genes: ["TAS2R38"],
+        chromosomes: ["7"],
         locus: "7q34",
       },
       description:

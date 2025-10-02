@@ -34,9 +34,9 @@ const TraitDetailModal: React.FC<TraitDetailModalProps> = ({
     setTraitInfo(null);
 
     try {
-      const gene = trait.gene_info?.gene || trait.gene;
+      const gene = trait.gene_info?.genes?.[0] || trait.gene;
       const chromosome =
-        trait.gene_info?.chromosome || trait.chromosome?.toString();
+        trait.gene_info?.chromosomes?.[0] || trait.chromosome?.toString();
 
       const information = await generateTraitInformation(
         trait.name,
@@ -95,8 +95,8 @@ const TraitDetailModal: React.FC<TraitDetailModalProps> = ({
                   {trait?.name || "Trait Information"}
                 </h3>
                 <p className="text-sm text-gray-500">
-                  {trait?.gene_info?.gene || trait?.gene
-                    ? `Gene: ${trait?.gene_info?.gene || trait?.gene}`
+                  {trait?.gene_info?.genes?.[0] || trait?.gene
+                    ? `Gene: ${trait?.gene_info?.genes?.[0] || trait?.gene}`
                     : "Genetic Trait Details"}
                 </p>
               </div>

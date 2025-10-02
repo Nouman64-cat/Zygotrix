@@ -93,7 +93,6 @@ type TraitFilter = "all" | "monogenic" | "polygenic" | "other";
 interface TraitSelectorProps {
   searchTerm: string;
   onSearch: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  availableCount: number;
   onAddTrait: (traitKey: string) => void;
   filteredTraits: Array<{
     key: string;
@@ -115,7 +114,6 @@ interface TraitSelectorProps {
 const TraitSelector: React.FC<TraitSelectorProps> = ({
   searchTerm,
   onSearch,
-  availableCount,
   onAddTrait,
   filteredTraits,
   selectedTraits,

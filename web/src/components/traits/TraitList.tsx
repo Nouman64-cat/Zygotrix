@@ -195,12 +195,12 @@ const TraitListComponent: React.FC<TraitListProps> = ({
                   <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
                 <span className="text-gray-700 truncate">
-                  {trait.gene_info?.gene || "Unknown"}
+                  {trait.gene_info?.genes?.[0] || "Unknown"}
                 </span>
               </div>
-              {trait.gene_info?.chromosome && (
+              {trait.gene_info?.chromosomes?.[0] && (
                 <span className="text-gray-500 bg-blue-100 px-1.5 py-0.5 rounded text-xs">
-                  Chr{trait.gene_info.chromosome}
+                  Chr{trait.gene_info.chromosomes[0]}
                 </span>
               )}
             </div>
@@ -403,12 +403,12 @@ const TraitListComponent: React.FC<TraitListProps> = ({
                         <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                       </svg>
                       <span className="text-sm font-medium text-gray-900">
-                        {trait.gene_info?.gene || "Unknown"}
+                        {trait.gene_info?.genes?.[0] || "Unknown"}
                       </span>
                     </div>
-                    {trait.gene_info?.chromosome && (
+                    {trait.gene_info?.chromosomes?.[0] && (
                       <div className="text-xs text-gray-600 bg-blue-100 px-2 py-0.5 rounded-full inline-block">
-                        Chromosome {trait.gene_info.chromosome}
+                        Chromosome {trait.gene_info.chromosomes[0]}
                       </div>
                     )}
                     <div className="text-xs text-gray-500">

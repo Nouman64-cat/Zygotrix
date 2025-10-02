@@ -32,8 +32,8 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
     category: "physical_traits",
     inheritance_pattern: "autosomal_dominant",
     gene_info: {
-      gene: "",
-      chromosome: "",
+      genes: [""],
+      chromosomes: [""],
       locus: "",
     },
     verification_status: "experimental",
@@ -87,8 +87,8 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
         inheritance_pattern:
           dummyData.inheritance_pattern || "autosomal_dominant",
         gene_info: dummyData.gene_info || {
-          gene: "",
-          chromosome: "",
+          genes: [""],
+          chromosomes: [""],
           locus: "",
         },
         verification_status: dummyData.verification_status || "experimental",
@@ -118,8 +118,8 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
         category: "physical_traits",
         inheritance_pattern: "autosomal_dominant",
         gene_info: {
-          gene: "",
-          chromosome: "",
+          genes: [""],
+          chromosomes: [""],
           locus: "",
         },
         verification_status: "experimental",
@@ -185,8 +185,8 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
       newErrors.name = "Trait name is required";
     }
 
-    if (!formData.gene_info?.gene?.trim()) {
-      newErrors["gene_info.gene"] = "Gene name is required";
+    if (!formData.gene_info?.genes?.[0]?.trim()) {
+      newErrors["gene_info.genes"] = "Gene name is required";
     }
 
     // Validate phenotype entries
@@ -224,16 +224,43 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
     }));
   };
 
-  const handleGeneInfoChange = (field: keyof GeneInfo, value: string) => {
-    setFormData((prev) => ({
-      ...prev,
-      gene_info: {
-        gene: prev.gene_info?.gene || "",
-        chromosome: prev.gene_info?.chromosome || "",
-        locus: prev.gene_info?.locus || "",
-        [field]: value,
-      },
-    }));
+  const handleGeneInfoChange = (
+    field: keyof GeneInfo | "gene" | "chromosome",
+    value: string
+  ) => {
+    setFormData((prev) => {
+      const currentGeneInfo = prev.gene_info || {
+        genes: [],
+        chromosomes: [],
+        locus: "",
+      };
+
+      if (field === "gene") {
+        // Handle legacy single gene field by updating the first element of genes array
+        const newGenes = [...currentGeneInfo.genes];
+        if (newGenes.length === 0) newGenes.push(value);
+        else newGenes[0] = value;
+        return {
+          ...prev,
+          gene_info: { ...currentGeneInfo, genes: newGenes },
+        };
+      } else if (field === "chromosome") {
+        // Handle legacy single chromosome field by updating the first element of chromosomes array
+        const newChromosomes = [...currentGeneInfo.chromosomes];
+        if (newChromosomes.length === 0) newChromosomes.push(value);
+        else newChromosomes[0] = value;
+        return {
+          ...prev,
+          gene_info: { ...currentGeneInfo, chromosomes: newChromosomes },
+        };
+      } else {
+        // Handle regular GeneInfo fields
+        return {
+          ...prev,
+          gene_info: { ...currentGeneInfo, [field]: value },
+        };
+      }
+    });
   };
 
   const handlePhenotypeEntryChange = (
@@ -573,7 +600,7 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
                           ? "border-red-300 focus:ring-red-500 focus:border-red-500"
                           : "border-gray-300 focus:ring-blue-500 focus:border-blue-500"
                       } focus:outline-none focus:ring-1`}
-                      value={formData.gene_info?.gene || ""}
+                      value={formData.gene_info?.genes?.[0] || ""}
                       onChange={(e) =>
                         handleGeneInfoChange("gene", e.target.value)
                       }
@@ -597,7 +624,7 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
                       id="chromosome"
                       type="text"
                       className="block w-full px-2 py-1.5 border border-gray-300 rounded text-sm focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
-                      value={formData.gene_info?.chromosome || ""}
+                      value={formData.gene_info?.chromosomes?.[0] || ""}
                       onChange={(e) =>
                         handleGeneInfoChange("chromosome", e.target.value)
                       }

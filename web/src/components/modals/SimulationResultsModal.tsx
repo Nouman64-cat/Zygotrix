@@ -162,7 +162,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
           <div className="flex items-center space-x-3">
             <button
               onClick={onAddToCanvas}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 flex items-center space-x-2 shadow-lg"
+              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 flex items-center space-x-2 shadow-lg cursor-pointer"
             >
               <DocumentPlusIcon className="h-5 w-5" />
               <span>Add to Canvas</span>
@@ -269,7 +269,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                           handleAskAI(traitKey, result, selectedTrait, trait)
                         }
                         disabled={loadingAi[traitKey]}
-                        className="bg-white border border-blue-200 text-blue-700 py-2 px-4 rounded-lg font-medium hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 flex items-center space-x-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="bg-white border border-blue-200 text-blue-700 py-2 px-4 rounded-lg font-medium hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 flex items-center space-x-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                       >
                         {loadingAi[traitKey] ? (
                           <>
@@ -300,7 +300,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                           </div>
                           <button
                             onClick={() => handleCloseAIExplanation(traitKey)}
-                            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-white rounded-full transition-colors"
+                            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-white rounded-full transition-colors cursor-pointer"
                           >
                             <XMarkIcon className="h-4 w-4" />
                           </button>
@@ -328,7 +328,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                           </div>
                           <button
                             onClick={() => handleCloseAIExplanation(traitKey)}
-                            className="p-1 text-red-400 hover:text-red-600 hover:bg-white rounded-full transition-colors"
+                            className="p-1 text-red-400 hover:text-red-600 hover:bg-white rounded-full transition-colors cursor-pointer"
                           >
                             <XMarkIcon className="h-4 w-4" />
                           </button>

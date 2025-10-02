@@ -16,7 +16,11 @@ const SelectedTraitHeader: React.FC<SelectedTraitHeaderProps> = ({
         </div>
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
-            <h4 className="font-bold text-gray-900 text-base">
+            <h4
+              className="font-bold text-gray-900 text-base truncate"
+              style={{ maxWidth: "220px", display: "inline-block" }}
+              title={selectedTrait.name}
+            >
               {selectedTrait.name}
             </h4>
             {traitInfo?.gene && traitInfo?.chromosome && (

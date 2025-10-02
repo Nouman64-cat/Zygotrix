@@ -18,9 +18,11 @@ const ParentGenotypeSelect: React.FC<ParentGenotypeSelectProps> = ({
   <select
     value={value}
     onChange={onChange}
-    className="w-full rounded-lg border-2 border-gray-200 focus:border-purple-400 focus:ring-2 cursor-pointer focus:ring-purple-200 bg-white py-4 px-1 text-gray-700 font-semibold shadow-sm transition-all duration-200"
+    className="w-full rounded-lg border-2 border-gray-200 focus:border-purple-400 focus:ring-2 cursor-pointer focus:ring-purple-200 bg-white py-3 px-1 text-gray-700 font-semibold shadow-sm transition-all duration-200 text-xs"
   >
-    <option value="">Select genotype</option>
+    <option value="" className="text-xs">
+      Select genotype
+    </option>
     {options.map((opt) => {
       // Detect ABO trait by genotype format
       let displayOpt = opt;
@@ -44,7 +46,7 @@ const ParentGenotypeSelect: React.FC<ParentGenotypeSelectProps> = ({
           aboMap[opt] || aboMap[opt.split("").sort().join("")] || opt;
       }
       return (
-        <option key={opt} value={opt}>
+        <option key={opt} value={opt} className="text-xs">
           {displayOpt}
           {displayPheno ? ` → ${displayPheno}` : ""}
         </option>

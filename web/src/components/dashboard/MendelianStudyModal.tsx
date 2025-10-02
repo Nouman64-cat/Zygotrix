@@ -1,4 +1,3 @@
-import GenotypeStatus from "./GenotypeStatus";
 import React, { useState, useCallback, useEffect } from "react";
 import {
   XMarkIcon,
@@ -245,41 +244,33 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                 placeholder="Add any notes about this study..."
                 className="mb-4"
               />
-            </div>
 
-            {/* Middle Column - Selected Traits Configuration */}
-            <div className="flex-1 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 border-r border-gray-200 p-5 overflow-y-auto">
-              <div className="flex items-center justify-between mb-6">
-                <div className="flex items-center space-x-3">
-                  <div className="p-3 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-xl shadow-lg">
-                    <SparklesIcon className="h-6 w-6 text-white" />
-                  </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-gray-900">
+              <div className="mb-6">
+                <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200/50 rounded-xl p-4 shadow-sm">
+                  <div className="flex items-center gap-2 mb-3">
+                    <div className="w-6 h-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
+                      <SparklesIcon className="h-3 w-3 text-white" />
+                    </div>
+                    <div className="font-semibold text-sm text-gray-800">
                       Selected Traits
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      Configure genetic crosses for each trait
-                    </p>
+                    </div>
+                    <div className="ml-auto bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
+                      {project.selectedTraits.length}/5
+                    </div>
                   </div>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <span className="bg-gradient-to-r from-purple-100 to-indigo-100 text-purple-800 text-sm font-bold px-3 py-1.5 rounded-full border border-purple-200">
-                    {project.selectedTraits.length}/5
-                  </span>
-                </div>
-              </div>
 
-              {project.selectedTraits.length === 0 ? (
-                <EmptyState message="Start Your Genetic Study" />
-              ) : (
-                <div className="space-y-5">
-                  {/* Trait summary section (top of each trait card) */}
-                  <div className="mb-4">
-                    <div className="bg-indigo-50 p-2 rounded">
-                      <div className="font-medium text-xs">
-                        Traits ({project.selectedTraits.length}):
-                      </div>
+                  {project.selectedTraits.length === 0 ? (
+                    <div className="text-center py-4">
+                      <div className="text-gray-400 text-2xl mb-2">🧬</div>
+                      <p className="text-xs text-gray-500 font-medium">
+                        No traits selected yet
+                      </p>
+                      <p className="text-xs text-gray-400 mt-1">
+                        Add traits from the browser →
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
                       {project.selectedTraits.map((trait, index) => {
                         const isAbo = trait.key === "abo_blood_group";
                         const genotypeMap = getAboGenotypeMap();
@@ -293,17 +284,91 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                             ? genotypeMap[trait.parent2Genotype] ||
                               trait.parent2Genotype
                             : trait.parent2Genotype;
+
+                        const isComplete = parent1 && parent2;
+
                         return (
                           <div
                             key={index}
-                            className="text-xs text-gray-600 mt-1"
+                            className={`
+                              bg-white/70 backdrop-blur-sm rounded-lg p-3 border transition-all duration-200
+                              ${
+                                isComplete
+                                  ? "border-green-200 bg-green-50/30"
+                                  : "border-gray-200 bg-white/50"
+                              }
+                            `}
                           >
-                            {trait.name}: {parent1} × {parent2}
+                            <div className="space-y-2">
+                              {/* Header row with trait name and status */}
+                              <div className="flex items-center justify-between gap-2">
+                                <div className="flex items-center gap-2 min-w-0 flex-1">
+                                  <div
+                                    className={`
+                                    w-4 h-4 rounded-full flex items-center justify-center text-xs font-bold flex-shrink-0
+                                    ${
+                                      isComplete
+                                        ? "bg-green-500 text-white"
+                                        : "bg-gray-300 text-gray-600"
+                                    }
+                                  `}
+                                  >
+                                    {isComplete ? "✓" : index + 1}
+                                  </div>
+                                  <span
+                                    className="font-semibold text-sm text-gray-800 truncate"
+                                    title={trait.name}
+                                  >
+                                    {trait.name}
+                                  </span>
+                                </div>
+
+                                {!isComplete && (
+                                  <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full font-medium flex-shrink-0">
+                                    Configure →
+                                  </span>
+                                )}
+                              </div>
+
+                              {/* Genetic cross display */}
+                              {isComplete && (
+                                <div className="flex items-center justify-center gap-2 pt-1">
+                                  <div className="flex items-center gap-1 bg-purple-100/80 px-2 py-1 rounded-lg border border-purple-200/50">
+                                    <GiFemale className="h-3 w-3 text-purple-600 flex-shrink-0" />
+                                    <span className="text-purple-800 font-bold text-xs whitespace-nowrap">
+                                      {parent1}
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full border border-gray-200">
+                                    <span className="text-gray-600 font-bold text-sm">
+                                      ×
+                                    </span>
+                                  </div>
+                                  <div className="flex items-center gap-1 bg-blue-100/80 px-2 py-1 rounded-lg border border-blue-200/50">
+                                    <IoMale className="h-3 w-3 text-blue-600 flex-shrink-0" />
+                                    <span className="text-blue-800 font-bold text-xs whitespace-nowrap">
+                                      {parent2}
+                                    </span>
+                                  </div>
+                                </div>
+                              )}
+                            </div>
                           </div>
                         );
                       })}
                     </div>
-                  </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Middle Column - Selected Traits Configuration */}
+            <div className="flex-1 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 border-r border-gray-200 p-5 overflow-y-auto">
+              {project.selectedTraits.length === 0 ? (
+                <EmptyState message="Start Your Genetic Study" />
+              ) : (
+                <div className="space-y-5">
+                  {/* Trait summary section (top of each trait card) */}
 
                   {project.selectedTraits.map((selectedTrait) => (
                     <div
@@ -319,15 +384,6 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
 
                       {/* Parent Genotype Configuration */}
                       <div className="space-y-4">
-                        <div className="text-center">
-                          <div className="inline-flex items-center space-x-2 bg-gradient-to-r from-purple-100 to-indigo-100 px-4 py-2 rounded-full">
-                            <span className="text-sm font-semibold text-gray-700">
-                              Genetic Cross
-                            </span>
-                            <span className="text-lg">🧬</span>
-                          </div>
-                        </div>
-
                         <div className="flex items-center justify-between flex-wrap gap-2 lg:gap-4">
                           {/* Parent 1 */}
                           <div className="relative flex-1 min-w-[140px]">
@@ -418,13 +474,6 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                             )}
                           </div>
                         </div>
-
-                        {/* Genotype Status */}
-                        <GenotypeStatus
-                          parent1Genotype={selectedTrait.parent1Genotype}
-                          parent2Genotype={selectedTrait.parent2Genotype}
-                          traitKey={selectedTrait.key}
-                        />
                       </div>
                     </div>
                   ))}

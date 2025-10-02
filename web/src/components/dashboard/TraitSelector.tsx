@@ -84,7 +84,11 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
             <div className="flex items-center justify-between">
               <div className="flex-1 min-w-0">
                 <div className="flex items-center space-x-2 mb-1 flex-wrap">
-                  <h4 className="font-semibold text-gray-900 text-sm group-hover:text-purple-700 transition-colors flex-shrink-0">
+                  <h4
+                    className="font-semibold text-gray-900 text-sm group-hover:text-purple-700 transition-colors truncate"
+                    style={{ maxWidth: "180px", display: "inline-block" }}
+                    title={trait.name}
+                  >
                     {trait.name}
                   </h4>
                   {trait.gene && trait.chromosome && (

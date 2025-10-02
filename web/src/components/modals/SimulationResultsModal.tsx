@@ -9,6 +9,7 @@ import {
 import { GiFemale } from "react-icons/gi";
 import { IoMale } from "react-icons/io5";
 import { HiSparkles } from "react-icons/hi2";
+import { MdHelpOutline } from "react-icons/md";
 import GenotypicRatios from "../dashboard/GenotypicRatios";
 import PhenotypicRatios from "../dashboard/PhenotypicRatios";
 import { getAboGenotypeMap } from "../dashboard/helpers";
@@ -19,7 +20,7 @@ import { explainSimulationResults } from "../../services/gemini.api";
 // Markdown components for styling
 const markdownComponents = {
   p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="mb-2 text-gray-700" {...props}>
+    <p className="mb-1 text-gray-700 text-xs leading-relaxed" {...props}>
       {children}
     </p>
   ),
@@ -32,6 +33,16 @@ const markdownComponents = {
     <em className="italic text-gray-700" {...props}>
       {children}
     </em>
+  ),
+  ul: ({ children, ...props }: React.HTMLAttributes<HTMLUListElement>) => (
+    <ul className="list-disc list-inside mb-1 space-y-0.5" {...props}>
+      {children}
+    </ul>
+  ),
+  li: ({ children, ...props }: React.HTMLAttributes<HTMLLIElement>) => (
+    <li className="text-xs text-gray-700" {...props}>
+      {children}
+    </li>
   ),
 };
 
@@ -141,48 +152,62 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       style={{ fontFamily: "Axiforma, sans-serif" }}
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="modal-title"
+      tabIndex={-1}
+      onClick={(e) => e.target === e.currentTarget && onClose()}
+      onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
-      <div className="bg-white rounded-xl shadow-2xl max-w-4xl w-full max-h-[85vh] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-green-50 to-emerald-50">
-          <div className="flex items-center space-x-3">
-            <div className="p-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg">
-              <BeakerIcon className="h-6 w-6 text-white" />
+      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in duration-300">
+        {/* Compact Header */}
+        <div className="relative bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3 text-white">
+              <div className="p-2 bg-white/20 rounded-xl backdrop-blur-sm">
+                <BeakerIcon className="h-5 w-5" />
+              </div>
+              <div>
+                <h2 id="modal-title" className="text-lg font-bold">
+                  Simulation Results
+                </h2>
+                <p className="text-sm text-white/80">
+                  Genetic cross predictions
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-xl font-bold text-gray-900">
-                Simulation Results
-              </h2>
-              <p className="text-sm text-gray-600">
-                Offspring trait predictions
-              </p>
+
+            <div className="flex items-center gap-2">
+              <button
+                onClick={onAddToCanvas}
+                className="bg-white/20 hover:bg-white/30 backdrop-blur-sm text-white px-4 py-2 rounded-xl font-medium transition-all duration-200 flex items-center gap-2 border border-white/20 cursor-pointer"
+                aria-label="Add results to canvas"
+              >
+                <DocumentPlusIcon className="h-4 w-4" />
+                <span className="hidden sm:inline">Canvas</span>
+              </button>
+              <button
+                onClick={onClose}
+                className="p-2 text-white/80 hover:text-white hover:bg-white/20 rounded-xl transition-all duration-200 cursor-pointer"
+                aria-label="Close modal"
+              >
+                <XMarkIcon className="h-5 w-5" />
+              </button>
             </div>
-          </div>
-          <div className="flex items-center space-x-3">
-            <button
-              onClick={onAddToCanvas}
-              className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white py-3 px-6 rounded-lg font-medium hover:from-blue-600 hover:to-indigo-700 transition-all duration-200 flex items-center space-x-2 shadow-lg cursor-pointer"
-            >
-              <DocumentPlusIcon className="h-5 w-5" />
-              <span>Add to Canvas</span>
-            </button>
-            <button
-              onClick={onClose}
-              className="p-2 text-gray-400 cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
-            >
-              <XMarkIcon className="h-5 w-5" />
-            </button>
           </div>
         </div>
-        <div className="flex-1 p-6 overflow-y-auto">
-          <div className="space-y-4">
+        {/* Main Content */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 space-y-3">
             {Object.entries(simulationResults).map(
               ([traitKey, result]: [string, any]) => {
                 const trait = traits.find((t) => t.key === traitKey);
                 const selectedTrait = selectedTraits.find(
                   (t: any) => t.key === traitKey
                 );
+
                 if (
                   !result ||
                   typeof result !== "object" ||
@@ -192,13 +217,15 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                   return (
                     <div
                       key={traitKey}
-                      className="bg-gradient-to-r from-red-50 to-orange-50 rounded-lg p-6 border border-red-200"
+                      className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-4 border border-red-200/50"
                     >
-                      <h4 className="text-lg font-semibold text-gray-900 mb-4 flex items-center">
-                        <span className="mr-2">⚠️</span>
-                        {trait?.name || traitKey}
-                      </h4>
-                      <p className="text-red-600">
+                      <div className="flex items-center gap-2 mb-2">
+                        <span className="text-lg">⚠️</span>
+                        <h4 className="text-base font-semibold text-gray-900">
+                          {trait?.name || traitKey}
+                        </h4>
+                      </div>
+                      <p className="text-sm text-red-600">
                         No simulation data available for this trait.
                       </p>
                     </div>
@@ -207,105 +234,130 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                 return (
                   <div
                     key={traitKey}
-                    className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-6 border border-blue-200 flex flex-col relative"
+                    className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200"
                   >
-                    <div className="flex items-center justify-between mb-4">
-                      <h4 className="text-lg font-semibold text-gray-900 flex items-center">
-                        <span className="mr-2">🧬</span>
-                        {trait?.name || traitKey}
-                      </h4>
-                      <div className="flex items-center space-x-4 text-sm">
-                        {(() => {
-                          const isAbo = traitKey === "abo_blood_group";
-                          const genotypeMap = getAboGenotypeMap();
-                          const parent1 =
-                            isAbo && selectedTrait?.parent1Genotype
-                              ? genotypeMap[selectedTrait.parent1Genotype] ||
-                                selectedTrait.parent1Genotype
-                              : selectedTrait?.parent1Genotype;
-                          const parent2 =
-                            isAbo && selectedTrait?.parent2Genotype
-                              ? genotypeMap[selectedTrait.parent2Genotype] ||
-                                selectedTrait.parent2Genotype
-                              : selectedTrait?.parent2Genotype;
-                          return (
-                            <>
-                              <div className="flex items-center space-x-2">
-                                <GiFemale className="h-4 w-4 text-purple-600" />
-                                <span className="text-gray-600">
-                                  {parent1} →{" "}
-                                  {trait?.phenotype_map[
-                                    selectedTrait?.parent1Genotype || ""
-                                  ] || "Unknown"}
-                                </span>
-                              </div>
-                              <span className="text-gray-400 text-2xl">×</span>
-                              <div className="flex items-center space-x-2">
-                                <IoMale className="h-4 w-4 text-indigo-600" />
-                                <span className="text-gray-600">
-                                  {parent2} →{" "}
-                                  {trait?.phenotype_map[
-                                    selectedTrait?.parent2Genotype || ""
-                                  ] || "Unknown"}
-                                </span>
-                              </div>
-                            </>
-                          );
-                        })()}
+                    {/* Trait Header - Title | Genetic Cross | Action Buttons */}
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 px-4 py-3 rounded-t-xl border-b border-gray-200/50">
+                      <div className="flex items-center justify-between">
+                        {/* Title Section */}
+                        <div className="flex items-center gap-2">
+                          <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-lg flex items-center justify-center">
+                            <span className="text-white text-sm font-bold">
+                              {trait?.name?.charAt(0)?.toUpperCase() || "T"}
+                            </span>
+                          </div>
+                          <h4 className="text-base font-semibold text-gray-900">
+                            {trait?.name || traitKey}
+                          </h4>
+                        </div>
+
+                        {/* Genetic Cross Section */}
+                        <div className="flex items-center gap-2 text-xs">
+                          {(() => {
+                            const isAbo = traitKey === "abo_blood_group";
+                            const genotypeMap = getAboGenotypeMap();
+                            const parent1 =
+                              isAbo && selectedTrait?.parent1Genotype
+                                ? genotypeMap[selectedTrait.parent1Genotype] ||
+                                  selectedTrait.parent1Genotype
+                                : selectedTrait?.parent1Genotype;
+                            const parent2 =
+                              isAbo && selectedTrait?.parent2Genotype
+                                ? genotypeMap[selectedTrait.parent2Genotype] ||
+                                  selectedTrait.parent2Genotype
+                                : selectedTrait?.parent2Genotype;
+                            return (
+                              <>
+                                <div className="flex items-center gap-1 bg-purple-100 px-2 py-1 rounded-md">
+                                  <GiFemale className="h-3 w-3 text-purple-600" />
+                                  <span className="text-purple-700 font-medium">
+                                    {parent1}
+                                  </span>
+                                </div>
+                                <span className="text-gray-400">×</span>
+                                <div className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded-md">
+                                  <IoMale className="h-3 w-3 text-blue-600" />
+                                  <span className="text-blue-700 font-medium">
+                                    {parent2}
+                                  </span>
+                                </div>
+                              </>
+                            );
+                          })()}
+                        </div>
+                        {/* Action Buttons Section */}
+                        <div className="flex items-center gap-2">
+                          <button
+                            onClick={() =>
+                              handleAskAI(
+                                traitKey,
+                                result,
+                                selectedTrait,
+                                trait
+                              )
+                            }
+                            disabled={loadingAi[traitKey]}
+                            className="bg-gradient-to-r from-violet-500 to-purple-600 hover:from-violet-600 hover:to-purple-700 text-white py-1.5 px-2 rounded-sm transition-all duration-200 flex items-center justify-center gap-1 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer text-xs"
+                            aria-label={`Ask AI about ${
+                              trait?.name || traitKey
+                            } results`}
+                          >
+                            {loadingAi[traitKey] ? (
+                              <>
+                                <div className="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full"></div>
+                                <span>AI...</span>
+                              </>
+                            ) : (
+                              <>
+                                <HiSparkles className="h-3 w-3" />
+                                <span>Ask AI</span>
+                              </>
+                            )}
+                          </button>
+                          <button
+                            onClick={() => setPunnettModalTraitKey(traitKey)}
+                            className="bg-gradient-to-r from-blue-500 to-indigo-600 hover:from-blue-600 hover:to-indigo-700 text-white py-1.5 px-2 rounded-sm transition-all duration-200 flex items-center justify-center gap-1 shadow-sm cursor-pointer text-xs"
+                            aria-label={`View Punnett square for ${
+                              trait?.name || traitKey
+                            }`}
+                          >
+                            <MdHelpOutline className="h-3 w-3" />
+                            <span>How?</span>
+                          </button>
+                        </div>
                       </div>
                     </div>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start flex-1">
-                      <GenotypicRatios
-                        genotypicRatios={result.genotypic_ratios}
-                        traitKey={traitKey}
-                      />
-                      <PhenotypicRatios
-                        phenotypicRatios={result.phenotypic_ratios}
-                      />
-                    </div>
-                    <div className="flex justify-end items-center gap-3 mt-4">
-                      <button
-                        onClick={() =>
-                          handleAskAI(traitKey, result, selectedTrait, trait)
-                        }
-                        disabled={loadingAi[traitKey]}
-                        className="bg-white border border-blue-200 text-blue-700 py-2 px-4 rounded-lg font-medium hover:bg-blue-50 hover:border-blue-300 transition-all duration-200 flex items-center space-x-2 shadow-sm disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
-                      >
-                        {loadingAi[traitKey] ? (
-                          <>
-                            <div className="animate-spin h-4 w-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                            <span>Asking AI...</span>
-                          </>
-                        ) : (
-                          <>
-                            <HiSparkles className="h-4 w-4" />
-                            <span>Ask AI</span>
-                          </>
-                        )}
-                      </button>
-                      <HowTheseResultsButton
-                        onClick={() => setPunnettModalTraitKey(traitKey)}
-                      />
+
+                    {/* Results Grid */}
+                    <div className="p-4">
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
+                        <GenotypicRatios
+                          genotypicRatios={result.genotypic_ratios}
+                          traitKey={traitKey}
+                        />
+                        <PhenotypicRatios
+                          phenotypicRatios={result.phenotypic_ratios}
+                        />
+                      </div>
                     </div>
 
-                    {/* AI Explanation Display */}
+                    {/* AI Explanation Display - Integrated */}
                     {showAiExplanation[traitKey] && aiExplanation[traitKey] && (
-                      <div className="mt-4 p-4 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg border border-blue-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <HiSparkles className="h-5 w-5 text-blue-600" />
-                            <h5 className="font-semibold text-gray-900">
-                              AI Explanation
-                            </h5>
+                      <div className="mx-4 mb-4 bg-gradient-to-r from-violet-50 via-purple-50 to-indigo-50 rounded-xl border border-violet-200/50 overflow-hidden">
+                        <div className="bg-gradient-to-r from-violet-500 to-purple-600 px-4 py-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-white">
+                            <HiSparkles className="h-4 w-4" />
+                            <h5 className="font-medium text-sm">AI Insights</h5>
                           </div>
                           <button
                             onClick={() => handleCloseAIExplanation(traitKey)}
-                            className="p-1 text-gray-400 hover:text-gray-600 hover:bg-white rounded-full transition-colors cursor-pointer"
+                            className="p-1 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+                            aria-label="Close AI explanation"
                           >
-                            <XMarkIcon className="h-4 w-4" />
+                            <XMarkIcon className="h-3 w-3" />
                           </button>
                         </div>
-                        <div className="text-sm leading-relaxed">
+                        <div className="p-3 text-xs leading-relaxed">
                           <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
                             components={markdownComponents}
@@ -316,26 +368,27 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                       </div>
                     )}
 
-                    {/* AI Error Display */}
+                    {/* AI Error Display - Integrated */}
                     {showAiExplanation[traitKey] && aiError[traitKey] && (
-                      <div className="mt-4 p-4 bg-red-50 rounded-lg border border-red-200">
-                        <div className="flex items-center justify-between mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="text-lg">⚠️</span>
-                            <h5 className="font-semibold text-red-900">
-                              AI Error
-                            </h5>
+                      <div className="mx-4 mb-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border border-red-200/50 overflow-hidden">
+                        <div className="bg-gradient-to-r from-red-500 to-orange-600 px-4 py-2 flex items-center justify-between">
+                          <div className="flex items-center gap-2 text-white">
+                            <span className="text-sm">⚠️</span>
+                            <h5 className="font-medium text-sm">Error</h5>
                           </div>
                           <button
                             onClick={() => handleCloseAIExplanation(traitKey)}
-                            className="p-1 text-red-400 hover:text-red-600 hover:bg-white rounded-full transition-colors cursor-pointer"
+                            className="p-1 text-white/80 hover:text-white hover:bg-white/20 rounded-lg transition-colors cursor-pointer"
+                            aria-label="Close AI error"
                           >
-                            <XMarkIcon className="h-4 w-4" />
+                            <XMarkIcon className="h-3 w-3" />
                           </button>
                         </div>
-                        <p className="text-sm text-red-700">
-                          {aiError[traitKey]}
-                        </p>
+                        <div className="p-3">
+                          <p className="text-xs text-red-700">
+                            {aiError[traitKey]}
+                          </p>
+                        </div>
                       </div>
                     )}
                     {punnettModalTraitKey === traitKey &&

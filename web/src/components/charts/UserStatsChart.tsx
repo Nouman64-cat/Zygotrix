@@ -34,7 +34,6 @@ interface UserStatsChartProps {
 const UserStatsChart: React.FC<UserStatsChartProps> = ({
   traitsCount,
   projectsCount,
-  publicTraitsCount,
   loading = false,
   error = null,
   className = "",

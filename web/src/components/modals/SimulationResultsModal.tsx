@@ -13,7 +13,6 @@ import { MdHelpOutline } from "react-icons/md";
 import GenotypicRatios from "../dashboard/GenotypicRatios";
 import PhenotypicRatios from "../dashboard/PhenotypicRatios";
 import { getAboGenotypeMap } from "../dashboard/helpers";
-import HowTheseResultsButton from "./HowTheseResultsButton";
 import PunnettSquareModal from "./PunnettSquareModal";
 import { explainSimulationResults } from "../../services/gemini.api";
 

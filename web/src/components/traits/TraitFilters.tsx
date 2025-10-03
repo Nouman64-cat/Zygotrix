@@ -73,7 +73,7 @@ const TraitFiltersComponent: React.FC<TraitFiltersProps> = ({
             <input
               type="text"
               placeholder="Search traits by name, key, gene, or tags..."
-              className="block w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               value={searchQuery}
               onChange={(e) => onSearchChange(e.target.value)}
             />
@@ -86,7 +86,7 @@ const TraitFiltersComponent: React.FC<TraitFiltersProps> = ({
               className={`inline-flex items-center gap-2 px-3 py-2 text-sm font-medium rounded-md border transition-colors cursor-pointer ${
                 isExpanded
                   ? "bg-blue-50 border-blue-200 text-blue-700"
-                  : "bg-white border-gray-300 text-gray-700 hover:bg-gray-50"
+                  : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
               }`}
             >
               <svg
@@ -138,7 +138,7 @@ const TraitFiltersComponent: React.FC<TraitFiltersProps> = ({
               </label>
               <select
                 id="inheritance-pattern"
-                className="block w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                className="block w-full px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                 value={filters.inheritance_pattern || ""}
                 onChange={(e) =>
                   handleFilterChange("inheritance_pattern", e.target.value)
@@ -164,7 +164,7 @@ const TraitFiltersComponent: React.FC<TraitFiltersProps> = ({
               </label>
               <select
                 id="category"
-                className="block w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                className="block w-full px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                 value={filters.category || ""}
                 onChange={(e) => handleFilterChange("category", e.target.value)}
               >
@@ -187,7 +187,7 @@ const TraitFiltersComponent: React.FC<TraitFiltersProps> = ({
               </label>
               <select
                 id="status"
-                className="block w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                className="block w-full px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                 value={filters.status || ""}
                 onChange={(e) =>
                   handleFilterChange("status", e.target.value as TraitStatus)
@@ -210,7 +210,7 @@ const TraitFiltersComponent: React.FC<TraitFiltersProps> = ({
               </label>
               <select
                 id="visibility"
-                className="block w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
+                className="block w-full px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500 cursor-pointer"
                 value={filters.visibility || ""}
                 onChange={(e) =>
                   handleFilterChange(
@@ -261,7 +261,7 @@ const TraitFiltersComponent: React.FC<TraitFiltersProps> = ({
                 id="gene"
                 type="text"
                 placeholder="Gene name..."
-                className="block w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 value={filters.gene || ""}
                 onChange={(e) => handleFilterChange("gene", e.target.value)}
               />
@@ -279,7 +279,7 @@ const TraitFiltersComponent: React.FC<TraitFiltersProps> = ({
                 id="tags"
                 type="text"
                 placeholder="tag1, tag2, tag3..."
-                className="block w-full px-2 py-1.5 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
+                className="block w-full px-2 py-1.5 text-sm border border-gray-200 rounded-md focus:outline-none focus:ring-1 focus:ring-blue-500 focus:border-blue-500"
                 value={filters.tags?.join(", ") || ""}
                 onChange={(e) => handleTagsChange(e.target.value)}
               />

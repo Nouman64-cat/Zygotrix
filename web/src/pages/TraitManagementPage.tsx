@@ -191,7 +191,7 @@ const TraitManagementPage: React.FC = () => {
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden">
           {/* Header */}
-          <div className="bg-white shadow-sm border-b">
+          <div className="bg-white shadow-sm border-b border-gray-200">
             <div className="px-6 py-4">
               <div className="flex justify-between items-center">
                 <div className="flex-1">
@@ -302,7 +302,7 @@ const TraitManagementPage: React.FC = () => {
           </div>
 
           {/* Filters and Search */}
-          <div className="bg-white border-b px-6 py-3">
+          <div className="bg-white border-b border-gray-200 px-6 py-3">
             <div className="flex items-center justify-between mb-3">
               <h2 className="text-sm font-medium text-gray-700">
                 Filter & Search
@@ -340,10 +340,10 @@ const TraitManagementPage: React.FC = () => {
           {/* Trait List */}
           <div className="flex-1 overflow-hidden" ref={mainContentRef}>
             {/* View Mode Toggle */}
-            <div className="bg-gray-50 px-6 py-2 border-b flex items-center justify-between">
+            <div className="bg-gray-50 px-6 py-2 flex items-center justify-between">
               <div className="flex items-center space-x-1">
                 <span className="text-sm text-gray-600">View:</span>
-                <div className="flex bg-white border border-gray-300 rounded-md">
+                <div className="flex bg-white border border-gray-200 rounded-md">
                   <button
                     onClick={() => setViewMode("grid")}
                     className={`px-3 py-1 text-sm font-medium rounded-l-md transition-colors cursor-pointer ${
@@ -512,7 +512,7 @@ const TraitManagementPage: React.FC = () => {
               <div className="flex space-x-3 justify-end">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-300 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors cursor-pointer"
+                  className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 border border-gray-200 rounded-md hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2 transition-colors cursor-pointer"
                   disabled={loading}
                 >
                   Cancel

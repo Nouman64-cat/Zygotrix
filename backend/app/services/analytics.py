@@ -73,7 +73,8 @@ class AnalyticsService:
 
             time_series = TimeSeriesData()
             if filters.include_time_series:
-                time_series = self._get_time_series_data(start_date, end_date)
+                # Ensure time-series respects the requesting user (if provided)
+                time_series = self._get_time_series_data(start_date, end_date, user_id)
 
             return AnalyticsResponse(
                 simulation_metrics=simulation_metrics,
@@ -289,9 +290,7 @@ class AnalyticsService:
                 trait_counter.update(
                     self._accumulate_trait_usage(projects, trait_filter)
                 )
-                print(
-                    f"DEBUG: No simulation logs found, using project tools for traits"
-                )
+                print("DEBUG: No simulation logs found, using project tools for traits")
 
             return self._format_popular_traits(trait_counter)
 
@@ -375,7 +374,7 @@ class AnalyticsService:
         ]
 
     def _get_time_series_data(  # noqa: C901
-        self, start_date: datetime, end_date: datetime
+        self, start_date: datetime, end_date: datetime, user_id: Optional[str] = None
     ) -> TimeSeriesData:
         """Aggregate real time-series from projects' tool simulations.
 
@@ -401,7 +400,7 @@ class AnalyticsService:
             ) = ({}, {}, {}, {}, {})
 
             for p in self._iter_projects_between(
-                projects_collection, start_date, end_date, None
+                projects_collection, start_date, end_date, user_id
             ):
                 ts = p.get("updated_at") or p.get("created_at") or start_date
                 ts = ts if isinstance(ts, datetime) else start_date
@@ -432,7 +431,7 @@ class AnalyticsService:
             # Also fold in ad-hoc simulation logs (non-project based)
             if logs_collection is not None:
                 for log in self._iter_logs_between(
-                    logs_collection, start_date, end_date, None
+                    logs_collection, start_date, end_date, user_id
                 ):
                     ts = log.get("timestamp") or start_date
                     ts = ts if isinstance(ts, datetime) else start_date

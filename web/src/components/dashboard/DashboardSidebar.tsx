@@ -237,7 +237,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black  bg-opacity-50 z-40 lg:hidden"
           onClick={onClose}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
@@ -268,7 +268,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             <div className="relative group">
               <button
                 onClick={onToggleCollapse}
-                className="hidden lg:flex p-2 rounded-md hover:bg-slate-100 transition-colors"
+                className="hidden lg:flex p-2 rounded-md cursor-pointer hover:bg-slate-100 transition-colors"
                 aria-label="Toggle sidebar"
               >
                 <svg

@@ -235,15 +235,7 @@ const SignUpPage: React.FC = () => {
           <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/10 via-[#3B82F6]/5 to-[#10B981]/10" />
 
           <div className="relative z-10 w-full max-w-2xl">
-            <div className="text-center mb-8">
-              <div className="inline-flex items-center gap-3 rounded-full bg-[#1E3A8A]/10 px-6 py-3 mb-6">
-                <span className="h-2 w-2 rounded-full bg-[#10B981] animate-pulse" />
-                <span className="text-xs font-semibold uppercase tracking-[0.3em] text-[#1E3A8A]">
-                  {step === "form" && "Join the Research Community"}
-                  {step === "otp" && "Verifying Your Identity"}
-                  {step === "success" && "Welcome to Zygotrix"}
-                </span>
-              </div>
+            <div className="text-center mb-2">
               <h2 className="text-4xl font-bold text-[#1E3A8A] mb-4">
                 {step === "form" && (
                   <>

@@ -22,6 +22,7 @@ import BrowseTraitsPage from "./pages/BrowseTraitsPage";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import ProjectsPage from "./pages/ProjectsPage";
+import TeamMemberPage from "./pages/TeamMemberPage";
 
 const App: React.FC = () => {
   return (
@@ -29,6 +30,7 @@ const App: React.FC = () => {
       <Route element={<MainLayout />}>
         <Route index element={<HomePage />} />
         <Route path="about" element={<AboutPage />} />
+        <Route path="team/:slug" element={<TeamMemberPage />} />
         <Route path="playground" element={<PlaygroundPage />} />
         <Route path="joint-phenotype" element={<JointPhenotypePage />} />
         <Route path="contact" element={<ContactPage />} />

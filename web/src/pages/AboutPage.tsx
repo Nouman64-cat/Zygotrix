@@ -1,4 +1,5 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import { FaLinkedin, FaGithub } from "react-icons/fa";
 
 import logo from "../../public/zygotrix-logo.png";
@@ -80,8 +81,11 @@ const AboutPage: React.FC = () => {
 
             <div className="mt-6 grid gap-6 sm:grid-cols-2">
               {/* Member: Nouman Ejaz */}
-              <div className="relative flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 shadow-lg transition hover:shadow-xl">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4 overflow-hidden">
+              <Link
+                to="/team/nouman-ejaz"
+                className="relative flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 shadow-lg transition hover:shadow-xl hover:scale-[1.02] hover:border-[#1E3A8A]/20 group cursor-pointer"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4 overflow-hidden group-hover:bg-[#1E3A8A]/20 transition-colors">
                   <img
                     src="https://gravatar.com/avatar/05ed2a266f4c7ec07bd9c099c0b2362998b6a27ff94a01626bece2b4bb614af5?v=1757321900000&size=256&d=initials"
                     alt="Nouman Ejaz avatar"
@@ -89,13 +93,13 @@ const AboutPage: React.FC = () => {
                   />
                 </div>
                 <div className="text-center">
-                  <div className="text-base font-semibold text-[#1E3A8A]">
+                  <div className="text-base font-semibold text-[#1E3A8A] group-hover:text-[#162b63] transition-colors">
                     Nouman Ejaz
                   </div>
                   <div className="text-xs text-slate-600 mt-1">
                     Software Engineer
                   </div>
-                  <span className="mt-2 inline-block rounded-full bg-[#1E3A8A]/10 px-3 py-1 text-xs font-semibold text-[#1E3A8A]">
+                  <span className="mt-2 inline-block rounded-full bg-[#1E3A8A]/10 px-3 py-1 text-xs font-semibold text-[#1E3A8A] group-hover:bg-[#1E3A8A]/20 transition-colors">
                     Founder
                   </span>
                   <span className="mt-2 ml-2 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
@@ -108,8 +112,9 @@ const AboutPage: React.FC = () => {
                     href="https://www.linkedin.com/in/nouman-ejaz-64251125b/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-700 hover:text-[#0A66C2] cursor-pointer transition-colors"
+                    className="text-gray-700 hover:text-[#0A66C2] cursor-pointer transition-colors z-10"
                     aria-label="LinkedIn"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <FaLinkedin className="h-5 cursor-pointer w-5" />
                   </a>
@@ -117,17 +122,27 @@ const AboutPage: React.FC = () => {
                     href="https://github.com/Nouman64-cat"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-700 hover:text-black cursor-pointer transition-colors"
+                    className="text-gray-700 hover:text-black cursor-pointer transition-colors z-10"
                     aria-label="GitHub"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <FaGithub className="h-5 w-5" />
                   </a>
                 </div>
-              </div>
+                {/* Click hint */}
+                <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="text-xs text-[#1E3A8A] bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm">
+                    View Profile
+                  </div>
+                </div>
+              </Link>
 
               {/* Member: Tooba Noor ul Eman */}
-              <div className="relative flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 shadow-lg transition hover:shadow-xl">
-                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4 overflow-hidden">
+              <Link
+                to="/team/tooba-noor"
+                className="relative flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 shadow-lg transition hover:shadow-xl hover:scale-[1.02] hover:border-[#1E3A8A]/20 group cursor-pointer"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4 overflow-hidden group-hover:bg-[#1E3A8A]/20 transition-colors">
                   <img
                     src="/tooba.jpg"
                     alt="Tooba Noor ul Eman"
@@ -135,13 +150,13 @@ const AboutPage: React.FC = () => {
                   />
                 </div>
                 <div className="text-center">
-                  <div className="text-base font-semibold text-[#1E3A8A]">
+                  <div className="text-base font-semibold text-[#1E3A8A] group-hover:text-[#162b63] transition-colors">
                     Tooba Noor ul Ieman
                   </div>
                   <div className="text-xs text-slate-600 mt-1">
                     Independent Researcher, BS Biochemistry
                   </div>
-                  <span className="mt-2 inline-block rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700">
+                  <span className="mt-2 inline-block rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 group-hover:bg-slate-300 transition-colors">
                     Contributor
                   </span>
                 </div>
@@ -151,13 +166,20 @@ const AboutPage: React.FC = () => {
                     href="https://www.linkedin.com/in/tooba-noor-540556358/"
                     target="_blank"
                     rel="noopener noreferrer"
-                    className="text-gray-700 hover:text-[#0A66C2] cursor-pointer transition-colors"
+                    className="text-gray-700 hover:text-[#0A66C2] cursor-pointer transition-colors z-10"
                     aria-label="LinkedIn"
+                    onClick={(e) => e.stopPropagation()}
                   >
                     <FaLinkedin className="h-5 w-5" />
                   </a>
                 </div>
-              </div>
+                {/* Click hint */}
+                <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="text-xs text-[#1E3A8A] bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm">
+                    View Profile
+                  </div>
+                </div>
+              </Link>
             </div>
           </div>
         </div>

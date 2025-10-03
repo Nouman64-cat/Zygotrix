@@ -105,6 +105,9 @@ const AboutPage: React.FC = () => {
                   <span className="mt-2 ml-2 inline-block rounded-full bg-green-100 px-3 py-1 text-xs font-semibold text-green-700">
                     Maintainer
                   </span>
+                  <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                    Founder and maintainer, Nouman builds reliable genetic analysis tools. He ensures Zygotrix is intuitive, rigorous, and extensible for teams translating complex inheritance models into actionable insights.
+                  </p>
                 </div>
                 {/* Social links bottom right */}
                 <div className="absolute bottom-4 right-4 flex gap-3">
@@ -151,7 +154,7 @@ const AboutPage: React.FC = () => {
                 </div>
                 <div className="text-center">
                   <div className="text-base font-semibold text-[#1E3A8A] group-hover:text-[#162b63] transition-colors">
-                    Tooba Noor ul Ieman
+                    Tooba Noor ul Eman
                   </div>
                   <div className="text-xs text-slate-600 mt-1">
                     Independent Researcher, BS Biochemistry
@@ -159,6 +162,9 @@ const AboutPage: React.FC = () => {
                   <span className="mt-2 inline-block rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 group-hover:bg-slate-300 transition-colors">
                     Contributor
                   </span>
+                  <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                    Tooba, a biochemistry researcher, contributes genetics expertise to Zygotrix. She refines trait models and supports scientific accuracy, making genetic analysis accessible for diverse teams.
+                  </p>
                 </div>
                 {/* Social links bottom right */}
                 <div className="absolute bottom-4 right-4 flex gap-3">

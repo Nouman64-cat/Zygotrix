@@ -24,6 +24,7 @@ from .routes.mendelian import router as mendelian_router
 from .routes.projects import router as project_router
 from .routes.portal import router as portal_router
 from .routes.project_templates import router as project_templates_router
+from .routes.analytics import router as analytics_router
 from .services.trait_db_setup import create_trait_indexes
 from .config import get_settings
 from .utils import trait_to_info
@@ -52,7 +53,9 @@ async def startup_event():
     """Initialize database indexes on application startup."""
     settings = get_settings()
     if settings.traits_json_only:
-        print("ℹ️ JSON-only mode enabled: skipping MongoDB index initialization for traits")
+        print(
+            "ℹ️ JSON-only mode enabled: skipping MongoDB index initialization for traits"
+        )
         return
     try:
         create_trait_indexes()
@@ -68,6 +71,7 @@ app.include_router(mendelian_router)
 app.include_router(project_router)
 app.include_router(portal_router)
 app.include_router(project_templates_router)
+app.include_router(analytics_router)
 
 bearer_scheme = HTTPBearer(auto_error=True)
 

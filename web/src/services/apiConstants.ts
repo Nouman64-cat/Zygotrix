@@ -26,18 +26,35 @@ export const API_ROUTES = {
   },
   projects: {
     root: "/api/projects",
-    detail: (projectId: string) => "/api/projects/" + encodeURIComponent(projectId),
-    notes: (projectId: string) => "/api/projects/" + encodeURIComponent(projectId) + "/notes",
-    notesSave: (projectId: string) => "/api/projects/" + encodeURIComponent(projectId) + "/notes/save",
-    drawings: (projectId: string) => "/api/projects/" + encodeURIComponent(projectId) + "/drawings",
-    drawingsSave: (projectId: string) => "/api/projects/" + encodeURIComponent(projectId) + "/drawings/save",
-    lines: (projectId: string) => "/api/projects/" + encodeURIComponent(projectId) + "/lines",
-    linesSave: (projectId: string) => "/api/projects/" + encodeURIComponent(projectId) + "/lines/save",
-    tools: (projectId: string) => "/api/projects/" + encodeURIComponent(projectId) + "/tools",
-    toolDetail: (projectId: string, toolId: string) => "/api/projects/" + encodeURIComponent(projectId) + "/tools/" + encodeURIComponent(toolId),
+    detail: (projectId: string) =>
+      "/api/projects/" + encodeURIComponent(projectId),
+    notes: (projectId: string) =>
+      "/api/projects/" + encodeURIComponent(projectId) + "/notes",
+    notesSave: (projectId: string) =>
+      "/api/projects/" + encodeURIComponent(projectId) + "/notes/save",
+    drawings: (projectId: string) =>
+      "/api/projects/" + encodeURIComponent(projectId) + "/drawings",
+    drawingsSave: (projectId: string) =>
+      "/api/projects/" + encodeURIComponent(projectId) + "/drawings/save",
+    lines: (projectId: string) =>
+      "/api/projects/" + encodeURIComponent(projectId) + "/lines",
+    linesSave: (projectId: string) =>
+      "/api/projects/" + encodeURIComponent(projectId) + "/lines/save",
+    tools: (projectId: string) =>
+      "/api/projects/" + encodeURIComponent(projectId) + "/tools",
+    toolDetail: (projectId: string, toolId: string) =>
+      "/api/projects/" +
+      encodeURIComponent(projectId) +
+      "/tools/" +
+      encodeURIComponent(toolId),
   },
   projectTemplates: {
     root: "/api/project-templates",
+  },
+  analytics: {
+    root: "/api/analytics",
+    global: "/api/analytics/global",
+    health: "/api/analytics/health",
   },
 } as const;
 

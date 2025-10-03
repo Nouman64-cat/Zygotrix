@@ -221,41 +221,6 @@ const AnalyticsPage: React.FC = () => {
       ]
     : [];
 
-  const recentReports = [
-    {
-      id: 1,
-      title: "Monthly Simulation Summary",
-      type: "Performance Report",
-      generatedDate: "2024-09-15",
-      status: "Ready",
-      size: "2.4 MB",
-    },
-    {
-      id: 2,
-      title: "Trait Analysis Breakdown",
-      type: "Data Analysis",
-      generatedDate: "2024-09-12",
-      status: "Ready",
-      size: "1.8 MB",
-    },
-    {
-      id: 3,
-      title: "User Activity Dashboard",
-      type: "Usage Analytics",
-      generatedDate: "2024-09-10",
-      status: "Ready",
-      size: "956 KB",
-    },
-    {
-      id: 4,
-      title: "API Performance Metrics",
-      type: "System Report",
-      generatedDate: "2024-09-08",
-      status: "Processing",
-      size: "Pending",
-    },
-  ];
-
   return (
     <DashboardLayout>
       <div className="space-y-6">

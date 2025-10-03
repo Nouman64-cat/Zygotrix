@@ -296,11 +296,15 @@ def verify_signup_otp(email: str, otp: str) -> Dict[str, Any]:
         )
     now = datetime.now(timezone.utc)
     expires_at = pending.get("otp_expires_at")
-    if expires_at and expires_at < now:
-        collection.delete_one({"email": normalized_email})
-        raise HTTPException(
-            status_code=400, detail="OTP has expired. Please request a new code."
-        )
+    # Ensure timezone consistency for comparison
+    if expires_at:
+        if expires_at.tzinfo is None:
+            expires_at = expires_at.replace(tzinfo=timezone.utc)
+        if expires_at < now:
+            collection.delete_one({"email": normalized_email})
+            raise HTTPException(
+                status_code=400, detail="OTP has expired. Please request a new code."
+            )
     attempts = int(pending.get("otp_attempts", 0))
     if attempts >= _MAX_OTP_ATTEMPTS:
         collection.delete_one({"email": normalized_email})

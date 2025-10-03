@@ -106,7 +106,10 @@ const AboutPage: React.FC = () => {
                     Maintainer
                   </span>
                   <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-                    Founder and maintainer, Nouman builds reliable genetic analysis tools. He ensures Zygotrix is intuitive, rigorous, and extensible for teams translating complex inheritance models into actionable insights.
+                    Founder and maintainer, Nouman builds reliable genetic
+                    analysis tools. He ensures Zygotrix is intuitive, rigorous,
+                    and extensible for teams translating complex inheritance
+                    models into actionable insights.
                   </p>
                 </div>
                 {/* Social links bottom right */}
@@ -163,7 +166,10 @@ const AboutPage: React.FC = () => {
                     Contributor
                   </span>
                   <p className="mt-3 text-xs text-slate-500 leading-relaxed">
-                    Tooba, a biochemistry researcher, contributes genetics expertise to Zygotrix. She refines trait models and supports scientific accuracy, making genetic analysis accessible for diverse teams.
+                    Tooba, a biochemistry researcher, contributes genetics
+                    expertise to Zygotrix. She refines trait models and supports
+                    scientific accuracy, making genetic analysis accessible for
+                    diverse teams.
                   </p>
                 </div>
                 {/* Social links bottom right */}

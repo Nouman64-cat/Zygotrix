@@ -42,11 +42,17 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
 
 
 def hash_password(password: str) -> str:
+    # bcrypt has a 72-byte limit, truncate if necessary
+    if len(password.encode('utf-8')) > 72:
+        password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
     return _password_context.hash(password)
 
 
 def verify_password(password: str, password_hash: str) -> bool:
     try:
+        # Apply same 72-byte truncation as hash_password for consistency
+        if len(password.encode('utf-8')) > 72:
+            password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
         return _password_context.verify(password, password_hash)
     except ValueError:
         return False
@@ -253,6 +259,13 @@ def send_signup_otp_email(
 
 
 def request_signup_otp(email: str, password: str, full_name: Optional[str]) -> datetime:
+    # In development mode, bypass OTP and create the account immediately
+    if get_settings().is_development:
+        if _get_user_document_by_email(email):
+            raise HTTPException(status_code=400, detail="Email is already registered.")
+        create_user_account(email=email, password=password, full_name=full_name)
+        # Return an immediate expiry timestamp; route will still fit response model
+        return datetime.now(timezone.utc)
     if _get_user_document_by_email(email):
         raise HTTPException(status_code=400, detail="Email is already registered.")
     collection = get_pending_signups_collection(required=True)
@@ -286,6 +299,12 @@ def request_signup_otp(email: str, password: str, full_name: Optional[str]) -> d
 
 
 def verify_signup_otp(email: str, otp: str) -> Dict[str, Any]:
+    # In development mode, if the user already exists (created during signup),
+    # simply return the user without OTP verification to smooth the dev flow.
+    if get_settings().is_development:
+        existing = _get_user_document_by_email(email)
+        if existing:
+            return _serialize_user(existing)
     collection = get_pending_signups_collection(required=True)
     assert collection is not None, "Pending signups collection is required"
     normalized_email = _normalize_email(email)
@@ -326,6 +345,9 @@ def verify_signup_otp(email: str, otp: str) -> Dict[str, Any]:
 
 
 def resend_signup_otp(email: str) -> datetime:
+    # In development mode, there's no OTP; just return a timestamp
+    if get_settings().is_development:
+        return datetime.now(timezone.utc)
     collection = get_pending_signups_collection(required=True)
     assert collection is not None, "Pending signups collection is required"
     normalized_email = _normalize_email(email)

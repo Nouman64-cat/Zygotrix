@@ -11,7 +11,7 @@ import type {
 } from "../types/api";
 
 const DB_NAME = "zygotrix-workspace";
-const DB_VERSION = 3;
+const DB_VERSION = 4;
 const LINE_STORE = "workspace_lines";
 const NOTE_STORE = "workspace_notes";
 const DRAWING_STORE = "workspace_drawings";
@@ -82,7 +82,9 @@ const openDatabase = (): Promise<IDBDatabase> => {
           const drawingStore = db.createObjectStore(DRAWING_STORE, {
             keyPath: "id",
           });
-          drawingStore.createIndex("project_id", "project_id", { unique: false });
+          drawingStore.createIndex("project_id", "project_id", {
+            unique: false,
+          });
           drawingStore.createIndex(
             "project_updated_at",
             ["project_id", "updated_at"],
@@ -102,7 +104,12 @@ const openDatabase = (): Promise<IDBDatabase> => {
         const hasDrawingStore = db.objectStoreNames.contains(DRAWING_STORE);
         const hasMetaStore = db.objectStoreNames.contains(META_STORE);
 
-        if (!hasLineStore || !hasNoteStore || !hasDrawingStore || !hasMetaStore) {
+        if (
+          !hasLineStore ||
+          !hasNoteStore ||
+          !hasDrawingStore ||
+          !hasMetaStore
+        ) {
           resetDatabase(db)
             .then(() => openDatabase().then(resolve).catch(reject))
             .catch(reject);
@@ -116,7 +123,17 @@ const openDatabase = (): Promise<IDBDatabase> => {
         resolve(db);
       };
 
-      request.onerror = () => reject(request.error ?? new Error("IndexedDB open failed"));
+      request.onerror = () => {
+        const err = request.error ?? new Error("IndexedDB open failed");
+        if (err instanceof DOMException && err.name === "VersionError") {
+          // If the existing DB has a higher version, reset and retry
+          resetDatabase()
+            .then(() => openDatabase().then(resolve).catch(reject))
+            .catch(reject);
+          return;
+        }
+        reject(err);
+      };
     });
   }
 
@@ -155,7 +172,7 @@ const withStore = async <T>(
   } catch (error) {
     if (
       error instanceof DOMException &&
-      error.name === "NotFoundError" &&
+      (error.name === "NotFoundError" || error.name === "VersionError") &&
       attempt < 1
     ) {
       await resetDatabase(db);
@@ -166,15 +183,19 @@ const withStore = async <T>(
   }
 };
 
-const readMeta = async (projectId: string): Promise<ProjectMetaRecord | undefined> => {
+const readMeta = async (
+  projectId: string
+): Promise<ProjectMetaRecord | undefined> => {
   const db = await openDatabase();
   return new Promise((resolve, reject) => {
     const tx = db.transaction(META_STORE, "readonly");
     const store = tx.objectStore(META_STORE);
     const request = store.get(projectId);
 
-    request.onsuccess = () => resolve(request.result as ProjectMetaRecord | undefined);
-    request.onerror = () => reject(request.error ?? new Error("Failed to read metadata"));
+    request.onsuccess = () =>
+      resolve(request.result as ProjectMetaRecord | undefined);
+    request.onerror = () =>
+      reject(request.error ?? new Error("Failed to read metadata"));
   });
 };
 
@@ -185,7 +206,9 @@ const writeMeta = async (meta: ProjectMetaRecord): Promise<void> =>
 
 const updateMeta = async (
   projectId: string,
-  updater: (existing: ProjectMetaRecord | undefined) => Partial<ProjectMetaRecord>
+  updater: (
+    existing: ProjectMetaRecord | undefined
+  ) => Partial<ProjectMetaRecord>
 ): Promise<void> => {
   const existing = await readMeta(projectId);
   const updates = updater(existing) ?? {};

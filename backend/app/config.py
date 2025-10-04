@@ -30,6 +30,7 @@ def _get_bool(name: str, default: bool) -> bool:
 
 @dataclass(frozen=True)
 class Settings:
+    backend_env: str = os.getenv("BACKEND_ENV", "Production")
     mongodb_uri: str = os.getenv("MONGODB_URI", "")
     mongodb_db_name: str = os.getenv("MONGODB_DB_NAME", "zygotrix")
     mongodb_traits_collection: str = os.getenv("MONGODB_TRAITS_COLLECTION", "traits")
@@ -55,6 +56,10 @@ class Settings:
     signup_otp_ttl_minutes: int = _get_int("SIGNUP_OTP_TTL_MINUTES", 10)
     # Trait source control: when true, serve traits from JSON only and disable trait CRUD
     traits_json_only: bool = _get_bool("TRAITS_JSON_ONLY", False)
+
+    @property
+    def is_development(self) -> bool:
+        return self.backend_env.strip().lower() in {"dev", "development"}
 
 
 @lru_cache(maxsize=1)

@@ -33,10 +33,12 @@ def signup(payload: SignupInitiateRequest) -> SignupInitiateResponse:
         password=payload.password.get_secret_value(),
         full_name=payload.full_name,
     )
-    return SignupInitiateResponse(
-        message="An OTP has been sent to your email address. Please verify within the next 10 minutes.",
-        expires_at=expires_at,
+    message = (
+        "Account created directly (development mode). You can now sign in."
+        if services.get_settings().is_development
+        else "An OTP has been sent to your email address. Please verify within the next 10 minutes."
     )
+    return SignupInitiateResponse(message=message, expires_at=expires_at)
 
 
 @router.post("/signup/verify", response_model=MessageResponse)

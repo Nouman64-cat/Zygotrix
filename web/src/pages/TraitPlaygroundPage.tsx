@@ -45,38 +45,156 @@ const TraitPreviewCard: React.FC<TraitPreviewCardProps> = ({
   error,
   asPercentages,
 }) => {
+  const isYourTrait = title === "Your trait";
+
   return (
-    <div className="rounded-lg border border-slate-200 bg-white p-4 shadow-sm">
-      <div className="flex items-start justify-between">
-        <div>
-          <h2 className="text-sm font-semibold text-slate-700">{title}</h2>
-          {trait ? (
-            <div className="mt-1 text-xs text-slate-500">
-              <div className="font-medium text-slate-700">{trait.name}</div>
-              <div className="font-mono text-slate-500">Key: {trait.key}</div>
-            </div>
-          ) : (
-            <p className="mt-1 text-xs text-slate-500">Trait details unavailable.</p>
-          )}
+    <div
+      className={`rounded-2xl border-2 ${
+        isYourTrait
+          ? "border-purple-200 bg-gradient-to-br from-purple-50 via-white to-purple-50"
+          : "border-emerald-200 bg-gradient-to-br from-emerald-50 via-white to-emerald-50"
+      } p-6 shadow-lg transition-all duration-300 hover:shadow-xl`}
+    >
+      <div className="flex items-start justify-between mb-4">
+        <div className="flex items-center gap-3">
+          <div
+            className={`p-3 rounded-xl ${
+              isYourTrait ? "bg-purple-100" : "bg-emerald-100"
+            }`}
+          >
+            <svg
+              className={`w-6 h-6 ${
+                isYourTrait ? "text-purple-600" : "text-emerald-600"
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              {isYourTrait ? (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+                />
+              ) : (
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              )}
+            </svg>
+          </div>
+          <div>
+            <h2
+              className={`text-lg font-bold ${
+                isYourTrait ? "text-purple-800" : "text-emerald-800"
+              }`}
+            >
+              {title}
+            </h2>
+            {trait ? (
+              <div className="space-y-1">
+                <div className="font-semibold text-gray-800">{trait.name}</div>
+                <div className="font-mono text-sm text-gray-600">
+                  Key: {trait.key}
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm text-gray-500">Trait details unavailable</p>
+            )}
+          </div>
         </div>
         {trait && trait.alleles.length > 0 && (
-          <span className="rounded-full bg-slate-100 px-2 py-1 text-[11px] font-medium text-slate-600">
-            Alleles: {trait.alleles.join(", ")}
-          </span>
+          <div
+            className={`px-3 py-2 rounded-xl ${
+              isYourTrait
+                ? "bg-purple-100 border border-purple-200"
+                : "bg-emerald-100 border border-emerald-200"
+            } shadow-sm`}
+          >
+            <div className="text-xs font-medium text-gray-600 mb-1">
+              Alleles
+            </div>
+            <div
+              className={`text-sm font-bold ${
+                isYourTrait ? "text-purple-700" : "text-emerald-700"
+              }`}
+            >
+              {trait.alleles.join(", ")}
+            </div>
+          </div>
         )}
       </div>
 
       {loading ? (
-        <div className="mt-6 flex items-center gap-2 text-sm text-slate-500">
-          <span className="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-transparent" />
-          Loading preview…
+        <div
+          className={`flex items-center justify-center gap-3 p-8 rounded-xl ${
+            isYourTrait ? "bg-purple-100/50" : "bg-emerald-100/50"
+          } border-2 border-dashed ${
+            isYourTrait ? "border-purple-300" : "border-emerald-300"
+          }`}
+        >
+          <div className="relative">
+            <div
+              className={`w-8 h-8 border-4 ${
+                isYourTrait
+                  ? "border-purple-200 border-t-purple-600"
+                  : "border-emerald-200 border-t-emerald-600"
+              } rounded-full animate-spin`}
+            ></div>
+            <div
+              className={`absolute inset-0 w-8 h-8 border-4 border-transparent ${
+                isYourTrait ? "border-r-purple-400" : "border-r-emerald-400"
+              } rounded-full animate-spin`}
+              style={{ animationDirection: "reverse", animationDuration: "1s" }}
+            ></div>
+          </div>
+          <div>
+            <p
+              className={`text-sm font-semibold ${
+                isYourTrait ? "text-purple-700" : "text-emerald-700"
+              }`}
+            >
+              Loading preview...
+            </p>
+            <p
+              className={`text-xs ${
+                isYourTrait ? "text-purple-600" : "text-emerald-600"
+              }`}
+            >
+              Computing genetic probabilities
+            </p>
+          </div>
         </div>
       ) : error ? (
-        <div className="mt-4 rounded border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-600">
-          {error}
+        <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-xl p-4">
+          <div className="flex items-start gap-3">
+            <div className="p-2 bg-red-100 rounded-full">
+              <svg
+                className="w-5 h-5 text-red-600"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                />
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-sm font-bold text-red-800 mb-1">Error</h4>
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          </div>
         </div>
       ) : preview ? (
-        <div className="mt-4 space-y-4">
+        <div className="space-y-6">
           <PunnettGrid
             p1Gametes={preview.gametes.p1}
             p2Gametes={preview.gametes.p2}
@@ -91,9 +209,38 @@ const TraitPreviewCard: React.FC<TraitPreviewCardProps> = ({
           <HowComputed steps={preview.steps} />
         </div>
       ) : (
-        <p className="mt-4 text-xs text-slate-500">
-          Provide valid parent genotypes to see live outcomes.
-        </p>
+        <div
+          className={`text-center p-8 rounded-xl ${
+            isYourTrait ? "bg-purple-50" : "bg-emerald-50"
+          } border-2 border-dashed ${
+            isYourTrait ? "border-purple-200" : "border-emerald-200"
+          }`}
+        >
+          <div
+            className={`w-16 h-16 mx-auto mb-4 rounded-full ${
+              isYourTrait ? "bg-purple-100" : "bg-emerald-100"
+            } flex items-center justify-center`}
+          >
+            <svg
+              className={`w-8 h-8 ${
+                isYourTrait ? "text-purple-400" : "text-emerald-400"
+              }`}
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"
+              />
+            </svg>
+          </div>
+          <p className="text-sm text-gray-600">
+            Provide valid parent genotypes to see live outcomes
+          </p>
+        </div>
       )}
     </div>
   );
@@ -108,13 +255,15 @@ const TraitPlaygroundPage: React.FC = () => {
 
   const state = (location.state ?? {}) as PlaygroundState;
 
-  const initialTraitId =
-    state.traitId || searchParams.get("traitId") || "";
-  const initialParent1 =
-    canonicalize(state.parent1 || searchParams.get("p1") || "");
-  const initialParent2 =
-    canonicalize(state.parent2 || searchParams.get("p2") || "");
-  const initialBaselineKey = state.baselineKey || searchParams.get("baselineKey") || "";
+  const initialTraitId = state.traitId || searchParams.get("traitId") || "";
+  const initialParent1 = canonicalize(
+    state.parent1 || searchParams.get("p1") || ""
+  );
+  const initialParent2 = canonicalize(
+    state.parent2 || searchParams.get("p2") || ""
+  );
+  const initialBaselineKey =
+    state.baselineKey || searchParams.get("baselineKey") || "";
   const initialAsPctParam = state.asPct ?? undefined;
   const initialAsPercentages =
     initialAsPctParam !== undefined
@@ -127,7 +276,8 @@ const TraitPlaygroundPage: React.FC = () => {
   const [parent1, setParent1] = useState(initialParent1);
   const [parent2, setParent2] = useState(initialParent2);
   const [seed, setSeed] = useState(initialSeedValue);
-  const [asPercentages, setAsPercentages] = useState<boolean>(initialAsPercentages);
+  const [asPercentages, setAsPercentages] =
+    useState<boolean>(initialAsPercentages);
 
   const [baselineKey, setBaselineKey] = useState(initialBaselineKey);
   const [baselineInput, setBaselineInput] = useState(initialBaselineKey);
@@ -140,13 +290,19 @@ const TraitPlaygroundPage: React.FC = () => {
   const [baselineLoading, setBaselineLoading] = useState(false);
   const [baselineError, setBaselineError] = useState<string | null>(null);
 
-  const [primaryPreview, setPrimaryPreview] = useState<MendelianPreviewResponse | null>(null);
+  const [primaryPreview, setPrimaryPreview] =
+    useState<MendelianPreviewResponse | null>(null);
   const [primaryPreviewLoading, setPrimaryPreviewLoading] = useState(false);
-  const [primaryPreviewError, setPrimaryPreviewError] = useState<string | null>(null);
+  const [primaryPreviewError, setPrimaryPreviewError] = useState<string | null>(
+    null
+  );
 
-  const [baselinePreview, setBaselinePreview] = useState<MendelianPreviewResponse | null>(null);
+  const [baselinePreview, setBaselinePreview] =
+    useState<MendelianPreviewResponse | null>(null);
   const [baselinePreviewLoading, setBaselinePreviewLoading] = useState(false);
-  const [baselinePreviewError, setBaselinePreviewError] = useState<string | null>(null);
+  const [baselinePreviewError, setBaselinePreviewError] = useState<
+    string | null
+  >(null);
   const [userTraits, setUserTraits] = useState<TraitInfo[]>([]);
   const [traitSearch, setTraitSearch] = useState("");
   const [traitSidebarOpen, setTraitSidebarOpen] = useState(true);
@@ -187,12 +343,22 @@ const TraitPlaygroundPage: React.FC = () => {
     params.set("asPct", asPercentages ? "true" : "false");
     if (seed) params.set("seed", seed);
     setSearchParams(params, { replace: true });
-  }, [traitId, parent1, parent2, baselineKey, asPercentages, seed, setSearchParams]);
+  }, [
+    traitId,
+    parent1,
+    parent2,
+    baselineKey,
+    asPercentages,
+    seed,
+    setSearchParams,
+  ]);
 
   useEffect(() => {
     if (!traitId) {
       setPrimaryTrait(null);
-      setPrimaryError("Missing trait identifier. Launch from Trait Management to continue.");
+      setPrimaryError(
+        "Missing trait identifier. Launch from Trait Management to continue."
+      );
       return;
     }
 
@@ -219,7 +385,11 @@ const TraitPlaygroundPage: React.FC = () => {
         setPrimaryTrait(null);
         if (axios.isAxiosError(error)) {
           const detail = error.response?.data?.detail;
-          if (detail && typeof detail === "object" && Array.isArray(detail.errors)) {
+          if (
+            detail &&
+            typeof detail === "object" &&
+            Array.isArray(detail.errors)
+          ) {
             setPrimaryError(detail.errors.join("; "));
             return;
           }
@@ -278,7 +448,7 @@ const TraitPlaygroundPage: React.FC = () => {
       phenotype_map: { ...trait.phenotype_map },
       inheritance_pattern: trait.inheritance_pattern,
     }),
-    [],
+    []
   );
 
   useEffect(() => {
@@ -300,7 +470,7 @@ const TraitPlaygroundPage: React.FC = () => {
         as_percentages: asPercentages,
         seed: numericSeed,
       },
-      controller.signal,
+      controller.signal
     )
       .then((preview) => {
         setPrimaryPreview(preview);
@@ -310,7 +480,11 @@ const TraitPlaygroundPage: React.FC = () => {
         let message = "Unable to compute preview.";
         if (axios.isAxiosError(error)) {
           const detail = error.response?.data?.detail;
-          if (detail && typeof detail === "object" && Array.isArray(detail.errors)) {
+          if (
+            detail &&
+            typeof detail === "object" &&
+            Array.isArray(detail.errors)
+          ) {
             message = detail.errors.join("; ");
           } else if (typeof detail === "string") {
             message = detail;
@@ -350,7 +524,7 @@ const TraitPlaygroundPage: React.FC = () => {
         as_percentages: asPercentages,
         seed: numericSeed,
       },
-      controller.signal,
+      controller.signal
     )
       .then((preview) => {
         setBaselinePreview(preview);
@@ -360,7 +534,11 @@ const TraitPlaygroundPage: React.FC = () => {
         let message = "Unable to compute baseline preview.";
         if (axios.isAxiosError(error)) {
           const detail = error.response?.data?.detail;
-          if (detail && typeof detail === "object" && Array.isArray(detail.errors)) {
+          if (
+            detail &&
+            typeof detail === "object" &&
+            Array.isArray(detail.errors)
+          ) {
             message = detail.errors.join("; ");
           } else if (typeof detail === "string") {
             message = detail;
@@ -390,7 +568,7 @@ const TraitPlaygroundPage: React.FC = () => {
         setParent2(normalized);
       }
     },
-    [],
+    []
   );
 
   const togglePercentages = () => setAsPercentages((prev) => !prev);
@@ -407,120 +585,284 @@ const TraitPlaygroundPage: React.FC = () => {
 
   const traitUnavailable = !traitId;
 
-  const handleSelectTrait = useCallback(
-    (trait: TraitInfo) => {
-      const identifier = trait.id || trait.key;
-      if (!identifier) {
-        return;
-      }
-      setTraitId(identifier);
-      setParent1("");
-      setParent2("");
-      if (window.matchMedia("(max-width: 1023px)").matches) {
-        setTraitSidebarOpen(false);
-      }
-    },
-    [],
-  );
+  const handleSelectTrait = useCallback((trait: TraitInfo) => {
+    const identifier = trait.id || trait.key;
+    if (!identifier) {
+      return;
+    }
+    setTraitId(identifier);
+    setParent1("");
+    setParent2("");
+    if (window.matchMedia("(max-width: 1023px)").matches) {
+      setTraitSidebarOpen(false);
+    }
+  }, []);
 
   return (
     <DashboardLayout>
-      <main className="min-h-screen bg-slate-50 pb-12">
-        <div className="mx-auto max-w-7xl px-6 py-6">
-          <div className="flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-            <div>
-              <h1 className="text-xl font-semibold text-slate-800">Trait Playground</h1>
-              <p className="text-sm text-slate-500">
-                Explore outcomes for your private trait and compare against a curated baseline.
-              </p>
-            </div>
-            <div className="flex items-center gap-2 self-end">
-              <button
-                type="button"
-                onClick={() => setTraitSidebarOpen((prev) => !prev)}
-                className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-700 lg:hidden"
-              >
-                {traitSidebarOpen ? "Hide traits" : "Show traits"}
-              </button>
-              <button
-                type="button"
-                onClick={() => navigate("/portal/traits")}
-                className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-700"
-              >
-                Back
-              </button>
+      <main className="min-h-screen bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 pb-12">
+        <div className="mx-auto max-w-8xl px-6 py-8">
+          {/* Header Section */}
+          <div className="mb-8">
+            <div className="bg-white rounded-2xl shadow-lg border border-gray-200 p-6">
+              <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-purple-100 to-blue-100 rounded-2xl">
+                    <svg
+                      className="w-8 h-8 text-purple-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 7.172V5L8 4z"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h1 className="text-3xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                      Trait Playground
+                    </h1>
+                    <p className="text-gray-600 mt-1">
+                      Interactive genetics laboratory - explore inheritance
+                      patterns and compare outcomes
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-3 self-end">
+                  <button
+                    type="button"
+                    onClick={() => setTraitSidebarOpen((prev) => !prev)}
+                    className="lg:hidden inline-flex items-center gap-2 px-4 py-2 bg-white border-2 border-gray-200 rounded-xl text-gray-700 font-medium transition-all duration-200 hover:border-gray-300 hover:shadow-md"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M4 6h16M4 12h16M4 18h16"
+                      />
+                    </svg>
+                    {traitSidebarOpen ? "Hide traits" : "Show traits"}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => navigate("/portal/traits")}
+                    className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-gray-600 to-gray-700 text-white rounded-xl font-medium transition-all duration-200 hover:from-gray-700 hover:to-gray-800 hover:shadow-lg"
+                  >
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M10 19l-7-7m0 0l7-7m-7 7h18"
+                      />
+                    </svg>
+                    Back to Traits
+                  </button>
+                </div>
+              </div>
             </div>
           </div>
 
-          <div className="mt-6 flex flex-col gap-6 lg:flex-row">
+          <div className="flex flex-col gap-8 lg:flex-row">
             <div className="flex-1">
-              <div className="grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-4">
-                <div className="space-y-1">
-                  <label htmlFor="parent-1" className="text-xs font-medium text-slate-600">
-                    Parent 1 genotype
-                  </label>
-                  <input
-                    id="parent-1"
-                    value={parent1}
-                    onChange={(event) => handleParentChange("parent1", event.target.value)}
-                    placeholder="Ww"
-                    className="w-full rounded border border-slate-300 px-2 py-1 text-sm font-mono focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    autoComplete="off"
-                  />
+              {/* Control Panel */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg p-6 mb-8">
+                <div className="flex items-center gap-3 mb-6">
+                  <div className="p-2 bg-gradient-to-br from-blue-100 to-indigo-100 rounded-xl">
+                    <svg
+                      className="w-5 h-5 text-blue-600"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 6V4m0 2a2 2 0 100 4m0-4a2 2 0 110 4m-6 8a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4m6 6v10m6-2a2 2 0 100-4m0 4a2 2 0 100 4m0-4v2m0-6V4"
+                      />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-gray-800">
+                      Simulation Controls
+                    </h2>
+                    <p className="text-sm text-gray-600">
+                      Configure genetics parameters and display settings
+                    </p>
+                  </div>
                 </div>
-                <div className="space-y-1">
-                  <label htmlFor="parent-2" className="text-xs font-medium text-slate-600">
-                    Parent 2 genotype
-                  </label>
-                  <input
-                    id="parent-2"
-                    value={parent2}
-                    onChange={(event) => handleParentChange("parent2", event.target.value)}
-                    placeholder="Ww"
-                    className="w-full rounded border border-slate-300 px-2 py-1 text-sm font-mono focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                    autoComplete="off"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <label htmlFor="seed" className="text-xs font-medium text-slate-600">
-                    Seed (optional)
-                  </label>
-                  <input
-                    id="seed"
-                    value={seed}
-                    onChange={(event) => setSeed(canonicalize(event.target.value))}
-                    placeholder="1234"
-                    className="w-full rounded border border-slate-300 px-2 py-1 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
-                </div>
-                <div className="space-y-1">
-                  <span className="text-xs font-medium text-slate-600">Display mode</span>
-                  <button
-                    type="button"
-                    onClick={togglePercentages}
-                    className="w-full rounded border border-emerald-200 px-2 py-1 text-sm font-medium text-emerald-600 transition hover:bg-emerald-50"
-                  >
-                    {asPercentages ? "Showing percentages" : "Showing probabilities"}
-                  </button>
-                </div>
-                <div className="lg:col-span-4">
-                  <form
-                    onSubmit={applyBaseline}
-                    className="flex flex-wrap items-center gap-2 border-t border-slate-200 pt-3"
-                  >
-                    <label htmlFor="baseline-key" className="text-xs font-medium text-slate-600">
-                      Baseline trait key
+
+                <div className="grid gap-6 lg:grid-cols-4">
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="parent-1"
+                      className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+                    >
+                      <div className="w-3 h-3 rounded-full bg-purple-400"></div>
+                      Parent 1 Genotype
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="parent-1"
+                        value={parent1}
+                        onChange={(event) =>
+                          handleParentChange("parent1", event.target.value)
+                        }
+                        placeholder="Ww"
+                        className="w-full px-4 py-3 text-lg font-mono text-center border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm transition-all duration-200"
+                        autoComplete="off"
+                      />
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-purple-400 rounded-full"></div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="parent-2"
+                      className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+                    >
+                      <div className="w-3 h-3 rounded-full bg-emerald-400"></div>
+                      Parent 2 Genotype
+                    </label>
+                    <div className="relative">
+                      <input
+                        id="parent-2"
+                        value={parent2}
+                        onChange={(event) =>
+                          handleParentChange("parent2", event.target.value)
+                        }
+                        placeholder="Ww"
+                        className="w-full px-4 py-3 text-lg font-mono text-center border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 bg-white shadow-sm transition-all duration-200"
+                        autoComplete="off"
+                      />
+                      <div className="absolute -top-1 -right-1 w-3 h-3 bg-emerald-400 rounded-full"></div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label
+                      htmlFor="seed"
+                      className="text-sm font-semibold text-gray-700 flex items-center gap-2"
+                    >
+                      <svg
+                        className="w-4 h-4 text-amber-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zM21 5a2 2 0 00-2-2h-4a2 2 0 00-2 2v12a4 4 0 004 4h4a2 2 0 002-2V5z"
+                        />
+                      </svg>
+                      Random Seed
                     </label>
                     <input
-                      id="baseline-key"
-                      value={baselineInput}
-                      onChange={(event) => setBaselineInput(event.target.value)}
-                      placeholder="abo_blood_group"
-                      className="w-48 rounded border border-slate-300 px-2 py-1 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
+                      id="seed"
+                      value={seed}
+                      onChange={(event) =>
+                        setSeed(canonicalize(event.target.value))
+                      }
+                      placeholder="1234 (optional)"
+                      className="w-full px-4 py-3 text-center border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 focus:border-amber-500 bg-white shadow-sm transition-all duration-200"
                     />
+                  </div>
+
+                  <div className="space-y-2">
+                    <span className="text-sm font-semibold text-gray-700 flex items-center gap-2">
+                      <svg
+                        className="w-4 h-4 text-blue-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"
+                        />
+                      </svg>
+                      Display Mode
+                    </span>
+                    <button
+                      type="button"
+                      onClick={togglePercentages}
+                      className={`w-full px-4 py-3 rounded-xl font-medium transition-all duration-200 ${
+                        asPercentages
+                          ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg"
+                          : "bg-gray-100 text-gray-700 border-2 border-gray-200 hover:bg-gray-200"
+                      }`}
+                    >
+                      {asPercentages ? "📊 Percentages" : "🔢 Probabilities"}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Baseline Configuration */}
+                <div className="mt-6 pt-6 border-t border-gray-200">
+                  <div className="flex items-center gap-3 mb-4">
+                    <div className="p-2 bg-gradient-to-br from-orange-100 to-yellow-100 rounded-xl">
+                      <svg
+                        className="w-5 h-5 text-orange-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-bold text-gray-800">
+                        Baseline Comparison
+                      </h3>
+                      <p className="text-xs text-gray-600">
+                        Compare against reference traits
+                      </p>
+                    </div>
+                  </div>
+
+                  <form
+                    onSubmit={applyBaseline}
+                    className="flex flex-wrap items-center gap-3"
+                  >
+                    <div className="flex-1 min-w-[200px]">
+                      <input
+                        id="baseline-key"
+                        value={baselineInput}
+                        onChange={(event) =>
+                          setBaselineInput(event.target.value)
+                        }
+                        placeholder="abo_blood_group"
+                        className="w-full px-4 py-2 border-2 border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-orange-500 focus:border-orange-500 bg-white shadow-sm transition-all duration-200"
+                      />
+                    </div>
                     <button
                       type="submit"
-                      className="rounded border border-slate-300 px-2 py-1 text-xs font-medium text-slate-600 transition hover:border-emerald-400 hover:text-emerald-600"
+                      className="px-4 py-2 bg-gradient-to-r from-orange-500 to-orange-600 text-white rounded-xl font-medium transition-all duration-200 hover:from-orange-600 hover:to-orange-700 hover:shadow-lg"
                     >
                       Apply
                     </button>
@@ -528,37 +870,92 @@ const TraitPlaygroundPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={clearBaseline}
-                        className="rounded border border-rose-200 px-2 py-1 text-xs font-medium text-rose-600 transition hover:bg-rose-50"
+                        className="px-4 py-2 bg-gradient-to-r from-red-500 to-red-600 text-white rounded-xl font-medium transition-all duration-200 hover:from-red-600 hover:to-red-700 hover:shadow-lg"
                       >
                         Clear
                       </button>
                     )}
                     {baselineLoading && (
-                      <span className="flex items-center gap-1 text-xs text-slate-500">
-                        <span className="h-3 w-3 animate-spin rounded-full border border-slate-300 border-t-transparent" />
-                        Loading baseline…
-                      </span>
+                      <div className="flex items-center gap-2 px-3 py-2 bg-blue-50 border border-blue-200 rounded-xl">
+                        <div className="w-4 h-4 border-2 border-blue-300 border-t-blue-600 rounded-full animate-spin"></div>
+                        <span className="text-sm text-blue-700">
+                          Loading baseline...
+                        </span>
+                      </div>
                     )}
                     {baselineError && (
-                      <span className="text-xs text-rose-600">{baselineError}</span>
+                      <div className="px-3 py-2 bg-red-50 border border-red-200 rounded-xl">
+                        <span className="text-sm text-red-700">
+                          {baselineError}
+                        </span>
+                      </div>
                     )}
                   </form>
                 </div>
               </div>
 
+              {/* Error States */}
               {traitUnavailable && (
-                <div className="mt-6 rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                  Provide a trait identifier via the Trait Management preview to start a playground session.
+                <div className="mb-8 bg-gradient-to-r from-yellow-50 to-orange-50 border-2 border-yellow-200 rounded-2xl p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-yellow-100 rounded-full">
+                      <svg
+                        className="w-6 h-6 text-yellow-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-yellow-800 mb-2">
+                        No Trait Selected
+                      </h3>
+                      <p className="text-yellow-700">
+                        Select a trait from the sidebar or launch from Trait
+                        Management to start your playground session.
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
               {primaryError && (
-                <div className="mt-6 rounded border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-600">
-                  {primaryError}
+                <div className="mb-8 bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-200 rounded-2xl p-6">
+                  <div className="flex items-start gap-4">
+                    <div className="p-3 bg-red-100 rounded-full">
+                      <svg
+                        className="w-6 h-6 text-red-600"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h3 className="text-lg font-bold text-red-800 mb-2">
+                        Trait Loading Error
+                      </h3>
+                      <p className="text-red-700">{primaryError}</p>
+                    </div>
+                  </div>
                 </div>
               )}
 
-              <div className="mt-6 grid gap-4 lg:grid-cols-2">
+              {/* Trait Comparison Cards */}
+              <div className="grid gap-8 lg:grid-cols-2 mb-8">
                 <TraitPreviewCard
                   title="Your trait"
                   trait={primaryTrait}
@@ -572,69 +969,215 @@ const TraitPlaygroundPage: React.FC = () => {
                   trait={baselineTrait}
                   loading={baselinePreviewLoading || baselineLoading}
                   preview={baselinePreview}
-                  error={baselinePreviewError || (!baselineKey ? "Select a baseline to compare." : null)}
+                  error={
+                    baselinePreviewError ||
+                    (!baselineKey ? "Select a baseline to compare." : null)
+                  }
                   asPercentages={asPercentages}
                 />
               </div>
 
-              <div className="mt-6">
-                <ComparePanel
-                  primaryLabel="Your trait"
-                  baselineLabel={baselineTrait ? baselineTrait.name : undefined}
-                  primary={primaryPreview}
-                  baseline={baselinePreview}
-                  asPercentages={asPercentages}
-                />
+              {/* Comparison Panel */}
+              <div className="bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
+                <div className="bg-gradient-to-r from-indigo-600 to-purple-600 px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <svg
+                        className="w-6 h-6 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2-2h2a2 2 0 002 2v6a2 2 0 002 2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-xl font-bold text-white">
+                        Statistical Comparison
+                      </h2>
+                      <p className="text-white/80">
+                        Side-by-side analysis of trait outcomes
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                <div className="p-6">
+                  <ComparePanel
+                    primaryLabel="Your trait"
+                    baselineLabel={
+                      baselineTrait ? baselineTrait.name : undefined
+                    }
+                    primary={primaryPreview}
+                    baseline={baselinePreview}
+                    asPercentages={asPercentages}
+                  />
+                </div>
               </div>
             </div>
 
+            {/* Traits Sidebar */}
             <aside
-              className={`${traitSidebarOpen ? "block" : "hidden"} lg:block lg:w-72 flex-shrink-0`}
+              className={`${
+                traitSidebarOpen ? "block" : "hidden"
+              } lg:block lg:w-80 flex-shrink-0`}
             >
-              <div className="sticky top-24 rounded-lg border border-slate-200 bg-white shadow-sm">
-                <div className="border-b border-slate-200 px-4 py-3">
-                  <h2 className="text-sm font-semibold text-slate-700">Your traits</h2>
-                  <p className="text-xs text-slate-500">
-                    Select a trait to load it into the playground.
-                  </p>
+              <div className="sticky top-24 bg-white rounded-2xl border border-gray-200 shadow-lg overflow-hidden">
+                {/* Header */}
+                <div className="bg-gradient-to-r from-emerald-500 to-teal-600 px-6 py-4">
+                  <div className="flex items-center gap-3">
+                    <div className="p-2 bg-white/20 backdrop-blur-sm rounded-xl">
+                      <svg
+                        className="w-5 h-5 text-white"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"
+                        />
+                      </svg>
+                    </div>
+                    <div>
+                      <h2 className="text-lg font-bold text-white">
+                        Your Traits
+                      </h2>
+                      <p className="text-white/80 text-sm">
+                        Select a trait to explore
+                      </p>
+                    </div>
+                  </div>
                 </div>
-                <div className="border-b border-slate-100 px-4 py-3">
-                  <input
-                    type="text"
-                    value={traitSearch}
-                    onChange={(event) => setTraitSearch(event.target.value)}
-                    placeholder="Search traits"
-                    className="w-full rounded-md border border-slate-300 px-3 py-2 text-sm focus:border-emerald-500 focus:outline-none focus:ring-1 focus:ring-emerald-500"
-                  />
+
+                {/* Search */}
+                <div className="p-4 border-b border-gray-100">
+                  <div className="relative">
+                    <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                      <svg
+                        className="h-5 w-5 text-gray-400"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+                        />
+                      </svg>
+                    </div>
+                    <input
+                      type="text"
+                      value={traitSearch}
+                      onChange={(event) => setTraitSearch(event.target.value)}
+                      placeholder="Search traits..."
+                      className="w-full pl-10 pr-4 py-3 border-2 border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition-all duration-200"
+                    />
+                  </div>
                 </div>
-                <div className="max-h-[60vh] overflow-y-auto px-2 py-3 space-y-2">
+
+                {/* Traits List */}
+                <div className="max-h-[60vh] overflow-y-auto p-4">
                   {traitsLoading ? (
-                    <div className="px-2 py-4 text-sm text-slate-500">Loading traits…</div>
+                    <div className="flex items-center justify-center gap-3 py-8">
+                      <div className="w-6 h-6 border-2 border-emerald-300 border-t-emerald-600 rounded-full animate-spin"></div>
+                      <span className="text-sm text-gray-600">
+                        Loading traits...
+                      </span>
+                    </div>
                   ) : filteredTraits.length === 0 ? (
-                    <div className="px-2 py-4 text-sm text-slate-500">No traits found.</div>
-                  ) : (
-                    filteredTraits.map((trait) => {
-                      const identifier = trait.id || trait.key;
-                      const isActive = identifier === traitId;
-                      return (
-                        <button
-                          key={identifier}
-                          type="button"
-                          onClick={() => handleSelectTrait(trait)}
-                          className={`w-full text-left rounded-md border px-3 py-2 transition focus:outline-none focus:ring-2 focus:ring-blue-500 ${
-                            isActive
-                              ? "border-blue-300 bg-blue-50 text-blue-700"
-                              : "border-transparent bg-white text-slate-700 hover:border-slate-200 hover:bg-slate-50"
-                          }`}
+                    <div className="text-center py-8">
+                      <div className="w-16 h-16 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
+                        <svg
+                          className="w-8 h-8 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
                         >
-                          <div className="text-sm font-medium truncate">{trait.name}</div>
-                          <div className="flex items-center justify-between text-[11px] text-slate-500">
-                            <span className="font-mono truncate">{trait.key}</span>
-                            <span className="capitalize">{trait.status}</span>
-                          </div>
-                        </button>
-                      );
-                    })
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M9.172 16.172a4 4 0 015.656 0M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                          />
+                        </svg>
+                      </div>
+                      <p className="text-sm text-gray-500">No traits found</p>
+                    </div>
+                  ) : (
+                    <div className="space-y-3">
+                      {filteredTraits.map((trait) => {
+                        const identifier = trait.id || trait.key;
+                        const isActive = identifier === traitId;
+                        return (
+                          <button
+                            key={identifier}
+                            type="button"
+                            onClick={() => handleSelectTrait(trait)}
+                            className={`w-full text-left rounded-xl border-2 p-4 transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-emerald-500 ${
+                              isActive
+                                ? "border-emerald-300 bg-gradient-to-r from-emerald-50 to-teal-50 shadow-md"
+                                : "border-gray-200 bg-white hover:border-gray-300 hover:shadow-md"
+                            }`}
+                          >
+                            <div className="flex items-start justify-between mb-2">
+                              <div className="font-semibold text-gray-800 truncate pr-2">
+                                {trait.name}
+                              </div>
+                              {isActive && (
+                                <div className="flex-shrink-0 w-2 h-2 bg-emerald-500 rounded-full animate-pulse"></div>
+                              )}
+                            </div>
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="font-mono text-gray-600 truncate pr-2">
+                                {trait.key}
+                              </span>
+                              <span
+                                className={`px-2 py-1 rounded-full text-[10px] font-medium capitalize ${
+                                  trait.status === "active"
+                                    ? "bg-green-100 text-green-700"
+                                    : "bg-gray-100 text-gray-600"
+                                }`}
+                              >
+                                {trait.status}
+                              </span>
+                            </div>
+                            {trait.alleles && trait.alleles.length > 0 && (
+                              <div className="mt-2 flex items-center gap-1">
+                                <span className="text-[10px] font-medium text-gray-500">
+                                  Alleles:
+                                </span>
+                                <div className="flex gap-1">
+                                  {trait.alleles
+                                    .slice(0, 3)
+                                    .map((allele, i) => (
+                                      <span
+                                        key={i}
+                                        className="text-[10px] font-mono bg-gray-100 px-1 py-0.5 rounded"
+                                      >
+                                        {allele}
+                                      </span>
+                                    ))}
+                                  {trait.alleles.length > 3 && (
+                                    <span className="text-[10px] text-gray-400">
+                                      +{trait.alleles.length - 3}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            )}
+                          </button>
+                        );
+                      })}
+                    </div>
                   )}
                 </div>
               </div>

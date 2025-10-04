@@ -1,13 +1,11 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import type {
   TraitInfo,
   TraitCreatePayload,
   TraitUpdatePayload,
   GeneInfo,
   TraitVisibility,
-  TraitPreviewPayload,
 } from "../../types/api";
-import PunnettPreview from "./Preview/PunnettPreview";
 
 interface TraitEditorProps {
   trait: TraitInfo | null;
@@ -50,11 +48,6 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
   >([{ genotype: "", phenotype: "" }]);
 
   const [errors, setErrors] = useState<Record<string, string>>({});
-  const [previewParent1, setPreviewParent1] = useState<string>("");
-  const [previewParent2, setPreviewParent2] = useState<string>("");
-  const [previewErrors, setPreviewErrors] = useState<string[]>([]);
-  const [previewTotalsOk, setPreviewTotalsOk] = useState<boolean>(true);
-  const [previewLoading, setPreviewLoading] = useState<boolean>(false);
 
   useEffect(() => {
     if (trait) {
@@ -139,67 +132,6 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
     }
     setErrors({});
   }, [trait, mode, dummyData]);
-
-  const previewPhenotypeMap = useMemo(() => {
-    const map: Record<string, string> = {};
-    phenotypeEntries.forEach((entry) => {
-      const genotype = entry.genotype.trim();
-      const phenotype = entry.phenotype.trim();
-      if (genotype && phenotype) {
-        map[genotype] = phenotype;
-      }
-    });
-    return map;
-  }, [phenotypeEntries]);
-
-  const previewAlleles = useMemo(() => {
-    const alleleSet = new Set<string>(formData.alleles || []);
-    phenotypeEntries.forEach((entry) => {
-      const genotype = entry.genotype.trim();
-      if (genotype) {
-        for (const char of genotype) {
-          if (/[A-Za-z]/.test(char)) {
-            alleleSet.add(char);
-          }
-        }
-      }
-    });
-    return Array.from(alleleSet);
-  }, [phenotypeEntries, formData.alleles]);
-
-  const draftTraitForPreview = useMemo<TraitPreviewPayload>(() => {
-    return {
-      alleles: previewAlleles,
-      phenotype_map: previewPhenotypeMap,
-      inheritance_pattern: formData.inheritance_pattern,
-    };
-  }, [previewAlleles, previewPhenotypeMap, formData.inheritance_pattern]);
-
-  const buildDefaultGenotype = (alleles: string[]) => {
-    if (alleles.length === 0) return "";
-    if (alleles.length === 1) return `${alleles[0]}${alleles[0]}`;
-    return `${alleles[0]}${alleles[1]}`;
-  };
-
-  useEffect(() => {
-    if (previewAlleles.length === 0) {
-      setPreviewParent1("");
-      setPreviewParent2("");
-      return;
-    }
-    const defaultGenotype = buildDefaultGenotype(previewAlleles);
-    const alleleSet = new Set(previewAlleles);
-    setPreviewParent1((prev) => {
-      if (!prev) return defaultGenotype;
-      const valid = Array.from(prev).every((symbol) => alleleSet.has(symbol));
-      return valid ? prev : defaultGenotype;
-    });
-    setPreviewParent2((prev) => {
-      if (!prev) return defaultGenotype;
-      const valid = Array.from(prev).every((symbol) => alleleSet.has(symbol));
-      return valid ? prev : defaultGenotype;
-    });
-  }, [previewAlleles]);
 
   const validateGenotypes = (
     validEntries: Array<{ genotype: string; phenotype: string }>
@@ -459,43 +391,7 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
     }
   };
 
-  const saveDisabled =
-    isLoading ||
-    previewLoading ||
-    previewErrors.length > 0 ||
-    !previewTotalsOk;
-
-  const saveDisabledReason = (() => {
-    if (previewLoading) return "Preview is still running";
-    if (previewErrors.length > 0) return previewErrors.join("; ");
-    if (!previewTotalsOk)
-      return "Genotype and phenotype probabilities must sum to 1";
-    return undefined;
-  })();
-
-  const handlePreviewParentChange = useCallback(
-    (which: "parent1" | "parent2", value: string) => {
-      if (which === "parent1") {
-        setPreviewParent1(value);
-      } else {
-        setPreviewParent2(value);
-      }
-    },
-    [],
-  );
-
-  const handlePreviewValidation = useCallback(
-    ({ errors: issues, totalsOk, loading }: {
-      errors: string[];
-      totalsOk: boolean;
-      loading: boolean;
-    }) => {
-      setPreviewErrors(issues);
-      setPreviewTotalsOk(totalsOk);
-      setPreviewLoading(loading);
-    },
-    [],
-  );
+  const saveDisabled = isLoading;
 
   return (
     <>
@@ -970,15 +866,6 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
                 </div>
               </div>
 
-              <PunnettPreview
-                draftTrait={draftTraitForPreview}
-                parent1={previewParent1}
-                parent2={previewParent2}
-                onParentChange={handlePreviewParentChange}
-                onValidationChange={handlePreviewValidation}
-                traitId={trait?.id}
-              />
-
               {/* Compact Form Actions */}
               <div className="flex justify-end gap-2 pt-4 border-t border-gray-200">
                 <button
@@ -991,11 +878,10 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
                 <button
                   type="submit"
                   disabled={saveDisabled}
-                  title={saveDisabledReason}
                   className="px-3 py-1.5 text-sm font-medium text-white bg-blue-600 border border-transparent rounded hover:bg-blue-700 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
                 >
                   {(() => {
-                    if (isLoading || previewLoading) return "Saving...";
+                    if (isLoading) return "Saving...";
                     return trait ? "Update Trait" : "Create Trait";
                   })()}
                 </button>

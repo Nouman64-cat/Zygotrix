@@ -9,7 +9,6 @@ import ContactPage from "./pages/ContactPage";
 import DataManagementPage from "./pages/DataManagementPage";
 import HomePage from "./pages/HomePage";
 import JointPhenotypePage from "./pages/JointPhenotypePage";
-import PlaygroundPage from "./pages/PlaygroundPage";
 import PortalPage from "./pages/PortalPage";
 import BlogsPage from "./pages/BlogsPage";
 import BlogDetailPage from "./pages/BlogDetailPage";
@@ -23,6 +22,7 @@ import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import TeamMemberPage from "./pages/TeamMemberPage";
+import TraitPlaygroundPage from "./pages/TraitPlaygroundPage";
 
 const App: React.FC = () => {
   return (
@@ -31,7 +31,6 @@ const App: React.FC = () => {
         <Route index element={<HomePage />} />
         <Route path="about" element={<AboutPage />} />
         <Route path="team/:slug" element={<TeamMemberPage />} />
-        <Route path="playground" element={<PlaygroundPage />} />
         <Route path="joint-phenotype" element={<JointPhenotypePage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="blogs" element={<BlogsPage />} />
@@ -58,6 +57,14 @@ const App: React.FC = () => {
         element={
           <RequireAuth>
             <TraitManagementPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="portal/traits/playground"
+        element={
+          <RequireAuth>
+            <TraitPlaygroundPage />
           </RequireAuth>
         }
       />

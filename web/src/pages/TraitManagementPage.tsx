@@ -15,6 +15,7 @@ import {
 import TraitFiltersComponent from "../components/traits/TraitFilters";
 import TraitListComponent from "../components/traits/TraitList";
 import TraitEditor from "../components/traits/TraitEditor";
+import TraitPreviewModal from "../components/modals/TraitPreviewModal";
 import { isDevelopment } from "../utils/env";
 import { generateDummyTraitData } from "../utils/dummyTraitData";
 
@@ -35,6 +36,8 @@ const TraitManagementPage: React.FC = () => {
   } | null>(null);
   const [viewMode, setViewMode] = useState<"grid" | "list">("list");
   const mainContentRef = useRef<HTMLDivElement>(null);
+  const [previewTrait, setPreviewTrait] = useState<TraitInfo | null>(null);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   // Clear messages after timeout
   useEffect(() => {
@@ -87,6 +90,8 @@ const TraitManagementPage: React.FC = () => {
 
   // Handle editing an existing trait
   const handleEditTrait = (trait: TraitInfo) => {
+    setIsPreviewOpen(false);
+    setPreviewTrait(null);
     setSelectedTrait(trait);
     setEditMode("edit");
     setShowEditor(true);
@@ -173,6 +178,15 @@ const TraitManagementPage: React.FC = () => {
     setShowEditor(false);
     setSelectedTrait(null);
     setDummyData(null);
+  };
+
+  const handlePreviewTrait = (trait: TraitInfo) => {
+    setPreviewTrait(trait);
+    setIsPreviewOpen(true);
+  };
+
+  const handleClosePreview = () => {
+    setIsPreviewOpen(false);
   };
 
   // Handle filter changes
@@ -396,6 +410,7 @@ const TraitManagementPage: React.FC = () => {
               <TraitListComponent
                 traits={traits}
                 loading={loading}
+                onSelectTrait={handlePreviewTrait}
                 onEditTrait={handleEditTrait}
                 onDeleteTrait={handleDeleteTrait}
                 onRefresh={loadTraits}
@@ -416,6 +431,17 @@ const TraitManagementPage: React.FC = () => {
             isLoading={loading}
           />
         )}
+
+        <TraitPreviewModal
+          isOpen={isPreviewOpen}
+          trait={previewTrait}
+          onClose={handleClosePreview}
+          onEdit={() => {
+            if (previewTrait) {
+              handleEditTrait(previewTrait);
+            }
+          }}
+        />
       </div>
 
       {/* Success Message */}

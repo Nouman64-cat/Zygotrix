@@ -237,7 +237,7 @@ const PunnettPreview: React.FC<PunnettPreviewProps> = ({
                 return;
               }
 
-              navigate("/playground", {
+              navigate("/portal/traits/playground", {
                 state: {
                   traitId,
                   parent1: parent1.replace(/\s+/g, ""),

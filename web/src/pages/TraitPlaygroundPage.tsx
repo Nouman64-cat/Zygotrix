@@ -6,6 +6,7 @@ import ComparePanel from "../components/playground/ComparePanel";
 import PunnettGrid from "../components/traits/Preview/PunnettGrid";
 import DistributionBars from "../components/traits/Preview/DistributionBars";
 import HowComputed from "../components/traits/Preview/HowComputed";
+import DashboardLayout from "../layouts/DashboardLayout";
 import type {
   TraitInfo,
   MendelianPreviewResponse,
@@ -96,7 +97,7 @@ const TraitPreviewCard: React.FC<TraitPreviewCardProps> = ({
 
 const canonicalize = (value: string) => value.replace(/\s+/g, "");
 
-const PlaygroundPage: React.FC = () => {
+const TraitPlaygroundPage: React.FC = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -373,23 +374,24 @@ const PlaygroundPage: React.FC = () => {
   const traitUnavailable = !traitId;
 
   return (
-    <main className="min-h-screen bg-slate-50 pb-12">
-      <div className="mx-auto max-w-6xl px-6 py-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-xl font-semibold text-slate-800">Playground</h1>
-            <p className="text-sm text-slate-500">
-              Explore outcomes for your private trait and compare against a curated baseline.
-            </p>
+    <DashboardLayout>
+      <main className="min-h-screen bg-slate-50 pb-12">
+        <div className="mx-auto max-w-6xl px-6 py-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-xl font-semibold text-slate-800">Trait Playground</h1>
+              <p className="text-sm text-slate-500">
+                Explore outcomes for your private trait and compare against a curated baseline.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={() => navigate("/portal/traits")}
+              className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-700"
+            >
+              Back
+            </button>
           </div>
-          <button
-            type="button"
-            onClick={() => navigate(-1)}
-            className="rounded-md border border-slate-200 px-3 py-1.5 text-sm text-slate-600 transition hover:border-slate-300 hover:text-slate-700"
-          >
-            Back
-          </button>
-        </div>
 
         <div className="mt-6 grid gap-4 rounded-lg border border-slate-200 bg-white p-4 shadow-sm lg:grid-cols-4">
           <div className="space-y-1">
@@ -524,8 +526,9 @@ const PlaygroundPage: React.FC = () => {
           />
         </div>
       </div>
-    </main>
+      </main>
+    </DashboardLayout>
   );
 };
 
-export default PlaygroundPage;
+export default TraitPlaygroundPage;

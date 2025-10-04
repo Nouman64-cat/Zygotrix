@@ -4,6 +4,7 @@ import type { TraitInfo } from "../../types/api";
 interface TraitListProps {
   traits: TraitInfo[];
   loading: boolean;
+  onSelectTrait: (trait: TraitInfo) => void;
   onEditTrait: (trait: TraitInfo) => void;
   onDeleteTrait: (traitKey: string) => void;
   onRefresh: () => void;
@@ -13,6 +14,7 @@ interface TraitListProps {
 const TraitListComponent: React.FC<TraitListProps> = ({
   traits,
   loading,
+  onSelectTrait,
   onEditTrait,
   onDeleteTrait,
   onRefresh,
@@ -145,8 +147,8 @@ const TraitListComponent: React.FC<TraitListProps> = ({
         <button
           key={trait.key}
           className="group bg-white rounded-lg border border-gray-200 shadow-sm hover:shadow-md hover:border-blue-300 transition-all duration-200 overflow-hidden cursor-pointer focus:outline-none focus:ring-2 focus:ring-blue-500 text-left w-full"
-          onClick={() => onEditTrait(trait)}
-          aria-label={`Edit trait ${trait.name}`}
+          onClick={() => onSelectTrait(trait)}
+          aria-label={`View trait ${trait.name}`}
         >
           {/* Compact Header */}
           <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-3 border-b border-gray-100">
@@ -257,7 +259,7 @@ const TraitListComponent: React.FC<TraitListProps> = ({
 
           {/* Minimal Actions Footer */}
           <div className="bg-gray-50 px-3 py-2 border-t border-gray-100 flex justify-between items-center">
-            <span className="text-xs text-gray-400">Click to edit</span>
+            <span className="text-xs text-gray-400">Click card to preview</span>
             <div className="flex space-x-1">
               <button
                 onClick={(e) => {
@@ -370,7 +372,7 @@ const TraitListComponent: React.FC<TraitListProps> = ({
                 className={`hover:bg-blue-50/50 transition-all duration-200 cursor-pointer group ${
                   index % 2 === 0 ? "bg-white" : "bg-gray-50/30"
                 }`}
-                onClick={() => onEditTrait(trait)}
+                onClick={() => onSelectTrait(trait)}
               >
                 <td className="px-6 py-5">
                   <div className="flex items-center space-x-4">

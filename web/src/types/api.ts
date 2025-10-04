@@ -13,6 +13,7 @@ export type TraitStatus = "draft" | "active" | "deprecated";
 export type TraitVisibility = "private" | "team" | "public";
 
 export type TraitInfo = {
+  id?: string;
   key: string;
   name: string;
   alleles: string[];

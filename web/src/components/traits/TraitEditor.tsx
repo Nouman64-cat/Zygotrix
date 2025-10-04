@@ -976,6 +976,7 @@ const TraitEditor: React.FC<TraitEditorProps> = ({
                 parent2={previewParent2}
                 onParentChange={handlePreviewParentChange}
                 onValidationChange={handlePreviewValidation}
+                traitId={trait?.id}
               />
 
               {/* Compact Form Actions */}

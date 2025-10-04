@@ -15,6 +15,8 @@ export const API_ROUTES = {
   traits: {
     root: "/api/traits",
     detail: (traitKey: string) => "/api/traits/" + encodeURIComponent(traitKey),
+    byKey: (traitKey: string) =>
+      "/api/traits/by-key/" + encodeURIComponent(traitKey),
   },
   mendelian: {
     simulate: "/api/mendelian/simulate",

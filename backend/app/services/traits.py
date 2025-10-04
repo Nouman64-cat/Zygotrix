@@ -13,6 +13,7 @@ from typing import (
     cast,
 )
 from fastapi import HTTPException
+from bson import ObjectId
 from pymongo.errors import PyMongoError, DuplicateKeyError
 from pymongo.collection import Collection
 import itertools
@@ -273,7 +274,9 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
     """Convert MongoDB document to TraitInfo model."""
 
     # Handle ObjectId conversion
+    trait_id = None
     if "_id" in document:
+        trait_id = str(document["_id"])
         document.pop("_id")
 
     # Handle datetime fields
@@ -327,6 +330,7 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
 
     # Create TraitInfo with all fields
     trait_data: Dict[str, Any] = {
+        "id": trait_id,
         "key": document.get("key", ""),
         "name": document.get("name", ""),
         "alleles": document.get("alleles", []),
@@ -891,6 +895,29 @@ def get_trait_by_key(key: str, owner_id: Optional[str] = None) -> Optional[Trait
 
     except PyMongoError as e:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+def get_trait_by_id(trait_id: str, owner_id: Optional[str]) -> Optional[TraitInfo]:
+    settings = get_settings()
+    if settings.traits_json_only:
+        return None
+    if not owner_id or not ObjectId.is_valid(trait_id):
+        return None
+    try:
+        collection = cast(Collection, get_traits_collection(required=True))
+        doc = collection.find_one({"_id": ObjectId(trait_id), "owner_id": owner_id})
+        if not doc:
+            return None
+        return _serialize_trait_document(doc)
+    except PyMongoError as e:
+        raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+
+
+def get_public_trait_by_key(key: str) -> Optional[TraitInfo]:
+    trait = get_trait_by_key(key, None)
+    if trait and trait.visibility == TraitVisibility.PUBLIC:
+        return trait
+    return None
 
 
 def _build_update_document_base(

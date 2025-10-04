@@ -60,17 +60,33 @@ export const fetchPublicTraitsCount = async (
   return systemTraits.length;
 };
 
-/**
- * Get a specific trait by key
- * - Public traits are accessible to everyone
- * - Private traits are only accessible to the owner
- */
 export const fetchTraitByKey = async (
   key: string,
   signal?: AbortSignal
 ): Promise<TraitInfo> => {
-  const response = await API.get<TraitInfo>(API_ROUTES.traits.detail(key), {
+  const response = await API.get<TraitInfo>(API_ROUTES.traits.byKey(key), {
     signal,
+  });
+  return response.data;
+};
+
+export const fetchPrivateTraitById = async (
+  id: string,
+  signal?: AbortSignal,
+): Promise<TraitInfo> => {
+  const response = await API.get<TraitInfo>(API_ROUTES.traits.detail(id), {
+    signal,
+  });
+  return response.data;
+};
+
+export const fetchBaselineTrait = async (
+  key: string,
+  signal?: AbortSignal,
+): Promise<TraitInfo> => {
+  const response = await API.get<TraitInfo>(API_ROUTES.traits.byKey(key), {
+    signal,
+    params: { visibility: "public" },
   });
   return response.data;
 };

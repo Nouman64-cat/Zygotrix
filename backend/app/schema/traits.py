@@ -45,6 +45,7 @@ class TraitInfo(BaseModel):
 
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
+    id: Optional[str] = None
     key: str
     name: str
     alleles: List[str] = Field(default_factory=list)

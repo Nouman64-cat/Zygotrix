@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from typing import Optional, List
+from bson import ObjectId
 from ..services import traits as trait_services
 from ..config import get_settings
 from ..services import auth as auth_services
@@ -138,17 +139,40 @@ def create_trait(
     return TraitCreateResponse(trait=trait)
 
 
-@router.get("/{key}", response_model=TraitInfo, tags=["Traits"])
-def get_trait_by_key(
-    key: str, credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+@router.get("/by-key/{key}", response_model=TraitInfo, tags=["Traits"])
+def get_trait_by_key_public(
+    key: str,
+    visibility: Optional[TraitVisibility] = Query(None),
+) -> TraitInfo:
+    """Fetch a trait by key for public consumption (e.g., baselines)."""
+
+    if visibility == TraitVisibility.PUBLIC:
+        trait = trait_services.get_public_trait_by_key(key)
+    else:
+        trait = trait_services.get_trait_by_key(key, None)
+    if not trait:
+        raise HTTPException(
+            status_code=404, detail=f"Trait '{key}' not found or access denied"
+        )
+    if visibility and trait.visibility != visibility:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Trait '{key}' not found with visibility '{visibility.value}'",
+        )
+    return trait
+
+
+@router.get("/{identifier}", response_model=TraitInfo, tags=["Traits"])
+def get_trait(
+    identifier: str, credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> TraitInfo:
     """
-    Get a specific trait by key.
+    Get a specific trait either by ObjectId (owner-only) or by key.
 
-    - Public traits are accessible to everyone
-    - Private traits are only accessible to the owner
+    - When identifier is a valid ObjectId, the trait must be owned by the requester
+    - Otherwise falls back to key-based lookup preserving existing behaviour
     """
-    # Get current user ID if authenticated
+
     current_user_id = None
     if credentials and credentials.credentials:
         try:
@@ -157,13 +181,28 @@ def get_trait_by_key(
             )
             current_user_id = current_user.get("id")
         except HTTPException:
-            # Invalid token, continue as anonymous user
             pass
 
-    trait = trait_services.get_trait_by_key(key, current_user_id)
+    if ObjectId.is_valid(identifier):
+        if not current_user_id:
+            raise HTTPException(status_code=404, detail="Trait not found")
+        trait = trait_services.get_trait_by_id(identifier, current_user_id)
+        if not trait:
+            raise HTTPException(status_code=404, detail="Trait not found")
+        if trait.visibility != TraitVisibility.PUBLIC:
+            validation_errors = list(trait.validation_rules.errors or [])
+            if not trait.validation_rules.passed and not validation_errors:
+                validation_errors.append(
+                    "Trait validation failed; please resolve issues before running simulations."
+                )
+            if validation_errors:
+                raise HTTPException(status_code=422, detail={"errors": validation_errors})
+        return trait
+
+    trait = trait_services.get_trait_by_key(identifier, current_user_id)
     if not trait:
         raise HTTPException(
-            status_code=404, detail=f"Trait '{key}' not found or access denied"
+            status_code=404, detail=f"Trait '{identifier}' not found or access denied"
         )
 
     return trait

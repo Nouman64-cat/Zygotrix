@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import axios from "axios";
 
 import type {
@@ -22,6 +23,7 @@ type PunnettPreviewProps = {
   parent2: string;
   onParentChange: (which: "parent1" | "parent2", value: string) => void;
   onValidationChange?: (state: ValidationState) => void;
+  traitId?: string;
 };
 
 const totalsWithinTolerance = (
@@ -50,7 +52,9 @@ const PunnettPreview: React.FC<PunnettPreviewProps> = ({
   parent2,
   onParentChange,
   onValidationChange,
+  traitId,
 }) => {
+  const navigate = useNavigate();
   const [asPercentages, setAsPercentages] = useState(true);
   const [seedInput, setSeedInput] = useState<string>("");
   const [preview, setPreview] = useState<MendelianPreviewResponse | null>(null);
@@ -225,6 +229,34 @@ const PunnettPreview: React.FC<PunnettPreviewProps> = ({
             className="px-2 py-1 text-xs font-medium border border-gray-200 text-gray-600 rounded hover:bg-gray-100 focus:outline-none focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
           >
             {copied ? "Copied" : "Copy JSON"}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (!traitId || !preview || errors.length > 0 || isLoading) {
+                return;
+              }
+
+              navigate("/playground", {
+                state: {
+                  traitId,
+                  parent1: parent1.replace(/\s+/g, ""),
+                  parent2: parent2.replace(/\s+/g, ""),
+                  asPct: asPercentages,
+                },
+              });
+            }}
+            disabled={!traitId || !preview || errors.length > 0 || isLoading}
+            className="px-2 py-1 text-xs font-medium border border-emerald-200 text-emerald-600 rounded hover:bg-emerald-50 focus:outline-none focus:ring-1 focus:ring-emerald-500 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            title={
+              traitId
+                ? errors.length > 0
+                  ? "Resolve validation issues before running in the playground"
+                  : undefined
+                : "Save trait first to enable the playground"
+            }
+          >
+            Run in Playground
           </button>
         </div>
       </div>

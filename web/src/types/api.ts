@@ -113,6 +113,44 @@ export type TraitUpdateResponse = {
   trait: TraitInfo;
 };
 
+export type TraitPreviewPayload = {
+  alleles: string[];
+  phenotype_map: Record<string, string>;
+  inheritance_pattern?: string;
+};
+
+export type MendelianPreviewRequest = {
+  trait: TraitPreviewPayload;
+  parent1: string;
+  parent2: string;
+  as_percentages: boolean;
+  seed?: number;
+};
+
+export type GameteProbability = {
+  allele: string;
+  probability: number;
+};
+
+export type PunnettCell = {
+  genotype: string;
+  probability: number;
+  parent1_allele: string;
+  parent2_allele: string;
+};
+
+export type MendelianPreviewResponse = {
+  gametes: {
+    p1: GameteProbability[];
+    p2: GameteProbability[];
+  };
+  punnett: PunnettCell[][];
+  genotype_dist: Record<string, number>;
+  phenotype_dist: Record<string, number>;
+  steps: string[];
+  errors: string[];
+};
+
 // Legacy aliases for backward compatibility (deprecated - use TraitCreatePayload/TraitUpdatePayload)
 // export type TraitMutationPayload = TraitCreatePayload;
 // export type TraitMutationResponse = TraitCreateResponse;

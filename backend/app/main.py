@@ -21,6 +21,7 @@ from .schema.auth import UserProfile
 from .routes.auth import router as auth_router
 from .routes.traits import router as trait_router
 from .routes.mendelian import router as mendelian_router
+from .routes.preview import router as preview_router
 from .routes.projects import router as project_router
 from .routes.portal import router as portal_router
 from .routes.project_templates import router as project_templates_router
@@ -85,6 +86,7 @@ async def startup_event():
 app.include_router(auth_router)
 app.include_router(trait_router)
 app.include_router(mendelian_router)
+app.include_router(preview_router)
 app.include_router(project_router)
 app.include_router(portal_router)
 app.include_router(project_templates_router)

@@ -20,6 +20,7 @@ export const API_ROUTES = {
     simulate: "/api/mendelian/simulate",
     simulateJoint: "/api/mendelian/simulate-joint",
     genotypes: "/api/mendelian/genotypes",
+    preview: "/api/mendelian/preview",
   },
   polygenic: {
     score: "/api/polygenic/score",

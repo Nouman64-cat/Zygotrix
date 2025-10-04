@@ -24,6 +24,15 @@ export const API_ROUTES = {
     genotypes: "/api/mendelian/genotypes",
     preview: "/api/mendelian/preview",
   },
+  data: {
+    importFile: "/api/data/import",
+  },
+  population: {
+    simulate: "/api/population/simulate",
+  },
+  pgs: {
+    demo: "/api/pgs/demo",
+  },
   polygenic: {
     score: "/api/polygenic/score",
   },

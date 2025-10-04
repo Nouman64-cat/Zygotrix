@@ -152,6 +152,72 @@ export type MendelianPreviewResponse = {
   errors: string[];
 };
 
+export type DataImportResponse = {
+  normalized_calls: Array<{
+    rsid: string;
+    genotype?: string | null;
+    reference?: string | null;
+    alternate?: string | null;
+    dosage?: number | null;
+  }>;
+  mapped_traits: Record<
+    string,
+    {
+      trait_key?: string | null;
+      genotype?: string | null;
+      confidence?: number | null;
+      sources: string[];
+      notes?: string | null;
+    }
+  >;
+  unmapped_variants: string[];
+  warnings: string[];
+  persisted_path?: string | null;
+};
+
+export type PopulationSimRequest = {
+  population: string;
+  trait_keys: string[];
+  n: number;
+  seed?: number;
+};
+
+export type PopulationTraitResult = {
+  trait_key: string;
+  population: string;
+  sample_size: number;
+  allele_frequencies: Record<string, number>;
+  genotype_counts: Record<string, number>;
+  phenotype_counts: Record<string, number>;
+  phenotype_ci: Record<string, { lower: number; upper: number }>;
+  warnings: string[];
+};
+
+export type PopulationSimResponse = {
+  results: PopulationTraitResult[];
+  missing_traits: string[];
+};
+
+export type PGSDemoRequest = {
+  weights: Array<{
+    rsid: string;
+    effect_allele: string;
+    weight: number;
+  }>;
+  genotype_calls?: Record<string, number>;
+  reference_mean?: number;
+  reference_sd?: number;
+};
+
+export type PGSDemoResponse = {
+  raw_score: number;
+  z_score: number;
+  percentile: number;
+  used_snps: string[];
+  missing_snps: string[];
+  warnings: string[];
+};
+
 // Legacy aliases for backward compatibility (deprecated - use TraitCreatePayload/TraitUpdatePayload)
 // export type TraitMutationPayload = TraitCreatePayload;
 // export type TraitMutationResponse = TraitCreateResponse;

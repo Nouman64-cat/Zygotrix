@@ -180,6 +180,75 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       ),
     },
     {
+      id: "data-import",
+      label: "VCF / CSV Import",
+      href: "/portal/data/import",
+      isChild: true,
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M4 4v16h16M16 10l-4 4-4-4m4 4V4"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "population",
+      label: "Population presets",
+      href: "/portal/population",
+      isChild: true,
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 12s2-4 9-4 9 4 9 4-2 4-9 4-9-4-9-4z"
+          />
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 8v8"
+          />
+        </svg>
+      ),
+    },
+    {
+      id: "pgs-demo",
+      label: "GWAS-lite demo",
+      href: "/portal/pgs-demo",
+      isChild: true,
+      icon: (
+        <svg
+          className="w-4 h-4"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M3 3v18h18M7 16l4-8 3 6 2-4 2 6"
+          />
+        </svg>
+      ),
+    },
+    {
       id: "profile",
       label: "Profile",
       href: "/portal/profile",

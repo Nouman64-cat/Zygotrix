@@ -23,6 +23,9 @@ import SignUpPage from "./pages/SignUpPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import TeamMemberPage from "./pages/TeamMemberPage";
 import TraitPlaygroundPage from "./pages/TraitPlaygroundPage";
+import DataImportPage from "./pages/DataImportPage";
+import PopulationSimPage from "./pages/PopulationSimPage";
+import PGSDemoPage from "./pages/PGSDemoPage";
 
 const App: React.FC = () => {
   return (
@@ -93,6 +96,14 @@ const App: React.FC = () => {
         }
       />
       <Route
+        path="portal/data/import"
+        element={
+          <RequireAuth>
+            <DataImportPage />
+          </RequireAuth>
+        }
+      />
+      <Route
         path="portal/profile"
         element={
           <RequireAuth>
@@ -113,6 +124,22 @@ const App: React.FC = () => {
         element={
           <RequireAuth>
             <SettingsPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="portal/population"
+        element={
+          <RequireAuth>
+            <PopulationSimPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="portal/pgs-demo"
+        element={
+          <RequireAuth>
+            <PGSDemoPage />
           </RequireAuth>
         }
       />

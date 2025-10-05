@@ -8,3 +8,6 @@ passlib[bcrypt]==1.7.4
 bcrypt==3.2.2
 PyJWT==2.9.0
 httpx==0.28.1
+gdown==5.2.0
+pandas==2.2.3
+pyarrow==17.0.0

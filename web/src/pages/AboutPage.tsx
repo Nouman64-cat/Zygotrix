@@ -192,6 +192,93 @@ const AboutPage: React.FC = () => {
                   </div>
                 </div>
               </Link>
+
+              {/* Member: Anaab Fatima */}
+              <Link
+                to="/team/anaab-fatima"
+                className="relative flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 shadow-lg transition hover:shadow-xl hover:scale-[1.02] hover:border-[#1E3A8A]/20 group cursor-pointer"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4 overflow-hidden group-hover:bg-[#1E3A8A]/20 transition-colors">
+                  <img
+                    src=""
+                    alt="Anaab Fatima"
+                    className="h-16 w-16 object-cover"
+                  />
+                </div>
+                <div className="text-center">
+                  <div className="text-base font-semibold text-[#1E3A8A] group-hover:text-[#162b63] transition-colors">
+                    Anaab Fatima
+                  </div>
+                  <div className="text-xs text-slate-600 mt-1">
+                    Independent Researcher, BS Biotechnology
+                  </div>
+                  <span className="mt-2 inline-block rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 group-hover:bg-slate-300 transition-colors">
+                    Contributor
+                  </span>
+                  <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                    Anaab, a biotechnology researcher, contributes genetics
+                    expertise to Zygotrix. She refines trait models and supports
+                    scientific accuracy, making genetic analysis accessible for
+                    diverse teams.
+                  </p>
+                </div>
+                {/* Social links bottom right */}
+                <div className="absolute bottom-4 right-4 flex gap-3">
+                  <a
+                    href="https://www.linkedin.com/in/anaab-fatima-7a2294385/"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-gray-700 hover:text-[#0A66C2] cursor-pointer transition-colors z-10"
+                    aria-label="LinkedIn"
+                    onClick={(e) => e.stopPropagation()}
+                  >
+                    <FaLinkedin className="h-5 w-5" />
+                  </a>
+                </div>
+                {/* Click hint */}
+                <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="text-xs text-[#1E3A8A] bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm">
+                    View Profile
+                  </div>
+                </div>
+              </Link>
+
+              {/* Member: Abdulroheem */}
+              <Link
+                to="/team/abdulroheem"
+                className="relative flex flex-col items-center rounded-2xl border border-slate-100 bg-white p-6 shadow-lg transition hover:shadow-xl hover:scale-[1.02] hover:border-[#1E3A8A]/20 group cursor-pointer"
+              >
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1E3A8A]/10 mb-4 overflow-hidden group-hover:bg-[#1E3A8A]/20 transition-colors">
+                  <img
+                    src=""
+                    alt="Abdulroheem"
+                    className="h-16 w-16 object-cover"
+                  />
+                </div>
+                <div className="text-center">
+                  <div className="text-base font-semibold text-[#1E3A8A] group-hover:text-[#162b63] transition-colors">
+                    Abdulroheem
+                  </div>
+                  <div className="text-xs text-slate-600 mt-1">
+                    Independent Researcher, BS Biochemistry
+                  </div>
+                  <span className="mt-2 inline-block rounded-full bg-slate-200 px-3 py-1 text-xs font-semibold text-slate-700 group-hover:bg-slate-300 transition-colors">
+                    Contributor
+                  </span>
+                  <p className="mt-3 text-xs text-slate-500 leading-relaxed">
+                    Abdulroheem, a biotechnology researcher, contributes
+                    genetics expertise to Zygotrix. She refines trait models and
+                    supports scientific accuracy, making genetic analysis
+                    accessible for diverse teams.
+                  </p>
+                </div>
+                {/* Click hint */}
+                <div className="absolute top-2 left-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <div className="text-xs text-[#1E3A8A] bg-white/90 backdrop-blur-sm px-2 py-1 rounded-md shadow-sm">
+                    View Profile
+                  </div>
+                </div>
+              </Link>
             </div>
           </div>
         </div>

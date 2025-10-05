@@ -18,6 +18,11 @@ export const API_ROUTES = {
     byKey: (traitKey: string) =>
       "/api/traits/by-key/" + encodeURIComponent(traitKey),
   },
+  gwas: {
+    search: "/api/search-traits",
+    trait: (traitName: string) =>
+      "/api/trait/" + encodeURIComponent(traitName),
+  },
   mendelian: {
     simulate: "/api/mendelian/simulate",
     simulateJoint: "/api/mendelian/simulate-joint",

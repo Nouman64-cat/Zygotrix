@@ -114,6 +114,14 @@ export type TraitUpdateResponse = {
   trait: TraitInfo;
 };
 
+export type GWASTraitRecordValue = string | number | boolean | null;
+export type GWASTraitRecord = Record<string, GWASTraitRecordValue>;
+
+export type GWASTraitResponse = {
+  columns: string[];
+  records: GWASTraitRecord[];
+};
+
 export type TraitPreviewPayload = {
   alleles: string[];
   phenotype_map: Record<string, string>;

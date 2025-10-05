@@ -29,9 +29,11 @@ from .routes.projects import router as project_router
 from .routes.portal import router as portal_router
 from .routes.project_templates import router as project_templates_router
 from .routes.analytics import router as analytics_router
+from .routes.gwas import router as gwas_router
 from .services.trait_db_setup import create_trait_indexes
 from .config import get_settings
 from .utils import trait_to_info
+from .services import gwas_dataset
 
 app = FastAPI(
     title="Zygotrix Backend",
@@ -84,6 +86,12 @@ async def startup_event():
     except Exception as e:
         print(f"⚠️  Warning: Could not initialize trait indexes: {e}")
 
+    try:
+        gwas_dataset.ensure_dataset_loaded()
+        print("✅ GWAS dataset ready")
+    except gwas_dataset.DatasetLoadError as e:
+        print(f"⚠️  Warning: GWAS dataset unavailable: {e}")
+
 
 # Register routers
 app.include_router(auth_router)
@@ -97,6 +105,7 @@ app.include_router(project_router)
 app.include_router(portal_router)
 app.include_router(project_templates_router)
 app.include_router(analytics_router)
+app.include_router(gwas_router)
 
 bearer_scheme = HTTPBearer(auto_error=True)
 

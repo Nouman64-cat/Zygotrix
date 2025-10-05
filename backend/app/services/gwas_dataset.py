@@ -39,7 +39,7 @@ def ensure_dataset_loaded() -> pd.DataFrame:
             _download_dataset(DATASET_PATH)
 
         try:
-            _dataset_df = pd.read_parquet(DATASET_PATH)
+            _dataset_df = pd.read_parquet(DATASET_PATH, columns=["MAPPED_TRAIT"])
         except Exception as exc:  # pragma: no cover - defensive programming
             raise DatasetLoadError(f"Unable to load GWAS dataset: {exc}") from exc
 

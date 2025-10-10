@@ -34,6 +34,11 @@ const BLOGS_QUERY = `query BlogsPageData {
     }
     authors {
       name
+      slug
+      role
+      bio {
+        markdown
+      }
       image {
         url
       }
@@ -72,6 +77,11 @@ const BLOG_BY_SLUG_QUERY = `query BlogBySlug($slug: String!) {
     }
     authors {
       name
+      slug
+      role
+      bio {
+        markdown
+      }
       image {
         url
       }
@@ -97,6 +107,9 @@ interface BlogsQueryResult {
     content: { markdown: string } | null;
     authors: Array<{
       name: string;
+      slug?: string;
+      role?: string;
+      bio?: { markdown: string };
       image: { url: string } | null;
     }>;
     categories: Array<{ slug: string; title: string }>;
@@ -163,6 +176,9 @@ const mapBlogToListEntry = (
   authors: blog.authors.map((author) => ({
     name: author.name,
     imageUrl: author.image?.url ?? null,
+    slug: author.slug,
+    role: author.role,
+    bio: author.bio?.markdown,
   })),
   categories: blog.categories.map((category) => ({
     slug: category.slug,
@@ -223,4 +239,55 @@ export const fetchBlogBySlug = async (
   }
 
   return mapBlogToDetail(data.blog);
+};
+
+const BLOGS_BY_AUTHOR_QUERY = `query BlogsByAuthor($authorSlug: String!) {
+  blogs(where: { authors_some: { slug: $authorSlug } }) {
+    date
+    excerpt
+    image {
+      url
+    }
+    slug
+    title
+    content {
+      markdown
+    }
+    authors {
+      name
+      slug
+      role
+      bio {
+        markdown
+      }
+      image {
+        url
+      }
+    }
+    categories {
+      slug
+      title
+    }
+    tags {
+      slug
+      title
+    }
+  }
+}`;
+
+interface BlogsByAuthorResult {
+  blogs: BlogsQueryResult["blogs"];
+}
+
+export const fetchBlogsByAuthor = async (
+  authorSlug: string,
+  signal?: AbortSignal
+): Promise<BlogListEntry[]> => {
+  const data = await executeGraphQL<BlogsByAuthorResult>(
+    BLOGS_BY_AUTHOR_QUERY,
+    { authorSlug },
+    signal
+  );
+
+  return data.blogs.map(mapBlogToListEntry);
 };

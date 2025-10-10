@@ -30,6 +30,7 @@ from .routes.portal import router as portal_router
 from .routes.project_templates import router as project_templates_router
 from .routes.analytics import router as analytics_router
 from .routes.gwas import router as gwas_router
+from .routes.community import router as community_router
 from .services.trait_db_setup import create_trait_indexes
 from .config import get_settings
 from .utils import trait_to_info
@@ -106,6 +107,7 @@ app.include_router(portal_router)
 app.include_router(project_templates_router)
 app.include_router(analytics_router)
 app.include_router(gwas_router)
+app.include_router(community_router)
 
 bearer_scheme = HTTPBearer(auto_error=True)
 

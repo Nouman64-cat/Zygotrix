@@ -254,6 +254,7 @@ const SignInPage: React.FC = () => {
                     New to Zygotrix?{" "}
                     <Link
                       to="/signup"
+                      state={{ from: { pathname: redirectTo } }}
                       className="font-semibold text-[#1E3A8A] hover:text-[#3B82F6] transition-colors duration-300"
                     >
                       Create your account

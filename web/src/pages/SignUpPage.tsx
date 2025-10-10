@@ -1,5 +1,5 @@
 ﻿import React, { useEffect, useRef, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import logo from "../../public/zygotrix-logo.png";
 
@@ -38,9 +38,18 @@ const extractErrorMessage = (error: unknown): string => {
   return "We could not complete your request. Please try again.";
 };
 
+type LocationState = {
+  from?: { pathname: string };
+};
+
 const SignUpPage: React.FC = () => {
   const OTP_LENGTH = 6;
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Check for redirect URL in location state
+  const redirectTo =
+    (location.state as LocationState | null)?.from?.pathname || "/portal";
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -425,6 +434,7 @@ const SignUpPage: React.FC = () => {
                         Already have an account?{" "}
                         <Link
                           to="/signin"
+                          state={{ from: { pathname: redirectTo } }}
                           className="font-semibold text-[#1E3A8A] hover:text-[#3B82F6] transition-colors duration-300"
                         >
                           Sign in here
@@ -589,7 +599,10 @@ const SignUpPage: React.FC = () => {
                       onClick={() =>
                         navigate("/signin", {
                           replace: true,
-                          state: { fromSignup: true },
+                          state: {
+                            fromSignup: true,
+                            from: { pathname: redirectTo },
+                          },
                         })
                       }
                       className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-[#10B981] to-[#059669] px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-lg shadow-[#10B981]/30 transition-all duration-300 hover:shadow-[#10B981]/50 hover:scale-[1.02]"

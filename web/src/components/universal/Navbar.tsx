@@ -8,6 +8,7 @@ const baseNavItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
   { label: "Blogs", to: "/blogs" },
+  { label: "Community", to: "/community" },
   { label: "Playground", to: "/playground" },
   { label: "Joint Analysis", to: "/joint-phenotype" },
 ];
@@ -85,12 +86,14 @@ const Navbar: React.FC = () => {
             <>
               <Link
                 to="/signin"
+                state={{ from: { pathname: location.pathname } }}
                 className="inline-flex items-center justify-center rounded-full border border-gray/20 px-5 py-2 text-sm font-semibold text-gray transition hover:bg-white hover:border-white hover:text-[#1E3A8A]"
               >
                 Sign in
               </Link>
               <Link
                 to="/signup"
+                state={{ from: { pathname: location.pathname } }}
                 className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#1E3A8A] shadow-lg shadow-black/20 transition hover:shadow-black/40"
               >
                 Get started
@@ -152,12 +155,14 @@ const Navbar: React.FC = () => {
               <div className="space-y-2">
                 <Link
                   to="/signin"
+                  state={{ from: { pathname: location.pathname } }}
                   className="block rounded-2xl border border-white/20 px-4 py-3 text-center text-base font-semibold text-white"
                 >
                   Sign in
                 </Link>
                 <Link
-                  to="/signin"
+                  to="/signup"
+                  state={{ from: { pathname: location.pathname } }}
                   className="block rounded-2xl bg-white px-4 py-3 text-center text-base font-semibold text-[#1E3A8A] shadow-lg shadow-black/30"
                 >
                   Get started

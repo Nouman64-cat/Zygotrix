@@ -31,6 +31,7 @@ export const fetchTeamMember = async (
           url
         }
         role
+        slug
         socialProfiles {
           username
           url

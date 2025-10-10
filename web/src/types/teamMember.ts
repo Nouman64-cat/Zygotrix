@@ -17,6 +17,7 @@ export interface TeamMember {
   name: string;
   photo: TeamMemberPhoto;
   role: string;
+  slug: string;
   socialProfiles: SocialProfile[];
 }
 

@@ -3,6 +3,7 @@ import { Route, Routes } from "react-router-dom";
 
 import RequireAuth from "./components/dashboard/RequireAuth";
 import MainLayout from "./layouts/MainLayout";
+import CommunityLayout from "./layouts/CommunityLayout";
 import AboutPage from "./pages/AboutPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import ContactPage from "./pages/ContactPage";
@@ -26,6 +27,9 @@ import TraitPlaygroundPage from "./pages/TraitPlaygroundPage";
 import DataImportPage from "./pages/DataImportPage";
 import PopulationSimPage from "./pages/PopulationSimPage";
 import PGSDemoPage from "./pages/PGSDemoPage";
+import CommunityPage from "./pages/CommunityPage";
+import QuestionDetailPage from "./pages/QuestionDetailPage";
+import AskQuestionPage from "./pages/AskQuestionPage";
 
 const App: React.FC = () => {
   return (
@@ -38,6 +42,13 @@ const App: React.FC = () => {
         <Route path="contact" element={<ContactPage />} />
         <Route path="blogs" element={<BlogsPage />} />
         <Route path="blogs/:slug" element={<BlogDetailPage />} />
+      </Route>
+
+      {/* Community Routes - Separate Layout */}
+      <Route path="community" element={<CommunityLayout />}>
+        <Route index element={<CommunityPage />} />
+        <Route path="questions/:id" element={<QuestionDetailPage />} />
+        <Route path="ask" element={<AskQuestionPage />} />
       </Route>
       <Route
         path="portal"

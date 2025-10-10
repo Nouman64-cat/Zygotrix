@@ -48,6 +48,12 @@ class Settings:
     mongodb_project_lines_collection: str = os.getenv(
         "MONGODB_PROJECT_LINES_COLLECTION", "project_lines"
     )
+    mongodb_questions_collection: str = os.getenv(
+        "MONGODB_QUESTIONS_COLLECTION", "questions"
+    )
+    mongodb_answers_collection: str = os.getenv(
+        "MONGODB_ANSWERS_COLLECTION", "answers"
+    )
     auth_secret_key: str = os.getenv("AUTH_SECRET_KEY", "change-me-in-prod")
     auth_token_ttl_minutes: int = _get_int("AUTH_TOKEN_TTL_MINUTES", 60)
     auth_jwt_algorithm: str = os.getenv("AUTH_JWT_ALGORITHM", "HS256")

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
@@ -11,10 +11,44 @@ import {
   FaExternalLinkAlt,
 } from "react-icons/fa";
 import { useTeamMember } from "../hooks/useTeamMember";
+import { fetchBlogsByAuthor } from "../services/hygraphApi";
+import type { BlogListEntry } from "../types/blog";
+import { FiCalendar, FiArrowRight } from "react-icons/fi";
 
 const TeamMemberPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { teamMember, loading, error } = useTeamMember(slug || "");
+  const [authoredBlogs, setAuthoredBlogs] = useState<BlogListEntry[]>([]);
+  const [blogsLoading, setBlogsLoading] = useState(false);
+
+  useEffect(() => {
+    if (!slug) return;
+
+    const controller = new AbortController();
+    setBlogsLoading(true);
+
+    fetchBlogsByAuthor(slug, controller.signal)
+      .then((blogs) => {
+        setAuthoredBlogs(blogs);
+      })
+      .catch((err) => {
+        if (err instanceof DOMException && err.name === "AbortError") return;
+        console.error("Failed to load authored blogs", err);
+      })
+      .finally(() => {
+        setBlogsLoading(false);
+      });
+
+    return () => controller.abort();
+  }, [slug]);
+
+  const formatDate = (dateString: string) => {
+    const date = new Date(dateString);
+    if (Number.isNaN(date.getTime())) return dateString;
+    return new Intl.DateTimeFormat("en-US", { dateStyle: "medium" }).format(
+      date
+    );
+  };
 
   const getSocialIcon = (platform: string) => {
     switch (platform.toLowerCase()) {
@@ -138,11 +172,39 @@ const TeamMemberPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100">
-      <div className="mx-auto max-w-4xl px-6 py-24">
+      {/* DNA Pattern Background */}
+      <div className="pointer-events-none fixed inset-0 opacity-[0.02]">
+        <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <pattern
+              id="team-dna"
+              x="0"
+              y="0"
+              width="100"
+              height="100"
+              patternUnits="userSpaceOnUse"
+            >
+              <path
+                d="M25,10 Q50,30 75,10 M25,90 Q50,70 75,90 M25,10 L25,90 M75,10 L75,90"
+                stroke="currentColor"
+                strokeWidth="1"
+                fill="none"
+              />
+              <circle cx="25" cy="30" r="2" fill="currentColor" />
+              <circle cx="75" cy="30" r="2" fill="currentColor" />
+              <circle cx="25" cy="60" r="2" fill="currentColor" />
+              <circle cx="75" cy="60" r="2" fill="currentColor" />
+            </pattern>
+          </defs>
+          <rect width="100%" height="100%" fill="url(#team-dna)" />
+        </svg>
+      </div>
+
+      <div className="relative z-10 mx-auto max-w-6xl px-6 py-24">
         {/* Back Button */}
         <Link
           to="/about"
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 mb-8 shadow-sm"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 mb-8 shadow-sm hover:shadow-md"
         >
           <FaArrowLeft className="h-4 w-4" />
           Back to About
@@ -160,11 +222,11 @@ const TeamMemberPage: React.FC = () => {
           {/* Left Column */}
           <div className="space-y-4">
             {/* name */}
-            <h1 className="text-3xl font-bold text-[#1E3A8A] lg:text-4xl">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#1E3A8A] to-blue-600 bg-clip-text text-transparent lg:text-4xl">
               {teamMember.name}
             </h1>
             {/* role */}
-            <span className="inline-block rounded-full bg-[#1E3A8A]/10 px-4 py-2 text-base font-semibold text-[#1E3A8A]">
+            <span className="inline-block rounded-full bg-gradient-to-r from-[#1E3A8A]/10 to-blue-600/10 border-2 border-blue-200 px-4 py-2 text-base font-semibold text-[#1E3A8A]">
               {teamMember.role}
             </span>
             {/* bio */}
@@ -177,8 +239,8 @@ const TeamMemberPage: React.FC = () => {
           {/* Right Column */}
           <div className="space-y-6 lg:border-l lg:pl-8 lg:border-slate-200">
             {/* image */}
-            <div className="relative z-10 overflow-hidden rounded-2xl border border-white bg-white/90 p-4 shadow-xl shadow-[#1E3A8A]/10 max-w-sm mx-auto lg:mx-0">
-              <div className="aspect-square overflow-hidden rounded-xl">
+            <div className="relative z-10 overflow-hidden rounded-2xl border-2 border-blue-200 bg-white/90 p-4 shadow-xl shadow-blue-500/10 max-w-sm mx-auto lg:mx-0">
+              <div className="aspect-square overflow-hidden rounded-xl ring-2 ring-blue-100">
                 <img
                   src={teamMember.photo.url}
                   alt={teamMember.name}
@@ -223,6 +285,185 @@ const TeamMemberPage: React.FC = () => {
               )}
           </div>
         </div>
+
+        {/* Published Research & Articles Section */}
+        {authoredBlogs.length > 0 && (
+          <div className="mt-16">
+            <div className="mb-8">
+              <div className="flex items-center gap-3 mb-4">
+                <svg
+                  className="w-8 h-8 text-blue-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
+                </svg>
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent">
+                  Published Research & Articles
+                </h2>
+              </div>
+              <p className="text-slate-600">
+                Explore {authoredBlogs.length} research{" "}
+                {authoredBlogs.length === 1 ? "article" : "articles"} published
+                by {teamMember.name}
+              </p>
+            </div>
+
+            {/* Blog Cards with Genetic Theme */}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {authoredBlogs.map((blog) => (
+                <Link
+                  key={blog.slug}
+                  to={`/blogs/${blog.slug}`}
+                  className="group relative overflow-hidden rounded-2xl border-2 border-blue-100 bg-gradient-to-br from-white to-blue-50/30 p-6 shadow-lg transition-all hover:shadow-2xl hover:border-blue-300 hover:-translate-y-1"
+                >
+                  {/* Molecule decoration */}
+                  <div className="absolute top-0 right-0 w-32 h-32 opacity-5 group-hover:opacity-10 transition-opacity">
+                    <svg
+                      className="w-full h-full text-blue-600"
+                      viewBox="0 0 100 100"
+                      fill="currentColor"
+                    >
+                      <circle cx="50" cy="50" r="4" />
+                      <circle cx="20" cy="20" r="3" />
+                      <circle cx="80" cy="20" r="3" />
+                      <circle cx="20" cy="80" r="3" />
+                      <circle cx="80" cy="80" r="3" />
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2="20"
+                        y2="20"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                      />
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2="80"
+                        y2="20"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                      />
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2="20"
+                        y2="80"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                      />
+                      <line
+                        x1="50"
+                        y1="50"
+                        x2="80"
+                        y2="80"
+                        stroke="currentColor"
+                        strokeWidth="1"
+                      />
+                    </svg>
+                  </div>
+
+                  {blog.imageUrl && (
+                    <div className="mb-4 aspect-video overflow-hidden rounded-xl ring-2 ring-blue-200 group-hover:ring-blue-400 transition-all">
+                      <img
+                        src={blog.imageUrl}
+                        alt={blog.title}
+                        className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
+                      />
+                    </div>
+                  )}
+
+                  <div className="relative z-10">
+                    <h3 className="text-lg font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-blue-700 transition-colors">
+                      {blog.title}
+                    </h3>
+
+                    <p className="text-sm text-slate-600 mb-4 line-clamp-3">
+                      {blog.excerpt}
+                    </p>
+
+                    <div className="flex items-center justify-between text-xs text-slate-500">
+                      <div className="flex items-center gap-2">
+                        <FiCalendar className="h-3 w-3" />
+                        <span>{formatDate(blog.date)}</span>
+                      </div>
+                      <div className="flex items-center gap-1 text-blue-600 font-medium group-hover:gap-2 transition-all">
+                        Read More
+                        <FiArrowRight className="h-3 w-3" />
+                      </div>
+                    </div>
+
+                    {/* Categories */}
+                    {blog.categories && blog.categories.length > 0 && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {blog.categories.slice(0, 2).map((category) => (
+                          <span
+                            key={category.slug}
+                            className="rounded-full bg-blue-100 border border-blue-200 px-3 py-1 text-xs font-medium text-blue-700"
+                          >
+                            {category.title}
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Loading State for Blogs */}
+        {blogsLoading && (
+          <div className="mt-16">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent">
+                Published Research & Articles
+              </h2>
+            </div>
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2, 3].map((n) => (
+                <div
+                  key={n}
+                  className="h-80 animate-pulse rounded-2xl bg-white/60 shadow-lg"
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* No Blogs State */}
+        {!blogsLoading && authoredBlogs.length === 0 && (
+          <div className="mt-16">
+            <div className="mb-8">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent">
+                Published Research & Articles
+              </h2>
+            </div>
+            <div className="text-center py-12 rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-white to-slate-50">
+              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg
+                  className="w-8 h-8 text-slate-400"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
+                  />
+                </svg>
+              </div>
+              <p className="text-slate-600">
+                {teamMember.name} hasn't published any articles yet. Check back
+                later for their research contributions!
+              </p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

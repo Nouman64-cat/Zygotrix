@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams } from "react-router-dom";
 import {
   FiSearch,
   FiTag,
   FiPlus,
-  FiHome,
-  FiChevronRight,
   FiUsers,
   FiMessageSquare,
   FiArrowUp,
@@ -30,9 +28,6 @@ const CommunityPage: React.FC = () => {
         e.preventDefault();
         mainContentRef.current.scrollTop += e.deltaY;
       }
-    };
-    const handleTouch = (e: TouchEvent) => {
-      // Optionally implement touch scroll forwarding for mobile
     };
     window.addEventListener("wheel", handleWheel, { passive: false });
     // window.addEventListener("touchmove", handleTouch, { passive: false });

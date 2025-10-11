@@ -362,7 +362,7 @@ const AboutPage: React.FC = () => {
                   Anaab Fatima
                 </h3>
                 <p className="text-sm text-slate-600 mt-1 mb-4">
-                  Research Contributor
+                  Independent Researcher
                 </p>
 
                 <div className="flex flex-wrap justify-center gap-2 mb-4">
@@ -372,9 +372,11 @@ const AboutPage: React.FC = () => {
                 </div>
 
                 <p className="text-sm text-slate-600 leading-relaxed">
-                  Anaab contributes to Zygotrix's research foundation, helping
-                  validate genetic models and ensuring scientific accuracy in
-                  trait analysis and inheritance pattern calculations.
+                  Anaab Fatima is an independent researcher focused on genetic
+                  modeling, inheritance mechanisms, and predictive trait
+                  analysis. She refines trait models and supports scientific
+                  accuracy, making genetic analysis accessible for diverse
+                  teams.
                 </p>
 
                 <div className="mt-6 flex justify-center gap-4">
@@ -433,7 +435,7 @@ const AboutPage: React.FC = () => {
 
               <div className="relative text-center">
                 <h3 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-indigo-900 bg-clip-text text-transparent group-hover:from-indigo-600 group-hover:to-violet-600 transition-all duration-300">
-                  Abdul Roheem
+                  Abdulroheem Agboola
                 </h3>
                 <p className="text-sm text-slate-600 mt-1 mb-4">
                   Research Contributor

@@ -8,7 +8,9 @@ import {
   FiLogOut,
   FiMenu,
   FiX,
+  FiPlus,
 } from "react-icons/fi";
+import AskQuestionModal from "../components/community/AskQuestionModal";
 import { useAuth } from "../context/AuthContext";
 import CommunitySidebar from "../components/community/CommunitySidebar";
 
@@ -16,6 +18,7 @@ const CommunityLayout: React.FC = () => {
   const { user, signOut } = useAuth();
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const handleSignOut = () => {
     signOut();
@@ -86,6 +89,17 @@ const CommunityLayout: React.FC = () => {
 
             {/* Actions */}
             <div className="flex items-center gap-3">
+              {/* Post Question Button - Desktop */}
+              {user && (
+                <button
+                  onClick={() => setIsModalOpen(true)}
+                  className="hidden md:inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-lg hover:shadow-lg transition-all duration-200 font-medium"
+                >
+                  <FiPlus className="h-4 w-4" />
+                  Post Question
+                </button>
+              )}
+
               {/* User Menu - Desktop */}
               <div className="hidden md:flex items-center gap-3">
                 {user ? (
@@ -219,7 +233,7 @@ const CommunityLayout: React.FC = () => {
 
             {/* Right Sidebar */}
             <div className="hidden lg:block w-80 flex-shrink-0">
-              <div className="sticky top-24 max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent hover:scrollbar-thumb-slate-400">
+              <div className="sticky max-h-[calc(100vh-6rem)] overflow-y-auto scrollbar-thin scrollbar-thumb-slate-300 scrollbar-track-transparent hover:scrollbar-thumb-slate-400">
                 <CommunitySidebar />
               </div>
             </div>
@@ -258,6 +272,11 @@ const CommunityLayout: React.FC = () => {
           </div>
         </div>
       </footer>
+      {/* Ask Question Modal */}
+      <AskQuestionModal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 };

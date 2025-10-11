@@ -18,6 +18,29 @@ import AskQuestionModal from "../components/community/AskQuestionModal";
 import { useAuth } from "../context/AuthContext";
 
 const CommunityPage: React.FC = () => {
+  // Ref for main content scrollable area
+  const mainContentRef = React.useRef<HTMLDivElement>(null);
+
+  // Forward wheel/touch events to main content area
+  React.useEffect(() => {
+    const handleWheel = (e: WheelEvent) => {
+      if (!mainContentRef.current) return;
+      // Only forward if not already targeting main content
+      if (!mainContentRef.current.contains(e.target as Node)) {
+        e.preventDefault();
+        mainContentRef.current.scrollTop += e.deltaY;
+      }
+    };
+    const handleTouch = (e: TouchEvent) => {
+      // Optionally implement touch scroll forwarding for mobile
+    };
+    window.addEventListener("wheel", handleWheel, { passive: false });
+    // window.addEventListener("touchmove", handleTouch, { passive: false });
+    return () => {
+      window.removeEventListener("wheel", handleWheel);
+      // window.removeEventListener("touchmove", handleTouch);
+    };
+  }, []);
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
 
@@ -115,52 +138,16 @@ const CommunityPage: React.FC = () => {
           }
         `}
       </style>
-      <div className="animate-fadeIn min-h-screen bg-gray-50">
-        {/* Header */}
-        <div className="bg-white border-b border-slate-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            {/* Breadcrumb Navigation */}
-            <nav className="flex items-center gap-2 text-sm text-slate-600">
-              <Link
-                to="/"
-                className="flex items-center gap-1 hover:text-blue-600 transition"
-              >
-                <FiHome className="h-4 w-4" />
-                <span>Home</span>
-              </Link>
-              <FiChevronRight className="h-4 w-4" />
-              <span className="text-slate-900 font-medium">Community</span>
-            </nav>
-
-            {/* Ask Question Button */}
-            {user && (
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-xl shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200 group"
-              >
-                <FiPlus className="h-5 w-5 group-hover:rotate-90 transition-transform duration-200" />
-                <span>Ask Question</span>
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Main Layout with Sidebar */}
-        <div className="flex h-[calc(100vh-73px)]">
+      <div className="animate-fadeIn h-screen flex flex-col">
+        {/* Main Layout with Sidebar and Content */}
+        <div className="flex flex-1 min-h-0">
           {/* Left Sidebar - Stats */}
-          <div className="w-80 bg-white border-r border-slate-200 p-6 overflow-y-auto">
+          <div className="w-80 px-6 border-r border-slate-200 bg-slate-50/50">
             <div className="space-y-6">
-              {/* Page Title */}
-              <div>
-                <h1 className="text-2xl font-bold text-slate-900 mb-2">
-                  Community Questions
-                </h1>
-                <p className="text-slate-600 text-sm">
-                  Ask questions, share knowledge, and help others learn
-                </p>
-              </div>
-
               {/* Stats Cards */}
+              <div>
+                <h1 className="text-2xl font-bold">Community Stats</h1>
+              </div>
               <div className="space-y-4">
                 {/* Questions Stat */}
                 <div className="group bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 rounded-2xl p-4 border-2 border-blue-200 hover:border-blue-300 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer relative overflow-hidden">
@@ -272,8 +259,11 @@ const CommunityPage: React.FC = () => {
           </div>
 
           {/* Main Content Area - Scrollable Questions */}
-          <div className="flex-1 overflow-y-auto p-6">
-            <div className="max-w-2xl mx-auto space-y-6">
+          <div
+            ref={mainContentRef}
+            className="flex-1 overflow-y-auto px-6 mb-10"
+          >
+            <div className="max-w-2xl mx-auto space-y-6 pb-8">
               {/* Loading State */}
               {isLoading && (
                 <div className="space-y-5">
@@ -407,6 +397,12 @@ const CommunityPage: React.FC = () => {
           </div>
         </div>
 
+        {/* Footer - Always visible */}
+        <footer className="w-full bg-slate-50 border-t border-slate-200 py-4 text-center text-slate-600 text-sm">
+          &copy; {new Date().getFullYear()} Zygotrix Community. All rights
+          reserved.
+        </footer>
+
         {/* Ask Question Modal */}
         <AskQuestionModal
           isOpen={isModalOpen}
@@ -416,11 +412,11 @@ const CommunityPage: React.FC = () => {
           }}
         />
 
-        {/* Floating Action Button - Mobile */}
+        {/* Floating Action Button */}
         {user && (
           <button
             onClick={() => setIsModalOpen(true)}
-            className="fixed bottom-6 right-6 sm:hidden w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 flex items-center justify-center z-50"
+            className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 flex items-center justify-center z-50"
             style={{
               boxShadow: "0 8px 32px rgba(59, 130, 246, 0.4)",
             }}

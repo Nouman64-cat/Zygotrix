@@ -514,6 +514,21 @@ const QuestionDetailPage: React.FC = () => {
                 </p>
               </div>
 
+              {/* Question Image */}
+              {question.image_url && (
+                <div className="mb-6">
+                  <img
+                    src={question.image_url}
+                    alt="Question illustration"
+                    className="w-full max-w-2xl h-auto rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    onClick={() =>
+                      question.image_url &&
+                      window.open(question.image_url, "_blank")
+                    }
+                  />
+                </div>
+              )}
+
               {/* Enhanced Tags */}
               {question.tags.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-6">

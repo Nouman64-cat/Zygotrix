@@ -374,18 +374,9 @@ const BlogDetailPage: React.FC = () => {
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            {author.slug ? (
-                              <Link
-                                to={`/team/${author.slug}`}
-                                className="font-semibold text-slate-900 hover:text-blue-600 transition-colors text-base group-hover:underline"
-                              >
-                                {author.name}
-                              </Link>
-                            ) : (
-                              <span className="font-semibold text-slate-900 text-base">
-                                {author.name}
-                              </span>
-                            )}
+                            <span className="font-semibold text-slate-900 text-base">
+                              {author.name}
+                            </span>
                           </div>
                           {author.role && (
                             <p className="text-xs text-blue-600 font-medium mb-2 uppercase tracking-wide">
@@ -397,27 +388,6 @@ const BlogDetailPage: React.FC = () => {
                               {author.bio.substring(0, 120)}
                               {author.bio.length > 120 ? "..." : ""}
                             </p>
-                          )}
-                          {author.slug && (
-                            <Link
-                              to={`/team/${author.slug}`}
-                              className="inline-flex items-center gap-1 text-xs text-blue-600 hover:text-blue-700 font-medium mt-2 group-hover:gap-2 transition-all"
-                            >
-                              View Profile
-                              <svg
-                                className="w-3 h-3"
-                                fill="none"
-                                stroke="currentColor"
-                                viewBox="0 0 24 24"
-                              >
-                                <path
-                                  strokeLinecap="round"
-                                  strokeLinejoin="round"
-                                  strokeWidth={2}
-                                  d="M9 5l7 7-7 7"
-                                />
-                              </svg>
-                            </Link>
                           )}
                         </div>
                       </div>

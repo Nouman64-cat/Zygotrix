@@ -83,6 +83,8 @@ export async function getQuestion(questionId: string): Promise<QuestionDetail> {
 export async function createQuestion(
   data: QuestionCreateRequest
 ): Promise<Question> {
+  console.log("Creating question with data:", JSON.stringify(data, null, 2));
+
   const response = await fetch(`${API_BASE_URL}/api/community/questions`, {
     method: "POST",
     headers: getAuthHeaders(),
@@ -93,6 +95,15 @@ export async function createQuestion(
     const error = await response
       .json()
       .catch(() => ({ detail: response.statusText }));
+    console.error("Create question failed:", error);
+    console.error("Status:", response.status, response.statusText);
+
+    // Format validation errors nicely
+    if (error.detail && Array.isArray(error.detail)) {
+      const messages = error.detail.map((err: any) => err.msg).join(", ");
+      throw new Error(messages);
+    }
+
     throw new Error(error.detail || "Failed to create question");
   }
 

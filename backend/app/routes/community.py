@@ -84,6 +84,8 @@ def create_question(
         author_id=current_user.id,
         author_email=current_user.email,
         author_name=current_user.full_name,
+        image_url=payload.image_url,
+        image_thumbnail_url=payload.image_thumbnail_url,
     )
     
     question = services.get_question(question_id, current_user.id, increment_view=False)
@@ -124,6 +126,8 @@ def update_question(
         title=payload.title,
         content=payload.content,
         tags=payload.tags,
+        image_url=payload.image_url,
+        image_thumbnail_url=payload.image_thumbnail_url,
     )
     
     if not success:

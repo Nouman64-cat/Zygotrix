@@ -11,6 +11,10 @@ class QuestionCreate(BaseModel):
     title: str = Field(..., min_length=10, max_length=200, description="Question title")
     content: str = Field(..., min_length=20, description="Question details/body")
     tags: List[str] = Field(default_factory=list, description="Question tags (max 5)")
+    image_url: Optional[str] = Field(None, description="Optional image URL for the question")
+    image_thumbnail_url: Optional[str] = Field(
+        None, description="Optional thumbnail image URL for the question"
+    )
 
     @field_validator("tags")
     @classmethod
@@ -26,6 +30,10 @@ class QuestionUpdate(BaseModel):
     title: Optional[str] = Field(None, min_length=10, max_length=200)
     content: Optional[str] = Field(None, min_length=20)
     tags: Optional[List[str]] = None
+    image_url: Optional[str] = Field(None, description="Optional image URL for the question")
+    image_thumbnail_url: Optional[str] = Field(
+        None, description="Optional thumbnail image URL for the question"
+    )
 
     @field_validator("tags")
     @classmethod
@@ -88,6 +96,8 @@ class QuestionResponse(BaseModel):
     downvotes: int = 0
     view_count: int = 0
     answer_count: int = 0
+    image_url: Optional[str] = None
+    image_thumbnail_url: Optional[str] = None
     created_at: datetime
     updated_at: Optional[datetime] = None
     user_vote: Optional[int] = None  # User's vote on this question (-1, 0, 1)

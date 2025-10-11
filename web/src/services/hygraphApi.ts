@@ -34,11 +34,7 @@ const BLOGS_QUERY = `query BlogsPageData {
     }
     authors {
       name
-      slug
-      role
-      bio {
-        markdown
-      }
+      bio
       image {
         url
       }
@@ -77,11 +73,7 @@ const BLOG_BY_SLUG_QUERY = `query BlogBySlug($slug: String!) {
     }
     authors {
       name
-      slug
-      role
-      bio {
-        markdown
-      }
+      bio
       image {
         url
       }
@@ -107,9 +99,8 @@ interface BlogsQueryResult {
     content: { markdown: string } | null;
     authors: Array<{
       name: string;
-      slug?: string;
       role?: string;
-      bio?: { markdown: string };
+      bio?: string;
       image: { url: string } | null;
     }>;
     categories: Array<{ slug: string; title: string }>;
@@ -176,9 +167,8 @@ const mapBlogToListEntry = (
   authors: blog.authors.map((author) => ({
     name: author.name,
     imageUrl: author.image?.url ?? null,
-    slug: author.slug,
-    role: author.role,
-    bio: author.bio?.markdown,
+    role: author?.role,
+    bio: author.bio,
   })),
   categories: blog.categories.map((category) => ({
     slug: category.slug,
@@ -241,8 +231,8 @@ export const fetchBlogBySlug = async (
   return mapBlogToDetail(data.blog);
 };
 
-const BLOGS_BY_AUTHOR_QUERY = `query BlogsByAuthor($authorSlug: String!) {
-  blogs(where: { authors_some: { slug: $authorSlug } }) {
+const BLOGS_BY_AUTHOR_QUERY = `query BlogsByAuthor($authorName: String!) {
+  blogs(where: { authors_some: { name: $authorName } }) {
     date
     excerpt
     image {
@@ -255,11 +245,7 @@ const BLOGS_BY_AUTHOR_QUERY = `query BlogsByAuthor($authorSlug: String!) {
     }
     authors {
       name
-      slug
-      role
-      bio {
-        markdown
-      }
+      bio
       image {
         url
       }
@@ -280,12 +266,12 @@ interface BlogsByAuthorResult {
 }
 
 export const fetchBlogsByAuthor = async (
-  authorSlug: string,
+  authorName: string,
   signal?: AbortSignal
 ): Promise<BlogListEntry[]> => {
   const data = await executeGraphQL<BlogsByAuthorResult>(
     BLOGS_BY_AUTHOR_QUERY,
-    { authorSlug },
+    { authorName },
     signal
   );
 

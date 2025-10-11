@@ -1,7 +1,6 @@
 export interface AuthorSummary {
   name: string;
   imageUrl: string | null;
-  slug?: string;
   role?: string;
   bio?: string;
 }

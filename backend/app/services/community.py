@@ -37,6 +37,8 @@ def _question_to_dict(question: Dict[str, Any], user_id: Optional[str] = None) -
         "downvotes": question.get("downvotes", 0),
         "view_count": question.get("view_count", 0),
         "answer_count": question.get("answer_count", 0),
+        "image_url": question.get("image_url"),
+        "image_thumbnail_url": question.get("image_thumbnail_url"),
         "created_at": question["created_at"],
         "updated_at": question.get("updated_at"),
         "user_vote": None,
@@ -84,6 +86,8 @@ def create_question(
     author_id: str,
     author_email: str,
     author_name: Optional[str] = None,
+    image_url: Optional[str] = None,
+    image_thumbnail_url: Optional[str] = None,
 ) -> str:
     """Create a new question."""
     db = _get_db()
@@ -101,6 +105,8 @@ def create_question(
         "view_count": 0,
         "answer_count": 0,
         "votes": {},  # {user_id: vote_value}
+        "image_url": image_url,
+        "image_thumbnail_url": image_thumbnail_url,
         "created_at": datetime.now(timezone.utc),
         "updated_at": None,
     }
@@ -203,6 +209,8 @@ def update_question(
     title: Optional[str] = None,
     content: Optional[str] = None,
     tags: Optional[List[str]] = None,
+    image_url: Optional[str] = None,
+    image_thumbnail_url: Optional[str] = None,
 ) -> bool:
     """Update a question (only by the author)."""
     db = _get_db()
@@ -227,6 +235,10 @@ def update_question(
         update_fields["content"] = content
     if tags is not None:
         update_fields["tags"] = tags
+    if image_url is not None:
+        update_fields["image_url"] = image_url
+    if image_thumbnail_url is not None:
+        update_fields["image_thumbnail_url"] = image_thumbnail_url
     
     result = db[settings.mongodb_questions_collection].update_one(
         {"_id": obj_id},

@@ -9,8 +9,8 @@ const baseNavItems = [
   { label: "About", to: "/about" },
   { label: "Blogs", to: "/blogs" },
   { label: "Community", to: "/community" },
-  { label: "Playground", to: "/playground" },
-  { label: "Joint Analysis", to: "/joint-phenotype" },
+  // { label: "Playground", to: "/playground" },
+  // { label: "Joint Analysis", to: "/joint-phenotype" },
 ];
 
 const Navbar: React.FC = () => {
@@ -23,9 +23,6 @@ const Navbar: React.FC = () => {
   }, [location]);
 
   const navItems = useMemo(() => {
-    if (user) {
-      return [...baseNavItems, { label: "Portal", to: "/portal" }];
-    }
     return baseNavItems;
   }, [user]);
 

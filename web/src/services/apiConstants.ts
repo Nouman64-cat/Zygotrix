@@ -8,6 +8,7 @@ export const API_ROUTES = {
     signUpResend: "/api/auth/signup/resend",
     login: "/api/auth/login",
     me: "/api/auth/me",
+    updateProfile: "/api/auth/profile",
   },
   portal: {
     status: "/api/portal/status",
@@ -20,8 +21,7 @@ export const API_ROUTES = {
   },
   gwas: {
     search: "/api/search-traits",
-    trait: (traitName: string) =>
-      "/api/trait/" + encodeURIComponent(traitName),
+    trait: (traitName: string) => "/api/trait/" + encodeURIComponent(traitName),
   },
   mendelian: {
     simulate: "/api/mendelian/simulate",

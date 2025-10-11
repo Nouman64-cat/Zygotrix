@@ -146,21 +146,82 @@ const BlogsPage: React.FC = () => {
         </header>
 
         {isLoading && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {Array.from({ length: 6 }).map((_, index) => (
-              <div
-                key={index}
-                className="h-80 animate-pulse rounded-3xl bg-white/60 shadow-lg"
-              />
-            ))}
+          <div className="space-y-6">
+            {/* Loading header */}
+            <div className="text-center">
+              <div className="inline-flex items-center gap-2 text-blue-600 mb-4">
+                <svg
+                  className="w-5 h-5 animate-spin"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
+                <span className="text-sm font-medium">
+                  Loading latest research articles...
+                </span>
+              </div>
+            </div>
+
+            {/* Enhanced loading skeleton */}
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="group relative overflow-hidden rounded-2xl border border-slate-200/60 bg-white shadow-sm"
+                >
+                  {/* Image skeleton */}
+                  <div className="aspect-[3/2] w-full bg-gradient-to-br from-slate-100 to-slate-200 animate-pulse">
+                    <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
+                  </div>
+
+                  {/* Content skeleton */}
+                  <div className="p-6 space-y-4">
+                    {/* Date and share button skeleton */}
+                    <div className="flex items-center justify-between">
+                      <div className="h-4 w-20 bg-slate-200 rounded animate-pulse" />
+                      <div className="h-6 w-16 bg-slate-200 rounded-full animate-pulse" />
+                    </div>
+
+                    {/* Title skeleton */}
+                    <div className="space-y-2">
+                      <div className="h-6 w-full bg-slate-200 rounded animate-pulse" />
+                      <div className="h-6 w-3/4 bg-slate-200 rounded animate-pulse" />
+                    </div>
+
+                    {/* Description skeleton */}
+                    <div className="space-y-2">
+                      <div className="h-4 w-full bg-slate-100 rounded animate-pulse" />
+                      <div className="h-4 w-5/6 bg-slate-100 rounded animate-pulse" />
+                      <div className="h-4 w-2/3 bg-slate-100 rounded animate-pulse" />
+                    </div>
+
+                    {/* Author skeleton */}
+                    <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                      <div className="h-9 w-9 bg-slate-200 rounded-full animate-pulse" />
+                      <div className="space-y-1">
+                        <div className="h-4 w-24 bg-slate-200 rounded animate-pulse" />
+                        <div className="h-3 w-16 bg-slate-100 rounded animate-pulse" />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         )}
 
         {!isLoading && error && (
-          <div className="mx-auto max-w-xl rounded-3xl border-2 border-red-200 bg-gradient-to-br from-red-50 to-white p-8 text-center shadow-xl">
-            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <div className="mx-auto max-w-2xl rounded-2xl border-2 border-red-200/60 bg-gradient-to-br from-red-50/50 via-white to-red-50/30 p-8 text-center shadow-xl backdrop-blur-sm">
+            <div className="relative w-20 h-20 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
               <svg
-                className="w-8 h-8 text-red-500"
+                className="w-10 h-10 text-red-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -172,21 +233,45 @@ const BlogsPage: React.FC = () => {
                   d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16c-.77.833.192 2.5 1.732 2.5z"
                 />
               </svg>
+              {/* Animated pulse ring */}
+              <div className="absolute inset-0 rounded-full border-2 border-red-300 animate-ping opacity-20" />
             </div>
-            <p className="font-semibold text-lg text-red-700 mb-2">
-              We couldn't load the latest articles.
+            <h2 className="font-bold text-xl text-red-800 mb-3">
+              Oops! Something went wrong
+            </h2>
+            <p className="text-red-700 mb-4 leading-relaxed">
+              We couldn't load the latest research articles right now.
             </p>
-            <p className="mt-2 text-sm text-red-600">
-              {error}. Try reloading this page or check back later.
-            </p>
+            <div className="text-sm text-red-600 bg-red-50 rounded-lg p-3 mb-6 border border-red-200">
+              <strong>Error:</strong> {error}
+            </div>
+            <button
+              onClick={() => window.location.reload()}
+              className="inline-flex items-center gap-2 rounded-lg bg-red-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-all"
+            >
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+                />
+              </svg>
+              Try Again
+            </button>
           </div>
         )}
 
         {!isLoading && !error && !hasContent && (
-          <div className="mx-auto max-w-xl rounded-3xl border-2 border-blue-200 bg-gradient-to-br from-blue-50 to-white p-10 text-center shadow-xl">
-            <div className="w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-6">
+          <div className="mx-auto max-w-2xl rounded-2xl border-2 border-blue-200/60 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/30 p-12 text-center shadow-xl backdrop-blur-sm">
+            <div className="relative w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
               <svg
-                className="w-10 h-10 text-blue-600"
+                className="w-12 h-12 text-blue-600"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -198,22 +283,102 @@ const BlogsPage: React.FC = () => {
                   d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                 />
               </svg>
+              {/* Floating DNA elements */}
+              <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-200 rounded-full flex items-center justify-center animate-bounce delay-300">
+                <svg
+                  className="w-3 h-3 text-purple-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <circle cx="10" cy="10" r="3" />
+                </svg>
+              </div>
+              <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-200 rounded-full flex items-center justify-center animate-bounce delay-700">
+                <svg
+                  className="w-2 h-2 text-blue-600"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <circle cx="10" cy="10" r="2" />
+                </svg>
+              </div>
             </div>
-            <h2 className="text-xl font-semibold text-slate-900">
-              No research articles yet
+            <h2 className="text-2xl font-bold text-slate-900 mb-4">
+              Research Library Coming Soon
             </h2>
-            <p className="mt-3 text-sm text-slate-600">
-              We're preparing groundbreaking content. Check back soon for
-              insights from the Zygotrix genetic engineering team.
+            <p className="text-slate-600 leading-relaxed mb-6 max-w-md mx-auto">
+              Our genetic engineering research team is preparing groundbreaking
+              content and insights. Be the first to explore cutting-edge
+              discoveries in genomics and biotechnology.
             </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
+              <Link
+                to="/contact"
+                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all hover:scale-105"
+              >
+                <svg
+                  className="w-4 h-4"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M15 17h5l-5 5-5-5h5v-12"
+                  />
+                </svg>
+                Get Notified
+              </Link>
+              <Link
+                to="/about"
+                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-all"
+              >
+                Learn More About Our Research
+              </Link>
+            </div>
           </div>
         )}
 
         {!isLoading && !error && hasContent && (
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {blogs.map((blog) => (
-              <BlogCard key={blog.slug} blog={blog} />
-            ))}
+          <div className="space-y-6">
+            {/* Results counter */}
+            <div className="flex items-center justify-between border-b border-slate-200 pb-4">
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <svg
+                  className="w-4 h-4"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M3 4a1 1 0 011-1h12a1 1 0 011 1v2a1 1 0 01-.293.707L12 11.414V15a1 1 0 01-.293.707l-2 2A1 1 0 018 17v-5.586L3.293 6.707A1 1 0 013 6V4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+                <span>
+                  <strong>{blogs.length}</strong> research article
+                  {blogs.length !== 1 ? "s" : ""} found
+                </span>
+              </div>
+              <div className="text-xs text-slate-500">
+                Updated recently • Fresh insights
+              </div>
+            </div>
+
+            {/* Enhanced blog grid with staggered animation */}
+            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+              {blogs.map((blog, index) => (
+                <div
+                  key={blog.slug}
+                  className="animate-fade-in-up"
+                  style={{ animationDelay: `${index * 100}ms` }}
+                >
+                  <BlogCard blog={blog} />
+                </div>
+              ))}
+            </div>
           </div>
         )}
 

@@ -2,6 +2,9 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiX, FiTag, FiAlertCircle } from "react-icons/fi";
 import * as communityApi from "../../services/communityApi";
+import ImageUpload from "../common/ImageUpload";
+import { cloudinaryService } from "../../services/cloudinaryService";
+import { useAuth } from "../../context/AuthContext";
 
 interface AskQuestionModalProps {
   isOpen: boolean;
@@ -18,8 +21,14 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
   const [content, setContent] = useState("");
   const [tagInput, setTagInput] = useState("");
   const [tags, setTags] = useState<string[]>([]);
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageThumbnailUrl, setImageThumbnailUrl] = useState<string | null>(
+    null
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { user } = useAuth();
 
   const handleAddTag = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === "Enter" || e.key === ",") {
@@ -48,11 +57,50 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
     setTags(tags.filter((tag) => tag !== tagToRemove));
   };
 
+  const handleImageUpload = async (file: File) => {
+    if (!user) {
+      throw new Error("You must be logged in to upload images");
+    }
+
+    const result = await cloudinaryService.uploadQuestionImage(
+      file,
+      `temp-${Date.now()}`, // Will be updated with actual question ID after creation
+      user.id
+    );
+
+    console.log("Image upload result:", result);
+
+    setImageUrl(result.url);
+    setImageThumbnailUrl(result.thumbnailUrl);
+
+    console.log("Set imageUrl to:", result.url);
+    console.log("Set imageThumbnailUrl to:", result.thumbnailUrl);
+
+    // Return the result for the ImageUpload component to use for preview
+    return { url: result.url };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!title.trim() || !content.trim()) {
-      setError("Title and content are required");
+    // Validation
+    if (!title.trim()) {
+      setError("Title is required");
+      return;
+    }
+
+    if (title.trim().length < 10) {
+      setError("Title must be at least 10 characters");
+      return;
+    }
+
+    if (!content.trim()) {
+      setError("Content is required");
+      return;
+    }
+
+    if (content.trim().length < 20) {
+      setError("Content must be at least 20 characters");
       return;
     }
 
@@ -60,22 +108,36 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
     setError(null);
 
     try {
-      const question = await communityApi.createQuestion({
+      const questionData = {
         title: title.trim(),
         content: content.trim(),
         tags,
-      });
+        image_url: imageUrl || null,
+        image_thumbnail_url: imageThumbnailUrl || null,
+      };
+
+      console.log("=== SUBMITTING QUESTION ===");
+      console.log("Question data:", JSON.stringify(questionData, null, 2));
+
+      const question = await communityApi.createQuestion(questionData);
+
+      console.log("=== QUESTION CREATED SUCCESSFULLY ===");
+      console.log("Response:", JSON.stringify(question, null, 2));
 
       // Reset form
       setTitle("");
       setContent("");
       setTags([]);
       setTagInput("");
+      setImageUrl(null);
+      setImageThumbnailUrl(null);
 
       // Close modal and navigate to question
       onClose();
       navigate(`/community/questions/${question.id}`);
     } catch (err) {
+      console.error("=== ERROR SUBMITTING QUESTION ===");
+      console.error("Error:", err);
       setError(err instanceof Error ? err.message : "Failed to post question");
       setIsSubmitting(false);
     }
@@ -89,6 +151,8 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
     setContent("");
     setTags([]);
     setTagInput("");
+    setImageUrl(null);
+    setImageThumbnailUrl(null);
     setError(null);
     onClose();
   };
@@ -167,8 +231,16 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                 disabled={isSubmitting}
               />
               <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-slate-500">Be specific and clear</p>
-                <p className="text-xs text-slate-500">{title.length}/200</p>
+                <p className="text-xs text-slate-500">
+                  Be specific and clear (min. 10 characters)
+                </p>
+                <p
+                  className={`text-xs ${
+                    title.length >= 10 ? "text-green-600" : "text-slate-500"
+                  }`}
+                >
+                  {title.length}/200
+                </p>
               </div>
             </div>
 
@@ -190,6 +262,25 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                 required
                 disabled={isSubmitting}
               />
+              <div className="flex items-center justify-between mt-1">
+                <p className="text-xs text-slate-500">
+                  Provide context and details (min. 20 characters)
+                </p>
+                <p
+                  className={`text-xs ${
+                    content.length >= 20
+                      ? "text-green-600"
+                      : content.length > 0
+                      ? "text-orange-600"
+                      : "text-slate-500"
+                  }`}
+                >
+                  {content.length}{" "}
+                  {content.length < 20 &&
+                    content.length > 0 &&
+                    `(need ${20 - content.length} more)`}
+                </p>
+              </div>
             </div>
 
             {/* Tags */}
@@ -237,6 +328,24 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
               <p className="mt-1 text-xs text-slate-500">
                 Press Enter or comma to add. Examples: gwas, genetics,
                 variant-analysis
+              </p>
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-900 mb-1.5">
+                Add Image (Optional)
+              </label>
+              <ImageUpload
+                onUpload={handleImageUpload}
+                maxSize={5}
+                acceptedFormats={["image/jpeg", "image/png", "image/webp"]}
+                currentImageUrl={imageUrl || undefined}
+                disabled={isSubmitting}
+                placeholder="Upload an image to illustrate your question"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Supports JPEG, PNG, and WebP. Max size: 5MB
               </p>
             </div>
 

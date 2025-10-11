@@ -22,12 +22,12 @@ const TeamMemberPage: React.FC = () => {
   const [blogsLoading, setBlogsLoading] = useState(false);
 
   useEffect(() => {
-    if (!slug) return;
+    if (!teamMember?.name) return;
 
     const controller = new AbortController();
     setBlogsLoading(true);
 
-    fetchBlogsByAuthor(slug, controller.signal)
+    fetchBlogsByAuthor(teamMember.name, controller.signal)
       .then((blogs) => {
         setAuthoredBlogs(blogs);
       })
@@ -40,7 +40,7 @@ const TeamMemberPage: React.FC = () => {
       });
 
     return () => controller.abort();
-  }, [slug]);
+  }, [teamMember?.name]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);

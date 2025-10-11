@@ -2,6 +2,8 @@ export interface AuthorInfo {
   id: string;
   email: string;
   full_name?: string;
+  profile_picture_url?: string | null;
+  profile_picture_thumbnail_url?: string | null;
 }
 
 export interface Question {
@@ -14,6 +16,8 @@ export interface Question {
   downvotes: number;
   view_count: number;
   answer_count: number;
+  image_url?: string | null;
+  image_thumbnail_url?: string | null;
   created_at: string;
   updated_at?: string;
   user_vote?: number | null; // -1, 0, 1 or null
@@ -48,12 +52,16 @@ export interface QuestionCreateRequest {
   title: string;
   content: string;
   tags: string[];
+  image_url?: string | null;
+  image_thumbnail_url?: string | null;
 }
 
 export interface QuestionUpdateRequest {
   title?: string;
   content?: string;
   tags?: string[];
+  image_url?: string | null;
+  image_thumbnail_url?: string | null;
 }
 
 export interface AnswerCreateRequest {

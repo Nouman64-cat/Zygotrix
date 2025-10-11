@@ -1,12 +1,16 @@
 import React, { useState } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import ProfilePictureUpload from "../components/common/ProfilePictureUpload";
+import { useAuth } from "../context/AuthContext";
+import * as authApi from "../services/auth.api";
 
 const ProfilePage: React.FC = () => {
+  const { user, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [profileData, setProfileData] = useState({
-    firstName: "John",
-    lastName: "Doe",
-    email: "john.doe@example.com",
+    firstName: user?.full_name?.split(" ")[0] || "John",
+    lastName: user?.full_name?.split(" ")[1] || "Doe",
+    email: user?.email || "john.doe@example.com",
     phone: "+1 (555) 123-4567",
     organization: "Genetics Research Institute",
     department: "Computational Biology",
@@ -71,9 +75,23 @@ const ProfilePage: React.FC = () => {
           <div className="lg:col-span-1">
             <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
               <div className="text-center">
-                <div className="w-24 h-24 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold">
-                  {profileData.firstName[0]}
-                  {profileData.lastName[0]}
+                <div className="mx-auto mb-4">
+                  <ProfilePictureUpload
+                    userId={user?.id || ""}
+                    currentImageUrl={user?.profile_picture_url || undefined}
+                    onUploadSuccess={async (imageUrl, thumbnailUrl) => {
+                      await authApi.updateProfilePicture(
+                        imageUrl,
+                        thumbnailUrl
+                      );
+                      await refreshUser();
+                    }}
+                    onUploadError={(error) => {
+                      console.error("Profile picture upload failed:", error);
+                      // You could show a toast notification here
+                    }}
+                    size="lg"
+                  />
                 </div>
                 <h3 className="text-lg font-semibold text-slate-900">
                   {profileData.firstName} {profileData.lastName}

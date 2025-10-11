@@ -85,7 +85,7 @@ const SubmitAnswerModal: React.FC<SubmitAnswerModalProps> = ({
             <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Write Your Answer
             </h2>
-            <p className="text-sm text-slate-600 mt-1">
+            <p className="text-xs lg:text-sm text-slate-600 mt-1">
               Share your knowledge and help the community
             </p>
           </div>
@@ -126,10 +126,6 @@ const SubmitAnswerModal: React.FC<SubmitAnswerModalProps> = ({
                 disabled={isSubmitting}
                 required
               />
-              <p className="mt-2 text-xs text-slate-500">
-                💡 Tip: Include examples, code snippets, or references to make
-                your answer more helpful
-              </p>
             </div>
 
             {/* Character Count */}
@@ -148,10 +144,7 @@ const SubmitAnswerModal: React.FC<SubmitAnswerModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-between gap-3">
-            <p className="text-xs text-slate-600">
-              By posting, you agree to our community guidelines
-            </p>
+          <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
             <div className="flex gap-3">
               <button
                 type="button"

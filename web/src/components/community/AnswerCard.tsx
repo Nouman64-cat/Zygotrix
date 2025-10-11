@@ -82,7 +82,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
 
         {/* Content */}
         <div className="prose prose-sm max-w-none mb-4">
-          <p className="text-slate-700 whitespace-pre-wrap">
+          <p className="text-xs md:text-sm text-slate-700 whitespace-pre-wrap">
             {shouldShowCollapse
               ? `${answer.content.substring(0, 240)}...`
               : answer.content}
@@ -128,13 +128,14 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
             {/* Downvote */}
             <button
               onClick={() => onVote(answer.user_vote === -1 ? 0 : -1)}
-              className={`p-1.5 rounded-lg transition-all duration-200 ${
+              className={`flex items-center gap-1.5 p-1.5 rounded-lg transition-all duration-200 ${
                 answer.user_vote === -1
                   ? "bg-red-100 text-red-600 shadow-sm"
                   : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
               }`}
             >
               <FiThumbsDown className="h-4 w-4" />
+              <span className="text-sm font-medium">{answer.downvotes}</span>
             </button>
 
             {/* Accept Answer */}

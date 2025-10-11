@@ -287,8 +287,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, onVote }) => {
                     />
                   </svg>
                   <span className="text-xs sm:text-sm font-semibold">
-                    {question.answer_count} answer
-                    {question.answer_count !== 1 ? "s" : ""}
+                    {question.answer_count} ans
                   </span>
                 </Link>
               )}

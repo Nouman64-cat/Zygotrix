@@ -423,8 +423,25 @@ const QuestionDetailPage: React.FC = () => {
       {/* Enhanced Question Card */}
       <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-6 sm:mb-8 relative">
         <div className="p-3 sm:p-4 md:p-6 pt-6 sm:pt-8 md:pt-12">
+          <div className="flex items-center gap-2 sm:gap-3 mb-2">
+            <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+              <FiUser className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
+            </div>
+            <div>
+              <div className="text-xs sm:text-sm font-semibold text-slate-900">
+                {question.author.full_name ||
+                  question.author.email.split("@")[0]}
+              </div>
+              <div className="text-[10px] sm:text-xs text-slate-500 flex items-center gap-1">
+                <FiClock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
+                <span className="hidden sm:inline">Asked</span>{" "}
+                {getTimeAgo(question.created_at)}
+              </div>
+            </div>
+          </div>
           <div className="flex gap-2 sm:gap-3 md:gap-6 flex-col sm:flex-row">
             {/* Enhanced Content Section */}
+            {/* Author Info with Enhanced Design */}
             <div className="flex-1 min-w-0 order-1 sm:order-2">
               {/* Title with gradient */}
               <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
@@ -503,28 +520,9 @@ const QuestionDetailPage: React.FC = () => {
               )}
 
               {/* Interactive Action Bar */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 sm:pt-6 border-t border-slate-200 gap-3 sm:gap-4">
-                {/* Author Info with Enhanced Design */}
-                <div className="flex items-center gap-2 sm:gap-3">
-                  <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                    <FiUser className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
-                  </div>
-                  <div>
-                    <div className="text-xs sm:text-sm font-semibold text-slate-900">
-                      {question.author.full_name ||
-                        question.author.email.split("@")[0]}
-                    </div>
-                    <div className="text-[10px] sm:text-xs text-slate-500 flex items-center gap-1">
-                      <FiClock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
-                      <span className="hidden sm:inline">Asked</span>{" "}
-                      {getTimeAgo(question.created_at)}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Interactive Actions */}
-                <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 flex-wrap">
-                  {/* Bookmark Button */}
+              <div className="flex sm:flex-row items-start sm:items-center justify-end pt-4 sm:pt-6 border-t border-slate-200 gap-3 sm:gap-4">
+                {/* Interactive Actions */} {/* Bookmark Button */}
+                <div className="flex items-center gap-3">
                   <button
                     onClick={handleBookmark}
                     className={`p-1.5 sm:p-2 rounded-lg transition-all duration-200 ${
@@ -540,7 +538,6 @@ const QuestionDetailPage: React.FC = () => {
                       }`}
                     />
                   </button>
-
                   {/* Share Button */}
                   <button
                     onClick={handleShare}
@@ -549,7 +546,6 @@ const QuestionDetailPage: React.FC = () => {
                   >
                     <FiShare2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </button>
-
                   {/* Copy Link Button with Feedback */}
                   <div className="relative">
                     <button
@@ -565,7 +561,6 @@ const QuestionDetailPage: React.FC = () => {
                       </div>
                     )}
                   </div>
-
                   {/* Edit & Delete Buttons for Author */}
                   {isQuestionAuthor && (
                     <>

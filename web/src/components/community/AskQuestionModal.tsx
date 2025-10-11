@@ -204,18 +204,6 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
               </div>
             )}
 
-            {/* Quick Tips */}
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-2 sm:p-3">
-              <p className="text-[10px] sm:text-xs font-semibold text-blue-900 mb-1">
-                💡 Tips for a great question:
-              </p>
-              <ul className="text-[10px] sm:text-xs text-blue-800 space-y-0.5">
-                <li>• Be specific and clear in your title</li>
-                <li>• Provide context and details in the description</li>
-                <li>• Add relevant tags to help others find it</li>
-              </ul>
-            </div>
-
             {/* Title */}
             <div>
               <label
@@ -349,9 +337,6 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                 disabled={isSubmitting}
                 placeholder="Upload an image to illustrate your question"
               />
-              <p className="mt-1 text-[10px] sm:text-xs text-slate-500">
-                Supports JPEG, PNG, and WebP. Max size: 5MB
-              </p>
             </div>
 
             {/* Actions */}

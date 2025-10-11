@@ -302,9 +302,6 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
                 disabled={isSubmitting}
                 placeholder="Upload an image to illustrate your question"
               />
-              <p className="mt-1 text-[10px] sm:text-xs text-slate-500">
-                Supports JPEG, PNG, and WebP. Max size: 5MB
-              </p>
             </div>
           </form>
         </div>

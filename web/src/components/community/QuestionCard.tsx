@@ -377,34 +377,6 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, onVote }) => {
                           {comment.content}
                         </div>
                       </div>
-
-                      {/* Action Buttons */}
-                      <div className="flex items-center gap-4 mt-2 px-2">
-                        <button
-                          className={`flex items-center gap-1 text-xs transition-colors ${
-                            comment.user_vote === 1
-                              ? "text-blue-600 font-medium"
-                              : "text-slate-400 hover:text-blue-600"
-                          }`}
-                        >
-                          <FiThumbsUp className="h-3.5 w-3.5" />
-                          {comment.upvotes > 0 && (
-                            <span>{comment.upvotes}</span>
-                          )}
-                        </button>
-                        <button
-                          className={`flex items-center gap-1 text-xs transition-colors ${
-                            comment.user_vote === -1
-                              ? "text-red-600 font-medium"
-                              : "text-slate-400 hover:text-red-600"
-                          }`}
-                        >
-                          <FiThumbsDown className="h-3.5 w-3.5" />
-                          {comment.downvotes > 0 && (
-                            <span>{comment.downvotes}</span>
-                          )}
-                        </button>
-                      </div>
                     </div>
                   </div>
                 ))}

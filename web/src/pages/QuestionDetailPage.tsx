@@ -1,8 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import {
-  FiArrowUp,
-  FiArrowDown,
   FiMessageSquare,
   FiEye,
   FiTrash2,
@@ -14,6 +12,7 @@ import {
   FiUser,
   FiHeart,
   FiAward,
+  FiArrowLeft,
 } from "react-icons/fi";
 import * as communityApi from "../services/communityApi";
 import type { QuestionDetail, Answer } from "../types/community";
@@ -36,9 +35,6 @@ const QuestionDetailPage: React.FC = () => {
   const [isAnswerModalOpen, setIsAnswerModalOpen] = useState(false);
   const [isBookmarked, setIsBookmarked] = useState(false);
   const [showCopiedFeedback, setShowCopiedFeedback] = useState(false);
-  const [voteAnimation, setVoteAnimation] = useState<"up" | "down" | null>(
-    null
-  );
   const [isEditQuestionModalOpen, setIsEditQuestionModalOpen] = useState(false);
   const [deleteConfirmation, setDeleteConfirmation] = useState<{
     isOpen: boolean;
@@ -74,34 +70,50 @@ const QuestionDetailPage: React.FC = () => {
     loadQuestion();
   }, [id]);
 
-  const handleVoteQuestion = async (voteType: -1 | 0 | 1) => {
-    if (!user || !id) {
-      alert("Please login to vote");
-      return;
-    }
-
-    // Trigger animation
-    setVoteAnimation(voteType === 1 ? "up" : voteType === -1 ? "down" : null);
-    setTimeout(() => setVoteAnimation(null), 300);
-
-    try {
-      await communityApi.voteQuestion(id, voteType);
-      await loadQuestion();
-    } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to vote");
-    }
-  };
-
   const handleVoteAnswer = async (answerId: string, voteType: -1 | 0 | 1) => {
     if (!user) {
       alert("Please login to vote");
       return;
     }
 
+    if (!question) return;
+
+    // Optimistic update
+    const updatedAnswers = question.answers.map((answer) => {
+      if (answer.id === answerId) {
+        const currentVote = answer.user_vote || 0;
+        let newUpvotes = answer.upvotes;
+        let newDownvotes = answer.downvotes;
+
+        // Revert previous vote
+        if (currentVote === 1) newUpvotes--;
+        if (currentVote === -1) newDownvotes--;
+
+        // Apply new vote
+        if (voteType === 1) newUpvotes++;
+        if (voteType === -1) newDownvotes++;
+
+        return {
+          ...answer,
+          user_vote: voteType === 0 ? null : voteType,
+          upvotes: newUpvotes,
+          downvotes: newDownvotes,
+        };
+      }
+      return answer;
+    });
+
+    // Update local state immediately
+    setQuestion({
+      ...question,
+      answers: updatedAnswers,
+    });
+
     try {
       await communityApi.voteAnswer(answerId, voteType);
-      await loadQuestion();
     } catch (err) {
+      // Revert on error
+      await loadQuestion();
       alert(err instanceof Error ? err.message : "Failed to vote");
     }
   };
@@ -397,110 +409,70 @@ const QuestionDetailPage: React.FC = () => {
 
   return (
     <div className="px-4 sm:px-6 lg:px-0">
+      {/* Mobile Back Button */}
+      <div className="flex items-center mb-4 sm:hidden">
+        <button
+          onClick={() => navigate(-1)}
+          className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200"
+        >
+          <FiArrowLeft className="h-5 w-5" />
+          <span className="text-sm font-medium">Back</span>
+        </button>
+      </div>
+
       {/* Enhanced Question Card */}
-      <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 relative">
-        <div className="p-4 sm:p-6 pt-8 sm:pt-12">
-          <div className="flex gap-3 sm:gap-6 flex-col sm:flex-row">
-            {/* Enhanced Voting Section */}
-            <div className="flex flex-row sm:flex-col items-center justify-center sm:justify-start gap-3 sm:gap-2 flex-shrink-0 order-2 sm:order-1">
-              <button
-                onClick={() =>
-                  handleVoteQuestion(question.user_vote === 1 ? 0 : 1)
-                }
-                disabled={!user}
-                className={`p-2 sm:p-3 rounded-xl transition-all duration-200 group relative ${
-                  question.user_vote === 1
-                    ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg scale-105"
-                    : "bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 hover:from-green-50 hover:to-emerald-50 hover:text-green-600 hover:scale-105"
-                } disabled:opacity-50 disabled:cursor-not-allowed ${
-                  voteAnimation === "up" ? "animate-bounce" : ""
-                }`}
-              >
-                <FiArrowUp className="h-5 w-5 sm:h-6 sm:w-6" />
-                {question.user_vote === 1 && (
-                  <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
-                )}
-              </button>
-
-              <div className="relative">
-                <div
-                  className={`text-xl sm:text-2xl font-bold transition-all duration-200 ${
-                    question.upvotes > 0 ? "text-green-600" : "text-slate-900"
-                  }`}
-                >
-                  {question.upvotes}
-                </div>
-                {question.upvotes > 10 && (
-                  <FiAward className="absolute -top-2 -right-2 h-4 w-4 text-yellow-500" />
-                )}
-              </div>
-
-              <button
-                onClick={() =>
-                  handleVoteQuestion(question.user_vote === -1 ? 0 : -1)
-                }
-                disabled={!user}
-                className={`p-2 sm:p-3 rounded-xl transition-all duration-200 group relative ${
-                  question.user_vote === -1
-                    ? "bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg scale-105"
-                    : "bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 hover:from-red-50 hover:to-rose-50 hover:text-red-600 hover:scale-105"
-                } disabled:opacity-50 disabled:cursor-not-allowed ${
-                  voteAnimation === "down" ? "animate-bounce" : ""
-                }`}
-              >
-                <FiArrowDown className="h-5 w-5 sm:h-6 sm:w-6" />
-              </button>
-            </div>
-
+      <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-6 sm:mb-8 relative">
+        <div className="p-3 sm:p-4 md:p-6 pt-6 sm:pt-8 md:pt-12">
+          <div className="flex gap-2 sm:gap-3 md:gap-6 flex-col sm:flex-row">
             {/* Enhanced Content Section */}
             <div className="flex-1 min-w-0 order-1 sm:order-2">
               {/* Title with gradient */}
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent mb-4 leading-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
                 {question.title}
               </h1>
 
               {/* Enhanced Stats Bar */}
-              <div className="flex items-center gap-3 sm:gap-6 mb-6 p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl flex-wrap">
-                <div className="flex items-center gap-2 text-slate-600">
-                  <FiEye className="h-4 w-4 text-blue-500" />
-                  <span className="text-sm font-medium">
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-6 mb-4 sm:mb-6 p-2 sm:p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg sm:rounded-xl flex-wrap">
+                <div className="flex items-center gap-1 sm:gap-2 text-slate-600">
+                  <FiEye className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
+                  <span className="text-xs sm:text-sm font-medium">
                     {question.view_count.toLocaleString()}
                   </span>
-                  <span className="text-xs text-slate-500 hidden sm:inline">
+                  <span className="text-[10px] sm:text-xs text-slate-500 hidden sm:inline">
                     views
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-600">
-                  <FiMessageSquare className="h-4 w-4 text-green-500" />
-                  <span className="text-sm font-medium">
+                <div className="flex items-center gap-1 sm:gap-2 text-slate-600">
+                  <FiMessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
+                  <span className="text-xs sm:text-sm font-medium">
                     {question.answer_count}
                   </span>
-                  <span className="text-xs text-slate-500 hidden sm:inline">
+                  <span className="text-[10px] sm:text-xs text-slate-500 hidden sm:inline">
                     answers
                   </span>
                 </div>
-                <div className="flex items-center gap-2 text-slate-600">
-                  <FiClock className="h-4 w-4 text-purple-500" />
-                  <span className="text-sm font-medium">
+                <div className="flex items-center gap-1 sm:gap-2 text-slate-600">
+                  <FiClock className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
+                  <span className="text-xs sm:text-sm font-medium">
                     {getTimeAgo(question.created_at)}
                   </span>
                 </div>
               </div>
 
               {/* Enhanced Content */}
-              <div className="prose prose-slate max-w-none mb-6">
-                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-base sm:text-lg">
+              <div className="prose prose-slate max-w-none mb-4 sm:mb-6">
+                <p className="text-sm sm:text-base md:text-lg text-slate-700 leading-relaxed whitespace-pre-wrap">
                   {question.content}
                 </p>
               </div>
 
               {/* Question Image */}
               {question.image_url && (
-                <div className="mb-6">
+                <div className="mb-4 sm:mb-6">
                   <img
                     src={question.image_url}
                     alt="Question illustration"
-                    className="w-full max-w-full sm:max-w-2xl h-auto rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    className="w-full max-w-full sm:max-w-2xl h-auto rounded-lg sm:rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() =>
                       question.image_url &&
                       window.open(question.image_url, "_blank")
@@ -511,12 +483,12 @@ const QuestionDetailPage: React.FC = () => {
 
               {/* Enhanced Tags */}
               {question.tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-6">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-4 sm:mb-6">
                   {question.tags.map((tag, index) => (
                     <Link
                       key={tag}
                       to={`/community?tag=${tag}`}
-                      className={`px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                      className={`px-2 sm:px-2.5 md:px-3 py-1 sm:py-1.5 md:py-2 rounded-md sm:rounded-lg text-[11px] sm:text-xs md:text-sm font-medium transition-all duration-200 hover:scale-105 ${
                         index % 3 === 0
                           ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 hover:from-blue-100 hover:to-indigo-100"
                           : index % 3 === 1
@@ -531,19 +503,19 @@ const QuestionDetailPage: React.FC = () => {
               )}
 
               {/* Interactive Action Bar */}
-              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-6 border-t border-slate-200 gap-4 sm:gap-0">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-4 sm:pt-6 border-t border-slate-200 gap-3 sm:gap-4">
                 {/* Author Info with Enhanced Design */}
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                    <FiUser className="h-5 w-5 sm:h-6 sm:w-6" />
+                <div className="flex items-center gap-2 sm:gap-3">
+                  <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                    <FiUser className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
                   </div>
                   <div>
-                    <div className="text-sm font-semibold text-slate-900">
+                    <div className="text-xs sm:text-sm font-semibold text-slate-900">
                       {question.author.full_name ||
                         question.author.email.split("@")[0]}
                     </div>
-                    <div className="text-xs text-slate-500 flex items-center gap-1">
-                      <FiClock className="h-3 w-3" />
+                    <div className="text-[10px] sm:text-xs text-slate-500 flex items-center gap-1">
+                      <FiClock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                       <span className="hidden sm:inline">Asked</span>{" "}
                       {getTimeAgo(question.created_at)}
                     </div>
@@ -551,7 +523,7 @@ const QuestionDetailPage: React.FC = () => {
                 </div>
 
                 {/* Interactive Actions */}
-                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
+                <div className="flex items-center gap-1 sm:gap-1.5 md:gap-2 flex-wrap">
                   {/* Bookmark Button */}
                   <button
                     onClick={handleBookmark}
@@ -588,7 +560,7 @@ const QuestionDetailPage: React.FC = () => {
                       <FiCopy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                     {showCopiedFeedback && (
-                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
+                      <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-[10px] sm:text-xs px-2 py-1 rounded whitespace-nowrap">
                         Link copied!
                       </div>
                     )}

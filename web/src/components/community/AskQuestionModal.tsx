@@ -168,43 +168,48 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="flex min-h-full items-center justify-center p-4">
-        <div className="relative w-full max-w-2xl bg-white rounded-2xl shadow-2xl transform transition-all">
+      <div className="flex min-h-full items-center justify-center p-2 sm:p-4">
+        <div className="relative w-full max-w-2xl bg-white rounded-xl sm:rounded-2xl shadow-2xl transform transition-all">
           {/* Header */}
-          <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
             <div>
-              <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Ask a Question
               </h2>
-              <p className="text-xs text-slate-600 mt-0.5">
+              <p className="text-[10px] sm:text-xs text-slate-600 mt-0.5">
                 Share your question with the community
               </p>
             </div>
             <button
               onClick={handleClose}
               disabled={isSubmitting}
-              className="p-2 hover:bg-slate-100 rounded-lg transition disabled:opacity-50"
+              className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition disabled:opacity-50"
             >
-              <FiX className="h-5 w-5 text-slate-600" />
+              <FiX className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
             </button>
           </div>
 
           {/* Form */}
-          <form onSubmit={handleSubmit} className="p-6 space-y-4">
+          <form
+            onSubmit={handleSubmit}
+            className="p-4 sm:p-6 space-y-3 sm:space-y-4"
+          >
             {/* Error Alert */}
             {error && (
-              <div className="flex items-start gap-3 p-3 bg-red-50 border border-red-200 rounded-lg">
-                <FiAlertCircle className="h-5 w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                <p className="text-sm text-red-700 font-medium">{error}</p>
+              <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-red-50 border border-red-200 rounded-lg">
+                <FiAlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 flex-shrink-0 mt-0.5" />
+                <p className="text-xs sm:text-sm text-red-700 font-medium">
+                  {error}
+                </p>
               </div>
             )}
 
             {/* Quick Tips */}
-            <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-3">
-              <p className="text-xs font-semibold text-blue-900 mb-1">
+            <div className="bg-gradient-to-br from-blue-50 to-purple-50 border border-blue-200 rounded-lg p-2 sm:p-3">
+              <p className="text-[10px] sm:text-xs font-semibold text-blue-900 mb-1">
                 💡 Tips for a great question:
               </p>
-              <ul className="text-xs text-blue-800 space-y-0.5">
+              <ul className="text-[10px] sm:text-xs text-blue-800 space-y-0.5">
                 <li>• Be specific and clear in your title</li>
                 <li>• Provide context and details in the description</li>
                 <li>• Add relevant tags to help others find it</li>
@@ -215,7 +220,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
             <div>
               <label
                 htmlFor="title"
-                className="block text-sm font-semibold text-slate-900 mb-1.5"
+                className="block text-xs sm:text-sm font-semibold text-slate-900 mb-1 sm:mb-1.5"
               >
                 Title <span className="text-red-500">*</span>
               </label>
@@ -225,17 +230,17 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="e.g., How do I interpret GWAS results for polygenic traits?"
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition text-sm"
+                className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition text-xs sm:text-sm"
                 required
                 maxLength={200}
                 disabled={isSubmitting}
               />
               <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-slate-500">
+                <p className="text-[10px] sm:text-xs text-slate-500">
                   Be specific and clear (min. 10 characters)
                 </p>
                 <p
-                  className={`text-xs ${
+                  className={`text-[10px] sm:text-xs ${
                     title.length >= 10 ? "text-green-600" : "text-slate-500"
                   }`}
                 >
@@ -248,7 +253,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
             <div>
               <label
                 htmlFor="content"
-                className="block text-sm font-semibold text-slate-900 mb-1.5"
+                className="block text-xs sm:text-sm font-semibold text-slate-900 mb-1 sm:mb-1.5"
               >
                 Details <span className="text-red-500">*</span>
               </label>
@@ -258,16 +263,16 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Provide more details about your question. Include any relevant context, what you've tried, and what you're hoping to achieve..."
                 rows={6}
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition resize-none text-sm"
+                className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition resize-none text-xs sm:text-sm"
                 required
                 disabled={isSubmitting}
               />
               <div className="flex items-center justify-between mt-1">
-                <p className="text-xs text-slate-500">
+                <p className="text-[10px] sm:text-xs text-slate-500">
                   Provide context and details (min. 20 characters)
                 </p>
                 <p
-                  className={`text-xs ${
+                  className={`text-[10px] sm:text-xs ${
                     content.length >= 20
                       ? "text-green-600"
                       : content.length > 0
@@ -287,27 +292,27 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
             <div>
               <label
                 htmlFor="tags"
-                className="block text-sm font-semibold text-slate-900 mb-1.5"
+                className="block text-xs sm:text-sm font-semibold text-slate-900 mb-1 sm:mb-1.5"
               >
                 Tags (up to 5)
               </label>
 
               {/* Tag display */}
               {tags.length > 0 && (
-                <div className="flex flex-wrap gap-2 mb-2">
+                <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2">
                   {tags.map((tag) => (
                     <div
                       key={tag}
-                      className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-300 text-blue-700 rounded-lg text-xs font-medium"
+                      className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-300 text-blue-700 rounded-lg text-[10px] sm:text-xs font-medium"
                     >
-                      <FiTag className="h-3 w-3" />
+                      <FiTag className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                       <span>{tag}</span>
                       <button
                         type="button"
                         onClick={() => handleRemoveTag(tag)}
                         className="hover:text-blue-900 transition"
                       >
-                        <FiX className="h-3.5 w-3.5" />
+                        <FiX className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                       </button>
                     </div>
                   ))}
@@ -322,10 +327,10 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                 onChange={(e) => setTagInput(e.target.value)}
                 onKeyDown={handleAddTag}
                 placeholder="Type a tag and press Enter or comma"
-                className="w-full px-3 py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition text-sm"
+                className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition text-xs sm:text-sm"
                 disabled={tags.length >= 5 || isSubmitting}
               />
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-[10px] sm:text-xs text-slate-500">
                 Press Enter or comma to add. Examples: gwas, genetics,
                 variant-analysis
               </p>
@@ -333,7 +338,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
 
             {/* Image Upload */}
             <div>
-              <label className="block text-sm font-semibold text-slate-900 mb-1.5">
+              <label className="block text-xs sm:text-sm font-semibold text-slate-900 mb-1 sm:mb-1.5">
                 Add Image (Optional)
               </label>
               <ImageUpload
@@ -344,29 +349,32 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                 disabled={isSubmitting}
                 placeholder="Upload an image to illustrate your question"
               />
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-[10px] sm:text-xs text-slate-500">
                 Supports JPEG, PNG, and WebP. Max size: 5MB
               </p>
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-4 border-t border-slate-200">
+            <div className="flex items-center justify-end gap-2 sm:gap-3 pt-3 sm:pt-4 border-t border-slate-200">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="px-4 py-2 text-slate-700 text-sm font-medium hover:bg-slate-100 rounded-lg transition disabled:opacity-50"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-slate-700 text-xs sm:text-sm font-medium hover:bg-slate-100 rounded-lg transition disabled:opacity-50"
               >
                 Cancel
               </button>
               <button
                 type="submit"
                 disabled={isSubmitting || !title.trim() || !content.trim()}
-                className="px-6 py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
+                className="px-4 sm:px-6 py-1.5 sm:py-2 bg-gradient-to-r from-blue-600 to-purple-600 text-white text-xs sm:text-sm font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg hover:shadow-xl"
               >
                 {isSubmitting ? (
                   <span className="flex items-center gap-2">
-                    <svg className="animate-spin h-4 w-4" viewBox="0 0 24 24">
+                    <svg
+                      className="animate-spin h-3 w-3 sm:h-4 sm:w-4"
+                      viewBox="0 0 24 24"
+                    >
                       <circle
                         className="opacity-25"
                         cx="12"

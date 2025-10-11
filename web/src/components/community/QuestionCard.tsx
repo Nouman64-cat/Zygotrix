@@ -1,13 +1,31 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import { FiMessageSquare, FiEye, FiArrowUp } from "react-icons/fi";
-import type { Question } from "../../types/community";
+import {
+  FiMessageSquare,
+  FiEye,
+  FiThumbsUp,
+  FiThumbsDown,
+  FiSend,
+} from "react-icons/fi";
+import type { Question, Comment } from "../../types/community";
+import * as communityApi from "../../services/communityApi";
+import { useAuth } from "../../context/AuthContext";
 
 interface QuestionCardProps {
   question: Question;
+  onVote?: (questionId: string, voteType: -1 | 0 | 1) => void;
 }
 
-const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
+const QuestionCard: React.FC<QuestionCardProps> = ({ question, onVote }) => {
+  const { user } = useAuth();
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState("");
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentCount, setCommentCount] = useState(0);
+  const [isLoadingComments, setIsLoadingComments] = useState(false);
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     const now = new Date();
@@ -25,37 +43,76 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
     return `${diffYears}y ago`;
   };
 
+  const handleCommentSubmit = async () => {
+    if (!user || !commentText.trim() || isSubmittingComment) return;
+
+    setIsSubmittingComment(true);
+    try {
+      const newComment = await communityApi.createComment(
+        question.id,
+        commentText.trim()
+      );
+      setComments((prev) => [...prev, newComment]);
+      setCommentCount((prev) => prev + 1);
+      setCommentText("");
+    } catch (error) {
+      console.error("Failed to create comment:", error);
+      alert("Failed to create comment. Please try again.");
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  // Load comment count on component mount
+  useEffect(() => {
+    const loadCommentCount = async () => {
+      try {
+        const comments = await communityApi.getQuestionComments(question.id);
+        setCommentCount(comments.length);
+      } catch (error) {
+        console.error("Failed to load comment count:", error);
+      }
+    };
+
+    loadCommentCount();
+  }, [question.id]);
+
+  const handleToggleComments = async () => {
+    if (!showComments) {
+      // Load comments when opening the section
+      setIsLoadingComments(true);
+      try {
+        const response = await communityApi.getQuestionComments(question.id);
+        setComments(response);
+      } catch (error) {
+        console.error("Failed to load comments:", error);
+      } finally {
+        setIsLoadingComments(false);
+      }
+    }
+    setShowComments(!showComments);
+  };
+
   return (
     <div className="bg-white rounded-xl shadow-sm border border-slate-200 hover:shadow-md transition-all overflow-hidden">
       {/* Post Header - Like LinkedIn/Quora */}
-      <div className="p-4 pb-3">
-        <div className="flex items-start gap-3">
+      <div className="flex items-center p-3 sm:p-4 sm:pb-3">
+        <div className="flex items-center gap-2 sm:gap-3">
           {/* Author Avatar */}
-          <div className="flex-shrink-0">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm">
-              {(question.author.full_name ||
-                question.author.email)[0].toUpperCase()}
-            </div>
+          <div className="w-8 h-8 sm:w-10 sm:h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs sm:text-sm">
+            {(question.author.full_name ||
+              question.author.email)[0].toUpperCase()}
           </div>
 
           {/* Author Info */}
-          <div className="flex-1 min-w-0">
-            <div className="flex items-center gap-2">
-              <span className="font-semibold text-slate-900 truncate">
-                {question.author.full_name ||
-                  question.author.email.split("@")[0]}
-              </span>
-              <span className="text-slate-400">•</span>
-              <span className="text-sm text-slate-500">
-                {formatDate(question.created_at)}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 mt-0.5">
-              <FiEye className="h-3 w-3 text-slate-400" />
-              <span className="text-xs text-slate-500">
-                {question.view_count} views
-              </span>
-            </div>
+          <div className="flex items-center gap-1.5 sm:gap-2">
+            <span className="font-semibold text-sm sm:text-base text-slate-900 truncate">
+              {question.author.full_name || question.author.email.split("@")[0]}
+            </span>
+            <span className="text-slate-400 text-xs sm:text-sm">•</span>
+            <span className="text-xs sm:text-sm text-slate-500">
+              {formatDate(question.created_at)}
+            </span>
           </div>
         </div>
       </div>
@@ -65,16 +122,36 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
         to={`/community/questions/${question.id}`}
         className="block hover:bg-slate-50/50 transition-colors"
       >
-        <div className="px-4 pb-3">
+        <div className="px-3 sm:px-4 pb-2 sm:pb-3">
           {/* Title */}
-          <h3 className="text-lg font-bold text-slate-900 mb-2 hover:text-blue-600 transition-colors line-clamp-2">
+          <h3 className="text-base sm:text-lg font-bold text-slate-900 mb-1.5 sm:mb-2 hover:text-blue-600 transition-colors line-clamp-2">
             {question.title}
           </h3>
 
-          {/* Content Preview */}
-          <p className="text-sm text-slate-600 mb-3 line-clamp-3 leading-relaxed">
-            {question.content}
-          </p>
+          {/* Content Preview with Show More */}
+          <div className="mb-2 sm:mb-3">
+            <p
+              className={`text-xs sm:text-sm text-slate-600 leading-relaxed ${
+                !isExpanded && question.content.length > 280
+                  ? "line-clamp-3"
+                  : ""
+              }`}
+            >
+              {question.content}
+            </p>
+            {question.content.length > 280 && (
+              <button
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  setIsExpanded(!isExpanded);
+                }}
+                className="text-blue-600 hover:text-blue-700 text-xs sm:text-sm font-medium mt-1 transition-colors"
+              >
+                {isExpanded ? "Show less" : "Show more"}
+              </button>
+            )}
+          </div>
 
           {/* Image - Social Media Style */}
           {(question.image_thumbnail_url || question.image_url) && (
@@ -110,17 +187,17 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
 
           {/* Tags */}
           {question.tags.length > 0 && (
-            <div className="flex flex-wrap gap-2 mb-3">
+            <div className="flex flex-wrap gap-1.5 sm:gap-2 mb-2 sm:mb-3">
               {question.tags.slice(0, 5).map((tag) => (
                 <span
                   key={tag}
-                  className="inline-flex items-center px-2.5 py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-medium transition-colors"
+                  className="inline-flex items-center px-2 sm:px-2.5 py-0.5 sm:py-1 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-full text-xs font-medium transition-colors"
                 >
                   {tag}
                 </span>
               ))}
               {question.tags.length > 5 && (
-                <span className="px-2.5 py-1 text-slate-500 text-xs font-medium">
+                <span className="px-2 sm:px-2.5 py-0.5 sm:py-1 text-slate-500 text-xs font-medium">
                   +{question.tags.length - 5} more
                 </span>
               )}
@@ -129,12 +206,12 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
         </div>
 
         {/* Post Footer - Social Media Style Engagement */}
-        <div className="px-4 py-3 border-t border-slate-100 bg-gradient-to-r from-slate-50/50 to-slate-50/30">
+        <div className="px-3 sm:px-4 py-2 sm:py-3 border-t border-slate-100 bg-gradient-to-r from-slate-50/50 to-slate-50/30">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-6">
+            <div className="flex items-center gap-2 sm:gap-4">
               {/* Upvotes */}
               <button
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 ${
+                className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all duration-200 ${
                   question.user_vote === 1
                     ? "bg-blue-100 text-blue-600 shadow-sm"
                     : "text-slate-600 hover:text-blue-600 hover:bg-blue-50"
@@ -142,37 +219,83 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  // Handle upvote logic here
+                  onVote?.(question.id, question.user_vote === 1 ? 0 : 1);
                 }}
               >
-                <FiArrowUp className="h-4 w-4" />
-                <span className="text-sm font-semibold">
+                <FiThumbsUp className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm font-semibold">
                   {question.upvotes}
                 </span>
               </button>
 
-              {/* Comments/Answers */}
+              {/* Downvotes */}
               <button
-                className={`flex items-center gap-2 px-3 py-1.5 rounded-full transition-all duration-200 ${
-                  question.answer_count > 0
-                    ? "bg-green-100 text-green-600 shadow-sm"
-                    : "text-slate-600 hover:text-green-600 hover:bg-green-50"
+                className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all duration-200 ${
+                  question.user_vote === -1
+                    ? "bg-red-100 text-red-600 shadow-sm"
+                    : "text-slate-600 hover:text-red-600 hover:bg-red-50"
                 }`}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
-                  // Navigate to question detail page
+                  onVote?.(question.id, question.user_vote === -1 ? 0 : -1);
                 }}
               >
-                <FiMessageSquare className="h-4 w-4" />
-                <span className="text-sm font-semibold">
-                  {question.answer_count}
+                <FiThumbsDown className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm font-semibold">
+                  {question.downvotes}
                 </span>
               </button>
 
+              {/* Comments */}
+              <button
+                className={`flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full transition-all duration-200 ${
+                  showComments || commentCount > 0
+                    ? "bg-blue-100 text-blue-600 shadow-sm"
+                    : "text-slate-600 hover:text-blue-600 hover:bg-blue-50"
+                }`}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+                  handleToggleComments();
+                }}
+              >
+                <FiMessageSquare className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+                <span className="text-xs sm:text-sm font-semibold">
+                  {commentCount}
+                </span>
+              </button>
+
+              {/* Answers Badge */}
+              {question.answer_count > 0 && (
+                <Link
+                  to={`/community/questions/${question.id}`}
+                  onClick={(e) => e.stopPropagation()}
+                  className="flex items-center gap-1 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full bg-green-100 text-green-600 hover:bg-green-200 transition-all duration-200"
+                >
+                  <svg
+                    className="h-3.5 w-3.5 sm:h-4 sm:w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"
+                    />
+                  </svg>
+                  <span className="text-xs sm:text-sm font-semibold">
+                    {question.answer_count} answer
+                    {question.answer_count !== 1 ? "s" : ""}
+                  </span>
+                </Link>
+              )}
+
               {/* Share Button */}
               <button
-                className="flex items-center gap-2 px-3 py-1.5 rounded-full text-slate-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200"
+                className="flex items-center gap-1 sm:gap-2 px-2 sm:px-3 py-1 sm:py-1.5 rounded-full text-slate-600 hover:text-purple-600 hover:bg-purple-50 transition-all duration-200"
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -195,7 +318,7 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
                 }}
               >
                 <svg
-                  className="h-4 w-4"
+                  className="h-3.5 w-3.5 sm:h-4 sm:w-4"
                   fill="none"
                   viewBox="0 0 24 24"
                   stroke="currentColor"
@@ -218,6 +341,186 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question }) => {
           </div>
         </div>
       </Link>
+
+      {/* Collapsible Comments Section - Instagram/LinkedIn Style */}
+      {showComments && (
+        <div className="border-t border-slate-100 bg-slate-50/50">
+          {/* Comments List */}
+          <div className="px-3 sm:px-4 py-3 space-y-3 max-h-60 overflow-y-auto">
+            {isLoadingComments ? (
+              <div className="text-xs text-slate-500 text-center py-2">
+                Loading comments...
+              </div>
+            ) : comments.length > 0 ? (
+              <div className="space-y-3">
+                {comments.map((comment) => (
+                  <div key={comment.id} className="flex gap-3 group">
+                    {/* User Avatar */}
+                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
+                      {(comment.author.full_name ||
+                        comment.author.email)[0].toUpperCase()}
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      {/* Comment Bubble */}
+                      <div className="bg-white rounded-2xl px-4 py-3 shadow-sm border border-slate-200 group-hover:shadow-md transition-shadow">
+                        <div className="flex items-center gap-2 mb-2">
+                          <div className="text-sm font-semibold text-slate-800">
+                            {comment.author.full_name ||
+                              comment.author.email.split("@")[0]}
+                          </div>
+                          <div className="text-xs text-slate-400">
+                            {formatDate(comment.created_at)}
+                          </div>
+                        </div>
+                        <div className="text-sm text-slate-700 leading-relaxed">
+                          {comment.content}
+                        </div>
+                      </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-4 mt-2 px-2">
+                        <button
+                          className={`flex items-center gap-1 text-xs transition-colors ${
+                            comment.user_vote === 1
+                              ? "text-blue-600 font-medium"
+                              : "text-slate-400 hover:text-blue-600"
+                          }`}
+                        >
+                          <FiThumbsUp className="h-3.5 w-3.5" />
+                          {comment.upvotes > 0 && (
+                            <span>{comment.upvotes}</span>
+                          )}
+                        </button>
+                        <button
+                          className={`flex items-center gap-1 text-xs transition-colors ${
+                            comment.user_vote === -1
+                              ? "text-red-600 font-medium"
+                              : "text-slate-400 hover:text-red-600"
+                          }`}
+                        >
+                          <FiThumbsDown className="h-3.5 w-3.5" />
+                          {comment.downvotes > 0 && (
+                            <span>{comment.downvotes}</span>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+                {question.answer_count > 0 && (
+                  <div className="pt-2 border-t border-slate-200">
+                    <div className="text-xs text-slate-500">
+                      <Link
+                        to={`/community/questions/${question.id}`}
+                        className="text-blue-600 hover:text-blue-700 font-medium"
+                      >
+                        View {question.answer_count} answer
+                        {question.answer_count !== 1 ? "s" : ""} →
+                      </Link>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="text-xs text-slate-500 italic text-center py-2">
+                No comments yet. Be the first to comment!
+                {question.answer_count > 0 && (
+                  <div className="mt-2">
+                    <Link
+                      to={`/community/questions/${question.id}`}
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                    >
+                      View {question.answer_count} answer
+                      {question.answer_count !== 1 ? "s" : ""} →
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+
+          {/* Add Comment Input */}
+          <div className="px-3 sm:px-4 pb-4 border-t border-slate-200">
+            {user ? (
+              <div className="mt-3">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-sm flex-shrink-0 shadow-sm">
+                    {(user.full_name || user.email)[0].toUpperCase()}
+                  </div>
+                  <div className="flex-1">
+                    <div className="bg-white rounded-2xl border-2 border-slate-200 focus-within:border-blue-400 transition-colors">
+                      <input
+                        type="text"
+                        placeholder="Write a comment..."
+                        value={commentText}
+                        onChange={(e) => setCommentText(e.target.value)}
+                        className="w-full px-4 py-3 text-sm border-none outline-none bg-transparent placeholder-slate-400 rounded-2xl"
+                        onKeyPress={(e) => {
+                          if (
+                            e.key === "Enter" &&
+                            commentText.trim() &&
+                            !isSubmittingComment
+                          ) {
+                            handleCommentSubmit();
+                          }
+                        }}
+                        disabled={isSubmittingComment}
+                      />
+                    </div>
+                    {commentText.trim() && (
+                      <div className="flex justify-end mt-2">
+                        <button
+                          onClick={handleCommentSubmit}
+                          disabled={!commentText.trim() || isSubmittingComment}
+                          className="flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white text-sm font-medium rounded-full transition-colors shadow-sm"
+                        >
+                          {isSubmittingComment ? (
+                            <>
+                              <div className="h-4 w-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                              Posting...
+                            </>
+                          ) : (
+                            <>
+                              <FiSend className="h-4 w-4" />
+                              Post
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-3 text-center py-4 bg-gradient-to-r from-slate-50 to-blue-50 rounded-xl border border-slate-200">
+                <div className="text-sm text-slate-600 mb-3">
+                  💬 Join the conversation
+                </div>
+                <Link
+                  to="/auth/login"
+                  className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm font-medium rounded-full transition-colors shadow-sm"
+                >
+                  Sign in to comment
+                  <svg
+                    className="h-4 w-4"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    />
+                  </svg>
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

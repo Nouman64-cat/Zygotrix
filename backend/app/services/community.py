@@ -79,6 +79,32 @@ def _answer_to_dict(answer: Dict[str, Any], user_id: Optional[str] = None) -> Di
     return result
 
 
+def _comment_to_dict(comment: Dict[str, Any], user_id: Optional[str] = None) -> Dict[str, Any]:
+    """Convert MongoDB comment document to response dict."""
+    result = {
+        "id": str(comment["_id"]),
+        "question_id": str(comment["question_id"]),
+        "content": comment["content"],
+        "author": {
+            "id": comment["author_id"],
+            "email": comment["author_email"],
+            "full_name": comment.get("author_name"),
+        },
+        "upvotes": comment.get("upvotes", 0),
+        "downvotes": comment.get("downvotes", 0),
+        "created_at": comment["created_at"],
+        "updated_at": comment.get("updated_at"),
+        "user_vote": None,
+    }
+    
+    # Add user's vote if user_id provided
+    if user_id and "votes" in comment:
+        user_vote = comment["votes"].get(user_id)
+        result["user_vote"] = user_vote
+    
+    return result
+
+
 def create_question(
     title: str,
     content: str,
@@ -543,3 +569,169 @@ def get_popular_tags(limit: int = 20) -> List[Dict[str, Any]]:
     
     results = list(db[settings.mongodb_questions_collection].aggregate(pipeline))
     return results
+
+
+# Comment functions
+
+def create_comment(
+    question_id: str,
+    content: str,
+    author_id: str,
+    author_email: str,
+    author_name: Optional[str] = None,
+) -> str:
+    """Create a new comment for a question."""
+    db = _get_db()
+    settings = get_settings()
+    
+    # Check if question exists
+    question = db[settings.mongodb_questions_collection].find_one({"_id": ObjectId(question_id)})
+    if not question:
+        raise ValueError("Question not found")
+    
+    comment_doc = {
+        "question_id": ObjectId(question_id),
+        "content": content,
+        "author_id": author_id,
+        "author_email": author_email,
+        "author_name": author_name,
+        "upvotes": 0,
+        "downvotes": 0,
+        "votes": {},
+        "created_at": datetime.now(timezone.utc),
+    }
+    
+    result = db[settings.mongodb_comments_collection].insert_one(comment_doc)
+    
+    # Update question's comment count
+    db[settings.mongodb_questions_collection].update_one(
+        {"_id": ObjectId(question_id)},
+        {"$inc": {"comment_count": 1}}
+    )
+    
+    return str(result.inserted_id)
+
+
+def get_question_comments(
+    question_id: str,
+    user_id: Optional[str] = None,
+    limit: int = 50,
+    offset: int = 0,
+) -> List[Dict[str, Any]]:
+    """Get comments for a specific question."""
+    db = _get_db()
+    settings = get_settings()
+    
+    comments = list(
+        db[settings.mongodb_comments_collection]
+        .find({"question_id": ObjectId(question_id)})
+        .sort("created_at", ASCENDING)
+        .skip(offset)
+        .limit(limit)
+    )
+    
+    return [_comment_to_dict(comment, user_id) for comment in comments]
+
+
+def update_comment(comment_id: str, content: str, user_id: str) -> bool:
+    """Update a comment."""
+    db = _get_db()
+    settings = get_settings()
+    
+    obj_id = ObjectId(comment_id)
+    
+    # Check if comment exists and user is the author
+    comment = db[settings.mongodb_comments_collection].find_one({"_id": obj_id})
+    if not comment:
+        raise ValueError("Comment not found")
+    
+    if comment["author_id"] != user_id:
+        raise ValueError("Not authorized to update this comment")
+    
+    update_result = db[settings.mongodb_comments_collection].update_one(
+        {"_id": obj_id},
+        {
+            "$set": {
+                "content": content,
+                "updated_at": datetime.now(timezone.utc),
+            }
+        }
+    )
+    
+    return update_result.modified_count > 0
+
+
+def delete_comment(comment_id: str, user_id: str) -> bool:
+    """Delete a comment."""
+    db = _get_db()
+    settings = get_settings()
+    
+    obj_id = ObjectId(comment_id)
+    
+    # Check if comment exists and user is the author
+    comment = db[settings.mongodb_comments_collection].find_one({"_id": obj_id})
+    if not comment:
+        raise ValueError("Comment not found")
+    
+    if comment["author_id"] != user_id:
+        raise ValueError("Not authorized to delete this comment")
+    
+    # Delete the comment
+    delete_result = db[settings.mongodb_comments_collection].delete_one({"_id": obj_id})
+    
+    if delete_result.deleted_count > 0:
+        # Update question's comment count
+        db[settings.mongodb_questions_collection].update_one(
+            {"_id": comment["question_id"]},
+            {"$inc": {"comment_count": -1}}
+        )
+        return True
+    
+    return False
+
+
+def vote_comment(comment_id: str, user_id: str, vote_type: int) -> bool:
+    """Vote on a comment (1 for upvote, -1 for downvote, 0 to remove vote)."""
+    db = _get_db()
+    settings = get_settings()
+    
+    obj_id = ObjectId(comment_id)
+    
+    # Get current comment to check existing vote
+    comment = db[settings.mongodb_comments_collection].find_one({"_id": obj_id})
+    if not comment:
+        raise ValueError("Comment not found")
+    
+    current_vote = comment.get("votes", {}).get(user_id, 0)
+    
+    # Calculate vote changes
+    upvote_change = 0
+    downvote_change = 0
+    
+    if current_vote == 1:  # Had upvote
+        upvote_change = -1
+    elif current_vote == -1:  # Had downvote
+        downvote_change = -1
+    
+    if vote_type == 1:  # New upvote
+        upvote_change += 1
+    elif vote_type == -1:  # New downvote
+        downvote_change += 1
+    
+    # Build update operation
+    update_op = {}
+    
+    if vote_type == 0:
+        update_op["$unset"] = {f"votes.{user_id}": ""}
+    else:
+        update_op["$set"] = {f"votes.{user_id}": vote_type}
+    
+    if upvote_change != 0 or downvote_change != 0:
+        update_op["$inc"] = {}
+        if upvote_change != 0:
+            update_op["$inc"]["upvotes"] = upvote_change
+        if downvote_change != 0:
+            update_op["$inc"]["downvotes"] = downvote_change
+    
+    db[settings.mongodb_comments_collection].update_one({"_id": obj_id}, update_op)
+    return True

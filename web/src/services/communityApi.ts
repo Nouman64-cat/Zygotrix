@@ -7,6 +7,7 @@ import type {
   Answer,
   AnswerCreateRequest,
   AnswerUpdateRequest,
+  Comment,
   VoteRequest,
   PopularTag,
   SortOption,
@@ -293,4 +294,114 @@ export async function getPopularTags(
   }
 
   return response.json();
+}
+
+// Comment API functions
+
+export async function createComment(
+  questionId: string,
+  content: string
+): Promise<Comment> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/community/questions/${questionId}/comments`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ content }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ detail: "Unknown error" }));
+    throw new Error(error.detail || "Failed to create comment");
+  }
+
+  return response.json();
+}
+
+export async function getQuestionComments(
+  questionId: string,
+  limit: number = 50,
+  offset: number = 0
+): Promise<Comment[]> {
+  const params = new URLSearchParams({
+    limit: limit.toString(),
+    offset: offset.toString(),
+  });
+
+  const response = await fetch(
+    `${API_BASE_URL}/api/community/questions/${questionId}/comments?${params}`,
+    {
+      headers: getAuthHeaders(),
+    }
+  );
+
+  if (!response.ok) {
+    throw new Error(`Failed to fetch comments: ${response.statusText}`);
+  }
+
+  return response.json();
+}
+
+export async function updateComment(
+  commentId: string,
+  content: string
+): Promise<Comment> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/community/comments/${commentId}`,
+    {
+      method: "PUT",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ content }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ detail: "Unknown error" }));
+    throw new Error(error.detail || "Failed to update comment");
+  }
+
+  return response.json();
+}
+
+export async function deleteComment(commentId: string): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/community/comments/${commentId}`,
+    {
+      method: "DELETE",
+      headers: getAuthHeaders(),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ detail: "Unknown error" }));
+    throw new Error(error.detail || "Failed to delete comment");
+  }
+}
+
+export async function voteComment(
+  commentId: string,
+  voteType: -1 | 0 | 1
+): Promise<void> {
+  const response = await fetch(
+    `${API_BASE_URL}/api/community/comments/${commentId}/vote`,
+    {
+      method: "POST",
+      headers: getAuthHeaders(),
+      body: JSON.stringify({ vote_type: voteType }),
+    }
+  );
+
+  if (!response.ok) {
+    const error = await response
+      .json()
+      .catch(() => ({ detail: "Unknown error" }));
+    throw new Error(error.detail || "Failed to vote on comment");
+  }
 }

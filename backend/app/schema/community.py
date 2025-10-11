@@ -55,6 +55,18 @@ class AnswerUpdate(BaseModel):
     content: str = Field(..., min_length=10, description="Answer content")
 
 
+class CommentCreate(BaseModel):
+    """Schema for creating a comment."""
+
+    content: str = Field(..., min_length=1, max_length=500, description="Comment content")
+
+
+class CommentUpdate(BaseModel):
+    """Schema for updating a comment."""
+
+    content: str = Field(..., min_length=1, max_length=500, description="Comment content")
+
+
 class VoteRequest(BaseModel):
     """Schema for voting on a question or answer."""
 
@@ -84,6 +96,20 @@ class AnswerResponse(BaseModel):
     user_vote: Optional[int] = None  # User's vote on this answer (-1, 0, 1)
 
 
+class CommentResponse(BaseModel):
+    """Schema for comment response."""
+
+    id: str
+    question_id: str
+    content: str
+    author: AuthorInfo
+    upvotes: int = 0
+    downvotes: int = 0
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    user_vote: Optional[int] = None  # User's vote on this comment (-1, 0, 1)
+
+
 class QuestionResponse(BaseModel):
     """Schema for question response."""
 
@@ -104,9 +130,10 @@ class QuestionResponse(BaseModel):
 
 
 class QuestionDetailResponse(QuestionResponse):
-    """Schema for detailed question response with answers."""
+    """Schema for detailed question response with answers and comments."""
 
     answers: List[AnswerResponse] = []
+    comments: List[CommentResponse] = []
 
 
 class QuestionListResponse(BaseModel):

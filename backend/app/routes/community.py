@@ -13,6 +13,9 @@ from ..schema.community import (
     AnswerCreate,
     AnswerUpdate,
     AnswerResponse,
+    CommentCreate,
+    CommentUpdate,
+    CommentResponse,
     VoteRequest,
     MessageResponse,
 )
@@ -110,7 +113,10 @@ def get_question(
     answers = services.get_answers_for_question(question_id, user_id)
     answers_response = [AnswerResponse(**a) for a in answers]
     
-    return QuestionDetailResponse(**question, answers=answers_response)
+    comments = services.get_question_comments(question_id, user_id)
+    comments_response = [CommentResponse(**c) for c in comments]
+    
+    return QuestionDetailResponse(**question, answers=answers_response, comments=comments_response)
 
 
 @router.put("/questions/{question_id}", response_model=QuestionResponse)
@@ -273,6 +279,97 @@ def vote_on_answer(
     
     if not success:
         raise HTTPException(status_code=404, detail="Answer not found")
+    
+    return MessageResponse(message="Vote recorded successfully")
+
+
+# Comment routes
+
+@router.post("/questions/{question_id}/comments", response_model=CommentResponse)
+def create_comment(
+    question_id: str,
+    payload: CommentCreate,
+    current_user: UserProfile = Depends(get_current_user_required),
+):
+    """Add a comment to a question. Requires authentication."""
+    comment_id = services.create_comment(
+        question_id=question_id,
+        content=payload.content,
+        author_id=current_user.id,
+        author_email=current_user.email,
+        author_name=current_user.full_name,
+    )
+    
+    comments = services.get_question_comments(question_id, current_user.id)
+    comment = next((c for c in comments if c["id"] == comment_id), None)
+    
+    if not comment:
+        raise HTTPException(status_code=500, detail="Failed to create comment")
+    
+    return CommentResponse(**comment)
+
+
+@router.get("/questions/{question_id}/comments", response_model=list[CommentResponse])
+def get_question_comments(
+    question_id: str,
+    current_user: Optional[UserProfile] = Depends(get_current_user_optional),
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+):
+    """Get comments for a question. Public access."""
+    user_id = current_user.id if current_user else None
+    comments = services.get_question_comments(question_id, user_id, limit, offset)
+    return [CommentResponse(**c) for c in comments]
+
+
+@router.put("/comments/{comment_id}", response_model=CommentResponse)
+def update_comment(
+    comment_id: str,
+    payload: CommentUpdate,
+    current_user: UserProfile = Depends(get_current_user_required),
+):
+    """Update a comment. Only the author can update."""
+    success = services.update_comment(comment_id, payload.content, current_user.id)
+    
+    if not success:
+        raise HTTPException(status_code=404, detail="Comment not found or not authorized")
+    
+    # Get the updated comment
+    db = services._get_db()
+    settings = services.get_settings()
+    comment = db[settings.mongodb_comments_collection].find_one({"_id": services.ObjectId(comment_id)})
+    
+    if not comment:
+        raise HTTPException(status_code=404, detail="Comment not found")
+    
+    return CommentResponse(**services._comment_to_dict(comment, current_user.id))
+
+
+@router.delete("/comments/{comment_id}", response_model=MessageResponse)
+def delete_comment(
+    comment_id: str,
+    current_user: UserProfile = Depends(get_current_user_required),
+):
+    """Delete a comment. Only the author can delete."""
+    success = services.delete_comment(comment_id, current_user.id)
+    
+    if not success:
+        raise HTTPException(status_code=404, detail="Comment not found or not authorized")
+    
+    return MessageResponse(message="Comment deleted successfully")
+
+
+@router.post("/comments/{comment_id}/vote", response_model=MessageResponse)
+def vote_on_comment(
+    comment_id: str,
+    payload: VoteRequest,
+    current_user: UserProfile = Depends(get_current_user_required),
+):
+    """Vote on a comment. Requires authentication."""
+    success = services.vote_comment(comment_id, current_user.id, payload.vote_type)
+    
+    if not success:
+        raise HTTPException(status_code=404, detail="Comment not found")
     
     return MessageResponse(message="Vote recorded successfully")
 

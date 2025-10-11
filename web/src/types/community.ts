@@ -36,8 +36,21 @@ export interface Answer {
   user_vote?: number | null; // -1, 0, 1 or null
 }
 
+export interface Comment {
+  id: string;
+  question_id: string;
+  content: string;
+  author: AuthorInfo;
+  upvotes: number;
+  downvotes: number;
+  created_at: string;
+  updated_at?: string;
+  user_vote?: number | null; // -1, 0, 1 or null
+}
+
 export interface QuestionDetail extends Question {
   answers: Answer[];
+  comments: Comment[];
 }
 
 export interface QuestionListResponse {

@@ -54,6 +54,9 @@ class Settings:
     mongodb_answers_collection: str = os.getenv(
         "MONGODB_ANSWERS_COLLECTION", "answers"
     )
+    mongodb_comments_collection: str = os.getenv(
+        "MONGODB_COMMENTS_COLLECTION", "comments"
+    )
     auth_secret_key: str = os.getenv("AUTH_SECRET_KEY", "change-me-in-prod")
     auth_token_ttl_minutes: int = _get_int("AUTH_TOKEN_TTL_MINUTES", 60)
     auth_jwt_algorithm: str = os.getenv("AUTH_JWT_ALGORITHM", "HS256")

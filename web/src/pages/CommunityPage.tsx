@@ -6,7 +6,7 @@ import {
   FiPlus,
   FiUsers,
   FiMessageSquare,
-  FiArrowUp,
+  FiThumbsUp,
 } from "react-icons/fi";
 import * as communityApi from "../services/communityApi";
 import type { Question, SortOption, PopularTag } from "../types/community";
@@ -117,6 +117,55 @@ const CommunityPage: React.FC = () => {
       .catch(console.error);
   };
 
+  const handleVoteQuestion = async (
+    questionId: string,
+    voteType: -1 | 0 | 1
+  ) => {
+    if (!user) {
+      alert("Please login to vote");
+      return;
+    }
+
+    try {
+      await communityApi.voteQuestion(questionId, voteType);
+
+      // Update the question in the local state
+      setQuestions((prevQuestions) =>
+        prevQuestions.map((q) => {
+          if (q.id === questionId) {
+            const oldVote = q.user_vote || 0;
+            let newUpvotes = q.upvotes;
+            let newDownvotes = q.downvotes;
+
+            // Remove the previous vote
+            if (oldVote === 1) {
+              newUpvotes -= 1;
+            } else if (oldVote === -1) {
+              newDownvotes -= 1;
+            }
+
+            // Add the new vote
+            if (voteType === 1) {
+              newUpvotes += 1;
+            } else if (voteType === -1) {
+              newDownvotes += 1;
+            }
+
+            return {
+              ...q,
+              user_vote: voteType,
+              upvotes: newUpvotes,
+              downvotes: newDownvotes,
+            };
+          }
+          return q;
+        })
+      );
+    } catch (err) {
+      alert(err instanceof Error ? err.message : "Failed to vote");
+    }
+  };
+
   return (
     <>
       <style>
@@ -215,7 +264,7 @@ const CommunityPage: React.FC = () => {
                       </div>
                     </div>
                     <div className="p-2 bg-amber-200 rounded-xl group-hover:bg-amber-300 transition-colors">
-                      <FiArrowUp className="h-5 w-5 text-amber-800" />
+                      <FiThumbsUp className="h-5 w-5 text-amber-800" />
                     </div>
                   </div>
                 </div>
@@ -260,54 +309,62 @@ const CommunityPage: React.FC = () => {
           >
             <div className="max-w-2xl mx-auto space-y-6 pb-8">
               {/* Mobile Stats Banner */}
-              <div className="block lg:hidden mb-6">
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="block lg:hidden mb-4 sm:mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                   {/* Questions Stat - Mobile */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200 text-center">
-                    <div className="text-lg font-bold text-blue-900">
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-blue-200 text-center">
+                    <div className="text-base sm:text-lg font-bold text-blue-900">
                       {total.toLocaleString()}
                     </div>
-                    <div className="text-xs text-blue-700">Questions</div>
+                    <div className="text-[10px] sm:text-xs text-blue-700">
+                      Questions
+                    </div>
                   </div>
                   {/* Answers Stat - Mobile */}
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200 text-center">
-                    <div className="text-lg font-bold text-green-900">
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-green-200 text-center">
+                    <div className="text-base sm:text-lg font-bold text-green-900">
                       {questions
                         .reduce((sum, q) => sum + q.answer_count, 0)
                         .toLocaleString()}
                     </div>
-                    <div className="text-xs text-green-700">Answers</div>
+                    <div className="text-[10px] sm:text-xs text-green-700">
+                      Answers
+                    </div>
                   </div>
                   {/* Tags Stat - Mobile */}
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 border border-purple-200 text-center">
-                    <div className="text-lg font-bold text-purple-900">
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-purple-200 text-center">
+                    <div className="text-base sm:text-lg font-bold text-purple-900">
                       {popularTags.length}
                     </div>
-                    <div className="text-xs text-purple-700">Tags</div>
+                    <div className="text-[10px] sm:text-xs text-purple-700">
+                      Tags
+                    </div>
                   </div>
                   {/* Votes Stat - Mobile */}
-                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-3 border border-amber-200 text-center">
-                    <div className="text-lg font-bold text-amber-900">
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-amber-200 text-center">
+                    <div className="text-base sm:text-lg font-bold text-amber-900">
                       {questions
                         .reduce((sum, q) => sum + q.upvotes, 0)
                         .toLocaleString()}
                     </div>
-                    <div className="text-xs text-amber-700">Votes</div>
+                    <div className="text-[10px] sm:text-xs text-amber-700">
+                      Votes
+                    </div>
                   </div>
                 </div>
 
                 {/* Mobile Popular Tags */}
                 {popularTags.length > 0 && (
-                  <div className="mt-4">
-                    <h3 className="text-sm font-semibold text-slate-700 mb-2">
+                  <div className="mt-3 sm:mt-4">
+                    <h3 className="text-xs sm:text-sm font-semibold text-slate-700 mb-2">
                       Popular Tags
                     </h3>
-                    <div className="flex flex-wrap gap-2">
+                    <div className="flex flex-wrap gap-1.5 sm:gap-2">
                       {popularTags.slice(0, 5).map((tag) => (
                         <button
                           key={tag.tag}
                           onClick={() => handleTagClick(tag.tag)}
-                          className={`px-2 py-1 rounded-lg text-xs font-medium transition-all ${
+                          className={`px-2 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-medium transition-all ${
                             selectedTag === tag.tag
                               ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
                               : "bg-slate-100 text-slate-700 hover:bg-slate-200"
@@ -391,7 +448,10 @@ const CommunityPage: React.FC = () => {
                         animation: "fadeInUp 0.6s ease-out forwards",
                       }}
                     >
-                      <QuestionCard question={question} />
+                      <QuestionCard
+                        question={question}
+                        onVote={handleVoteQuestion}
+                      />
                     </div>
                   ))}
 

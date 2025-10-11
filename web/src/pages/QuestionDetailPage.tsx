@@ -12,8 +12,6 @@ import {
   FiCopy,
   FiClock,
   FiUser,
-  FiHome,
-  FiChevronRight,
   FiHeart,
   FiAward,
 } from "react-icons/fi";
@@ -257,7 +255,7 @@ const QuestionDetailPage: React.FC = () => {
 
   if (isLoading) {
     return (
-      <div className="animate-fadeIn">
+      <div className="animate-fadeIn px-4 sm:px-6 lg:px-0">
         {/* Breadcrumb Skeleton */}
         <div className="flex items-center gap-2 mb-6">
           <div className="h-4 bg-slate-200 rounded w-12 animate-pulse"></div>
@@ -272,28 +270,28 @@ const QuestionDetailPage: React.FC = () => {
           {/* Badge Skeleton */}
           <div className="absolute top-0 left-0 h-6 w-24 bg-gradient-to-r from-slate-200 to-slate-300 rounded-br-lg animate-pulse"></div>
 
-          <div className="p-6 pt-12">
-            <div className="flex gap-6">
+          <div className="p-4 sm:p-6 pt-8 sm:pt-12">
+            <div className="flex gap-3 sm:gap-6 flex-col sm:flex-row">
               {/* Voting Skeleton */}
-              <div className="flex flex-col items-center gap-2 flex-shrink-0">
-                <div className="w-12 h-12 bg-slate-200 rounded-xl animate-pulse"></div>
-                <div className="w-8 h-8 bg-slate-200 rounded animate-pulse"></div>
-                <div className="w-12 h-12 bg-slate-200 rounded-xl animate-pulse"></div>
+              <div className="flex flex-row sm:flex-col items-center justify-center sm:justify-start gap-3 sm:gap-2 flex-shrink-0 order-2 sm:order-1">
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-200 rounded-xl animate-pulse"></div>
+                <div className="w-6 h-6 sm:w-8 sm:h-8 bg-slate-200 rounded animate-pulse"></div>
+                <div className="w-10 h-10 sm:w-12 sm:h-12 bg-slate-200 rounded-xl animate-pulse"></div>
               </div>
 
               {/* Content Skeleton */}
-              <div className="flex-1 min-w-0 space-y-4">
+              <div className="flex-1 min-w-0 space-y-4 order-1 sm:order-2">
                 {/* Title Skeleton */}
                 <div className="space-y-2">
-                  <div className="h-8 bg-slate-200 rounded w-full animate-pulse"></div>
-                  <div className="h-8 bg-slate-200 rounded w-3/4 animate-pulse"></div>
+                  <div className="h-6 sm:h-8 bg-slate-200 rounded w-full animate-pulse"></div>
+                  <div className="h-6 sm:h-8 bg-slate-200 rounded w-3/4 animate-pulse"></div>
                 </div>
 
                 {/* Stats Bar Skeleton */}
-                <div className="flex items-center gap-6 p-3 bg-slate-100 rounded-xl">
-                  <div className="h-4 bg-slate-200 rounded w-16 animate-pulse"></div>
-                  <div className="h-4 bg-slate-200 rounded w-20 animate-pulse"></div>
-                  <div className="h-4 bg-slate-200 rounded w-12 animate-pulse"></div>
+                <div className="flex items-center gap-3 sm:gap-6 p-3 bg-slate-100 rounded-xl flex-wrap">
+                  <div className="h-4 bg-slate-200 rounded w-12 sm:w-16 animate-pulse"></div>
+                  <div className="h-4 bg-slate-200 rounded w-16 sm:w-20 animate-pulse"></div>
+                  <div className="h-4 bg-slate-200 rounded w-10 sm:w-12 animate-pulse"></div>
                 </div>
 
                 {/* Content Skeleton */}
@@ -378,8 +376,8 @@ const QuestionDetailPage: React.FC = () => {
 
   if (error || !question) {
     return (
-      <div className="max-w-4xl mx-auto py-8">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+      <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-0">
+        <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6 text-center">
           <p className="text-red-600 font-medium mb-4">
             {error || "Question not found"}
           </p>
@@ -398,41 +396,19 @@ const QuestionDetailPage: React.FC = () => {
   const canAcceptAnswer = isQuestionAuthor;
 
   return (
-    <div>
-      {/* Breadcrumb Navigation */}
-      <nav className="flex items-center gap-2 text-sm text-slate-600 mb-6">
-        <Link
-          to="/"
-          className="flex items-center gap-1 hover:text-blue-600 transition"
-        >
-          <FiHome className="h-4 w-4" />
-          <span>Home</span>
-        </Link>
-        <FiChevronRight className="h-4 w-4" />
-        <Link to="/community" className="hover:text-blue-600 transition">
-          Community
-        </Link>
-        <FiChevronRight className="h-4 w-4" />
-        <span className="text-slate-900 font-medium">Question</span>
-      </nav>
-
+    <div className="px-4 sm:px-6 lg:px-0">
       {/* Enhanced Question Card */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 relative">
-        {/* Question Badge */}
-        <div className="absolute top-0 left-0 bg-gradient-to-r from-blue-600 to-purple-600 text-white px-4 py-1 rounded-br-lg text-xs font-semibold">
-          Question #{question.id.slice(-6)}
-        </div>
-
-        <div className="p-6 pt-12">
-          <div className="flex gap-6">
+        <div className="p-4 sm:p-6 pt-8 sm:pt-12">
+          <div className="flex gap-3 sm:gap-6 flex-col sm:flex-row">
             {/* Enhanced Voting Section */}
-            <div className="flex flex-col items-center gap-2 flex-shrink-0">
+            <div className="flex flex-row sm:flex-col items-center justify-center sm:justify-start gap-3 sm:gap-2 flex-shrink-0 order-2 sm:order-1">
               <button
                 onClick={() =>
                   handleVoteQuestion(question.user_vote === 1 ? 0 : 1)
                 }
                 disabled={!user}
-                className={`p-3 rounded-xl transition-all duration-200 group relative ${
+                className={`p-2 sm:p-3 rounded-xl transition-all duration-200 group relative ${
                   question.user_vote === 1
                     ? "bg-gradient-to-br from-green-500 to-emerald-600 text-white shadow-lg scale-105"
                     : "bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 hover:from-green-50 hover:to-emerald-50 hover:text-green-600 hover:scale-105"
@@ -440,7 +416,7 @@ const QuestionDetailPage: React.FC = () => {
                   voteAnimation === "up" ? "animate-bounce" : ""
                 }`}
               >
-                <FiArrowUp className="h-6 w-6" />
+                <FiArrowUp className="h-5 w-5 sm:h-6 sm:w-6" />
                 {question.user_vote === 1 && (
                   <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
                 )}
@@ -448,7 +424,7 @@ const QuestionDetailPage: React.FC = () => {
 
               <div className="relative">
                 <div
-                  className={`text-2xl font-bold transition-all duration-200 ${
+                  className={`text-xl sm:text-2xl font-bold transition-all duration-200 ${
                     question.upvotes > 0 ? "text-green-600" : "text-slate-900"
                   }`}
                 >
@@ -464,7 +440,7 @@ const QuestionDetailPage: React.FC = () => {
                   handleVoteQuestion(question.user_vote === -1 ? 0 : -1)
                 }
                 disabled={!user}
-                className={`p-3 rounded-xl transition-all duration-200 group relative ${
+                className={`p-2 sm:p-3 rounded-xl transition-all duration-200 group relative ${
                   question.user_vote === -1
                     ? "bg-gradient-to-br from-red-500 to-rose-600 text-white shadow-lg scale-105"
                     : "bg-gradient-to-br from-slate-100 to-slate-200 text-slate-600 hover:from-red-50 hover:to-rose-50 hover:text-red-600 hover:scale-105"
@@ -472,32 +448,36 @@ const QuestionDetailPage: React.FC = () => {
                   voteAnimation === "down" ? "animate-bounce" : ""
                 }`}
               >
-                <FiArrowDown className="h-6 w-6" />
+                <FiArrowDown className="h-5 w-5 sm:h-6 sm:w-6" />
               </button>
             </div>
 
             {/* Enhanced Content Section */}
-            <div className="flex-1 min-w-0">
+            <div className="flex-1 min-w-0 order-1 sm:order-2">
               {/* Title with gradient */}
-              <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent mb-4 leading-tight">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent mb-4 leading-tight">
                 {question.title}
               </h1>
 
               {/* Enhanced Stats Bar */}
-              <div className="flex items-center gap-6 mb-6 p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl">
+              <div className="flex items-center gap-3 sm:gap-6 mb-6 p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-xl flex-wrap">
                 <div className="flex items-center gap-2 text-slate-600">
                   <FiEye className="h-4 w-4 text-blue-500" />
                   <span className="text-sm font-medium">
                     {question.view_count.toLocaleString()}
                   </span>
-                  <span className="text-xs text-slate-500">views</span>
+                  <span className="text-xs text-slate-500 hidden sm:inline">
+                    views
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
                   <FiMessageSquare className="h-4 w-4 text-green-500" />
                   <span className="text-sm font-medium">
                     {question.answer_count}
                   </span>
-                  <span className="text-xs text-slate-500">answers</span>
+                  <span className="text-xs text-slate-500 hidden sm:inline">
+                    answers
+                  </span>
                 </div>
                 <div className="flex items-center gap-2 text-slate-600">
                   <FiClock className="h-4 w-4 text-purple-500" />
@@ -509,7 +489,7 @@ const QuestionDetailPage: React.FC = () => {
 
               {/* Enhanced Content */}
               <div className="prose prose-slate max-w-none mb-6">
-                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-lg">
+                <p className="text-slate-700 leading-relaxed whitespace-pre-wrap text-base sm:text-lg">
                   {question.content}
                 </p>
               </div>
@@ -520,7 +500,7 @@ const QuestionDetailPage: React.FC = () => {
                   <img
                     src={question.image_url}
                     alt="Question illustration"
-                    className="w-full max-w-2xl h-auto rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    className="w-full max-w-full sm:max-w-2xl h-auto rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() =>
                       question.image_url &&
                       window.open(question.image_url, "_blank")
@@ -536,7 +516,7 @@ const QuestionDetailPage: React.FC = () => {
                     <Link
                       key={tag}
                       to={`/community?tag=${tag}`}
-                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 hover:scale-105 ${
+                      className={`px-2 sm:px-3 py-1 sm:py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 hover:scale-105 ${
                         index % 3 === 0
                           ? "bg-gradient-to-r from-blue-50 to-indigo-50 text-blue-700 border border-blue-200 hover:from-blue-100 hover:to-indigo-100"
                           : index % 3 === 1
@@ -551,11 +531,11 @@ const QuestionDetailPage: React.FC = () => {
               )}
 
               {/* Interactive Action Bar */}
-              <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+              <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between pt-6 border-t border-slate-200 gap-4 sm:gap-0">
                 {/* Author Info with Enhanced Design */}
                 <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
-                    <FiUser className="h-6 w-6" />
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
+                    <FiUser className="h-5 w-5 sm:h-6 sm:w-6" />
                   </div>
                   <div>
                     <div className="text-sm font-semibold text-slate-900">
@@ -564,17 +544,18 @@ const QuestionDetailPage: React.FC = () => {
                     </div>
                     <div className="text-xs text-slate-500 flex items-center gap-1">
                       <FiClock className="h-3 w-3" />
-                      Asked {getTimeAgo(question.created_at)}
+                      <span className="hidden sm:inline">Asked</span>{" "}
+                      {getTimeAgo(question.created_at)}
                     </div>
                   </div>
                 </div>
 
                 {/* Interactive Actions */}
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-1 sm:gap-2 flex-wrap">
                   {/* Bookmark Button */}
                   <button
                     onClick={handleBookmark}
-                    className={`p-2 rounded-lg transition-all duration-200 ${
+                    className={`p-1.5 sm:p-2 rounded-lg transition-all duration-200 ${
                       isBookmarked
                         ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
                         : "bg-slate-100 text-slate-600 hover:bg-slate-200"
@@ -582,7 +563,7 @@ const QuestionDetailPage: React.FC = () => {
                     title="Bookmark this question"
                   >
                     <FiBookmark
-                      className={`h-4 w-4 ${
+                      className={`h-3.5 w-3.5 sm:h-4 sm:w-4 ${
                         isBookmarked ? "fill-current" : ""
                       }`}
                     />
@@ -591,20 +572,20 @@ const QuestionDetailPage: React.FC = () => {
                   {/* Share Button */}
                   <button
                     onClick={handleShare}
-                    className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-600 transition-all duration-200"
+                    className="p-1.5 sm:p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-600 transition-all duration-200"
                     title="Share this question"
                   >
-                    <FiShare2 className="h-4 w-4" />
+                    <FiShare2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                   </button>
 
                   {/* Copy Link Button with Feedback */}
                   <div className="relative">
                     <button
                       onClick={handleCopyLink}
-                      className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-green-100 hover:text-green-600 transition-all duration-200"
+                      className="p-1.5 sm:p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-green-100 hover:text-green-600 transition-all duration-200"
                       title="Copy link"
                     >
-                      <FiCopy className="h-4 w-4" />
+                      <FiCopy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                     </button>
                     {showCopiedFeedback && (
                       <div className="absolute -top-8 left-1/2 transform -translate-x-1/2 bg-green-600 text-white text-xs px-2 py-1 rounded whitespace-nowrap">
@@ -618,17 +599,17 @@ const QuestionDetailPage: React.FC = () => {
                     <>
                       <button
                         onClick={handleEditQuestion}
-                        className="p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-200"
+                        className="p-1.5 sm:p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-200"
                         title="Edit question"
                       >
-                        <FiEdit3 className="h-4 w-4" />
+                        <FiEdit3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </button>
                       <button
                         onClick={handleDeleteQuestion}
-                        className="p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-200"
+                        className="p-1.5 sm:p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-200"
                         title="Delete question"
                       >
-                        <FiTrash2 className="h-4 w-4" />
+                        <FiTrash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </button>
                     </>
                   )}
@@ -642,13 +623,13 @@ const QuestionDetailPage: React.FC = () => {
       {/* Enhanced Answers Section */}
       <div className="mb-8">
         {/* Answers Header with Stats */}
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-4">
-            <h2 className="text-2xl font-bold text-slate-900 flex items-center gap-3">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 sm:gap-0">
+          <div className="flex items-center gap-4 flex-wrap">
+            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-3">
               <div className="flex items-center gap-2">
-                <FiMessageSquare className="h-6 w-6 text-blue-600" />
+                <FiMessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                 <span>{question.answer_count}</span>
-                <span className="text-lg">
+                <span className="text-base sm:text-lg">
                   {question.answer_count === 1 ? "Answer" : "Answers"}
                 </span>
               </div>
@@ -656,20 +637,20 @@ const QuestionDetailPage: React.FC = () => {
 
             {/* Answer Quality Indicator */}
             {question.answers.some((a) => a.is_accepted) && (
-              <div className="flex items-center gap-2 px-3 py-1 bg-green-50 text-green-700 rounded-full text-sm font-medium">
-                <FiAward className="h-4 w-4" />
+              <div className="flex items-center gap-2 px-2 sm:px-3 py-1 bg-green-50 text-green-700 rounded-full text-xs sm:text-sm font-medium">
+                <FiAward className="h-3 w-3 sm:h-4 sm:w-4" />
                 <span>Solved</span>
               </div>
             )}
           </div>
 
           {/* Answer Stats */}
-          <div className="flex items-center gap-4 text-sm text-slate-600">
+          <div className="flex items-center gap-4 text-xs sm:text-sm text-slate-600">
             <div className="flex items-center gap-1">
-              <FiHeart className="h-4 w-4 text-red-500" />
+              <FiHeart className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
               <span>
-                {question.answers.reduce((sum, a) => sum + a.upvotes, 0)} total
-                votes
+                {question.answers.reduce((sum, a) => sum + a.upvotes, 0)}
+                <span className="hidden sm:inline"> total</span> votes
               </span>
             </div>
           </div>
@@ -770,20 +751,20 @@ const QuestionDetailPage: React.FC = () => {
           </div>
         ) : (
           /* No Answers State */
-          <div className="text-center py-12 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-dashed border-slate-300">
-            <FiMessageSquare className="h-12 w-12 text-slate-400 mx-auto mb-4" />
-            <h3 className="text-lg font-semibold text-slate-600 mb-2">
+          <div className="text-center py-8 sm:py-12 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-dashed border-slate-300">
+            <FiMessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-slate-400 mx-auto mb-4" />
+            <h3 className="text-base sm:text-lg font-semibold text-slate-600 mb-2">
               No answers yet
             </h3>
-            <p className="text-slate-500 mb-4">
+            <p className="text-sm sm:text-base text-slate-500 mb-4">
               Be the first to help solve this question!
             </p>
             {user && (
               <button
                 onClick={() => setIsAnswerModalOpen(true)}
-                className="inline-flex items-center gap-2 px-6 py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
+                className="inline-flex items-center gap-2 px-4 sm:px-6 py-2 sm:py-3 bg-gradient-to-r from-blue-600 to-purple-600 text-white font-semibold rounded-lg hover:from-blue-700 hover:to-purple-700 transition-all duration-200 text-sm sm:text-base"
               >
-                <FiEdit3 className="h-4 w-4" />
+                <FiEdit3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                 Write the first answer
               </button>
             )}
@@ -793,35 +774,35 @@ const QuestionDetailPage: React.FC = () => {
 
       {/* Enhanced Answer Button/Prompt */}
       {user ? (
-        <div className="sticky bottom-6 z-20">
+        <div className="sticky bottom-4 sm:bottom-6 z-20 px-4 sm:px-0">
           <button
             onClick={() => setIsAnswerModalOpen(true)}
-            className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white font-bold py-5 px-8 rounded-2xl shadow-2xl hover:shadow-3xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-4 group relative overflow-hidden"
+            className="w-full bg-gradient-to-r from-blue-600 via-purple-600 to-indigo-600 text-white font-bold py-4 sm:py-5 px-6 sm:px-8 rounded-2xl shadow-2xl hover:shadow-3xl hover:from-blue-700 hover:via-purple-700 hover:to-indigo-700 transition-all duration-300 flex items-center justify-center gap-3 sm:gap-4 group relative overflow-hidden"
           >
             {/* Background Animation */}
             <div className="absolute inset-0 bg-gradient-to-r from-blue-400 via-purple-400 to-indigo-400 opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
 
             {/* Icon */}
             <div className="relative">
-              <FiEdit3 className="h-6 w-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300" />
+              <FiEdit3 className="h-5 w-5 sm:h-6 sm:w-6 group-hover:scale-125 group-hover:rotate-12 transition-all duration-300" />
               <div className="absolute -top-1 -right-1 w-2 h-2 bg-yellow-400 rounded-full opacity-0 group-hover:opacity-100 animate-ping transition-opacity duration-300"></div>
             </div>
 
             {/* Text */}
-            <span className="text-lg relative">
+            <span className="text-base sm:text-lg relative">
               {question.answer_count === 0
                 ? "Be the first to answer"
                 : "Write an Answer"}
             </span>
 
             {/* Sparkle Effect */}
-            <div className="absolute right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+            <div className="absolute right-3 sm:right-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
               ✨
             </div>
           </button>
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-dashed border-slate-300 p-8">
+        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-dashed border-slate-300 p-4 sm:p-8">
           <AuthPrompt
             message="Join the community to share your knowledge"
             action="answer this question"

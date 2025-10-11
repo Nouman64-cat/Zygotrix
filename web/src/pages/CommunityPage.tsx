@@ -136,8 +136,8 @@ const CommunityPage: React.FC = () => {
       <div className="animate-fadeIn h-screen flex flex-col">
         {/* Main Layout with Sidebar and Content */}
         <div className="flex flex-1 min-h-0">
-          {/* Left Sidebar - Stats */}
-          <div className="w-80 px-6 border-r border-slate-200 bg-slate-50/50">
+          {/* Left Sidebar - Stats (Hidden on mobile) */}
+          <div className="hidden lg:block w-80 px-6 border-r border-slate-200 bg-slate-50/50">
             <div className="space-y-6">
               {/* Stats Cards */}
               <div>
@@ -256,20 +256,81 @@ const CommunityPage: React.FC = () => {
           {/* Main Content Area - Scrollable Questions */}
           <div
             ref={mainContentRef}
-            className="flex-1 overflow-y-auto px-6 mb-10"
+            className="flex-1 overflow-y-auto px-4 sm:px-6 mb-10"
           >
             <div className="max-w-2xl mx-auto space-y-6 pb-8">
+              {/* Mobile Stats Banner */}
+              <div className="block lg:hidden mb-6">
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                  {/* Questions Stat - Mobile */}
+                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl p-3 border border-blue-200 text-center">
+                    <div className="text-lg font-bold text-blue-900">
+                      {total.toLocaleString()}
+                    </div>
+                    <div className="text-xs text-blue-700">Questions</div>
+                  </div>
+                  {/* Answers Stat - Mobile */}
+                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-xl p-3 border border-green-200 text-center">
+                    <div className="text-lg font-bold text-green-900">
+                      {questions
+                        .reduce((sum, q) => sum + q.answer_count, 0)
+                        .toLocaleString()}
+                    </div>
+                    <div className="text-xs text-green-700">Answers</div>
+                  </div>
+                  {/* Tags Stat - Mobile */}
+                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl p-3 border border-purple-200 text-center">
+                    <div className="text-lg font-bold text-purple-900">
+                      {popularTags.length}
+                    </div>
+                    <div className="text-xs text-purple-700">Tags</div>
+                  </div>
+                  {/* Votes Stat - Mobile */}
+                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-xl p-3 border border-amber-200 text-center">
+                    <div className="text-lg font-bold text-amber-900">
+                      {questions
+                        .reduce((sum, q) => sum + q.upvotes, 0)
+                        .toLocaleString()}
+                    </div>
+                    <div className="text-xs text-amber-700">Votes</div>
+                  </div>
+                </div>
+
+                {/* Mobile Popular Tags */}
+                {popularTags.length > 0 && (
+                  <div className="mt-4">
+                    <h3 className="text-sm font-semibold text-slate-700 mb-2">
+                      Popular Tags
+                    </h3>
+                    <div className="flex flex-wrap gap-2">
+                      {popularTags.slice(0, 5).map((tag) => (
+                        <button
+                          key={tag.tag}
+                          onClick={() => handleTagClick(tag.tag)}
+                          className={`px-2 py-1 rounded-lg text-xs font-medium transition-all ${
+                            selectedTag === tag.tag
+                              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
+                              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                          }`}
+                        >
+                          {tag.tag} ({tag.count})
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
               {/* Loading State */}
               {isLoading && (
                 <div className="space-y-5">
                   {[1, 2, 3, 4].map((n) => (
                     <div
                       key={n}
-                      className="bg-white rounded-2xl p-6 shadow-lg border-2 border-slate-200 animate-pulse"
+                      className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-slate-200 animate-pulse"
                     >
-                      <div className="flex gap-4">
-                        <div className="w-10 h-10 bg-slate-300 rounded-full"></div>
-                        <div className="flex-1">
+                      <div className="flex gap-3 sm:gap-4">
+                        <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-300 rounded-full flex-shrink-0"></div>
+                        <div className="flex-1 min-w-0">
                           <div className="h-4 bg-slate-300 rounded w-3/4 mb-2"></div>
                           <div className="h-3 bg-slate-200 rounded w-1/2 mb-4"></div>
                           <div className="h-4 bg-slate-200 rounded w-full mb-2"></div>
@@ -283,7 +344,7 @@ const CommunityPage: React.FC = () => {
 
               {/* Error State */}
               {!isLoading && error && (
-                <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200 rounded-xl p-8 text-center shadow-sm">
+                <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200 rounded-xl p-4 sm:p-8 text-center shadow-sm">
                   <div className="w-16 h-16 bg-red-200 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-3xl">⚠️</span>
                   </div>
@@ -296,7 +357,7 @@ const CommunityPage: React.FC = () => {
 
               {/* Empty State */}
               {!isLoading && !error && questions.length === 0 && (
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-12 text-center shadow-sm border border-slate-200">
+                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 sm:p-12 text-center shadow-sm border border-slate-200">
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                     <FiSearch className="h-10 w-10 text-blue-600" />
                   </div>
@@ -336,16 +397,17 @@ const CommunityPage: React.FC = () => {
 
                   {/* Pagination */}
                   {totalPages > 1 && (
-                    <div className="mt-8 flex items-center justify-center gap-2">
+                    <div className="mt-8 flex items-center justify-center gap-1 sm:gap-2 flex-wrap">
                       <button
                         onClick={() => handlePageChange(page - 1)}
                         disabled={page <= 1}
-                        className="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 hover:border-slate-400 transition shadow-sm"
+                        className="px-3 sm:px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs sm:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 hover:border-slate-400 transition shadow-sm"
                       >
-                        ← Previous
+                        <span className="hidden sm:inline">← Previous</span>
+                        <span className="sm:hidden">←</span>
                       </button>
 
-                      <div className="flex items-center gap-1.5">
+                      <div className="flex items-center gap-1 sm:gap-1.5">
                         {Array.from(
                           { length: Math.min(totalPages, 5) },
                           (_, i) => {
@@ -364,7 +426,7 @@ const CommunityPage: React.FC = () => {
                               <button
                                 key={pageNum}
                                 onClick={() => handlePageChange(pageNum)}
-                                className={`w-8 h-8 rounded-lg text-sm font-medium transition ${
+                                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs sm:text-sm font-medium transition ${
                                   page === pageNum
                                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
                                     : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
@@ -380,9 +442,10 @@ const CommunityPage: React.FC = () => {
                       <button
                         onClick={() => handlePageChange(page + 1)}
                         disabled={page >= totalPages}
-                        className="px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 hover:border-slate-400 transition shadow-sm"
+                        className="px-3 sm:px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs sm:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 hover:border-slate-400 transition shadow-sm"
                       >
-                        Next →
+                        <span className="hidden sm:inline">Next →</span>
+                        <span className="sm:hidden">→</span>
                       </button>
                     </div>
                   )}
@@ -411,12 +474,12 @@ const CommunityPage: React.FC = () => {
         {user && (
           <button
             onClick={() => setIsModalOpen(true)}
-            className="fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 flex items-center justify-center z-50"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 flex items-center justify-center z-50"
             style={{
               boxShadow: "0 8px 32px rgba(59, 130, 246, 0.4)",
             }}
           >
-            <FiPlus className="h-8 w-8" />
+            <FiPlus className="h-6 w-6 sm:h-8 sm:w-8" />
           </button>
         )}
       </div>

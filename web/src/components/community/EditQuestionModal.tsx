@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { FiX, FiEdit3, FiSave, FiTag } from "react-icons/fi";
 import * as communityApi from "../../services/communityApi";
+import ImageUpload from "../common/ImageUpload";
+import { cloudinaryService } from "../../services/cloudinaryService";
+import { useAuth } from "../../context/AuthContext";
 import type {
   QuestionDetail,
   QuestionUpdateRequest,
@@ -25,8 +28,14 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
     tags: [] as string[],
   });
   const [tagInput, setTagInput] = useState("");
+  const [imageUrl, setImageUrl] = useState<string | null>(null);
+  const [imageThumbnailUrl, setImageThumbnailUrl] = useState<string | null>(
+    null
+  );
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  const { user } = useAuth();
 
   useEffect(() => {
     if (isOpen && question) {
@@ -35,6 +44,8 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
         content: question.content,
         tags: [...question.tags],
       });
+      setImageUrl(question.image_url || null);
+      setImageThumbnailUrl(question.image_thumbnail_url || null);
       setTagInput("");
       setError(null);
     }
@@ -69,6 +80,24 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
     }
   };
 
+  const handleImageUpload = async (file: File) => {
+    if (!user) {
+      throw new Error("You must be logged in to upload images");
+    }
+
+    const result = await cloudinaryService.uploadQuestionImage(
+      file,
+      `question-${question.id}`,
+      user.id
+    );
+
+    setImageUrl(result.url);
+    setImageThumbnailUrl(result.thumbnailUrl);
+
+    // Return the result for the ImageUpload component to use for preview
+    return { url: result.url };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
@@ -90,6 +119,8 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
         title: form.title.trim(),
         content: form.content.trim(),
         tags: form.tags,
+        image_url: imageUrl,
+        image_thumbnail_url: imageThumbnailUrl,
       };
 
       const updatedQuestion = await communityApi.updateQuestion(
@@ -256,6 +287,24 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
                   {form.tags.length}/5 tags • Press Enter or comma to add tags
                 </p>
               </div>
+            </div>
+
+            {/* Image Upload */}
+            <div>
+              <label className="block text-sm font-semibold text-slate-700 mb-2">
+                Question Image (Optional)
+              </label>
+              <ImageUpload
+                onUpload={handleImageUpload}
+                maxSize={5}
+                acceptedFormats={["image/jpeg", "image/png", "image/webp"]}
+                currentImageUrl={imageUrl || undefined}
+                disabled={isSubmitting}
+                placeholder="Upload an image to illustrate your question"
+              />
+              <p className="mt-1 text-xs text-slate-500">
+                Supports JPEG, PNG, and WebP. Max size: 5MB
+              </p>
             </div>
           </form>
         </div>

@@ -225,35 +225,6 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({ className }) => {
           </div>
         </div>
       )}
-
-      {/* Community Stats */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-purple-50 to-indigo-50 px-4 py-3 border-b border-slate-200">
-          <h3 className="font-semibold text-slate-900">Community Stats</h3>
-        </div>
-
-        <div className="p-4 space-y-3">
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-slate-600">Questions</span>
-            <span className="text-sm font-semibold text-slate-900">
-              {formatNumber(famousQuestions.length * 50)}+
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-slate-600">Answers</span>
-            <span className="text-sm font-semibold text-slate-900">
-              {formatNumber(
-                famousQuestions.reduce((sum, q) => sum + q.answer_count, 0) * 20
-              )}
-              +
-            </span>
-          </div>
-          <div className="flex justify-between items-center">
-            <span className="text-sm text-slate-600">Active Users</span>
-            <span className="text-sm font-semibold text-slate-900">1.2k+</span>
-          </div>
-        </div>
-      </div>
     </div>
   );
 };

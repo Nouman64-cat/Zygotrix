@@ -25,6 +25,8 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, onVote }) => {
   const [commentCount, setCommentCount] = useState(0);
   const [isLoadingComments, setIsLoadingComments] = useState(false);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [replyingTo, setReplyingTo] = useState<string | null>(null);
+  const [replyText, setReplyText] = useState("");
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -63,12 +65,56 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, onVote }) => {
     }
   };
 
+  const handleReplySubmit = async (parentCommentId: string) => {
+    if (!user || !replyText.trim() || isSubmittingComment) return;
+
+    setIsSubmittingComment(true);
+    try {
+      const newReply = await communityApi.createComment(
+        question.id,
+        replyText.trim(),
+        parentCommentId
+      );
+
+      // Update the comments by adding the reply to the parent comment
+      setComments((prev) =>
+        prev.map((comment) => {
+          if (comment.id === parentCommentId) {
+            return {
+              ...comment,
+              replies: [...(comment.replies || []), newReply],
+            };
+          }
+          return comment;
+        })
+      );
+
+      setCommentCount((prev) => prev + 1);
+      setReplyText("");
+      setReplyingTo(null);
+    } catch (error) {
+      console.error("Failed to create reply:", error);
+      alert("Failed to create reply. Please try again.");
+    } finally {
+      setIsSubmittingComment(false);
+    }
+  };
+
+  // Function to count total comments including replies
+  const countAllComments = (comments: Comment[]): number => {
+    return comments.reduce((total, comment) => {
+      return (
+        total + 1 + (comment.replies ? countAllComments(comment.replies) : 0)
+      );
+    }, 0);
+  };
+
   // Load comment count on component mount
   useEffect(() => {
     const loadCommentCount = async () => {
       try {
         const comments = await communityApi.getQuestionComments(question.id);
-        setCommentCount(comments.length);
+        setCommentCount(countAllComments(comments));
       } catch (error) {
         console.error("Failed to load comment count:", error);
       }
@@ -376,6 +422,144 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, onVote }) => {
                           {comment.content}
                         </div>
                       </div>
+
+                      {/* Action Buttons */}
+                      <div className="flex items-center gap-4 mt-2 px-2">
+                        {/* Reply Button - Only show for question owner */}
+                        {user && user.id === question.author.id && (
+                          <button
+                            onClick={() => {
+                              setReplyingTo(
+                                replyingTo === comment.id ? null : comment.id
+                              );
+                              setReplyText("");
+                            }}
+                            className="flex items-center gap-1 text-xs text-slate-500 hover:text-blue-600 transition-colors"
+                          >
+                            <svg
+                              className="h-3.5 w-3.5"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke="currentColor"
+                            >
+                              <path
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                                strokeWidth={2}
+                                d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"
+                              />
+                            </svg>
+                            Reply
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Reply Input */}
+                      {replyingTo === comment.id &&
+                        user &&
+                        user.id === question.author.id && (
+                          <div className="mt-3 ml-4">
+                            <div className="flex items-start gap-3">
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                                {(user.full_name ||
+                                  user.email)[0].toUpperCase()}
+                              </div>
+                              <div className="flex-1">
+                                <div className="bg-white rounded-2xl border-2 border-slate-200 focus-within:border-blue-400 transition-colors">
+                                  <input
+                                    type="text"
+                                    placeholder="Write a reply..."
+                                    value={replyText}
+                                    onChange={(e) =>
+                                      setReplyText(e.target.value)
+                                    }
+                                    className="w-full px-3 py-2 text-sm border-none outline-none bg-transparent placeholder-slate-400 rounded-2xl"
+                                    onKeyPress={(e) => {
+                                      if (
+                                        e.key === "Enter" &&
+                                        replyText.trim() &&
+                                        !isSubmittingComment
+                                      ) {
+                                        handleReplySubmit(comment.id);
+                                      }
+                                    }}
+                                    disabled={isSubmittingComment}
+                                  />
+                                </div>
+                                {replyText.trim() && (
+                                  <div className="flex justify-end mt-2 gap-2">
+                                    <button
+                                      onClick={() => {
+                                        setReplyingTo(null);
+                                        setReplyText("");
+                                      }}
+                                      className="px-3 py-1 text-xs text-slate-600 hover:text-slate-800 transition-colors"
+                                    >
+                                      Cancel
+                                    </button>
+                                    <button
+                                      onClick={() =>
+                                        handleReplySubmit(comment.id)
+                                      }
+                                      disabled={
+                                        !replyText.trim() || isSubmittingComment
+                                      }
+                                      className="flex items-center gap-1 px-3 py-1 bg-blue-600 hover:bg-blue-700 disabled:bg-slate-400 text-white text-xs font-medium rounded-full transition-colors"
+                                    >
+                                      {isSubmittingComment ? (
+                                        <>
+                                          <div className="h-3 w-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                                          Replying...
+                                        </>
+                                      ) : (
+                                        "Reply"
+                                      )}
+                                    </button>
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                      {/* Display Replies */}
+                      {comment.replies && comment.replies.length > 0 && (
+                        <div className="mt-3 ml-6 space-y-3">
+                          {comment.replies.map((reply) => (
+                            <div
+                              key={reply.id}
+                              className="flex gap-3 group/reply"
+                            >
+                              <div className="w-6 h-6 rounded-full bg-gradient-to-br from-green-500 to-blue-500 flex items-center justify-center text-white font-bold text-xs flex-shrink-0">
+                                {(reply.author.full_name ||
+                                  reply.author.email)[0].toUpperCase()}
+                              </div>
+                              <div className="flex-1 min-w-0">
+                                <div className="bg-slate-50 rounded-2xl px-3 py-2 shadow-sm border border-slate-100 group-hover/reply:shadow-md transition-shadow">
+                                  <div className="flex items-center gap-2 mb-1">
+                                    <div className="text-xs font-semibold text-slate-800">
+                                      {reply.author.full_name ||
+                                        reply.author.email.split("@")[0]}
+                                      {reply.author.id ===
+                                        question.author.id && (
+                                        <span className="ml-1 px-1.5 py-0.5 bg-blue-100 text-blue-600 text-xs font-medium rounded-full">
+                                          Author
+                                        </span>
+                                      )}
+                                    </div>
+                                    <div className="text-xs text-slate-400">
+                                      {formatDate(reply.created_at)}
+                                    </div>
+                                  </div>
+                                  <div className="text-xs text-slate-700 leading-relaxed">
+                                    {reply.content}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))}

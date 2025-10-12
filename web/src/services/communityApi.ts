@@ -300,14 +300,15 @@ export async function getPopularTags(
 
 export async function createComment(
   questionId: string,
-  content: string
+  content: string,
+  parentId?: string
 ): Promise<Comment> {
   const response = await fetch(
     `${API_BASE_URL}/api/community/questions/${questionId}/comments`,
     {
       method: "POST",
       headers: getAuthHeaders(),
-      body: JSON.stringify({ content }),
+      body: JSON.stringify({ content, parent_id: parentId }),
     }
   );
 

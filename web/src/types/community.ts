@@ -16,6 +16,7 @@ export interface Question {
   downvotes: number;
   view_count: number;
   answer_count: number;
+  comment_count: number;
   image_url?: string | null;
   image_thumbnail_url?: string | null;
   created_at: string;
@@ -46,6 +47,8 @@ export interface Comment {
   created_at: string;
   updated_at?: string;
   user_vote?: number | null; // -1, 0, 1 or null
+  parent_id?: string | null; // Parent comment ID for replies
+  replies?: Comment[]; // Nested replies
 }
 
 export interface QuestionDetail extends Question {

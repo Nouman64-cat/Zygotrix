@@ -292,21 +292,32 @@ def create_comment(
     current_user: UserProfile = Depends(get_current_user_required),
 ):
     """Add a comment to a question. Requires authentication."""
-    comment_id = services.create_comment(
-        question_id=question_id,
-        content=payload.content,
-        author_id=current_user.id,
-        author_email=current_user.email,
-        author_name=current_user.full_name,
-    )
-    
-    comments = services.get_question_comments(question_id, current_user.id)
-    comment = next((c for c in comments if c["id"] == comment_id), None)
-    
-    if not comment:
+    try:
+        comment_id = services.create_comment(
+            question_id=question_id,
+            content=payload.content,
+            author_id=current_user.id,
+            author_email=current_user.email,
+            author_name=current_user.full_name,
+            parent_id=payload.parent_id,
+        )
+        
+        # Directly fetch the created comment from database
+        db = services._get_db()
+        settings = services.get_settings()
+        comment = db[settings.mongodb_comments_collection].find_one({"_id": services.ObjectId(comment_id)})
+        
+        if not comment:
+            raise HTTPException(status_code=500, detail="Failed to create comment")
+        
+        # Convert to response format
+        comment_dict = services._comment_to_dict(comment, current_user.id)
+        return CommentResponse(**comment_dict)
+        
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=str(e))
+    except Exception as e:
         raise HTTPException(status_code=500, detail="Failed to create comment")
-    
-    return CommentResponse(**comment)
 
 
 @router.get("/questions/{question_id}/comments", response_model=list[CommentResponse])

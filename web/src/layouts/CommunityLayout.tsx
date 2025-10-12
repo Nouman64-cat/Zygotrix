@@ -241,37 +241,6 @@ const CommunityLayout: React.FC = () => {
         </div>
       </main>
 
-      {/* Compact Footer */}
-      <footer className="relative z-10 border-t border-slate-200 bg-white/50 backdrop-blur-sm mt-8">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8">
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-            <div className="text-sm text-slate-600">
-              <Link
-                to="/"
-                className="font-semibold text-slate-900 hover:text-blue-600 transition"
-              >
-                Zygotrix
-              </Link>{" "}
-              Community · A place to learn and share genetics knowledge
-            </div>
-            <div className="flex items-center gap-6 text-sm text-slate-500">
-              <Link to="/about" className="hover:text-slate-900 transition">
-                About
-              </Link>
-              <Link to="/contact" className="hover:text-slate-900 transition">
-                Contact
-              </Link>
-              <a href="#" className="hover:text-slate-900 transition">
-                Guidelines
-              </a>
-            </div>
-          </div>
-          <div className="mt-4 text-center text-xs text-slate-400">
-            © 2025 Zygotrix. Empowering genetics research through community
-            collaboration.
-          </div>
-        </div>
-      </footer>
       {/* Ask Question Modal */}
       <AskQuestionModal
         isOpen={isModalOpen}

@@ -37,6 +37,7 @@ def _question_to_dict(question: Dict[str, Any], user_id: Optional[str] = None) -
         "downvotes": question.get("downvotes", 0),
         "view_count": question.get("view_count", 0),
         "answer_count": question.get("answer_count", 0),
+        "comment_count": question.get("comment_count", 0),
         "image_url": question.get("image_url"),
         "image_thumbnail_url": question.get("image_thumbnail_url"),
         "created_at": question["created_at"],
@@ -95,6 +96,8 @@ def _comment_to_dict(comment: Dict[str, Any], user_id: Optional[str] = None) -> 
         "created_at": comment["created_at"],
         "updated_at": comment.get("updated_at"),
         "user_vote": None,
+        "parent_id": str(comment["parent_id"]) if comment.get("parent_id") else None,
+        "replies": [],
     }
     
     # Add user's vote if user_id provided
@@ -130,6 +133,7 @@ def create_question(
         "downvotes": 0,
         "view_count": 0,
         "answer_count": 0,
+        "comment_count": 0,  # Initialize comment count
         "votes": {},  # {user_id: vote_value}
         "image_url": image_url,
         "image_thumbnail_url": image_thumbnail_url,
@@ -579,6 +583,7 @@ def create_comment(
     author_id: str,
     author_email: str,
     author_name: Optional[str] = None,
+    parent_id: Optional[str] = None,
 ) -> str:
     """Create a new comment for a question."""
     db = _get_db()
@@ -595,6 +600,7 @@ def create_comment(
         "author_id": author_id,
         "author_email": author_email,
         "author_name": author_name,
+        "parent_id": ObjectId(parent_id) if parent_id else None,
         "upvotes": 0,
         "downvotes": 0,
         "votes": {},
@@ -618,19 +624,38 @@ def get_question_comments(
     limit: int = 50,
     offset: int = 0,
 ) -> List[Dict[str, Any]]:
-    """Get comments for a specific question."""
+    """Get comments for a specific question with nested replies."""
     db = _get_db()
     settings = get_settings()
     
-    comments = list(
+    # Get all comments for the question
+    all_comments = list(
         db[settings.mongodb_comments_collection]
         .find({"question_id": ObjectId(question_id)})
         .sort("created_at", ASCENDING)
-        .skip(offset)
-        .limit(limit)
     )
     
-    return [_comment_to_dict(comment, user_id) for comment in comments]
+    # Convert to dict format
+    comment_dict_list = [_comment_to_dict(comment, user_id) for comment in all_comments]
+    
+    # Create a map for quick lookup
+    comment_map = {comment["id"]: comment for comment in comment_dict_list}
+    
+    # Build the nested structure
+    root_comments = []
+    
+    for comment in comment_dict_list:
+        if comment["parent_id"]:
+            # This is a reply
+            parent = comment_map.get(comment["parent_id"])
+            if parent:
+                parent["replies"].append(comment)
+        else:
+            # This is a root comment
+            root_comments.append(comment)
+    
+    # Apply pagination to root comments only
+    return root_comments[offset:offset + limit]
 
 
 def update_comment(comment_id: str, content: str, user_id: str) -> bool:

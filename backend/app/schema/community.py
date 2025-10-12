@@ -59,6 +59,7 @@ class CommentCreate(BaseModel):
     """Schema for creating a comment."""
 
     content: str = Field(..., min_length=1, max_length=500, description="Comment content")
+    parent_id: Optional[str] = Field(None, description="Parent comment ID for replies")
 
 
 class CommentUpdate(BaseModel):
@@ -108,6 +109,8 @@ class CommentResponse(BaseModel):
     created_at: datetime
     updated_at: Optional[datetime] = None
     user_vote: Optional[int] = None  # User's vote on this comment (-1, 0, 1)
+    parent_id: Optional[str] = None  # Parent comment ID for replies
+    replies: List['CommentResponse'] = Field(default_factory=list, description="Nested replies")
 
 
 class QuestionResponse(BaseModel):
@@ -122,6 +125,7 @@ class QuestionResponse(BaseModel):
     downvotes: int = 0
     view_count: int = 0
     answer_count: int = 0
+    comment_count: int = 0
     image_url: Optional[str] = None
     image_thumbnail_url: Optional[str] = None
     created_at: datetime
@@ -150,3 +154,7 @@ class MessageResponse(BaseModel):
     """Generic message response."""
 
     message: str
+
+
+# Resolve forward references
+CommentResponse.model_rebuild()

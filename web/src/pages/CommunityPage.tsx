@@ -16,26 +16,6 @@ import AskQuestionModal from "../components/community/AskQuestionModal";
 import { useAuth } from "../context/AuthContext";
 
 const CommunityPage: React.FC = () => {
-  // Ref for main content scrollable area
-  const mainContentRef = React.useRef<HTMLDivElement>(null);
-
-  // Forward wheel/touch events to main content area
-  React.useEffect(() => {
-    const handleWheel = (e: WheelEvent) => {
-      if (!mainContentRef.current) return;
-      // Only forward if not already targeting main content
-      if (!mainContentRef.current.contains(e.target as Node)) {
-        e.preventDefault();
-        mainContentRef.current.scrollTop += e.deltaY;
-      }
-    };
-    window.addEventListener("wheel", handleWheel, { passive: false });
-    // window.addEventListener("touchmove", handleTouch, { passive: false });
-    return () => {
-      window.removeEventListener("wheel", handleWheel);
-      // window.removeEventListener("touchmove", handleTouch);
-    };
-  }, []);
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
 
@@ -166,6 +146,60 @@ const CommunityPage: React.FC = () => {
     }
   };
 
+  // Stats config for sidebar cards
+  const statsConfig = [
+    {
+      label: "Questions",
+      value: total.toLocaleString(),
+      color: "blue",
+      gradient: "from-blue-50 via-blue-100 to-indigo-100",
+      border: "border-blue-200",
+      hoverBorder: "hover:border-blue-300",
+      iconBg: "bg-blue-200",
+      iconHoverBg: "group-hover:bg-blue-300",
+      textColor: "text-blue-900",
+      icon: <FiMessageSquare className="h-5 w-5 text-blue-800" />,
+    },
+    {
+      label: "Answers",
+      value: questions
+        .reduce((sum, q) => sum + q.answer_count, 0)
+        .toLocaleString(),
+      color: "green",
+      gradient: "from-green-50 via-green-100 to-emerald-100",
+      border: "border-green-200",
+      hoverBorder: "hover:border-green-300",
+      iconBg: "bg-green-200",
+      iconHoverBg: "group-hover:bg-green-300",
+      textColor: "text-green-900",
+      icon: <FiUsers className="h-5 w-5 text-green-800" />,
+    },
+    {
+      label: "Active Tags",
+      value: popularTags.length,
+      color: "purple",
+      gradient: "from-purple-50 via-purple-100 to-violet-100",
+      border: "border-purple-200",
+      hoverBorder: "hover:border-purple-300",
+      iconBg: "bg-purple-200",
+      iconHoverBg: "group-hover:bg-purple-300",
+      textColor: "text-purple-900",
+      icon: <FiTag className="h-5 w-5 text-purple-800" />,
+    },
+    {
+      label: "Total Votes",
+      value: questions.reduce((sum, q) => sum + q.upvotes, 0).toLocaleString(),
+      color: "amber",
+      gradient: "from-amber-50 via-amber-100 to-orange-100",
+      border: "border-amber-200",
+      hoverBorder: "hover:border-amber-300",
+      iconBg: "bg-amber-200",
+      iconHoverBg: "group-hover:bg-amber-300",
+      textColor: "text-amber-900",
+      icon: <FiThumbsUp className="h-5 w-5 text-amber-800" />,
+    },
+  ];
+
   return (
     <>
       <style>
@@ -187,87 +221,41 @@ const CommunityPage: React.FC = () => {
         <div className="flex flex-1 min-h-0">
           {/* Left Sidebar - Stats (Hidden on mobile) */}
           <div className="hidden lg:block w-80 px-6 border-r border-slate-200 bg-slate-50/50">
-            <div className="space-y-6">
+            <div className="space-y-6 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-slate-100">
               {/* Stats Cards */}
               <div>
                 <h1 className="text-2xl font-bold">Community Stats</h1>
               </div>
               <div className="space-y-4">
-                {/* Questions Stat */}
-                <div className="group bg-gradient-to-br from-blue-50 via-blue-100 to-indigo-100 rounded-2xl p-4 border-2 border-blue-200 hover:border-blue-300 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-blue-200 rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold text-blue-900 mb-1 group-hover:scale-110 transition-transform">
-                        {total.toLocaleString()}
+                {statsConfig.map((stat, idx) => (
+                  <div
+                    key={stat.label}
+                    className={`group bg-gradient-to-br ${stat.gradient} rounded-2xl p-4 border-2 ${stat.border} ${stat.hoverBorder} transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer relative overflow-hidden`}
+                  >
+                    <div
+                      className={`absolute top-0 right-0 w-12 h-12 ${stat.iconBg} rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity`}
+                    ></div>
+                    <div className="relative z-10 flex items-center justify-between">
+                      <div>
+                        <div
+                          className={`text-2xl font-bold ${stat.textColor} mb-1 group-hover:scale-110 transition-transform`}
+                        >
+                          {stat.value}
+                        </div>
+                        <div
+                          className={`text-sm font-semibold text-${stat.color}-700`}
+                        >
+                          {stat.label}
+                        </div>
                       </div>
-                      <div className="text-sm text-blue-700 font-semibold">
-                        Questions
+                      <div
+                        className={`p-2 ${stat.iconBg} ${stat.iconHoverBg} rounded-xl transition-colors`}
+                      >
+                        {stat.icon}
                       </div>
-                    </div>
-                    <div className="p-2 bg-blue-200 rounded-xl group-hover:bg-blue-300 transition-colors">
-                      <FiMessageSquare className="h-5 w-5 text-blue-800" />
                     </div>
                   </div>
-                </div>
-
-                {/* Answers Stat */}
-                <div className="group bg-gradient-to-br from-green-50 via-green-100 to-emerald-100 rounded-2xl p-4 border-2 border-green-200 hover:border-green-300 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-green-200 rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold text-green-900 mb-1 group-hover:scale-110 transition-transform">
-                        {questions
-                          .reduce((sum, q) => sum + q.answer_count, 0)
-                          .toLocaleString()}
-                      </div>
-                      <div className="text-sm text-green-700 font-semibold">
-                        Answers
-                      </div>
-                    </div>
-                    <div className="p-2 bg-green-200 rounded-xl group-hover:bg-green-300 transition-colors">
-                      <FiUsers className="h-5 w-5 text-green-800" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Active Tags Stat */}
-                <div className="group bg-gradient-to-br from-purple-50 via-purple-100 to-violet-100 rounded-2xl p-4 border-2 border-purple-200 hover:border-purple-300 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-purple-200 rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold text-purple-900 mb-1 group-hover:scale-110 transition-transform">
-                        {popularTags.length}
-                      </div>
-                      <div className="text-sm text-purple-700 font-semibold">
-                        Active Tags
-                      </div>
-                    </div>
-                    <div className="p-2 bg-purple-200 rounded-xl group-hover:bg-purple-300 transition-colors">
-                      <FiTag className="h-5 w-5 text-purple-800" />
-                    </div>
-                  </div>
-                </div>
-
-                {/* Total Votes Stat */}
-                <div className="group bg-gradient-to-br from-amber-50 via-amber-100 to-orange-100 rounded-2xl p-4 border-2 border-amber-200 hover:border-amber-300 transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer relative overflow-hidden">
-                  <div className="absolute top-0 right-0 w-12 h-12 bg-amber-200 rounded-bl-full opacity-50 group-hover:opacity-70 transition-opacity"></div>
-                  <div className="relative z-10 flex items-center justify-between">
-                    <div>
-                      <div className="text-2xl font-bold text-amber-900 mb-1 group-hover:scale-110 transition-transform">
-                        {questions
-                          .reduce((sum, q) => sum + q.upvotes, 0)
-                          .toLocaleString()}
-                      </div>
-                      <div className="text-sm text-amber-700 font-semibold">
-                        Total Votes
-                      </div>
-                    </div>
-                    <div className="p-2 bg-amber-200 rounded-xl group-hover:bg-amber-300 transition-colors">
-                      <FiThumbsUp className="h-5 w-5 text-amber-800" />
-                    </div>
-                  </div>
-                </div>
+                ))}
               </div>
 
               {/* Popular Tags */}
@@ -312,10 +300,7 @@ const CommunityPage: React.FC = () => {
           </div>
 
           {/* Main Content Area - Scrollable Questions */}
-          <div
-            ref={mainContentRef}
-            className="flex-1 overflow-y-auto px-4 sm:px-6 mb-10"
-          >
+          <div className="flex-1 overflow-y-auto px-4 sm:px-6 mb-10">
             <div className="max-w-2xl mx-auto space-y-6 pb-8">
               {/* Mobile Stats Banner */}
               <div className="block lg:hidden mb-4 sm:mb-6">

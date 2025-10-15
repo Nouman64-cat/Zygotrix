@@ -3,3 +3,4 @@
 venv
 zygotrix_engine.egg-info
 *.parquet
+*.exe

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link, useParams } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 import { fetchBlogBySlug, fetchBlogs } from "../services/hygraphApi";
 import type { BlogDetail, BlogListEntry } from "../types/blog";
@@ -79,30 +80,45 @@ const BlogDetailPage: React.FC = () => {
 
   const markdownComponents = {
     h1: ({ children }: any) => (
-      <h1 className="text-3xl font-bold text-slate-900 mt-8 mb-4 first:mt-0">
+      <h1 className="text-6xl font-bold text-slate-900 mt-8 mb-4 first:mt-0">
         {children}
       </h1>
     ),
     h2: ({ children }: any) => (
-      <h2 className="text-2xl font-bold text-slate-900 mt-8 mb-4">
+      <h2 className="text-5xl font-bold text-slate-900 mt-8 mb-4">
         {children}
       </h2>
     ),
     h3: ({ children }: any) => (
-      <h3 className="text-xl font-bold text-slate-900 mt-6 mb-3">{children}</h3>
+      <h3 className="text-4xl font-bold text-slate-900 mt-6 mb-3">
+        {children}
+      </h3>
+    ),
+    h4: ({ children }: any) => (
+      <h4 className="text-3xl font-bold text-slate-800 mt-6 mb-3">
+        {children}
+      </h4>
+    ),
+    h5: ({ children }: any) => (
+      <h5 className="text-base font-semibold text-slate-700 mt-6 mb-3 uppercase tracking-wide">
+        {children}
+      </h5>
+    ),
+    h6: ({ children }: any) => (
+      <h6 className="text-sm font-semibold text-slate-600 mt-5 mb-3 uppercase tracking-[0.2em]">
+        {children}
+      </h6>
     ),
     p: ({ children }: any) => (
-      <p className="text-slate-700 leading-relaxed mb-6">{children}</p>
+      <p className="text-slate-700 text-base leading-relaxed mb-6">
+        {children}
+      </p>
     ),
     ul: ({ children }: any) => (
-      <ul className="list-disc list-inside text-slate-700 mb-6 space-y-2">
-        {children}
-      </ul>
+      <ul className=" text-base text-slate-700 mb-6 space-y-2">{children}</ul>
     ),
     ol: ({ children }: any) => (
-      <ol className="list-decimal list-inside text-slate-700 mb-6 space-y-2">
-        {children}
-      </ol>
+      <ol className=" text-base text-slate-700 mb-6 space-y-2">{children}</ol>
     ),
     blockquote: ({ children }: any) => (
       <blockquote className="border-l-4 border-blue-600 pl-6 py-2 italic text-slate-700 bg-slate-50 rounded-r-lg mb-6">
@@ -250,7 +266,9 @@ const BlogDetailPage: React.FC = () => {
               <div className="flex items-center">
                 <FiClock className="mr-2 h-4 w-4" />
                 <span>
-                  {blog ? `${estimateReadingTime(blog.content)} min read` : ""}
+                  {blog
+                    ? `${estimateReadingTime(blog.content.markdown)} min read`
+                    : ""}
                 </span>
               </div>
             </div>
@@ -399,21 +417,13 @@ const BlogDetailPage: React.FC = () => {
           )}
 
           {/* Blog Content */}
-          <div className="prose prose-lg prose-slate max-w-none prose-headings:bg-gradient-to-r prose-headings:from-slate-900 prose-headings:to-blue-900 prose-headings:bg-clip-text prose-headings:text-transparent prose-a:text-blue-600 prose-a:no-underline hover:prose-a:underline prose-code:text-blue-700 prose-code:bg-blue-50 prose-code:px-2 prose-code:py-1 prose-code:rounded prose-pre:bg-slate-900 prose-pre:shadow-xl">
-            {typeof blog?.content === "string" && /^\s*</.test(blog.content) ? (
-              <div
-                className="blog-html-content"
-                dangerouslySetInnerHTML={{
-                  __html: DOMPurifySanitize
-                    ? DOMPurifySanitize(blog.content)
-                    : blog.content ?? "",
-                }}
-              />
-            ) : (
-              <ReactMarkdown components={markdownComponents}>
-                {blog?.content}
-              </ReactMarkdown>
-            )}
+          <div className="prose lg:prose-xl max-w-none">
+            <ReactMarkdown
+              remarkPlugins={[remarkGfm]}
+              components={markdownComponents}
+            >
+              {blog?.content.markdown}
+            </ReactMarkdown>
           </div>
 
           {/* Tags */}

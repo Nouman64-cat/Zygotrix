@@ -184,7 +184,9 @@ const mapBlogToDetail = (
   blog: BlogsQueryResult["blogs"][number]
 ): BlogDetail => ({
   ...mapBlogToListEntry(blog),
-  content: blog.content?.markdown ?? "",
+  content: {
+    markdown: blog.content?.markdown ?? "",
+  },
 });
 
 export const fetchBlogs = async (

@@ -28,5 +28,5 @@ export interface BlogListEntry {
 }
 
 export interface BlogDetail extends BlogListEntry {
-  content: string;
+  content: { markdown: string };
 }

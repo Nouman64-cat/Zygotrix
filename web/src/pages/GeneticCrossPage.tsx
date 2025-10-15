@@ -17,11 +17,14 @@ import {
   type DominancePattern,
   type GeneticCrossResponsePayload,
 } from "../services/cppEngine.api";
+import { fetchTraits } from "../services/traits.api";
+import type { TraitInfo } from "../types/api";
 
 type NumericField = number | "";
 
 interface AlleleEffectForm extends AlleleEffectPayload {
   id: string;
+  intermediate_descriptor?: string;
 }
 
 interface AlleleForm extends Omit<AlleleDefinitionPayload, "effects"> {
@@ -33,6 +36,8 @@ interface AlleleForm extends Omit<AlleleDefinitionPayload, "effects"> {
 interface GeneForm {
   uid: string;
   id: string;
+  displayName: string;
+  traitKey?: string;
   chromosome: ChromosomeType;
   dominance: DominancePattern;
   defaultAlleleId: string;
@@ -44,118 +49,161 @@ interface GeneForm {
 
 type ParentGenotypeState = Record<string, string[]>;
 
-const DEFAULT_GENES: GeneForm[] = [
-  {
-    uid: "gene-1",
-    id: "fur_color",
-    chromosome: "autosomal",
-    dominance: "complete",
-    defaultAlleleId: "B",
-    linkageGroup: "",
-    recombinationProbability: "",
-    incompleteBlendWeight: "",
-    alleles: [
-      {
-        id: "B",
-        dominance_rank: 2,
-        effects: [
-          {
-            id: "B-effect-0",
-            trait_id: "coat_color",
-            magnitude: 1.0,
-            description: "black pigment",
-          },
-        ],
-      },
-      {
-        id: "b",
-        dominance_rank: 1,
-        effects: [
-          {
-            id: "b-effect-0",
-            trait_id: "coat_color",
-            magnitude: 0.6,
-            description: "brown pigment",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    uid: "gene-2",
-    id: "pigment_gate",
-    chromosome: "autosomal",
-    dominance: "complete",
-    defaultAlleleId: "E",
-    linkageGroup: "",
-    recombinationProbability: "",
-    incompleteBlendWeight: "",
-    alleles: [
-      {
-        id: "E",
-        dominance_rank: 1,
-        effects: [
-          {
-            id: "E-effect-0",
-            trait_id: "coat_color",
-            magnitude: 0.1,
-            description: "pigment enabled",
-          },
-        ],
-      },
-      {
-        id: "e",
-        dominance_rank: 0,
-        effects: [
-          {
-            id: "e-effect-0",
-            trait_id: "coat_color",
-            magnitude: 0,
-            description: "pigment disabled",
-          },
-        ],
-      },
-    ],
-  },
-  {
-    uid: "gene-3",
-    id: "vision",
-    chromosome: "x",
-    dominance: "complete",
-    defaultAlleleId: "C",
-    linkageGroup: "",
-    recombinationProbability: "",
-    incompleteBlendWeight: "",
-    alleles: [
-      {
-        id: "C",
-        dominance_rank: 1,
-        effects: [
-          {
-            id: "C-effect-0",
-            trait_id: "vision",
-            magnitude: 1,
-            description: "normal color vision",
-          },
-        ],
-      },
-      {
-        id: "c",
-        dominance_rank: 0,
-        effects: [
-          {
-            id: "c-effect-0",
-            trait_id: "vision",
-            magnitude: 0,
-            description: "colorblind",
-          },
-        ],
-      },
-    ],
-  },
-];
-
 const generateUid = () => Math.random().toString(36).slice(2);
+
+const sanitizeGeneId = (value: string): string => {
+  const sanitized = value
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_|_$/g, "");
+  return sanitized || `gene_${generateUid()}`;
+};
+
+const inferDominancePattern = (
+  trait: TraitInfo
+): DominancePattern => {
+  const pattern = (trait.inheritance_pattern || "").toLowerCase();
+  if (pattern.includes("codominant")) {
+    return "codominant";
+  }
+  if (pattern.includes("incomplete")) {
+    return "incomplete";
+  }
+  return "complete";
+};
+
+const inferChromosomeType = (trait: TraitInfo): ChromosomeType => {
+  const pattern = (trait.inheritance_pattern || "").toLowerCase();
+  if (pattern.includes("x-linked")) {
+    return "x";
+  }
+  if (pattern.includes("y-linked")) {
+    return "y";
+  }
+
+  const chromosomeValues = trait.chromosomes ?? trait.gene_info?.chromosomes ?? [];
+  if (
+    chromosomeValues.some(
+      (value) => String(value).trim().toLowerCase() === "x"
+    )
+  ) {
+    return "x";
+  }
+  if (
+    chromosomeValues.some(
+      (value) => String(value).trim().toLowerCase() === "y"
+    )
+  ) {
+    return "y";
+  }
+  return "autosomal";
+};
+
+const candidateGenotypeKeys = (alleleA: string, alleleB: string): string[] => {
+  const permutations = [
+    `${alleleA}${alleleB}`,
+    `${alleleB}${alleleA}`,
+    `${alleleA}/${alleleB}`,
+    `${alleleB}/${alleleA}`,
+    `${alleleA}-${alleleB}`,
+    `${alleleB}-${alleleA}`,
+    `${alleleA} ${alleleB}`,
+    `${alleleB} ${alleleA}`,
+  ];
+  if (alleleA !== alleleB) {
+    permutations.push(`${alleleA}|${alleleB}`, `${alleleB}|${alleleA}`);
+  }
+  return permutations;
+};
+
+const findPhenotypeLabel = (
+  phenotypeMap: Record<string, string>,
+  alleleA: string,
+  alleleB: string
+): string | undefined => {
+  const possibleKeys = candidateGenotypeKeys(alleleA, alleleB);
+  for (const key of possibleKeys) {
+    if (phenotypeMap[key] !== undefined) {
+      return phenotypeMap[key];
+    }
+  }
+  return undefined;
+};
+
+const determineDominanceRank = (
+  trait: TraitInfo,
+  dominance: DominancePattern,
+  alleleIndex: number
+): number => {
+  if (dominance === "codominant") {
+    if (trait.alleles.length > 2) {
+      return alleleIndex <= 1 ? 2 : 1;
+    }
+    return 2;
+  }
+  return alleleIndex === 0 ? 2 : 1;
+};
+
+const determineMagnitude = (dominanceRank: number): number =>
+  dominanceRank > 1 ? 1 : 0;
+
+const extractIntermediateDescriptor = (
+  trait: TraitInfo,
+  dominance: DominancePattern,
+  phenotypeMap: Record<string, string>
+): string | undefined => {
+  if (dominance !== "incomplete" || trait.alleles.length < 2) {
+    return undefined;
+  }
+  const [first, second] = trait.alleles;
+  return findPhenotypeLabel(phenotypeMap, first, second);
+};
+
+const buildGeneFromTrait = (trait: TraitInfo): GeneForm => {
+  const uid = `gene-${generateUid()}`;
+  const baseId = sanitizeGeneId(trait.key || trait.name || uid);
+  const dominance = inferDominancePattern(trait);
+  const chromosome = inferChromosomeType(trait);
+  const phenotypeMap = trait.phenotype_map || {};
+  const intermediateDescriptor = extractIntermediateDescriptor(
+    trait,
+    dominance,
+    phenotypeMap
+  );
+  const traitId = sanitizeGeneId(trait.key || trait.name || uid);
+  const alleles: AlleleForm[] = (trait.alleles || []).map((allele, index) => {
+    const dominanceRank = determineDominanceRank(trait, dominance, index);
+    const homozygousPhenotype =
+      findPhenotypeLabel(phenotypeMap, allele, allele) || allele;
+    return {
+      id: allele,
+      dominance_rank: dominanceRank,
+      effects: [
+        {
+          id: `${baseId}-${allele}-effect-${index}`,
+          trait_id: traitId,
+          magnitude: determineMagnitude(dominanceRank),
+          description: homozygousPhenotype,
+          intermediate_descriptor: intermediateDescriptor,
+        },
+      ],
+    };
+  });
+
+  return {
+    uid,
+    id: baseId,
+    displayName: trait.name || baseId,
+    traitKey: trait.key,
+    chromosome,
+    dominance,
+    defaultAlleleId: alleles[0]?.id || "",
+    alleles,
+    linkageGroup: "",
+    recombinationProbability: "",
+    incompleteBlendWeight: dominance === "incomplete" ? 0.5 : "",
+  };
+};
 
 const chromoLabel: Record<ChromosomeType, string> = {
   autosomal: "Autosomal",
@@ -247,24 +295,83 @@ const syncGenotype = (
 };
 
 const GeneticCrossPage: React.FC = () => {
-  const [genes, setGenes] = useState<GeneForm[]>(DEFAULT_GENES);
+  const [genes, setGenes] = useState<GeneForm[]>([]);
   const [motherSex, setMotherSex] = useState<"female" | "male">("female");
   const [fatherSex, setFatherSex] = useState<"female" | "male">("male");
-  const [motherGenotype, setMotherGenotype] = useState<ParentGenotypeState>(
-    () => syncGenotype(DEFAULT_GENES, "female", {})
-  );
-  const [fatherGenotype, setFatherGenotype] = useState<ParentGenotypeState>(
-    () => syncGenotype(DEFAULT_GENES, "male", {})
-  );
+  const [motherGenotype, setMotherGenotype] =
+    useState<ParentGenotypeState>({});
+  const [fatherGenotype, setFatherGenotype] =
+    useState<ParentGenotypeState>({});
   const [simulations, setSimulations] = useState(500);
   const [result, setResult] = useState<GeneticCrossResponsePayload | null>(
     null
   );
   const [isComputing, setIsComputing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [activeGene, setActiveGene] = useState<string>(
-    DEFAULT_GENES[0]?.uid ?? ""
+  const [activeGene, setActiveGene] = useState<string>("");
+  const [availableTraits, setAvailableTraits] = useState<TraitInfo[]>([]);
+  const [isLoadingTraits, setIsLoadingTraits] = useState<boolean>(false);
+  const [traitsError, setTraitsError] = useState<string | null>(null);
+  const [selectedTraitKey, setSelectedTraitKey] = useState<string>("");
+
+  const traitOptions = useMemo(() => {
+    const options = availableTraits.filter(
+      (trait) => !genes.some((gene) => gene.traitKey === trait.key)
+    );
+    return options.sort((a, b) => a.name.localeCompare(b.name));
+  }, [availableTraits, genes]);
+
+  const selectedTrait = useMemo(
+    () => availableTraits.find((trait) => trait.key === selectedTraitKey),
+    [availableTraits, selectedTraitKey]
   );
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setIsLoadingTraits(true);
+    setTraitsError(null);
+    fetchTraits(controller.signal, { owned_only: false })
+      .then((traits) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+        const systemTraits = traits
+          .filter((trait) => trait.owner_id === "system")
+          .sort((a, b) => a.name.localeCompare(b.name));
+        setAvailableTraits(systemTraits);
+      })
+      .catch((err) => {
+        if (controller.signal.aborted) {
+          return;
+        }
+        const message =
+          err instanceof Error
+            ? err.message
+            : "Unable to load reference traits.";
+        setTraitsError(message);
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) {
+          setIsLoadingTraits(false);
+        }
+      });
+    return () => controller.abort();
+  }, []);
+
+  useEffect(() => {
+    if (!traitOptions.length) {
+      if (selectedTraitKey !== "") {
+        setSelectedTraitKey("");
+      }
+      return;
+    }
+    const stillValid = traitOptions.some(
+      (trait) => trait.key === selectedTraitKey
+    );
+    if (!stillValid) {
+      setSelectedTraitKey(traitOptions[0].key);
+    }
+  }, [traitOptions, selectedTraitKey]);
 
   const ensureGenotypes = (
     updatedGenes: GeneForm[],
@@ -294,59 +401,61 @@ const GeneticCrossPage: React.FC = () => {
     }
   }, [genes, activeGene]);
 
-  const handleAddGene = () => {
-    const uid = `gene-${generateUid()}`;
-    const alleleId = `A${Math.floor(Math.random() * 90 + 10)}`;
-    const newGene: GeneForm = {
-      uid,
-      id: "",
-      chromosome: "autosomal",
-      dominance: "complete",
-      defaultAlleleId: "",
-      linkageGroup: "",
-      recombinationProbability: "",
-      incompleteBlendWeight: "",
-      alleles: [
-        {
-          id: alleleId,
-          dominance_rank: 1,
-          effects: [
-            {
-              id: `${alleleId}-effect-0`,
-              trait_id: "",
-              magnitude: 1,
-              description: "",
-            },
-          ],
-        },
-      ],
-    };
+  const handleAddTrait = () => {
+    if (!selectedTraitKey) {
+      return;
+    }
+    const trait = availableTraits.find((item) => item.key === selectedTraitKey);
+    if (!trait) {
+      return;
+    }
+    const newGene = buildGeneFromTrait(trait);
+    let uniqueId = newGene.id;
+    let counter = 1;
+    while (genes.some((existing) => existing.id === uniqueId)) {
+      uniqueId = `${newGene.id}_${counter++}`;
+    }
+    if (uniqueId !== newGene.id) {
+      newGene.id = uniqueId;
+      newGene.alleles = newGene.alleles.map((allele, alleleIndex) => ({
+        ...allele,
+        effects: allele.effects.map((effect, effectIndex) => ({
+          ...effect,
+          id: `${uniqueId}-${allele.id}-effect-${alleleIndex}-${effectIndex}`,
+        })),
+      }));
+    }
     const updated = [...genes, newGene];
     setGenes(updated);
     ensureGenotypes(updated, motherSex, fatherSex);
-    setActiveGene(uid);
+    setActiveGene(newGene.uid);
+    setResult(null);
   };
 
   const handleRemoveGene = (uid: string) => {
-    const geneToRemove = genes.find((gene) => gene.uid === uid);
-    if (!geneToRemove) {
+    const updated = genes.filter((gene) => gene.uid !== uid);
+    if (updated.length === genes.length) {
       return;
     }
-    const updated = genes.filter((gene) => gene.uid !== uid);
     setGenes(updated);
-    setMotherGenotype((prev) => {
-      const next = { ...prev };
-      delete next[geneToRemove.id];
-      delete next[geneToRemove.uid];
-      return next;
-    });
-    setFatherGenotype((prev) => {
-      const next = { ...prev };
-      delete next[geneToRemove.id];
-      delete next[geneToRemove.uid];
-      return next;
-    });
+    setMotherGenotype((prev) => syncGenotype(updated, motherSex, prev));
+    setFatherGenotype((prev) => syncGenotype(updated, fatherSex, prev));
+    if (activeGene === uid) {
+      setActiveGene(updated[0]?.uid ?? "");
+    }
+    setResult(null);
   };
+
+  const traitLabelLookup = useMemo(() => {
+    const map = new Map<string, string>();
+    genes.forEach((gene) => {
+      const traitId = gene.alleles[0]?.effects[0]?.trait_id;
+      if (traitId) {
+        map.set(traitId, gene.displayName || gene.id);
+      }
+    });
+    return map;
+  }, [genes]);
 
   const updateParentAllele = (
     parent: "mother" | "father",
@@ -381,19 +490,20 @@ const GeneticCrossPage: React.FC = () => {
       if (!gene.id.trim()) {
         return "Every gene requires an identifier.";
       }
+      const geneLabel = gene.displayName || gene.id || "Unnamed";
       if (!gene.alleles.length) {
-        return `Gene "${gene.id || "Unnamed"}" needs at least one allele.`;
+        return `Gene "${geneLabel}" needs at least one allele.`;
       }
       for (const allele of gene.alleles) {
         if (!allele.id.trim()) {
-          return `All alleles require an identifier for gene "${gene.id}".`;
+          return `All alleles require an identifier for gene "${geneLabel}".`;
         }
         if (!allele.effects.length) {
-          return `Allele "${allele.id}" in gene "${gene.id}" needs at least one trait effect.`;
+          return `Allele "${allele.id}" in gene "${geneLabel}" needs at least one trait effect.`;
         }
         for (const effect of allele.effects) {
           if (!effect.trait_id.trim()) {
-            return `Please set a trait ID for allele "${allele.id}" in gene "${gene.id}".`;
+            return `Please set a trait ID for allele "${allele.id}" in gene "${geneLabel}".`;
           }
         }
       }
@@ -415,6 +525,8 @@ const GeneticCrossPage: React.FC = () => {
           trait_id: effect.trait_id.trim(),
           magnitude: Number(effect.magnitude),
           description: effect.description?.trim() || undefined,
+          intermediate_descriptor:
+            effect.intermediate_descriptor?.trim() || undefined,
         })),
       })),
       linkage_group:
@@ -529,13 +641,29 @@ const GeneticCrossPage: React.FC = () => {
       const descriptors = Object.entries(summary.descriptor_counts).sort(
         (a, b) => b[1] - a[1]
       );
+
+      const prettyLabel = (() => {
+        if (traitLabelLookup.has(trait)) {
+          return traitLabelLookup.get(trait) as string;
+        }
+        const parts = trait.split("__");
+        if (parts.length > 1) {
+          const labels = parts.map(
+            (part) => traitLabelLookup.get(part) || part.replace(/_/g, " ")
+          );
+          return labels.join(" × ");
+        }
+        return trait.replace(/_/g, " ");
+      })();
+
       return {
-        trait,
+        id: trait,
+        label: prettyLabel,
         mean: summary.mean_quantitative,
         descriptors,
       };
     });
-  }, [result]);
+  }, [result, traitLabelLookup]);
 
   const sexBreakdown = useMemo(() => {
     if (!result) return [];
@@ -686,7 +814,7 @@ const GeneticCrossPage: React.FC = () => {
                       >
                         <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-600">
                           <span className="font-semibold text-slate-700">
-                            {gene.id || "New Gene"}
+                            {gene.displayName || gene.id || "New Gene"}
                           </span>
                           <span className="text-[10px] text-slate-500">
                             {dominanceLabel[gene.dominance]}
@@ -818,7 +946,7 @@ const GeneticCrossPage: React.FC = () => {
                       >
                         <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-600">
                           <span className="font-semibold text-slate-700">
-                            {gene.id || "New Gene"}
+                            {gene.displayName || gene.id || "New Gene"}
                           </span>
                           <span className="text-[10px] text-slate-500">
                             {dominanceLabel[gene.dominance]}
@@ -893,12 +1021,12 @@ const GeneticCrossPage: React.FC = () => {
                     <div className="space-y-4">
                       {traitSummaries.map((summary) => (
                         <div
-                          key={summary.trait}
+                          key={summary.id}
                           className="rounded-3xl border border-slate-200 bg-white p-4 shadow"
                         >
                           <div className="flex items-center justify-between">
                             <h4 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-700">
-                              {summary.trait}
+                              {summary.label}
                             </h4>
                             <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-emerald-600 shadow-sm">
                               mean {summary.mean.toFixed(2)}
@@ -938,18 +1066,43 @@ const GeneticCrossPage: React.FC = () => {
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
-                <button
-                  type="button"
-                  onClick={handleAddGene}
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50"
-                >
-                  <FaPlusCircle className="h-4 w-4 text-emerald-500" />
-                  Add Gene
-                </button>
+                <div className="flex flex-wrap items-center gap-2">
+                  <select
+                    value={selectedTraitKey}
+                    onChange={(event) => setSelectedTraitKey(event.target.value)}
+                    disabled={isLoadingTraits || !traitOptions.length}
+                    className="min-w-[220px] rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200/60 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  >
+                    {isLoadingTraits && (
+                      <option value="">Loading traits...</option>
+                    )}
+                    {!isLoadingTraits && !traitOptions.length && (
+                      <option value="">All traits added</option>
+                    )}
+                    {!isLoadingTraits &&
+                      traitOptions.map((trait) => (
+                        <option key={trait.key} value={trait.key}>
+                          {trait.name}
+                        </option>
+                      ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleAddTrait}
+                    disabled={isLoadingTraits || !selectedTrait || !traitOptions.length}
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <FaPlusCircle className="h-4 w-4 text-emerald-500" />
+                    Add Trait
+                  </button>
+                </div>
                 <span className="rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs uppercase tracking-[0.3em] text-slate-600">
                   {genes.length} Active
                 </span>
               </div>
+              {traitsError && (
+                <p className="mt-2 text-xs text-rose-500">{traitsError}</p>
+              )}
             </header>
 
             <div className="mt-8 grid gap-6 lg:grid-cols-[2fr,1.2fr]">
@@ -976,7 +1129,7 @@ const GeneticCrossPage: React.FC = () => {
                       <div className="flex flex-wrap items-center justify-between gap-3">
                         <div>
                           <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                            {gene.id || "Unnamed gene"}
+                            {gene.displayName || gene.id || "Unnamed gene"}
                           </p>
                           <p className="text-sm text-slate-600">
                             {chromoLabel[gene.chromosome]} ·{" "}
@@ -1011,14 +1164,39 @@ const GeneticCrossPage: React.FC = () => {
                       No genes configured yet. Add at least one gene to set up
                       the cross.
                     </p>
-                    <button
-                      type="button"
-                      onClick={handleAddGene}
-                      className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50"
-                    >
-                      <FaPlusCircle className="h-4 w-4 text-emerald-500" />
-                      Add your first gene
-                    </button>
+                    <div className="flex flex-col items-center gap-2 sm:flex-row">
+                      <select
+                        value={selectedTraitKey}
+                        onChange={(event) => setSelectedTraitKey(event.target.value)}
+                        disabled={isLoadingTraits || !traitOptions.length}
+                        className="rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-blue-400 focus:ring-2 focus:ring-blue-200/60 disabled:cursor-not-allowed disabled:bg-slate-100"
+                      >
+                        {isLoadingTraits && (
+                          <option value="">Loading traits...</option>
+                        )}
+                        {!isLoadingTraits && !traitOptions.length && (
+                          <option value="">All traits added</option>
+                        )}
+                        {!isLoadingTraits &&
+                          traitOptions.map((trait) => (
+                            <option key={trait.key} value={trait.key}>
+                              {trait.name}
+                            </option>
+                          ))}
+                      </select>
+                      <button
+                        type="button"
+                        onClick={handleAddTrait}
+                        disabled={isLoadingTraits || !selectedTrait || !traitOptions.length}
+                        className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 disabled:cursor-not-allowed disabled:opacity-60"
+                      >
+                        <FaPlusCircle className="h-4 w-4 text-emerald-500" />
+                        Add Trait
+                      </button>
+                    </div>
+                    {traitsError && (
+                      <p className="text-xs text-rose-500">{traitsError}</p>
+                    )}
                   </div>
                 )}
               </div>
@@ -1032,7 +1210,7 @@ const GeneticCrossPage: React.FC = () => {
                         Selected Gene
                       </p>
                       <h3 className="mt-2 text-xl font-semibold text-slate-800">
-                        {activeGeneDetail.id || "Unnamed gene"}
+                        {activeGeneDetail.displayName || activeGeneDetail.id || "Unnamed gene"}
                       </h3>
                       <p className="text-sm text-slate-600">
                         {chromoLabel[activeGeneDetail.chromosome]} ·{" "}
@@ -1071,13 +1249,18 @@ const GeneticCrossPage: React.FC = () => {
                                     </span>{" "}
                                     · magnitude {effect.magnitude}
                                     {effect.description && (
-                                      <span className="text-slate-500">
-                                        {" "}
-                                        — {effect.description}
-                                      </span>
-                                    )}
-                                  </div>
-                                </li>
+                                    <span className="text-slate-500">
+                                      {" "}
+                                      — {effect.description}
+                                    </span>
+                                  )}
+                                  {effect.intermediate_descriptor && (
+                                    <span className="text-slate-500">
+                                      {" "}· heterozygous {effect.intermediate_descriptor}
+                                    </span>
+                                  )}
+                                </div>
+                              </li>
                               ))}
                             </ul>
                           </div>

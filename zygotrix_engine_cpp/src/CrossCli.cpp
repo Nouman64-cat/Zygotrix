@@ -312,7 +312,7 @@ int main() {
         if (!traitOrdering.empty()) {
             combinedTraitId = traitOrdering.front();
             for (std::size_t i = 1; i < traitOrdering.size(); ++i) {
-                combinedTraitId += "_" + traitOrdering[i];
+                combinedTraitId += "__" + traitOrdering[i];
             }
         }
 
@@ -385,7 +385,12 @@ int main() {
         }
 
         Json::JsonObject traitsJson;
+        bool emitIndividualTraits = traitOrdering.size() <= 1;
+
         for (const auto& traitSum : quantitativeSums) {
+            if (!emitIndividualTraits) {
+                continue;
+            }
             const std::string& traitId = traitSum.first;
             double total = traitSum.second;
             int count = quantitativeCounts[traitId];

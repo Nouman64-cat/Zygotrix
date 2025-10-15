@@ -9,6 +9,7 @@ export interface AlleleEffectPayload {
   trait_id: string;
   magnitude: number;
   description?: string;
+  intermediate_descriptor?: string;
 }
 
 export interface AlleleDefinitionPayload {
@@ -70,4 +71,3 @@ export async function computeGeneticCross(
   const response = await API.post<GeneticCrossResponsePayload>("/api/cpp/cross", payload);
   return response.data;
 }
-

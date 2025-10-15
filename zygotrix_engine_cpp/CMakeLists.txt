@@ -26,6 +26,7 @@ add_executable(zyg_cross_cli
 target_link_libraries(zyg_cross_cli PRIVATE zygotrix_engine)
 target_include_directories(zyg_cross_cli PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
 )
 

@@ -105,9 +105,9 @@ int main() {
     std::string error;
     Json request = Json::parse(input, error);
     if (!error.empty()) {
-        Json response = Json::object{
+        Json response = Json(Json::JsonObject{
             {"error", Json("Invalid JSON: " + error)}
-        };
+        });
         std::cout << response.dump() << std::endl;
         return 1;
     }
@@ -275,18 +275,18 @@ int main() {
             sexJson.emplace(sexCount.first, Json(static_cast<int>(sexCount.second)));
         }
 
-        Json response = Json::object{
+        Json response = Json(Json::JsonObject{
             {"simulations", Json(simulations)},
             {"sex_counts", Json(sexJson)},
             {"trait_summaries", Json(traitsJson)}
-        };
+        });
 
         std::cout << response.dump() << std::endl;
         return 0;
     } catch (const std::exception& ex) {
-        Json response = Json::object{
+        Json response = Json(Json::JsonObject{
             {"error", Json(ex.what())}
-        };
+        });
         std::cout << response.dump() << std::endl;
         return 2;
     }

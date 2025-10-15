@@ -358,10 +358,22 @@ Json::Json(JsonObject &&values)
     : m_type(OBJECT), number_(0.0), m_ptr(std::make_shared<JsonObject>(std::move(values))) {}
 
 Json::Json(const Json &other)
-    : m_type(other.m_type), number_(other.number_), bool_(other.bool_), m_ptr(other.m_ptr) {}
+    : m_type(other.m_type), number_(0.0), m_ptr(other.m_ptr) {
+    if (m_type == BOOL) {
+        bool_ = other.bool_;
+    } else {
+        number_ = other.number_;
+    }
+}
 
 Json::Json(Json &&other) noexcept
-    : m_type(other.m_type), number_(other.number_), bool_(other.bool_), m_ptr(std::move(other.m_ptr)) {}
+    : m_type(other.m_type), number_(0.0), m_ptr(std::move(other.m_ptr)) {
+    if (m_type == BOOL) {
+        bool_ = other.bool_;
+    } else {
+        number_ = other.number_;
+    }
+}
 
 Json &Json::operator=(Json other) noexcept {
     std::swap(m_type, other.m_type);
@@ -535,4 +547,3 @@ const Json::JsonArray &Json::static_array() const { return statics().empty_vec; 
 const Json::JsonObject &Json::static_object() const { return statics().empty_map; }
 
 }  // namespace json11
-

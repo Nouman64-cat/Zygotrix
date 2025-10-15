@@ -321,10 +321,10 @@ const GeneticCrossPage: React.FC = () => {
         },
       ],
     };
-        const updated = [...genes, newGene];
-        setGenes(updated);
-        ensureGenotypes(updated, motherSex, fatherSex);
-        setActiveGene(uid);
+    const updated = [...genes, newGene];
+    setGenes(updated);
+    ensureGenotypes(updated, motherSex, fatherSex);
+    setActiveGene(uid);
   };
 
   const handleRemoveGene = (uid: string) => {
@@ -346,241 +346,6 @@ const GeneticCrossPage: React.FC = () => {
       delete next[geneToRemove.uid];
       return next;
     });
-  };
-
-  const handleGeneFieldChange = <Key extends keyof GeneForm>(
-    uid: string,
-    field: Key,
-    value: GeneForm[Key]
-  ) => {
-    setGenes((prev) =>
-      prev.map((gene) => {
-        if (gene.uid !== uid) return gene;
-        const nextGene = { ...gene, [field]: value } as GeneForm;
-        if (
-          field === "defaultAlleleId" &&
-          typeof value === "string" &&
-          !gene.alleles.some((allele) => allele.id === value)
-        ) {
-          nextGene.defaultAlleleId = gene.alleles[0]?.id ?? "";
-        }
-        return nextGene;
-      })
-    );
-
-    if (field === "id" && typeof value === "string") {
-      const current = genes.find((gene) => gene.uid === uid);
-      if (current && value.trim() && value.trim() !== current.id) {
-        const newId = value.trim();
-        setMotherGenotype((prev) => {
-          const next = { ...prev };
-          const existing = next[current.id] ?? next[current.uid];
-          if (existing) {
-            delete next[current.id];
-            delete next[current.uid];
-            next[newId] = existing;
-          }
-          return next;
-        });
-        setFatherGenotype((prev) => {
-          const next = { ...prev };
-          const existing = next[current.id] ?? next[current.uid];
-          if (existing) {
-            delete next[current.id];
-            delete next[current.uid];
-            next[newId] = existing;
-          }
-          return next;
-        });
-      }
-    }
-  };
-
-  const updateAllele = (
-    geneUid: string,
-    alleleId: string,
-    updater: (allele: AlleleForm) => AlleleForm
-  ) => {
-    setGenes((prev) =>
-      prev.map((gene) => {
-        if (gene.uid !== geneUid) return gene;
-        const updatedAlleles = gene.alleles.map((allele) =>
-          allele.id === alleleId ? updater(allele) : allele
-        );
-        let updatedDefault = gene.defaultAlleleId;
-        if (!updatedAlleles.some((allele) => allele.id === updatedDefault)) {
-          updatedDefault = updatedAlleles[0]?.id ?? "";
-        }
-        return {
-          ...gene,
-          alleles: updatedAlleles,
-          defaultAlleleId: updatedDefault,
-        };
-      })
-    );
-  };
-
-  const handleAlleleIdChange = (
-    geneUid: string,
-    oldId: string,
-    nextId: string
-  ) => {
-    updateAllele(geneUid, oldId, (allele) => ({
-      ...allele,
-      id: nextId,
-      effects: allele.effects.map((effect) => ({
-        ...effect,
-        id:
-          effect.id.indexOf(oldId) === 0
-            ? `${nextId}${effect.id.slice(oldId.length)}`
-            : effect.id,
-      })),
-    }));
-
-    const currentGene = genes.find((gene) => gene.uid === geneUid);
-    if (currentGene) {
-      const key = currentGene.id || currentGene.uid;
-      setMotherGenotype((prev) => {
-        const next = { ...prev };
-        if (next[key]) {
-          next[key] = next[key].map((allele) =>
-            allele === oldId ? nextId : allele
-          );
-        }
-        return next;
-      });
-      setFatherGenotype((prev) => {
-        const next = { ...prev };
-        if (next[key]) {
-          next[key] = next[key].map((allele) =>
-            allele === oldId ? nextId : allele
-          );
-        }
-        return next;
-      });
-    }
-  };
-
-  const handleAddAllele = (geneUid: string) => {
-    const alleleId = `allele-${generateUid().slice(0, 4)}`;
-    setGenes((prev) =>
-      prev.map((gene) => {
-        if (gene.uid !== geneUid) return gene;
-        const updatedAlleles = [
-          ...gene.alleles,
-          {
-            id: alleleId,
-            dominance_rank: 1,
-            effects: [
-              {
-                id: `${alleleId}-effect-0`,
-                trait_id: "",
-                magnitude: 1,
-                description: "",
-              },
-            ],
-          },
-        ];
-        return {
-          ...gene,
-          alleles: updatedAlleles,
-          defaultAlleleId: gene.defaultAlleleId || alleleId,
-        };
-      })
-    );
-  };
-
-  const handleRemoveAllele = (geneUid: string, alleleId: string) => {
-    setGenes((prev) =>
-      prev.map((gene) => {
-        if (gene.uid !== geneUid) return gene;
-        const filtered = gene.alleles.filter(
-          (allele) => allele.id !== alleleId
-        );
-        return {
-          ...gene,
-          alleles: filtered,
-          defaultAlleleId: filtered[0]?.id ?? "",
-        };
-      })
-    );
-  };
-
-  const handleEffectChange = (
-    geneUid: string,
-    alleleId: string,
-    effectId: string,
-    field: keyof AlleleEffectForm,
-    value: string | number
-  ) => {
-    setGenes((prev) =>
-      prev.map((gene) => {
-        if (gene.uid !== geneUid) return gene;
-        return {
-          ...gene,
-          alleles: gene.alleles.map((allele) => {
-            if (allele.id !== alleleId) return allele;
-            return {
-              ...allele,
-              effects: allele.effects.map((effect) =>
-                effect.id === effectId ? { ...effect, [field]: value } : effect
-              ),
-            };
-          }),
-        };
-      })
-    );
-  };
-
-  const handleAddEffect = (geneUid: string, alleleId: string) => {
-    const effectId = `effect-${generateUid().slice(0, 4)}`;
-    setGenes((prev) =>
-      prev.map((gene) => {
-        if (gene.uid !== geneUid) return gene;
-        return {
-          ...gene,
-          alleles: gene.alleles.map((allele) => {
-            if (allele.id !== alleleId) return allele;
-            return {
-              ...allele,
-              effects: [
-                ...allele.effects,
-                {
-                  id: effectId,
-                  trait_id: "",
-                  magnitude: 0,
-                  description: "",
-                },
-              ],
-            };
-          }),
-        };
-      })
-    );
-  };
-
-  const handleRemoveEffect = (
-    geneUid: string,
-    alleleId: string,
-    effectId: string
-  ) => {
-    setGenes((prev) =>
-      prev.map((gene) => {
-        if (gene.uid !== geneUid) return gene;
-        return {
-          ...gene,
-          alleles: gene.alleles.map((allele) => {
-            if (allele.id !== alleleId) return allele;
-            return {
-              ...allele,
-              effects: allele.effects.filter(
-                (effect) => effect.id !== effectId
-              ),
-            };
-          }),
-        };
-      })
-    );
   };
 
   const updateParentAllele = (
@@ -846,30 +611,30 @@ const GeneticCrossPage: React.FC = () => {
             </p>
           </header>
 
-            <div className="grid gap-4 md:grid-cols-3">
-              {headlineMetrics.map((metric) => (
+          <div className="grid gap-4 md:grid-cols-3">
+            {headlineMetrics.map((metric) => (
+              <div
+                key={metric.id}
+                className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/60"
+              >
                 <div
-                  key={metric.id}
-                  className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/60"
-                >
-                  <div
-                    className={`pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-to-br ${metric.accent} opacity-60 blur-2xl`}
-                  />
-                  <div className="relative flex items-center justify-between">
-                    <div>
-                      <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                        {metric.label}
-                      </p>
-                      <p className="mt-2 text-2xl font-semibold text-slate-900">
-                        {metric.value}
-                      </p>
-                    </div>
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                      {metric.icon}
-                    </div>
+                  className={`pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-to-br ${metric.accent} opacity-60 blur-2xl`}
+                />
+                <div className="relative flex items-center justify-between">
+                  <div>
+                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
+                      {metric.label}
+                    </p>
+                    <p className="mt-2 text-2xl font-semibold text-slate-900">
+                      {metric.value}
+                    </p>
+                  </div>
+                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
+                    {metric.icon}
                   </div>
                 </div>
-              ))}
+              </div>
+            ))}
           </div>
 
           <div className="grid gap-6 xl:grid-cols-3">
@@ -885,7 +650,9 @@ const GeneticCrossPage: React.FC = () => {
                   type="button"
                   className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition hover:border-pink-300 hover:bg-pink-50"
                   onClick={() =>
-                    setMotherSex((prev) => (prev === "female" ? "male" : "female"))
+                    setMotherSex((prev) =>
+                      prev === "female" ? "male" : "female"
+                    )
                   }
                 >
                   <HiSwitchHorizontal className="h-4 w-4" />
@@ -944,7 +711,8 @@ const GeneticCrossPage: React.FC = () => {
                 </span>
                 <FaDna className="mt-6 h-12 w-12 text-sky-500" />
                 <p className="mt-4 text-sm leading-relaxed text-slate-600">
-                  Adjust simulation fidelity and compute cross-over outcomes. We’ll run{" "}
+                  Adjust simulation fidelity and compute cross-over outcomes.
+                  We’ll run{" "}
                   <span className="font-semibold text-slate-700">
                     {simulations.toLocaleString()}
                   </span>{" "}
@@ -962,7 +730,9 @@ const GeneticCrossPage: React.FC = () => {
                     max={5000}
                     step={50}
                     value={simulations}
-                    onChange={(event) => setSimulations(Number(event.target.value))}
+                    onChange={(event) =>
+                      setSimulations(Number(event.target.value))
+                    }
                     className="w-full accent-sky-500"
                   />
                   <div className="flex justify-between text-[11px] uppercase tracking-[0.3em] text-slate-400">
@@ -990,12 +760,11 @@ const GeneticCrossPage: React.FC = () => {
                   <span className="absolute inset-0 -z-10 bg-white/40 opacity-0 blur transition duration-300 group-hover:opacity-100" />
                 </button>
 
-                {error && (
-                  <p className="mt-4 text-xs text-rose-500">{error}</p>
-                )}
+                {error && <p className="mt-4 text-xs text-rose-500">{error}</p>}
                 {result && !error && !isComputing && (
                   <p className="mt-4 text-xs text-emerald-500">
-                    Simulation complete! Scroll down to review phenotype insights.
+                    Simulation complete! Scroll down to review phenotype
+                    insights.
                   </p>
                 )}
               </div>
@@ -1013,7 +782,9 @@ const GeneticCrossPage: React.FC = () => {
                   type="button"
                   className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition hover:border-sky-300 hover:bg-sky-50"
                   onClick={() =>
-                    setFatherSex((prev) => (prev === "male" ? "female" : "male"))
+                    setFatherSex((prev) =>
+                      prev === "male" ? "female" : "male"
+                    )
                   }
                 >
                   <HiSwitchHorizontal className="h-4 w-4" />
@@ -1083,7 +854,8 @@ const GeneticCrossPage: React.FC = () => {
                   <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-300 bg-white/70 p-8 text-center text-slate-500">
                     <FaDna className="h-12 w-12 text-slate-400" />
                     <p className="text-sm text-slate-600">
-                      Configure the parents above and run a simulation to reveal predicted phenotype distributions.
+                      Configure the parents above and run a simulation to reveal
+                      predicted phenotype distributions.
                     </p>
                   </div>
                 )}
@@ -1157,9 +929,12 @@ const GeneticCrossPage: React.FC = () => {
           <section className="relative rounded-3xl border border-slate-200 bg-white p-8 shadow-2xl shadow-slate-300/50">
             <header className="flex flex-col gap-3 border-b border-slate-200 pb-6 md:flex-row md:items-center md:justify-between">
               <div>
-                <h2 className="text-2xl font-semibold text-slate-900">Gene Studio</h2>
+                <h2 className="text-2xl font-semibold text-slate-900">
+                  Gene Studio
+                </h2>
                 <p className="text-sm text-slate-600">
-                  Curate the genes participating in this cross. Tune dominance hierarchies, linkage, and trait effects for each allele.
+                  Curate the genes participating in this cross. Tune dominance
+                  hierarchies, linkage, and trait effects for each allele.
                 </p>
               </div>
               <div className="flex flex-wrap items-center gap-3">
@@ -1204,7 +979,8 @@ const GeneticCrossPage: React.FC = () => {
                             {gene.id || "Unnamed gene"}
                           </p>
                           <p className="text-sm text-slate-600">
-                            {chromoLabel[gene.chromosome]} · {dominanceLabel[gene.dominance]}
+                            {chromoLabel[gene.chromosome]} ·{" "}
+                            {dominanceLabel[gene.dominance]}
                           </p>
                         </div>
                         <div className="flex items-center gap-2">
@@ -1232,7 +1008,8 @@ const GeneticCrossPage: React.FC = () => {
                   <div className="flex flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-300 bg-slate-100 p-12 text-center text-slate-600">
                     <FaDna className="h-10 w-10 text-slate-400" />
                     <p className="text-sm text-slate-600">
-                      No genes configured yet. Add at least one gene to set up the cross.
+                      No genes configured yet. Add at least one gene to set up
+                      the cross.
                     </p>
                     <button
                       type="button"
@@ -1283,7 +1060,10 @@ const GeneticCrossPage: React.FC = () => {
                             </div>
                             <ul className="mt-2 space-y-1 text-xs text-slate-600">
                               {allele.effects.map((effect) => (
-                                <li key={effect.id} className="flex items-start gap-2">
+                                <li
+                                  key={effect.id}
+                                  className="flex items-start gap-2"
+                                >
                                   <span className="mt-1 h-1.5 w-1.5 rounded-full bg-emerald-400" />
                                   <div>
                                     <span className="font-medium text-slate-700">
@@ -1308,7 +1088,9 @@ const GeneticCrossPage: React.FC = () => {
                 ) : (
                   <div className="flex h-full flex-col items-center justify-center gap-3 text-center text-slate-500">
                     <FaDna className="h-10 w-10 text-slate-400" />
-                    <p className="text-sm">Select or create a gene to view its details.</p>
+                    <p className="text-sm">
+                      Select or create a gene to view its details.
+                    </p>
                   </div>
                 )}
               </aside>

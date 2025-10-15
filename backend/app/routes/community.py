@@ -56,7 +56,7 @@ def get_current_user_required(
 def list_questions(
     page: int = Query(1, ge=1),
     page_size: int = Query(20, ge=1, le=100),
-    sort_by: str = Query("newest", regex="^(newest|oldest|most_voted|most_viewed|most_answered)$"),
+    sort_by: str = Query("newest", pattern="^(newest|oldest|most_voted|most_viewed|most_answered)$"),
     tag: Optional[str] = None,
     search: Optional[str] = None,
     current_user: Optional[UserProfile] = Depends(get_current_user_optional),

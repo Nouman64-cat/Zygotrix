@@ -8,16 +8,6 @@ import type { BlogDetail, BlogListEntry } from "../types/blog";
 import RelatedBlogs from "../components/marketing_site/blog/RelatedBlogs";
 import { FiCalendar, FiClock, FiShare2, FiArrowLeft } from "react-icons/fi";
 
-// Runtime check for a globally-provided DOMPurify (optional).
-const getDOMPurifySanitizer = (): ((html: string) => string) | null => {
-  if (typeof window === "undefined") return null;
-  const win = window as any;
-  return typeof win?.DOMPurify?.sanitize === "function"
-    ? win.DOMPurify.sanitize.bind(win.DOMPurify)
-    : null;
-};
-const DOMPurifySanitize = getDOMPurifySanitizer();
-
 const formatDate = (value: string): string => {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) {

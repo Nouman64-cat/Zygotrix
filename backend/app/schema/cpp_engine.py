@@ -80,7 +80,7 @@ class EpistasisRule(BaseModel):
 
 
 class ParentGenotype(BaseModel):
-    sex: Optional[str] = Field(None, regex="^(male|female)$", description="Sex of the parent")
+    sex: Optional[str] = Field(None, pattern="^(male|female)$", description="Sex of the parent")
     genotype: Dict[str, List[str]]
 
 

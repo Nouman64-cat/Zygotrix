@@ -227,7 +227,7 @@ const CommunityPage: React.FC = () => {
                 <h1 className="text-2xl font-bold">Community Stats</h1>
               </div>
               <div className="space-y-4">
-                {statsConfig.map((stat, idx) => (
+                {statsConfig.map((stat) => (
                   <div
                     key={stat.label}
                     className={`group bg-gradient-to-br ${stat.gradient} rounded-2xl p-4 border-2 ${stat.border} ${stat.hoverBorder} transition-all duration-300 hover:scale-105 hover:shadow-lg cursor-pointer relative overflow-hidden`}

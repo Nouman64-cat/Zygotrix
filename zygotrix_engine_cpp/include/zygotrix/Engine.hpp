@@ -50,6 +50,7 @@ struct AlleleEffect {
     std::string traitId;
     double magnitude{0.0};
     std::string description;
+    std::string intermediateDescriptor;
 };
 
 struct AlleleDefinition {
@@ -117,6 +118,7 @@ public:
     const EngineConfig& config() const { return config_; }
 
 private:
+    const GeneDefinition* findGene(const std::string& geneId) const;
     const GeneDefinition& requireGene(const std::string& geneId) const;
     const AlleleDefinition& requireAllele(const GeneDefinition& gene,
                                           const std::string& alleleId) const;
@@ -137,8 +139,12 @@ private:
 
     void applyEpistasis(const Individual& individual,
                         Phenotype& phenotype) const;
+    void applyPhenotypeOverrides(const Individual& individual,
+                                 Phenotype& phenotype) const;
+    void applyLinkageTraits(Phenotype& phenotype) const;
 
     std::unordered_map<std::size_t, std::vector<const GeneDefinition*>> linkageMap_;
+    std::unordered_map<std::size_t, std::vector<std::string>> linkageTraitIds_;
     std::unordered_map<std::string, const GeneDefinition*> geneIndex_;
     std::unordered_map<std::string,
         std::unordered_map<std::string, const AlleleDefinition*>> alleleIndex_;

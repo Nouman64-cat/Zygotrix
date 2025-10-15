@@ -1,11 +1,13 @@
 #include "zygotrix/Engine.hpp"
 
 #include <algorithm>
+#include <cctype>
 #include <numeric>
 #include <random>
 #include <sstream>
 #include <stdexcept>
 #include <unordered_map>
+#include <vector>
 
 namespace zygotrix {
 
@@ -30,13 +32,95 @@ bool isHeterozygous(const Genotype& genotype, const std::string& alleleId) {
     return (first ^ second);
 }
 
+std::string stripNonAlnum(const std::string& value) {
+    std::string cleaned;
+    cleaned.reserve(value.size());
+    for (char ch : value) {
+        if (std::isalnum(static_cast<unsigned char>(ch))) {
+            cleaned.push_back(ch);
+        }
+    }
+    return cleaned;
+}
+
+std::string toUpperCopy(const std::string& value) {
+    std::string result = value;
+    std::transform(result.begin(), result.end(), result.begin(), [](unsigned char c) {
+        return static_cast<char>(std::toupper(c));
+    });
+    return result;
+}
+
+std::vector<std::string> gatherTraitIds(const GeneDefinition& gene) {
+    std::vector<std::string> traitIds;
+    for (const auto& allele : gene.alleles) {
+        for (const auto& effect : allele.effects) {
+            if (effect.traitId.empty()) {
+                continue;
+            }
+            if (std::find(traitIds.begin(), traitIds.end(), effect.traitId) == traitIds.end()) {
+                traitIds.push_back(effect.traitId);
+            }
+        }
+    }
+    if (traitIds.empty()) {
+        traitIds.push_back(gene.id);
+    }
+    return traitIds;
+}
+
+std::string combineDescriptors(const std::vector<std::string>& descriptors) {
+    std::vector<std::string> uniqueDescriptors;
+    uniqueDescriptors.reserve(descriptors.size());
+    for (const std::string& descriptor : descriptors) {
+        if (descriptor.empty()) {
+            continue;
+        }
+        if (std::find(uniqueDescriptors.begin(), uniqueDescriptors.end(), descriptor) == uniqueDescriptors.end()) {
+            uniqueDescriptors.push_back(descriptor);
+        }
+    }
+    if (uniqueDescriptors.empty()) {
+        return {};
+    }
+    if (uniqueDescriptors.size() == 1) {
+        return uniqueDescriptors.front();
+    }
+
+    bool allSingleAlpha = true;
+    for (const std::string& descriptor : uniqueDescriptors) {
+        if (descriptor.size() != 1 || !std::isalpha(static_cast<unsigned char>(descriptor[0]))) {
+            allSingleAlpha = false;
+            break;
+        }
+    }
+
+    if (allSingleAlpha) {
+        std::vector<std::string> sortedDescriptors = uniqueDescriptors;
+        std::sort(sortedDescriptors.begin(), sortedDescriptors.end());
+        std::string combined;
+        combined.reserve(sortedDescriptors.size());
+        for (const std::string& descriptor : sortedDescriptors) {
+            combined += descriptor;
+        }
+        return combined;
+    }
+
+    std::string combined = uniqueDescriptors.front();
+    for (std::size_t i = 1; i < uniqueDescriptors.size(); ++i) {
+        combined += ", " + uniqueDescriptors[i];
+    }
+    return combined;
+}
+
 }  // namespace
 
 void TraitExpression::add(double value, const std::string& descriptor) {
-    quantitative += value;
     if (!descriptor.empty()) {
         descriptors.push_back(descriptor);
+        return;
     }
+    quantitative += value;
 }
 
 std::string TraitExpression::summary() const {
@@ -78,7 +162,14 @@ Engine::Engine(EngineConfig config) : config_(std::move(config)) {
 
         geneIndex_.emplace(gene.id, &gene);
         if (gene.linkageGroup) {
-            linkageMap_[*gene.linkageGroup].push_back(&gene);
+            std::size_t groupId = *gene.linkageGroup;
+            linkageMap_[groupId].push_back(&gene);
+            auto& traitIds = linkageTraitIds_[groupId];
+            for (const auto& traitId : gatherTraitIds(gene)) {
+                if (std::find(traitIds.begin(), traitIds.end(), traitId) == traitIds.end()) {
+                    traitIds.push_back(traitId);
+                }
+            }
         }
     }
 }
@@ -212,56 +303,114 @@ Phenotype Engine::expressPhenotype(const Individual& individual) const {
         } else if (gene.dominance == DominancePattern::Codominant) {
             if (resolved1.id == resolved2.id) {
                 applyEffects(resolved1);
+            } else if (resolved1.dominanceRank != resolved2.dominanceRank) {
+                const AlleleDefinition& dominant =
+                    resolved1.dominanceRank > resolved2.dominanceRank ? resolved1 : resolved2;
+                applyEffects(dominant);
             } else {
-                applyEffects(resolved1);
-                applyEffects(resolved2);
+                std::unordered_map<std::string, std::vector<const AlleleEffect*>> effectsByTrait;
+                for (const auto& effect : resolved1.effects) {
+                    effectsByTrait[effect.traitId].push_back(&effect);
+                }
+                for (const auto& effect : resolved2.effects) {
+                    effectsByTrait[effect.traitId].push_back(&effect);
+                }
+
+                for (const auto& entry : effectsByTrait) {
+                    const std::string& traitId = entry.first;
+                    const auto& effects = entry.second;
+
+                    double magnitudeSum = 0.0;
+                    int magnitudeCount = 0;
+                    std::vector<std::string> descriptors;
+
+                    for (const AlleleEffect* effectPtr : effects) {
+                        magnitudeSum += effectPtr->magnitude;
+                        ++magnitudeCount;
+                        if (!effectPtr->description.empty()) {
+                            descriptors.push_back(effectPtr->description);
+                        }
+                    }
+
+                    TraitExpression& expr = phenotype.traits[traitId];
+                    if (descriptors.empty() && magnitudeCount > 0) {
+                        expr.quantitative += magnitudeSum / static_cast<double>(magnitudeCount);
+                    } else {
+                        expr.quantitative = 0.0;
+                    }
+
+                    std::string descriptor = combineDescriptors(descriptors);
+                    expr.descriptors.clear();
+                    if (!descriptor.empty()) {
+                        expr.descriptors.push_back(descriptor);
+                    }
+                }
             }
         } else {  // Incomplete dominance
             if (resolved1.id == resolved2.id) {
                 applyEffects(resolved1);
             } else {
-                std::unordered_map<std::string, AlleleEffect> map1;
-                std::unordered_map<std::string, AlleleEffect> map2;
+                std::unordered_map<std::string, const AlleleEffect*> map1;
+                std::unordered_map<std::string, const AlleleEffect*> map2;
                 for (const auto& effect : resolved1.effects) {
-                    map1.emplace(effect.traitId, effect);
+                    map1.emplace(effect.traitId, &effect);
                 }
                 for (const auto& effect : resolved2.effects) {
-                    map2.emplace(effect.traitId, effect);
+                    map2.emplace(effect.traitId, &effect);
                 }
                 std::unordered_map<std::string, bool> visited;
-                for (const auto& effect : map1) {
-                    visited[effect.first] = true;
-                    const auto secondIt = map2.find(effect.first);
-                    double secondMagnitude = secondIt != map2.end() ? secondIt->second.magnitude : 0.0;
-                    std::string secondDesc = secondIt != map2.end() ? secondIt->second.description : "";
-                    double blended = gene.incompleteBlendWeight * effect.second.magnitude +
+                for (const auto& effectEntry : map1) {
+                    const std::string& traitId = effectEntry.first;
+                    visited[traitId] = true;
+                    const AlleleEffect* firstEffect = effectEntry.second;
+                    const auto secondIt = map2.find(traitId);
+                    const AlleleEffect* secondEffect = secondIt != map2.end() ? secondIt->second : nullptr;
+
+                    double firstMagnitude = firstEffect ? firstEffect->magnitude : 0.0;
+                    double secondMagnitude = secondEffect ? secondEffect->magnitude : 0.0;
+                    double blended = gene.incompleteBlendWeight * firstMagnitude +
                                      (1.0 - gene.incompleteBlendWeight) * secondMagnitude;
+
                     std::string desc;
-                    if (!effect.second.description.empty() || !secondDesc.empty()) {
-                        desc = "blend(" + effect.second.description;
-                        if (!secondDesc.empty()) {
-                            desc += ", " + secondDesc;
+                    if (firstEffect && !firstEffect->intermediateDescriptor.empty()) {
+                        desc = firstEffect->intermediateDescriptor;
+                    } else if (secondEffect && !secondEffect->intermediateDescriptor.empty()) {
+                        desc = secondEffect->intermediateDescriptor;
+                    } else {
+                        std::string firstDesc = firstEffect ? firstEffect->description : std::string();
+                        std::string secondDesc = secondEffect ? secondEffect->description : std::string();
+                        if (!firstDesc.empty() || !secondDesc.empty()) {
+                            desc = "blend(" + firstDesc;
+                            if (!secondDesc.empty()) {
+                                desc += ", " + secondDesc;
+                            }
+                            desc += ")";
                         }
-                        desc += ")";
                     }
-                    phenotype.traits[effect.first].add(blended, desc);
+
+                    phenotype.traits[traitId].add(blended, desc);
                 }
-                for (const auto& effect : map2) {
-                    if (visited.count(effect.first)) {
+                for (const auto& effectEntry : map2) {
+                    if (visited.count(effectEntry.first)) {
                         continue;
                     }
-                    double blended = (1.0 - gene.incompleteBlendWeight) * effect.second.magnitude;
+                    const AlleleEffect* effect = effectEntry.second;
+                    double blended = (1.0 - gene.incompleteBlendWeight) * (effect ? effect->magnitude : 0.0);
                     std::string desc;
-                    if (!effect.second.description.empty()) {
-                        desc = "blend(" + effect.second.description + ")";
+                    if (effect && !effect->intermediateDescriptor.empty()) {
+                        desc = effect->intermediateDescriptor;
+                    } else if (effect && !effect->description.empty()) {
+                        desc = "blend(" + effect->description + ")";
                     }
-                    phenotype.traits[effect.first].add(blended, desc);
+                    phenotype.traits[effectEntry.first].add(blended, desc);
                 }
             }
         }
     }
 
+    applyPhenotypeOverrides(individual, phenotype);
     applyEpistasis(individual, phenotype);
+    applyLinkageTraits(phenotype);
     return phenotype;
 }
 
@@ -346,6 +495,14 @@ Genotype Engine::normalizedGenotype(const GeneDefinition& gene,
     }
 
     return result;
+}
+
+const GeneDefinition* Engine::findGene(const std::string& geneId) const {
+    auto it = geneIndex_.find(geneId);
+    if (it == geneIndex_.end()) {
+        return nullptr;
+    }
+    return it->second;
 }
 
 Gamete Engine::generateGamete(const Individual& parent,
@@ -541,6 +698,183 @@ void Engine::applyEpistasis(const Individual& individual,
                 expr.descriptors.push_back(rule.overrideDescription);
             }
         }
+    }
+}
+
+void Engine::applyPhenotypeOverrides(const Individual& individual,
+                                     Phenotype& phenotype) const {
+    const GeneDefinition* whiteMask = findGene("white_masking");
+    const GeneDefinition* blackOrange = findGene("black_orange");
+    const GeneDefinition* dilute = findGene("dilute");
+
+    const auto findGenotype = [&](const GeneDefinition* gene) -> const Genotype* {
+        if (!gene) {
+            return nullptr;
+        }
+        auto it = individual.genotype.find(gene->id);
+        if (it == individual.genotype.end()) {
+            return nullptr;
+        }
+        return &it->second;
+    };
+
+    const Genotype* whiteMaskGenotype = findGenotype(whiteMask);
+    const Genotype* blackOrangeGenotype = findGenotype(blackOrange);
+    const Genotype* diluteGenotype = findGenotype(dilute);
+
+    if (!whiteMaskGenotype && !blackOrangeGenotype && !diluteGenotype) {
+        return;
+    }
+
+    auto& coatExpr = phenotype.traits["coat_color"];
+    auto& pigmentExpr = phenotype.traits["pigment_intensity"];
+
+    bool hasDominantWhite = false;
+    if (whiteMaskGenotype) {
+        for (const auto& allele : *whiteMaskGenotype) {
+            const std::string cleaned = stripNonAlnum(allele);
+            if (cleaned == "W") {
+                hasDominantWhite = true;
+                break;
+            }
+            const std::string normalized = toUpperCopy(cleaned);
+            if (normalized == "WHITE" || normalized == "WMASK") {
+                hasDominantWhite = true;
+                break;
+            }
+        }
+    }
+
+    bool isDilute = false;
+    if (diluteGenotype && !diluteGenotype->empty()) {
+        if (diluteGenotype->size() == 2) {
+            isDilute = true;
+            for (const auto& allele : *diluteGenotype) {
+                const std::string cleaned = stripNonAlnum(allele);
+                if (cleaned != "d") {
+                    isDilute = false;
+                    break;
+                }
+            }
+        }
+    }
+
+    std::string coatDescriptor;
+    if (hasDominantWhite) {
+        coatDescriptor = "Solid White";
+    } else if (blackOrangeGenotype && !blackOrangeGenotype->empty()) {
+        bool hasBlackAllele = false;
+        bool hasOrangeAllele = false;
+        for (const auto& allele : *blackOrangeGenotype) {
+            std::string cleaned = stripNonAlnum(allele);
+            std::string upper = toUpperCopy(cleaned);
+            if (upper == "XB" || upper == "B") {
+                hasBlackAllele = true;
+            } else if (upper == "XO" || upper == "O") {
+                hasOrangeAllele = true;
+            }
+        }
+
+        if (individual.sex == Sex::Female) {
+            if (hasBlackAllele && hasOrangeAllele) {
+                coatDescriptor = isDilute ? "Dilute Tortoiseshell Female" : "Tortoiseshell Female";
+            } else if (hasBlackAllele) {
+                coatDescriptor = isDilute ? "Blue Female" : "Black Female";
+            } else if (hasOrangeAllele) {
+                coatDescriptor = isDilute ? "Cream Female" : "Orange Female";
+            }
+        } else {
+            if (hasBlackAllele) {
+                coatDescriptor = isDilute ? "Blue Male" : "Black Male";
+            } else if (hasOrangeAllele) {
+                coatDescriptor = isDilute ? "Cream Male" : "Orange Male";
+            }
+        }
+    }
+
+    // Override the quantitative value and descriptors for qualitative traits.
+    coatExpr.quantitative = 0.0;
+    coatExpr.descriptors.clear();
+    if (!coatDescriptor.empty()) {
+        coatExpr.descriptors.push_back(coatDescriptor);
+    }
+
+    pigmentExpr.quantitative = 0.0;
+    pigmentExpr.descriptors.clear();
+    if (diluteGenotype && !diluteGenotype->empty()) {
+        pigmentExpr.descriptors.push_back(isDilute ? "Dilute" : "Dense");
+    }
+}
+
+void Engine::applyLinkageTraits(Phenotype& phenotype) const {
+    for (const auto& entry : linkageMap_) {
+        const auto& genes = entry.second;
+        if (genes.size() < 2) {
+            continue;
+        }
+
+        auto traitListIt = linkageTraitIds_.find(entry.first);
+        if (traitListIt == linkageTraitIds_.end() || traitListIt->second.empty()) {
+            continue;
+        }
+
+        std::vector<std::string> descriptorPieces;
+        std::vector<std::string> processedTraitIds;
+        descriptorPieces.reserve(traitListIt->second.size());
+
+        for (const std::string& traitId : traitListIt->second) {
+            auto traitIt = phenotype.traits.find(traitId);
+            if (traitIt == phenotype.traits.end()) {
+                continue;
+            }
+            TraitExpression& expr = traitIt->second;
+
+            std::string piece;
+            if (expr.descriptors.empty()) {
+                piece = expr.summary();
+            } else if (expr.descriptors.size() == 1) {
+                piece = expr.descriptors.front();
+            } else {
+                for (std::size_t i = 0; i < expr.descriptors.size(); ++i) {
+                    if (!piece.empty()) {
+                        piece += "/";
+                    }
+                    piece += expr.descriptors[i];
+                }
+            }
+
+            descriptorPieces.push_back(piece);
+            processedTraitIds.push_back(traitId);
+        }
+
+        if (descriptorPieces.empty()) {
+            continue;
+        }
+
+        std::string combinedDescriptor = descriptorPieces.front();
+        for (std::size_t i = 1; i < descriptorPieces.size(); ++i) {
+            combinedDescriptor += ", " + descriptorPieces[i];
+        }
+
+        std::string combinedTraitId;
+        for (std::size_t i = 0; i < processedTraitIds.size(); ++i) {
+            if (i > 0) {
+                combinedTraitId += "_";
+            }
+            combinedTraitId += processedTraitIds[i];
+        }
+        if (combinedTraitId.empty()) {
+            combinedTraitId = "linkage_group_" + std::to_string(entry.first);
+        }
+
+        for (const std::string& traitId : processedTraitIds) {
+            phenotype.traits.erase(traitId);
+        }
+
+        TraitExpression& combinedExpr = phenotype.traits[combinedTraitId];
+        combinedExpr.quantitative = 0.0;
+        combinedExpr.descriptors.clear();
+        combinedExpr.descriptors.push_back(combinedDescriptor);
     }
 }
 

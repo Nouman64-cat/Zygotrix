@@ -38,7 +38,7 @@ def run_cpp_cross(request: GeneticCrossRequest) -> GeneticCrossResponse:
     cli_path = _load_cli_path()
 
     payload = json.dumps(
-        request.dict(by_alias=True, exclude_none=True),
+        request.model_dump(exclude_none=True),
         separators=(",", ":"),
     )
 

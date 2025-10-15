@@ -8,6 +8,7 @@
 #include <stdexcept>
 #include <string>
 #include <unordered_map>
+#include <sstream>
 
 using json11::Json;
 using namespace zygotrix;
@@ -115,6 +116,12 @@ int main() {
     try {
         EngineConfig config;
 
+        std::unordered_map<std::string, std::size_t> geneIndex;
+
+        std::vector<std::string> traitOrdering;
+        std::unordered_map<std::string, bool> traitSeen;
+        std::unordered_map<std::string, bool> traitSexSpecific;
+
         if (has_field(request, "genes")) {
             for (const Json& geneJson : request["genes"].array_items()) {
                 GeneDefinition gene;
@@ -145,14 +152,86 @@ int main() {
                             effect.magnitude = effectJson["magnitude"].number_value();
                             if (has_field(effectJson, "description")) {
                                 effect.description = effectJson["description"].string_value();
+                            } else if (has_field(effectJson, "descriptor")) {
+                                effect.description = effectJson["descriptor"].string_value();
                             }
+                            if (has_field(effectJson, "intermediate_descriptor")) {
+                                effect.intermediateDescriptor = effectJson["intermediate_descriptor"].string_value();
+                            }
+                            std::string traitIdForRegistration = effect.traitId;
                             allele.effects.push_back(std::move(effect));
+
+                            if (!traitIdForRegistration.empty()) {
+                                bool isSexLinked = gene.chromosome != ChromosomeType::Autosomal;
+                                auto [it, inserted] = traitSeen.emplace(traitIdForRegistration, true);
+                                if (inserted) {
+                                    traitOrdering.push_back(traitIdForRegistration);
+                                }
+                                if (isSexLinked) {
+                                    traitSexSpecific[traitIdForRegistration] = true;
+                                } else if (!traitSexSpecific.count(traitIdForRegistration)) {
+                                    traitSexSpecific[traitIdForRegistration] = false;
+                                }
+                            }
                         }
                     }
                     gene.alleles.push_back(std::move(allele));
                 }
 
+                std::size_t index = config.genes.size();
+                geneIndex.emplace(gene.id, index);
                 config.genes.push_back(std::move(gene));
+            }
+        }
+
+        if (has_field(request, "linkage")) {
+            std::size_t nextGroupId = 1;
+            for (const Json& linkageJson : request["linkage"].array_items()) {
+                std::vector<std::string> geneNames;
+                if (has_field(linkageJson, "genes")) {
+                    const Json& genesArray = linkageJson["genes"];
+                    if (genesArray.is_array()) {
+                        for (const Json& entry : genesArray.array_items()) {
+                            if (entry.is_string()) {
+                                geneNames.push_back(entry.string_value());
+                            }
+                        }
+                    } else if (genesArray.is_string()) {
+                        geneNames.push_back(genesArray.string_value());
+                    }
+                } else {
+                    for (const char* key : {"gene1_id", "gene2_id", "gene1", "gene2"}) {
+                        if (has_field(linkageJson, key)) {
+                            geneNames.push_back(linkageJson[key].string_value());
+                        }
+                    }
+                }
+
+                std::vector<std::string> deduped;
+                for (const std::string& name : geneNames) {
+                    if (!name.empty() &&
+                        std::find(deduped.begin(), deduped.end(), name) == deduped.end()) {
+                        deduped.push_back(name);
+                    }
+                }
+                if (deduped.size() < 2) {
+                    continue;
+                }
+
+                std::size_t groupId = nextGroupId++;
+                double recombination = 0.5;
+                if (has_field(linkageJson, "recombination_frequency")) {
+                    recombination = linkageJson["recombination_frequency"].number_value();
+                }
+                for (const std::string& geneName : deduped) {
+                    auto it = geneIndex.find(geneName);
+                    if (it == geneIndex.end()) {
+                        continue;
+                    }
+                    GeneDefinition& gene = config.genes[it->second];
+                    gene.linkageGroup = groupId;
+                    gene.recombinationProbability = recombination;
+                }
             }
         }
 
@@ -227,12 +306,23 @@ int main() {
         std::unordered_map<std::string, double> quantitativeSums;
         std::unordered_map<std::string, int> quantitativeCounts;
         std::unordered_map<std::string, int> sexCounts;
+        std::unordered_map<std::string, int> combinedDescriptorCounts;
+
+        std::string combinedTraitId;
+        if (!traitOrdering.empty()) {
+            combinedTraitId = traitOrdering.front();
+            for (std::size_t i = 1; i < traitOrdering.size(); ++i) {
+                combinedTraitId += "_" + traitOrdering[i];
+            }
+        }
 
         for (int i = 0; i < simulations; ++i) {
             Individual child = engine.mate(mother, father);
             Phenotype phenotype = engine.expressPhenotype(child);
 
             sexCounts[child.sex == Sex::Female ? "female" : "male"] += 1;
+
+            std::unordered_map<std::string, std::string> selectedDescriptors;
 
             for (const auto& traitPair : phenotype.traits) {
                 const std::string& traitId = traitPair.first;
@@ -241,10 +331,55 @@ int main() {
                 quantitativeCounts[traitId] += 1;
                 if (expression.descriptors.empty()) {
                     descriptorCounts[traitId][""] += 1;
+                    selectedDescriptors[traitId] = "";
                 } else {
                     for (const std::string& descriptor : expression.descriptors) {
                         descriptorCounts[traitId][descriptor] += 1;
                     }
+                    selectedDescriptors[traitId] = expression.descriptors.front();
+                }
+            }
+
+            if (!combinedTraitId.empty()) {
+                std::vector<std::string> parts;
+                parts.reserve(traitOrdering.size());
+                for (const auto& traitId : traitOrdering) {
+                    auto it = selectedDescriptors.find(traitId);
+                    std::string descriptor;
+                    if (it != selectedDescriptors.end()) {
+                        descriptor = it->second;
+                    } else {
+                        auto traitIt = phenotype.traits.find(traitId);
+                        if (traitIt != phenotype.traits.end()) {
+                            const TraitExpression& expr = traitIt->second;
+                            if (!expr.descriptors.empty()) {
+                                descriptor = expr.descriptors.front();
+                            } else {
+                                std::ostringstream os;
+                                os << expr.quantitative;
+                                descriptor = os.str();
+                            }
+                        }
+                    }
+
+                    if (traitSexSpecific[traitId]) {
+                        if (!descriptor.empty()) {
+                            descriptor += " ";
+                        }
+                        descriptor += child.sex == Sex::Female ? "Female" : "Male";
+                    }
+
+                    if (!descriptor.empty()) {
+                        parts.push_back(descriptor);
+                    }
+                }
+
+                if (!parts.empty()) {
+                    std::string combinedDescriptor = parts.front();
+                    for (std::size_t idx = 1; idx < parts.size(); ++idx) {
+                        combinedDescriptor += ", " + parts[idx];
+                    }
+                    combinedDescriptorCounts[combinedDescriptor] += 1;
                 }
             }
         }
@@ -268,6 +403,18 @@ int main() {
             }
             traitObj.emplace("descriptor_counts", Json(descriptorObj));
             traitsJson.emplace(traitId, Json(traitObj));
+        }
+
+        if (traitOrdering.size() > 1 && !combinedDescriptorCounts.empty()) {
+            Json::JsonObject traitObj;
+            traitObj.emplace("mean_quantitative", Json(0.0));
+
+            Json::JsonObject descriptorObj;
+            for (const auto& entry : combinedDescriptorCounts) {
+                descriptorObj.emplace(entry.first, Json(static_cast<int>(entry.second)));
+            }
+            traitObj.emplace("descriptor_counts", Json(descriptorObj));
+            traitsJson[combinedTraitId] = Json(traitObj);
         }
 
         Json::JsonObject sexJson;

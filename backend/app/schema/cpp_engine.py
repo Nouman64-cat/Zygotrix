@@ -1,9 +1,9 @@
 from __future__ import annotations
 
 from enum import Enum
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator, validator
 
 
 class ChromosomeType(str, Enum):
@@ -35,6 +35,20 @@ class AlleleEffect(BaseModel):
     trait_id: str = Field(..., alias="trait_id")
     magnitude: float
     description: Optional[str] = None
+    intermediate_descriptor: Optional[str] = Field(None, alias="intermediate_descriptor")
+
+    @model_validator(mode="before")
+    def allow_descriptor(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        if isinstance(values, dict):
+            descriptor = values.get("descriptor")
+            if descriptor and not values.get("description"):
+                values = dict(values)
+                values["description"] = descriptor
+            intermediate = values.get("intermediateDescriptor")
+            if intermediate and not values.get("intermediate_descriptor"):
+                values = dict(values)
+                values["intermediate_descriptor"] = intermediate
+        return values
 
 
 class AlleleDefinition(BaseModel):
@@ -60,6 +74,47 @@ class GeneDefinition(BaseModel):
         if not value:
             raise ValueError("At least one allele definition is required")
         return value
+
+
+class LinkageDefinition(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+    genes: List[str]
+    recombination_frequency: Optional[float] = Field(0.5, alias="recombination_frequency")
+
+    @model_validator(mode="before")
+    def normalize_structure(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        if not isinstance(values, dict):
+            return values
+        data = dict(values)
+        if "genes" not in data or not data["genes"]:
+            gene_ids: List[str] = []
+            for key in ("gene1_id", "gene2_id", "gene1", "gene2"):
+                if key in data and data[key]:
+                    gene_ids.append(data[key])
+            if "gene_ids" in data and data["gene_ids"]:
+                gene_ids.extend(data["gene_ids"])
+            if "genes" in data and isinstance(data["genes"], str):
+                gene_ids.append(data["genes"])
+            if gene_ids:
+                data["genes"] = gene_ids
+        if "genes" not in data:
+            data["genes"] = []
+        genes_value = data["genes"]
+        if isinstance(genes_value, str):
+            genes_value = [genes_value]
+        if isinstance(genes_value, list):
+            deduped = []
+            for item in genes_value:
+                if item and item not in deduped:
+                    deduped.append(item)
+            data["genes"] = deduped
+        return data
+
+    @model_validator(mode="after")
+    def ensure_minimum_genes(self) -> "LinkageDefinition":
+        if len(self.genes) < 2:
+            raise ValueError("Linkage definitions require at least two genes")
+        return self
 
 
 class EpistasisRule(BaseModel):
@@ -133,6 +188,7 @@ class GeneticCrossRequest(BaseModel):
         },
     )
     genes: List[GeneDefinition]
+    linkage: List[LinkageDefinition] = Field(default_factory=list)
     epistasis: List[EpistasisRule] = Field(default_factory=list)
     mother: ParentGenotype
     father: ParentGenotype

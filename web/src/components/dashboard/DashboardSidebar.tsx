@@ -79,9 +79,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       ),
     },
     {
-      id: "traits",
-      label: "Trait Management",
-      href: "/portal/traits",
+      id: "genetic-cross",
+      label: "Genetic Cross",
+      href: "/portal/genetic-cross",
       icon: (
         <svg
           className="w-5 h-5"
@@ -93,28 +93,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             strokeLinecap="round"
             strokeLinejoin="round"
             strokeWidth={2}
-            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: "traits-playground",
-      label: "Trait Playground",
-      href: "/portal/traits/playground",
-      isChild: true,
-      icon: (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 6h16M4 10h10m-7 4h7m-4 4h10"
+            d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z"
           />
         </svg>
       ),
@@ -159,95 +138,95 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </svg>
       ),
     },
-    {
-      id: "data",
-      label: "Data Management",
-      href: "/portal/data",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: "data-import",
-      label: "VCF / CSV Import",
-      href: "/portal/data/import",
-      isChild: true,
-      icon: (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M4 4v16h16M16 10l-4 4-4-4m4 4V4"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: "population",
-      label: "Population presets",
-      href: "/portal/population",
-      isChild: true,
-      icon: (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 12s2-4 9-4 9 4 9 4-2 4-9 4-9-4-9-4z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 8v8"
-          />
-        </svg>
-      ),
-    },
-    {
-      id: "pgs-demo",
-      label: "GWAS-lite demo",
-      href: "/portal/pgs-demo",
-      isChild: true,
-      icon: (
-        <svg
-          className="w-4 h-4"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 3v18h18M7 16l4-8 3 6 2-4 2 6"
-          />
-        </svg>
-      ),
-    },
+    // {
+    //   id: "data",
+    //   label: "Data Management",
+    //   href: "/portal/data",
+    //   icon: (
+    //     <svg
+    //       className="w-5 h-5"
+    //       fill="none"
+    //       stroke="currentColor"
+    //       viewBox="0 0 24 24"
+    //     >
+    //       <path
+    //         strokeLinecap="round"
+    //         strokeLinejoin="round"
+    //         strokeWidth={2}
+    //         d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4m0 5c0 2.21-3.582 4-8 4s-8-1.79-8-4"
+    //       />
+    //     </svg>
+    //   ),
+    // },
+    // {
+    //   id: "data-import",
+    //   label: "VCF / CSV Import",
+    //   href: "/portal/data/import",
+    //   isChild: true,
+    //   icon: (
+    //     <svg
+    //       className="w-4 h-4"
+    //       fill="none"
+    //       stroke="currentColor"
+    //       viewBox="0 0 24 24"
+    //     >
+    //       <path
+    //         strokeLinecap="round"
+    //         strokeLinejoin="round"
+    //         strokeWidth={2}
+    //         d="M4 4v16h16M16 10l-4 4-4-4m4 4V4"
+    //       />
+    //     </svg>
+    //   ),
+    // },
+    // {
+    //   id: "population",
+    //   label: "Population presets",
+    //   href: "/portal/population",
+    //   isChild: true,
+    //   icon: (
+    //     <svg
+    //       className="w-4 h-4"
+    //       fill="none"
+    //       stroke="currentColor"
+    //       viewBox="0 0 24 24"
+    //     >
+    //       <path
+    //         strokeLinecap="round"
+    //         strokeLinejoin="round"
+    //         strokeWidth={2}
+    //         d="M3 12s2-4 9-4 9 4 9 4-2 4-9 4-9-4-9-4z"
+    //       />
+    //       <path
+    //         strokeLinecap="round"
+    //         strokeLinejoin="round"
+    //         strokeWidth={2}
+    //         d="M12 8v8"
+    //       />
+    //     </svg>
+    //   ),
+    // },
+    // {
+    //   id: "pgs-demo",
+    //   label: "GWAS-lite demo",
+    //   href: "/portal/pgs-demo",
+    //   isChild: true,
+    //   icon: (
+    //     <svg
+    //       className="w-4 h-4"
+    //       fill="none"
+    //       stroke="currentColor"
+    //       viewBox="0 0 24 24"
+    //     >
+    //       <path
+    //         strokeLinecap="round"
+    //         strokeLinejoin="round"
+    //         strokeWidth={2}
+    //         d="M3 3v18h18M7 16l4-8 3 6 2-4 2 6"
+    //       />
+    //     </svg>
+    //   ),
+    // },
     {
       id: "profile",
       label: "Profile",

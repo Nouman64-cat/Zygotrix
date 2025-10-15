@@ -31,8 +31,8 @@ const PortalPage: React.FC = () => {
       color: "bg-blue-500",
     },
     {
-      title: "Manage Traits",
-      href: "/portal/traits",
+      title: "Genetic Cross",
+      href: "/portal/genetic-cross",
       icon: <FaDna className="w-4 h-4" />,
       color: "bg-green-500",
     },
@@ -105,9 +105,9 @@ const PortalPage: React.FC = () => {
               description="Genetic traits you've created"
               icon={<FaDna className="w-6 h-6" />}
               actionButton={{
-                label: "Manage Traits",
+                label: "Launch Genetic Cross",
                 onClick: () => {
-                  navigate("/portal/traits");
+                  navigate("/portal/genetic-cross");
                 },
                 variant: "primary",
               }}

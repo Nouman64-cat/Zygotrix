@@ -17,19 +17,18 @@ import PreferencesPage from "./pages/PreferencesPage";
 import ProfilePage from "./pages/ProfilePage";
 import ProjectWorkspace from "./pages/ProjectWorkspace";
 import SettingsPage from "./pages/SettingsPage";
-import TraitManagementPage from "./pages/TraitManagementPage";
 import BrowseTraitsPage from "./pages/BrowseTraitsPage";
 import SignInPage from "./pages/SignInPage";
 import SignUpPage from "./pages/SignUpPage";
 import ProjectsPage from "./pages/ProjectsPage";
 import TeamMemberPage from "./pages/TeamMemberPage";
-import TraitPlaygroundPage from "./pages/TraitPlaygroundPage";
 import DataImportPage from "./pages/DataImportPage";
 import PopulationSimPage from "./pages/PopulationSimPage";
 import PGSDemoPage from "./pages/PGSDemoPage";
 import CommunityPage from "./pages/CommunityPage";
 import QuestionDetailPage from "./pages/QuestionDetailPage";
 import AskQuestionPage from "./pages/AskQuestionPage";
+import GeneticCrossPage from "./pages/GeneticCrossPage";
 
 const App: React.FC = () => {
   return (
@@ -67,26 +66,18 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/traits"
-        element={
-          <RequireAuth>
-            <TraitManagementPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="portal/traits/playground"
-        element={
-          <RequireAuth>
-            <TraitPlaygroundPage />
-          </RequireAuth>
-        }
-      />
-      <Route
         path="portal/browse-traits"
         element={
           <RequireAuth>
             <BrowseTraitsPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="portal/genetic-cross"
+        element={
+          <RequireAuth>
+            <GeneticCrossPage />
           </RequireAuth>
         }
       />

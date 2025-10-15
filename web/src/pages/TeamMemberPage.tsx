@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
 import ReactMarkdown from "react-markdown";
+import type { Components } from "react-markdown";
 import remarkGfm from "remark-gfm";
 import {
   FaLinkedin,
@@ -14,6 +15,57 @@ import { useTeamMember } from "../hooks/useTeamMember";
 import { fetchBlogsByAuthor } from "../services/hygraphApi";
 import type { BlogListEntry } from "../types/blog";
 import { FiCalendar, FiArrowRight } from "react-icons/fi";
+
+const markdownComponents = {
+  h1: ({ children }: any) => (
+    <h1 className="text-6xl font-bold text-slate-900 mt-8 mb-4 first:mt-0">
+      {children}
+    </h1>
+  ),
+  h2: ({ children }: any) => (
+    <h2 className="text-5xl font-bold text-slate-900 mt-8 mb-4">{children}</h2>
+  ),
+  h3: ({ children }: any) => (
+    <h3 className="text-4xl font-bold text-slate-900 mt-6 mb-3">{children}</h3>
+  ),
+  h4: ({ children }: any) => (
+    <h4 className="text-3xl font-bold text-slate-800 mt-6 mb-3">{children}</h4>
+  ),
+  h5: ({ children }: any) => (
+    <h5 className="text-base font-semibold text-slate-700 mt-6 mb-3 uppercase tracking-wide">
+      {children}
+    </h5>
+  ),
+  h6: ({ children }: any) => (
+    <h6 className="text-sm font-semibold text-slate-600 mt-5 mb-3 uppercase tracking-[0.2em]">
+      {children}
+    </h6>
+  ),
+  p: ({ children }: any) => (
+    <p className="text-slate-700 text-base leading-relaxed mb-6">{children}</p>
+  ),
+  ul: ({ children }: any) => (
+    <ul className=" text-base text-slate-700 mb-6 space-y-2">{children}</ul>
+  ),
+  ol: ({ children }: any) => (
+    <ol className=" text-base text-slate-700 mb-6 space-y-2">{children}</ol>
+  ),
+  blockquote: ({ children }: any) => (
+    <blockquote className="border-l-4 border-blue-600 pl-6 py-2 italic text-slate-700 bg-slate-50 rounded-r-lg mb-6">
+      {children}
+    </blockquote>
+  ),
+  code: ({ children }: any) => (
+    <code className="bg-slate-100 text-slate-800 px-2 py-1 rounded text-sm font-mono">
+      {children}
+    </code>
+  ),
+  pre: ({ children }: any) => (
+    <pre className="bg-slate-900 text-slate-100 p-6 rounded-lg overflow-x-auto mb-6">
+      {children}
+    </pre>
+  ),
+};
 
 const TeamMemberPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -219,8 +271,8 @@ const TeamMemberPage: React.FC = () => {
           | bio    |              |
         */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
-          {/* Left Column */}
-          <div className="space-y-4">
+          {/* Left Column (Scrollable) */}
+          <div className="space-y-4 overflow-y-auto pr-2 lg:pr-0">
             {/* name */}
             <h1 className="text-3xl font-bold bg-gradient-to-r from-[#1E3A8A] to-blue-600 bg-clip-text text-transparent lg:text-4xl">
               {teamMember.name}
@@ -231,13 +283,16 @@ const TeamMemberPage: React.FC = () => {
             </span>
             {/* bio */}
             <div className="prose prose-slate prose-lg max-w-none prose-headings:text-[#1E3A8A] prose-strong:text-[#1E3A8A] prose-links:text-blue-600 prose-links:no-underline hover:prose-links:underline prose-p:text-slate-700 prose-p:leading-relaxed prose-p:mb-6 [&>p]:mb-6 [&>p:last-child]:mb-0">
-              <ReactMarkdown remarkPlugins={[remarkGfm]}>
+              <ReactMarkdown
+                remarkPlugins={[remarkGfm]}
+                components={markdownComponents}
+              >
                 {teamMember.bio.markdown}
               </ReactMarkdown>
             </div>
           </div>
-          {/* Right Column */}
-          <div className="space-y-6 lg:border-l lg:pl-8 lg:border-slate-200">
+          {/* Right Column (Sticky) */}
+          <div className="space-y-6 lg:border-l lg:pl-8 lg:border-slate-200 lg:sticky lg:top-24">
             {/* image */}
             <div className="relative z-10 overflow-hidden rounded-2xl border-2 border-blue-200 bg-white/90 p-4 shadow-xl shadow-blue-500/10 max-w-sm mx-auto lg:mx-0">
               <div className="aspect-square overflow-hidden rounded-xl ring-2 ring-blue-100 flex items-center justify-center bg-slate-100">

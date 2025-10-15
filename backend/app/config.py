@@ -65,6 +65,11 @@ class Settings:
     signup_otp_ttl_minutes: int = _get_int("SIGNUP_OTP_TTL_MINUTES", 10)
     # Trait source control: when true, serve traits from JSON only and disable trait CRUD
     traits_json_only: bool = _get_bool("TRAITS_JSON_ONLY", False)
+    _default_cli = "zyg_cross_cli.exe" if os.name == "nt" else "zyg_cross_cli"
+    cpp_engine_cli_path: str = os.getenv(
+        "CPP_ENGINE_CLI_PATH",
+        os.path.join("..", "zygotrix_engine_cpp", "build", _default_cli),
+    )
 
     @property
     def is_development(self) -> bool:

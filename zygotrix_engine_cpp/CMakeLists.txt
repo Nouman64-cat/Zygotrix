@@ -19,5 +19,14 @@ target_include_directories(zygotrix_engine
 add_executable(zyg_demo examples/demo.cpp)
 target_link_libraries(zyg_demo PRIVATE zygotrix_engine)
 
-enable_testing()
+add_executable(zyg_cross_cli
+    src/CrossCli.cpp
+    third_party/json11/json11.cpp
+)
+target_link_libraries(zyg_cross_cli PRIVATE zygotrix_engine)
+target_include_directories(zyg_cross_cli PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
+)
 
+enable_testing()

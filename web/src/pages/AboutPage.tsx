@@ -79,6 +79,24 @@ const getSocialIcon = (platform: string) => {
       return <FaTwitter className="h-5 w-5" />;
     case "instagram":
       return <FaInstagram className="h-5 w-5" />;
+    case "academia":
+      return (
+        <span
+          className="h-5 w-5 flex items-center justify-center font-bold text-2xl text-gray-700"
+          style={{ fontFamily: "serif" }}
+        >
+          A
+        </span>
+      );
+    case "researchgate":
+      return (
+        <span
+          className="h-5 w-5 flex items-center justify-center font-bold text-gray-700"
+          style={{ fontFamily: "serif", fontSize: "1.1rem" }}
+        >
+          R<sup className="text-xs align-super">G</sup>
+        </span>
+      );
     default:
       return <FaExternalLinkAlt className="h-4 w-4" />;
   }

@@ -10,6 +10,7 @@ export interface TeamMemberBio {
 
 export interface TeamMemberPhoto {
   url: string;
+  fileName?: string | null;
 }
 
 export interface TeamMember {
@@ -18,6 +19,8 @@ export interface TeamMember {
   photo: TeamMemberPhoto;
   role: string;
   slug: string;
+  founder?: boolean | null;
+  introduction?: string | null;
   socialProfiles: SocialProfile[];
 }
 
@@ -25,4 +28,22 @@ export interface TeamMemberResponse {
   data: {
     teamMember: TeamMember;
   };
+  errors?: Array<{ message: string }>;
+}
+
+export interface TeamMemberSummary {
+  name: string;
+  photo: TeamMemberPhoto | null;
+  role: string;
+  slug: string;
+  introduction: string | null;
+  founder?: boolean | null;
+  socialProfiles: SocialProfile[];
+}
+
+export interface TeamMembersResponse {
+  data: {
+    teamMembers: TeamMemberSummary[];
+  };
+  errors?: Array<{ message: string }>;
 }

@@ -240,12 +240,23 @@ const TeamMemberPage: React.FC = () => {
           <div className="space-y-6 lg:border-l lg:pl-8 lg:border-slate-200">
             {/* image */}
             <div className="relative z-10 overflow-hidden rounded-2xl border-2 border-blue-200 bg-white/90 p-4 shadow-xl shadow-blue-500/10 max-w-sm mx-auto lg:mx-0">
-              <div className="aspect-square overflow-hidden rounded-xl ring-2 ring-blue-100">
-                <img
-                  src={teamMember.photo.url}
-                  alt={teamMember.name}
-                  className="h-full w-full object-cover transition duration-300 hover:scale-105"
-                />
+              <div className="aspect-square overflow-hidden rounded-xl ring-2 ring-blue-100 flex items-center justify-center bg-slate-100">
+                {teamMember.photo && teamMember.photo.url ? (
+                  <img
+                    src={teamMember.photo.url}
+                    alt={teamMember.name}
+                    className="h-full w-full object-cover transition duration-300 hover:scale-105"
+                  />
+                ) : (
+                  <span className="text-4xl font-bold text-slate-400 select-none">
+                    {teamMember.name
+                      .split(" ")
+                      .filter(Boolean)
+                      .slice(0, 2)
+                      .map((part) => part.charAt(0).toUpperCase())
+                      .join("")}
+                  </span>
+                )}
               </div>
             </div>
             {/* social links */}

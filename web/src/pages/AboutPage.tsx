@@ -1,9 +1,143 @@
-import React from "react";
+﻿import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
-import { FaLinkedin, FaGithub, FaUsers } from "react-icons/fa";
+import {
+  FaLinkedin,
+  FaGithub,
+  FaUsers,
+  FaTwitter,
+  FaInstagram,
+  FaExternalLinkAlt,
+} from "react-icons/fa";
 import { HiBeaker, HiCog } from "react-icons/hi";
 
+import { fetchTeamMembers } from "../services/teamMember";
+import type { TeamMemberSummary } from "../types/teamMember";
 import logo from "../../public/zygotrix-logo.png";
+
+const cardPalettes = [
+  {
+    cardClass: "bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30",
+    overlayClass:
+      "bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-pink-400/5",
+    glowGradient: "from-blue-400 to-purple-400",
+    titleGradient: "from-slate-900 to-blue-900",
+    hoverTitleGradient: "group-hover:from-blue-600 group-hover:to-purple-600",
+    arrowColor: "text-blue-600",
+  },
+  {
+    cardClass: "bg-gradient-to-br from-white via-pink-50/30 to-purple-50/30",
+    overlayClass:
+      "bg-gradient-to-br from-pink-400/5 via-purple-400/5 to-blue-400/5",
+    glowGradient: "from-pink-400 to-purple-400",
+    titleGradient: "from-slate-900 to-pink-900",
+    hoverTitleGradient: "group-hover:from-pink-600 group-hover:to-purple-600",
+    arrowColor: "text-pink-600",
+  },
+  {
+    cardClass: "bg-gradient-to-br from-white via-emerald-50/30 to-cyan-50/30",
+    overlayClass:
+      "bg-gradient-to-br from-emerald-400/5 via-cyan-400/5 to-blue-400/5",
+    glowGradient: "from-emerald-400 to-cyan-400",
+    titleGradient: "from-slate-900 to-emerald-900",
+    hoverTitleGradient: "group-hover:from-emerald-600 group-hover:to-cyan-600",
+    arrowColor: "text-emerald-600",
+  },
+] as const;
+
+const inferPlatform = (platform?: string | null, url?: string) => {
+  if (platform && platform.trim()) {
+    return platform.trim().toLowerCase();
+  }
+
+  if (!url) {
+    return "website";
+  }
+
+  try {
+    const host = new URL(url).hostname.toLowerCase();
+
+    if (host.includes("linkedin")) return "linkedin";
+    if (host.includes("github")) return "github";
+    if (host.includes("twitter") || host.includes("x.com")) return "twitter";
+    if (host.includes("instagram")) return "instagram";
+    if (host.includes("researchgate")) return "researchgate";
+    if (host.includes("academia")) return "academia";
+  } catch {
+    // Ignore URL parsing failures and fall back to website
+  }
+
+  return "website";
+};
+
+const getSocialIcon = (platform: string) => {
+  switch (platform) {
+    case "linkedin":
+      return <FaLinkedin className="h-5 w-5" />;
+    case "github":
+      return <FaGithub className="h-5 w-5" />;
+    case "twitter":
+      return <FaTwitter className="h-5 w-5" />;
+    case "instagram":
+      return <FaInstagram className="h-5 w-5" />;
+    default:
+      return <FaExternalLinkAlt className="h-4 w-4" />;
+  }
+};
+
+const getSocialButtonClasses = (platform: string) => {
+  switch (platform) {
+    case "linkedin":
+      return "text-blue-600 hover:text-blue-700";
+    case "github":
+      return "text-slate-700 hover:text-slate-900";
+    case "twitter":
+      return "text-sky-500 hover:text-sky-600";
+    case "instagram":
+      return "text-pink-500 hover:text-pink-600";
+    case "researchgate":
+      return "text-emerald-600 hover:text-emerald-700";
+    case "academia":
+      return "text-amber-600 hover:text-amber-700";
+    default:
+      return "text-indigo-600 hover:text-indigo-700";
+  }
+};
+
+const getPlatformLabel = (platform: string) => {
+  switch (platform) {
+    case "linkedin":
+      return "LinkedIn";
+    case "github":
+      return "GitHub";
+    case "twitter":
+      return "Twitter";
+    case "instagram":
+      return "Instagram";
+    case "researchgate":
+      return "ResearchGate";
+    case "academia":
+      return "Academia";
+    default:
+      return "website";
+  }
+};
+
+const getInitials = (name: string) => {
+  return (
+    name
+      .split(" ")
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((part) => part.charAt(0).toUpperCase())
+      .join("") || "?"
+  );
+};
+
+const buildFallbackIntro = (member: TeamMemberSummary) => {
+  const firstName = member.name.split(" ")[0] || member.name;
+  const role = member.role || "team member";
+  return `${firstName} contributes to Zygotrix as ${role}.`;
+};
 
 const values = [
   {
@@ -30,6 +164,46 @@ const values = [
 ];
 
 const AboutPage: React.FC = () => {
+  const [teamMembers, setTeamMembers] = useState<TeamMemberSummary[]>([]);
+  const [teamLoading, setTeamLoading] = useState(true);
+  const [teamError, setTeamError] = useState<string | null>(null);
+  const [retryKey, setRetryKey] = useState(0);
+
+  useEffect(() => {
+    const controller = new AbortController();
+    let isMounted = true;
+
+    setTeamLoading(true);
+    setTeamError(null);
+
+    fetchTeamMembers(controller.signal)
+      .then((members) => {
+        if (!isMounted) return;
+        setTeamMembers(members);
+      })
+      .catch((error) => {
+        if (!isMounted) return;
+        if (error instanceof DOMException && error.name === "AbortError") {
+          return;
+        }
+        setTeamError(
+          error instanceof Error ? error.message : "Failed to load team members"
+        );
+      })
+      .finally(() => {
+        if (isMounted) {
+          setTeamLoading(false);
+        }
+      });
+
+    return () => {
+      isMounted = false;
+      controller.abort();
+    };
+  }, [retryKey]);
+
+  const handleRetry = () => setRetryKey((prev) => prev + 1);
+
   return (
     <div className="bg-gradient-to-b from-white via-blue-50/30 to-slate-50 min-h-screen">
       {/* Background Pattern */}
@@ -168,324 +342,165 @@ const AboutPage: React.FC = () => {
             </p>
           </div>
 
+          {teamError && (
+            <div className="mx-auto mb-10 max-w-3xl rounded-3xl border border-red-200 bg-red-50/80 p-6 text-center text-red-600 shadow-sm">
+              <p className="text-sm sm:text-base font-semibold">
+                We're having trouble loading the team roster.
+              </p>
+              <p className="mt-2 text-xs sm:text-sm text-red-500/80">
+                {teamError}
+              </p>
+              <button
+                type="button"
+                onClick={handleRetry}
+                className="mt-4 inline-flex items-center justify-center rounded-full border border-red-300 bg-white px-4 py-2 text-sm font-semibold text-red-600 transition hover:bg-red-100"
+              >
+                Try again
+              </button>
+            </div>
+          )}
+
           <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {/* Member: Nouman Ejaz */}
-            <Link
-              to="/team/nouman-ejaz"
-              className="group relative overflow-hidden rounded-3xl border-2 border-white/80 bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30 p-8 shadow-xl shadow-blue-500/10 transition-all hover:shadow-2xl hover:shadow-blue-500/20 hover:scale-[1.02]"
-            >
-              {/* Background gradient */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-pink-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+            {teamLoading &&
+              [0, 1, 2].map((index) => (
+                <div
+                  key={`team-skeleton-${index}`}
+                  className="h-80 rounded-3xl border-2 border-white/60 bg-white/60 shadow-lg animate-pulse"
+                />
+              ))}
 
-              {/* Avatar with enhanced styling */}
-              <div className="relative mb-6 flex justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-blue-400 to-purple-400 blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                  <img
-                    src="https://gravatar.com/avatar/05ed2a266f4c7ec07bd9c099c0b2362998b6a27ff94a01626bece2b4bb614af5?v=1757321900000&size=256&d=initials"
-                    alt="Nouman Ejaz avatar"
-                    className="relative h-20 w-20 rounded-full border-4 border-white object-cover shadow-lg group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute -bottom-2 -right-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 p-2 shadow-lg">
-                    <FaGithub className="h-4 w-4 text-white" />
-                  </div>
-                </div>
-              </div>
+            {!teamLoading &&
+              teamMembers.map((member, index) => {
+                const palette = cardPalettes[index % cardPalettes.length];
+                const socialProfiles = (member.socialProfiles ?? []).filter(
+                  (profile) => profile && profile.url
+                );
+                const intro =
+                  member.introduction && member.introduction.trim().length > 0
+                    ? member.introduction
+                    : buildFallbackIntro(member);
+                const isFounder = Boolean(member.founder);
+                console.log(isFounder);
+                const badgeLabel = isFounder ? "Founder" : "Contributor";
+                const badgeClasses = isFounder
+                  ? "bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border border-blue-200"
+                  : "bg-gradient-to-r from-emerald-100 to-cyan-100 text-emerald-700 border border-emerald-200";
 
-              <div className="relative text-center">
-                <h3 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent group-hover:from-blue-600 group-hover:to-purple-600 transition-all duration-300">
-                  Nouman Ejaz
-                </h3>
-                <p className="text-sm text-slate-600 mt-1 mb-4">
-                  Software Engineer
-                </p>
-
-                <div className="flex flex-wrap justify-center gap-2 mb-4">
-                  <span className="rounded-full bg-gradient-to-r from-blue-100 to-purple-100 px-4 py-1.5 text-xs font-semibold text-blue-700 border border-blue-200">
-                    Founder
-                  </span>
-                  <span className="rounded-full bg-gradient-to-r from-emerald-100 to-cyan-100 px-4 py-1.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
-                    Maintainer
-                  </span>
-                </div>
-
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Founder and maintainer, Nouman builds reliable genetic
-                  analysis tools. He ensures Zygotrix is intuitive, rigorous,
-                  and extensible for teams translating complex inheritance
-                  models into actionable insights.
-                </p>
-
-                {/* Social links */}
-                <div className="mt-6 flex justify-center gap-4">
-                  <a
-                    href="https://www.linkedin.com/in/nouman-ejaz-64251125b/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full bg-white p-3 shadow-md hover:shadow-lg transition-all hover:scale-110 text-blue-600 hover:text-blue-700"
-                    aria-label="LinkedIn"
-                    onClick={(e) => e.stopPropagation()}
+                return (
+                  <Link
+                    key={member.slug}
+                    to={`/team/${member.slug}`}
+                    className={`group relative overflow-hidden rounded-3xl border-2 border-white/80 ${palette.cardClass} p-8 shadow-xl shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-slate-500/20 hover:scale-[1.02]`}
                   >
-                    <FaLinkedin className="h-5 w-5" />
-                  </a>
-                  <a
-                    href="https://github.com/Nouman64-cat"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full bg-white p-3 shadow-md hover:shadow-lg transition-all hover:scale-110 text-slate-700 hover:text-slate-900"
-                    aria-label="GitHub"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <FaGithub className="h-5 w-5" />
-                  </a>
-                </div>
-              </div>
-
-              {/* Hover indicator */}
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="rounded-full bg-white/90 backdrop-blur-sm p-2 shadow-lg">
-                  <svg
-                    className="h-4 w-4 text-blue-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
+                    <div
+                      className={`absolute inset-0 ${palette.overlayClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
                     />
-                  </svg>
-                </div>
-              </div>
-            </Link>
 
-            {/* Other team members with similar styling... */}
-            <Link
-              to="/team/tooba-noor"
-              className="group relative overflow-hidden rounded-3xl border-2 border-white/80 bg-gradient-to-br from-white via-pink-50/30 to-purple-50/30 p-8 shadow-xl shadow-pink-500/10 transition-all hover:shadow-2xl hover:shadow-pink-500/20 hover:scale-[1.02]"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-pink-400/5 via-purple-400/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                    <div className="relative mb-6 flex justify-center">
+                      <div className="relative">
+                        <div
+                          className={`absolute inset-0 rounded-full bg-gradient-to-r ${palette.glowGradient} blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300`}
+                        />
+                        {member.photo?.url ? (
+                          <img
+                            src={member.photo.url}
+                            alt={`${member.name} portrait`}
+                            className="relative h-20 w-20 rounded-full border-4 border-white object-cover shadow-lg group-hover:scale-110 transition-transform duration-300"
+                          />
+                        ) : (
+                          <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-slate-100 to-slate-200 text-2xl font-bold text-slate-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
+                            {getInitials(member.name)}
+                          </div>
+                        )}
+                      </div>
+                    </div>
 
-              <div className="relative mb-6 flex justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-pink-400 to-purple-400 blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                  <img
-                    src="/tooba.jpg"
-                    alt="Tooba Noor ul Eman"
-                    className="relative h-20 w-20 rounded-full border-4 border-white object-cover shadow-lg group-hover:scale-110 transition-transform duration-300"
-                  />
-                  <div className="absolute -bottom-2 -right-2 rounded-full bg-gradient-to-r from-pink-400 to-purple-400 p-2 shadow-lg">
-                    <FaLinkedin className="h-4 w-4 text-white" />
-                  </div>
-                </div>
-              </div>
+                    <div className="relative text-center">
+                      <h3
+                        className={`text-xl font-bold bg-gradient-to-r ${palette.titleGradient} bg-clip-text text-transparent transition-all duration-300 ${palette.hoverTitleGradient}`}
+                      >
+                        {member.name}
+                      </h3>
+                      <p className="text-sm text-slate-600 mt-1 mb-2">
+                        {member.role}
+                      </p>
 
-              <div className="relative text-center">
-                <h3 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-pink-900 bg-clip-text text-transparent group-hover:from-pink-600 group-hover:to-purple-600 transition-all duration-300">
-                  Tooba Noor ul Eman
-                </h3>
-                <p className="text-sm text-slate-600 mt-1 mb-4">
-                  Independent Researcher, BS Biochemistry
-                </p>
+                      <div className="flex flex-wrap justify-center gap-2 mb-4">
+                        <span
+                          className={`rounded-full px-4 py-1.5 text-xs font-semibold ${badgeClasses}`}
+                        >
+                          {badgeLabel}
+                        </span>
+                      </div>
 
-                <div className="flex flex-wrap justify-center gap-2 mb-4">
-                  <span className="rounded-full bg-gradient-to-r from-pink-100 to-purple-100 px-4 py-1.5 text-xs font-semibold text-pink-700 border border-pink-200">
-                    Contributor
-                  </span>
-                </div>
+                      <p className="text-sm text-slate-600 leading-relaxed">
+                        {intro}
+                      </p>
 
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Tooba, a biochemistry researcher, contributes genetics
-                  expertise to Zygotrix. She refines trait models and supports
-                  scientific accuracy, making genetic analysis accessible for
-                  diverse teams.
-                </p>
+                      {socialProfiles.length > 0 && (
+                        <div className="mt-6 flex justify-center gap-4">
+                          {socialProfiles.map((profile) => {
+                            const platform = inferPlatform(
+                              profile.platform,
+                              profile.url
+                            );
 
-                <div className="mt-6 flex justify-center gap-4">
-                  <a
-                    href="https://www.linkedin.com/in/tooba-noor-540556358/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full bg-white p-3 shadow-md hover:shadow-lg transition-all hover:scale-110 text-pink-600 hover:text-pink-700"
-                    aria-label="LinkedIn"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <FaLinkedin className="h-5 w-5" />
-                  </a>
-                </div>
-              </div>
+                            return (
+                              <a
+                                key={profile.url}
+                                href={profile.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className={`rounded-full bg-white p-3 shadow-md hover:shadow-lg transition-all hover:scale-110 ${getSocialButtonClasses(
+                                  platform
+                                )}`}
+                                aria-label={`${
+                                  member.name
+                                }'s ${getPlatformLabel(platform)} profile`}
+                                onClick={(event) => event.stopPropagation()}
+                              >
+                                {getSocialIcon(platform)}
+                              </a>
+                            );
+                          })}
+                        </div>
+                      )}
+                    </div>
 
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="rounded-full bg-white/90 backdrop-blur-sm p-2 shadow-lg">
-                  <svg
-                    className="h-4 w-4 text-pink-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </Link>
-
-            {/* Team Member: Anaab Fatimah */}
-            <Link
-              to="/team/anaab-fatima"
-              className="group relative overflow-hidden rounded-3xl border-2 border-white/80 bg-gradient-to-br from-white via-emerald-50/30 to-cyan-50/30 p-8 shadow-xl shadow-emerald-500/10 transition-all hover:shadow-2xl hover:shadow-emerald-500/20 hover:scale-[1.02]"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/5 via-cyan-400/5 to-blue-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-              <div className="relative mb-6 flex justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                  <div className="relative h-20 w-20 rounded-full border-4 border-white bg-gradient-to-br from-emerald-100 to-cyan-100 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-2xl font-bold text-emerald-700">
-                      AF
-                    </span>
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 p-2 shadow-lg">
-                    <FaLinkedin className="h-4 w-4 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative text-center">
-                <h3 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-emerald-900 bg-clip-text text-transparent group-hover:from-emerald-600 group-hover:to-cyan-600 transition-all duration-300">
-                  Anaab Fatima
-                </h3>
-                <p className="text-sm text-slate-600 mt-1 mb-4">
-                  Independent Researcher
-                </p>
-
-                <div className="flex flex-wrap justify-center gap-2 mb-4">
-                  <span className="rounded-full bg-gradient-to-r from-emerald-100 to-cyan-100 px-4 py-1.5 text-xs font-semibold text-emerald-700 border border-emerald-200">
-                    Contributor
-                  </span>
-                </div>
-
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Anaab Fatima is an independent researcher focused on genetic
-                  modeling, inheritance mechanisms, and predictive trait
-                  analysis. She refines trait models and supports scientific
-                  accuracy, making genetic analysis accessible for diverse
-                  teams.
-                </p>
-
-                <div className="mt-6 flex justify-center gap-4">
-                  <a
-                    href="#"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full bg-white p-3 shadow-md hover:shadow-lg transition-all hover:scale-110 text-emerald-600 hover:text-emerald-700"
-                    aria-label="LinkedIn"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <FaLinkedin className="h-5 w-5" />
-                  </a>
-                </div>
-              </div>
-
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="rounded-full bg-white/90 backdrop-blur-sm p-2 shadow-lg">
-                  <svg
-                    className="h-4 w-4 text-emerald-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </Link>
-
-            {/* Team Member: Abdul Roheem */}
-            <Link
-              to="/team/abdulroheem"
-              className="group relative overflow-hidden rounded-3xl border-2 border-white/80 bg-gradient-to-br from-white via-indigo-50/30 to-violet-50/30 p-8 shadow-xl shadow-indigo-500/10 transition-all hover:shadow-2xl hover:shadow-indigo-500/20 hover:scale-[1.02]"
-            >
-              <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/5 via-violet-400/5 to-purple-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-
-              <div className="relative mb-6 flex justify-center">
-                <div className="relative">
-                  <div className="absolute inset-0 rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300" />
-                  <div className="relative h-20 w-20 rounded-full border-4 border-white bg-gradient-to-br from-indigo-100 to-violet-100 flex items-center justify-center shadow-lg group-hover:scale-110 transition-transform duration-300">
-                    <span className="text-2xl font-bold text-indigo-700">
-                      AR
-                    </span>
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 rounded-full bg-gradient-to-r from-indigo-400 to-violet-400 p-2 shadow-lg">
-                    <FaLinkedin className="h-4 w-4 text-white" />
-                  </div>
-                </div>
-              </div>
-
-              <div className="relative text-center">
-                <h3 className="text-xl font-bold bg-gradient-to-r from-slate-900 to-indigo-900 bg-clip-text text-transparent group-hover:from-indigo-600 group-hover:to-violet-600 transition-all duration-300">
-                  Abdulroheem Agboola
-                </h3>
-                <p className="text-sm text-slate-600 mt-1 mb-4">
-                  Research Contributor
-                </p>
-
-                <div className="flex flex-wrap justify-center gap-2 mb-4">
-                  <span className="rounded-full bg-gradient-to-r from-indigo-100 to-violet-100 px-4 py-1.5 text-xs font-semibold text-indigo-700 border border-indigo-200">
-                    Contributor
-                  </span>
-                </div>
-
-                <p className="text-sm text-slate-600 leading-relaxed">
-                  Abdul contributes to Zygotrix's development and research
-                  initiatives, supporting the platform's growth and helping
-                  advance genetic analysis tools for the research community.
-                </p>
-
-                <div className="mt-6 flex justify-center gap-4">
-                  <a
-                    href="https://www.linkedin.com/in/roheem-agboola-b29673215/"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="rounded-full bg-white p-3 shadow-md hover:shadow-lg transition-all hover:scale-110 text-indigo-600 hover:text-indigo-700"
-                    aria-label="LinkedIn"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    <FaLinkedin className="h-5 w-5" />
-                  </a>
-                </div>
-              </div>
-
-              <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="rounded-full bg-white/90 backdrop-blur-sm p-2 shadow-lg">
-                  <svg
-                    className="h-4 w-4 text-indigo-600"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M17 8l4 4m0 0l-4 4m4-4H3"
-                    />
-                  </svg>
-                </div>
-              </div>
-            </Link>
+                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="rounded-full bg-white/90 backdrop-blur-sm p-2 shadow-lg">
+                        <svg
+                          className={`h-4 w-4 ${palette.arrowColor}`}
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M17 8l4 4m0 0l-4 4m4-4H3"
+                          />
+                        </svg>
+                      </div>
+                    </div>
+                  </Link>
+                );
+              })}
           </div>
+
+          {!teamLoading && teamMembers.length === 0 && !teamError && (
+            <div className="mt-10 mx-auto max-w-3xl rounded-3xl border border-slate-200 bg-white/70 p-8 text-center shadow-md">
+              <h3 className="text-lg font-semibold text-slate-800 mb-2">
+                Team roster coming soon
+              </h3>
+              <p className="text-slate-600">
+                Our Hygraph workspace does not have any published team members
+                yet. Check back soon to learn more about the people building
+                Zygotrix.
+              </p>
+            </div>
+          )}
         </div>
 
         {/* Values section */}

@@ -1,4 +1,8 @@
-import type { TeamMemberResponse } from "../types/teamMember";
+import type {
+  TeamMemberResponse,
+  TeamMembersResponse,
+  TeamMemberSummary,
+} from "../types/teamMember";
 
 const HYGRAPH_ENDPOINT =
   import.meta.env.VITE_HYGRAPH_ENDPOINT ||
@@ -16,7 +20,8 @@ const ensureEndpoint = () => {
 };
 
 export const fetchTeamMember = async (
-  slug: string
+  slug: string,
+  signal?: AbortSignal
 ): Promise<TeamMemberResponse> => {
   ensureEndpoint();
 
@@ -26,6 +31,8 @@ export const fetchTeamMember = async (
         bio {
           markdown
         }
+        founder
+        introduction
         name
         photo {
           url
@@ -51,6 +58,7 @@ export const fetchTeamMember = async (
       query,
       variables: { slug },
     }),
+    signal,
   });
 
   if (!response.ok) {
@@ -64,4 +72,53 @@ export const fetchTeamMember = async (
   }
 
   return payload;
+};
+
+export const fetchTeamMembers = async (
+  signal?: AbortSignal
+): Promise<TeamMemberSummary[]> => {
+  ensureEndpoint();
+
+  const query = `
+    query GetTeamMembers {
+      teamMembers {
+        name
+        role
+        slug
+        introduction
+        founder
+        photo {
+          url
+          fileName
+        }
+        socialProfiles {
+          username
+          url
+          platform
+        }
+      }
+    }
+  `;
+
+  const response = await fetch(HYGRAPH_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(HYGRAPH_TOKEN ? { Authorization: `Bearer ${HYGRAPH_TOKEN}` } : {}),
+    },
+    body: JSON.stringify({ query }),
+    signal,
+  });
+
+  if (!response.ok) {
+    throw new Error(`Hygraph request failed with status ${response.status}`);
+  }
+
+  const payload: TeamMembersResponse = await response.json();
+
+  if (payload.errors && payload.errors.length > 0) {
+    throw new Error(payload.errors[0].message);
+  }
+
+  return payload.data?.teamMembers ?? [];
 };

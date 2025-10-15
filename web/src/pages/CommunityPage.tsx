@@ -277,23 +277,32 @@ const CommunityPage: React.FC = () => {
                     <FiTag className="h-4 w-4" />
                     Popular Tags
                   </h3>
-                  <div className="space-y-2">
+                  <div className="flex flex-wrap gap-2">
                     {popularTags.slice(0, 10).map((tag) => (
                       <button
                         key={tag.tag}
                         onClick={() => handleTagClick(tag.tag)}
-                        className={`w-full text-left px-3 py-2 rounded-lg text-sm font-medium transition-all ${
+                        className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-medium transition-all truncate max-w-xs cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${
                           selectedTag === tag.tag
-                            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
-                            : "bg-slate-50 text-slate-700 hover:bg-slate-100"
+                            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent shadow-md"
+                            : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-blue-50 hover:border-blue-300"
                         }`}
+                        title={tag.tag}
                       >
-                        <div className="flex items-center justify-between">
-                          <span>{tag.tag}</span>
-                          <span className="text-xs opacity-70">
-                            ({tag.count})
-                          </span>
-                        </div>
+                        <span className="truncate font-semibold">
+                          {tag.tag.length > 18
+                            ? tag.tag.slice(0, 16) + "…"
+                            : tag.tag}
+                        </span>
+                        <span
+                          className={`ml-2 text-xs font-normal ${
+                            selectedTag === tag.tag
+                              ? "text-white/80"
+                              : "text-blue-700/70"
+                          }`}
+                        >
+                          {tag.count}
+                        </span>
                       </button>
                     ))}
                   </div>
@@ -514,12 +523,6 @@ const CommunityPage: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Footer - Always visible */}
-        <footer className="w-full bg-slate-50 border-t border-slate-200 py-4 text-center text-slate-600 text-sm">
-          &copy; {new Date().getFullYear()} Zygotrix Community. All rights
-          reserved.
-        </footer>
 
         {/* Ask Question Modal */}
         <AskQuestionModal

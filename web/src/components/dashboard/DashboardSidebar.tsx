@@ -79,9 +79,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       ),
     },
     {
-      id: "genetic-cross",
-      label: "Genetic Cross",
-      href: "/portal/genetic-cross",
+      id: "simulation-studio",
+      label: "Simulation Studio",
+      href: "/portal/simulation-studio",
       icon: (
         <svg
           className="w-5 h-5"

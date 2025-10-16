@@ -28,7 +28,7 @@ import PGSDemoPage from "./pages/PGSDemoPage";
 import CommunityPage from "./pages/CommunityPage";
 import QuestionDetailPage from "./pages/QuestionDetailPage";
 import AskQuestionPage from "./pages/AskQuestionPage";
-import GeneticCrossPage from "./pages/GeneticCrossPage";
+import SimulationStudioPage from "./pages/SimulationStudioPage";
 
 const App: React.FC = () => {
   return (
@@ -74,10 +74,10 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/genetic-cross"
+        path="portal/simulation-studio"
         element={
           <RequireAuth>
-            <GeneticCrossPage />
+            <SimulationStudioPage />
           </RequireAuth>
         }
       />

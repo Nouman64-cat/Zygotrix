@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 
 import BlogCard from "../components/marketing_site/blog/BlogCard";
@@ -11,6 +11,7 @@ const BlogsPage: React.FC = () => {
   const [tags, setTags] = useState<TagSummary[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeAuthor, setActiveAuthor] = useState<string | null>(null);
 
   useEffect(() => {
     const controller = new AbortController();
@@ -34,7 +35,37 @@ const BlogsPage: React.FC = () => {
     return () => controller.abort();
   }, []);
 
-  const hasContent = blogs.length > 0;
+  const authors = useMemo(() => {
+    const map = new Map<string, { name: string }>();
+    blogs.forEach((blog) => {
+      blog.authors.forEach((author) => {
+        if (!map.has(author.name)) {
+          map.set(author.name, { name: author.name });
+        }
+      });
+    });
+    return Array.from(map.values()).sort((a, b) =>
+      a.name.localeCompare(b.name)
+    );
+  }, [blogs]);
+
+  useEffect(() => {
+    if (activeAuthor && !authors.some((author) => author.name === activeAuthor)) {
+      setActiveAuthor(null);
+    }
+  }, [activeAuthor, authors]);
+
+  const filteredBlogs = useMemo(() => {
+    if (!activeAuthor) {
+      return blogs;
+    }
+    return blogs.filter((blog) =>
+      blog.authors.some((author) => author.name === activeAuthor)
+    );
+  }, [activeAuthor, blogs]);
+
+  const hasContent = filteredBlogs.length > 0;
+  const hasAnyBlogs = blogs.length > 0;
 
   return (
     <div className="relative bg-gradient-to-b from-white via-blue-50/20 to-slate-50 pb-24 pt-16">
@@ -143,6 +174,47 @@ const BlogsPage: React.FC = () => {
               </span>
             )}
           </div>
+          {authors.length > 0 && (
+            <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-slate-500">
+              {authors.map((author) => {
+                const isActive = activeAuthor === author.name;
+                return (
+                  <button
+                    key={author.name}
+                    type="button"
+                    onClick={() =>
+                      setActiveAuthor((prev) =>
+                        prev === author.name ? null : author.name
+                      )
+                    }
+                    aria-pressed={isActive}
+                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-semibold transition-all ${
+                      isActive
+                        ? "border-purple-400 bg-purple-500 text-white shadow-md shadow-purple-200/60"
+                        : "border-slate-200 bg-white text-slate-600 hover:border-blue-300 hover:from-blue-50 hover:to-purple-50 hover:bg-gradient-to-r hover:text-blue-700"
+                    }`}
+                  >
+                    <span>{author.name}</span>
+                    {isActive && (
+                      <svg
+                        className="h-3 w-3"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
         </header>
 
         {isLoading && (
@@ -267,7 +339,7 @@ const BlogsPage: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && !error && !hasContent && (
+        {!isLoading && !error && !hasAnyBlogs && (
           <div className="mx-auto max-w-2xl rounded-2xl border-2 border-blue-200/60 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/30 p-12 text-center shadow-xl backdrop-blur-sm">
             <div className="relative w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
               <svg
@@ -341,7 +413,7 @@ const BlogsPage: React.FC = () => {
           </div>
         )}
 
-        {!isLoading && !error && hasContent && (
+        {!isLoading && !error && hasAnyBlogs && (
           <div className="space-y-6">
             {/* Results counter */}
             <div className="flex items-center justify-between border-b border-slate-200 pb-4">
@@ -358,27 +430,70 @@ const BlogsPage: React.FC = () => {
                   />
                 </svg>
                 <span>
-                  <strong>{blogs.length}</strong> research article
-                  {blogs.length !== 1 ? "s" : ""} found
+                  <strong>{filteredBlogs.length}</strong> research article
+                  {filteredBlogs.length !== 1 ? "s" : ""}{" "}
+                  {activeAuthor ? `by ${activeAuthor}` : ""} found
                 </span>
               </div>
-              <div className="text-xs text-slate-500">
-                Updated recently • Fresh insights
+              <div className="flex items-center gap-3 text-xs text-slate-500">
+                {activeAuthor && (
+                  <button
+                    type="button"
+                    onClick={() => setActiveAuthor(null)}
+                    className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1 font-medium text-slate-600 transition hover:border-blue-300 hover:text-blue-700"
+                  >
+                    <svg
+                      className="h-3 w-3"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
+                    Clear filter
+                  </button>
+                )}
+                <span>Updated recently · Fresh insights</span>
               </div>
             </div>
 
             {/* Enhanced blog grid with staggered animation */}
-            <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
-              {blogs.map((blog, index) => (
-                <div
-                  key={blog.slug}
-                  className="animate-fade-in-up"
-                  style={{ animationDelay: `${index * 100}ms` }}
-                >
-                  <BlogCard blog={blog} />
-                </div>
-              ))}
-            </div>
+            {hasContent ? (
+              <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredBlogs.map((blog, index) => (
+                  <div
+                    key={blog.slug}
+                    className="animate-fade-in-up"
+                    style={{ animationDelay: `${index * 100}ms` }}
+                  >
+                    <BlogCard blog={blog} />
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-blue-200 bg-blue-50/50 p-8 text-center text-sm text-slate-600 shadow-sm">
+                <p>
+                  We couldn&apos;t find any articles for{" "}
+                  <span className="font-semibold text-blue-600">
+                    {activeAuthor}
+                  </span>{" "}
+                  just yet. Try another author or{" "}
+                  <button
+                    type="button"
+                    onClick={() => setActiveAuthor(null)}
+                    className="font-semibold text-blue-600 hover:text-blue-700 underline"
+                  >
+                    clear the filter
+                  </button>
+                  .
+                </p>
+              </div>
+            )}
           </div>
         )}
 

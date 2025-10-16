@@ -6,7 +6,7 @@ import {
   FaPlusCircle,
   FaTrashAlt,
 } from "react-icons/fa";
-import { HiOutlineSparkles, HiSwitchHorizontal } from "react-icons/hi";
+import { HiOutlineSparkles } from "react-icons/hi";
 import { RiLoader5Line } from "react-icons/ri";
 import DashboardLayout from "../layouts/DashboardLayout";
 import {
@@ -439,8 +439,8 @@ const syncGenotype = (
 const SimulationStudioPage: React.FC = () => {
   const { width: viewportWidth, height: viewportHeight } = useViewportSize();
   const [genes, setGenes] = useState<GeneForm[]>([]);
-  const [motherSex, setMotherSex] = useState<"female" | "male">("female");
-  const [fatherSex, setFatherSex] = useState<"female" | "male">("male");
+  const [motherSex] = useState<"female" | "male">("female");
+  const [fatherSex] = useState<"female" | "male">("male");
   const [motherGenotype, setMotherGenotype] = useState<ParentGenotypeState>({});
   const [fatherGenotype, setFatherGenotype] = useState<ParentGenotypeState>({});
   const [simulations, setSimulations] = useState(500);

@@ -255,11 +255,109 @@ const buildGeneFromTrait = (trait: TraitInfo): GeneForm => {
   };
 };
 
-const dominanceLabel: Record<DominancePattern, string> = {
-  complete: "Complete Dominance",
-  codominant: "Codominance",
-  incomplete: "Incomplete Dominance",
+const dominancePalette: Record<
+  DominancePattern,
+  {
+    label: string;
+    badge: string;
+    dot: string;
+    text: string;
+  }
+> = {
+  complete: {
+    label: "Complete Dominance",
+    badge: "border border-emerald-200 bg-emerald-50 text-emerald-600",
+    dot: "bg-emerald-500",
+    text: "text-emerald-600",
+  },
+  codominant: {
+    label: "Codominance",
+    badge: "border border-amber-200 bg-amber-50 text-amber-600",
+    dot: "bg-amber-500",
+    text: "text-amber-600",
+  },
+  incomplete: {
+    label: "Incomplete Dominance",
+    badge: "border border-violet-200 bg-violet-50 text-violet-600",
+    dot: "bg-violet-500",
+    text: "text-violet-600",
+  },
 };
+
+interface DominanceIndicatorProps {
+  pattern: DominancePattern;
+  variant?: "pill" | "dot";
+  showLabel?: boolean;
+  className?: string;
+}
+
+const DominanceIndicator: React.FC<DominanceIndicatorProps> = ({
+  pattern,
+  variant = "pill",
+  showLabel = false,
+  className = "",
+}) => {
+  const palette = dominancePalette[pattern];
+  if (!palette) {
+    return null;
+  }
+
+  if (variant === "dot") {
+    return (
+      <span
+        className={`inline-flex items-center gap-1 ${palette.text} ${className}`}
+        title={palette.label}
+      >
+        <span
+          className={`h-2 w-2 rounded-full ${palette.dot}`}
+          aria-hidden="true"
+        />
+        {showLabel ? (
+          <span className="text-[10px] font-medium">{palette.label}</span>
+        ) : (
+          <span className="sr-only">{palette.label}</span>
+        )}
+      </span>
+    );
+  }
+
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium ${palette.badge} ${className}`}
+      title={palette.label}
+    >
+      <span
+        className={`h-2 w-2 rounded-full ${palette.dot}`}
+        aria-hidden="true"
+      />
+      {showLabel ? (
+        <span>{palette.label}</span>
+      ) : (
+        <span className="sr-only">{palette.label}</span>
+      )}
+    </span>
+  );
+};
+
+const DominanceLegend: React.FC = () => (
+  <div className="flex flex-wrap items-center gap-3 text-xs text-slate-500">
+    {(Object.keys(dominancePalette) as DominancePattern[]).map((pattern) => {
+      const palette = dominancePalette[pattern];
+      return (
+        <span
+          key={pattern}
+          className="inline-flex items-center gap-2 whitespace-nowrap"
+        >
+          <span
+            className={`h-2.5 w-2.5 rounded-full ${palette.dot}`}
+            aria-hidden="true"
+          />
+          <span>{palette.label}</span>
+        </span>
+      );
+    })}
+  </div>
+);
 
 const getDefaultAllelesForGene = (
   gene: GeneForm,
@@ -400,7 +498,7 @@ const SimulationStudioPage: React.FC = () => {
       "--trait-panel-min-width": toPx(traitPanelMinWidth),
       "--trait-panel-max-width": toPx(traitPanelMaxWidth),
       "--trait-panel-offset": toPx(traitPanelOffset),
-      "--trait-panel-height": `calc(100vh - ${toPx(traitPanelOffset)})`,
+      "--trait-panel-height": toPx(traitPanelOffset),
       "--trait-panel-width": toPx(traitPanelWidth),
       "--accent-divider-thickness": toPx(accentDividerThickness),
     };
@@ -824,189 +922,38 @@ const SimulationStudioPage: React.FC = () => {
   return (
     <DashboardLayout>
       <div
-        className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-white via-slate-50 to-blue-50 px-6 pb-20 pt-10 text-slate-900 md:px-8 lg:px-12"
+        className="relative min-h-screen w-full overflow-hidden px-2 text-slate-900 md:px-8 lg:px-4"
         style={{
           ...dynamicStyles,
         }}
       >
-        <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div
-            className="absolute -top-32 -right-32 rounded-full bg-blue-200/40 blur-3xl"
-            style={{
-              width: "var(--blob-size)",
-              height: "var(--blob-size)",
-            }}
-          />
-          <div
-            className="absolute -bottom-24 -left-24 rounded-full bg-purple-200/40 blur-3xl"
-            style={{
-              width: "var(--blob-size)",
-              height: "var(--blob-size)",
-            }}
-          />
-        </div>
-
         <div className="relative mx-auto flex w-full max-w-8xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-8 xl:gap-12">
           <div className="flex w-full flex-1 flex-col gap-12">
-            <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-              <div className="flex w-full max-w-3xl flex-col gap-4 lg:max-w-xl">
-                <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-4xl">
-                  Simulation Studio
-                </h1>
-                <p className="text-gray-600 text-sm">
-                  Configure the parents above and run a simulation to reveal
-                  predicted phenotype distributions.
-                </p>
-              </div>
-
-              <div className="flex w-full flex-1 flex-col gap-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-indigo-50 p-6 text-center shadow-2xl shadow-slate-200/60">
-                <div className="space-y-3 text-left">
-                  <div className="flex items-center justify-between text-sm text-slate-500">
-                    <span>Simulations</span>
-                    <span>{simulations.toLocaleString()}</span>
-                  </div>
-                  <div className="flex w-full items-center gap-4">
-                    <div className="flex flex-1 flex-col justify-center">
-                      <input
-                        id="simulationSlider"
-                        type="range"
-                        min={50}
-                        max={5000}
-                        step={50}
-                        value={simulations}
-                        onChange={(event) =>
-                          setSimulations(Number(event.target.value))
-                        }
-                        className="w-full accent-sky-500"
-                      />
-                      <div className="flex justify-between text-sm text-slate-400 mt-1">
-                        <span>Quick</span>
-                        <span>Precise</span>
-                      </div>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={handleCompute}
-                      disabled={isComputing}
-                      className="group relative flex cursor-pointer items-center justify-center self-center rounded-lg bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 text-white shadow-lg transition hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
-                      aria-label="Run Simulation"
-                      style={{
-                        width: "var(--primary-action-size)",
-                        height: "var(--primary-action-size)",
-                      }}
-                    >
-                      {isComputing ? (
-                        <RiLoader5Line
-                          className="animate-spin text-white"
-                          style={{
-                            width: "var(--primary-action-icon-size)",
-                            height: "var(--primary-action-icon-size)",
-                          }}
-                        />
-                      ) : (
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                          className="text-white"
-                          style={{
-                            width: "var(--primary-action-icon-size)",
-                            height: "var(--primary-action-icon-size)",
-                          }}
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M5 3v18l15-9-15-9z"
-                          />
-                        </svg>
-                      )}
-                      <span className="absolute inset-0 -z-10 bg-white/40 opacity-0 blur transition duration-300 group-hover:opacity-100" />
-                    </button>
-                  </div>
-                </div>
-                {/* Toast notifications for error and success */}
-                {showErrorToast && error && (
-                  <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-rose-500">
-                    <span className="font-semibold flex-1">{error}</span>
-                    <button
-                      type="button"
-                      className="ml-3 text-white/80 hover:text-white text-lg font-bold"
-                      aria-label="Close error toast"
-                      onClick={() => {
-                        setShowErrorToast(false);
-                        setError(null);
-                      }}
-                    >
-                      &times;
-                    </button>
-                  </div>
-                )}
-                {result && showSuccessToast && !isComputing && !error && (
-                  <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-emerald-500">
-                    <HiOutlineSparkles
-                      className="text-white"
-                      style={{
-                        width: "var(--icon-sm)",
-                        height: "var(--icon-sm)",
-                      }}
-                    />
-                    <span className="flex-1">
-                      Simulation complete! Scroll down to review phenotype
-                      insights.
-                    </span>
-                    <button
-                      type="button"
-                      className="text-white/80 transition hover:text-white"
-                      aria-label="Close success toast"
-                      onClick={() => {
-                        setShowSuccessToast(false);
-                      }}
-                    >
-                      &times;
-                    </button>
-                  </div>
-                )}
-              </div>
+            <header className="flex flex-col gap-3">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-4xl">
+                Simulation Studio
+              </h1>
+              <DominanceLegend />
             </header>
 
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-2 lg:grid-cols-2">
               {/* Parent A */}
-              <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
+              <div className="relative overflow-hidden">
                 <div
                   className="absolute inset-x-0 top-0 bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400"
                   style={{ height: "var(--accent-divider-thickness)" }}
                 />
-                <div className="flex items-center justify-between px-6 pt-6 text-sm uppercase tracking-[0.2em] text-slate-600">
+                <div className="flex items-center justify-between px-2 pt-6 text-sm  text-slate-600">
                   <span className="inline-flex items-center gap-2 text-slate-700">
                     <FaFemale />
                     Parent A
                   </span>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition hover:border-pink-300 hover:bg-pink-50"
-                    onClick={() =>
-                      setMotherSex((prev) =>
-                        prev === "female" ? "male" : "female"
-                      )
-                    }
-                  >
-                    <HiSwitchHorizontal
-                      style={{
-                        width: "var(--icon-xs)",
-                        height: "var(--icon-xs)",
-                      }}
-                    />
-                    {motherSex === "female" ? "Female" : "Male"}
-                  </button>
+                  <span className="text-[10px] font-medium text-slate-500">
+                    {genes.length} {genes.length === 1 ? "trait" : "traits"}
+                  </span>
                 </div>
-                <p className="px-6 text-xs font-medium uppercase tracking-[0.3em] text-pink-400">
-                  genotype designer
-                </p>
                 <div
-                  className="mt-5 overflow-y-auto px-6 pb-6 pr-7"
+                  className="mt-2 overflow-y-auto px-2 pb-2"
                   style={{ maxHeight: "var(--panel-scroll-height)" }}
                 >
                   <div className="custom-scroll space-y-4">
@@ -1030,13 +977,14 @@ const SimulationStudioPage: React.FC = () => {
                               : "border-slate-200 hover:border-slate-300"
                           }`}
                         >
-                          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-600">
+                          <div className="flex items-center justify-between text-xs text-slate-600">
                             <span className="font-semibold text-slate-700">
                               {gene.displayName || gene.id || "New Gene"}
                             </span>
-                            <span className="text-[10px] text-slate-500">
-                              {dominanceLabel[gene.dominance]}
-                            </span>
+                            <DominanceIndicator
+                              pattern={gene.dominance}
+                              variant="dot"
+                            />
                           </div>
                           <div className="mt-3">
                             {renderAlleleSelects("mother", gene)}
@@ -1048,39 +996,22 @@ const SimulationStudioPage: React.FC = () => {
                 </div>
               </div>
               {/* Parent B */}
-              <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
+              <div className="relative overflow-hidden ">
                 <div
                   className="absolute inset-x-0 top-0 bg-gradient-to-r from-sky-400 via-cyan-400 to-blue-400"
                   style={{ height: "var(--accent-divider-thickness)" }}
                 />
-                <div className="flex items-center justify-between px-6 pt-6 text-sm uppercase tracking-[0.2em] text-slate-600">
+                <div className="flex items-center justify-between px-2 pt-6 text-sm text-slate-600">
                   <span className="inline-flex items-center gap-2 text-slate-700">
                     <FaMale />
                     Parent B
                   </span>
-                  <button
-                    type="button"
-                    className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition hover:border-sky-300 hover:bg-sky-50"
-                    onClick={() =>
-                      setFatherSex((prev) =>
-                        prev === "male" ? "female" : "male"
-                      )
-                    }
-                  >
-                    <HiSwitchHorizontal
-                      style={{
-                        width: "var(--icon-xs)",
-                        height: "var(--icon-xs)",
-                      }}
-                    />
-                    {fatherSex === "male" ? "Male" : "Female"}
-                  </button>
+                  <span className="text-[10px] font-medium text-slate-500">
+                    {genes.length} {genes.length === 1 ? "trait" : "traits"}
+                  </span>
                 </div>
-                <p className="px-6 text-xs font-medium uppercase tracking-[0.3em] text-sky-400">
-                  genotype designer
-                </p>
                 <div
-                  className="mt-5 overflow-y-auto px-6 pb-6 pr-7"
+                  className="mt-2 overflow-y-auto px-2 pb-6"
                   style={{ maxHeight: "var(--panel-scroll-height)" }}
                 >
                   <div className="custom-scroll space-y-4">
@@ -1104,13 +1035,14 @@ const SimulationStudioPage: React.FC = () => {
                               : "border-slate-200 hover:border-slate-300"
                           }`}
                         >
-                          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-600">
+                          <div className="flex items-center justify-between text-xs text-slate-600">
                             <span className="font-semibold text-slate-700">
                               {gene.displayName || gene.id || "New Gene"}
                             </span>
-                            <span className="text-[10px] text-slate-500">
-                              {dominanceLabel[gene.dominance]}
-                            </span>
+                            <DominanceIndicator
+                              pattern={gene.dominance}
+                              variant="dot"
+                            />
                           </div>
                           <div className="mt-3">
                             {renderAlleleSelects("father", gene)}
@@ -1123,10 +1055,10 @@ const SimulationStudioPage: React.FC = () => {
               </div>
             </div>
 
-            <section className="relative rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-6 shadow-2xl shadow-slate-200/60">
-              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_70%)]" />
-              <div className="relative mx-auto flex max-w-5xl flex-col gap-6">
-                <header className="flex flex-wrap items-center justify-between gap-4 text-sm uppercase tracking-[0.3em] text-slate-600">
+            <section className="relative rounded-3xl">
+              <div className="pointer-events-none absolute inset-0" />
+              <div className="relative mx-auto flex max-w-8xl flex-col gap-6">
+                <header className="flex flex-wrap items-center justify-between gap-4 text-sm   text-slate-600">
                   <span className="inline-flex items-center gap-2 text-slate-700">
                     <HiOutlineSparkles
                       className="text-emerald-500"
@@ -1165,7 +1097,7 @@ const SimulationStudioPage: React.FC = () => {
                   {result && (
                     <>
                       <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow">
-                        <h3 className="text-xs uppercase tracking-[0.3em] text-slate-600">
+                        <h3 className="text-xs   text-slate-600">
                           Sex distribution
                         </h3>
                         <div className="mt-4 space-y-3">
@@ -1175,7 +1107,7 @@ const SimulationStudioPage: React.FC = () => {
                               className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 shadow-sm"
                             >
                               <span
-                                className="text-xs uppercase tracking-[0.2em] text-slate-600"
+                                className="text-xs text-slate-600"
                                 style={{ minWidth: "var(--panel-label-width)" }}
                               >
                                 {entry.sex}
@@ -1206,7 +1138,7 @@ const SimulationStudioPage: React.FC = () => {
                             className="rounded-3xl border border-slate-200 bg-white p-4 shadow"
                           >
                             <div className="flex items-center justify-between">
-                              <h4 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-700">
+                              <h4 className="text-sm font-semibold   text-slate-700">
                                 {summary.label}
                               </h4>
                               <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-emerald-600 shadow-sm">
@@ -1244,29 +1176,123 @@ const SimulationStudioPage: React.FC = () => {
             }`}
             style={traitPanelStyle}
           >
-            <div className="flex h-full w-full flex-col gap-4 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-xl shadow-slate-200/60 backdrop-blur lg:h-full lg:overflow-y-auto">
-              <div className="flex items-center justify-between">
-                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-slate-500 shadow-sm">
-                  <FaDna
-                    className="text-sky-500"
+            <div className="flex w-full flex-1 mb-2 flex-col gap-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-indigo-50 p-4 text-center shadow-2xl shadow-slate-200/60">
+              <div className="space-y-3 text-left">
+                <div className="flex items-center justify-between text-sm text-slate-500">
+                  <span>Simulations</span>
+                  <span>{simulations.toLocaleString()}</span>
+                </div>
+                <div className="flex w-full items-center gap-4">
+                  <div className="flex flex-1 flex-col justify-center">
+                    <input
+                      id="simulationSlider"
+                      type="range"
+                      min={50}
+                      max={5000}
+                      step={50}
+                      value={simulations}
+                      onChange={(event) =>
+                        setSimulations(Number(event.target.value))
+                      }
+                      className="w-full accent-sky-500"
+                    />
+                    <div className="flex justify-between text-sm text-slate-400 mt-1">
+                      <span>Quick</span>
+                      <span>Precise</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCompute}
+                    disabled={isComputing}
+                    className="group relative flex cursor-pointer items-center justify-center self-center rounded-lg bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 text-white shadow-lg transition hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+                    aria-label="Run Simulation"
                     style={{
-                      width: "var(--icon-xs)",
-                      height: "var(--icon-xs)",
+                      width: "var(--primary-action-size)",
+                      height: "var(--primary-action-size)",
                     }}
-                  />
-                  Trait Library
+                  >
+                    {isComputing ? (
+                      <RiLoader5Line
+                        className="animate-spin text-white"
+                        style={{
+                          width: "var(--primary-action-icon-size)",
+                          height: "var(--primary-action-icon-size)",
+                        }}
+                      />
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        className="text-white"
+                        style={{
+                          width: "var(--primary-action-icon-size)",
+                          height: "var(--primary-action-icon-size)",
+                        }}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 3v18l15-9-15-9z"
+                        />
+                      </svg>
+                    )}
+                    <span className="absolute inset-0 -z-10 bg-white/40 opacity-0 blur transition duration-300 group-hover:opacity-100" />
+                  </button>
                 </div>
               </div>
-
+              {/* Toast notifications for error and success */}
+              {showErrorToast && error && (
+                <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-rose-500">
+                  <span className="font-semibold flex-1">{error}</span>
+                  <button
+                    type="button"
+                    className="ml-3 text-white/80 hover:text-white text-lg font-bold"
+                    aria-label="Close error toast"
+                    onClick={() => {
+                      setShowErrorToast(false);
+                      setError(null);
+                    }}
+                  >
+                    &times;
+                  </button>
+                </div>
+              )}
+              {result && showSuccessToast && !isComputing && !error && (
+                <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-emerald-500">
+                  <HiOutlineSparkles
+                    className="text-white"
+                    style={{
+                      width: "var(--icon-sm)",
+                      height: "var(--icon-sm)",
+                    }}
+                  />
+                  <span className="flex-1">
+                    Simulation complete! Scroll down to review phenotype
+                    insights.
+                  </span>
+                  <button
+                    type="button"
+                    className="text-white/80 transition hover:text-white"
+                    aria-label="Close success toast"
+                    onClick={() => {
+                      setShowSuccessToast(false);
+                    }}
+                  >
+                    &times;
+                  </button>
+                </div>
+              )}
+            </div>
+            <div className="flex h-max-screen w-full flex-col gap-4 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-xl shadow-slate-200/60 backdrop-blur lg:overflow-y-auto">
               <div className="space-y-5">
                 <div className="space-y-2">
                   <h3 className="text-lg font-semibold text-slate-900">
                     Build your gene lineup
                   </h3>
-                  <p className="text-sm text-slate-600">
-                    Pick traits to instantly generate gene definitions for both
-                    parents.
-                  </p>
                 </div>
 
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
@@ -1333,7 +1359,7 @@ const SimulationStudioPage: React.FC = () => {
                 )}
 
                 <div className="space-y-3">
-                  <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                  <h4 className="text-xs font-semibold   text-slate-500">
                     Active genes
                   </h4>
                   <div className="flex flex-wrap gap-2">
@@ -1357,15 +1383,16 @@ const SimulationStudioPage: React.FC = () => {
                               <span>
                                 {gene.displayName || gene.id || "Unnamed gene"}
                               </span>
-                              <span
-                                className={`rounded-full px-2 py-0.5 text-[10px] uppercase ${
+                              <DominanceIndicator
+                                pattern={gene.dominance}
+                                variant="pill"
+                                className={
                                   isActive
-                                    ? "bg-white/20 text-white"
-                                    : "bg-white text-slate-500"
-                                }`}
-                              >
-                                {dominanceLabel[gene.dominance]}
-                              </span>
+                                    ? "border-transparent bg-white/20 text-white"
+                                    : "border-slate-200 bg-white text-slate-500"
+                                }
+                                showLabel={false}
+                              />
                             </button>
                             <button
                               type="button"

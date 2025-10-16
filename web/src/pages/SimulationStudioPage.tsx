@@ -301,11 +301,13 @@ const SimulationStudioPage: React.FC = () => {
   );
   const [isComputing, setIsComputing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showErrorToast, setShowErrorToast] = useState(false);
   const [activeGene, setActiveGene] = useState<string>("");
   const [availableTraits, setAvailableTraits] = useState<TraitInfo[]>([]);
   const [isLoadingTraits, setIsLoadingTraits] = useState<boolean>(false);
   const [traitsError, setTraitsError] = useState<string | null>(null);
   const [selectedTraitKey, setSelectedTraitKey] = useState<string>("");
+  const [isTraitPanelOpen, setIsTraitPanelOpen] = useState<boolean>(true);
 
   const traitOptions = useMemo(() => {
     const options = availableTraits.filter(
@@ -444,11 +446,12 @@ const SimulationStudioPage: React.FC = () => {
     setResult(null);
   };
 
-  const scrollToTraitLibrary = () => {
+  const openTraitPanel = () => {
+    setIsTraitPanelOpen(true);
     if (typeof document === "undefined") {
       return;
     }
-    const element = document.getElementById("trait-library");
+    const element = document.getElementById("trait-library-panel");
     element?.scrollIntoView({ behavior: "smooth", block: "start" });
   };
 
@@ -560,9 +563,11 @@ const SimulationStudioPage: React.FC = () => {
 
   const handleCompute = async () => {
     setError(null);
+    setShowErrorToast(false);
     const validationError = validateGenes();
     if (validationError) {
       setError(validationError);
+      setShowErrorToast(true);
       return;
     }
 
@@ -577,10 +582,22 @@ const SimulationStudioPage: React.FC = () => {
           ? err.message
           : "Unable to compute genetic cross. Please try again.";
       setError(message);
+      setShowErrorToast(true);
     } finally {
       setIsComputing(false);
     }
   };
+
+  // Auto-dismiss error toast after 5 seconds
+  useEffect(() => {
+    if (showErrorToast && error) {
+      const timer = setTimeout(() => {
+        setShowErrorToast(false);
+        setError(null);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showErrorToast, error]);
 
   const renderAlleleSelects = (parent: "mother" | "father", gene: GeneForm) => {
     const sex = parent === "mother" ? motherSex : fatherSex;
@@ -728,20 +745,101 @@ const SimulationStudioPage: React.FC = () => {
           <div className="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-purple-200/40 blur-3xl" />
         </div>
 
-        <div className="relative mx-auto flex max-w-8xl flex-col gap-12">
-          <header className="flex flex-col gap-4">
-            <div className="inline-flex items-center gap-2 self-start rounded-full border border-slate-200 bg-white px-4 py-1 text-xs uppercase tracking-[0.3em] text-slate-500 shadow-sm">
-              <HiOutlineSparkles className="h-4 w-4 text-sky-500" />
-              Simulation Studio
+        <div
+          className={`relative mx-auto flex max-w-8xl flex-col gap-12 transition-[padding] duration-300 ${
+            isTraitPanelOpen ? "lg:pr-[360px]" : ""
+          }`}
+        >
+          <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex max-w-3xl flex-col gap-4">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-5xl">
+                Simulation Studio
+              </h1>
             </div>
-            <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-5xl">
-              Simulation Studio
-            </h1>
-            <p className="max-w-3xl text-sm leading-relaxed text-slate-600 md:text-base">
-              Assemble traits, configure parent genotypes, and launch genetic
-              simulations without endless scrolling. Everything you need to test
-              inheritance scenarios now lives in one streamlined workspace.
-            </p>
+
+            <div className="flex w-full max-w-md flex-col gap-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-indigo-50 p-6 text-center shadow-2xl shadow-slate-200/60">
+              <div className="space-y-3 text-left">
+                <div className="flex items-center justify-between text-sm text-slate-500">
+                  <span>Simulations</span>
+                  <span>{simulations.toLocaleString()}</span>
+                </div>
+                <div className="flex items-center gap-4 w-full">
+                  <div className="flex-1 flex flex-col justify-center">
+                    <input
+                      id="simulationSlider"
+                      type="range"
+                      min={50}
+                      max={5000}
+                      step={50}
+                      value={simulations}
+                      onChange={(event) =>
+                        setSimulations(Number(event.target.value))
+                      }
+                      className="w-full accent-sky-500"
+                      style={{ marginBottom: 0 }}
+                    />
+                    <div className="flex justify-between text-sm text-slate-400 mt-1">
+                      <span>Quick</span>
+                      <span>Precise</span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleCompute}
+                    disabled={isComputing}
+                    className="group relative flex items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 w-12 h-12 text-white shadow-lg transition hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+                    aria-label="Run Simulation"
+                    style={{ alignSelf: "center" }}
+                  >
+                    {isComputing ? (
+                      <RiLoader5Line className="h-6 w-6 animate-spin" />
+                    ) : (
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        className="h-7 w-7"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth={2}
+                          d="M5 3v18l15-9-15-9z"
+                        />
+                      </svg>
+                    )}
+                    <span className="absolute inset-0 -z-10 bg-white/40 opacity-0 blur transition duration-300 group-hover:opacity-100" />
+                  </button>
+                </div>
+              </div>
+              {/* Toast notifications for error and success */}
+              {showErrorToast && error && (
+                <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-rose-500">
+                  <span className="font-semibold flex-1">{error}</span>
+                  <button
+                    type="button"
+                    className="ml-3 text-white/80 hover:text-white text-lg font-bold"
+                    aria-label="Close error toast"
+                    onClick={() => {
+                      setShowErrorToast(false);
+                      setError(null);
+                    }}
+                  >
+                    &times;
+                  </button>
+                </div>
+              )}
+              {result && !isComputing && !error && (
+                <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-emerald-500">
+                  <HiOutlineSparkles className="h-5 w-5 text-white" />
+                  <span>
+                    Simulation complete! Scroll down to review phenotype
+                    insights.
+                  </span>
+                </div>
+              )}
+            </div>
           </header>
 
           <div className="grid gap-4 md:grid-cols-3">
@@ -770,7 +868,7 @@ const SimulationStudioPage: React.FC = () => {
             ))}
           </div>
 
-          <div className="grid gap-6 xl:grid-cols-3">
+          <div className="grid gap-6 lg:grid-cols-2">
             {/* Parent A */}
             <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
               <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400" />
@@ -831,214 +929,6 @@ const SimulationStudioPage: React.FC = () => {
                       </div>
                     );
                   })}
-                </div>
-              </div>
-            </div>
-
-            {/* Control center */}
-            <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-indigo-50 shadow-2xl shadow-slate-200/60">
-              <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.2),_transparent_70%)] opacity-70" />
-              <div className="relative flex h-full flex-col gap-8 px-8 py-10">
-                <div className="w-full space-y-4 text-left">
-                  <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white/90 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-slate-500 shadow-sm backdrop-blur">
-                    <FaDna className="h-4 w-4 text-sky-500" />
-                    Trait Library
-                  </div>
-                  <div
-                    id="trait-library"
-                    className="rounded-2xl border border-slate-200 bg-white/90 p-5 shadow-lg shadow-slate-200/50 backdrop-blur"
-                  >
-                    <div className="flex flex-col gap-5">
-                      <div className="flex flex-col gap-2">
-                        <h3 className="text-lg font-semibold text-slate-900">
-                          Build your gene lineup
-                        </h3>
-                        <p className="text-sm text-slate-600">
-                          Pick traits to instantly generate gene definitions for
-                          both parents.
-                        </p>
-                      </div>
-                      <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
-                        <select
-                          value={selectedTraitKey}
-                          onChange={(event) =>
-                            setSelectedTraitKey(event.target.value)
-                          }
-                          disabled={isLoadingTraits || !traitOptions.length}
-                          className="w-full flex-1 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100"
-                        >
-                          {isLoadingTraits && (
-                            <option value="">Loading traits...</option>
-                          )}
-                          {!isLoadingTraits && !traitOptions.length && (
-                            <option value="">All available traits added</option>
-                          )}
-                          {!isLoadingTraits &&
-                            traitOptions.map((trait) => (
-                              <option key={trait.key} value={trait.key}>
-                                {trait.name}
-                              </option>
-                            ))}
-                        </select>
-                        <button
-                          type="button"
-                          onClick={handleAddTrait}
-                          disabled={
-                            isLoadingTraits ||
-                            !selectedTrait ||
-                            !traitOptions.length
-                          }
-                          className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          <FaPlusCircle className="h-4 w-4" />
-                          Add Trait
-                        </button>
-                      </div>
-                      {traitsError && (
-                        <p className="text-xs text-rose-500">{traitsError}</p>
-                      )}
-                      {!!quickPickTraits.length && (
-                        <div className="flex flex-wrap gap-2">
-                          {quickPickTraits.map((trait) => (
-                            <button
-                              key={`quick-${trait.key}`}
-                              type="button"
-                              onClick={() => setSelectedTraitKey(trait.key)}
-                              className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
-                                selectedTraitKey === trait.key
-                                  ? "border-sky-400 bg-sky-500 text-white shadow"
-                                  : "border-slate-200 bg-slate-100 text-slate-600 hover:border-sky-300 hover:bg-sky-50"
-                              }`}
-                            >
-                              {trait.name}
-                            </button>
-                          ))}
-                        </div>
-                      )}
-                      <div className="flex flex-wrap gap-2">
-                        {genes.length ? (
-                          genes.map((gene) => {
-                            const isActive = activeGene === gene.uid;
-                            return (
-                              <div
-                                key={`gene-pill-${gene.uid}`}
-                                className={`group inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition ${
-                                  isActive
-                                    ? "border-sky-400 bg-sky-500 text-white shadow"
-                                    : "border-slate-200 bg-slate-100 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
-                                }`}
-                              >
-                                <button
-                                  type="button"
-                                  onClick={() => setActiveGene(gene.uid)}
-                                  className="flex items-center gap-2 focus:outline-none"
-                                >
-                                  <span>
-                                    {gene.displayName ||
-                                      gene.id ||
-                                      "Unnamed gene"}
-                                  </span>
-                                  <span
-                                    className={`rounded-full px-2 py-0.5 text-[10px] uppercase ${
-                                      isActive
-                                        ? "bg-white/20 text-white"
-                                        : "bg-white text-slate-500"
-                                    }`}
-                                  >
-                                    {dominanceLabel[gene.dominance]}
-                                  </span>
-                                </button>
-                                <button
-                                  type="button"
-                                  onClick={() => handleRemoveGene(gene.uid)}
-                                  className={`ml-2 rounded-full p-1 transition ${
-                                    isActive
-                                      ? "text-white/80 hover:text-white"
-                                      : "text-slate-400 hover:text-rose-500"
-                                  }`}
-                                  aria-label={`Remove ${
-                                    gene.displayName || gene.id || "gene"
-                                  }`}
-                                >
-                                  <FaTrashAlt className="h-3 w-3" />
-                                </button>
-                              </div>
-                            );
-                          })
-                        ) : (
-                          <span className="text-xs text-slate-500">
-                            No genes yet. Add a trait to generate your first
-                            gene.
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-                <div className="relative flex flex-col items-center text-center">
-                  <span className="rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-slate-500">
-                    Run Simulation
-                  </span>
-                  <FaDna className="mt-6 h-12 w-12 text-sky-500" />
-                  <p className="mt-4 text-sm leading-relaxed text-slate-600">
-                    Adjust simulation fidelity and compute cross-over outcomes.
-                    We'll run{" "}
-                    <span className="font-semibold text-slate-700">
-                      {simulations.toLocaleString()}
-                    </span>{" "}
-                    stochastic matings using the C++ engine.
-                  </p>
-                  <div className="mt-6 w-full space-y-3">
-                    <div className="flex items-center justify-between text-xs uppercase tracking-[0.3em] text-slate-500">
-                      <span>Simulations</span>
-                      <span>{simulations.toLocaleString()}</span>
-                    </div>
-                    <input
-                      id="simulationSlider"
-                      type="range"
-                      min={50}
-                      max={5000}
-                      step={50}
-                      value={simulations}
-                      onChange={(event) =>
-                        setSimulations(Number(event.target.value))
-                      }
-                      className="w-full accent-sky-500"
-                    />
-                    <div className="flex justify-between text-[11px] uppercase tracking-[0.3em] text-slate-400">
-                      <span>quick</span>
-                      <span>precise</span>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleCompute}
-                    disabled={isComputing}
-                    className="group relative mt-8 inline-flex items-center justify-center gap-2 overflow-hidden rounded-full bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 px-10 py-3 text-sm font-semibold uppercase tracking-[0.3em] text-white shadow-lg transition hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
-                  >
-                    {isComputing ? (
-                      <>
-                        <RiLoader5Line className="h-5 w-5 animate-spin" />
-                        Running...
-                      </>
-                    ) : (
-                      <>
-                        Run Simulation
-                        <HiOutlineSparkles className="h-5 w-5" />
-                      </>
-                    )}
-                    <span className="absolute inset-0 -z-10 bg-white/40 opacity-0 blur transition duration-300 group-hover:opacity-100" />
-                  </button>
-
-                  {error && (
-                    <p className="mt-4 text-xs text-rose-500">{error}</p>
-                  )}
-                  {result && !error && !isComputing && (
-                    <p className="mt-4 text-xs text-emerald-500">
-                      Simulation complete! Scroll down to review phenotype
-                      insights.
-                    </p>
-                  )}
                 </div>
               </div>
             </div>
@@ -1197,6 +1087,163 @@ const SimulationStudioPage: React.FC = () => {
               </div>
             </div>
           </section>
+
+          <aside
+            id="trait-library-panel"
+            aria-hidden={!isTraitPanelOpen}
+            className={`mt-8 lg:mt-0 lg:absolute lg:top-0 lg:right-0 lg:flex lg:h-full lg:w-[340px] ${
+              isTraitPanelOpen ? "" : "hidden"
+            }`}
+          >
+            <div className="flex h-full w-full flex-col gap-4 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-xl shadow-slate-200/60 backdrop-blur lg:max-h-[calc(100vh-160px)] lg:overflow-y-auto">
+              <div className="flex items-center justify-between">
+                <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-slate-500 shadow-sm">
+                  <FaDna className="h-4 w-4 text-sky-500" />
+                  Trait Library
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsTraitPanelOpen(false)}
+                  aria-controls="trait-library-panel"
+                  aria-expanded={isTraitPanelOpen}
+                  className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-rose-300 hover:text-rose-500"
+                >
+                  Collapse
+                </button>
+              </div>
+
+              <div className="space-y-5">
+                <div className="space-y-2">
+                  <h3 className="text-lg font-semibold text-slate-900">
+                    Build your gene lineup
+                  </h3>
+                  <p className="text-sm text-slate-600">
+                    Pick traits to instantly generate gene definitions for both
+                    parents.
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+                  <select
+                    value={selectedTraitKey}
+                    onChange={(event) =>
+                      setSelectedTraitKey(event.target.value)
+                    }
+                    disabled={isLoadingTraits || !traitOptions.length}
+                    className="w-full flex-1 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+                  >
+                    {isLoadingTraits && (
+                      <option value="">Loading traits...</option>
+                    )}
+                    {!isLoadingTraits && !traitOptions.length && (
+                      <option value="">All available traits added</option>
+                    )}
+                    {!isLoadingTraits &&
+                      traitOptions.map((trait) => (
+                        <option key={trait.key} value={trait.key}>
+                          {trait.name}
+                        </option>
+                      ))}
+                  </select>
+                  <button
+                    type="button"
+                    onClick={handleAddTrait}
+                    disabled={
+                      isLoadingTraits || !selectedTrait || !traitOptions.length
+                    }
+                    className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+                  >
+                    <FaPlusCircle className="h-4 w-4" />
+                    Add Trait
+                  </button>
+                </div>
+
+                {traitsError && (
+                  <p className="text-xs text-rose-500">{traitsError}</p>
+                )}
+
+                {!!quickPickTraits.length && (
+                  <div className="flex flex-wrap gap-2">
+                    {quickPickTraits.map((trait) => (
+                      <button
+                        key={`quick-${trait.key}`}
+                        type="button"
+                        onClick={() => setSelectedTraitKey(trait.key)}
+                        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                          selectedTraitKey === trait.key
+                            ? "border-sky-400 bg-sky-500 text-white shadow"
+                            : "border-slate-200 bg-slate-100 text-slate-600 hover:border-sky-300 hover:bg-sky-50"
+                        }`}
+                      >
+                        {trait.name}
+                      </button>
+                    ))}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <h4 className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-500">
+                    Active genes
+                  </h4>
+                  <div className="flex flex-wrap gap-2">
+                    {genes.length ? (
+                      genes.map((gene) => {
+                        const isActive = activeGene === gene.uid;
+                        return (
+                          <div
+                            key={`gene-pill-${gene.uid}`}
+                            className={`group inline-flex items-center rounded-full border px-3 py-1 text-xs font-medium transition ${
+                              isActive
+                                ? "border-sky-400 bg-sky-500 text-white shadow"
+                                : "border-slate-200 bg-slate-100 text-slate-600 hover:border-slate-300 hover:bg-slate-50"
+                            }`}
+                          >
+                            <button
+                              type="button"
+                              onClick={() => setActiveGene(gene.uid)}
+                              className="flex items-center gap-2 focus:outline-none"
+                            >
+                              <span>
+                                {gene.displayName || gene.id || "Unnamed gene"}
+                              </span>
+                              <span
+                                className={`rounded-full px-2 py-0.5 text-[10px] uppercase ${
+                                  isActive
+                                    ? "bg-white/20 text-white"
+                                    : "bg-white text-slate-500"
+                                }`}
+                              >
+                                {dominanceLabel[gene.dominance]}
+                              </span>
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveGene(gene.uid)}
+                              className={`ml-2 rounded-full p-1 transition ${
+                                isActive
+                                  ? "text-white/80 hover:text-white"
+                                  : "text-slate-400 hover:text-rose-500"
+                              }`}
+                              aria-label={`Remove ${
+                                gene.displayName || gene.id || "gene"
+                              }`}
+                            >
+                              <FaTrashAlt className="h-3 w-3" />
+                            </button>
+                          </div>
+                        );
+                      })
+                    ) : (
+                      <span className="text-xs text-slate-500">
+                        No genes yet. Use the controls above to add your first
+                        gene.
+                      </span>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </aside>
         </div>
       </div>
     </DashboardLayout>

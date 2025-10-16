@@ -255,12 +255,6 @@ const buildGeneFromTrait = (trait: TraitInfo): GeneForm => {
   };
 };
 
-const chromoLabel: Record<ChromosomeType, string> = {
-  autosomal: "Autosomal",
-  x: "X-Linked",
-  y: "Y-Linked",
-};
-
 const dominanceLabel: Record<DominancePattern, string> = {
   complete: "Complete Dominance",
   codominant: "Codominance",
@@ -364,7 +358,7 @@ const SimulationStudioPage: React.FC = () => {
   const [isLoadingTraits, setIsLoadingTraits] = useState<boolean>(false);
   const [traitsError, setTraitsError] = useState<string | null>(null);
   const [selectedTraitKey, setSelectedTraitKey] = useState<string>("");
-  const [isTraitPanelOpen, setIsTraitPanelOpen] = useState<boolean>(true);
+  const [isTraitPanelOpen] = useState<boolean>(true);
 
   const dynamicStyles = useMemo<SimulationCSSVariables>(() => {
     const width = viewportWidth ?? 1440;
@@ -568,15 +562,6 @@ const SimulationStudioPage: React.FC = () => {
     setShowSuccessToast(false);
   };
 
-  const openTraitPanel = () => {
-    setIsTraitPanelOpen(true);
-    if (typeof document === "undefined") {
-      return;
-    }
-    const element = document.getElementById("trait-library-panel");
-    element?.scrollIntoView({ behavior: "smooth", block: "start" });
-  };
-
   const traitLabelLookup = useMemo(() => {
     const map = new Map<string, string>();
     genes.forEach((gene) => {
@@ -714,7 +699,7 @@ const SimulationStudioPage: React.FC = () => {
     }
   };
 
-// Auto-dismiss error toast after 5 seconds
+  // Auto-dismiss error toast after 5 seconds
   useEffect(() => {
     if (showErrorToast && error) {
       const timer = setTimeout(() => {
@@ -864,391 +849,391 @@ const SimulationStudioPage: React.FC = () => {
         <div className="relative mx-auto flex w-full max-w-8xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-8 xl:gap-12">
           <div className="flex w-full flex-1 flex-col gap-12">
             <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex w-full max-w-3xl flex-col gap-4 lg:max-w-xl">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-4xl">
-                Simulation Studio
-              </h1>
-              <p className="text-gray-600 text-sm">
-                Configure the parents above and run a simulation to reveal
-                predicted phenotype distributions.
-              </p>
-            </div>
+              <div className="flex w-full max-w-3xl flex-col gap-4 lg:max-w-xl">
+                <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-4xl">
+                  Simulation Studio
+                </h1>
+                <p className="text-gray-600 text-sm">
+                  Configure the parents above and run a simulation to reveal
+                  predicted phenotype distributions.
+                </p>
+              </div>
 
-            <div className="flex w-full flex-1 flex-col gap-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-indigo-50 p-6 text-center shadow-2xl shadow-slate-200/60">
-              <div className="space-y-3 text-left">
-                <div className="flex items-center justify-between text-sm text-slate-500">
-                  <span>Simulations</span>
-                  <span>{simulations.toLocaleString()}</span>
-                </div>
-                <div className="flex w-full items-center gap-4">
-                  <div className="flex flex-1 flex-col justify-center">
-                    <input
-                      id="simulationSlider"
-                      type="range"
-                      min={50}
-                      max={5000}
-                      step={50}
-                      value={simulations}
-                      onChange={(event) =>
-                        setSimulations(Number(event.target.value))
-                      }
-                      className="w-full accent-sky-500"
-                    />
-                    <div className="flex justify-between text-sm text-slate-400 mt-1">
-                      <span>Quick</span>
-                      <span>Precise</span>
-                    </div>
+              <div className="flex w-full flex-1 flex-col gap-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-indigo-50 p-6 text-center shadow-2xl shadow-slate-200/60">
+                <div className="space-y-3 text-left">
+                  <div className="flex items-center justify-between text-sm text-slate-500">
+                    <span>Simulations</span>
+                    <span>{simulations.toLocaleString()}</span>
                   </div>
-                  <button
-                    type="button"
-                    onClick={handleCompute}
-                    disabled={isComputing}
-                    className="group relative flex cursor-pointer items-center justify-center self-center rounded-lg bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 text-white shadow-lg transition hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
-                    aria-label="Run Simulation"
-                    style={{
-                      width: "var(--primary-action-size)",
-                      height: "var(--primary-action-size)",
-                    }}
-                  >
-                    {isComputing ? (
-                      <RiLoader5Line
-                        className="animate-spin text-white"
-                        style={{
-                          width: "var(--primary-action-icon-size)",
-                          height: "var(--primary-action-icon-size)",
-                        }}
+                  <div className="flex w-full items-center gap-4">
+                    <div className="flex flex-1 flex-col justify-center">
+                      <input
+                        id="simulationSlider"
+                        type="range"
+                        min={50}
+                        max={5000}
+                        step={50}
+                        value={simulations}
+                        onChange={(event) =>
+                          setSimulations(Number(event.target.value))
+                        }
+                        className="w-full accent-sky-500"
                       />
-                    ) : (
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        className="text-white"
-                        style={{
-                          width: "var(--primary-action-icon-size)",
-                          height: "var(--primary-action-icon-size)",
-                        }}
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M5 3v18l15-9-15-9z"
-                        />
-                      </svg>
-                    )}
-                    <span className="absolute inset-0 -z-10 bg-white/40 opacity-0 blur transition duration-300 group-hover:opacity-100" />
-                  </button>
-                </div>
-              </div>
-              {/* Toast notifications for error and success */}
-              {showErrorToast && error && (
-                <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-rose-500">
-                  <span className="font-semibold flex-1">{error}</span>
-                  <button
-                    type="button"
-                    className="ml-3 text-white/80 hover:text-white text-lg font-bold"
-                    aria-label="Close error toast"
-                    onClick={() => {
-                      setShowErrorToast(false);
-                      setError(null);
-                    }}
-                  >
-                    &times;
-                  </button>
-                </div>
-              )}
-              {result && showSuccessToast && !isComputing && !error && (
-                <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-emerald-500">
-                  <HiOutlineSparkles
-                    className="text-white"
-                    style={{
-                      width: "var(--icon-sm)",
-                      height: "var(--icon-sm)",
-                    }}
-                  />
-                  <span className="flex-1">
-                    Simulation complete! Scroll down to review phenotype
-                    insights.
-                  </span>
-                  <button
-                    type="button"
-                    className="text-white/80 transition hover:text-white"
-                    aria-label="Close success toast"
-                    onClick={() => {
-                      setShowSuccessToast(false);
-                    }}
-                  >
-                    &times;
-                  </button>
-                </div>
-              )}
-            </div>
-          </header>
-
-            <div className="grid gap-6 lg:grid-cols-2">
-            {/* Parent A */}
-            <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
-              <div
-                className="absolute inset-x-0 top-0 bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400"
-                style={{ height: "var(--accent-divider-thickness)" }}
-              />
-              <div className="flex items-center justify-between px-6 pt-6 text-sm uppercase tracking-[0.2em] text-slate-600">
-                <span className="inline-flex items-center gap-2 text-slate-700">
-                  <FaFemale />
-                  Parent A
-                </span>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition hover:border-pink-300 hover:bg-pink-50"
-                  onClick={() =>
-                    setMotherSex((prev) =>
-                      prev === "female" ? "male" : "female"
-                    )
-                  }
-                >
-                  <HiSwitchHorizontal
-                    style={{
-                      width: "var(--icon-xs)",
-                      height: "var(--icon-xs)",
-                    }}
-                  />
-                  {motherSex === "female" ? "Female" : "Male"}
-                </button>
-              </div>
-              <p className="px-6 text-xs font-medium uppercase tracking-[0.3em] text-pink-400">
-                genotype designer
-              </p>
-              <div
-                className="mt-5 overflow-y-auto px-6 pb-6 pr-7"
-                style={{ maxHeight: "var(--panel-scroll-height)" }}
-              >
-                <div className="custom-scroll space-y-4">
-                  {genes.map((gene) => {
-                    const isActive = activeGene === gene.uid;
-                    return (
-                      <div
-                        key={`mother-${gene.uid}`}
-                        role="button"
-                        tabIndex={0}
-                        onMouseEnter={() => setActiveGene(gene.uid)}
-                        onClick={() => setActiveGene(gene.uid)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            setActiveGene(gene.uid);
-                          }
-                        }}
-                        className={`rounded-2xl border bg-slate-50/80 p-4 shadow-sm transition-all duration-300 ${
-                          isActive
-                            ? "border-pink-300 ring-2 ring-pink-200/60"
-                            : "border-slate-200 hover:border-slate-300"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-600">
-                          <span className="font-semibold text-slate-700">
-                            {gene.displayName || gene.id || "New Gene"}
-                          </span>
-                          <span className="text-[10px] text-slate-500">
-                            {dominanceLabel[gene.dominance]}
-                          </span>
-                        </div>
-                        <div className="mt-3">
-                          {renderAlleleSelects("mother", gene)}
-                        </div>
+                      <div className="flex justify-between text-sm text-slate-400 mt-1">
+                        <span>Quick</span>
+                        <span>Precise</span>
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-            {/* Parent B */}
-            <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
-              <div
-                className="absolute inset-x-0 top-0 bg-gradient-to-r from-sky-400 via-cyan-400 to-blue-400"
-                style={{ height: "var(--accent-divider-thickness)" }}
-              />
-              <div className="flex items-center justify-between px-6 pt-6 text-sm uppercase tracking-[0.2em] text-slate-600">
-                <span className="inline-flex items-center gap-2 text-slate-700">
-                  <FaMale />
-                  Parent B
-                </span>
-                <button
-                  type="button"
-                  className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition hover:border-sky-300 hover:bg-sky-50"
-                  onClick={() =>
-                    setFatherSex((prev) =>
-                      prev === "male" ? "female" : "male"
-                    )
-                  }
-                >
-                  <HiSwitchHorizontal
-                    style={{
-                      width: "var(--icon-xs)",
-                      height: "var(--icon-xs)",
-                    }}
-                  />
-                  {fatherSex === "male" ? "Male" : "Female"}
-                </button>
-              </div>
-              <p className="px-6 text-xs font-medium uppercase tracking-[0.3em] text-sky-400">
-                genotype designer
-              </p>
-              <div
-                className="mt-5 overflow-y-auto px-6 pb-6 pr-7"
-                style={{ maxHeight: "var(--panel-scroll-height)" }}
-              >
-                <div className="custom-scroll space-y-4">
-                  {genes.map((gene) => {
-                    const isActive = activeGene === gene.uid;
-                    return (
-                      <div
-                        key={`father-${gene.uid}`}
-                        role="button"
-                        tabIndex={0}
-                        onMouseEnter={() => setActiveGene(gene.uid)}
-                        onClick={() => setActiveGene(gene.uid)}
-                        onKeyDown={(event) => {
-                          if (event.key === "Enter" || event.key === " ") {
-                            setActiveGene(gene.uid);
-                          }
-                        }}
-                        className={`rounded-2xl border bg-slate-50/80 p-4 shadow-sm transition-all duration-300 ${
-                          isActive
-                            ? "border-sky-300 ring-2 ring-sky-200/60"
-                            : "border-slate-200 hover:border-slate-300"
-                        }`}
-                      >
-                        <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-600">
-                          <span className="font-semibold text-slate-700">
-                            {gene.displayName || gene.id || "New Gene"}
-                          </span>
-                          <span className="text-[10px] text-slate-500">
-                            {dominanceLabel[gene.dominance]}
-                          </span>
-                        </div>
-                        <div className="mt-3">
-                          {renderAlleleSelects("father", gene)}
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </div>
-            </div>
-          </div>
-
-            <section className="relative rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-6 shadow-2xl shadow-slate-200/60">
-            <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_70%)]" />
-            <div className="relative mx-auto flex max-w-5xl flex-col gap-6">
-              <header className="flex flex-wrap items-center justify-between gap-4 text-sm uppercase tracking-[0.3em] text-slate-600">
-                <span className="inline-flex items-center gap-2 text-slate-700">
-                  <HiOutlineSparkles
-                    className="text-emerald-500"
-                    style={{
-                      width: "var(--icon-sm)",
-                      height: "var(--icon-sm)",
-                    }}
-                  />
-                  Offspring Projection
-                </span>
-                {result && (
-                  <span className="text-xs text-slate-600">
-                    {result.simulations.toLocaleString()} iterations
-                  </span>
-                )}
-              </header>
-              <div
-                className="custom-scroll flex flex-col gap-6 overflow-y-auto pr-2"
-                style={{ maxHeight: "var(--panel-scroll-height)" }}
-              >
-                {!result && (
-                  <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-300 bg-white/70 p-8 text-center text-slate-500">
-                    <FaDna
-                      className="text-slate-400"
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleCompute}
+                      disabled={isComputing}
+                      className="group relative flex cursor-pointer items-center justify-center self-center rounded-lg bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 text-white shadow-lg transition hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+                      aria-label="Run Simulation"
                       style={{
-                        width: "var(--icon-lg)",
-                        height: "var(--icon-lg)",
+                        width: "var(--primary-action-size)",
+                        height: "var(--primary-action-size)",
+                      }}
+                    >
+                      {isComputing ? (
+                        <RiLoader5Line
+                          className="animate-spin text-white"
+                          style={{
+                            width: "var(--primary-action-icon-size)",
+                            height: "var(--primary-action-icon-size)",
+                          }}
+                        />
+                      ) : (
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                          className="text-white"
+                          style={{
+                            width: "var(--primary-action-icon-size)",
+                            height: "var(--primary-action-icon-size)",
+                          }}
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth={2}
+                            d="M5 3v18l15-9-15-9z"
+                          />
+                        </svg>
+                      )}
+                      <span className="absolute inset-0 -z-10 bg-white/40 opacity-0 blur transition duration-300 group-hover:opacity-100" />
+                    </button>
+                  </div>
+                </div>
+                {/* Toast notifications for error and success */}
+                {showErrorToast && error && (
+                  <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-rose-500">
+                    <span className="font-semibold flex-1">{error}</span>
+                    <button
+                      type="button"
+                      className="ml-3 text-white/80 hover:text-white text-lg font-bold"
+                      aria-label="Close error toast"
+                      onClick={() => {
+                        setShowErrorToast(false);
+                        setError(null);
+                      }}
+                    >
+                      &times;
+                    </button>
+                  </div>
+                )}
+                {result && showSuccessToast && !isComputing && !error && (
+                  <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-emerald-500">
+                    <HiOutlineSparkles
+                      className="text-white"
+                      style={{
+                        width: "var(--icon-sm)",
+                        height: "var(--icon-sm)",
                       }}
                     />
-                    <p className="text-sm text-slate-600">
-                      Configure the parents above and run a simulation to reveal
-                      predicted phenotype distributions.
-                    </p>
+                    <span className="flex-1">
+                      Simulation complete! Scroll down to review phenotype
+                      insights.
+                    </span>
+                    <button
+                      type="button"
+                      className="text-white/80 transition hover:text-white"
+                      aria-label="Close success toast"
+                      onClick={() => {
+                        setShowSuccessToast(false);
+                      }}
+                    >
+                      &times;
+                    </button>
                   </div>
                 )}
-                {result && (
-                  <>
-                    <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow">
-                      <h3 className="text-xs uppercase tracking-[0.3em] text-slate-600">
-                        Sex distribution
-                      </h3>
-                      <div className="mt-4 space-y-3">
-                        {sexBreakdown.map((entry) => (
-                          <div
-                            key={entry.sex}
-                            className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 shadow-sm"
-                          >
-                            <span
-                              className="text-xs uppercase tracking-[0.2em] text-slate-600"
-                              style={{ minWidth: "var(--panel-label-width)" }}
-                            >
-                              {entry.sex}
+              </div>
+            </header>
+
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Parent A */}
+              <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
+                <div
+                  className="absolute inset-x-0 top-0 bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400"
+                  style={{ height: "var(--accent-divider-thickness)" }}
+                />
+                <div className="flex items-center justify-between px-6 pt-6 text-sm uppercase tracking-[0.2em] text-slate-600">
+                  <span className="inline-flex items-center gap-2 text-slate-700">
+                    <FaFemale />
+                    Parent A
+                  </span>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition hover:border-pink-300 hover:bg-pink-50"
+                    onClick={() =>
+                      setMotherSex((prev) =>
+                        prev === "female" ? "male" : "female"
+                      )
+                    }
+                  >
+                    <HiSwitchHorizontal
+                      style={{
+                        width: "var(--icon-xs)",
+                        height: "var(--icon-xs)",
+                      }}
+                    />
+                    {motherSex === "female" ? "Female" : "Male"}
+                  </button>
+                </div>
+                <p className="px-6 text-xs font-medium uppercase tracking-[0.3em] text-pink-400">
+                  genotype designer
+                </p>
+                <div
+                  className="mt-5 overflow-y-auto px-6 pb-6 pr-7"
+                  style={{ maxHeight: "var(--panel-scroll-height)" }}
+                >
+                  <div className="custom-scroll space-y-4">
+                    {genes.map((gene) => {
+                      const isActive = activeGene === gene.uid;
+                      return (
+                        <div
+                          key={`mother-${gene.uid}`}
+                          role="button"
+                          tabIndex={0}
+                          onMouseEnter={() => setActiveGene(gene.uid)}
+                          onClick={() => setActiveGene(gene.uid)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              setActiveGene(gene.uid);
+                            }
+                          }}
+                          className={`rounded-2xl border bg-slate-50/80 p-4 shadow-sm transition-all duration-300 ${
+                            isActive
+                              ? "border-pink-300 ring-2 ring-pink-200/60"
+                              : "border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-600">
+                            <span className="font-semibold text-slate-700">
+                              {gene.displayName || gene.id || "New Gene"}
                             </span>
-                            <div className="flex-1 rounded-full bg-slate-200">
-                              <div
-                                className="rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 py-1 text-[10px] text-center text-white"
-                                style={{ width: `${entry.share}%` }}
+                            <span className="text-[10px] text-slate-500">
+                              {dominanceLabel[gene.dominance]}
+                            </span>
+                          </div>
+                          <div className="mt-3">
+                            {renderAlleleSelects("mother", gene)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+              {/* Parent B */}
+              <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
+                <div
+                  className="absolute inset-x-0 top-0 bg-gradient-to-r from-sky-400 via-cyan-400 to-blue-400"
+                  style={{ height: "var(--accent-divider-thickness)" }}
+                />
+                <div className="flex items-center justify-between px-6 pt-6 text-sm uppercase tracking-[0.2em] text-slate-600">
+                  <span className="inline-flex items-center gap-2 text-slate-700">
+                    <FaMale />
+                    Parent B
+                  </span>
+                  <button
+                    type="button"
+                    className="inline-flex items-center gap-2 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs text-slate-600 transition hover:border-sky-300 hover:bg-sky-50"
+                    onClick={() =>
+                      setFatherSex((prev) =>
+                        prev === "male" ? "female" : "male"
+                      )
+                    }
+                  >
+                    <HiSwitchHorizontal
+                      style={{
+                        width: "var(--icon-xs)",
+                        height: "var(--icon-xs)",
+                      }}
+                    />
+                    {fatherSex === "male" ? "Male" : "Female"}
+                  </button>
+                </div>
+                <p className="px-6 text-xs font-medium uppercase tracking-[0.3em] text-sky-400">
+                  genotype designer
+                </p>
+                <div
+                  className="mt-5 overflow-y-auto px-6 pb-6 pr-7"
+                  style={{ maxHeight: "var(--panel-scroll-height)" }}
+                >
+                  <div className="custom-scroll space-y-4">
+                    {genes.map((gene) => {
+                      const isActive = activeGene === gene.uid;
+                      return (
+                        <div
+                          key={`father-${gene.uid}`}
+                          role="button"
+                          tabIndex={0}
+                          onMouseEnter={() => setActiveGene(gene.uid)}
+                          onClick={() => setActiveGene(gene.uid)}
+                          onKeyDown={(event) => {
+                            if (event.key === "Enter" || event.key === " ") {
+                              setActiveGene(gene.uid);
+                            }
+                          }}
+                          className={`rounded-2xl border bg-slate-50/80 p-4 shadow-sm transition-all duration-300 ${
+                            isActive
+                              ? "border-sky-300 ring-2 ring-sky-200/60"
+                              : "border-slate-200 hover:border-slate-300"
+                          }`}
+                        >
+                          <div className="flex items-center justify-between text-xs uppercase tracking-[0.2em] text-slate-600">
+                            <span className="font-semibold text-slate-700">
+                              {gene.displayName || gene.id || "New Gene"}
+                            </span>
+                            <span className="text-[10px] text-slate-500">
+                              {dominanceLabel[gene.dominance]}
+                            </span>
+                          </div>
+                          <div className="mt-3">
+                            {renderAlleleSelects("father", gene)}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <section className="relative rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-6 shadow-2xl shadow-slate-200/60">
+              <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_70%)]" />
+              <div className="relative mx-auto flex max-w-5xl flex-col gap-6">
+                <header className="flex flex-wrap items-center justify-between gap-4 text-sm uppercase tracking-[0.3em] text-slate-600">
+                  <span className="inline-flex items-center gap-2 text-slate-700">
+                    <HiOutlineSparkles
+                      className="text-emerald-500"
+                      style={{
+                        width: "var(--icon-sm)",
+                        height: "var(--icon-sm)",
+                      }}
+                    />
+                    Offspring Projection
+                  </span>
+                  {result && (
+                    <span className="text-xs text-slate-600">
+                      {result.simulations.toLocaleString()} iterations
+                    </span>
+                  )}
+                </header>
+                <div
+                  className="custom-scroll flex flex-col gap-6 overflow-y-auto pr-2"
+                  style={{ maxHeight: "var(--panel-scroll-height)" }}
+                >
+                  {!result && (
+                    <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-300 bg-white/70 p-8 text-center text-slate-500">
+                      <FaDna
+                        className="text-slate-400"
+                        style={{
+                          width: "var(--icon-lg)",
+                          height: "var(--icon-lg)",
+                        }}
+                      />
+                      <p className="text-sm text-slate-600">
+                        Configure the parents above and run a simulation to
+                        reveal predicted phenotype distributions.
+                      </p>
+                    </div>
+                  )}
+                  {result && (
+                    <>
+                      <div className="rounded-3xl border border-slate-200 bg-white p-4 shadow">
+                        <h3 className="text-xs uppercase tracking-[0.3em] text-slate-600">
+                          Sex distribution
+                        </h3>
+                        <div className="mt-4 space-y-3">
+                          {sexBreakdown.map((entry) => (
+                            <div
+                              key={entry.sex}
+                              className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 shadow-sm"
+                            >
+                              <span
+                                className="text-xs uppercase tracking-[0.2em] text-slate-600"
+                                style={{ minWidth: "var(--panel-label-width)" }}
                               >
-                                {entry.share}%
+                                {entry.sex}
+                              </span>
+                              <div className="flex-1 rounded-full bg-slate-200">
+                                <div
+                                  className="rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 py-1 text-[10px] text-center text-white"
+                                  style={{ width: `${entry.share}%` }}
+                                >
+                                  {entry.share}%
+                                </div>
                               </div>
+                              <span
+                                className="text-right text-xs text-slate-600"
+                                style={{ minWidth: "var(--panel-label-width)" }}
+                              >
+                                {entry.count}
+                              </span>
                             </div>
-                            <span
-                              className="text-right text-xs text-slate-600"
-                              style={{ minWidth: "var(--panel-label-width)" }}
-                            >
-                              {entry.count}
-                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className="space-y-4">
+                        {traitSummaries.map((summary) => (
+                          <div
+                            key={summary.id}
+                            className="rounded-3xl border border-slate-200 bg-white p-4 shadow"
+                          >
+                            <div className="flex items-center justify-between">
+                              <h4 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-700">
+                                {summary.label}
+                              </h4>
+                              <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-emerald-600 shadow-sm">
+                                mean {summary.mean.toFixed(2)}
+                              </span>
+                            </div>
+                            <div className="mt-3 flex flex-wrap gap-2">
+                              {summary.descriptors.map(([label, value]) => (
+                                <span
+                                  key={label || "unspecified"}
+                                  className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] text-slate-700 shadow-sm"
+                                >
+                                  {label || "unspecified"}
+                                  <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-slate-600">
+                                    {value}
+                                  </span>
+                                </span>
+                              ))}
+                            </div>
                           </div>
                         ))}
                       </div>
-                    </div>
-
-                    <div className="space-y-4">
-                      {traitSummaries.map((summary) => (
-                        <div
-                          key={summary.id}
-                          className="rounded-3xl border border-slate-200 bg-white p-4 shadow"
-                        >
-                          <div className="flex items-center justify-between">
-                            <h4 className="text-sm font-semibold uppercase tracking-[0.3em] text-slate-700">
-                              {summary.label}
-                            </h4>
-                            <span className="rounded-full bg-slate-100 px-3 py-1 text-xs text-emerald-600 shadow-sm">
-                              mean {summary.mean.toFixed(2)}
-                            </span>
-                          </div>
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            {summary.descriptors.map(([label, value]) => (
-                              <span
-                                key={label || "unspecified"}
-                                className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-slate-50 px-3 py-1 text-[11px] text-slate-700 shadow-sm"
-                              >
-                                {label || "unspecified"}
-                                <span className="rounded-full bg-white px-2 py-0.5 text-[10px] text-slate-600">
-                                  {value}
-                                </span>
-                              </span>
-                            ))}
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </>
-                )}
+                    </>
+                  )}
+                </div>
               </div>
-            </div>
-          </section>
+            </section>
           </div>
 
           <aside

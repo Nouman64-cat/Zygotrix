@@ -51,6 +51,61 @@ type ParentGenotypeState = Record<string, string[]>;
 
 const generateUid = () => Math.random().toString(36).slice(2);
 
+type SimulationCSSVariables = React.CSSProperties &
+  Record<
+    | "--blob-size"
+    | "--panel-scroll-height"
+    | "--primary-action-size"
+    | "--primary-action-icon-size"
+    | "--icon-lg"
+    | "--icon-md"
+    | "--icon-sm"
+    | "--icon-xs"
+    | "--icon-xxs"
+    | "--panel-label-width"
+    | "--trait-panel-min-width"
+    | "--trait-panel-max-width"
+    | "--trait-panel-offset"
+    | "--trait-panel-height"
+    | "--trait-panel-width"
+    | "--accent-divider-thickness",
+    string
+  >;
+
+const getInitialViewportSize = () => {
+  if (typeof window === "undefined") {
+    return { width: 1440, height: 900 };
+  }
+  return { width: window.innerWidth, height: window.innerHeight };
+};
+
+const clampValue = (value: number, min: number, max: number): number => {
+  if (Number.isNaN(value)) {
+    return min;
+  }
+  return Math.min(Math.max(value, min), max);
+};
+
+const useViewportSize = () => {
+  const [viewport, setViewport] = useState(getInitialViewportSize);
+
+  useEffect(() => {
+    if (typeof window === "undefined") {
+      return;
+    }
+    const handleResize = () => {
+      setViewport({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
+
+  return viewport;
+};
+
 const sanitizeGeneId = (value: string): string => {
   const sanitized = value
     .toLowerCase()
@@ -290,6 +345,7 @@ const syncGenotype = (
 };
 
 const SimulationStudioPage: React.FC = () => {
+  const { width: viewportWidth, height: viewportHeight } = useViewportSize();
   const [genes, setGenes] = useState<GeneForm[]>([]);
   const [motherSex, setMotherSex] = useState<"female" | "male">("female");
   const [fatherSex, setFatherSex] = useState<"female" | "male">("male");
@@ -302,12 +358,76 @@ const SimulationStudioPage: React.FC = () => {
   const [isComputing, setIsComputing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showErrorToast, setShowErrorToast] = useState(false);
+  const [showSuccessToast, setShowSuccessToast] = useState(false);
   const [activeGene, setActiveGene] = useState<string>("");
   const [availableTraits, setAvailableTraits] = useState<TraitInfo[]>([]);
   const [isLoadingTraits, setIsLoadingTraits] = useState<boolean>(false);
   const [traitsError, setTraitsError] = useState<string | null>(null);
   const [selectedTraitKey, setSelectedTraitKey] = useState<string>("");
   const [isTraitPanelOpen, setIsTraitPanelOpen] = useState<boolean>(true);
+
+  const dynamicStyles = useMemo<SimulationCSSVariables>(() => {
+    const width = viewportWidth ?? 1440;
+    const height = viewportHeight ?? 900;
+
+    const toPx = (value: number) => `${Math.round(value)}px`;
+
+    const blobSize = clampValue(width * 0.24, 280, 320);
+    const panelScrollHeight = clampValue(height * 0.45, 260, 320);
+    const primaryActionSize = clampValue(width * 0.033, 48, 56);
+    const primaryActionIconSize = clampValue(primaryActionSize * 0.58, 26, 32);
+    const iconLg = clampValue(width * 0.033, 44, 52);
+    const iconMd = clampValue(width * 0.017, 20, 28);
+    const iconSm = clampValue(width * 0.014, 18, 22);
+    const iconXs = clampValue(width * 0.011, 16, 18);
+    const iconXxs = clampValue(width * 0.008, 12, 14);
+    const labelWidth = clampValue(width * 0.0445, 56, 72);
+    const traitPanelMinWidth = clampValue(width * 0.26, 280, 320);
+    const traitPanelMaxWidth = clampValue(width * 0.32, 340, 400);
+    const traitPanelOffset = clampValue(height * 0.0889, 72, 96);
+    const traitPanelWidth = clampValue(
+      width * 0.28,
+      traitPanelMinWidth,
+      traitPanelMaxWidth
+    );
+    const accentDividerThickness = clampValue(width * 0.0025, 3, 4);
+
+    return {
+      "--blob-size": toPx(blobSize),
+      "--panel-scroll-height": toPx(panelScrollHeight),
+      "--primary-action-size": toPx(primaryActionSize),
+      "--primary-action-icon-size": toPx(primaryActionIconSize),
+      "--icon-lg": toPx(iconLg),
+      "--icon-md": toPx(iconMd),
+      "--icon-sm": toPx(iconSm),
+      "--icon-xs": toPx(iconXs),
+      "--icon-xxs": toPx(iconXxs),
+      "--panel-label-width": toPx(labelWidth),
+      "--trait-panel-min-width": toPx(traitPanelMinWidth),
+      "--trait-panel-max-width": toPx(traitPanelMaxWidth),
+      "--trait-panel-offset": toPx(traitPanelOffset),
+      "--trait-panel-height": `calc(100vh - ${toPx(traitPanelOffset)})`,
+      "--trait-panel-width": toPx(traitPanelWidth),
+      "--accent-divider-thickness": toPx(accentDividerThickness),
+    };
+  }, [viewportWidth, viewportHeight]);
+
+  const traitPanelStyle = useMemo<React.CSSProperties>(() => {
+    const shouldApplyExpandedLayout = (viewportWidth ?? 0) >= 1024;
+    const style: React.CSSProperties = {
+      top: "var(--trait-panel-offset)",
+    };
+
+    if (shouldApplyExpandedLayout) {
+      style.minWidth = "var(--trait-panel-min-width)";
+      style.maxWidth = "var(--trait-panel-max-width)";
+      style.width = "var(--trait-panel-width)";
+      style.height = "var(--trait-panel-height)";
+      style.maxHeight = "var(--trait-panel-height)";
+    }
+
+    return style;
+  }, [viewportWidth]);
 
   const traitOptions = useMemo(() => {
     const options = availableTraits.filter(
@@ -430,6 +550,7 @@ const SimulationStudioPage: React.FC = () => {
     ensureGenotypes(updated, motherSex, fatherSex);
     setActiveGene(newGene.uid);
     setResult(null);
+    setShowSuccessToast(false);
   };
 
   const handleRemoveGene = (uid: string) => {
@@ -444,6 +565,7 @@ const SimulationStudioPage: React.FC = () => {
       setActiveGene(updated[0]?.uid ?? "");
     }
     setResult(null);
+    setShowSuccessToast(false);
   };
 
   const openTraitPanel = () => {
@@ -564,10 +686,12 @@ const SimulationStudioPage: React.FC = () => {
   const handleCompute = async () => {
     setError(null);
     setShowErrorToast(false);
+    setShowSuccessToast(false);
     const validationError = validateGenes();
     if (validationError) {
       setError(validationError);
       setShowErrorToast(true);
+      setShowSuccessToast(false);
       return;
     }
 
@@ -576,6 +700,7 @@ const SimulationStudioPage: React.FC = () => {
       const payload = payloadBuilder();
       const data = await computeGeneticCross(payload);
       setResult(data);
+      setShowSuccessToast(true);
     } catch (err) {
       const message =
         err instanceof Error
@@ -583,12 +708,13 @@ const SimulationStudioPage: React.FC = () => {
           : "Unable to compute genetic cross. Please try again.";
       setError(message);
       setShowErrorToast(true);
+      setShowSuccessToast(false);
     } finally {
       setIsComputing(false);
     }
   };
 
-  // Auto-dismiss error toast after 5 seconds
+// Auto-dismiss error toast after 5 seconds
   useEffect(() => {
     if (showErrorToast && error) {
       const timer = setTimeout(() => {
@@ -598,6 +724,15 @@ const SimulationStudioPage: React.FC = () => {
       return () => clearTimeout(timer);
     }
   }, [showErrorToast, error]);
+
+  useEffect(() => {
+    if (showSuccessToast && result) {
+      const timer = setTimeout(() => {
+        setShowSuccessToast(false);
+      }, 5000);
+      return () => clearTimeout(timer);
+    }
+  }, [showSuccessToast, result]);
 
   const renderAlleleSelects = (parent: "mother" | "father", gene: GeneForm) => {
     const sex = parent === "mother" ? motherSex : fatherSex;
@@ -701,70 +836,52 @@ const SimulationStudioPage: React.FC = () => {
     }));
   }, [result]);
 
-  const headlineMetrics = useMemo(
-    () => [
-      {
-        id: "gene-count",
-        label: "Genes Configured",
-        value: genes.length.toString(),
-        accent: "from-fuchsia-400/80 to-purple-500/80",
-        icon: <FaDna className="h-5 w-5" />,
-      },
-      {
-        id: "simulation-depth",
-        label: "Simulation Depth",
-        value: simulations.toLocaleString(),
-        accent: "from-sky-400/80 to-cyan-500/80",
-        icon: <HiOutlineSparkles className="h-5 w-5" />,
-      },
-      {
-        id: "trait-insights",
-        label: "Traits Measured",
-        value: result
-          ? Object.keys(result.trait_summaries).length.toString()
-          : "--",
-        accent: "from-emerald-400/80 to-teal-500/80",
-        icon: <FaPlusCircle className="h-5 w-5" />,
-      },
-    ],
-    [genes.length, result, simulations]
-  );
-
-  const activeGeneDetail = useMemo(() => {
-    if (!genes.length) {
-      return null;
-    }
-    return genes.find((gene) => gene.uid === activeGene) ?? genes[0];
-  }, [activeGene, genes]);
-
   return (
     <DashboardLayout>
-      <div className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-white via-slate-50 to-blue-50 px-4 pb-20 pt-10 text-slate-900">
+      <div
+        className="relative min-h-screen w-full overflow-hidden bg-gradient-to-br from-white via-slate-50 to-blue-50 px-6 pb-20 pt-10 text-slate-900 md:px-8 lg:px-12"
+        style={{
+          ...dynamicStyles,
+        }}
+      >
         <div className="pointer-events-none absolute inset-0 overflow-hidden">
-          <div className="absolute -top-32 -right-32 h-80 w-80 rounded-full bg-blue-200/40 blur-3xl" />
-          <div className="absolute -bottom-24 -left-24 h-80 w-80 rounded-full bg-purple-200/40 blur-3xl" />
+          <div
+            className="absolute -top-32 -right-32 rounded-full bg-blue-200/40 blur-3xl"
+            style={{
+              width: "var(--blob-size)",
+              height: "var(--blob-size)",
+            }}
+          />
+          <div
+            className="absolute -bottom-24 -left-24 rounded-full bg-purple-200/40 blur-3xl"
+            style={{
+              width: "var(--blob-size)",
+              height: "var(--blob-size)",
+            }}
+          />
         </div>
 
-        <div
-          className={`relative mx-auto flex max-w-8xl flex-col gap-12 transition-[padding] duration-300 ${
-            isTraitPanelOpen ? "lg:pr-[360px]" : ""
-          }`}
-        >
-          <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
-            <div className="flex max-w-3xl flex-col gap-4">
-              <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-5xl">
+        <div className="relative mx-auto flex w-full max-w-8xl flex-col gap-12 lg:flex-row lg:items-start lg:gap-8 xl:gap-12">
+          <div className="flex w-full flex-1 flex-col gap-12">
+            <header className="flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex w-full max-w-3xl flex-col gap-4 lg:max-w-xl">
+              <h1 className="text-3xl font-bold tracking-tight text-slate-900 md:text-4xl lg:text-4xl">
                 Simulation Studio
               </h1>
+              <p className="text-gray-600 text-sm">
+                Configure the parents above and run a simulation to reveal
+                predicted phenotype distributions.
+              </p>
             </div>
 
-            <div className="flex w-full max-w-md flex-col gap-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-indigo-50 p-6 text-center shadow-2xl shadow-slate-200/60">
+            <div className="flex w-full flex-1 flex-col gap-5 rounded-3xl border border-slate-200 bg-gradient-to-br from-sky-50 via-white to-indigo-50 p-6 text-center shadow-2xl shadow-slate-200/60">
               <div className="space-y-3 text-left">
                 <div className="flex items-center justify-between text-sm text-slate-500">
                   <span>Simulations</span>
                   <span>{simulations.toLocaleString()}</span>
                 </div>
-                <div className="flex items-center gap-4 w-full">
-                  <div className="flex-1 flex flex-col justify-center">
+                <div className="flex w-full items-center gap-4">
+                  <div className="flex flex-1 flex-col justify-center">
                     <input
                       id="simulationSlider"
                       type="range"
@@ -776,7 +893,6 @@ const SimulationStudioPage: React.FC = () => {
                         setSimulations(Number(event.target.value))
                       }
                       className="w-full accent-sky-500"
-                      style={{ marginBottom: 0 }}
                     />
                     <div className="flex justify-between text-sm text-slate-400 mt-1">
                       <span>Quick</span>
@@ -787,19 +903,32 @@ const SimulationStudioPage: React.FC = () => {
                     type="button"
                     onClick={handleCompute}
                     disabled={isComputing}
-                    className="group relative flex items-center justify-center rounded-lg bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 w-12 h-12 text-white shadow-lg transition hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
+                    className="group relative flex cursor-pointer items-center justify-center self-center rounded-lg bg-gradient-to-r from-sky-500 via-blue-500 to-indigo-500 text-white shadow-lg transition hover:scale-105 hover:shadow-xl disabled:cursor-not-allowed disabled:opacity-60"
                     aria-label="Run Simulation"
-                    style={{ alignSelf: "center" }}
+                    style={{
+                      width: "var(--primary-action-size)",
+                      height: "var(--primary-action-size)",
+                    }}
                   >
                     {isComputing ? (
-                      <RiLoader5Line className="h-6 w-6 animate-spin" />
+                      <RiLoader5Line
+                        className="animate-spin text-white"
+                        style={{
+                          width: "var(--primary-action-icon-size)",
+                          height: "var(--primary-action-icon-size)",
+                        }}
+                      />
                     ) : (
                       <svg
                         xmlns="http://www.w3.org/2000/svg"
                         fill="none"
                         viewBox="0 0 24 24"
                         stroke="currentColor"
-                        className="h-7 w-7"
+                        className="text-white"
+                        style={{
+                          width: "var(--primary-action-icon-size)",
+                          height: "var(--primary-action-icon-size)",
+                        }}
                       >
                         <path
                           strokeLinecap="round"
@@ -830,48 +959,41 @@ const SimulationStudioPage: React.FC = () => {
                   </button>
                 </div>
               )}
-              {result && !isComputing && !error && (
+              {result && showSuccessToast && !isComputing && !error && (
                 <div className="fixed top-8 left-1/2 z-50 -translate-x-1/2 flex items-center gap-3 rounded-xl px-6 py-3 text-white shadow-lg animate-fade-in bg-emerald-500">
-                  <HiOutlineSparkles className="h-5 w-5 text-white" />
-                  <span>
+                  <HiOutlineSparkles
+                    className="text-white"
+                    style={{
+                      width: "var(--icon-sm)",
+                      height: "var(--icon-sm)",
+                    }}
+                  />
+                  <span className="flex-1">
                     Simulation complete! Scroll down to review phenotype
                     insights.
                   </span>
+                  <button
+                    type="button"
+                    className="text-white/80 transition hover:text-white"
+                    aria-label="Close success toast"
+                    onClick={() => {
+                      setShowSuccessToast(false);
+                    }}
+                  >
+                    &times;
+                  </button>
                 </div>
               )}
             </div>
           </header>
 
-          <div className="grid gap-4 md:grid-cols-3">
-            {headlineMetrics.map((metric) => (
-              <div
-                key={metric.id}
-                className="relative overflow-hidden rounded-2xl border border-slate-200 bg-white p-4 shadow-lg shadow-slate-200/60"
-              >
-                <div
-                  className={`pointer-events-none absolute -top-12 -right-12 h-32 w-32 rounded-full bg-gradient-to-br ${metric.accent} opacity-60 blur-2xl`}
-                />
-                <div className="relative flex items-center justify-between">
-                  <div>
-                    <p className="text-xs uppercase tracking-[0.3em] text-slate-500">
-                      {metric.label}
-                    </p>
-                    <p className="mt-2 text-2xl font-semibold text-slate-900">
-                      {metric.value}
-                    </p>
-                  </div>
-                  <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-700">
-                    {metric.icon}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-2">
             {/* Parent A */}
             <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
-              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400" />
+              <div
+                className="absolute inset-x-0 top-0 bg-gradient-to-r from-pink-400 via-fuchsia-400 to-purple-400"
+                style={{ height: "var(--accent-divider-thickness)" }}
+              />
               <div className="flex items-center justify-between px-6 pt-6 text-sm uppercase tracking-[0.2em] text-slate-600">
                 <span className="inline-flex items-center gap-2 text-slate-700">
                   <FaFemale />
@@ -886,14 +1008,22 @@ const SimulationStudioPage: React.FC = () => {
                     )
                   }
                 >
-                  <HiSwitchHorizontal className="h-4 w-4" />
+                  <HiSwitchHorizontal
+                    style={{
+                      width: "var(--icon-xs)",
+                      height: "var(--icon-xs)",
+                    }}
+                  />
                   {motherSex === "female" ? "Female" : "Male"}
                 </button>
               </div>
               <p className="px-6 text-xs font-medium uppercase tracking-[0.3em] text-pink-400">
                 genotype designer
               </p>
-              <div className="mt-5 max-h-[320px] overflow-y-auto px-6 pb-6 pr-7">
+              <div
+                className="mt-5 overflow-y-auto px-6 pb-6 pr-7"
+                style={{ maxHeight: "var(--panel-scroll-height)" }}
+              >
                 <div className="custom-scroll space-y-4">
                   {genes.map((gene) => {
                     const isActive = activeGene === gene.uid;
@@ -934,7 +1064,10 @@ const SimulationStudioPage: React.FC = () => {
             </div>
             {/* Parent B */}
             <div className="relative overflow-hidden rounded-3xl border border-slate-200 bg-white shadow-2xl shadow-slate-200/60">
-              <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-sky-400 via-cyan-400 to-blue-400" />
+              <div
+                className="absolute inset-x-0 top-0 bg-gradient-to-r from-sky-400 via-cyan-400 to-blue-400"
+                style={{ height: "var(--accent-divider-thickness)" }}
+              />
               <div className="flex items-center justify-between px-6 pt-6 text-sm uppercase tracking-[0.2em] text-slate-600">
                 <span className="inline-flex items-center gap-2 text-slate-700">
                   <FaMale />
@@ -949,14 +1082,22 @@ const SimulationStudioPage: React.FC = () => {
                     )
                   }
                 >
-                  <HiSwitchHorizontal className="h-4 w-4" />
+                  <HiSwitchHorizontal
+                    style={{
+                      width: "var(--icon-xs)",
+                      height: "var(--icon-xs)",
+                    }}
+                  />
                   {fatherSex === "male" ? "Male" : "Female"}
                 </button>
               </div>
               <p className="px-6 text-xs font-medium uppercase tracking-[0.3em] text-sky-400">
                 genotype designer
               </p>
-              <div className="mt-5 max-h-[320px] overflow-y-auto px-6 pb-6 pr-7">
+              <div
+                className="mt-5 overflow-y-auto px-6 pb-6 pr-7"
+                style={{ maxHeight: "var(--panel-scroll-height)" }}
+              >
                 <div className="custom-scroll space-y-4">
                   {genes.map((gene) => {
                     const isActive = activeGene === gene.uid;
@@ -997,12 +1138,18 @@ const SimulationStudioPage: React.FC = () => {
             </div>
           </div>
 
-          <section className="relative rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-6 shadow-2xl shadow-slate-200/60">
+            <section className="relative rounded-3xl border border-slate-200 bg-gradient-to-br from-white via-slate-50 to-blue-50 p-6 shadow-2xl shadow-slate-200/60">
             <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(56,189,248,0.18),_transparent_70%)]" />
             <div className="relative mx-auto flex max-w-5xl flex-col gap-6">
               <header className="flex flex-wrap items-center justify-between gap-4 text-sm uppercase tracking-[0.3em] text-slate-600">
                 <span className="inline-flex items-center gap-2 text-slate-700">
-                  <HiOutlineSparkles className="h-5 w-5 text-emerald-500" />
+                  <HiOutlineSparkles
+                    className="text-emerald-500"
+                    style={{
+                      width: "var(--icon-sm)",
+                      height: "var(--icon-sm)",
+                    }}
+                  />
                   Offspring Projection
                 </span>
                 {result && (
@@ -1011,10 +1158,19 @@ const SimulationStudioPage: React.FC = () => {
                   </span>
                 )}
               </header>
-              <div className="custom-scroll flex max-h-[320px] flex-col gap-6 overflow-y-auto pr-2">
+              <div
+                className="custom-scroll flex flex-col gap-6 overflow-y-auto pr-2"
+                style={{ maxHeight: "var(--panel-scroll-height)" }}
+              >
                 {!result && (
                   <div className="flex flex-1 flex-col items-center justify-center gap-3 rounded-3xl border border-dashed border-slate-300 bg-white/70 p-8 text-center text-slate-500">
-                    <FaDna className="h-12 w-12 text-slate-400" />
+                    <FaDna
+                      className="text-slate-400"
+                      style={{
+                        width: "var(--icon-lg)",
+                        height: "var(--icon-lg)",
+                      }}
+                    />
                     <p className="text-sm text-slate-600">
                       Configure the parents above and run a simulation to reveal
                       predicted phenotype distributions.
@@ -1033,7 +1189,10 @@ const SimulationStudioPage: React.FC = () => {
                             key={entry.sex}
                             className="flex items-center gap-3 rounded-2xl bg-slate-50 p-3 shadow-sm"
                           >
-                            <span className="w-16 text-xs uppercase tracking-[0.2em] text-slate-600">
+                            <span
+                              className="text-xs uppercase tracking-[0.2em] text-slate-600"
+                              style={{ minWidth: "var(--panel-label-width)" }}
+                            >
                               {entry.sex}
                             </span>
                             <div className="flex-1 rounded-full bg-slate-200">
@@ -1044,7 +1203,10 @@ const SimulationStudioPage: React.FC = () => {
                                 {entry.share}%
                               </div>
                             </div>
-                            <span className="w-16 text-right text-xs text-slate-600">
+                            <span
+                              className="text-right text-xs text-slate-600"
+                              style={{ minWidth: "var(--panel-label-width)" }}
+                            >
                               {entry.count}
                             </span>
                           </div>
@@ -1087,29 +1249,28 @@ const SimulationStudioPage: React.FC = () => {
               </div>
             </div>
           </section>
+          </div>
 
           <aside
             id="trait-library-panel"
             aria-hidden={!isTraitPanelOpen}
-            className={`mt-8 lg:mt-0 lg:absolute lg:top-0 lg:right-0 lg:flex lg:h-full lg:w-[340px] ${
-              isTraitPanelOpen ? "" : "hidden"
+            className={`mt-10 w-full lg:mt-0 lg:w-auto lg:flex-shrink-0 lg:self-start lg:sticky ${
+              isTraitPanelOpen ? "" : "hidden lg:block"
             }`}
+            style={traitPanelStyle}
           >
-            <div className="flex h-full w-full flex-col gap-4 rounded-3xl border border-slate-200 bg-white/90 p-5 shadow-xl shadow-slate-200/60 backdrop-blur lg:max-h-[calc(100vh-160px)] lg:overflow-y-auto">
+            <div className="flex h-full w-full flex-col gap-4 rounded-3xl border border-slate-200 bg-white/90 p-6 shadow-xl shadow-slate-200/60 backdrop-blur lg:h-full lg:overflow-y-auto">
               <div className="flex items-center justify-between">
                 <div className="inline-flex items-center gap-2 rounded-full border border-slate-200 bg-white px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-slate-500 shadow-sm">
-                  <FaDna className="h-4 w-4 text-sky-500" />
+                  <FaDna
+                    className="text-sky-500"
+                    style={{
+                      width: "var(--icon-xs)",
+                      height: "var(--icon-xs)",
+                    }}
+                  />
                   Trait Library
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsTraitPanelOpen(false)}
-                  aria-controls="trait-library-panel"
-                  aria-expanded={isTraitPanelOpen}
-                  className="inline-flex items-center gap-1 rounded-full border border-slate-300 bg-white px-3 py-1 text-xs font-medium text-slate-600 transition hover:border-rose-300 hover:text-rose-500"
-                >
-                  Collapse
-                </button>
               </div>
 
               <div className="space-y-5">
@@ -1130,7 +1291,7 @@ const SimulationStudioPage: React.FC = () => {
                       setSelectedTraitKey(event.target.value)
                     }
                     disabled={isLoadingTraits || !traitOptions.length}
-                    className="w-full flex-1 rounded-full border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100"
+                    className="w-full flex-1 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm text-slate-700 outline-none transition focus:border-sky-400 focus:ring-2 focus:ring-sky-200 disabled:cursor-not-allowed disabled:bg-slate-100"
                   >
                     {isLoadingTraits && (
                       <option value="">Loading traits...</option>
@@ -1151,9 +1312,14 @@ const SimulationStudioPage: React.FC = () => {
                     disabled={
                       isLoadingTraits || !selectedTrait || !traitOptions.length
                     }
-                    className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
+                    className="inline-flex items-center cursor-pointer justify-center gap-2 rounded-lg bg-gradient-to-r from-emerald-400 to-teal-500 px-5 py-2 text-sm font-semibold text-white shadow-sm transition hover:shadow-md focus:outline-none focus:ring-2 focus:ring-emerald-200 disabled:cursor-not-allowed disabled:opacity-60"
                   >
-                    <FaPlusCircle className="h-4 w-4" />
+                    <FaPlusCircle
+                      style={{
+                        width: "var(--icon-xs)",
+                        height: "var(--icon-xs)",
+                      }}
+                    />
                     Add Trait
                   </button>
                 </div>
@@ -1169,7 +1335,7 @@ const SimulationStudioPage: React.FC = () => {
                         key={`quick-${trait.key}`}
                         type="button"
                         onClick={() => setSelectedTraitKey(trait.key)}
-                        className={`rounded-full border px-3 py-1 text-xs font-medium transition ${
+                        className={`rounded-full cursor-pointer border px-3 py-1 text-xs font-medium transition ${
                           selectedTraitKey === trait.key
                             ? "border-sky-400 bg-sky-500 text-white shadow"
                             : "border-slate-200 bg-slate-100 text-slate-600 hover:border-sky-300 hover:bg-sky-50"
@@ -1228,7 +1394,12 @@ const SimulationStudioPage: React.FC = () => {
                                 gene.displayName || gene.id || "gene"
                               }`}
                             >
-                              <FaTrashAlt className="h-3 w-3" />
+                              <FaTrashAlt
+                                style={{
+                                  width: "var(--icon-xxs)",
+                                  height: "var(--icon-xxs)",
+                                }}
+                              />
                             </button>
                           </div>
                         );

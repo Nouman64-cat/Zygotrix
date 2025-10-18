@@ -91,6 +91,13 @@ export interface ModuleProgress {
   status: "locked" | "in-progress" | "completed";
   duration?: string | null;
   completion: number;
+  items: ModuleProgressItem[];
+}
+
+export interface ModuleProgressItem {
+  moduleItemId: string;
+  title?: string | null;
+  completed: boolean;
 }
 
 export interface CourseProgressMetrics {

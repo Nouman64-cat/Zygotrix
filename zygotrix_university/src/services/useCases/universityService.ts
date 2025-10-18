@@ -38,45 +38,57 @@ import {
   fetchEnrollments,
 } from "../repositories/universityRepository";
 
-const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course => ({
-  id: apiCourse.id,
-  slug: apiCourse.slug,
-  title: apiCourse.title,
-  shortDescription: apiCourse.short_description ?? null,
-  longDescription: apiCourse.long_description ?? null,
-  category: apiCourse.category ?? null,
-  level: (apiCourse.level as Course["level"]) ?? null,
-  duration: apiCourse.duration ?? null,
-  badgeLabel: apiCourse.badge_label ?? null,
-  lessons: apiCourse.lessons ?? null,
-  students: apiCourse.students ?? null,
-  rating: apiCourse.rating ?? null,
-  imageUrl: apiCourse.image_url ?? null,
-  outcomes: (apiCourse.outcomes ?? []).map((outcome) => ({
-    id: outcome.id ?? `${apiCourse.slug}-outcome-${Math.random().toString(36).slice(2)}`,
-    text: outcome.text ?? "",
-  })),
-  instructors: (apiCourse.instructors ?? []).map((instructor) => ({
-    id: instructor.id,
-    name: instructor.name ?? instructor.title ?? "Instructor",
-    title: instructor.title,
-    avatar: instructor.avatar,
-    bio: instructor.bio,
-  })),
-  modules: (apiCourse.modules ?? []).map((module, index) => ({
-    id: module.id ?? `${apiCourse.slug}-module-${index}`,
-    title: module.title ?? `Module ${index + 1}`,
-    duration: module.duration ?? null,
-    description: module.description ?? null,
-    items: (module.items ?? []).map((item, itemIndex) => ({
-      id: item.id ?? `${apiCourse.slug}-module-${index}-item-${itemIndex}`,
-      title: item.title,
-      description: item.description ?? null,
+const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course => {
+  const modulesSource = [...(apiCourse.modules ?? [])].sort((a, b) => {
+    const castA = a as unknown as { order?: number | null };
+    const castB = b as unknown as { order?: number | null };
+    return (castA.order ?? 0) - (castB.order ?? 0);
+  });
+
+  return {
+    id: apiCourse.id,
+    slug: apiCourse.slug,
+    title: apiCourse.title,
+    shortDescription: apiCourse.short_description ?? null,
+    longDescription: apiCourse.long_description ?? null,
+    category: apiCourse.category ?? null,
+    level: (apiCourse.level as Course["level"]) ?? null,
+    duration: apiCourse.duration ?? null,
+    badgeLabel: apiCourse.badge_label ?? null,
+    lessons: apiCourse.lessons ?? null,
+    students: apiCourse.students ?? null,
+    rating: apiCourse.rating ?? null,
+    imageUrl: apiCourse.image_url ?? null,
+    outcomes: (apiCourse.outcomes ?? []).map((outcome) => ({
+      id: outcome.id ?? `${apiCourse.slug}-outcome-${Math.random().toString(36).slice(2)}`,
+      text: outcome.text ?? "",
     })),
-  })),
-  enrolled: apiCourse.enrolled ?? false,
-  contentLocked: apiCourse.content_locked ?? false,
-});
+    instructors: (apiCourse.instructors ?? []).map((instructor) => ({
+      id: instructor.id,
+      name: instructor.name ?? instructor.title ?? "Instructor",
+      title: instructor.title,
+      avatar: instructor.avatar,
+      bio: instructor.bio,
+    })),
+    modules: modulesSource.map((module, index) => {
+      const moduleId = module.id ?? (module as unknown as { slug?: string }).slug ?? `${apiCourse.slug}-module-${index}`;
+      return {
+        id: moduleId,
+        title: module.title ?? `Module ${index + 1}`,
+        duration: module.duration ?? null,
+        description: module.description ?? null,
+        items: (module.items ?? []).map((item, itemIndex) => ({
+          id:
+            item.id ?? `${moduleId}-item-${itemIndex}`,
+          title: item.title,
+          description: item.description ?? null,
+        })),
+      };
+    }),
+    enrolled: apiCourse.enrolled ?? false,
+    contentLocked: apiCourse.content_locked ?? false,
+  };
+};
 
 const mapPracticeSets = (
   response: ApiPracticeSetListResponse,
@@ -109,13 +121,69 @@ const mapMetrics = (metrics?: ApiDashboardSummary["courses"][number]["metrics"])
 const mapModules = (
   modules: ApiDashboardSummary["courses"][number]["modules"],
 ): CourseProgress["modules"] =>
+  modules.map((module) => {
+    const items = (module as unknown as {
+      items?: Array<{ module_item_id: string; title?: string | null; completed?: boolean }>;
+    }).items ?? [];
+    return {
+      moduleId: module.module_id,
+      title: module.title ?? null,
+      status: module.status ?? "in-progress",
+      duration: module.duration ?? null,
+      completion: module.completion ?? 0,
+      items: items.map((item) => ({
+        moduleItemId: item.module_item_id,
+        title: item.title ?? null,
+        completed: Boolean(item.completed),
+      })),
+    };
+  });
+
+const mapProgressModules = (
+  modules: ApiCourseProgressResponse["modules"],
+): CourseProgress["modules"] =>
   modules.map((module) => ({
     moduleId: module.module_id,
     title: module.title ?? null,
     status: module.status ?? "in-progress",
     duration: module.duration ?? null,
     completion: module.completion ?? 0,
+    items: (module.items ?? []).map((item) => ({
+      moduleItemId: item.module_item_id,
+      title: item.title ?? null,
+      completed: Boolean(item.completed),
+    })),
   }));
+
+const mapCourseProgressResponse = (
+  response: ApiCourseProgressResponse,
+  course?: Course | null,
+): CourseProgress => ({
+  courseSlug: response.course_slug,
+  title: course?.title ?? response.course_slug,
+  instructor: course?.instructors?.[0]?.name ?? null,
+  nextSession: response.next_session ?? null,
+  progress:
+    response.progress ??
+    (response.modules && response.modules.length
+      ? Math.round(
+          response.modules.reduce((sum, module) => sum + (module.completion ?? 0), 0) /
+            response.modules.length,
+        )
+      : 0),
+  category: course?.category ?? null,
+  level: course?.level ?? null,
+  metrics: response.metrics
+    ? {
+        hoursSpent: response.metrics.hours_spent ?? null,
+        practiceAccuracy: response.metrics.practice_accuracy ?? null,
+        mcqAttempts: response.metrics.mcq_attempts ?? null,
+        lastScore: response.metrics.last_score ?? null,
+        streak: response.metrics.streak ?? null,
+      }
+    : null,
+  modules: mapProgressModules(response.modules ?? []),
+});
 
 const mapLearningEvents = (events: ApiDashboardSummary["schedule"]): LearningEvent[] =>
   events.map((event) => ({
@@ -254,14 +322,17 @@ export const universityService = {
     }
   },
 
-  async getCourseProgress(slug: string): Promise<ApiCourseProgressResponse> {
-    return fetchCourseProgress(slug);
+  async getCourseProgress(slug: string, course?: Course | null): Promise<CourseProgress> {
+    const response = await fetchCourseProgress(slug);
+    return mapCourseProgressResponse(response, course);
   },
 
   async saveCourseProgress(
     payload: Parameters<typeof updateCourseProgress>[0],
-  ): Promise<ApiCourseProgressResponse> {
-    return updateCourseProgress(payload);
+    course?: Course | null,
+  ): Promise<CourseProgress> {
+    const response = await updateCourseProgress(payload);
+    return mapCourseProgressResponse(response, course);
   },
 
   async enrollInCourse(courseSlug: string): Promise<void> {

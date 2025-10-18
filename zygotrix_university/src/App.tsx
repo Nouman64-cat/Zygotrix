@@ -25,6 +25,7 @@ import CommunityDashboardPage from "./pages/dashboard/CommunityDashboardPage";
 import SignInPage from "./pages/auth/SignInPage";
 import SignUpPage from "./pages/auth/SignUpPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
+import DashboardCourseWorkspacePage from "./pages/dashboard/CourseWorkspacePage";
 
 const App = () => {
   return (
@@ -58,6 +59,7 @@ const App = () => {
       >
         <Route index element={<OverviewDashboardPage />} />
         <Route path="courses" element={<CoursesDashboardPage />} />
+        <Route path="courses/:slug" element={<DashboardCourseWorkspacePage />} />
         <Route path="plan" element={<LearningPlanDashboardPage />} />
         <Route path="practice" element={<PracticeDashboardPage />} />
         <Route path="analytics" element={<AnalyticsDashboardPage />} />

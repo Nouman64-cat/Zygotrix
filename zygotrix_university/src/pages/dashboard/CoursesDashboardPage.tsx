@@ -97,6 +97,11 @@ const CoursesDashboardPage = () => {
                 </div>
               ))}
             </div>
+            <div className="mt-6 flex flex-wrap items-center gap-3">
+              <AccentButton to={`/dashboard/courses/${course.courseSlug}`} variant="secondary">
+                Open workspace
+              </AccentButton>
+            </div>
           </div>
         ))}
       </div>

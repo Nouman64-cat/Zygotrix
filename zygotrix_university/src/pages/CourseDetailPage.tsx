@@ -96,6 +96,11 @@ const CourseDetailPage = () => {
                 </AccentButton>
               )
             )}
+            {!course.contentLocked && user && (
+              <AccentButton variant="secondary" to={`/dashboard/courses/${course.slug}`}>
+                Open workspace
+              </AccentButton>
+            )}
             <AccentButton variant="secondary" to="/practice">
               Practice companion
             </AccentButton>
@@ -157,9 +162,14 @@ const CourseDetailPage = () => {
                       <p className="mt-2 text-sm text-slate-300">{module.description}</p>
                     )}
                     {module.items.length > 0 && (
-                      <ul className="mt-3 space-y-2 text-xs text-slate-200">
+                      <ul className="mt-3 space-y-3 text-sm text-slate-200">
                         {module.items.map((item) => (
-                          <li key={item.id ?? item.title}>• {item.title}</li>
+                          <li key={item.id ?? item.title} className="rounded-2xl border border-white/10 bg-white/[0.03] px-4 py-3">
+                            <p className="font-medium text-white">{item.title}</p>
+                            {item.description && (
+                              <p className="mt-1 text-xs text-slate-300">{item.description}</p>
+                            )}
+                          </li>
                         ))}
                       </ul>
                     )}

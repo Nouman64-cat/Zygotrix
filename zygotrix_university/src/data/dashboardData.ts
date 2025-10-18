@@ -35,6 +35,7 @@ export const activeCourses: CourseProgress[] = [
         status: "completed",
         duration: "1h 20m",
         completion: 100,
+        items: [],
       },
       {
         moduleId: "ai-101-2",
@@ -42,6 +43,7 @@ export const activeCourses: CourseProgress[] = [
         status: "in-progress",
         duration: "1h 05m",
         completion: 45,
+        items: [],
       },
       {
         moduleId: "ai-101-3",
@@ -49,6 +51,7 @@ export const activeCourses: CourseProgress[] = [
         status: "locked",
         duration: "55m",
         completion: 0,
+        items: [],
       },
     ],
   },
@@ -67,6 +70,7 @@ export const activeCourses: CourseProgress[] = [
         status: "in-progress",
         duration: "1h 40m",
         completion: 30,
+        items: [],
       },
       {
         moduleId: "cloud-305-2",
@@ -74,6 +78,7 @@ export const activeCourses: CourseProgress[] = [
         status: "locked",
         duration: "1h 18m",
         completion: 0,
+        items: [],
       },
       {
         moduleId: "cloud-305-3",
@@ -81,6 +86,7 @@ export const activeCourses: CourseProgress[] = [
         status: "locked",
         duration: "1h 10m",
         completion: 0,
+        items: [],
       },
     ],
   },

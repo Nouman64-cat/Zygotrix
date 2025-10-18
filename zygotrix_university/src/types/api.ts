@@ -107,6 +107,11 @@ export interface ApiCourseProgressResponse {
     status: "locked" | "in-progress" | "completed";
     duration?: string | null;
     completion: number;
+    items?: Array<{
+      module_item_id: string;
+      title?: string | null;
+      completed?: boolean;
+    }>;
   }>;
   metrics?: {
     hours_spent?: number | null;
@@ -131,6 +136,11 @@ export interface ApiCourseProgressUpdateRequest {
     status?: "locked" | "in-progress" | "completed";
     duration?: string | null;
     completion?: number;
+    items?: Array<{
+      module_item_id: string;
+      title?: string | null;
+      completed?: boolean;
+    }>;
   }>;
   metrics?: {
     hours_spent?: number | null;

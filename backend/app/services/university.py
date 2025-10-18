@@ -59,6 +59,11 @@ HYGRAPH_COURSES_QUERY = """
         }
         slug
         order
+        moduleItems {
+          id
+          title
+          description
+        }
       }
       instructors {
         id
@@ -144,6 +149,7 @@ def _execute_hygraph_query(query: str) -> Optional[Dict[str, Any]]:
 
 
 def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any]:
+    course_slug = course.get("slug") or course.get("id") or "course"
     image_field = course.get("heroImage")
     instructors_payload = []
     for instructor in course.get("instructors") or []:
@@ -160,14 +166,26 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
         )
 
     modules_payload = []
-    for module in course.get("courseModules") or []:
+    for idx, module in enumerate(course.get("courseModules") or []):
+        module_slug = module.get("slug") or module.get("id") or f"{course_slug}-module-{idx}"
+        items_payload = []
+        for item_idx, item in enumerate(module.get("moduleItems") or []):
+            item_id = item.get("id") or f"{module_slug}-item-{item_idx}"
+            items_payload.append(
+                {
+                    "id": item_id,
+                    "title": item.get("title"),
+                    "description": _normalise_text(item.get("description")),
+                }
+            )
         modules_payload.append(
             {
-                "id": module.get("id"),
+                "id": module_slug,
                 "title": module.get("title"),
                 "duration": module.get("duration"),
                 "description": _normalise_text(module.get("overview")),
-                "items": [],
+                "items": items_payload,
+                "order": module.get("order"),
             }
         )
 
@@ -467,13 +485,57 @@ def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, An
         return None
     doc = collection.find_one({"user_id": user_id, "course_slug": course_slug})
     if not doc:
-        return None
+        course_doc = _find_course_document(course_slug)
+        if not course_doc:
+            return None
+        modules_payload = []
+        for module in course_doc.get("modules", []):
+            items_payload = []
+            for item in module.get("items", []):
+                items_payload.append(
+                    {
+                        "module_item_id": item.get("id") or str(uuid4()),
+                        "title": item.get("title"),
+                        "completed": False,
+                    }
+                )
+            modules_payload.append(
+                {
+                    "module_id": module.get("id") or str(uuid4()),
+                    "title": module.get("title"),
+                    "status": "locked",
+                    "duration": module.get("duration"),
+                    "completion": 0,
+                    "items": items_payload,
+                }
+            )
+        return {
+            "user_id": user_id,
+            "course_slug": course_slug,
+            "progress": 0,
+            "modules": modules_payload,
+            "metrics": None,
+            "next_session": None,
+            "updated_at": None,
+            "insights": [],
+            "resources": [],
+            "schedule": [],
+        }
     return _serialize_progress_doc(doc)
 
 
 def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
     modules = []
     for module in doc.get("modules", []):
+        items_payload = []
+        for item in module.get("items", []):
+            items_payload.append(
+                {
+                    "module_item_id": item.get("module_item_id"),
+                    "title": item.get("title"),
+                    "completed": bool(item.get("completed")),
+                }
+            )
         modules.append(
             {
                 "module_id": module.get("module_id"),
@@ -481,6 +543,7 @@ def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
                 "status": module.get("status", "in-progress"),
                 "duration": module.get("duration"),
                 "completion": module.get("completion", 0),
+                "items": items_payload,
             }
         )
 
@@ -522,17 +585,63 @@ def save_course_progress(
     if "progress" in payload and payload["progress"] is not None:
         progress_update["progress"] = max(0, min(100, int(payload["progress"])))
     if "modules" in payload and payload["modules"] is not None:
-        progress_update["modules"] = [
-            {
-                "module_id": module.get("module_id"),
-                "title": module.get("title"),
-                "status": module.get("status", "in-progress"),
-                "duration": module.get("duration"),
-                "completion": max(0, min(100, int(module.get("completion", 0)))),
-            }
-            for module in payload["modules"]
-            if module.get("module_id")
-        ]
+        modules_input = []
+        for module in payload["modules"]:
+            module_id = module.get("module_id")
+            if not module_id:
+                continue
+            items_input = module.get("items") or []
+            items_payload = []
+            completed_items = 0
+            total_items = 0
+            for item in items_input:
+                item_id = item.get("module_item_id") or item.get("id")
+                if not item_id:
+                    continue
+                completed = bool(item.get("completed"))
+                items_payload.append(
+                    {
+                        "module_item_id": item_id,
+                        "title": item.get("title"),
+                        "completed": completed,
+                    }
+                )
+                total_items += 1
+                if completed:
+                    completed_items += 1
+            completion = module.get("completion")
+            if completion is None and total_items:
+                completion = int(round((completed_items / total_items) * 100))
+            if completion is None:
+                completion = 0
+            completion = max(0, min(100, int(completion)))
+            status = module.get("status")
+            if not status:
+                if completion >= 100:
+                    status = "completed"
+                elif completion > 0:
+                    status = "in-progress"
+                else:
+                    status = "locked"
+            modules_input.append(
+                {
+                    "module_id": module_id,
+                    "title": module.get("title"),
+                    "status": status,
+                    "duration": module.get("duration"),
+                    "completion": completion,
+                    "items": items_payload,
+                }
+            )
+        if modules_input:
+            progress_update["modules"] = modules_input
+            if "progress" not in progress_update:
+                progress_update["progress"] = int(
+                    round(
+                        sum(module["completion"] for module in modules_input)
+                        / len(modules_input)
+                    )
+                )
     if "metrics" in payload and payload["metrics"] is not None:
         metrics = payload["metrics"]
         progress_update["metrics"] = {
@@ -694,6 +803,15 @@ def build_dashboard_summary(
             continue
         modules_payload = []
         for module in course.get("modules", []):
+            items_payload = []
+            for item in module.get("items", []):
+                items_payload.append(
+                    {
+                        "module_item_id": item.get("id") or str(uuid4()),
+                        "title": item.get("title"),
+                        "completed": False,
+                    }
+                )
             modules_payload.append(
                 {
                     "module_id": module.get("id") or str(uuid4()),
@@ -701,6 +819,7 @@ def build_dashboard_summary(
                     "status": "locked",
                     "duration": module.get("duration"),
                     "completion": 0,
+                    "items": items_payload,
                 }
             )
         instructor = None

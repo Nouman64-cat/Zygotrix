@@ -14,7 +14,7 @@ const DashboardLayout = () => {
 
         <div className="flex min-h-screen flex-1 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto">
-            <div className="mx-auto flex h-full max-w-6xl flex-col gap-6 px-4 py-8 sm:px-8">
+            <div className="mx-auto flex h-full max-w-8xl flex-col gap-6 px-4 py-8 sm:px-8">
               <DashboardTopBar
                 collapsed={collapsed}
                 onToggleSidebar={() => setCollapsed((prev) => !prev)}
@@ -32,7 +32,10 @@ const DashboardLayout = () => {
       {mobileNavOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
           <div className="h-full w-80 max-w-[80%] bg-[#050816]/95 p-4 backdrop-blur">
-            <DashboardSidebar mobile onNavigate={() => setMobileNavOpen(false)} />
+            <DashboardSidebar
+              mobile
+              onNavigate={() => setMobileNavOpen(false)}
+            />
           </div>
           <button
             type="button"

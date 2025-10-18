@@ -1,13 +1,19 @@
-import { useParams, Navigate } from "react-router-dom";
-import { FiClock, FiPlayCircle, FiUsers, FiExternalLink } from "react-icons/fi";
+import { useState } from "react";
+import { useParams, Navigate, Link } from "react-router-dom";
+import { FiClock, FiPlayCircle, FiUsers, FiExternalLink, FiCheck } from "react-icons/fi";
 import AccentButton from "../components/common/AccentButton";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHeader";
 import { useCourseDetail } from "../hooks/useCourseDetail";
+import { useAuth } from "../context/AuthContext";
+import { universityService } from "../services/useCases/universityService";
 
 const CourseDetailPage = () => {
   const { slug } = useParams<{ slug: string }>();
-  const { course, loading } = useCourseDetail(slug);
+  const { course, loading, refetch } = useCourseDetail(slug);
+  const { user } = useAuth();
+  const [enrolling, setEnrolling] = useState(false);
+  const [enrollError, setEnrollError] = useState<string | null>(null);
 
   if (!loading && !course) {
     return <Navigate to="/courses" replace />;
@@ -53,7 +59,43 @@ const CourseDetailPage = () => {
         }
         actions={
           <>
-            <AccentButton icon={<FiExternalLink />}>Enroll now</AccentButton>
+            {course.contentLocked ? (
+              user ? (
+                <button
+                  onClick={async () => {
+                    if (!slug) return;
+                    setEnrollError(null);
+                    setEnrolling(true);
+                    try {
+                      await universityService.enrollInCourse(slug);
+                      await refetch();
+                    } catch (error) {
+                      setEnrollError("Unable to enroll right now. Please try again.");
+                    } finally {
+                      setEnrolling(false);
+                    }
+                  }}
+                  disabled={enrolling}
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  {enrolling ? "Enrolling…" : "Enroll to unlock"}
+                </button>
+              ) : (
+                <AccentButton to={`/signin?redirect=/courses/${slug}`} icon={<FiExternalLink />}>
+                  Sign in to enroll
+                </AccentButton>
+              )
+            ) : (
+              user ? (
+                <div className="inline-flex items-center gap-2 rounded-full border border-emerald-400/40 bg-emerald-500/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-200">
+                  <FiCheck /> Enrolled
+                </div>
+              ) : (
+                <AccentButton to={`/signin?redirect=/courses/${slug}`} icon={<FiExternalLink />}>
+                  Sign in
+                </AccentButton>
+              )
+            )}
             <AccentButton variant="secondary" to="/practice">
               Practice companion
             </AccentButton>
@@ -63,45 +105,69 @@ const CourseDetailPage = () => {
 
       <Container className="grid gap-10 lg:grid-cols-[1.2fr_0.8fr]">
         <div className="space-y-6">
-          <div className="rounded-[2.5rem] border border-white/10 bg-white/5 p-8">
-            <h2 className="text-2xl font-semibold text-white">What you’ll master</h2>
-            <ul className="mt-4 space-y-3 text-sm text-slate-200">
-              {course.outcomes.map((outcome) => (
-                <li key={outcome.id ?? outcome.text}>• {outcome.text}</li>
-              ))}
-            </ul>
-          </div>
+          {enrollError && (
+            <p className="rounded-3xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-200">
+              {enrollError}
+            </p>
+          )}
 
-          <div className="space-y-4">
-            {course.modules.map((module) => (
-              <div
-                key={module.id}
-                className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-200"
-              >
-                <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-                  <div>
-                    <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200">
-                      Module
-                    </p>
-                    <h3 className="text-lg font-semibold text-white">{module.title}</h3>
-                  </div>
-                  {module.duration && (
-                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-100">
-                      {module.duration}
-                    </span>
-                  )}
-                </div>
-                {module.description && (
-                  <p className="mt-2 text-sm text-slate-300">{module.description}</p>
-                )}
-                <ul className="mt-3 space-y-2 text-xs text-slate-200">
-                  {module.items.map((item) => (
-                    <li key={item.id ?? item.title}>• {item.title}</li>
+          {course.contentLocked ? (
+            <div className="rounded-[2.5rem] border border-indigo-400/30 bg-indigo-500/10 p-8 text-sm text-indigo-100">
+              <h2 className="text-2xl font-semibold text-white">Enroll to unlock full syllabus</h2>
+              <p className="mt-3 text-sm text-indigo-100">
+                Modules, mentor notes, and Simulation Studio missions are available once you enroll in this program.
+              </p>
+              {!user && (
+                <AccentButton to={`/signin?redirect=/courses/${slug}`} className="mt-4" icon={<FiExternalLink />}>
+                  Sign in to enroll
+                </AccentButton>
+              )}
+            </div>
+          ) : (
+            <>
+              <div className="rounded-[2.5rem] border border-white/10 bg-white/5 p-8">
+                <h2 className="text-2xl font-semibold text-white">What you’ll master</h2>
+                <ul className="mt-4 space-y-3 text-sm text-slate-200">
+                  {course.outcomes.map((outcome) => (
+                    <li key={outcome.id ?? outcome.text}>• {outcome.text}</li>
                   ))}
                 </ul>
               </div>
-            ))}
-          </div>
+
+              <div className="space-y-4">
+                {course.modules.map((module) => (
+                  <div
+                    key={module.id}
+                    className="rounded-3xl border border-white/10 bg-white/5 p-6 text-sm text-slate-200"
+                  >
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                      <div>
+                        <p className="text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200">
+                          Module
+                        </p>
+                        <h3 className="text-lg font-semibold text-white">{module.title}</h3>
+                      </div>
+                      {module.duration && (
+                        <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-100">
+                          {module.duration}
+                        </span>
+                      )}
+                    </div>
+                    {module.description && (
+                      <p className="mt-2 text-sm text-slate-300">{module.description}</p>
+                    )}
+                    {module.items.length > 0 && (
+                      <ul className="mt-3 space-y-2 text-xs text-slate-200">
+                        {module.items.map((item) => (
+                          <li key={item.id ?? item.title}>• {item.title}</li>
+                        ))}
+                      </ul>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </>
+          )}
         </div>
 
         <aside className="space-y-6">
@@ -142,6 +208,14 @@ const CourseDetailPage = () => {
               Team up with peers to design an end-to-end AI product rollout. Present strategy decks, ethical guardrails,
               and success metrics to mentors for a final review.
             </p>
+            {course.contentLocked && (
+              <Link
+                to={`/signin?redirect=/courses/${slug}`}
+                className="mt-3 inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.3em] text-indigo-200"
+              >
+                Enroll to access
+              </Link>
+            )}
           </div>
         </aside>
       </Container>

@@ -55,6 +55,8 @@ class CourseDetailModel(CourseSummaryModel):
     outcomes: List[CourseOutcomeModel] = Field(default_factory=list)
     modules: List[CourseModuleModel] = Field(default_factory=list)
     instructors: List[InstructorModel] = Field(default_factory=list)
+    enrolled: bool = False
+    content_locked: bool = False
 
 
 class CourseListResponse(BaseModel):
@@ -74,7 +76,7 @@ class PracticeSetModel(BaseModel):
     questions: Optional[int] = None
     accuracy: Optional[int] = Field(default=None, ge=0, le=100)
     trend: Optional[str] = Field(
-        default=None, regex="^(up|down)$"
+        default=None, pattern="^(up|down)$"
     )
     estimated_time: Optional[str] = None
 
@@ -111,14 +113,14 @@ class LearningEventModel(BaseModel):
     title: str
     start: Optional[datetime] = None
     end: Optional[datetime] = None
-    type: Optional[str] = Field(default=None, regex="^(live|async|deadline)$")
+    type: Optional[str] = Field(default=None, pattern="^(live|async|deadline)$")
     course_slug: Optional[str] = None
 
 
 class CourseProgressModuleModel(BaseModel):
     module_id: str
     title: Optional[str] = None
-    status: str = Field(default="in-progress", regex="^(locked|in-progress|completed)$")
+    status: str = Field(default="in-progress", pattern="^(locked|in-progress|completed)$")
     duration: Optional[str] = None
     completion: conint(ge=0, le=100) = 0
 
@@ -182,3 +184,12 @@ class CourseProgressUpdateRequest(BaseModel):
     modules: Optional[List[CourseProgressModuleModel]] = None
     metrics: Optional[CourseProgressMetricsModel] = None
     next_session: Optional[str] = None
+
+
+class CourseEnrollmentRequest(BaseModel):
+    course_slug: str = Field(..., min_length=1)
+
+
+class CourseEnrollmentResponse(BaseModel):
+    message: str
+    enrolled: bool

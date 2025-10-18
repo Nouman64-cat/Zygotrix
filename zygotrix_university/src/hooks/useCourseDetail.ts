@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 
 import type { Course } from "../types";
 import { universityService } from "../services/useCases/universityService";
@@ -8,47 +8,48 @@ export const useCourseDetail = (slug: string | undefined) => {
   const [loading, setLoading] = useState(Boolean(slug));
   const [error, setError] = useState<Error | null>(null);
 
-  useEffect(() => {
+  const fetchCourse = useCallback(async () => {
     if (!slug) {
       setCourse(null);
       setLoading(false);
-      return;
+      return null;
     }
 
-    let active = true;
     setLoading(true);
     setError(null);
+    try {
+      const response = await universityService.getCourseBySlug(slug);
+      setCourse(response);
+      return response;
+    } catch (err) {
+      const error = err instanceof Error ? err : new Error("Unable to load course");
+      setError(error);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  }, [slug]);
 
-    universityService
-      .getCourseBySlug(slug)
-      .then((response) => {
-        if (active) {
-          setCourse(response);
-        }
-      })
-      .catch((err: Error) => {
-        if (active) {
-          setError(err);
-        }
-      })
-      .finally(() => {
-        if (active) {
-          setLoading(false);
-        }
-      });
-
+  useEffect(() => {
+    let active = true;
+    fetchCourse().catch(() => {
+      if (!active) {
+        return;
+      }
+    });
     return () => {
       active = false;
     };
-  }, [slug]);
+  }, [fetchCourse]);
 
   return useMemo(
     () => ({
       course,
       loading,
       error,
+      refetch: fetchCourse,
     }),
-    [course, loading, error],
+    [course, loading, error, fetchCourse],
   );
 };
 

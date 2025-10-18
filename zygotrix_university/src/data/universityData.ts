@@ -53,7 +53,8 @@ export const featuredCourses: Course[] = [
         id: "ai-101-1",
         title: "AI Design Patterns",
         duration: "1 hr 20 min",
-        description: "Recognize when and how to apply classic AI problem-solving patterns.",
+        description:
+          "Recognize when and how to apply classic AI problem-solving patterns.",
         items: [
           {
             id: "ai-101-1-item-1",
@@ -97,6 +98,8 @@ export const featuredCourses: Course[] = [
         ],
       },
     ],
+    enrolled: false,
+    contentLocked: true,
   },
   {
     id: "ui-204",
@@ -167,7 +170,8 @@ export const featuredCourses: Course[] = [
         id: "ui-204-2",
         title: "High-Fidelity Prototyping",
         duration: "1 hr 12 min",
-        description: "Transform static mockups into immersive prototypes with interaction depth.",
+        description:
+          "Transform static mockups into immersive prototypes with interaction depth.",
         items: [
           {
             id: "ui-204-2-item-1",
@@ -187,6 +191,8 @@ export const featuredCourses: Course[] = [
         ],
       },
     ],
+    enrolled: false,
+    contentLocked: true,
   },
   {
     id: "cloud-305",
@@ -234,7 +240,8 @@ export const featuredCourses: Course[] = [
         id: "cloud-305-1",
         title: "Service Mesh Deep Dive",
         duration: "1 hr 40 min",
-        description: "Navigate multi-cluster deployments with canary and blue/green release strategies.",
+        description:
+          "Navigate multi-cluster deployments with canary and blue/green release strategies.",
         items: [
           {
             id: "cloud-305-1-item-1",
@@ -277,6 +284,8 @@ export const featuredCourses: Course[] = [
         ],
       },
     ],
+    enrolled: false,
+    contentLocked: true,
   },
 ];
 
@@ -288,7 +297,11 @@ export const learningPaths: LearningPath[] = [
       "Blend customer discovery, model design, and ethical guardrails to ship AI-assisted experiences.",
     focus: ["Applied AI", "Product Discovery", "Responsible AI"],
     estimatedTime: "12 weeks • 6 hrs/week",
-    courses: ["Foundations of Artificial Intelligence", "Simulation Studio Playbook", "Voice of Customer Sprints"],
+    courses: [
+      "Foundations of Artificial Intelligence",
+      "Simulation Studio Playbook",
+      "Voice of Customer Sprints",
+    ],
   },
   {
     id: "lp-fullstack",
@@ -310,7 +323,11 @@ export const learningPaths: LearningPath[] = [
       "Scale consistent product experiences across multi-platform organizations while mentoring teams.",
     focus: ["System Thinking", "Design Leadership", "Accessibility"],
     estimatedTime: "10 weeks • 5 hrs/week",
-    courses: ["Product Design Systems with Figma", "Inclusive Design Sprints", "Storytelling for Design Leaders"],
+    courses: [
+      "Product Design Systems with Figma",
+      "Inclusive Design Sprints",
+      "Storytelling for Design Leaders",
+    ],
   },
 ];
 

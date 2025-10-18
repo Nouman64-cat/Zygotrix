@@ -44,6 +44,8 @@ export interface Course {
   instructors: Instructor[];
   outcomes: CourseOutcome[];
   modules: CourseModule[];
+  enrolled?: boolean;
+  contentLocked?: boolean;
 }
 
 export interface LearningPath {

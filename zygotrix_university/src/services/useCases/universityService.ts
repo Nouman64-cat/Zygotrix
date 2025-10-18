@@ -34,6 +34,8 @@ import {
   fetchDashboardSummary,
   fetchPracticeSets,
   updateCourseProgress,
+  enrollInCourse as repoEnrollInCourse,
+  fetchEnrollments,
 } from "../repositories/universityRepository";
 
 const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course => ({
@@ -52,18 +54,18 @@ const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course 
   imageUrl: apiCourse.image_url ?? null,
   outcomes: (apiCourse.outcomes ?? []).map((outcome) => ({
     id: outcome.id ?? `${apiCourse.slug}-outcome-${Math.random().toString(36).slice(2)}`,
-    text: outcome.text,
+    text: outcome.text ?? "",
   })),
   instructors: (apiCourse.instructors ?? []).map((instructor) => ({
     id: instructor.id,
-    name: instructor.name,
+    name: instructor.name ?? instructor.title ?? "Instructor",
     title: instructor.title,
     avatar: instructor.avatar,
     bio: instructor.bio,
   })),
   modules: (apiCourse.modules ?? []).map((module, index) => ({
     id: module.id ?? `${apiCourse.slug}-module-${index}`,
-    title: module.title,
+    title: module.title ?? `Module ${index + 1}`,
     duration: module.duration ?? null,
     description: module.description ?? null,
     items: (module.items ?? []).map((item, itemIndex) => ({
@@ -72,6 +74,8 @@ const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course 
       description: item.description ?? null,
     })),
   })),
+  enrolled: apiCourse.enrolled ?? false,
+  contentLocked: apiCourse.content_locked ?? false,
 });
 
 const mapPracticeSets = (
@@ -207,7 +211,14 @@ export const universityService = {
       const fallback = fallbackCourses.find(
         (course) => course.slug === slug || course.id === slug,
       );
-      return fallback ?? null;
+      if (!fallback) {
+        return null;
+      }
+      return {
+        ...fallback,
+        enrolled: false,
+        contentLocked: true,
+      };
     }
   },
 
@@ -251,5 +262,18 @@ export const universityService = {
     payload: Parameters<typeof updateCourseProgress>[0],
   ): Promise<ApiCourseProgressResponse> {
     return updateCourseProgress(payload);
+  },
+
+  async enrollInCourse(courseSlug: string): Promise<void> {
+    await repoEnrollInCourse(courseSlug);
+  },
+
+  async getEnrollments(): Promise<string[]> {
+    try {
+      return await fetchEnrollments();
+    } catch (error) {
+      console.warn("Unable to load enrollments", error);
+      return [];
+    }
   },
 };

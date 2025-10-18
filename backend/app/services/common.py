@@ -92,6 +92,24 @@ def get_course_progress_collection(required: bool = False):
     return collection
 
 
+def get_course_enrollments_collection(required: bool = False):
+    client = get_mongo_client()
+    if client is None:
+        if required:
+            raise HTTPException(status_code=503, detail="MongoDB client not available")
+        return None
+    settings = get_settings()
+    db = client[settings.mongodb_db_name]
+    collection = db[settings.mongodb_enrollments_collection]
+    try:
+        collection.create_index(
+            [("user_id", 1), ("course_slug", 1)], unique=True
+        )
+    except Exception:
+        pass
+    return collection
+
+
 def get_traits_collection(required: bool = False):
     client = get_mongo_client()
     if client is None:

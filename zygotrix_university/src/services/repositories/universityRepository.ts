@@ -60,3 +60,12 @@ export const updateCourseProgress = async (
   );
   return response.data;
 };
+
+export const enrollInCourse = async (slug: string): Promise<void> => {
+  await apiClient.post(API_ROUTES.university.enroll, { course_slug: slug });
+};
+
+export const fetchEnrollments = async (): Promise<string[]> => {
+  const response = await apiClient.get<string[]>(API_ROUTES.university.enrollments);
+  return response.data;
+};

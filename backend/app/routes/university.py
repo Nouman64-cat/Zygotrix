@@ -10,6 +10,8 @@ from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from ..schema.auth import UserProfile
 from ..schema.university import (
     CourseDetailResponse,
+    CourseEnrollmentRequest,
+    CourseEnrollmentResponse,
     CourseListResponse,
     CourseProgressResponse,
     CourseProgressUpdateRequest,
@@ -58,8 +60,12 @@ def list_courses(detail: bool = Query(False)) -> CourseListResponse:
 
 
 @router.get("/courses/{slug}", response_model=CourseDetailResponse)
-def get_course(slug: str) -> CourseDetailResponse:
-    course = university_services.get_course_by_slug(slug)
+def get_course(
+    slug: str,
+    current_user: Optional[UserProfile] = Depends(get_current_user_optional),
+) -> CourseDetailResponse:
+    user_id = current_user.id if current_user else None
+    course = university_services.get_course_detail(slug, user_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
     return CourseDetailResponse(course=course)
@@ -111,3 +117,19 @@ def update_progress(
     data = payload.dict(exclude_none=True)
     progress = university_services.save_course_progress(current_user.id, data)
     return CourseProgressResponse(**progress)
+
+
+@router.post("/enroll", response_model=CourseEnrollmentResponse, status_code=201)
+def enroll_course(
+    payload: CourseEnrollmentRequest,
+    current_user: UserProfile = Depends(get_current_user_required),
+) -> CourseEnrollmentResponse:
+    university_services.enroll_user_in_course(current_user.id, payload.course_slug)
+    return CourseEnrollmentResponse(message="Enrolled successfully.", enrolled=True)
+
+
+@router.get("/enrollments", response_model=list[str])
+def list_enrollments(
+    current_user: UserProfile = Depends(get_current_user_required),
+) -> list[str]:
+    return university_services.list_user_enrollments(current_user.id)

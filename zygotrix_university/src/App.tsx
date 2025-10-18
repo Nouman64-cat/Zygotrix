@@ -22,6 +22,9 @@ import LearningPlanDashboardPage from "./pages/dashboard/LearningPlanDashboardPa
 import PracticeDashboardPage from "./pages/dashboard/PracticeDashboardPage";
 import AnalyticsDashboardPage from "./pages/dashboard/AnalyticsDashboardPage";
 import CommunityDashboardPage from "./pages/dashboard/CommunityDashboardPage";
+import SignInPage from "./pages/auth/SignInPage";
+import SignUpPage from "./pages/auth/SignUpPage";
+import ProtectedRoute from "./components/auth/ProtectedRoute";
 
 const App = () => {
   return (
@@ -40,10 +43,19 @@ const App = () => {
         <Route path="enterprise" element={<EnterprisePage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="accessibility" element={<AccessibilityPage />} />
-        <Route path="newsletter" element={<NewsletterPage />} />
-        <Route path="*" element={<NotFoundPage />} />
-      </Route>
-      <Route path="/dashboard" element={<DashboardLayout />}>
+      <Route path="newsletter" element={<NewsletterPage />} />
+      <Route path="*" element={<NotFoundPage />} />
+    </Route>
+      <Route path="signin" element={<SignInPage />} />
+      <Route path="signup" element={<SignUpPage />} />
+      <Route
+        path="/dashboard"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout />
+          </ProtectedRoute>
+        }
+      >
         <Route index element={<OverviewDashboardPage />} />
         <Route path="courses" element={<CoursesDashboardPage />} />
         <Route path="plan" element={<LearningPlanDashboardPage />} />

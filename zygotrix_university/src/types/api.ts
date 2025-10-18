@@ -32,6 +32,8 @@ export interface ApiCourseSummary {
   outcomes?: ApiCourseOutcome[];
   modules?: ApiCourseModule[];
   instructors?: ApiInstructor[];
+  enrolled?: boolean;
+  content_locked?: boolean;
 }
 
 export interface ApiCourseListResponse {

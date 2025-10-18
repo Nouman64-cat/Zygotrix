@@ -66,6 +66,11 @@ class Settings:
     mongodb_course_progress_collection: str = os.getenv(
         "MONGODB_COURSE_PROGRESS_COLLECTION", "university_course_progress"
     )
+    mongodb_enrollments_collection: str = os.getenv(
+        "MONGODB_ENROLLMENTS_COLLECTION", "university_enrollments"
+    )
+    hygraph_endpoint: str = os.getenv("HYGRAPH_ENDPOINT", "")
+    hygraph_token: str = os.getenv("HYGRAPH_TOKEN", "")
     auth_secret_key: str = os.getenv("AUTH_SECRET_KEY", "change-me-in-prod")
     auth_token_ttl_minutes: int = _get_int("AUTH_TOKEN_TTL_MINUTES", 60)
     auth_jwt_algorithm: str = os.getenv("AUTH_JWT_ALGORITHM", "HS256")

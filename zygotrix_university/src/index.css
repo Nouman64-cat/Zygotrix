@@ -1,0 +1,56 @@
+@import "tailwindcss";
+
+@font-face {
+  font-family: "Axiforma";
+  src: url("/fonts/Axiforma-Regular.ttf") format("truetype");
+  font-weight: 400;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Axiforma";
+  src: url("/fonts/Axiforma-Medium.ttf") format("truetype");
+  font-weight: 500;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Axiforma";
+  src: url("/fonts/Axiforma-SemiBold.ttf") format("truetype");
+  font-weight: 600;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Axiforma";
+  src: url("/fonts/Axiforma-Bold.ttf") format("truetype");
+  font-weight: 700;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+  --color-primary: 232 86% 61%;
+  --color-secondary: 24 95% 58%;
+  --color-surface: 222 47% 11%;
+  --color-muted: 217 32% 17%;
+  --color-border: 215 27% 39%;
+  --color-text: 210 40% 96%;
+}
+
+@layer base {
+  * {
+    box-sizing: border-box;
+  }
+
+  body {
+    font-family: "Axiforma", system-ui, -apple-system, BlinkMacSystemFont,
+      "Segoe UI", sans-serif;
+    @apply bg-[#0b1020] text-slate-100 antialiased;
+  }
+
+  ::selection {
+    background-color: hsl(var(--color-primary));
+    color: hsl(var(--color-surface));
+  }
+}

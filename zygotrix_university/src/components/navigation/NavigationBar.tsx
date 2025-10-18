@@ -22,7 +22,7 @@ const NavigationBar = () => {
 
   return (
     <header className="sticky top-0 z-50 bg-[#060914]/90 backdrop-blur border-b border-white/5">
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <nav className="mx-auto flex max-w-8xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Logo />
 
         <div className="hidden items-center gap-8 md:flex">
@@ -33,7 +33,8 @@ const NavigationBar = () => {
               className={({ isActive }) =>
                 cn(
                   "text-sm font-medium text-slate-200 transition hover:text-white",
-                  isActive && "text-white underline underline-offset-8 decoration-indigo-400",
+                  isActive &&
+                    "text-white underline underline-offset-8 decoration-indigo-400"
                 )
               }
             >
@@ -73,7 +74,7 @@ const NavigationBar = () => {
                   className={({ isActive }) =>
                     cn(
                       "rounded-lg px-3 py-2 text-base font-medium text-slate-200 transition hover:bg-white/10 hover:text-white",
-                      isActive && "bg-white/10 text-white",
+                      isActive && "bg-white/10 text-white"
                     )
                   }
                 >

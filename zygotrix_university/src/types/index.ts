@@ -65,3 +65,54 @@ export interface FaqItem {
   answer: string;
   category: string;
 }
+
+export interface ModuleProgress {
+  id: string;
+  title: string;
+  status: "locked" | "in-progress" | "completed";
+  duration: string;
+  completion: number;
+}
+
+export interface CourseProgress {
+  id: string;
+  title: string;
+  instructor: string;
+  nextSession: string;
+  progress: number;
+  category: string;
+  level: Course["level"];
+  modules: ModuleProgress[];
+}
+
+export interface LearningEvent {
+  id: string;
+  title: string;
+  start: string;
+  end: string;
+  type: "live" | "async" | "deadline";
+  courseId: string;
+}
+
+export interface PracticeInsight {
+  id: string;
+  title: string;
+  delta: number;
+  description: string;
+}
+
+export interface ResourceItem {
+  id: string;
+  title: string;
+  description: string;
+  type: "playbook" | "template" | "recording" | "article";
+  link: string;
+}
+
+export interface AnalyticsStat {
+  id: string;
+  label: string;
+  value: string;
+  change: number;
+  timeframe: string;
+}

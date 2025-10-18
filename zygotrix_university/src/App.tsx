@@ -1,5 +1,6 @@
 import { Routes, Route } from "react-router-dom";
 import MainLayout from "./layouts/MainLayout";
+import DashboardLayout from "./layouts/DashboardLayout";
 import HomePage from "./pages/HomePage";
 import CoursesPage from "./pages/CoursesPage";
 import CourseDetailPage from "./pages/CourseDetailPage";
@@ -15,6 +16,12 @@ import ContactPage from "./pages/ContactPage";
 import AccessibilityPage from "./pages/AccessibilityPage";
 import NewsletterPage from "./pages/NewsletterPage";
 import NotFoundPage from "./pages/NotFoundPage";
+import OverviewDashboardPage from "./pages/dashboard/OverviewDashboardPage";
+import CoursesDashboardPage from "./pages/dashboard/CoursesDashboardPage";
+import LearningPlanDashboardPage from "./pages/dashboard/LearningPlanDashboardPage";
+import PracticeDashboardPage from "./pages/dashboard/PracticeDashboardPage";
+import AnalyticsDashboardPage from "./pages/dashboard/AnalyticsDashboardPage";
+import CommunityDashboardPage from "./pages/dashboard/CommunityDashboardPage";
 
 const App = () => {
   return (
@@ -36,6 +43,16 @@ const App = () => {
         <Route path="newsletter" element={<NewsletterPage />} />
         <Route path="*" element={<NotFoundPage />} />
       </Route>
+      <Route path="/dashboard" element={<DashboardLayout />}>
+        <Route index element={<OverviewDashboardPage />} />
+        <Route path="courses" element={<CoursesDashboardPage />} />
+        <Route path="plan" element={<LearningPlanDashboardPage />} />
+        <Route path="practice" element={<PracticeDashboardPage />} />
+        <Route path="analytics" element={<AnalyticsDashboardPage />} />
+        <Route path="community" element={<CommunityDashboardPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 };

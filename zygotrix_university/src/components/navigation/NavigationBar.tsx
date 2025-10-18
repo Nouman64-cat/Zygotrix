@@ -11,6 +11,7 @@ const navItems = [
   { label: "Practice Studio", to: "/practice" },
   { label: "Community", to: "/community" },
   { label: "Resources", to: "/resources" },
+  { label: "Dashboard", to: "/dashboard" },
 ];
 
 const NavigationBar = () => {
@@ -48,8 +49,8 @@ const NavigationBar = () => {
           >
             Simulation Studio <FiArrowUpRight />
           </Link>
-          <AccentButton to="/courses" variant="primary">
-            Explore Courses
+          <AccentButton to="/dashboard" variant="primary">
+            Go to Dashboard
           </AccentButton>
         </div>
 
@@ -82,6 +83,9 @@ const NavigationBar = () => {
               <hr className="border-white/10" />
               <AccentButton to="/courses" onClick={close}>
                 Explore Courses
+              </AccentButton>
+              <AccentButton to="/dashboard" onClick={close} variant="secondary">
+                Go to Dashboard
               </AccentButton>
               <Link
                 to="/simulation-studio"

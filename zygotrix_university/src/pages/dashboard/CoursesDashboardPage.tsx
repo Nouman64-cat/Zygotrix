@@ -1,8 +1,26 @@
 import { FiBookOpen, FiDownloadCloud, FiExternalLink } from "react-icons/fi";
 import AccentButton from "../../components/common/AccentButton";
-import { activeCourses } from "../../data/dashboardData";
+import { useDashboardSummary } from "../../hooks/useDashboardSummary";
 
 const CoursesDashboardPage = () => {
+  const { summary } = useDashboardSummary();
+
+  if (!summary) {
+    return (
+      <div className="space-y-8">
+        <div className="flex h-40 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
+        <div className="space-y-6">
+          {Array.from({ length: 2 }).map((_, index) => (
+            <div
+              key={index}
+              className="h-72 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 rounded-[1.75rem] border border-white/10 bg-white/7 p-6 md:flex-row md:items-center md:justify-between">
@@ -26,9 +44,9 @@ const CoursesDashboardPage = () => {
       </div>
 
       <div className="space-y-6">
-        {activeCourses.map((course) => (
+        {summary.courses.map((course) => (
           <div
-            key={course.id}
+            key={course.courseSlug}
             className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6"
           >
             <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
@@ -37,18 +55,20 @@ const CoursesDashboardPage = () => {
                   <FiBookOpen /> {course.category}
                 </span>
                 <h3 className="mt-3 text-xl font-semibold text-white">{course.title}</h3>
-                <p className="text-xs text-indigo-100">Instructor · {course.instructor}</p>
+                {course.instructor && (
+                  <p className="text-xs text-indigo-100">Instructor · {course.instructor}</p>
+                )}
               </div>
               <div className="rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200">
                 <p className="font-semibold text-white">Next session</p>
-                <p className="text-xs text-indigo-100">{course.nextSession}</p>
+                <p className="text-xs text-indigo-100">{course.nextSession ?? "TBA"}</p>
               </div>
             </div>
 
             <div className="mt-6 space-y-4">
               {course.modules.map((module) => (
                 <div
-                  key={module.id}
+                  key={module.moduleId}
                   className="flex flex-col gap-4 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 sm:flex-row sm:items-center sm:justify-between"
                 >
                   <div className="space-y-2">
@@ -62,11 +82,11 @@ const CoursesDashboardPage = () => {
                     <h4 className="text-sm font-semibold text-white">{module.title}</h4>
                     <p className="text-xs text-slate-300">Estimated · {module.duration}</p>
                   </div>
-                  <div className="flex flex-col gap-3 sm:w-56">
-                    <div className="relative h-2 rounded-full bg-white/10">
-                      <div
-                        className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400"
-                        style={{ width: `${module.completion}%` }}
+                    <div className="flex flex-col gap-3 sm:w-56">
+                      <div className="relative h-2 rounded-full bg-white/10">
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400"
+                          style={{ width: `${module.completion}%` }}
                       />
                     </div>
                     <p className="text-xs text-right text-indigo-100">{module.completion}%</p>

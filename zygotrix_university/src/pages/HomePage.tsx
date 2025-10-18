@@ -8,24 +8,30 @@ import TestimonialsSection from "../components/home/TestimonialsSection";
 import FaqSection from "../components/home/FaqSection";
 import CallToActionSection from "../components/home/CallToActionSection";
 import {
-  featuredCourses,
   learningPaths,
-  practiceTopics,
   testimonials,
   faqs,
   partnerLogos,
   highlights,
 } from "../data/universityData";
+import { useCourses } from "../hooks/useCourses";
+import { usePracticeSets } from "../hooks/usePracticeSets";
 
 const HomePage = () => {
+  const { courses, loading: coursesLoading } = useCourses();
+  const { practiceSets, loading: practiceLoading } = usePracticeSets();
+
+  const featured = courses.slice(0, 4);
+  const practiceTopics = practiceSets.slice(0, 4);
+
   return (
     <div className="space-y-16 sm:space-y-20">
       <HeroSection />
       <TrustedPartners partners={partnerLogos} />
-      <FeaturedCoursesSection courses={featuredCourses} />
+      <FeaturedCoursesSection courses={featured} loading={coursesLoading} />
       <LearningPathsSection paths={learningPaths} />
       <HighlightsSection highlights={highlights} />
-      <PracticePreviewSection topics={practiceTopics} />
+      <PracticePreviewSection topics={practiceTopics} loading={practiceLoading} />
       <TestimonialsSection testimonials={testimonials} />
       <FaqSection items={faqs} />
       <CallToActionSection />

@@ -3,12 +3,15 @@ import PageHeader from "../components/common/PageHeader";
 import AccentButton from "../components/common/AccentButton";
 import CourseCard from "../components/cards/CourseCard";
 import Container from "../components/common/Container";
-import { featuredCourses } from "../data/universityData";
+import { useCourses } from "../hooks/useCourses";
 
 const categories = ["Artificial Intelligence", "Product Design", "Cloud Engineering", "Data Science", "Leadership"];
 const levels: Array<"Beginner" | "Intermediate" | "Advanced"> = ["Beginner", "Intermediate", "Advanced"];
 
 const CoursesPage = () => {
+  const { courses, loading } = useCourses();
+  const highlightCourse = courses[0];
+
   return (
     <div className="space-y-16">
       <PageHeader
@@ -72,22 +75,37 @@ const CoursesPage = () => {
                   <FiStar />
                 </span>
                 <h2 className="text-3xl font-semibold text-white">
-                  Spotlight: Foundations of Artificial Intelligence
+                  {highlightCourse?.title ?? "Spotlight course"}
                 </h2>
                 <p className="text-sm text-indigo-100">
-                  Pair structured lessons with Simulation Studio labs to rehearse AI product decisions. Perfect for
-                  product managers and tech leaders transitioning into AI-first roadmaps.
+                  {highlightCourse?.shortDescription ??
+                    "Pair structured lessons with Simulation Studio labs to rehearse product decisions."}
                 </p>
               </div>
-              <AccentButton to="/courses/ai-101">View Syllabus</AccentButton>
+              {highlightCourse && (
+                <AccentButton to={`/courses/${highlightCourse.slug ?? highlightCourse.id}`}>
+                  View Syllabus
+                </AccentButton>
+              )}
             </div>
           </div>
 
-          <div className="grid gap-8 md:grid-cols-2">
-            {featuredCourses.map((course) => (
-              <CourseCard key={course.id} course={course} />
-            ))}
-          </div>
+          {loading ? (
+            <div className="grid gap-8 md:grid-cols-2">
+              {Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-72 animate-pulse rounded-3xl border border-white/10 bg-white/5"
+                />
+              ))}
+            </div>
+          ) : (
+            <div className="grid gap-8 md:grid-cols-2">
+              {courses.map((course) => (
+                <CourseCard key={course.slug ?? course.id} course={course} />
+              ))}
+            </div>
+          )}
         </div>
       </Container>
     </div>

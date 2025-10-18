@@ -2,13 +2,14 @@ import { FiCpu, FiLayers, FiBarChart2 } from "react-icons/fi";
 import SectionHeading from "../common/SectionHeading";
 import Container from "../common/Container";
 import PracticeCard from "../cards/PracticeCard";
-import type { PracticeTopic } from "../../types";
+import type { PracticeSet } from "../../types";
 
 interface PracticePreviewSectionProps {
-  topics: PracticeTopic[];
+  topics: PracticeSet[];
+  loading?: boolean;
 }
 
-const PracticePreviewSection = ({ topics }: PracticePreviewSectionProps) => {
+const PracticePreviewSection = ({ topics, loading = false }: PracticePreviewSectionProps) => {
   return (
     <section className="pt-20">
       <Container className="px-0 sm:px-0">
@@ -21,9 +22,16 @@ const PracticePreviewSection = ({ topics }: PracticePreviewSectionProps) => {
 
           <div className="mt-10 grid gap-6 lg:grid-cols-[1.15fr_0.85fr]">
             <div className="grid gap-6 sm:grid-cols-2">
-              {topics.slice(0, 4).map((topic) => (
-                <PracticeCard key={topic.id} topic={topic} />
-              ))}
+              {loading && topics.length === 0
+                ? Array.from({ length: 4 }).map((_, index) => (
+                    <div
+                      key={index}
+                      className="h-40 animate-pulse rounded-3xl border border-white/10 bg-white/5"
+                    />
+                  ))
+                : topics.slice(0, 4).map((topic) => (
+                    <PracticeCard key={topic.id} topic={topic} />
+                  ))}
             </div>
             <div className="flex flex-col justify-between rounded-3xl border border-white/10 bg-white/5 p-6">
               <div className="space-y-6">

@@ -1,7 +1,7 @@
 import { FiCheckCircle, FiList, FiTarget } from "react-icons/fi";
 import AccentButton from "../../components/common/AccentButton";
 import ScheduleTimeline from "../../components/dashboard/widgets/ScheduleTimeline";
-import { learningSchedule } from "../../data/dashboardData";
+import { useDashboardSummary } from "../../hooks/useDashboardSummary";
 
 const milestones = [
   {
@@ -25,6 +25,20 @@ const milestones = [
 ];
 
 const LearningPlanDashboardPage = () => {
+  const { summary } = useDashboardSummary();
+
+  if (!summary) {
+    return (
+      <div className="space-y-8">
+        <div className="flex h-40 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
+        <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
+          <div className="h-64 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
+          <div className="h-64 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 rounded-[1.75rem] border border-white/10 bg-white/7 p-6 md:flex-row md:items-center md:justify-between">
@@ -49,7 +63,7 @@ const LearningPlanDashboardPage = () => {
       </div>
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-        <ScheduleTimeline events={learningSchedule} />
+        <ScheduleTimeline events={summary.schedule} />
         <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6">
           <h3 className="text-lg font-semibold text-white">Milestones</h3>
           <ul className="mt-4 space-y-4">

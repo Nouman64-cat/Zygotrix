@@ -6,13 +6,13 @@ interface ScheduleTimelineProps {
   events: LearningEvent[];
 }
 
-const iconMap: Record<LearningEvent["type"], typeof FiRadio> = {
+const iconMap: Record<"live" | "async" | "deadline", typeof FiRadio> = {
   live: FiRadio,
   async: FiClock,
   deadline: FiCalendar,
 };
 
-const badgeStyles: Record<LearningEvent["type"], string> = {
+const badgeStyles: Record<"live" | "async" | "deadline", string> = {
   live: "bg-emerald-500/15 text-emerald-200 border-emerald-500/30",
   async: "bg-blue-500/15 text-blue-200 border-blue-500/30",
   deadline: "bg-rose-500/15 text-rose-200 border-rose-500/30",
@@ -28,31 +28,42 @@ const ScheduleTimeline = ({ events }: ScheduleTimelineProps) => {
         </span>
       </div>
       <ol className="mt-5 space-y-5">
-        {events.map((event) => (
-          <li key={event.id} className="relative pl-6">
-            <span className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400" />
-            <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3">
-              <div className="space-y-1">
-                <p className="text-sm font-semibold text-white">{event.title}</p>
-                <p className="text-xs text-slate-300">{new Date(event.start).toLocaleString(undefined, { month: "short", day: "numeric", hour: "numeric", minute: "2-digit" })}</p>
+        {events.map((event) => {
+          const type = event.type ?? "live";
+          const Icon = iconMap[type] ?? FiRadio;
+          const badgeClass = badgeStyles[type] ?? badgeStyles.live;
+          const startDate = event.start ? new Date(event.start) : null;
+
+          return (
+            <li key={event.id} className="relative pl-6">
+              <span className="absolute left-0 top-1.5 h-3 w-3 rounded-full bg-gradient-to-br from-indigo-400 to-purple-400" />
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3">
+                <div className="space-y-1">
+                  <p className="text-sm font-semibold text-white">{event.title}</p>
+                  <p className="text-xs text-slate-300">
+                    {startDate
+                      ? startDate.toLocaleString(undefined, {
+                          month: "short",
+                          day: "numeric",
+                          hour: "numeric",
+                          minute: "2-digit",
+                        })
+                      : "Scheduling soon"}
+                  </p>
+                </div>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em]",
+                    badgeClass,
+                  )}
+                >
+                  <Icon />
+                  {type}
+                </span>
               </div>
-              {(() => {
-                const Icon = iconMap[event.type];
-                return (
-                  <span
-                    className={cn(
-                      "inline-flex items-center gap-2 rounded-full border px-3 py-1 text-xs font-semibold uppercase tracking-[0.24em]",
-                      badgeStyles[event.type],
-                    )}
-                  >
-                    <Icon />
-                    {event.type}
-                  </span>
-                );
-              })()}
-            </div>
-          </li>
-        ))}
+            </li>
+          );
+        })}
       </ol>
     </div>
   );

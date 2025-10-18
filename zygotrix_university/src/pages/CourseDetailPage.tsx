@@ -1,21 +1,24 @@
-import { useMemo } from "react";
 import { useParams, Navigate } from "react-router-dom";
 import { FiClock, FiPlayCircle, FiUsers, FiExternalLink } from "react-icons/fi";
 import AccentButton from "../components/common/AccentButton";
 import Container from "../components/common/Container";
 import PageHeader from "../components/common/PageHeader";
-import { featuredCourses } from "../data/universityData";
+import { useCourseDetail } from "../hooks/useCourseDetail";
 
 const CourseDetailPage = () => {
-  const { courseId } = useParams<{ courseId: string }>();
+  const { slug } = useParams<{ slug: string }>();
+  const { course, loading } = useCourseDetail(slug);
 
-  const course = useMemo(
-    () => featuredCourses.find((item) => item.id === courseId),
-    [courseId],
-  );
+  if (!loading && !course) {
+    return <Navigate to="/courses" replace />;
+  }
 
   if (!course) {
-    return <Navigate to="/courses" replace />;
+    return (
+      <div className="flex min-h-[40vh] items-center justify-center text-indigo-200">
+        Loading course...
+      </div>
+    );
   }
 
   return (
@@ -25,20 +28,26 @@ const CourseDetailPage = () => {
         title={course.title}
         description={
           <div className="space-y-3 text-sm text-indigo-100">
-            <p>{course.description}</p>
+            {course.shortDescription && <p>{course.shortDescription}</p>}
             <div className="flex flex-wrap gap-3 text-xs text-slate-200">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                <FiClock />
-                {course.duration}
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                <FiPlayCircle />
-                {course.lessons} lessons
-              </span>
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
-                <FiUsers />
-                {course.students.toLocaleString()} learners
-              </span>
+              {course.duration && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  <FiClock />
+                  {course.duration}
+                </span>
+              )}
+              {course.lessons != null && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  <FiPlayCircle />
+                  {course.lessons} lessons
+                </span>
+              )}
+              {course.students != null && (
+                <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1">
+                  <FiUsers />
+                  {course.students.toLocaleString()} learners
+                </span>
+              )}
             </div>
           </div>
         }
@@ -58,7 +67,7 @@ const CourseDetailPage = () => {
             <h2 className="text-2xl font-semibold text-white">What you’ll master</h2>
             <ul className="mt-4 space-y-3 text-sm text-slate-200">
               {course.outcomes.map((outcome) => (
-                <li key={outcome}>• {outcome}</li>
+                <li key={outcome.id ?? outcome.text}>• {outcome.text}</li>
               ))}
             </ul>
           </div>
@@ -76,14 +85,18 @@ const CourseDetailPage = () => {
                     </p>
                     <h3 className="text-lg font-semibold text-white">{module.title}</h3>
                   </div>
-                  <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-100">
-                    {module.duration}
-                  </span>
+                  {module.duration && (
+                    <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-100">
+                      {module.duration}
+                    </span>
+                  )}
                 </div>
-                <p className="mt-2 text-sm text-slate-300">{module.description}</p>
+                {module.description && (
+                  <p className="mt-2 text-sm text-slate-300">{module.description}</p>
+                )}
                 <ul className="mt-3 space-y-2 text-xs text-slate-200">
                   {module.items.map((item) => (
-                    <li key={item}>• {item}</li>
+                    <li key={item.id ?? item.title}>• {item.title}</li>
                   ))}
                 </ul>
               </div>
@@ -95,18 +108,28 @@ const CourseDetailPage = () => {
           <div className="rounded-3xl border border-white/10 bg-white/5 p-6">
             <h3 className="text-lg font-semibold text-white">Meet your instructors</h3>
             <div className="mt-4 space-y-4">
-              {course.instructors.map((instructor) => (
-                <div key={instructor.id} className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4">
+              {(course.instructors ?? []).map((instructor) => (
+                <div
+                  key={instructor.id ?? instructor.name}
+                  className="flex gap-4 rounded-2xl border border-white/10 bg-white/5 p-4"
+                >
                   <img
-                    src={instructor.avatar}
+                    src={
+                      instructor.avatar ??
+                      "https://images.unsplash.com/photo-1521572267360-ee0c2909d518?auto=format&fit=crop&w=200&q=60"
+                    }
                     alt={instructor.name}
                     className="h-12 w-12 rounded-full border border-white/10 object-cover"
                     loading="lazy"
                   />
                   <div className="text-sm text-slate-200">
                     <p className="font-semibold text-white">{instructor.name}</p>
-                    <p className="text-xs text-indigo-100">{instructor.title}</p>
-                    <p className="mt-2 text-xs text-slate-300">{instructor.bio}</p>
+                    {instructor.title && (
+                      <p className="text-xs text-indigo-100">{instructor.title}</p>
+                    )}
+                    {instructor.bio && (
+                      <p className="mt-2 text-xs text-slate-300">{instructor.bio}</p>
+                    )}
                   </div>
                 </div>
               ))}

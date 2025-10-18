@@ -4,9 +4,11 @@ import type {
   LearningEvent,
   PracticeInsight,
   ResourceItem,
+  LearnerProfile,
 } from "../types";
 
-export const learnerProfile = {
+export const learnerProfile: LearnerProfile = {
+  userId: "demo-user",
   name: "Taylor Morgan",
   role: "AI Product Manager",
   cohort: "AI Product Strategist • Winter 2025",
@@ -19,7 +21,7 @@ export const learnerProfile = {
 
 export const activeCourses: CourseProgress[] = [
   {
-    id: "ai-101",
+    courseSlug: "ai-101",
     title: "Foundations of Artificial Intelligence",
     instructor: "Dr. Hannah Lee",
     nextSession: "Mentor Lab • Jan 24, 09:00 AM PT",
@@ -28,21 +30,21 @@ export const activeCourses: CourseProgress[] = [
     level: "Beginner",
     modules: [
       {
-        id: "ai-101-1",
+        moduleId: "ai-101-1",
         title: "AI Design Patterns",
         status: "completed",
         duration: "1h 20m",
         completion: 100,
       },
       {
-        id: "ai-101-2",
+        moduleId: "ai-101-2",
         title: "Model Lifecycle Studio",
         status: "in-progress",
         duration: "1h 05m",
         completion: 45,
       },
       {
-        id: "ai-101-3",
+        moduleId: "ai-101-3",
         title: "Responsible AI Playbooks",
         status: "locked",
         duration: "55m",
@@ -51,7 +53,7 @@ export const activeCourses: CourseProgress[] = [
     ],
   },
   {
-    id: "cloud-305",
+    courseSlug: "cloud-305",
     title: "Cloud Native Architecture Bootcamp",
     instructor: "Miguel Garcia",
     nextSession: "Simulation Studio Mission • Jan 26, 01:00 PM PT",
@@ -60,21 +62,21 @@ export const activeCourses: CourseProgress[] = [
     level: "Advanced",
     modules: [
       {
-        id: "cloud-305-1",
+        moduleId: "cloud-305-1",
         title: "Service Mesh Deep Dive",
         status: "in-progress",
         duration: "1h 40m",
         completion: 30,
       },
       {
-        id: "cloud-305-2",
+        moduleId: "cloud-305-2",
         title: "Observability Lab",
         status: "locked",
         duration: "1h 18m",
         completion: 0,
       },
       {
-        id: "cloud-305-3",
+        moduleId: "cloud-305-3",
         title: "Progressive Delivery",
         status: "locked",
         duration: "1h 10m",
@@ -91,7 +93,7 @@ export const learningSchedule: LearningEvent[] = [
     start: "2025-01-22T17:00:00Z",
     end: "2025-01-22T18:00:00Z",
     type: "live",
-    courseId: "cloud-305",
+    courseSlug: "cloud-305",
   },
   {
     id: "event-2",
@@ -99,7 +101,7 @@ export const learningSchedule: LearningEvent[] = [
     start: "2025-01-23T07:00:00Z",
     end: "2025-01-24T07:00:00Z",
     type: "deadline",
-    courseId: "ai-101",
+    courseSlug: "ai-101",
   },
   {
     id: "event-3",
@@ -107,7 +109,7 @@ export const learningSchedule: LearningEvent[] = [
     start: "2025-01-25T16:00:00Z",
     end: "2025-01-25T17:30:00Z",
     type: "async",
-    courseId: "cloud-305",
+    courseSlug: "cloud-305",
   },
 ];
 

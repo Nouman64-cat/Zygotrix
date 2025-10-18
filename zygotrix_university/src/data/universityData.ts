@@ -2,24 +2,27 @@ import type {
   Course,
   FaqItem,
   LearningPath,
-  PracticeTopic,
+  PracticeSet,
   Testimonial,
 } from "../types";
 
 export const featuredCourses: Course[] = [
   {
     id: "ai-101",
+    slug: "ai-101",
     title: "Foundations of Artificial Intelligence",
-    description:
+    shortDescription:
+      "Build a rock-solid understanding of AI systems, machine learning pipelines, and responsible deployment practices.",
+    longDescription:
       "Build a rock-solid understanding of AI systems, machine learning pipelines, and responsible deployment practices.",
     category: "Artificial Intelligence",
     level: "Beginner",
     duration: "6 weeks",
-    badge: "Most Popular",
+    badgeLabel: "Most Popular",
     lessons: 48,
     students: 12640,
     rating: 4.9,
-    image:
+    imageUrl:
       "https://images.unsplash.com/photo-1504384308090-c894fdcc538d?auto=format&fit=crop&w=800&q=80",
     instructors: [
       {
@@ -32,9 +35,18 @@ export const featuredCourses: Course[] = [
       },
     ],
     outcomes: [
-      "Translate business challenges into AI-ready problem statements.",
-      "Compose machine learning experiments and evaluate model performance.",
-      "Adopt responsible AI frameworks that protect learners and organizations.",
+      {
+        id: "ai-101-outcome-1",
+        text: "Translate business challenges into AI-ready problem statements.",
+      },
+      {
+        id: "ai-101-outcome-2",
+        text: "Compose machine learning experiments and evaluate model performance.",
+      },
+      {
+        id: "ai-101-outcome-3",
+        text: "Adopt responsible AI frameworks that protect learners and organizations.",
+      },
     ],
     modules: [
       {
@@ -43,9 +55,21 @@ export const featuredCourses: Course[] = [
         duration: "1 hr 20 min",
         description: "Recognize when and how to apply classic AI problem-solving patterns.",
         items: [
-          "Mapping user goals to model objectives",
-          "Hybrid symbolic-neural architectures",
-          "Bias detection and mitigation checklist",
+          {
+            id: "ai-101-1-item-1",
+            title: "Mapping user goals to model objectives",
+            description: null,
+          },
+          {
+            id: "ai-101-1-item-2",
+            title: "Hybrid symbolic-neural architectures",
+            description: null,
+          },
+          {
+            id: "ai-101-1-item-3",
+            title: "Bias detection and mitigation checklist",
+            description: null,
+          },
         ],
       },
       {
@@ -55,26 +79,41 @@ export const featuredCourses: Course[] = [
         description:
           "Walk through the end-to-end lifecycle, from dataset curation to production handoff.",
         items: [
-          "Data readiness scorecard",
-          "Experiment orchestration in the Simulation Studio",
-          "Human-in-the-loop evaluation strategies",
+          {
+            id: "ai-101-2-item-1",
+            title: "Data readiness scorecard",
+            description: null,
+          },
+          {
+            id: "ai-101-2-item-2",
+            title: "Experiment orchestration in the Simulation Studio",
+            description: null,
+          },
+          {
+            id: "ai-101-2-item-3",
+            title: "Human-in-the-loop evaluation strategies",
+            description: null,
+          },
         ],
       },
     ],
   },
   {
     id: "ui-204",
+    slug: "ui-204",
     title: "Product Design Systems with Figma",
-    description:
+    shortDescription:
+      "Craft cohesive design systems and ship pixel-perfect experiences across web and mobile touchpoints.",
+    longDescription:
       "Craft cohesive design systems and ship pixel-perfect experiences across web and mobile touchpoints.",
     category: "Product Design",
     level: "Intermediate",
     duration: "4 weeks",
-    badge: "Design Track",
+    badgeLabel: "Design Track",
     lessons: 32,
     students: 9862,
     rating: 4.8,
-    image:
+    imageUrl:
       "https://images.unsplash.com/photo-1559028012-481c04fa702d?auto=format&fit=crop&w=800&q=80",
     instructors: [
       {
@@ -87,9 +126,18 @@ export const featuredCourses: Course[] = [
       },
     ],
     outcomes: [
-      "Establish visual foundations, tokens, and reusable components.",
-      "Prototype advanced interactions and motion states.",
-      "Ship accessible, internationalized experiences faster.",
+      {
+        id: "ui-204-outcome-1",
+        text: "Establish visual foundations, tokens, and reusable components.",
+      },
+      {
+        id: "ui-204-outcome-2",
+        text: "Prototype advanced interactions and motion states.",
+      },
+      {
+        id: "ui-204-outcome-3",
+        text: "Ship accessible, internationalized experiences faster.",
+      },
     ],
     modules: [
       {
@@ -98,9 +146,21 @@ export const featuredCourses: Course[] = [
         duration: "58 min",
         description: "Define scalable design tokens linked to product DNA.",
         items: [
-          "Color and typography systems",
-          "Adaptive components for responsive grids",
-          "Global vs. local token governance",
+          {
+            id: "ui-204-1-item-1",
+            title: "Color and typography systems",
+            description: null,
+          },
+          {
+            id: "ui-204-1-item-2",
+            title: "Adaptive components for responsive grids",
+            description: null,
+          },
+          {
+            id: "ui-204-1-item-3",
+            title: "Global vs. local token governance",
+            description: null,
+          },
         ],
       },
       {
@@ -109,26 +169,41 @@ export const featuredCourses: Course[] = [
         duration: "1 hr 12 min",
         description: "Transform static mockups into immersive prototypes with interaction depth.",
         items: [
-          "Motion principles and timeline editing",
-          "Component variants and smart animations",
-          "Developer handoff workflow",
+          {
+            id: "ui-204-2-item-1",
+            title: "Motion principles and timeline editing",
+            description: null,
+          },
+          {
+            id: "ui-204-2-item-2",
+            title: "Component variants and smart animations",
+            description: null,
+          },
+          {
+            id: "ui-204-2-item-3",
+            title: "Developer handoff workflow",
+            description: null,
+          },
         ],
       },
     ],
   },
   {
     id: "cloud-305",
+    slug: "cloud-305",
     title: "Cloud Native Architecture Bootcamp",
-    description:
+    shortDescription:
+      "Design and deploy resilient cloud-native platforms with Kubernetes, service meshes, and observability built-in.",
+    longDescription:
       "Design and deploy resilient cloud-native platforms with Kubernetes, service meshes, and observability built-in.",
     category: "Cloud Engineering",
     level: "Advanced",
     duration: "8 weeks",
-    badge: "Career Accelerator",
+    badgeLabel: "Career Accelerator",
     lessons: 64,
     students: 7241,
     rating: 4.95,
-    image:
+    imageUrl:
       "https://images.unsplash.com/photo-1515378791036-0648a3ef77b2?auto=format&fit=crop&w=800&q=80",
     instructors: [
       {
@@ -141,9 +216,18 @@ export const featuredCourses: Course[] = [
       },
     ],
     outcomes: [
-      "Spin up cloud-native platforms with policy-driven automation.",
-      "Instrument services for full-stack observability and resilience.",
-      "Guide platform adoption with documentation and enablement kits.",
+      {
+        id: "cloud-305-outcome-1",
+        text: "Spin up cloud-native platforms with policy-driven automation.",
+      },
+      {
+        id: "cloud-305-outcome-2",
+        text: "Instrument services for full-stack observability and resilience.",
+      },
+      {
+        id: "cloud-305-outcome-3",
+        text: "Guide platform adoption with documentation and enablement kits.",
+      },
     ],
     modules: [
       {
@@ -152,9 +236,21 @@ export const featuredCourses: Course[] = [
         duration: "1 hr 40 min",
         description: "Navigate multi-cluster deployments with canary and blue/green release strategies.",
         items: [
-          "Istio configuration best practices",
-          "Traffic mirroring in Simulation Studio",
-          "Progressive delivery patterns",
+          {
+            id: "cloud-305-1-item-1",
+            title: "Istio configuration best practices",
+            description: null,
+          },
+          {
+            id: "cloud-305-1-item-2",
+            title: "Traffic mirroring in Simulation Studio",
+            description: null,
+          },
+          {
+            id: "cloud-305-1-item-3",
+            title: "Progressive delivery patterns",
+            description: null,
+          },
         ],
       },
       {
@@ -163,9 +259,21 @@ export const featuredCourses: Course[] = [
         duration: "1 hr 18 min",
         description: "Instrument distributed systems for actionable insights.",
         items: [
-          "Tracing with OpenTelemetry",
-          "SLO crafting and alert budget analysis",
-          "Dashboard storytelling for exec reviews",
+          {
+            id: "cloud-305-2-item-1",
+            title: "Tracing with OpenTelemetry",
+            description: null,
+          },
+          {
+            id: "cloud-305-2-item-2",
+            title: "SLO crafting and alert budget analysis",
+            description: null,
+          },
+          {
+            id: "cloud-305-2-item-3",
+            title: "Dashboard storytelling for exec reviews",
+            description: null,
+          },
         ],
       },
     ],
@@ -206,42 +314,46 @@ export const learningPaths: LearningPath[] = [
   },
 ];
 
-export const practiceTopics: PracticeTopic[] = [
+export const practiceTopics: PracticeSet[] = [
   {
     id: "practice-ai-ethics",
+    slug: "practice-ai-ethics",
     title: "Responsible AI Frameworks",
     questions: 36,
     accuracy: 82,
     trend: "up",
     tag: "AI Governance",
-    timeToComplete: "Approx. 25 mins",
+    estimatedTime: "Approx. 25 mins",
   },
   {
     id: "practice-react-patterns",
+    slug: "practice-react-patterns",
     title: "Advanced React Patterns",
     questions: 42,
     accuracy: 74,
     trend: "up",
     tag: "Front-end",
-    timeToComplete: "Approx. 30 mins",
+    estimatedTime: "Approx. 30 mins",
   },
   {
     id: "practice-secure-cloud",
+    slug: "practice-secure-cloud",
     title: "Secure Cloud Deployments",
     questions: 28,
     accuracy: 68,
     trend: "down",
     tag: "Cloud",
-    timeToComplete: "Approx. 20 mins",
+    estimatedTime: "Approx. 20 mins",
   },
   {
     id: "practice-ui-accessibility",
+    slug: "practice-ui-accessibility",
     title: "UI Accessibility Checkpoints",
     questions: 24,
     accuracy: 91,
     trend: "up",
     tag: "Design",
-    timeToComplete: "Approx. 18 mins",
+    estimatedTime: "Approx. 18 mins",
   },
 ];
 

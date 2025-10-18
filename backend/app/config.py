@@ -57,6 +57,15 @@ class Settings:
     mongodb_comments_collection: str = os.getenv(
         "MONGODB_COMMENTS_COLLECTION", "comments"
     )
+    mongodb_courses_collection: str = os.getenv(
+        "MONGODB_COURSES_COLLECTION", "university_courses"
+    )
+    mongodb_practice_sets_collection: str = os.getenv(
+        "MONGODB_PRACTICE_SETS_COLLECTION", "university_practice_sets"
+    )
+    mongodb_course_progress_collection: str = os.getenv(
+        "MONGODB_COURSE_PROGRESS_COLLECTION", "university_course_progress"
+    )
     auth_secret_key: str = os.getenv("AUTH_SECRET_KEY", "change-me-in-prod")
     auth_token_ttl_minutes: int = _get_int("AUTH_TOKEN_TTL_MINUTES", 60)
     auth_jwt_algorithm: str = os.getenv("AUTH_JWT_ALGORITHM", "HS256")

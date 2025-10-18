@@ -1,33 +1,48 @@
 export interface Instructor {
-  id: string;
+  id?: string;
   name: string;
+  title?: string;
+  avatar?: string;
+  bio?: string;
+}
+
+export interface CourseOutcome {
+  id?: string;
+  text: string;
+}
+
+export interface CourseModuleItem {
+  id?: string;
   title: string;
-  avatar: string;
-  bio: string;
+  description?: string | null;
 }
 
 export interface CourseModule {
-  id: string;
+  id?: string;
   title: string;
-  duration: string;
-  description: string;
-  items: string[];
+  duration?: string | null;
+  description?: string | null;
+  items: CourseModuleItem[];
 }
+
+export type CourseLevel = "Beginner" | "Intermediate" | "Advanced" | string;
 
 export interface Course {
   id: string;
+  slug: string;
   title: string;
-  description: string;
-  category: string;
-  level: "Beginner" | "Intermediate" | "Advanced";
-  duration: string;
-  badge: string;
-  lessons: number;
-  students: number;
-  rating: number;
-  image: string;
+  shortDescription?: string | null;
+  longDescription?: string | null;
+  category?: string | null;
+  level?: CourseLevel;
+  duration?: string | null;
+  badgeLabel?: string | null;
+  lessons?: number | null;
+  students?: number | null;
+  rating?: number | null;
+  imageUrl?: string | null;
   instructors: Instructor[];
-  outcomes: string[];
+  outcomes: CourseOutcome[];
   modules: CourseModule[];
 }
 
@@ -40,14 +55,16 @@ export interface LearningPath {
   courses: string[];
 }
 
-export interface PracticeTopic {
+export interface PracticeSet {
   id: string;
+  slug: string;
   title: string;
-  questions: number;
-  accuracy: number;
-  trend: "up" | "down";
-  tag: string;
-  timeToComplete: string;
+  description?: string | null;
+  tag?: string | null;
+  questions?: number | null;
+  accuracy?: number | null;
+  trend?: "up" | "down" | null;
+  estimatedTime?: string | null;
 }
 
 export interface Testimonial {
@@ -67,46 +84,55 @@ export interface FaqItem {
 }
 
 export interface ModuleProgress {
-  id: string;
-  title: string;
+  moduleId: string;
+  title?: string | null;
   status: "locked" | "in-progress" | "completed";
-  duration: string;
+  duration?: string | null;
   completion: number;
 }
 
+export interface CourseProgressMetrics {
+  hoursSpent?: number | null;
+  practiceAccuracy?: number | null;
+  mcqAttempts?: number | null;
+  lastScore?: number | null;
+  streak?: number | null;
+}
+
 export interface CourseProgress {
-  id: string;
+  courseSlug: string;
   title: string;
-  instructor: string;
-  nextSession: string;
+  instructor?: string | null;
+  nextSession?: string | null;
   progress: number;
-  category: string;
-  level: Course["level"];
+  category?: string | null;
+  level?: CourseLevel;
+  metrics?: CourseProgressMetrics | null;
   modules: ModuleProgress[];
 }
 
 export interface LearningEvent {
   id: string;
   title: string;
-  start: string;
-  end: string;
-  type: "live" | "async" | "deadline";
-  courseId: string;
+  start?: string | null;
+  end?: string | null;
+  type?: "live" | "async" | "deadline" | null;
+  courseSlug?: string | null;
 }
 
 export interface PracticeInsight {
   id: string;
   title: string;
   delta: number;
-  description: string;
+  description?: string | null;
 }
 
 export interface ResourceItem {
   id: string;
   title: string;
-  description: string;
-  type: "playbook" | "template" | "recording" | "article";
-  link: string;
+  description?: string | null;
+  type?: "playbook" | "template" | "recording" | "article" | string | null;
+  link?: string | null;
 }
 
 export interface AnalyticsStat {
@@ -115,4 +141,24 @@ export interface AnalyticsStat {
   value: string;
   change: number;
   timeframe: string;
+}
+
+export interface LearnerProfile {
+  userId: string;
+  name: string;
+  role?: string | null;
+  cohort?: string | null;
+  avatar?: string | null;
+  streak: number;
+  xp: number;
+  nextBadge?: string | null;
+}
+
+export interface DashboardSummary {
+  profile: LearnerProfile;
+  courses: CourseProgress[];
+  stats: AnalyticsStat[];
+  insights: PracticeInsight[];
+  resources: ResourceItem[];
+  schedule: LearningEvent[];
 }

@@ -3,9 +3,11 @@ import PageHeader from "../components/common/PageHeader";
 import Container from "../components/common/Container";
 import PracticeCard from "../components/cards/PracticeCard";
 import AccentButton from "../components/common/AccentButton";
-import { practiceTopics } from "../data/universityData";
+import { usePracticeSets } from "../hooks/usePracticeSets";
 
 const PracticePage = () => {
+  const { practiceSets, loading } = usePracticeSets();
+
   return (
     <div className="space-y-16">
       <PageHeader
@@ -29,9 +31,14 @@ const PracticePage = () => {
 
       <Container className="space-y-12">
         <div className="grid gap-6 md:grid-cols-2">
-          {practiceTopics.map((topic) => (
-            <PracticeCard key={topic.id} topic={topic} />
-          ))}
+          {loading && practiceSets.length === 0
+            ? Array.from({ length: 4 }).map((_, index) => (
+                <div
+                  key={index}
+                  className="h-40 animate-pulse rounded-3xl border border-white/10 bg-white/5"
+                />
+              ))
+            : practiceSets.map((topic) => <PracticeCard key={topic.id} topic={topic} />)}
         </div>
 
         <div className="grid gap-6 rounded-[2.5rem] border border-white/10 bg-white/5 p-8 lg:grid-cols-[1.15fr_0.85fr]">

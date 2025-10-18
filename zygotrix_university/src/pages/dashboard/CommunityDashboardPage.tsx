@@ -1,6 +1,6 @@
 import { FiMessageCircle, FiUserPlus, FiVideo } from "react-icons/fi";
 import AccentButton from "../../components/common/AccentButton";
-import { learningSchedule } from "../../data/dashboardData";
+import { useDashboardSummary } from "../../hooks/useDashboardSummary";
 
 const communityThreads = [
   {
@@ -27,6 +27,8 @@ const communityThreads = [
 ];
 
 const CommunityDashboardPage = () => {
+  const { summary } = useDashboardSummary();
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col gap-4 rounded-[1.75rem] border border-white/10 bg-white/7 p-6 md:flex-row md:items-center md:justify-between">
@@ -52,26 +54,38 @@ const CommunityDashboardPage = () => {
       <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6">
         <h3 className="text-lg font-semibold text-white">Upcoming community events</h3>
         <div className="mt-5 grid gap-4 md:grid-cols-3">
-          {learningSchedule.map((event) => (
-            <div
-              key={event.id}
-              className="rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200"
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-200">
-                {new Date(event.start).toLocaleDateString(undefined, {
-                  month: "short",
-                  day: "numeric",
-                })}
-              </p>
-              <p className="mt-1 text-sm font-semibold text-white">{event.title}</p>
-              <p className="text-xs text-indigo-100">
-                {new Date(event.start).toLocaleTimeString(undefined, {
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}
-              </p>
-            </div>
-          ))}
+          {(summary?.schedule ?? []).slice(0, 3).map((event) => {
+            const startDate = event.start ? new Date(event.start) : null;
+            return (
+              <div
+                key={event.id}
+                className="rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 text-sm text-slate-200"
+              >
+                <p className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-200">
+                  {startDate
+                    ? startDate.toLocaleDateString(undefined, {
+                        month: "short",
+                        day: "numeric",
+                      })
+                    : "TBA"}
+                </p>
+                <p className="mt-1 text-sm font-semibold text-white">{event.title}</p>
+                <p className="text-xs text-indigo-100">
+                  {startDate
+                    ? startDate.toLocaleTimeString(undefined, {
+                        hour: "numeric",
+                        minute: "2-digit",
+                      })
+                    : ""}
+                </p>
+              </div>
+            );
+          })}
+          {(!summary || summary.schedule.length === 0) && (
+            <p className="col-span-full text-sm text-slate-300">
+              Upcoming live sessions will appear here once scheduled.
+            </p>
+          )}
         </div>
       </div>
 

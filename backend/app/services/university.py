@@ -633,15 +633,15 @@ def save_course_progress(
                     "items": items_payload,
                 }
             )
-        if modules_input:
-            progress_update["modules"] = modules_input
-            if "progress" not in progress_update:
-                progress_update["progress"] = int(
-                    round(
-                        sum(module["completion"] for module in modules_input)
-                        / len(modules_input)
-                    )
+    if modules_input:
+        progress_update["modules"] = modules_input
+        if "progress" not in progress_update:
+            progress_update["progress"] = int(
+                round(
+                    sum(module["completion"] for module in modules_input)
+                    / len(modules_input)
                 )
+            )
     if "metrics" in payload and payload["metrics"] is not None:
         metrics = payload["metrics"]
         progress_update["metrics"] = {
@@ -662,7 +662,7 @@ def save_course_progress(
 
     now = datetime.now(timezone.utc)
     progress_update["updated_at"] = now
-    progress_update.setdefault("created_at", now)
+    progress_update.pop("created_at", None)
 
     if not _is_user_enrolled(user_id, course_slug):
         raise HTTPException(status_code=403, detail="Course not enrolled")

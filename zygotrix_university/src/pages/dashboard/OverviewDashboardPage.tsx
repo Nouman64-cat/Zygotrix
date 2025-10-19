@@ -7,18 +7,18 @@ import SavedResources from "../../components/dashboard/widgets/SavedResources";
 import { useDashboardSummary } from "../../hooks/useDashboardSummary";
 
 const OverviewDashboardPage = () => {
-  const { summary, loading } = useDashboardSummary();
+  const { summary } = useDashboardSummary();
 
   if (!summary) {
     return (
       <div className="space-y-8">
         <div className="grid gap-6 lg:grid-cols-[1fr_1.1fr]">
-          <div className="h-64 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
+          <div className="h-64 animate-pulse rounded-[1.75rem] border border-border bg-background-subtle" />
           <div className="grid gap-4 sm:grid-cols-2">
             {Array.from({ length: 4 }).map((_, index) => (
               <div
                 key={index}
-                className="h-32 animate-pulse rounded-[1.5rem] border border-white/10 bg-white/5"
+                className="h-32 animate-pulse rounded-[1.5rem] border border-border bg-background-subtle"
               />
             ))}
           </div>

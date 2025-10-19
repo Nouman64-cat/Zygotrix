@@ -25,6 +25,7 @@ class CourseModuleItemModel(BaseModel):
     id: Optional[str] = None
     title: str
     description: Optional[str] = None
+    content: Optional[str] = None
 
 
 class CourseModuleModel(BaseModel):
@@ -33,6 +34,28 @@ class CourseModuleModel(BaseModel):
     duration: Optional[str] = None
     description: Optional[str] = None
     items: List[CourseModuleItemModel] = Field(default_factory=list)
+
+
+class PracticeAnswerModel(BaseModel):
+    label: Optional[str] = None
+    body: Optional[str] = None
+    is_correct: bool = False
+
+
+class PracticeQuestionModel(BaseModel):
+    topic: Optional[str] = None
+    difficulty: Optional[str] = None
+    prompt: Optional[str] = None
+    answers: List[PracticeAnswerModel] = Field(default_factory=list)
+    correct_answer: PracticeAnswerModel = Field(default_factory=PracticeAnswerModel)
+
+
+class PracticeSetModel(BaseModel):
+    id: str
+    slug: Optional[str] = None
+    title: str
+    description: Optional[str] = None
+    questions: List[PracticeQuestionModel] = Field(default_factory=list)
 
 
 class CourseSummaryModel(BaseModel):
@@ -57,6 +80,7 @@ class CourseDetailModel(CourseSummaryModel):
     instructors: List[InstructorModel] = Field(default_factory=list)
     enrolled: bool = False
     content_locked: bool = False
+    practice_sets: List[PracticeSetModel] = Field(default_factory=list)
 
 
 class CourseListResponse(BaseModel):
@@ -67,7 +91,7 @@ class CourseDetailResponse(BaseModel):
     course: CourseDetailModel
 
 
-class PracticeSetModel(BaseModel):
+class PracticeSetSummaryModel(BaseModel):
     id: str
     slug: str
     title: str
@@ -82,7 +106,7 @@ class PracticeSetModel(BaseModel):
 
 
 class PracticeSetListResponse(BaseModel):
-    practice_sets: List[PracticeSetModel]
+    practice_sets: List[PracticeSetSummaryModel]
 
 
 class DashboardStatModel(BaseModel):

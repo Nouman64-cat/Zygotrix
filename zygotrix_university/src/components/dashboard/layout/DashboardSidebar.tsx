@@ -41,9 +41,9 @@ const DashboardSidebar = ({
   const showLabels = mobile || !collapsed;
 
   const wrapperClasses = mobile
-    ? "flex h-full w-full flex-col gap-6 overflow-y-auto rounded-[1.75rem] border border-white/10 bg-[#070b18] p-6"
+    ? "flex h-full w-full flex-col gap-6 overflow-y-auto rounded-[1.75rem] border border-border bg-surface-elevated p-6 transition-colors"
     : cn(
-        "hidden rounded-[1.75rem] border border-white/10 bg-white/5 p-6 transition-all duration-300 lg:flex lg:flex-col lg:items-stretch lg:overflow-hidden",
+        "hidden rounded-[1.75rem] border border-border bg-surface p-6 transition-all duration-300 transition-colors lg:flex lg:flex-col lg:items-stretch lg:overflow-hidden",
         collapsed ? "lg:w-24" : "lg:w-72",
         "lg:h-screen lg:sticky lg:top-0",
       );
@@ -58,7 +58,7 @@ const DashboardSidebar = ({
       >
         <Logo variant="compact" />
         {showLabels && (
-          <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-indigo-200">
+          <span className="rounded-full border border-secondary-button bg-secondary-button px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.24em] text-secondary-button transition-colors">
             Learner
           </span>
         )}
@@ -75,9 +75,10 @@ const DashboardSidebar = ({
               onClick={onNavigate}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center gap-3 rounded-2xl px-4 py-3 text-sm font-medium text-slate-200 transition",
-                  "hover:bg-white/8 hover:text-white",
-                  isActive && "bg-white/12 text-white shadow shadow-indigo-500/15",
+                  "flex items-center gap-3 rounded-2xl border border-transparent px-4 py-3 text-sm font-medium text-muted transition-colors",
+                  "hover:bg-accent-soft hover:text-foreground",
+                  isActive &&
+                    "border-accent bg-accent-soft text-foreground shadow-theme-card",
                   !showLabels && "justify-center px-2",
                 )
               }
@@ -91,7 +92,7 @@ const DashboardSidebar = ({
 
       <div
         className={cn(
-          "rounded-2xl border border-white/10 bg-white/8 p-4 text-xs text-indigo-100",
+          "rounded-2xl border border-border bg-background-subtle p-4 text-xs text-accent transition-colors",
           !showLabels && "flex flex-col items-center justify-center gap-3",
         )}
       >
@@ -100,14 +101,14 @@ const DashboardSidebar = ({
             <p className="font-semibold uppercase tracking-[0.24em]">
               Simulation Studio
             </p>
-            <p className="mt-2 text-[11px] leading-relaxed text-slate-200">
+            <p className="mt-2 text-[11px] leading-relaxed text-muted">
               Two new missions are available. Join before Jan 27 to keep your streak alive.
             </p>
           </>
         ) : (
           <>
-            <FiZap className="text-xl text-indigo-200" />
-            <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-indigo-200">
+            <FiZap className="text-xl text-accent" />
+            <span className="text-[10px] font-semibold uppercase tracking-[0.3em] text-accent">
               Missions
             </span>
           </>

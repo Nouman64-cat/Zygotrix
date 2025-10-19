@@ -3,9 +3,12 @@ import {
   FiChevronsLeft,
   FiChevronsRight,
   FiMenu,
+  FiMoon,
   FiSearch,
+  FiSun,
 } from "react-icons/fi";
 import { useAuth } from "../../../context/AuthContext";
+import { useTheme } from "../../../hooks/useTheme";
 
 interface DashboardTopBarProps {
   collapsed: boolean;
@@ -19,6 +22,8 @@ const DashboardTopBar = ({
   onOpenMobileNav,
 }: DashboardTopBarProps) => {
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const isDark = theme === "dark";
   const initials = user?.fullName
     ? user.fullName
         .split(" ")
@@ -29,12 +34,12 @@ const DashboardTopBar = ({
     : user?.email?.slice(0, 2)?.toUpperCase() ?? "ZU";
 
   return (
-    <div className="flex flex-col gap-4 rounded-[1.75rem] border border-white/10 bg-white/5 px-6 py-4 sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-[1.75rem] border border-border bg-surface px-6 py-4 transition-colors sm:flex-row sm:items-center sm:justify-between">
       <div className="flex w-full items-center gap-3">
         <button
           type="button"
           onClick={onToggleSidebar}
-          className="hidden h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:border-indigo-400 hover:bg-indigo-500/10 lg:inline-flex"
+          className="hidden h-11 w-11 items-center justify-center rounded-full border border-secondary-button bg-secondary-button text-foreground transition-colors hover:bg-secondary-button-hover lg:inline-flex"
           aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
         >
           {collapsed ? <FiChevronsRight /> : <FiChevronsLeft />}
@@ -42,32 +47,42 @@ const DashboardTopBar = ({
         <button
           type="button"
           onClick={onOpenMobileNav}
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:border-indigo-400 hover:bg-indigo-500/10 lg:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-secondary-button bg-secondary-button text-foreground transition-colors hover:bg-secondary-button-hover lg:hidden"
           aria-label="Open navigation"
         >
           <FiMenu />
         </button>
         <form className="relative flex-1">
-          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
+          <FiSearch className="absolute left-4 top-1/2 -translate-y-1/2 text-muted" />
           <input
             type="search"
             placeholder="Search lessons, resources, mentors…"
-            className="w-full rounded-full border border-white/10 bg-white/[0.08] py-3 pl-11 pr-4 text-sm text-white placeholder:text-slate-400 focus:border-indigo-400 focus:outline-none"
+            className="w-full rounded-full border border-border bg-background-subtle py-3 pl-11 pr-4 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
           />
         </form>
       </div>
       <div className="flex items-center gap-4">
-        <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-white transition hover:border-indigo-400 hover:bg-indigo-500/10">
+        <button
+          type="button"
+          onClick={toggleTheme}
+          className="relative flex h-11 w-11 items-center justify-center rounded-full border border-secondary-button bg-secondary-button text-foreground transition-colors hover:bg-secondary-button-hover"
+          aria-label={isDark ? "Switch to light mode" : "Switch to dark mode"}
+        >
+          {isDark ? <FiSun /> : <FiMoon />}
+        </button>
+        <button className="relative flex h-11 w-11 items-center justify-center rounded-full border border-secondary-button bg-secondary-button text-foreground transition-colors hover:bg-secondary-button-hover">
           <FiBell />
           <span className="absolute -right-1 -top-1 h-3 w-3 rounded-full bg-pink-400" />
         </button>
-        <div className="flex items-center gap-3 rounded-full border border-white/10 bg-white/8 px-3 py-2">
-          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 text-sm font-semibold text-white">
+        <div className="flex items-center gap-3 rounded-full border border-border bg-background-subtle px-3 py-2 transition-colors">
+          <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 text-sm font-semibold text-accent-contrast">
             {initials}
           </div>
           <div>
-            <p className="text-sm font-semibold text-white">{user?.fullName ?? user?.email}</p>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-indigo-200">Member</p>
+            <p className="text-sm font-semibold text-foreground">
+              {user?.fullName ?? user?.email}
+            </p>
+            <p className="text-[11px] uppercase tracking-[0.24em] text-accent">Member</p>
           </div>
         </div>
       </div>

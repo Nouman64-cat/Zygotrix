@@ -15,12 +15,12 @@ const iconByType: Record<ResourceItem["type"], typeof FiLayers> = {
 
 const SavedResources = ({ resources }: SavedResourcesProps) => {
   return (
-    <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6">
+    <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-white">Saved resources</h3>
+        <h3 className="text-lg font-semibold text-foreground">Saved resources</h3>
         <a
           href="#"
-          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-indigo-200 hover:text-white"
+          className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-accent transition-colors hover:text-foreground"
         >
           View all
           <FiExternalLink />
@@ -33,16 +33,18 @@ const SavedResources = ({ resources }: SavedResourcesProps) => {
             <li
               key={resource.id}
               className={cn(
-                "rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3 transition hover:border-indigo-400/40",
+                "rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 transition-colors hover:border-accent",
               )}
             >
               <div className="flex items-center gap-3">
-                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-white/6 text-indigo-200">
+                <span className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-background-subtle text-accent">
                   <Icon />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-white">{resource.title}</p>
-                  <p className="text-xs text-slate-300">{resource.description}</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {resource.title}
+                  </p>
+                  <p className="text-xs text-muted">{resource.description}</p>
                 </div>
               </div>
             </li>

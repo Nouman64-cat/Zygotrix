@@ -8,7 +8,7 @@ const DashboardLayout = () => {
   const [collapsed, setCollapsed] = useState(false);
 
   return (
-    <div className="min-h-screen bg-[#03050f] text-white">
+    <div className="min-h-screen bg-background text-foreground transition-colors">
       <div className="flex min-h-screen">
         <DashboardSidebar collapsed={collapsed} />
 
@@ -21,7 +21,7 @@ const DashboardLayout = () => {
                 onOpenMobileNav={() => setMobileNavOpen(true)}
               />
 
-              <div className="rounded-[1.75rem] border border-white/10 bg-white/5 p-6">
+              <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
                 <Outlet />
               </div>
             </div>
@@ -31,7 +31,7 @@ const DashboardLayout = () => {
 
       {mobileNavOpen && (
         <div className="fixed inset-0 z-50 flex lg:hidden">
-          <div className="h-full w-80 max-w-[80%] bg-[#050816]/95 p-4 backdrop-blur">
+          <div className="h-full w-80 max-w-[80%] bg-overlay p-4 backdrop-blur transition-colors">
             <DashboardSidebar
               mobile
               onNavigate={() => setMobileNavOpen(false)}

@@ -30,10 +30,10 @@ const LearningPlanDashboardPage = () => {
   if (!summary) {
     return (
       <div className="space-y-8">
-        <div className="flex h-40 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
+        <div className="flex h-40 animate-pulse rounded-[1.75rem] border border-border bg-background-subtle" />
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
-          <div className="h-64 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
-          <div className="h-64 animate-pulse rounded-[1.75rem] border border-white/10 bg-white/5" />
+          <div className="h-64 animate-pulse rounded-[1.75rem] border border-border bg-background-subtle" />
+          <div className="h-64 animate-pulse rounded-[1.75rem] border border-border bg-background-subtle" />
         </div>
       </div>
     );
@@ -41,13 +41,15 @@ const LearningPlanDashboardPage = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 rounded-[1.75rem] border border-white/10 bg-white/7 p-6 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-[1.75rem] border border-border bg-surface p-6 transition-colors md:flex-row md:items-center md:justify-between">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-200">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background-subtle px-3 py-1 text-xs text-accent transition-colors">
             <FiList /> Personal plan
           </span>
-          <h2 className="mt-3 text-2xl font-semibold text-white">This week’s learning sprint</h2>
-          <p className="text-sm text-slate-300">
+          <h2 className="mt-3 text-2xl font-semibold text-foreground">
+            This week’s learning sprint
+          </h2>
+          <p className="text-sm text-muted">
             Keep momentum with curated milestones and Simulation Studio missions. Update completion status after each
             learning block to maintain your streak.
           </p>
@@ -64,20 +66,20 @@ const LearningPlanDashboardPage = () => {
 
       <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
         <ScheduleTimeline events={summary.schedule} />
-        <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6">
-          <h3 className="text-lg font-semibold text-white">Milestones</h3>
+        <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
+          <h3 className="text-lg font-semibold text-foreground">Milestones</h3>
           <ul className="mt-4 space-y-4">
             {milestones.map((item) => (
               <li
                 key={item.id}
-                className="flex items-start gap-3 rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3"
+                className="flex items-start gap-3 rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 transition-colors"
               >
-                <span className="mt-1 text-indigo-200">
+                <span className="mt-1 text-accent">
                   <FiCheckCircle />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-white">{item.title}</p>
-                  <p className="text-xs text-indigo-100">
+                  <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                  <p className="text-xs text-muted">
                     {item.status} • Due {item.due}
                   </p>
                 </div>

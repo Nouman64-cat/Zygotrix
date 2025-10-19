@@ -15,6 +15,7 @@ export interface CourseModuleItem {
   id?: string;
   title: string;
   description?: string | null;
+  content?: string | null;
 }
 
 export interface CourseModule {
@@ -26,6 +27,28 @@ export interface CourseModule {
 }
 
 export type CourseLevel = "Beginner" | "Intermediate" | "Advanced" | string;
+
+export interface PracticeAnswer {
+  label?: string | null;
+  body?: string | null;
+  isCorrect?: boolean;
+}
+
+export interface PracticeQuestionDetail {
+  topic?: string | null;
+  difficulty?: string | null;
+  prompt?: string | null;
+  answers: PracticeAnswer[];
+  correctAnswer: PracticeAnswer;
+}
+
+export interface PracticeSetDetail {
+  id: string;
+  slug?: string | null;
+  title: string;
+  description?: string | null;
+  questions: PracticeQuestionDetail[];
+}
 
 export interface Course {
   id: string;
@@ -46,6 +69,7 @@ export interface Course {
   modules: CourseModule[];
   enrolled?: boolean;
   contentLocked?: boolean;
+  practiceSets?: PracticeSetDetail[];
 }
 
 export interface LearningPath {

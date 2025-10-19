@@ -1,3 +1,5 @@
+import { useMemo } from "react";
+import { useLocation } from "react-router-dom";
 import { FiAward, FiCompass, FiZap } from "react-icons/fi";
 import PageHeader from "../components/common/PageHeader";
 import Container from "../components/common/Container";
@@ -7,6 +9,22 @@ import { usePracticeSets } from "../hooks/usePracticeSets";
 
 const PracticePage = () => {
   const { practiceSets, loading } = usePracticeSets();
+  const location = useLocation();
+  const params = new URLSearchParams(location.search);
+  const activeSet = params.get("set");
+
+  const orderedSets = useMemo(() => {
+    if (!activeSet) {
+      return practiceSets;
+    }
+    const sorted = [...practiceSets];
+    sorted.sort((a, b) => {
+      if (a.slug === activeSet || a.id === activeSet) return -1;
+      if (b.slug === activeSet || b.id === activeSet) return 1;
+      return 0;
+    });
+    return sorted;
+  }, [practiceSets, activeSet]);
 
   return (
     <div className="space-y-16">
@@ -38,7 +56,13 @@ const PracticePage = () => {
                   className="h-40 animate-pulse rounded-3xl border border-white/10 bg-white/5"
                 />
               ))
-            : practiceSets.map((topic) => <PracticeCard key={topic.id} topic={topic} />)}
+            : orderedSets.map((topic) => (
+                <PracticeCard
+                  key={topic.id}
+                  topic={topic}
+                  highlighted={activeSet === topic.slug || activeSet === topic.id}
+                />
+              ))}
         </div>
 
         <div className="grid gap-6 rounded-[2.5rem] border border-white/10 bg-white/5 p-8 lg:grid-cols-[1.15fr_0.85fr]">

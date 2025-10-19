@@ -8,8 +8,8 @@ interface PracticeInsightsListProps {
 
 const PracticeInsightsList = ({ insights }: PracticeInsightsListProps) => {
   return (
-    <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6">
-      <h3 className="text-lg font-semibold text-white">Practice insights</h3>
+    <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
+      <h3 className="text-lg font-semibold text-foreground">Practice insights</h3>
       <ul className="mt-4 space-y-4">
         {insights.map((insight) => {
           const positive = insight.delta >= 0;
@@ -18,10 +18,12 @@ const PracticeInsightsList = ({ insights }: PracticeInsightsListProps) => {
           return (
             <li
               key={insight.id}
-              className="rounded-[1.25rem] border border-white/10 bg-white/5 px-4 py-3"
+              className="rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 transition-colors"
             >
               <div className="flex items-center justify-between gap-3">
-                <p className="text-sm font-semibold text-white">{insight.title}</p>
+                <p className="text-sm font-semibold text-foreground">
+                  {insight.title}
+                </p>
                 <span
                   className={cn(
                     "inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold",
@@ -35,7 +37,7 @@ const PracticeInsightsList = ({ insights }: PracticeInsightsListProps) => {
                   {insight.delta}%
                 </span>
               </div>
-              <p className="mt-2 text-xs text-slate-300">{insight.description}</p>
+              <p className="mt-2 text-xs text-muted">{insight.description}</p>
             </li>
           );
         })}

@@ -56,6 +56,7 @@ def list_courses(detail: bool = Query(False)) -> CourseListResponse:
             course.pop("modules", None)
             course.pop("instructors", None)
             course.pop("long_description", None)
+            course.pop("practice_sets", None)
     return CourseListResponse(courses=courses)
 
 

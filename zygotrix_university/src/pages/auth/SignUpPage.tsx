@@ -25,7 +25,7 @@ const SignUpPage = () => {
       setMessage(response.message);
       setExpiresAt(response.expiresAt);
       setStep("verify");
-    } catch (err) {
+    } catch {
       setError("Unable to start signup. Please check your details and try again.");
     } finally {
       setSubmitting(false);
@@ -39,7 +39,7 @@ const SignUpPage = () => {
     try {
       const response = await authService.verifySignup(email.trim(), otp.trim());
       setMessage(response.message + " You can now sign in.");
-    } catch (err) {
+    } catch {
       setError("Invalid code. Please verify and try again.");
     } finally {
       setSubmitting(false);
@@ -53,7 +53,7 @@ const SignUpPage = () => {
       const response = await authService.resendSignup(email.trim());
       setMessage(response.message);
       setExpiresAt(response.expiresAt);
-    } catch (err) {
+    } catch {
       setError("Unable to resend code at this time.");
     } finally {
       setResending(false);
@@ -61,24 +61,27 @@ const SignUpPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#03050f] text-white">
+    <div className="min-h-screen bg-background text-foreground transition-colors">
       <div className="relative isolate">
         <div className="absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-purple-500/30 via-purple-500/10 to-transparent blur-3xl" />
         <div className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-4 py-16 sm:px-8">
-          <div className="grid w-full gap-10 rounded-[2.75rem] border border-white/10 bg-[#050816]/80 p-8 backdrop-blur sm:p-12 md:grid-cols-[1fr_1fr]">
+          <div className="grid w-full gap-10 rounded-[2.75rem] border border-border bg-overlay p-8 backdrop-blur transition-colors sm:p-12 md:grid-cols-[1fr_1fr]">
             <div className="space-y-6">
-              <Link to="/signin" className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200">
+              <Link
+                to="/signin"
+                className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.28em] text-accent transition-colors hover:text-foreground"
+              >
                 <FiArrowLeft /> Back to sign in
               </Link>
-              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Join Zygotrix University.
               </h1>
-              <p className="text-sm text-slate-300">
+              <p className="text-sm text-muted">
                 Create your account to unlock studio-grade courses, adaptive practice, and Simulation Studio missions.
               </p>
-              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 text-sm text-slate-200">
-                <p className="font-semibold text-white">How signup works</p>
-                <ol className="mt-3 space-y-2 text-sm text-slate-300 list-decimal list-inside">
+              <div className="rounded-[2rem] border border-border bg-background-subtle p-6 text-sm text-muted transition-colors">
+                <p className="font-semibold text-foreground">How signup works</p>
+                <ol className="mt-3 list-inside list-decimal space-y-2 text-sm text-muted">
                   <li>Enter your details and submit the form.</li>
                   <li>Check your email for the verification code.</li>
                   <li>Enter the code to activate your account.</li>
@@ -90,46 +93,46 @@ const SignUpPage = () => {
             {step === "details" ? (
               <form
                 onSubmit={handleDetailsSubmit}
-                className="flex flex-col gap-5 rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8"
+                className="flex flex-col gap-5 rounded-[2rem] border border-border bg-surface p-6 transition-colors sm:p-8"
               >
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-200">
+                  <label className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">
                     Full name
                   </label>
                   <div className="relative">
-                    <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-200" />
+                    <FiUser className="absolute left-4 top-1/2 -translate-y-1/2 text-accent" />
                     <input
                       value={fullName}
                       onChange={(event) => setFullName(event.target.value)}
                       placeholder="Taylor Morgan"
-                      className="w-full rounded-full border border-white/10 bg-[#0d1327] py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+                      className="w-full rounded-full border border-border bg-background-subtle py-3 pl-12 pr-4 text-sm text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-200">
+                  <label className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">
                     Email address
                   </label>
                   <div className="relative">
-                    <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-200" />
+                    <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-accent" />
                     <input
                       type="email"
                       required
                       value={email}
                       onChange={(event) => setEmail(event.target.value)}
                       placeholder="you@company.com"
-                      className="w-full rounded-full border border-white/10 bg-[#0d1327] py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+                      className="w-full rounded-full border border-border bg-background-subtle py-3 pl-12 pr-4 text-sm text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
                     />
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-200">
+                  <label className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">
                     Password
                   </label>
                   <div className="relative">
-                    <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-200" />
+                    <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-accent" />
                     <input
                       type="password"
                       required
@@ -137,13 +140,13 @@ const SignUpPage = () => {
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="At least 8 characters"
-                      className="w-full rounded-full border border-white/10 bg-[#0d1327] py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+                      className="w-full rounded-full border border-border bg-background-subtle py-3 pl-12 pr-4 text-sm text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
                     />
                   </div>
                 </div>
 
                 {error && (
-                  <p className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm text-rose-200">
+                  <p className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm text-rose-500">
                     {error}
                   </p>
                 )}
@@ -156,17 +159,17 @@ const SignUpPage = () => {
                   {submitting ? "Creating account…" : "Continue"}
                 </button>
 
-                <p className="text-xs text-slate-400">
+                <p className="text-xs text-muted">
                   By continuing you agree to the Zygotrix University terms and privacy policy.
                 </p>
               </form>
             ) : (
               <form
                 onSubmit={handleVerifySubmit}
-                className="flex flex-col gap-5 rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8"
+                className="flex flex-col gap-5 rounded-[2rem] border border-border bg-surface p-6 transition-colors sm:p-8"
               >
                 <div className="space-y-2">
-                  <label className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-200">
+                  <label className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">
                     Verification code
                   </label>
                   <input
@@ -175,15 +178,15 @@ const SignUpPage = () => {
                     placeholder="6-digit code"
                     minLength={6}
                     maxLength={6}
-                    className="w-full rounded-full border border-white/10 bg-[#0d1327] px-4 py-3 text-center text-lg tracking-[0.5em] text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+                    className="w-full rounded-full border border-border bg-background-subtle px-4 py-3 text-center text-lg tracking-[0.5em] text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
                   />
                 </div>
 
                 {message && (
-                  <p className="rounded-xl border border-indigo-500/30 bg-indigo-500/10 px-4 py-2 text-xs text-indigo-100">
+                  <p className="rounded-xl border border-accent bg-accent-soft px-4 py-2 text-xs text-foreground">
                     {message}
                     {expiresAt && (
-                      <span className="ml-1 text-[10px] text-indigo-200">
+                      <span className="ml-1 text-[10px] text-accent">
                         Expires at {new Date(expiresAt).toLocaleTimeString()}
                       </span>
                     )}
@@ -191,7 +194,7 @@ const SignUpPage = () => {
                 )}
 
                 {error && (
-                  <p className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm text-rose-200">
+                  <p className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm text-rose-500">
                     {error}
                   </p>
                 )}
@@ -208,7 +211,7 @@ const SignUpPage = () => {
                   type="button"
                   onClick={handleResend}
                   disabled={resending}
-                  className="inline-flex items-center justify-center gap-2 rounded-full border border-white/10 bg-white/5 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-indigo-200 transition hover:border-indigo-400 disabled:cursor-not-allowed disabled:opacity-60"
+                  className="inline-flex items-center justify-center gap-2 rounded-full border border-secondary-button bg-secondary-button px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-secondary-button transition-colors hover:bg-secondary-button-hover disabled:cursor-not-allowed disabled:opacity-60"
                 >
                   <FiRefreshCw className={resending ? "animate-spin" : ""} />
                   Resend code

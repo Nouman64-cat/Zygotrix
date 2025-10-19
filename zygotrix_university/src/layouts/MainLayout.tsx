@@ -4,7 +4,7 @@ import SiteFooter from "../components/layout/SiteFooter";
 
 const MainLayout = () => {
   return (
-    <div className="min-h-screen bg-[#03050f] text-white">
+    <div className="min-h-screen bg-background text-foreground transition-colors">
       <div className="relative isolate">
         <div className="fixed inset-0 -z-30">
           <div className="absolute inset-x-0 top-0 h-64 bg-gradient-to-b from-indigo-500/10 via-transparent to-transparent blur-3xl" />

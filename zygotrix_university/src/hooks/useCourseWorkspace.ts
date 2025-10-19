@@ -12,6 +12,8 @@ interface CourseWorkspaceState {
   toggleItem: (moduleId: string, itemId: string) => Promise<void>;
   completeModule: (moduleId: string, completed: boolean) => Promise<void>;
   refetch: () => Promise<void>;
+  activeLesson: { moduleId: string; itemId: string } | null;
+  setActiveLesson: (lesson: { moduleId: string; itemId: string } | null) => void;
 }
 
 export const useCourseWorkspace = (slug: string | undefined): CourseWorkspaceState => {
@@ -20,6 +22,7 @@ export const useCourseWorkspace = (slug: string | undefined): CourseWorkspaceSta
   const [loading, setLoading] = useState(Boolean(slug));
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<Error | null>(null);
+  const [activeLesson, setActiveLesson] = useState<{ moduleId: string; itemId: string } | null>(null);
 
   const load = useCallback(async () => {
     if (!slug) {
@@ -33,6 +36,12 @@ export const useCourseWorkspace = (slug: string | undefined): CourseWorkspaceSta
     try {
       const courseData = await universityService.getCourseBySlug(slug);
       setCourse(courseData);
+      if (courseData && activeLesson) {
+        const moduleExists = courseData.modules.some((module) => module.id === activeLesson.moduleId);
+        if (!moduleExists) {
+          setActiveLesson(null);
+        }
+      }
       if (!courseData || courseData.contentLocked) {
         setProgress(null);
         return;
@@ -195,7 +204,7 @@ export const useCourseWorkspace = (slug: string | undefined): CourseWorkspaceSta
   );
 
   return useMemo(
-    () => ({ course, progress, loading, saving, error, toggleItem, completeModule, refetch: load }),
-    [course, progress, loading, saving, error, toggleItem, completeModule, load],
+    () => ({ course, progress, loading, saving, error, toggleItem, completeModule, refetch: load, activeLesson, setActiveLesson }),
+    [course, progress, loading, saving, error, toggleItem, completeModule, load, activeLesson],
   );
 };

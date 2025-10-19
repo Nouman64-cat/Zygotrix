@@ -24,6 +24,7 @@ export const fetchCourseBySlug = async (
 ): Promise<ApiCourseDetailResponse> => {
   const response = await apiClient.get<ApiCourseDetailResponse>(
     API_ROUTES.university.courseDetail(slug),
+    { params: { detail: true } },
   );
   return response.data;
 };

@@ -82,11 +82,27 @@ const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course 
             item.id ?? `${moduleId}-item-${itemIndex}`,
           title: item.title,
           description: item.description ?? null,
+          content: (() => {
+            const rawContent = (item as unknown as { content?: unknown }).content;
+            if (typeof rawContent === "string") {
+              return rawContent;
+            }
+            if (
+              rawContent &&
+              typeof rawContent === "object" &&
+              ("markdown" in rawContent || "html" in rawContent)
+            ) {
+              const contentWithFormats = rawContent as { markdown?: string | null; html?: string | null };
+              return contentWithFormats.markdown ?? contentWithFormats.html ?? null;
+            }
+            return null;
+          })(),
         })),
       };
     }),
     enrolled: apiCourse.enrolled ?? false,
     contentLocked: apiCourse.content_locked ?? false,
+    practiceSets: apiCourse.practice_sets ?? [],
   };
 };
 
@@ -141,19 +157,94 @@ const mapModules = (
 
 const mapProgressModules = (
   modules: ApiCourseProgressResponse["modules"],
-): CourseProgress["modules"] =>
-  modules.map((module) => ({
-    moduleId: module.module_id,
-    title: module.title ?? null,
-    status: module.status ?? "in-progress",
-    duration: module.duration ?? null,
-    completion: module.completion ?? 0,
-    items: (module.items ?? []).map((item) => ({
+  course?: Course | null,
+): CourseProgress["modules"] => {
+  const courseModules = course?.modules ?? [];
+  const courseModuleById = new Map<string, (typeof courseModules)[number]>();
+  const courseModuleByTitle = new Map<string, (typeof courseModules)[number]>();
+
+  courseModules.forEach((courseModule) => {
+    if (courseModule.id) {
+      courseModuleById.set(courseModule.id, courseModule);
+    }
+    if (courseModule.title) {
+      courseModuleByTitle.set(courseModule.title, courseModule);
+    }
+  });
+
+  const mapped = modules.map((module) => {
+    const courseModule =
+      courseModuleById.get(module.module_id) ??
+      (module.title ? courseModuleByTitle.get(module.title) : undefined);
+
+    const progressItems = (module.items ?? []).map((item) => ({
       moduleItemId: item.module_item_id,
       title: item.title ?? null,
       completed: Boolean(item.completed),
-    })),
-  }));
+    }));
+
+    const mergedItems =
+      courseModule?.items.map((courseItem, index) => {
+        const fallbackId = `${module.module_id}-item-${index}`;
+        const itemId = courseItem.id ?? courseItem.title ?? fallbackId;
+        const progressMatch =
+          progressItems.find((progressItem) => progressItem.moduleItemId === itemId) ??
+          progressItems.find(
+            (progressItem) =>
+              progressItem.title && courseItem.title && progressItem.title === courseItem.title,
+          );
+        return {
+          moduleItemId: progressMatch?.moduleItemId ?? itemId,
+          title: progressMatch?.title ?? courseItem.title ?? null,
+          completed: progressMatch?.completed ?? false,
+        };
+      }) ?? progressItems;
+
+    progressItems.forEach((progressItem) => {
+      const exists = mergedItems.some(
+        (item) => item.moduleItemId === progressItem.moduleItemId,
+      );
+      if (!exists) {
+        mergedItems.push(progressItem);
+      }
+    });
+
+    return {
+      moduleId: module.module_id,
+      title: module.title ?? courseModule?.title ?? null,
+      status: module.status ?? "in-progress",
+      duration: module.duration ?? courseModule?.duration ?? null,
+      completion: module.completion ?? 0,
+      items: mergedItems,
+    };
+  });
+
+  const mappedModuleIds = new Set(mapped.map((module) => module.moduleId));
+
+  courseModules.forEach((courseModule, index) => {
+    const moduleId = courseModule.id ?? courseModule.title ?? `course-module-${index}`;
+    if (mappedModuleIds.has(moduleId)) {
+      return;
+    }
+    mapped.push({
+      moduleId,
+      title: courseModule.title ?? null,
+      status: "locked",
+      duration: courseModule.duration ?? null,
+      completion: 0,
+      items: courseModule.items.map((courseItem, itemIndex) => ({
+        moduleItemId:
+          courseItem.id ??
+          courseItem.title ??
+          `${moduleId}-item-${itemIndex}`,
+        title: courseItem.title ?? null,
+        completed: false,
+      })),
+    });
+  });
+
+  return mapped;
+};
 
 const mapCourseProgressResponse = (
   response: ApiCourseProgressResponse,
@@ -182,7 +273,7 @@ const mapCourseProgressResponse = (
         streak: response.metrics.streak ?? null,
       }
     : null,
-  modules: mapProgressModules(response.modules ?? []),
+  modules: mapProgressModules(response.modules ?? [], course),
 });
 
 const mapLearningEvents = (events: ApiDashboardSummary["schedule"]): LearningEvent[] =>

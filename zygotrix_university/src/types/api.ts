@@ -8,6 +8,7 @@ import type {
   LearningEvent,
   PracticeInsight,
   PracticeSet,
+  PracticeSetDetail,
   ResourceItem,
 } from "./index";
 
@@ -32,6 +33,7 @@ export interface ApiCourseSummary {
   outcomes?: ApiCourseOutcome[];
   modules?: ApiCourseModule[];
   instructors?: ApiInstructor[];
+  practice_sets?: PracticeSetDetail[];
   enrolled?: boolean;
   content_locked?: boolean;
 }

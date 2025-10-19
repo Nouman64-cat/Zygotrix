@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { useLocation, useNavigate, Link } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { FiLock, FiMail, FiArrowRight } from "react-icons/fi";
 import AccentButton from "../../components/common/AccentButton";
 import { useAuth } from "../../context/AuthContext";
@@ -29,7 +29,7 @@ const SignInPage = () => {
     try {
       await signIn(email.trim(), password);
       navigate(redirectTo, { replace: true });
-    } catch (err) {
+    } catch {
       setError("Unable to sign in. Please check your credentials and try again.");
     } finally {
       setSubmitting(false);
@@ -37,24 +37,24 @@ const SignInPage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-[#03050f] text-white">
+    <div className="min-h-screen bg-background text-foreground transition-colors">
       <div className="relative isolate">
         <div className="absolute inset-x-0 top-0 h-80 bg-gradient-to-b from-indigo-500/30 via-indigo-500/10 to-transparent blur-3xl" />
         <div className="mx-auto flex min-h-screen w-full max-w-5xl items-center justify-center px-4 py-16 sm:px-8">
-          <div className="grid w-full gap-10 rounded-[2.75rem] border border-white/10 bg-[#050816]/80 p-8 backdrop-blur sm:p-12 md:grid-cols-[1.1fr_0.9fr]">
+          <div className="grid w-full gap-10 rounded-[2.75rem] border border-border bg-overlay p-8 backdrop-blur transition-colors sm:p-12 md:grid-cols-[1.1fr_0.9fr]">
             <div className="space-y-6">
-              <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-indigo-200">
+              <span className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-[0.28em] text-accent transition-colors">
                 Zygotrix University
               </span>
-              <h1 className="text-3xl font-semibold tracking-tight text-white sm:text-4xl">
+              <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                 Welcome back, builder.
               </h1>
-              <p className="text-sm text-slate-300">
+              <p className="text-sm text-muted">
                 Sign in with your Zygotrix credentials to access your programs, Simulation Studio missions, and adaptive practice dashboard.
               </p>
-              <div className="rounded-[2rem] border border-white/10 bg-white/5 p-6 text-sm text-slate-200">
-                <p className="font-semibold text-white">Need an account?</p>
-                <p className="mt-2 text-sm text-slate-300">
+              <div className="rounded-[2rem] border border-border bg-background-subtle p-6 text-sm text-muted transition-colors">
+                <p className="font-semibold text-foreground">Need an account?</p>
+                <p className="mt-2 text-sm text-muted">
                   Join the next cohort and unlock studio-crafted learning experiences.
                 </p>
                 <AccentButton to="/signup" variant="secondary" className="mt-4" icon={<FiArrowRight />}>
@@ -65,44 +65,44 @@ const SignInPage = () => {
 
             <form
               onSubmit={handleSubmit}
-              className="flex flex-col gap-5 rounded-[2rem] border border-white/10 bg-white/5 p-6 sm:p-8"
+              className="flex flex-col gap-5 rounded-[2rem] border border-border bg-surface p-6 transition-colors sm:p-8"
             >
               <div className="space-y-2">
-                <label className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-200">
+                <label className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">
                   Email address
                 </label>
                 <div className="relative">
-                  <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-200" />
+                  <FiMail className="absolute left-4 top-1/2 -translate-y-1/2 text-accent" />
                   <input
                     type="email"
                     required
                     value={email}
                     onChange={(event) => setEmail(event.target.value)}
                     placeholder="you@company.com"
-                    className="w-full rounded-full border border-white/10 bg-[#0d1327] py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+                    className="w-full rounded-full border border-border bg-background-subtle py-3 pl-12 pr-4 text-sm text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-200">
+                <label className="text-sm font-semibold uppercase tracking-[0.3em] text-accent">
                   Password
                 </label>
                 <div className="relative">
-                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-indigo-200" />
+                  <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-accent" />
                   <input
                     type="password"
                     required
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
-                    className="w-full rounded-full border border-white/10 bg-[#0d1327] py-3 pl-12 pr-4 text-sm text-white placeholder:text-slate-500 focus:border-indigo-400 focus:outline-none"
+                    className="w-full rounded-full border border-border bg-background-subtle py-3 pl-12 pr-4 text-sm text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
                   />
                 </div>
               </div>
 
               {error && (
-                <p className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm text-rose-200">
+                <p className="rounded-xl border border-rose-500/40 bg-rose-500/10 px-4 py-2 text-sm text-rose-500">
                   {error}
                 </p>
               )}
@@ -115,7 +115,7 @@ const SignInPage = () => {
                 {submitting ? "Signing in…" : "Sign in"}
               </button>
 
-              <p className="text-xs text-slate-400">
+              <p className="text-xs text-muted">
                 By continuing you agree to the Zygotrix University terms and privacy policy.
               </p>
             </form>

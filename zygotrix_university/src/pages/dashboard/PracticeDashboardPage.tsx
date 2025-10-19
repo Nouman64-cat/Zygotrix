@@ -10,13 +10,15 @@ const PracticeDashboardPage = () => {
 
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 rounded-[1.75rem] border border-white/10 bg-white/7 p-6 md:flex-row md:items-center md:justify-between">
+      <div className="flex flex-col gap-4 rounded-[1.75rem] border border-border bg-surface p-6 transition-colors md:flex-row md:items-center md:justify-between">
         <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-200">
+          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background-subtle px-3 py-1 text-xs text-accent transition-colors">
             <FiActivity /> Practice studio
           </span>
-          <h2 className="mt-3 text-2xl font-semibold text-white">Keep your streak going</h2>
-          <p className="text-sm text-slate-300">
+          <h2 className="mt-3 text-2xl font-semibold text-foreground">
+            Keep your streak going
+          </h2>
+          <p className="text-sm text-muted">
             Personalized question sets adapt as you answer. Replay missions, review explanations, and bookmark topics to
             revisit with a mentor.
           </p>
@@ -31,25 +33,25 @@ const PracticeDashboardPage = () => {
         </div>
       </div>
 
-      <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6">
-        <h3 className="text-lg font-semibold text-white">Recommended topics</h3>
+      <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
+        <h3 className="text-lg font-semibold text-foreground">Recommended topics</h3>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
           {(loading && practiceSets.length === 0 ? [] : practiceSets).map((topic) => (
             <div
               key={topic.id}
-              className="rounded-[1.25rem] border border-white/10 bg-white/5 px-5 py-4"
+              className="rounded-[1.25rem] border border-border bg-background-subtle px-5 py-4 transition-colors"
             >
               <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-white">{topic.title}</p>
-                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-indigo-200">
+                <p className="text-sm font-semibold text-foreground">{topic.title}</p>
+                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
                   {topic.tag}
                 </span>
               </div>
-              <p className="mt-2 text-xs text-slate-300">
+              <p className="mt-2 text-xs text-muted">
                 {topic.questions ?? 0} questions • {topic.estimatedTime ?? "Approx. 20 mins"}
               </p>
               <div className="mt-4 flex items-center justify-between">
-                <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs text-indigo-100">
+                <span className="rounded-full border border-border bg-background-subtle px-3 py-1 text-xs text-accent">
                   Accuracy {topic.accuracy ?? 0}%
                 </span>
                 <AccentButton to="/practice" variant="ghost" className="px-3 py-1 text-xs">
@@ -62,7 +64,7 @@ const PracticeDashboardPage = () => {
             Array.from({ length: 2 }).map((_, index) => (
               <div
                 key={`skeleton-${index}`}
-                className="h-40 animate-pulse rounded-[1.25rem] border border-white/10 bg-white/5"
+                className="h-40 animate-pulse rounded-[1.25rem] border border-border bg-background-subtle"
               />
             ))}
         </div>
@@ -70,17 +72,17 @@ const PracticeDashboardPage = () => {
 
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <PracticeInsightsList insights={summary?.insights ?? []} />
-        <div className="rounded-[1.75rem] border border-white/10 bg-white/6 p-6">
-          <h3 className="text-lg font-semibold text-white">Weekly challenge</h3>
-          <p className="mt-2 text-sm text-indigo-100">
+        <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
+          <h3 className="text-lg font-semibold text-foreground">Weekly challenge</h3>
+          <p className="mt-2 text-sm text-muted">
             Build an AI readiness canvas for your team. Reference lessons from Module 3 and prepare to present in the
             next mentor circle.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-indigo-200">
+            <span className="rounded-full border border-border bg-background-subtle px-3 py-1 text-xs uppercase tracking-[0.24em] text-accent transition-colors">
               <FiFlag /> Bonus XP
             </span>
-            <span className="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs uppercase tracking-[0.24em] text-indigo-200">
+            <span className="rounded-full border border-border bg-background-subtle px-3 py-1 text-xs uppercase tracking-[0.24em] text-accent transition-colors">
               Due Jan 28
             </span>
           </div>

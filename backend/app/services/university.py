@@ -63,6 +63,9 @@ HYGRAPH_COURSES_QUERY = """
           id
           title
           description
+          content {
+            markdown
+          }
         }
       }
       instructors {
@@ -72,6 +75,33 @@ HYGRAPH_COURSES_QUERY = """
         speciality
         avatar {
           url
+        }
+      }
+      practiceSet {
+        id
+        slug
+        title
+        description
+        practiceQuestions {
+          topic
+          difficulty
+          prompt {
+            markdown
+          }
+          practiceAnswers {
+            label
+            isCorrect
+            body {
+              markdown
+            }
+          }
+          correctAnswer {
+            label
+            isCorrect
+            body {
+              markdown
+            }
+          }
         }
       }
     }
@@ -176,6 +206,7 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
                     "id": item_id,
                     "title": item.get("title"),
                     "description": _normalise_text(item.get("description")),
+                    "content": _normalise_text(item.get("content")),
                 }
             )
         modules_payload.append(
@@ -195,6 +226,43 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
             {
                 "id": outcome.get("id"),
                 "text": _normalise_text(outcome.get("outcome")),
+            }
+        )
+
+    practice_sets_payload = []
+    for practice in course.get("practiceSet") or []:
+        questions_payload = []
+        for question in practice.get("practiceQuestions") or []:
+            answers_payload = []
+            for answer in question.get("practiceAnswers") or []:
+                answers_payload.append(
+                    {
+                        "label": answer.get("label"),
+                        "is_correct": bool(answer.get("isCorrect")),
+                        "body": _normalise_text(answer.get("body")),
+                    }
+                )
+            correct_answer = question.get("correctAnswer") or {}
+            questions_payload.append(
+                {
+                    "topic": question.get("topic"),
+                    "difficulty": question.get("difficulty"),
+                    "prompt": _normalise_text(question.get("prompt")),
+                    "answers": answers_payload,
+                    "correct_answer": {
+                        "label": correct_answer.get("label"),
+                        "is_correct": bool(correct_answer.get("isCorrect")),
+                        "body": _normalise_text(correct_answer.get("body")),
+                    },
+                }
+            )
+        practice_sets_payload.append(
+            {
+                "id": practice.get("id") or practice.get("slug"),
+                "slug": practice.get("slug"),
+                "title": practice.get("title"),
+                "description": _normalise_text(practice.get("description")),
+                "questions": questions_payload,
             }
         )
 
@@ -220,6 +288,7 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
         "outcomes": outcomes_payload,
         "modules": modules_payload,
         "instructors": instructors_payload,
+        "practice_sets": practice_sets_payload,
     }
 
 
@@ -367,11 +436,18 @@ def _serialize_course(
             items = []
             for iidx, item in enumerate(module.get("items", []), start=1):
                 if isinstance(item, dict):
+                    raw_content = item.get("content")
+                    if isinstance(raw_content, dict):
+                        content_value = raw_content.get("markdown") or raw_content.get("html")
+                    else:
+                        content_value = raw_content
+
                     items.append(
                         {
                             "id": item.get("id") or f"{module_id}-item-{iidx}",
                             "title": item.get("title", ""),
                             "description": item.get("description"),
+                            "content": content_value,
                         }
                     )
                 else:
@@ -380,6 +456,7 @@ def _serialize_course(
                             "id": f"{module_id}-item-{iidx}",
                             "title": str(item),
                             "description": None,
+                            "content": None,
                         }
                     )
 
@@ -454,6 +531,7 @@ def get_course_detail(slug: str, user_id: Optional[str] = None) -> Optional[Dict
     if not enrolled:
         serialized["modules"] = []
         serialized["outcomes"] = []
+        serialized["practice_sets"] = []
 
     return serialized
 

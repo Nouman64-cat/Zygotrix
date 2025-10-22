@@ -9,11 +9,14 @@ interface PracticePreviewSectionProps {
   loading?: boolean;
 }
 
-const PracticePreviewSection = ({ topics, loading = false }: PracticePreviewSectionProps) => {
+const PracticePreviewSection = ({
+  topics,
+  loading = false,
+}: PracticePreviewSectionProps) => {
   return (
     <section className="pt-20">
       <Container className="px-0 sm:px-0">
-        <div className="rounded-[2.5rem] border border-white/8 bg-gradient-to-br from-indigo-500/10 via-[#080c1c] to-slate-900 p-8 sm:p-12">
+        <div className="rounded-[2.5rem] border border-border bg-surface shadow-theme-card p-8 sm:p-12">
           <SectionHeading
             eyebrow="Practice Studio"
             title="Adaptive MCQs that mirror interview and on-the-job challenges."
@@ -26,14 +29,16 @@ const PracticePreviewSection = ({ topics, loading = false }: PracticePreviewSect
                 ? Array.from({ length: 4 }).map((_, index) => (
                     <div
                       key={index}
-                      className="h-40 animate-pulse rounded-3xl border border-white/10 bg-white/5"
+                      className="h-40 animate-pulse rounded-3xl border border-border bg-surface-elevated"
                     />
                   ))
-                : topics.slice(0, 4).map((topic) => (
-                    <PracticeCard key={topic.id} topic={topic} />
-                  ))}
+                : topics
+                    .slice(0, 4)
+                    .map((topic) => (
+                      <PracticeCard key={topic.id} topic={topic} />
+                    ))}
             </div>
-            <div className="flex flex-col justify-between rounded-3xl border border-white/10 bg-white/5 p-6">
+            <div className="flex flex-col justify-between rounded-3xl border border-border bg-surface-elevated p-6">
               <div className="space-y-6">
                 {[
                   {
@@ -55,20 +60,25 @@ const PracticePreviewSection = ({ topics, loading = false }: PracticePreviewSect
                       "Compare your readiness with teammates and receive curated practice playlists.",
                   },
                 ].map((item) => (
-                  <div key={item.title} className="rounded-2xl border border-white/10 bg-white/5 p-4">
-                    <div className="flex items-center gap-3 text-indigo-200">
+                  <div
+                    key={item.title}
+                    className="rounded-2xl border border-border bg-surface p-4"
+                  >
+                    <div className="flex items-center gap-3 text-accent">
                       <span className="text-lg">{item.icon}</span>
                       <p className="text-sm font-semibold uppercase tracking-[0.2em]">
                         {item.title}
                       </p>
                     </div>
-                    <p className="mt-3 text-sm text-slate-300">{item.description}</p>
+                    <p className="mt-3 text-sm text-muted">
+                      {item.description}
+                    </p>
                   </div>
                 ))}
               </div>
-              <p className="mt-6 rounded-2xl border border-white/10 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 px-4 py-3 text-xs text-indigo-100">
-                Keep your streak alive — new question packs arrive every Monday, curated by our
-                instructor council.
+              <p className="mt-6 rounded-2xl border border-border bg-accent-soft px-4 py-3 text-xs text-accent">
+                Keep your streak alive — new question packs arrive every Monday,
+                curated by our instructor council.
               </p>
             </div>
           </div>

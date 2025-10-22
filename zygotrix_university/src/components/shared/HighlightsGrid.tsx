@@ -15,13 +15,15 @@ const HighlightsGrid = ({ items }: HighlightsGridProps) => {
       {items.map((item) => (
         <div
           key={item.id}
-          className="rounded-3xl border border-white/8 bg-white/5 p-6 transition duration-300 hover:border-indigo-400/50 hover:shadow-xl hover:shadow-indigo-500/20"
+          className="rounded-3xl border border-border bg-surface shadow-theme-card p-6 transition duration-300 hover:border-accent/50"
         >
-          <span className="text-3xl font-semibold text-white">{item.metric}</span>
-          <p className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-indigo-200">
+          <span className="text-3xl font-semibold text-foreground">
+            {item.metric}
+          </span>
+          <p className="mt-2 text-sm font-semibold uppercase tracking-[0.2em] text-accent">
             {item.label}
           </p>
-          <p className="mt-3 text-sm text-slate-300">{item.description}</p>
+          <p className="mt-3 text-sm text-muted">{item.description}</p>
         </div>
       ))}
     </div>

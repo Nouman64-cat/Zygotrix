@@ -8,7 +8,10 @@ interface FeaturedCoursesSectionProps {
   loading?: boolean;
 }
 
-const FeaturedCoursesSection = ({ courses, loading = false }: FeaturedCoursesSectionProps) => {
+const FeaturedCoursesSection = ({
+  courses,
+  loading = false,
+}: FeaturedCoursesSectionProps) => {
   return (
     <section className="pt-16">
       <Container className="px-0 sm:px-0">
@@ -22,7 +25,7 @@ const FeaturedCoursesSection = ({ courses, loading = false }: FeaturedCoursesSec
             {Array.from({ length: 2 }).map((_, index) => (
               <div
                 key={index}
-                className="h-72 animate-pulse rounded-3xl border border-white/10 bg-white/5"
+                className="h-72 animate-pulse rounded-3xl border border-border bg-surface"
               />
             ))}
           </div>

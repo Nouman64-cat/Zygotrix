@@ -38,7 +38,9 @@ import {
   fetchEnrollments,
 } from "../repositories/universityRepository";
 
-const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course => {
+const mapCourse = (
+  apiCourse: ApiCourseListResponse["courses"][number]
+): Course => {
   const modulesSource = [...(apiCourse.modules ?? [])].sort((a, b) => {
     const castA = a as unknown as { order?: number | null };
     const castB = b as unknown as { order?: number | null };
@@ -52,7 +54,7 @@ const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course 
     shortDescription: apiCourse.short_description ?? null,
     longDescription: apiCourse.long_description ?? null,
     category: apiCourse.category ?? null,
-    level: (apiCourse.level as Course["level"]) ?? null,
+    level: (apiCourse.level as Course["level"]) ?? undefined,
     duration: apiCourse.duration ?? null,
     badgeLabel: apiCourse.badge_label ?? null,
     lessons: apiCourse.lessons ?? null,
@@ -60,7 +62,9 @@ const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course 
     rating: apiCourse.rating ?? null,
     imageUrl: apiCourse.image_url ?? null,
     outcomes: (apiCourse.outcomes ?? []).map((outcome) => ({
-      id: outcome.id ?? `${apiCourse.slug}-outcome-${Math.random().toString(36).slice(2)}`,
+      id:
+        outcome.id ??
+        `${apiCourse.slug}-outcome-${Math.random().toString(36).slice(2)}`,
       text: outcome.text ?? "",
     })),
     instructors: (apiCourse.instructors ?? []).map((instructor) => ({
@@ -71,19 +75,22 @@ const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course 
       bio: instructor.bio,
     })),
     modules: modulesSource.map((module, index) => {
-      const moduleId = module.id ?? (module as unknown as { slug?: string }).slug ?? `${apiCourse.slug}-module-${index}`;
+      const moduleId =
+        module.id ??
+        (module as unknown as { slug?: string }).slug ??
+        `${apiCourse.slug}-module-${index}`;
       return {
         id: moduleId,
         title: module.title ?? `Module ${index + 1}`,
         duration: module.duration ?? null,
         description: module.description ?? null,
         items: (module.items ?? []).map((item, itemIndex) => ({
-          id:
-            item.id ?? `${moduleId}-item-${itemIndex}`,
+          id: item.id ?? `${moduleId}-item-${itemIndex}`,
           title: item.title,
           description: item.description ?? null,
           content: (() => {
-            const rawContent = (item as unknown as { content?: unknown }).content;
+            const rawContent = (item as unknown as { content?: unknown })
+              .content;
             if (typeof rawContent === "string") {
               return rawContent;
             }
@@ -92,8 +99,13 @@ const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course 
               typeof rawContent === "object" &&
               ("markdown" in rawContent || "html" in rawContent)
             ) {
-              const contentWithFormats = rawContent as { markdown?: string | null; html?: string | null };
-              return contentWithFormats.markdown ?? contentWithFormats.html ?? null;
+              const contentWithFormats = rawContent as {
+                markdown?: string | null;
+                html?: string | null;
+              };
+              return (
+                contentWithFormats.markdown ?? contentWithFormats.html ?? null
+              );
             }
             return null;
           })(),
@@ -106,9 +118,7 @@ const mapCourse = (apiCourse: ApiCourseListResponse["courses"][number]): Course 
   };
 };
 
-const mapPracticeSets = (
-  response: ApiPracticeSetListResponse,
-): PracticeSet[] =>
+const mapPracticeSets = (response: ApiPracticeSetListResponse): PracticeSet[] =>
   response.practice_sets.map((item) => ({
     id: item.id,
     slug: item.slug,
@@ -118,10 +128,12 @@ const mapPracticeSets = (
     questions: item.questions ?? null,
     accuracy: item.accuracy ?? null,
     trend: item.trend ?? null,
-    estimatedTime: item.estimated_time ?? null,
+    estimatedTime: item.estimatedTime ?? null,
   }));
 
-const mapMetrics = (metrics?: ApiDashboardSummary["courses"][number]["metrics"]): CourseProgressMetrics | null => {
+const mapMetrics = (
+  metrics?: ApiDashboardSummary["courses"][number]["metrics"]
+): CourseProgressMetrics | null => {
   if (!metrics) {
     return null;
   }
@@ -135,12 +147,19 @@ const mapMetrics = (metrics?: ApiDashboardSummary["courses"][number]["metrics"])
 };
 
 const mapModules = (
-  modules: ApiDashboardSummary["courses"][number]["modules"],
+  modules: ApiDashboardSummary["courses"][number]["modules"]
 ): CourseProgress["modules"] =>
   modules.map((module) => {
-    const items = (module as unknown as {
-      items?: Array<{ module_item_id: string; title?: string | null; completed?: boolean }>;
-    }).items ?? [];
+    const items =
+      (
+        module as unknown as {
+          items?: Array<{
+            module_item_id: string;
+            title?: string | null;
+            completed?: boolean;
+          }>;
+        }
+      ).items ?? [];
     return {
       moduleId: module.module_id,
       title: module.title ?? null,
@@ -157,8 +176,15 @@ const mapModules = (
 
 const mapProgressModules = (
   modules: ApiCourseProgressResponse["modules"],
-  course?: Course | null,
+  course?: Course | null
 ): CourseProgress["modules"] => {
+  console.log("🔧 mapProgressModules input:", {
+    modulesCount: modules.length,
+    firstModuleItems: modules[0]?.items?.length ?? 0,
+    hasCourse: Boolean(course),
+    courseModulesCount: course?.modules?.length ?? 0,
+  });
+
   const courseModules = course?.modules ?? [];
   const courseModuleById = new Map<string, (typeof courseModules)[number]>();
   const courseModuleByTitle = new Map<string, (typeof courseModules)[number]>();
@@ -188,10 +214,14 @@ const mapProgressModules = (
         const fallbackId = `${module.module_id}-item-${index}`;
         const itemId = courseItem.id ?? courseItem.title ?? fallbackId;
         const progressMatch =
-          progressItems.find((progressItem) => progressItem.moduleItemId === itemId) ??
+          progressItems.find(
+            (progressItem) => progressItem.moduleItemId === itemId
+          ) ??
           progressItems.find(
             (progressItem) =>
-              progressItem.title && courseItem.title && progressItem.title === courseItem.title,
+              progressItem.title &&
+              courseItem.title &&
+              progressItem.title === courseItem.title
           );
         return {
           moduleItemId: progressMatch?.moduleItemId ?? itemId,
@@ -202,7 +232,7 @@ const mapProgressModules = (
 
     progressItems.forEach((progressItem) => {
       const exists = mergedItems.some(
-        (item) => item.moduleItemId === progressItem.moduleItemId,
+        (item) => item.moduleItemId === progressItem.moduleItemId
       );
       if (!exists) {
         mergedItems.push(progressItem);
@@ -219,10 +249,18 @@ const mapProgressModules = (
     };
   });
 
+  console.log("✅ mapProgressModules output:", {
+    mappedCount: mapped.length,
+    firstModuleItemsCount: mapped[0]?.items?.length ?? 0,
+    firstModuleCompletedCount:
+      mapped[0]?.items?.filter((item) => item.completed).length ?? 0,
+  });
+
   const mappedModuleIds = new Set(mapped.map((module) => module.moduleId));
 
   courseModules.forEach((courseModule, index) => {
-    const moduleId = courseModule.id ?? courseModule.title ?? `course-module-${index}`;
+    const moduleId =
+      courseModule.id ?? courseModule.title ?? `course-module-${index}`;
     if (mappedModuleIds.has(moduleId)) {
       return;
     }
@@ -234,9 +272,7 @@ const mapProgressModules = (
       completion: 0,
       items: courseModule.items.map((courseItem, itemIndex) => ({
         moduleItemId:
-          courseItem.id ??
-          courseItem.title ??
-          `${moduleId}-item-${itemIndex}`,
+          courseItem.id ?? courseItem.title ?? `${moduleId}-item-${itemIndex}`,
         title: courseItem.title ?? null,
         completed: false,
       })),
@@ -248,7 +284,7 @@ const mapProgressModules = (
 
 const mapCourseProgressResponse = (
   response: ApiCourseProgressResponse,
-  course?: Course | null,
+  course?: Course | null
 ): CourseProgress => ({
   courseSlug: response.course_slug,
   title: course?.title ?? response.course_slug,
@@ -258,12 +294,14 @@ const mapCourseProgressResponse = (
     response.progress ??
     (response.modules && response.modules.length
       ? Math.round(
-          response.modules.reduce((sum, module) => sum + (module.completion ?? 0), 0) /
-            response.modules.length,
+          response.modules.reduce(
+            (sum, module) => sum + (module.completion ?? 0),
+            0
+          ) / response.modules.length
         )
       : 0),
   category: course?.category ?? null,
-  level: course?.level ?? null,
+  level: course?.level ?? undefined,
   metrics: response.metrics
     ? {
         hoursSpent: response.metrics.hours_spent ?? null,
@@ -276,7 +314,9 @@ const mapCourseProgressResponse = (
   modules: mapProgressModules(response.modules ?? [], course),
 });
 
-const mapLearningEvents = (events: ApiDashboardSummary["schedule"]): LearningEvent[] =>
+const mapLearningEvents = (
+  events: ApiDashboardSummary["schedule"]
+): LearningEvent[] =>
   events.map((event) => ({
     id: event.id,
     title: event.title,
@@ -286,7 +326,9 @@ const mapLearningEvents = (events: ApiDashboardSummary["schedule"]): LearningEve
     courseSlug: event.course_slug ?? null,
   }));
 
-const mapInsights = (insights: ApiDashboardSummary["insights"]): PracticeInsight[] =>
+const mapInsights = (
+  insights: ApiDashboardSummary["insights"]
+): PracticeInsight[] =>
   insights.map((insight) => ({
     id: insight.id,
     title: insight.title,
@@ -294,7 +336,9 @@ const mapInsights = (insights: ApiDashboardSummary["insights"]): PracticeInsight
     description: insight.description ?? null,
   }));
 
-const mapResources = (resources: ApiDashboardSummary["resources"]): ResourceItem[] =>
+const mapResources = (
+  resources: ApiDashboardSummary["resources"]
+): ResourceItem[] =>
   resources.map((resource) => ({
     id: resource.id,
     title: resource.title,
@@ -305,23 +349,57 @@ const mapResources = (resources: ApiDashboardSummary["resources"]): ResourceItem
 
 const mapDashboardSummary = (
   response: ApiDashboardSummary,
-  courseLookup: Record<string, Course>,
+  courseLookup: Record<string, Course>
 ): DashboardSummary => {
   const courses: CourseProgress[] = response.courses.map((course) => {
     const courseRef = courseLookup[course.course_slug];
+
+    // If we have course reference with modules, use those instead of dashboard's stale data
+    // This ensures we show the most up-to-date module list from the course detail endpoint
+    const dashboardModules = mapModules(course.modules ?? []);
+    const modules = courseRef?.modules
+      ? courseRef.modules.map((refModule) => {
+          // Try to find matching module in dashboard data to get progress
+          const dashboardModule = dashboardModules.find(
+            (dm) => dm.moduleId === refModule.id || dm.title === refModule.title
+          );
+          return {
+            moduleId:
+              refModule.id ?? refModule.title ?? `module-${Math.random()}`,
+            title: refModule.title ?? null,
+            status: (dashboardModule?.status ?? "locked") as
+              | "locked"
+              | "in-progress"
+              | "completed",
+            duration: refModule.duration ?? null,
+            completion: dashboardModule?.completion ?? 0,
+            items: [], // Dashboard doesn't need item-level details
+          };
+        })
+      : dashboardModules;
+
+    if (
+      courseRef?.modules &&
+      courseRef.modules.length > dashboardModules.length
+    ) {
+      console.log(
+        `✅ Using fresh course data for "${course.course_slug}": ${courseRef.modules.length} modules (dashboard had ${dashboardModules.length})`
+      );
+    }
+
     return {
       courseSlug: course.course_slug,
       title: course.title ?? courseRef?.title ?? course.course_slug,
-      instructor: course.instructor ?? courseRef?.instructors?.[0]?.name ?? null,
+      instructor:
+        course.instructor ?? courseRef?.instructors?.[0]?.name ?? null,
       nextSession: course.next_session ?? null,
       progress: course.progress ?? 0,
       category: course.category ?? courseRef?.category ?? null,
-      level: (course.level ?? courseRef?.level) ?? null,
+      level: course.level ?? courseRef?.level ?? undefined,
       metrics: mapMetrics(course.metrics ?? undefined),
-      modules: mapModules(course.modules ?? []),
+      modules,
     };
   });
-
   return {
     profile: {
       userId: response.profile.user_id,
@@ -353,10 +431,15 @@ const courseArrayToLookup = (courses: Course[]): Record<string, Course> =>
 export const universityService = {
   async getCourses(includeDetails = false): Promise<Course[]> {
     try {
-      const response: ApiCourseListResponse = await fetchCourses(includeDetails);
+      const response: ApiCourseListResponse = await fetchCourses(
+        includeDetails
+      );
       return response.courses.map((course) => mapCourse(course));
     } catch (error) {
-      console.warn("Unable to fetch courses from API, falling back to local data", error);
+      console.warn(
+        "Unable to fetch courses from API, falling back to local data",
+        error
+      );
       return fallbackCourses;
     }
   },
@@ -368,7 +451,7 @@ export const universityService = {
     } catch (error) {
       console.warn(`Unable to fetch course ${slug}, using fallback`, error);
       const fallback = fallbackCourses.find(
-        (course) => course.slug === slug || course.id === slug,
+        (course) => course.slug === slug || course.id === slug
       );
       if (!fallback) {
         return null;
@@ -393,15 +476,33 @@ export const universityService = {
 
   async getDashboardSummary(): Promise<DashboardSummary> {
     try {
-      const [coursesResponse, dashboard] = await Promise.all([
-        fetchCourses(true),
-        fetchDashboardSummary(),
-      ]);
-      const courses = coursesResponse.courses.map((course) => mapCourse(course));
-      const courseLookup = courseArrayToLookup(courses);
+      const dashboard = await fetchDashboardSummary();
+
+      // Fetch individual course details for each enrolled course to get accurate module lists
+      // The dashboard API may have cached/stale module data, but individual course endpoints are fresh
+      const courseDetailsPromises = dashboard.courses.map((course) =>
+        fetchCourseBySlug(course.course_slug)
+          .then((response) => mapCourse(response.course))
+          .catch((err) => {
+            console.warn(
+              `Failed to fetch details for ${course.course_slug}:`,
+              err
+            );
+            return null;
+          })
+      );
+
+      const courseDetails = await Promise.all(courseDetailsPromises);
+      const courseLookup = courseArrayToLookup(
+        courseDetails.filter((c): c is Course => c !== null)
+      );
+
       return mapDashboardSummary(dashboard, courseLookup);
     } catch (error) {
-      console.warn("Unable to load dashboard summary, using fallback data", error);
+      console.warn(
+        "Unable to load dashboard summary, using fallback data",
+        error
+      );
       return {
         profile: fallbackLearnerProfile,
         courses: fallbackActiveCourses,
@@ -413,14 +514,17 @@ export const universityService = {
     }
   },
 
-  async getCourseProgress(slug: string, course?: Course | null): Promise<CourseProgress> {
+  async getCourseProgress(
+    slug: string,
+    course?: Course | null
+  ): Promise<CourseProgress> {
     const response = await fetchCourseProgress(slug);
     return mapCourseProgressResponse(response, course);
   },
 
   async saveCourseProgress(
     payload: Parameters<typeof updateCourseProgress>[0],
-    course?: Course | null,
+    course?: Course | null
   ): Promise<CourseProgress> {
     const response = await updateCourseProgress(payload);
     return mapCourseProgressResponse(response, course);

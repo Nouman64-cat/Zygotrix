@@ -1,5 +1,11 @@
-import { type PropsWithChildren, useCallback, useEffect, useMemo, useState } from "react";
-import { ThemeContext, type ThemeMode } from "./themeContext";
+import {
+  type PropsWithChildren,
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+import { ThemeContext, type ThemeMode } from "./ThemeContext.ts";
 
 const STORAGE_KEY = "zygotrix-theme";
 
@@ -17,11 +23,13 @@ const getPreferredTheme = (): ThemeMode => {
     // ignore storage access issues
   }
 
-  return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+  return window.matchMedia("(prefers-color-scheme: dark)").matches
+    ? "dark"
+    : "light";
 };
 
 export const ThemeProvider = ({ children }: PropsWithChildren) => {
-  const [theme, setThemeState] = useState<ThemeMode>(getPreferredTheme);
+  const [theme, setThemeState] = useState<ThemeMode>(() => getPreferredTheme());
 
   const setTheme = useCallback((value: ThemeMode) => {
     setThemeState(value);
@@ -66,8 +74,10 @@ export const ThemeProvider = ({ children }: PropsWithChildren) => {
       setTheme,
       toggleTheme,
     }),
-    [theme, setTheme, toggleTheme],
+    [theme, setTheme, toggleTheme]
   );
 
-  return <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>;
+  return (
+    <ThemeContext.Provider value={value}>{children}</ThemeContext.Provider>
+  );
 };

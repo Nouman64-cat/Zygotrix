@@ -44,9 +44,9 @@ const App = () => {
         <Route path="enterprise" element={<EnterprisePage />} />
         <Route path="contact" element={<ContactPage />} />
         <Route path="accessibility" element={<AccessibilityPage />} />
-      <Route path="newsletter" element={<NewsletterPage />} />
-      <Route path="*" element={<NotFoundPage />} />
-    </Route>
+        <Route path="newsletter" element={<NewsletterPage />} />
+        <Route path="*" element={<NotFoundPage />} />
+      </Route>
       <Route path="signin" element={<SignInPage />} />
       <Route path="signup" element={<SignUpPage />} />
       <Route
@@ -59,7 +59,10 @@ const App = () => {
       >
         <Route index element={<OverviewDashboardPage />} />
         <Route path="courses" element={<CoursesDashboardPage />} />
-        <Route path="courses/:slug" element={<DashboardCourseWorkspacePage />} />
+        <Route
+          path="courses/:slug"
+          element={<DashboardCourseWorkspacePage />}
+        />
         <Route path="plan" element={<LearningPlanDashboardPage />} />
         <Route path="practice" element={<PracticeDashboardPage />} />
         <Route path="analytics" element={<AnalyticsDashboardPage />} />

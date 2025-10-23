@@ -33,12 +33,19 @@ const DashboardCourseWorkspacePage = () => {
     if (!course || !activeLesson) {
       return null;
     }
+
+    // If itemId is null, this is a module overview request
+    const isModuleOverview = activeLesson.itemId === null;
+
     const progressModule = progress?.modules.find(
       (module) => module.moduleId === activeLesson.moduleId
     );
-    const progressLesson = progressModule?.items.find(
-      (item) => item.moduleItemId === activeLesson.itemId
-    );
+    const progressLesson = !isModuleOverview
+      ? progressModule?.items.find(
+          (item) => item.moduleItemId === activeLesson.itemId
+        )
+      : undefined;
+
     const module =
       course.modules.find(
         (item) =>
@@ -46,17 +53,36 @@ const DashboardCourseWorkspacePage = () => {
           item.title === activeLesson.moduleId ||
           (progressModule?.title && item.title === progressModule.title)
       ) ??
-      course.modules.find((item) =>
-        item.items.some(
-          (lesson) =>
-            lesson.id === activeLesson.itemId ||
-            lesson.title === activeLesson.itemId ||
-            (progressLesson?.title && lesson.title === progressLesson.title)
-        )
-      );
+      (!isModuleOverview
+        ? course.modules.find((item) =>
+            item.items.some(
+              (lesson) =>
+                lesson.id === activeLesson.itemId ||
+                lesson.title === activeLesson.itemId ||
+                (progressLesson?.title && lesson.title === progressLesson.title)
+            )
+          )
+        : undefined);
+
     if (!module) {
       return null;
     }
+
+    // For module overview, create a synthetic lesson from module data
+    if (isModuleOverview) {
+      return {
+        module,
+        lesson: {
+          id: module.id,
+          title: module.title,
+          description: module.description,
+          content: module.description,
+          video: null,
+        },
+        isModuleOverview: true,
+      };
+    }
+
     const lesson =
       module.items.find(
         (item) =>
@@ -70,7 +96,7 @@ const DashboardCourseWorkspacePage = () => {
     if (!lesson) {
       return null;
     }
-    return { module, lesson };
+    return { module, lesson, isModuleOverview: false };
   }, [course, progress, activeLesson]);
 
   const activeLessonProgress = useMemo(() => {
@@ -283,8 +309,19 @@ const DashboardCourseWorkspacePage = () => {
 
                 return (
                   <div key={module.moduleId} className="space-y-2">
-                    {/* Module Header */}
-                    <div className="flex items-start gap-2">
+                    {/* Module Header - Clickable */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        // Allow clicking module even if no items
+                        // This will show the module overview/description
+                        setActiveLesson({
+                          moduleId: module.moduleId,
+                          itemId: null, // null means show module overview
+                        });
+                      }}
+                      className="w-full flex items-start gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-accent-soft cursor-pointer text-left"
+                    >
                       <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-accent-soft text-xs font-bold text-accent flex-shrink-0">
                         {moduleIndex + 1}
                       </span>
@@ -297,7 +334,7 @@ const DashboardCourseWorkspacePage = () => {
                           {actualCompletion}%
                         </p>
                       </div>
-                    </div>
+                    </button>
 
                     {/* Module Items */}
                     <div className="ml-8 space-y-1">
@@ -419,13 +456,16 @@ const DashboardCourseWorkspacePage = () => {
                   )}
                 </div>
                 <div className="flex items-center gap-3">
-                  {activeLessonProgress?.lesson && (
+                  {activeLessonProgress?.lesson && activeLesson?.itemId && (
                     <label className="flex items-center gap-2 cursor-pointer">
                       <input
                         type="checkbox"
                         checked={activeLessonProgress.lesson.completed}
                         onChange={() =>
-                          toggleItem(activeLesson.moduleId, activeLesson.itemId)
+                          toggleItem(
+                            activeLesson.moduleId,
+                            activeLesson.itemId!
+                          )
                         }
                         disabled={saving}
                         className="h-5 w-5 rounded border-2 border-accent bg-background-subtle text-accent transition-all hover:scale-110 focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
@@ -440,6 +480,38 @@ const DashboardCourseWorkspacePage = () => {
                 </div>
               </div>
             </div>
+
+            {/* Video Player - Show if video URL exists */}
+            {activeLessonMeta.lesson.video?.url && (
+              <div className="rounded-[1.75rem] border border-border bg-black overflow-hidden shadow-lg">
+                <video
+                  src={activeLessonMeta.lesson.video.url}
+                  controls
+                  className="w-full aspect-video"
+                  preload="metadata"
+                >
+                  <track kind="captions" />
+                  Your browser does not support the video tag.
+                </video>
+              </div>
+            )}
+
+            {/* Module Overview - Show if this is a module overview */}
+            {activeLessonMeta.isModuleOverview &&
+              activeLessonMeta.module.description && (
+                <div className="rounded-[1.75rem] border-2 border-accent/20 bg-accent-soft p-6">
+                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                    <FiBook className="h-5 w-5 text-accent" />
+                    Module Overview
+                  </h3>
+                  <div
+                    className="prose prose-slate max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted prose-a:text-accent prose-strong:text-foreground prose-code:text-accent"
+                    dangerouslySetInnerHTML={{
+                      __html: activeLessonMeta.module.description,
+                    }}
+                  />
+                </div>
+              )}
 
             {/* Lesson Content */}
             <div className="rounded-[1.75rem] border border-border bg-surface p-8">
@@ -466,52 +538,6 @@ const DashboardCourseWorkspacePage = () => {
                 your progress.
               </p>
             </div>
-
-            {/* Quick Module Overview */}
-            {progress && progress.modules.length > 0 && (
-              <div className="grid gap-4 md:grid-cols-2">
-                {progress.modules.map((module, moduleIndex) => {
-                  const totalItems = module.items.length;
-                  const completedItems = module.items.filter(
-                    (item) => item.completed
-                  ).length;
-                  const actualCompletion =
-                    totalItems > 0
-                      ? Math.round((completedItems / totalItems) * 100)
-                      : module.completion;
-
-                  return (
-                    <div
-                      key={module.moduleId}
-                      className="rounded-[1.75rem] border border-border bg-surface p-6"
-                    >
-                      <div className="flex items-start gap-3">
-                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent-soft text-sm font-bold text-accent flex-shrink-0">
-                          {moduleIndex + 1}
-                        </span>
-                        <div className="flex-1">
-                          <h3 className="text-lg font-semibold text-foreground">
-                            {module.title}
-                          </h3>
-                          <p className="text-xs text-muted mt-1">
-                            {completedItems} of {totalItems} lessons completed
-                          </p>
-                          <div className="mt-3 relative h-2 rounded-full bg-accent-soft">
-                            <div
-                              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500"
-                              style={{ width: `${actualCompletion}%` }}
-                            />
-                          </div>
-                          <p className="text-xs text-right text-accent font-semibold mt-1">
-                            {actualCompletion}%
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
           </div>
         )}
       </div>

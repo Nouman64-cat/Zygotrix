@@ -28,9 +28,9 @@ interface CourseWorkspaceState {
   toggleItem: (moduleId: string, itemId: string) => Promise<void>;
   completeModule: (moduleId: string, completed: boolean) => Promise<void>;
   refetch: () => Promise<void>;
-  activeLesson: { moduleId: string; itemId: string } | null;
+  activeLesson: { moduleId: string; itemId: string | null } | null;
   setActiveLesson: (
-    lesson: { moduleId: string; itemId: string } | null
+    lesson: { moduleId: string; itemId: string | null } | null
   ) => void;
 }
 
@@ -44,7 +44,7 @@ export const useCourseWorkspace = (
   const [error, setError] = useState<Error | null>(null);
   const [activeLesson, setActiveLesson] = useState<{
     moduleId: string;
-    itemId: string;
+    itemId: string | null;
   } | null>(null);
 
   const load = useCallback(async () => {

@@ -11,11 +11,17 @@ export interface CourseOutcome {
   text: string;
 }
 
+export interface Video {
+  fileName?: string | null;
+  url?: string | null;
+}
+
 export interface CourseModuleItem {
   id?: string;
   title: string;
   description?: string | null;
   content?: string | null;
+  video?: Video | null;
 }
 
 export interface CourseModule {
@@ -64,6 +70,7 @@ export interface Course {
   students?: number | null;
   rating?: number | null;
   imageUrl?: string | null;
+  modulesCount?: number | null;
   instructors: Instructor[];
   outcomes: CourseOutcome[];
   modules: CourseModule[];

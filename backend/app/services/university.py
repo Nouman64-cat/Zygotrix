@@ -66,6 +66,10 @@ HYGRAPH_COURSES_QUERY = """
           content {
             markdown
           }
+          video {
+            fileName
+            url
+          }
         }
       }
       instructors {
@@ -197,16 +201,26 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
 
     modules_payload = []
     for idx, module in enumerate(course.get("courseModules") or []):
-        module_slug = module.get("slug") or module.get("id") or f"{course_slug}-module-{idx}"
+        module_slug = (
+            module.get("slug") or module.get("id") or f"{course_slug}-module-{idx}"
+        )
         items_payload = []
         for item_idx, item in enumerate(module.get("moduleItems") or []):
             item_id = item.get("id") or f"{module_slug}-item-{item_idx}"
+            video_data = item.get("video")
+            video_payload = None
+            if video_data:
+                video_payload = {
+                    "fileName": video_data.get("fileName"),
+                    "url": video_data.get("url"),
+                }
             items_payload.append(
                 {
                     "id": item_id,
                     "title": item.get("title"),
                     "description": _normalise_text(item.get("description")),
                     "content": _normalise_text(item.get("content")),
+                    "video": video_payload,
                 }
             )
         modules_payload.append(
@@ -292,7 +306,9 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
     }
 
 
-def _convert_hygraph_practice_set_to_document(practice: Dict[str, Any]) -> Dict[str, Any]:
+def _convert_hygraph_practice_set_to_document(
+    practice: Dict[str, Any],
+) -> Dict[str, Any]:
     trend = practice.get("trend")
     if isinstance(trend, str):
         trend = trend.lower()
@@ -315,7 +331,8 @@ def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
     now = datetime.now(timezone.utc)
     if (
         _hygraph_course_cache
-        and (now - _hygraph_course_cache[0]).total_seconds() < _HYGRAPH_CACHE_TTL_SECONDS
+        and (now - _hygraph_course_cache[0]).total_seconds()
+        < _HYGRAPH_CACHE_TTL_SECONDS
     ):
         return _hygraph_course_cache[1]
 
@@ -334,7 +351,8 @@ def _get_practice_sets_from_hygraph() -> Optional[List[Dict[str, Any]]]:
     now = datetime.now(timezone.utc)
     if (
         _hygraph_practice_cache
-        and (now - _hygraph_practice_cache[0]).total_seconds() < _HYGRAPH_CACHE_TTL_SECONDS
+        and (now - _hygraph_practice_cache[0]).total_seconds()
+        < _HYGRAPH_CACHE_TTL_SECONDS
     ):
         return _hygraph_practice_cache[1]
 
@@ -343,7 +361,9 @@ def _get_practice_sets_from_hygraph() -> Optional[List[Dict[str, Any]]]:
         return None
 
     practice_raw = data.get("practiceSets") or []
-    converted = [_convert_hygraph_practice_set_to_document(item) for item in practice_raw]
+    converted = [
+        _convert_hygraph_practice_set_to_document(item) for item in practice_raw
+    ]
     _hygraph_practice_cache = (now, converted)
     return converted
 
@@ -368,7 +388,10 @@ def _is_user_enrolled(user_id: str, course_slug: str) -> bool:
     collection = get_course_enrollments_collection()
     if collection is None:
         return False
-    return collection.find_one({"user_id": user_id, "course_slug": course_slug}) is not None
+    return (
+        collection.find_one({"user_id": user_id, "course_slug": course_slug})
+        is not None
+    )
 
 
 def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
@@ -426,9 +449,7 @@ def _serialize_course(
                     }
                 )
             else:
-                outcomes.append(
-                    {"id": f"{slug}-outcome-{idx}", "text": str(outcome)}
-                )
+                outcomes.append({"id": f"{slug}-outcome-{idx}", "text": str(outcome)})
 
         modules = []
         for midx, module in enumerate(doc.get("modules", []), start=1):
@@ -438,7 +459,9 @@ def _serialize_course(
                 if isinstance(item, dict):
                     raw_content = item.get("content")
                     if isinstance(raw_content, dict):
-                        content_value = raw_content.get("markdown") or raw_content.get("html")
+                        content_value = raw_content.get("markdown") or raw_content.get(
+                            "html"
+                        )
                     else:
                         content_value = raw_content
 
@@ -507,7 +530,10 @@ def _serialize_practice_set(doc: Dict[str, Any]) -> Dict[str, Any]:
 def list_courses(include_details: bool = False) -> List[Dict[str, Any]]:
     hygraph_courses = _get_courses_from_hygraph()
     if hygraph_courses:
-        return [_serialize_course(doc, include_details=include_details) for doc in hygraph_courses]
+        return [
+            _serialize_course(doc, include_details=include_details)
+            for doc in hygraph_courses
+        ]
 
     collection = get_courses_collection()
     if collection is None:
@@ -516,7 +542,9 @@ def list_courses(include_details: bool = False) -> List[Dict[str, Any]]:
     return [_serialize_course(doc, include_details=include_details) for doc in cursor]
 
 
-def get_course_detail(slug: str, user_id: Optional[str] = None) -> Optional[Dict[str, Any]]:
+def get_course_detail(
+    slug: str, user_id: Optional[str] = None
+) -> Optional[Dict[str, Any]]:
     doc = _find_course_document(slug)
     if not doc:
         return None
@@ -551,7 +579,9 @@ def list_practice_sets() -> List[Dict[str, Any]]:
 def _get_progress_collection(required: bool = False) -> Collection:
     collection = get_course_progress_collection(required=required)
     if collection is None:
-        raise HTTPException(status_code=503, detail="Course progress store unavailable.")
+        raise HTTPException(
+            status_code=503, detail="Course progress store unavailable."
+        )
     return collection
 
 
@@ -652,9 +682,7 @@ def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
     }
 
 
-def save_course_progress(
-    user_id: str, payload: Dict[str, Any]
-) -> Dict[str, Any]:
+def save_course_progress(user_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
     course_slug = payload.get("course_slug")
     if not course_slug:
         raise HTTPException(status_code=400, detail="course_slug is required.")
@@ -781,7 +809,9 @@ def _aggregate_metrics(progress_docs: List[Dict[str, Any]]) -> Tuple[float, floa
         accuracy = metrics.get("practice_accuracy")
         if isinstance(accuracy, (int, float)):
             accuracy_values.append(float(accuracy))
-    avg_accuracy = sum(accuracy_values) / len(accuracy_values) if accuracy_values else 0.0
+    avg_accuracy = (
+        sum(accuracy_values) / len(accuracy_values) if accuracy_values else 0.0
+    )
     return total_hours, avg_accuracy
 
 
@@ -870,7 +900,8 @@ def build_dashboard_summary(
 
     total_hours, avg_accuracy = _aggregate_metrics(progress_docs)
     avg_progress = (
-        sum(progress.get("progress", 0) for progress in serialized_progress) / len(serialized_progress)
+        sum(progress.get("progress", 0) for progress in serialized_progress)
+        / len(serialized_progress)
         if serialized_progress
         else 0.0
     )

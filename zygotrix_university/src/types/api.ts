@@ -30,6 +30,7 @@ export interface ApiCourseSummary {
   students?: number | null;
   rating?: number | null;
   image_url?: string | null;
+  modules_count?: number | null;
   outcomes?: ApiCourseOutcome[];
   modules?: ApiCourseModule[];
   instructors?: ApiInstructor[];
@@ -157,7 +158,6 @@ export interface ApiCourseProgressUpdateRequest {
   schedule?: LearningEvent[];
 }
 
-export interface ApiCourseProgress
-  extends ApiCourseProgressResponse {}
+export interface ApiCourseProgress extends ApiCourseProgressResponse {}
 
 export interface ApiDashboardCourse extends CourseProgress {}

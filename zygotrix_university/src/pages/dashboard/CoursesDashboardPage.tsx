@@ -1,4 +1,12 @@
-import { FiBookOpen, FiDownloadCloud, FiExternalLink } from "react-icons/fi";
+import {
+  FiBookOpen,
+  FiExternalLink,
+  FiClock,
+  FiUsers,
+  FiCheckCircle,
+  FiLayers,
+} from "react-icons/fi";
+import { Link } from "react-router-dom";
 import AccentButton from "../../components/common/AccentButton";
 import { useDashboardSummary } from "../../hooks/useDashboardSummary";
 
@@ -23,17 +31,18 @@ const CoursesDashboardPage = () => {
 
   return (
     <div className="space-y-8">
+      {/* Page Header */}
       <div className="flex flex-col gap-4 rounded-[1.75rem] border border-border bg-surface p-6 transition-colors md:flex-row md:items-center md:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-            My programs
+            My Learning
           </p>
           <h2 className="mt-2 text-2xl font-semibold text-foreground">
-            Stay on track this week
+            Enrolled Courses
           </h2>
           <p className="text-sm text-muted">
-            Review the modules in progress, download resources, and join
-            upcoming live sessions from this dashboard.
+            Continue your learning journey. Select a course to access modules
+            and track your progress.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -46,84 +55,126 @@ const CoursesDashboardPage = () => {
         </div>
       </div>
 
-      <div className="space-y-6">
-        {summary.courses.map((course) => (
-          <div
-            key={course.courseSlug}
-            className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors"
-          >
-            <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-              <div>
-                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background-subtle px-3 py-1 text-xs text-accent transition-colors">
-                  <FiBookOpen /> {course.category}
+      {/* Course Cards Grid */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        {summary.courses.map((course) => {
+          const totalModules = course.modules.length;
+          const completedModules = course.modules.filter(
+            (m) => m.status === "completed"
+          ).length;
+          const inProgressModules = course.modules.filter(
+            (m) => m.status === "in-progress"
+          ).length;
+
+          // Calculate total duration (sum of all module durations)
+          const totalDuration = course.modules[0]?.duration || "Self-paced";
+
+          return (
+            <Link
+              key={course.courseSlug}
+              to={`/university/courses/${course.courseSlug}`}
+              className="group block rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg hover:scale-[1.02] no-underline"
+            >
+              {/* Course Category Badge */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background-subtle px-3 py-1.5 text-xs font-medium text-accent transition-colors group-hover:border-accent group-hover:bg-accent-soft">
+                  <FiBookOpen className="h-3 w-3" />
+                  {course.category || course.level || "Course"}
                 </span>
-                <h3 className="mt-3 text-xl font-semibold text-foreground">
-                  {course.title}
-                </h3>
-                {course.instructor && (
-                  <p className="text-xs text-muted">
-                    Instructor · {course.instructor}
-                  </p>
+                {course.progress >= 100 && (
+                  <FiCheckCircle className="h-5 w-5 text-emerald-400" />
                 )}
               </div>
-              <div className="rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 text-sm text-muted transition-colors">
-                <p className="font-semibold text-foreground">Next session</p>
-                <p className="text-xs text-muted">
-                  {course.nextSession ?? "TBA"}
-                </p>
-              </div>
-            </div>
 
-            <div className="mt-6 space-y-4">
-              {course.modules.map((module) => (
-                <a
-                  key={module.moduleId}
-                  href={`/university/courses/${course.courseSlug}`}
-                  className="block no-underline"
-                >
-                  <div className="flex flex-col gap-4 rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 transition-all cursor-pointer hover:border-accent hover:bg-accent-soft hover:shadow-md hover:scale-[1.01] sm:flex-row sm:items-center sm:justify-between">
-                    <div className="space-y-2 flex-1">
-                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-                        {module.status === "completed"
-                          ? "Completed"
-                          : module.status === "in-progress"
-                          ? "In progress"
-                          : "Locked"}
-                      </p>
-                      <h4 className="text-sm font-semibold text-foreground group-hover:text-accent transition-colors">
-                        {module.title}
-                      </h4>
-                      <p className="text-xs text-muted">
-                        Estimated · {module.duration}
-                      </p>
-                    </div>
-                    <div className="flex flex-col gap-3 sm:w-56">
-                      <div className="relative h-2 rounded-full bg-accent-soft">
-                        <div
-                          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 transition-all"
-                          style={{ width: `${module.completion}%` }}
-                        />
-                      </div>
-                      <p className="text-xs text-right text-muted">
-                        {module.completion}%
-                      </p>
-                    </div>
-                    <button
-                      onClick={(e) => {
-                        e.preventDefault();
-                        e.stopPropagation();
-                        // Handle download resources
-                      }}
-                      className="flex items-center gap-2 text-xs text-accent cursor-pointer hover:text-foreground transition-colors"
-                    >
-                      <FiDownloadCloud /> Download resources
-                    </button>
+              {/* Course Title */}
+              <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-accent transition-colors">
+                {course.title}
+              </h3>
+
+              {/* Instructor */}
+              {course.instructor && (
+                <p className="text-xs text-muted mb-4">
+                  Instructor: {course.instructor}
+                </p>
+              )}
+
+              {/* Progress Bar */}
+              <div className="mb-4">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-medium text-muted">
+                    Progress
+                  </span>
+                  <span className="text-xs font-semibold text-accent">
+                    {course.progress}%
+                  </span>
+                </div>
+                <div className="relative h-2 rounded-full bg-accent-soft overflow-hidden">
+                  <div
+                    className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 transition-all duration-500"
+                    style={{ width: `${course.progress}%` }}
+                  />
+                </div>
+              </div>
+
+              {/* Course Stats */}
+              <div className="grid grid-cols-2 gap-3 pt-4 border-t border-border">
+                {/* Total Modules */}
+                <div className="flex items-center gap-2">
+                  <FiLayers className="h-4 w-4 text-muted" />
+                  <div>
+                    <p className="text-xs text-muted">Modules</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {totalModules}
+                    </p>
                   </div>
-                </a>
-              ))}
-            </div>
-          </div>
-        ))}
+                </div>
+
+                {/* Duration */}
+                <div className="flex items-center gap-2">
+                  <FiClock className="h-4 w-4 text-muted" />
+                  <div>
+                    <p className="text-xs text-muted">Duration</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {totalDuration}
+                    </p>
+                  </div>
+                </div>
+
+                {/* Completed */}
+                <div className="flex items-center gap-2">
+                  <FiCheckCircle className="h-4 w-4 text-emerald-400" />
+                  <div>
+                    <p className="text-xs text-muted">Completed</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {completedModules}/{totalModules}
+                    </p>
+                  </div>
+                </div>
+
+                {/* In Progress */}
+                <div className="flex items-center gap-2">
+                  <FiUsers className="h-4 w-4 text-muted" />
+                  <div>
+                    <p className="text-xs text-muted">In Progress</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {inProgressModules}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Next Session Badge */}
+              {course.nextSession && (
+                <div className="mt-4 pt-4 border-t border-border">
+                  <p className="text-xs text-muted mb-1">Next Session</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {course.nextSession}
+                  </p>
+                </div>
+              )}
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

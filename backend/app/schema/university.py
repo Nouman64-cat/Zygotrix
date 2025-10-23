@@ -21,11 +21,17 @@ class CourseOutcomeModel(BaseModel):
     text: str
 
 
+class VideoModel(BaseModel):
+    fileName: Optional[str] = None
+    url: Optional[str] = None
+
+
 class CourseModuleItemModel(BaseModel):
     id: Optional[str] = None
     title: str
     description: Optional[str] = None
     content: Optional[str] = None
+    video: Optional[VideoModel] = None
 
 
 class CourseModuleModel(BaseModel):
@@ -99,9 +105,7 @@ class PracticeSetSummaryModel(BaseModel):
     tag: Optional[str] = None
     questions: Optional[int] = None
     accuracy: Optional[int] = Field(default=None, ge=0, le=100)
-    trend: Optional[str] = Field(
-        default=None, pattern="^(up|down)$"
-    )
+    trend: Optional[str] = Field(default=None, pattern="^(up|down)$")
     estimated_time: Optional[str] = None
 
 
@@ -144,7 +148,9 @@ class LearningEventModel(BaseModel):
 class CourseProgressModuleModel(BaseModel):
     module_id: str
     title: Optional[str] = None
-    status: str = Field(default="in-progress", pattern="^(locked|in-progress|completed)$")
+    status: str = Field(
+        default="in-progress", pattern="^(locked|in-progress|completed)$"
+    )
     duration: Optional[str] = None
     completion: conint(ge=0, le=100) = 0
 

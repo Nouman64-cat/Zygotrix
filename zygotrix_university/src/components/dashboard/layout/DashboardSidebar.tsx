@@ -23,6 +23,7 @@ interface SidebarNavItem {
 const navItems: SidebarNavItem[] = [
   { label: "Overview", icon: FiHome, to: "/university" },
   { label: "My Courses", icon: FiBookOpen, to: "/university/courses" },
+  { label: "Browse Courses", icon: FiZap, to: "/university/browse-courses" },
   { label: "Learning Plan", icon: FiCompass, to: "/university/plan" },
   { label: "Practice", icon: FiLayers, to: "/university/practice" },
   { label: "Analytics", icon: FiBarChart2, to: "/university/analytics" },

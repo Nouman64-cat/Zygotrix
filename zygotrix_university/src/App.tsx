@@ -18,6 +18,7 @@ import NewsletterPage from "./pages/NewsletterPage";
 import NotFoundPage from "./pages/NotFoundPage";
 import OverviewDashboardPage from "./pages/dashboard/OverviewDashboardPage";
 import CoursesDashboardPage from "./pages/dashboard/CoursesDashboardPage";
+import BrowseCoursesPage from "./pages/dashboard/BrowseCoursesPage";
 import LearningPlanDashboardPage from "./pages/dashboard/LearningPlanDashboardPage";
 import PracticeDashboardPage from "./pages/dashboard/PracticeDashboardPage";
 import AnalyticsDashboardPage from "./pages/dashboard/AnalyticsDashboardPage";
@@ -59,6 +60,7 @@ const App = () => {
       >
         <Route index element={<OverviewDashboardPage />} />
         <Route path="courses" element={<CoursesDashboardPage />} />
+        <Route path="browse-courses" element={<BrowseCoursesPage />} />
         <Route
           path="courses/:slug"
           element={<DashboardCourseWorkspacePage />}

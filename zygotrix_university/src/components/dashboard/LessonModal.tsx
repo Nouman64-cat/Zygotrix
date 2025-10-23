@@ -10,13 +10,19 @@ interface LessonModalProps {
     title: string;
     content?: string | null;
     description?: string | null;
+    video?: {
+      fileName?: string | null;
+      url?: string | null;
+    } | null;
   } | null;
   module: {
     title: string;
+    description?: string | null;
   } | null;
   isCompleted?: boolean;
   onToggleComplete?: () => void;
   isSaving?: boolean;
+  isModuleOverview?: boolean;
 }
 
 const LessonModal = ({
@@ -27,6 +33,7 @@ const LessonModal = ({
   isCompleted = false,
   onToggleComplete,
   isSaving = false,
+  isModuleOverview = false,
 }: LessonModalProps) => {
   // Close on Escape key
   useEffect(() => {
@@ -170,6 +177,35 @@ const LessonModal = ({
           className="overflow-y-auto p-6 lg:p-8"
           style={{ maxHeight: "calc(90vh - 120px)" }}
         >
+          {/* Video Player - Show if video URL exists */}
+          {lesson.video?.url && (
+            <div className="mb-6 overflow-hidden rounded-2xl border-2 border-border bg-black shadow-lg">
+              <video
+                src={lesson.video.url}
+                controls
+                className="w-full aspect-video"
+                preload="metadata"
+              >
+                <track kind="captions" />
+                Your browser does not support the video tag.
+              </video>
+            </div>
+          )}
+
+          {/* Module Overview - Show if this is a module overview */}
+          {isModuleOverview && module?.description && (
+            <div className="mb-6 rounded-2xl border-2 border-accent/20 bg-accent-soft p-6">
+              <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                <FiBook className="h-5 w-5 text-accent" />
+                Module Overview
+              </h3>
+              <div className="prose prose-sm max-w-none">
+                {renderContent(module.description)}
+              </div>
+            </div>
+          )}
+
+          {/* Lesson Content */}
           <div className="prose prose-sm max-w-none">
             {renderContent(lesson.content ?? lesson.description)}
           </div>

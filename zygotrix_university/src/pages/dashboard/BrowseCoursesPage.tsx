@@ -1,0 +1,406 @@
+import { useState, useMemo, useEffect } from "react";
+import {
+  FiSearch,
+  FiFilter,
+  FiX,
+  FiBook,
+  FiClock,
+  FiLayers,
+  FiAward,
+} from "react-icons/fi";
+import type { Course } from "../../types";
+import { universityService } from "../../services/useCases/universityService";
+import CourseDetailModal from "../../components/dashboard/CourseDetailModal.js";
+
+const BrowseCoursesPage = () => {
+  const [courses, setCourses] = useState<Course[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState<string>("all");
+  const [selectedLevel, setSelectedLevel] = useState<string>("all");
+  const [showFilters, setShowFilters] = useState(false);
+  const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+
+  // Load courses and enrollments
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setLoading(true);
+        const [allCourses, enrollments] = await Promise.all([
+          universityService.getCourses(),
+          universityService.getEnrollments(),
+        ]);
+
+        // Filter out enrolled courses
+        const enrolledSet = new Set(enrollments);
+        const availableCourses = allCourses.filter(
+          (course) => !enrolledSet.has(course.slug)
+        );
+        setCourses(availableCourses);
+      } catch (error) {
+        console.error("Failed to load courses:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadData();
+  }, []);
+
+  // Extract unique categories and levels
+  const categories = useMemo(() => {
+    const cats = new Set(
+      courses
+        .map((c) => c.category)
+        .filter((cat): cat is string => Boolean(cat))
+    );
+    return ["all", ...Array.from(cats)];
+  }, [courses]);
+
+  const levels = useMemo(() => {
+    const lvls = new Set(
+      courses.map((c) => c.level).filter((lvl): lvl is string => Boolean(lvl))
+    );
+    return ["all", ...Array.from(lvls)];
+  }, [courses]);
+
+  // Filter courses
+  const filteredCourses = useMemo(() => {
+    return courses.filter((course) => {
+      // Search filter
+      const matchesSearch =
+        searchQuery === "" ||
+        course.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        course.shortDescription
+          ?.toLowerCase()
+          .includes(searchQuery.toLowerCase()) ||
+        course.category?.toLowerCase().includes(searchQuery.toLowerCase());
+
+      // Category filter
+      const matchesCategory =
+        selectedCategory === "all" || course.category === selectedCategory;
+
+      // Level filter
+      const matchesLevel =
+        selectedLevel === "all" || course.level === selectedLevel;
+
+      return matchesSearch && matchesCategory && matchesLevel;
+    });
+  }, [courses, searchQuery, selectedCategory, selectedLevel]);
+
+  // Active filter count
+  const activeFilterCount = useMemo(() => {
+    let count = 0;
+    if (selectedCategory !== "all") count++;
+    if (selectedLevel !== "all") count++;
+    return count;
+  }, [selectedCategory, selectedLevel]);
+
+  const handleEnroll = async (courseSlug: string) => {
+    try {
+      await universityService.enrollInCourse(courseSlug);
+      // Remove from available courses
+      setCourses((prev) => prev.filter((c) => c.slug !== courseSlug));
+      setSelectedCourse(null);
+    } catch (error) {
+      console.error("Enrollment failed:", error);
+    }
+  };
+
+  const clearFilters = () => {
+    setSelectedCategory("all");
+    setSelectedLevel("all");
+    setSearchQuery("");
+  };
+
+  if (loading) {
+    return (
+      <div className="space-y-8">
+        <div className="h-40 animate-pulse rounded-[1.75rem] border border-border bg-background-subtle" />
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <div
+              key={i}
+              className="h-80 animate-pulse rounded-[1.75rem] border border-border bg-background-subtle"
+            />
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-8">
+      {/* Page Header */}
+      <div className="rounded-[1.75rem] border border-border bg-surface p-6">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
+              Course Catalog
+            </p>
+            <h1 className="mt-2 text-2xl font-semibold text-foreground">
+              Browse Available Courses
+            </h1>
+            <p className="text-sm text-muted mt-1">
+              Discover and enroll in courses to expand your knowledge
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted">
+              {filteredCourses.length} courses available
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Search and Filters */}
+      <div className="space-y-4">
+        {/* Search Bar */}
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <div className="relative flex-1">
+            <FiSearch className="absolute left-4 top-1/2 h-5 w-5 -translate-y-1/2 text-muted" />
+            <input
+              type="text"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              placeholder="Search courses by title, description, or category..."
+              className="w-full rounded-xl border border-border bg-surface px-12 py-3 text-sm text-foreground placeholder:text-muted focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-foreground transition-colors"
+              >
+                <FiX className="h-5 w-5" />
+              </button>
+            )}
+          </div>
+          <button
+            onClick={() => setShowFilters(!showFilters)}
+            className="flex items-center justify-center gap-2 rounded-xl border border-border bg-surface px-6 py-3 text-sm font-medium text-foreground transition-all hover:border-accent hover:bg-accent-soft"
+          >
+            <FiFilter className="h-5 w-5" />
+            Filters
+            {activeFilterCount > 0 && (
+              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs font-bold text-white">
+                {activeFilterCount}
+              </span>
+            )}
+          </button>
+        </div>
+
+        {/* Filter Panel */}
+        {showFilters && (
+          <div className="rounded-xl border border-border bg-surface p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">
+                Filter Options
+              </h3>
+              {activeFilterCount > 0 && (
+                <button
+                  onClick={clearFilters}
+                  className="text-xs font-medium text-accent hover:text-foreground transition-colors"
+                >
+                  Clear all
+                </button>
+              )}
+            </div>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              {/* Category Filter */}
+              <div>
+                <label className="block text-xs font-medium text-muted mb-2">
+                  Category
+                </label>
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background-subtle px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                >
+                  {categories.map((cat) => (
+                    <option key={cat} value={cat}>
+                      {cat === "all"
+                        ? "All Categories"
+                        : cat.charAt(0).toUpperCase() + cat.slice(1)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Level Filter */}
+              <div>
+                <label className="block text-xs font-medium text-muted mb-2">
+                  Level
+                </label>
+                <select
+                  value={selectedLevel}
+                  onChange={(e) => setSelectedLevel(e.target.value)}
+                  className="w-full rounded-lg border border-border bg-background-subtle px-3 py-2 text-sm text-foreground focus:border-accent focus:outline-none focus:ring-2 focus:ring-accent/20"
+                >
+                  {levels.map((lvl) => (
+                    <option key={lvl} value={lvl}>
+                      {lvl === "all" ? "All Levels" : lvl}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Active Filters Display */}
+        {activeFilterCount > 0 && (
+          <div className="flex flex-wrap gap-2">
+            {selectedCategory !== "all" && (
+              <span className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
+                Category: {selectedCategory}
+                <button
+                  onClick={() => setSelectedCategory("all")}
+                  className="hover:text-foreground transition-colors"
+                >
+                  <FiX className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+            {selectedLevel !== "all" && (
+              <span className="inline-flex items-center gap-2 rounded-full border border-accent/20 bg-accent-soft px-3 py-1 text-xs font-medium text-accent">
+                Level: {selectedLevel}
+                <button
+                  onClick={() => setSelectedLevel("all")}
+                  className="hover:text-foreground transition-colors"
+                >
+                  <FiX className="h-3 w-3" />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Course Grid */}
+      {filteredCourses.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-16 text-center">
+          <FiBook className="h-16 w-16 text-muted mb-4" />
+          <h3 className="text-lg font-semibold text-foreground mb-2">
+            No courses found
+          </h3>
+          <p className="text-sm text-muted mb-4">
+            Try adjusting your search or filters
+          </p>
+          {(searchQuery || activeFilterCount > 0) && (
+            <button
+              onClick={clearFilters}
+              className="text-sm font-medium text-accent hover:text-foreground transition-colors"
+            >
+              Clear all filters
+            </button>
+          )}
+        </div>
+      ) : (
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          {filteredCourses.map((course) => (
+            <button
+              key={course.slug}
+              onClick={() => setSelectedCourse(course)}
+              className="group block rounded-[1.75rem] border border-border bg-surface p-6 text-left transition-all hover:border-accent hover:shadow-lg hover:scale-[1.02]"
+            >
+              {/* Course Badge */}
+              <div className="flex items-center justify-between mb-4">
+                <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background-subtle px-3 py-1.5 text-xs font-medium text-accent transition-colors group-hover:border-accent group-hover:bg-accent-soft">
+                  <FiBook className="h-3 w-3" />
+                  {course.category || "Course"}
+                </span>
+                {course.level && (
+                  <span className="inline-flex items-center gap-1 rounded-full bg-accent-soft px-2 py-1 text-xs font-medium text-accent">
+                    <FiAward className="h-3 w-3" />
+                    {course.level}
+                  </span>
+                )}
+              </div>
+
+              {/* Course Title */}
+              <h3 className="text-lg font-semibold text-foreground mb-2 line-clamp-2 group-hover:text-accent transition-colors">
+                {course.title}
+              </h3>
+
+              {/* Description */}
+              {course.shortDescription && (
+                <p className="text-xs text-muted mb-4 line-clamp-3">
+                  {course.shortDescription}
+                </p>
+              )}
+
+              {/* Instructor Info */}
+              {course.instructors && course.instructors.length > 0 && (
+                <div className="flex items-center gap-2 mb-4 pb-4 border-b border-border">
+                  {course.instructors[0].avatar && (
+                    <img
+                      src={course.instructors[0].avatar}
+                      alt={course.instructors[0].name}
+                      className="h-8 w-8 rounded-full object-cover"
+                    />
+                  )}
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs font-medium text-foreground truncate">
+                      {course.instructors[0].name}
+                    </p>
+                    {course.instructors[0].title && (
+                      <p className="text-xs text-muted truncate">
+                        {course.instructors[0].title}
+                      </p>
+                    )}
+                  </div>
+                  {course.instructors.length > 1 && (
+                    <span className="text-xs text-muted">
+                      +{course.instructors.length - 1}
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {/* Course Stats */}
+              <div className="grid grid-cols-2 gap-3">
+                <div className="flex items-center gap-2">
+                  <FiLayers className="h-4 w-4 text-muted" />
+                  <div>
+                    <p className="text-xs text-muted">Modules</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {course.modulesCount ?? course.modules?.length ?? 0}
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <FiClock className="h-4 w-4 text-muted" />
+                  <div>
+                    <p className="text-xs text-muted">Duration</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {course.duration || "Self-paced"}
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* View Details Button */}
+              <div className="mt-4 pt-4 border-t border-border">
+                <span className="text-xs font-medium text-accent group-hover:text-foreground transition-colors">
+                  View details →
+                </span>
+              </div>
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Course Detail Modal */}
+      {selectedCourse && (
+        <CourseDetailModal
+          course={selectedCourse}
+          onClose={() => setSelectedCourse(null)}
+          onEnroll={handleEnroll}
+        />
+      )}
+    </div>
+  );
+};
+
+export default BrowseCoursesPage;

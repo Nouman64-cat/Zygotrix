@@ -61,6 +61,7 @@ const mapCourse = (
     students: apiCourse.students ?? null,
     rating: apiCourse.rating ?? null,
     imageUrl: apiCourse.image_url ?? null,
+    modulesCount: apiCourse.modules_count ?? null,
     outcomes: (apiCourse.outcomes ?? []).map((outcome) => ({
       id:
         outcome.id ??

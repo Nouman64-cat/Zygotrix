@@ -38,8 +38,8 @@ const SignInPage: React.FC = () => {
   const stateRedirect = (location.state as LocationState | null)?.from
     ?.pathname;
 
-  // If coming from community, redirect back to community; otherwise go to portal
-  let redirectTo = "/portal";
+  // If coming from community, redirect back to community; otherwise go to studio
+  let redirectTo = "/studio";
   if (redirectParam) {
     redirectTo = redirectParam;
   } else if (stateRedirect) {
@@ -47,7 +47,7 @@ const SignInPage: React.FC = () => {
     if (stateRedirect.startsWith("/community")) {
       redirectTo = stateRedirect;
     } else {
-      redirectTo = "/portal";
+      redirectTo = "/studio";
     }
   }
   const [form, setForm] = useState({
@@ -123,7 +123,7 @@ const SignInPage: React.FC = () => {
               <h2 className="text-4xl font-bold text-[#1E3A8A] mb-4">
                 Secure Access to Your
                 <span className="block bg-gradient-to-r from-[#1E3A8A] to-[#10B981] bg-clip-text text-transparent">
-                  Genetic Research Portal
+                  Genetic Research Studio
                 </span>
               </h2>
               <p className="text-lg text-slate-600 max-w-md mx-auto">
@@ -170,7 +170,7 @@ const SignInPage: React.FC = () => {
                       Welcome Back
                     </h1>
                     <p className="text-sm text-slate-600 max-w-sm mx-auto">
-                      Access your Zygotrix portal to continue your genetic
+                      Access your Zygotrix studio to continue your genetic
                       research and analysis.
                     </p>
                   </div>
@@ -264,7 +264,7 @@ const SignInPage: React.FC = () => {
                           Authenticating...
                         </>
                       ) : (
-                        "Access Portal"
+                        "Access Studio"
                       )}
                     </span>
                   </button>

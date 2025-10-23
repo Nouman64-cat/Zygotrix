@@ -9,7 +9,7 @@ const SignInPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const redirectTo = params.get("redirect") ?? "/dashboard";
+  const redirectTo = params.get("redirect") ?? "/university";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");

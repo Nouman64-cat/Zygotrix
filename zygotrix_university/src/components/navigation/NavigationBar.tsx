@@ -1,5 +1,12 @@
 import { useState } from "react";
-import { FiMenu, FiX, FiArrowUpRight, FiLogOut, FiMoon, FiSun } from "react-icons/fi";
+import {
+  FiMenu,
+  FiX,
+  FiArrowUpRight,
+  FiLogOut,
+  FiMoon,
+  FiSun,
+} from "react-icons/fi";
 import { Link, NavLink, useNavigate } from "react-router-dom";
 import { cn } from "../../utils/cn";
 import AccentButton from "../common/AccentButton";
@@ -14,6 +21,8 @@ const navItems = [
   { label: "Community", to: "/community" },
   { label: "Resources", to: "/resources" },
 ];
+
+const ZYGOTRIX_STUDIO_URL = import.meta.env.VITE_ZYGOTRIX_STUDIO_APP;
 
 const NavigationBar = () => {
   const [open, setOpen] = useState(false);
@@ -53,7 +62,7 @@ const NavigationBar = () => {
           ))}
           {user && (
             <NavLink
-              to="/dashboard"
+              to="/university"
               className={({ isActive }) =>
                 cn(
                   "text-sm font-medium text-muted transition-colors hover:text-foreground",
@@ -62,17 +71,17 @@ const NavigationBar = () => {
                 )
               }
             >
-              Dashboard
+              University
             </NavLink>
           )}
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
           <Link
-            to="/simulation-studio"
+            to={`${ZYGOTRIX_STUDIO_URL}/studio`}
             className="flex items-center gap-1 text-sm font-medium text-accent transition-colors hover:text-foreground"
           >
-            Simulation Studio <FiArrowUpRight />
+            Zygotrix Studio <FiArrowUpRight />
           </Link>
           <button
             type="button"
@@ -84,8 +93,8 @@ const NavigationBar = () => {
           </button>
           {user ? (
             <>
-              <AccentButton to="/dashboard" variant="primary">
-                Go to Dashboard
+              <AccentButton to="/university" variant="primary">
+                Go to University
               </AccentButton>
               <button
                 onClick={handleSignOut}
@@ -129,7 +138,7 @@ const NavigationBar = () => {
               ))}
               {user && (
                 <NavLink
-                  to="/dashboard"
+                  to="/university"
                   onClick={close}
                   className={({ isActive }) =>
                     cn(
@@ -138,7 +147,7 @@ const NavigationBar = () => {
                     )
                   }
                 >
-                  Dashboard
+                  University
                 </NavLink>
               )}
               <hr className="border-border" />
@@ -150,7 +159,9 @@ const NavigationBar = () => {
                 }}
                 className="flex items-center justify-between rounded-lg px-3 py-2 text-base font-medium text-muted transition-colors hover:bg-accent-soft hover:text-foreground"
               >
-                <span>{isDark ? "Switch to light mode" : "Switch to dark mode"}</span>
+                <span>
+                  {isDark ? "Switch to light mode" : "Switch to dark mode"}
+                </span>
                 {isDark ? <FiSun size={18} /> : <FiMoon size={18} />}
               </button>
               <AccentButton to="/courses" onClick={close}>
@@ -158,8 +169,12 @@ const NavigationBar = () => {
               </AccentButton>
               {user ? (
                 <>
-                  <AccentButton to="/dashboard" onClick={close} variant="secondary">
-                    Go to Dashboard
+                  <AccentButton
+                    to="/university"
+                    onClick={close}
+                    variant="secondary"
+                  >
+                    Go to University
                   </AccentButton>
                   <button
                     onClick={() => {
@@ -177,11 +192,11 @@ const NavigationBar = () => {
                 </AccentButton>
               )}
               <Link
-                to="/simulation-studio"
+                to={`${ZYGOTRIX_STUDIO_URL}/studio`}
                 onClick={close}
                 className="inline-flex items-center gap-2 rounded-lg px-3 py-2 text-base font-medium text-accent transition-colors hover:bg-accent-soft hover:text-foreground"
               >
-                Simulation Studio <FiArrowUpRight />
+                Zygotrix Studio <FiArrowUpRight />
               </Link>
             </div>
           </div>

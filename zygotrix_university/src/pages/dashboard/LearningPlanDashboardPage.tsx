@@ -50,15 +50,16 @@ const LearningPlanDashboardPage = () => {
             This week’s learning sprint
           </h2>
           <p className="text-sm text-muted">
-            Keep momentum with curated milestones and Simulation Studio missions. Update completion status after each
-            learning block to maintain your streak.
+            Keep momentum with curated milestones and Simulation Studio
+            missions. Update completion status after each learning block to
+            maintain your streak.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <AccentButton to="/dashboard/practice" variant="secondary">
+          <AccentButton to="/university/practice" variant="secondary">
             Review practice sets
           </AccentButton>
-          <AccentButton to="/dashboard/analytics" icon={<FiTarget />}>
+          <AccentButton to="/university/analytics" icon={<FiTarget />}>
             Check readiness
           </AccentButton>
         </div>
@@ -78,7 +79,9 @@ const LearningPlanDashboardPage = () => {
                   <FiCheckCircle />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-foreground">{item.title}</p>
+                  <p className="text-sm font-semibold text-foreground">
+                    {item.title}
+                  </p>
                   <p className="text-xs text-muted">
                     {item.status} • Due {item.due}
                   </p>

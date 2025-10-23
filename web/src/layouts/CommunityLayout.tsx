@@ -105,11 +105,11 @@ const CommunityLayout: React.FC = () => {
                 {user ? (
                   <>
                     <Link
-                      to="/portal"
+                      to="/studio"
                       className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
                     >
                       <FiUser className="h-4 w-4" />
-                      Portal
+                      Zygotrix Studio
                     </Link>
                     <div className="flex items-center gap-2 text-sm text-slate-600">
                       <span className="max-w-[120px] truncate">
@@ -178,12 +178,12 @@ const CommunityLayout: React.FC = () => {
               {user ? (
                 <>
                   <Link
-                    to="/portal"
+                    to="/studio"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-3 py-2 text-sm font-semibold text-white shadow-lg"
                   >
                     <FiUser className="h-4 w-4" />
-                    Portal
+                    Zygotrix Studio
                   </Link>
                   <div className="px-3 py-2 text-sm text-slate-600">
                     Welcome, {user.full_name || user.email.split("@")[0]}

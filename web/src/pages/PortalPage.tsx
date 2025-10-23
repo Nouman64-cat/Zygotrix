@@ -26,49 +26,49 @@ const PortalPage: React.FC = () => {
   const quickActions = [
     {
       title: "New Simulation",
-      href: "/portal/projects",
+      href: "/studio/projects",
       icon: <HiOutlinePlus className="w-4 h-4" />,
       color: "bg-blue-500",
     },
     {
       title: "Simulation Studio",
-      href: "/portal/simulation-studio",
+      href: "/studio/simulation-studio",
       icon: <FaDna className="w-4 h-4" />,
       color: "bg-green-500",
     },
     {
       title: "View Analytics",
-      href: "/portal/analytics",
+      href: "/studio/analytics",
       icon: <HiOutlineChartBar className="w-4 h-4" />,
       color: "bg-purple-500",
     },
     {
       title: "Data Upload",
-      href: "/portal/data",
+      href: "/studio/data",
       icon: <HiOutlineUpload className="w-4 h-4" />,
       color: "bg-orange-500",
     },
     {
       title: "Profile",
-      href: "/portal/profile",
+      href: "/studio/profile",
       icon: <HiOutlineUser className="w-4 h-4" />,
       color: "bg-cyan-500",
     },
     {
       title: "Preferences",
-      href: "/portal/preferences",
+      href: "/studio/preferences",
       icon: <HiOutlineAdjustments className="w-4 h-4" />,
       color: "bg-teal-500",
     },
     {
       title: "Settings",
-      href: "/portal/settings",
+      href: "/studio/settings",
       icon: <HiOutlineCog className="w-4 h-4" />,
       color: "bg-gray-500",
     },
     {
       title: "Browse Traits",
-      href: "/portal/browse-traits",
+      href: "/studio/browse-traits",
       icon: <FaBookOpen className="w-4 h-4" />,
       color: "bg-indigo-500",
     },
@@ -107,7 +107,7 @@ const PortalPage: React.FC = () => {
               actionButton={{
                 label: "Launch Simulation Studio",
                 onClick: () => {
-                  navigate("/portal/simulation-studio");
+                  navigate("/studio/simulation-studio");
                 },
                 variant: "primary",
               }}
@@ -123,7 +123,7 @@ const PortalPage: React.FC = () => {
               actionButton={{
                 label: "View Projects",
                 onClick: () => {
-                  navigate("/portal/projects");
+                  navigate("/studio/projects");
                 },
                 variant: "secondary",
               }}
@@ -139,7 +139,7 @@ const PortalPage: React.FC = () => {
               actionButton={{
                 label: "Browse Traits",
                 onClick: () => {
-                  navigate("/portal/browse-traits");
+                  navigate("/studio/browse-traits");
                 },
                 variant: "secondary",
               }}

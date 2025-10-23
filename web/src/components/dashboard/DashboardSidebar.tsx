@@ -35,7 +35,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     {
       id: "dashboard",
       label: "Dashboard",
-      href: "/portal",
+      href: "/studio",
       icon: (
         <svg
           className="w-5 h-5"
@@ -61,7 +61,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     {
       id: "projects",
       label: "Projects",
-      href: "/portal/projects",
+      href: "/studio/projects",
       icon: (
         <svg
           className="w-5 h-5"
@@ -81,7 +81,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     {
       id: "simulation-studio",
       label: "Simulation Studio",
-      href: "/portal/simulation-studio",
+      href: "/studio/simulation-studio",
       icon: (
         <svg
           className="w-5 h-5"
@@ -101,7 +101,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     {
       id: "browse-traits",
       label: "Browse Traits",
-      href: "/portal/browse-traits",
+      href: "/studio/browse-traits",
       icon: (
         <svg
           className="w-5 h-5"
@@ -121,7 +121,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     {
       id: "analytics",
       label: "Analytics & Reports",
-      href: "/portal/analytics",
+      href: "/studio/analytics",
       icon: (
         <svg
           className="w-5 h-5"
@@ -141,7 +141,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     // {
     //   id: "data",
     //   label: "Data Management",
-    //   href: "/portal/data",
+    //   href: "/studio/data",
     //   icon: (
     //     <svg
     //       className="w-5 h-5"
@@ -161,7 +161,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     // {
     //   id: "data-import",
     //   label: "VCF / CSV Import",
-    //   href: "/portal/data/import",
+    //   href: "/studio/data/import",
     //   isChild: true,
     //   icon: (
     //     <svg
@@ -182,7 +182,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     // {
     //   id: "population",
     //   label: "Population presets",
-    //   href: "/portal/population",
+    //   href: "/studio/population",
     //   isChild: true,
     //   icon: (
     //     <svg
@@ -209,7 +209,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     // {
     //   id: "pgs-demo",
     //   label: "GWAS-lite demo",
-    //   href: "/portal/pgs-demo",
+    //   href: "/studio/pgs-demo",
     //   isChild: true,
     //   icon: (
     //     <svg
@@ -230,7 +230,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     {
       id: "profile",
       label: "Profile",
-      href: "/portal/profile",
+      href: "/studio/profile",
       icon: (
         <svg
           className="w-5 h-5"
@@ -250,7 +250,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     {
       id: "preferences",
       label: "Preferences",
-      href: "/portal/preferences",
+      href: "/studio/preferences",
       icon: (
         <svg
           className="w-5 h-5"
@@ -270,7 +270,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     {
       id: "settings",
       label: "Settings",
-      href: "/portal/settings",
+      href: "/studio/settings",
       icon: (
         <svg
           className="w-5 h-5"
@@ -296,8 +296,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   ];
 
   const isActivePath = (href: string) => {
-    if (href === "/portal") {
-      return location.pathname === "/portal";
+    if (href === "/studio") {
+      return location.pathname === "/studio";
     }
     return location.pathname.startsWith(href);
   };

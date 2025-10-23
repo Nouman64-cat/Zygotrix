@@ -11,10 +11,12 @@ export const API_ROUTES = {
   },
   university: {
     courses: "/api/university/courses",
-    courseDetail: (slug: string) => `/api/university/courses/${encodeURIComponent(slug)}`,
+    courseDetail: (slug: string) =>
+      `/api/university/courses/${encodeURIComponent(slug)}`,
     practiceSets: "/api/university/practice-sets",
     dashboard: "/api/university/dashboard",
-    courseProgress: (slug: string) => `/api/university/progress/${encodeURIComponent(slug)}`,
+    courseProgress: (slug: string) =>
+      `/api/university/progress/${encodeURIComponent(slug)}`,
     updateProgress: "/api/university/progress",
     enroll: "/api/university/enroll",
     enrollments: "/api/university/enrollments",

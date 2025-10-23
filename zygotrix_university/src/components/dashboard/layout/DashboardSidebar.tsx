@@ -21,12 +21,12 @@ interface SidebarNavItem {
 }
 
 const navItems: SidebarNavItem[] = [
-  { label: "Overview", icon: FiHome, to: "/dashboard" },
-  { label: "My Courses", icon: FiBookOpen, to: "/dashboard/courses" },
-  { label: "Learning Plan", icon: FiCompass, to: "/dashboard/plan" },
-  { label: "Practice", icon: FiLayers, to: "/dashboard/practice" },
-  { label: "Analytics", icon: FiBarChart2, to: "/dashboard/analytics" },
-  { label: "Community", icon: FiUsers, to: "/dashboard/community" },
+  { label: "Overview", icon: FiHome, to: "/university" },
+  { label: "My Courses", icon: FiBookOpen, to: "/university/courses" },
+  { label: "Learning Plan", icon: FiCompass, to: "/university/plan" },
+  { label: "Practice", icon: FiLayers, to: "/university/practice" },
+  { label: "Analytics", icon: FiBarChart2, to: "/university/analytics" },
+  { label: "Community", icon: FiUsers, to: "/university/community" },
 ];
 
 interface DashboardSidebarProps {
@@ -75,7 +75,7 @@ const DashboardSidebar = ({
             <NavLink
               key={item.to}
               to={item.to}
-              end={item.to === "/dashboard"}
+              end={item.to === "/university"}
               aria-label={showLabels ? undefined : item.label}
               onClick={onNavigate}
               className={({ isActive }) =>

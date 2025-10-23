@@ -19,48 +19,60 @@ const PracticeDashboardPage = () => {
             Keep your streak going
           </h2>
           <p className="text-sm text-muted">
-            Personalized question sets adapt as you answer. Replay missions, review explanations, and bookmark topics to
-            revisit with a mentor.
+            Personalized question sets adapt as you answer. Replay missions,
+            review explanations, and bookmark topics to revisit with a mentor.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
           <AccentButton to="/practice" icon={<FiPlay />}>
             Launch latest set
           </AccentButton>
-          <AccentButton to="/dashboard/analytics" variant="secondary">
+          <AccentButton to="/university/analytics" variant="secondary">
             View detailed stats
           </AccentButton>
         </div>
       </div>
 
       <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
-        <h3 className="text-lg font-semibold text-foreground">Recommended topics</h3>
+        <h3 className="text-lg font-semibold text-foreground">
+          Recommended topics
+        </h3>
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {(loading && practiceSets.length === 0 ? [] : practiceSets).map((topic) => (
-            <div
-              key={topic.id}
-              className="rounded-[1.25rem] border border-border bg-background-subtle px-5 py-4 transition-colors"
-            >
-              <div className="flex items-center justify-between">
-                <p className="text-sm font-semibold text-foreground">{topic.title}</p>
-                <span className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-                  {topic.tag}
-                </span>
+          {(loading && practiceSets.length === 0 ? [] : practiceSets).map(
+            (topic) => (
+              <div
+                key={topic.id}
+                className="rounded-[1.25rem] border border-border bg-background-subtle px-5 py-4 transition-colors"
+              >
+                <div className="flex items-center justify-between">
+                  <p className="text-sm font-semibold text-foreground">
+                    {topic.title}
+                  </p>
+                  <span className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
+                    {topic.tag}
+                  </span>
+                </div>
+                <p className="mt-2 text-xs text-muted">
+                  {topic.questions ?? 0} questions •{" "}
+                  {topic.estimatedTime ?? "Approx. 20 mins"}
+                </p>
+                <div className="mt-4 flex items-center justify-between">
+                  <span className="rounded-full border border-border bg-background-subtle px-3 py-1 text-xs text-accent">
+                    Accuracy {topic.accuracy ?? 0}%
+                  </span>
+                  <AccentButton
+                    to="/practice"
+                    variant="ghost"
+                    className="px-3 py-1 text-xs"
+                  >
+                    Start set
+                  </AccentButton>
+                </div>
               </div>
-              <p className="mt-2 text-xs text-muted">
-                {topic.questions ?? 0} questions • {topic.estimatedTime ?? "Approx. 20 mins"}
-              </p>
-              <div className="mt-4 flex items-center justify-between">
-                <span className="rounded-full border border-border bg-background-subtle px-3 py-1 text-xs text-accent">
-                  Accuracy {topic.accuracy ?? 0}%
-                </span>
-                <AccentButton to="/practice" variant="ghost" className="px-3 py-1 text-xs">
-                  Start set
-                </AccentButton>
-              </div>
-            </div>
-          ))}
-          {loading && practiceSets.length === 0 &&
+            )
+          )}
+          {loading &&
+            practiceSets.length === 0 &&
             Array.from({ length: 2 }).map((_, index) => (
               <div
                 key={`skeleton-${index}`}
@@ -73,10 +85,12 @@ const PracticeDashboardPage = () => {
       <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
         <PracticeInsightsList insights={summary?.insights ?? []} />
         <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
-          <h3 className="text-lg font-semibold text-foreground">Weekly challenge</h3>
+          <h3 className="text-lg font-semibold text-foreground">
+            Weekly challenge
+          </h3>
           <p className="mt-2 text-sm text-muted">
-            Build an AI readiness canvas for your team. Reference lessons from Module 3 and prepare to present in the
-            next mentor circle.
+            Build an AI readiness canvas for your team. Reference lessons from
+            Module 3 and prepare to present in the next mentor circle.
           </p>
           <div className="mt-4 flex flex-wrap gap-3">
             <span className="rounded-full border border-border bg-background-subtle px-3 py-1 text-xs uppercase tracking-[0.24em] text-accent transition-colors">

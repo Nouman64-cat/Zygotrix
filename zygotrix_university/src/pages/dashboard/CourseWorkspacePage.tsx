@@ -201,7 +201,7 @@ const DashboardCourseWorkspacePage = () => {
         <FiBook className="h-16 w-16 text-accent/30" aria-hidden="true" />
         <p className="text-lg font-medium">Course not found</p>
         <p className="text-sm">We couldn't find that course.</p>
-        <AccentButton to="/dashboard/courses" variant="secondary">
+        <AccentButton to="/university/courses" variant="secondary">
           Back to courses
         </AccentButton>
       </div>
@@ -360,7 +360,7 @@ const DashboardCourseWorkspacePage = () => {
         <div className="space-y-4">
           <div className="flex items-center gap-3">
             <AccentButton
-              to="/dashboard/courses"
+              to="/university/courses"
               variant="secondary"
               icon={<FiChevronLeft />}
             >

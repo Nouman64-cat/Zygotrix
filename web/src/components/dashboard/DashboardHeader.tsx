@@ -39,11 +39,11 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }) => {
             </svg>
           </button>
 
-          <Link to="/portal" className="flex items-center gap-3">
+          <Link to="/studio" className="flex items-center gap-3">
             <img src={logo} alt="Zygotrix" className="w-8 h-8" />
             <div className="hidden sm:block">
               <h1 className="text-lg font-semibold text-slate-900">
-                Zygotrix Portal
+                Zygotrix Studio
               </h1>
               <p className="text-xs text-slate-500">
                 Genetics Intelligence Dashboard
@@ -107,13 +107,13 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }) => {
               <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-slate-200 opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 z-50">
                 <div className="py-1">
                   <Link
-                    to="/portal/profile"
+                    to="/studio/profile"
                     className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     Profile Settings
                   </Link>
                   <Link
-                    to="/portal/preferences"
+                    to="/studio/preferences"
                     className="block px-4 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                   >
                     Preferences

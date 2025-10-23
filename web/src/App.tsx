@@ -50,7 +50,7 @@ const App: React.FC = () => {
         <Route path="ask" element={<AskQuestionPage />} />
       </Route>
       <Route
-        path="portal"
+        path="studio"
         element={
           <RequireAuth>
             <PortalPage />
@@ -58,7 +58,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/projects"
+        path="studio/projects"
         element={
           <RequireAuth>
             <ProjectsPage />
@@ -66,7 +66,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/browse-traits"
+        path="studio/browse-traits"
         element={
           <RequireAuth>
             <BrowseTraitsPage />
@@ -74,7 +74,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/simulation-studio"
+        path="studio/simulation-studio"
         element={
           <RequireAuth>
             <SimulationStudioPage />
@@ -82,7 +82,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/analytics"
+        path="studio/analytics"
         element={
           <RequireAuth>
             <AnalyticsPage />
@@ -90,7 +90,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/data"
+        path="studio/data"
         element={
           <RequireAuth>
             <DataManagementPage />
@@ -98,7 +98,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/data/import"
+        path="studio/data/import"
         element={
           <RequireAuth>
             <DataImportPage />
@@ -106,7 +106,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/profile"
+        path="studio/profile"
         element={
           <RequireAuth>
             <ProfilePage />
@@ -114,7 +114,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/preferences"
+        path="studio/preferences"
         element={
           <RequireAuth>
             <PreferencesPage />
@@ -122,7 +122,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/settings"
+        path="studio/settings"
         element={
           <RequireAuth>
             <SettingsPage />
@@ -130,7 +130,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/population"
+        path="studio/population"
         element={
           <RequireAuth>
             <PopulationSimPage />
@@ -138,7 +138,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/pgs-demo"
+        path="studio/pgs-demo"
         element={
           <RequireAuth>
             <PGSDemoPage />
@@ -146,7 +146,7 @@ const App: React.FC = () => {
         }
       />
       <Route
-        path="portal/workspace/:projectId"
+        path="studio/workspace/:projectId"
         element={
           <RequireAuth>
             <ProjectWorkspace />

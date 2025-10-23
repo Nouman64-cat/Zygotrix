@@ -130,7 +130,7 @@ const CourseDetailPage = () => {
             {!course.contentLocked && user && (
               <AccentButton
                 variant="secondary"
-                to={`/dashboard/courses/${course.slug}`}
+                to={`/university/courses/${course.slug}`}
               >
                 Open workspace
               </AccentButton>

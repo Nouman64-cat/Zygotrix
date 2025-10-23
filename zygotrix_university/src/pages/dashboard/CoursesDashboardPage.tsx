@@ -78,7 +78,7 @@ const CoursesDashboardPage = () => {
               {course.modules.map((module) => (
                 <a
                   key={module.moduleId}
-                  href={`/dashboard/courses/${course.courseSlug}`}
+                  href={`/university/courses/${course.courseSlug}`}
                   className="block no-underline"
                 >
                   <div className="flex flex-col gap-4 rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 transition-all cursor-pointer hover:border-accent hover:bg-accent-soft hover:shadow-md hover:scale-[1.01] sm:flex-row sm:items-center sm:justify-between">

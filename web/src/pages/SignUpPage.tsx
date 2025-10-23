@@ -49,7 +49,7 @@ const SignUpPage: React.FC = () => {
 
   // Check for redirect URL in location state
   const redirectTo =
-    (location.state as LocationState | null)?.from?.pathname || "/portal";
+    (location.state as LocationState | null)?.from?.pathname || "/studio";
   const [form, setForm] = useState({
     email: "",
     password: "",

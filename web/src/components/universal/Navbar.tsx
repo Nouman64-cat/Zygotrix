@@ -1,8 +1,11 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { FiBookOpen, FiCodesandbox, FiLogOut } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../../public/zygotrix-logo.png";
+
+const ZYGOTRIX_UNIVERSITY_URL = import.meta.env.VITE_ZYGOTRIX_UNIVERSITY_APP;
 
 const baseNavItems = [
   { label: "Home", to: "/" },
@@ -63,19 +66,30 @@ const Navbar: React.FC = () => {
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <a
+            href={ZYGOTRIX_UNIVERSITY_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-100 px-5 py-2 text-sm font-semibold text-[#1E3A8A] shadow-lg shadow-black/10 transition hover:shadow-black/30 hover:bg-blue-200"
+          >
+            <FiBookOpen className="h-5 w-5" />
+            University Portal
+          </a>
           {user ? (
             <>
               <Link
-                to="/portal"
-                className="inline-flex items-center justify-center rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#1E3A8A] shadow-lg shadow-black/20 transition hover:shadow-black/40"
+                to="/studio"
+                className="inline-flex items-center justify-center gap-2 rounded-full bg-white px-5 py-2 text-sm font-semibold text-[#1E3A8A] shadow-lg shadow-black/20 transition hover:shadow-black/40"
               >
-                Portal
+                <FiCodesandbox className="h-5 w-5" />
+                Zygotrix Studio
               </Link>
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="inline-flex items-center justify-center rounded-full px-5 py-2 text-sm font-semibold text-gray transition hover:text-red-500"
+                className="inline-flex items-center cursor-pointer bg-white rounded-full justify-center gap-2 px-5 py-2 text-sm font-semibold text-gray transition hover:text-red-500"
               >
+                <FiLogOut className="h-5 w-5" />
                 Sign out
               </button>
             </>

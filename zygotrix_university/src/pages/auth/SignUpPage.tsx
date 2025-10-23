@@ -1,6 +1,15 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { FiArrowLeft, FiArrowRight, FiMail, FiLock, FiUser, FiRefreshCw } from "react-icons/fi";
+import {
+  FiArrowLeft,
+  FiArrowRight,
+  FiMail,
+  FiLock,
+  FiUser,
+  FiRefreshCw,
+  FiEye,
+  FiEyeOff,
+} from "react-icons/fi";
 import AccentButton from "../../components/common/AccentButton";
 import { authService } from "../../services/useCases/authService";
 
@@ -8,6 +17,7 @@ const SignUpPage = () => {
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState<"details" | "verify">("details");
   const [message, setMessage] = useState<string | null>(null);
@@ -16,23 +26,33 @@ const SignUpPage = () => {
   const [submitting, setSubmitting] = useState(false);
   const [resending, setResending] = useState(false);
 
-  const handleDetailsSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleDetailsSubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      const response = await authService.startSignup(email.trim(), password, fullName.trim() || undefined);
+      const response = await authService.startSignup(
+        email.trim(),
+        password,
+        fullName.trim() || undefined
+      );
       setMessage(response.message);
       setExpiresAt(response.expiresAt);
       setStep("verify");
     } catch {
-      setError("Unable to start signup. Please check your details and try again.");
+      setError(
+        "Unable to start signup. Please check your details and try again."
+      );
     } finally {
       setSubmitting(false);
     }
   };
 
-  const handleVerifySubmit = async (event: React.FormEvent<HTMLFormElement>) => {
+  const handleVerifySubmit = async (
+    event: React.FormEvent<HTMLFormElement>
+  ) => {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
@@ -77,10 +97,13 @@ const SignUpPage = () => {
                 Join Zygotrix University.
               </h1>
               <p className="text-sm text-muted">
-                Create your account to unlock studio-grade courses, adaptive practice, and Simulation Studio missions.
+                Create your account to unlock studio-grade courses, adaptive
+                practice, and Simulation Studio missions.
               </p>
               <div className="rounded-[2rem] border border-border bg-background-subtle p-6 text-sm text-muted transition-colors">
-                <p className="font-semibold text-foreground">How signup works</p>
+                <p className="font-semibold text-foreground">
+                  How signup works
+                </p>
                 <ol className="mt-3 list-inside list-decimal space-y-2 text-sm text-muted">
                   <li>Enter your details and submit the form.</li>
                   <li>Check your email for the verification code.</li>
@@ -134,14 +157,28 @@ const SignUpPage = () => {
                   <div className="relative">
                     <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-accent" />
                     <input
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       required
                       minLength={8}
                       value={password}
                       onChange={(event) => setPassword(event.target.value)}
                       placeholder="At least 8 characters"
-                      className="w-full rounded-full border border-border bg-background-subtle py-3 pl-12 pr-4 text-sm text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
+                      className="w-full rounded-full border border-border bg-background-subtle py-3 pl-12 pr-12 text-sm text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-accent transition-colors cursor-pointer"
+                      aria-label={
+                        showPassword ? "Hide password" : "Show password"
+                      }
+                    >
+                      {showPassword ? (
+                        <FiEyeOff className="h-4 w-4" />
+                      ) : (
+                        <FiEye className="h-4 w-4" />
+                      )}
+                    </button>
                   </div>
                 </div>
 
@@ -160,7 +197,18 @@ const SignUpPage = () => {
                 </button>
 
                 <p className="text-xs text-muted">
-                  By continuing you agree to the Zygotrix University terms and privacy policy.
+                  By continuing you agree to the Zygotrix University terms and
+                  privacy policy.
+                </p>
+
+                <p className="text-center text-sm text-muted">
+                  Already have an account?{" "}
+                  <Link
+                    to="/signin"
+                    className="font-semibold text-accent hover:text-foreground transition-colors cursor-pointer"
+                  >
+                    Sign in
+                  </Link>
                 </p>
               </form>
             ) : (
@@ -217,7 +265,11 @@ const SignUpPage = () => {
                   Resend code
                 </button>
 
-                <AccentButton to="/signin" variant="secondary" icon={<FiArrowRight />}>
+                <AccentButton
+                  to="/signin"
+                  variant="secondary"
+                  icon={<FiArrowRight />}
+                >
                   Go to sign in
                 </AccentButton>
               </form>

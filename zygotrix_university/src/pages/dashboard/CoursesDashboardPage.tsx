@@ -32,7 +32,8 @@ const CoursesDashboardPage = () => {
             Stay on track this week
           </h2>
           <p className="text-sm text-muted">
-            Review the modules in progress, download resources, and join upcoming live sessions from this dashboard.
+            Review the modules in progress, download resources, and join
+            upcoming live sessions from this dashboard.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -56,53 +57,70 @@ const CoursesDashboardPage = () => {
                 <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background-subtle px-3 py-1 text-xs text-accent transition-colors">
                   <FiBookOpen /> {course.category}
                 </span>
-                <h3 className="mt-3 text-xl font-semibold text-foreground">{course.title}</h3>
+                <h3 className="mt-3 text-xl font-semibold text-foreground">
+                  {course.title}
+                </h3>
                 {course.instructor && (
-                  <p className="text-xs text-muted">Instructor · {course.instructor}</p>
+                  <p className="text-xs text-muted">
+                    Instructor · {course.instructor}
+                  </p>
                 )}
               </div>
               <div className="rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 text-sm text-muted transition-colors">
                 <p className="font-semibold text-foreground">Next session</p>
-                <p className="text-xs text-muted">{course.nextSession ?? "TBA"}</p>
+                <p className="text-xs text-muted">
+                  {course.nextSession ?? "TBA"}
+                </p>
               </div>
             </div>
 
             <div className="mt-6 space-y-4">
               {course.modules.map((module) => (
-                <div
+                <a
                   key={module.moduleId}
-                  className="flex flex-col gap-4 rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 transition-colors sm:flex-row sm:items-center sm:justify-between"
+                  href={`/dashboard/courses/${course.courseSlug}`}
+                  className="block no-underline"
                 >
-                  <div className="space-y-2">
-                    <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-                      {module.status === "completed"
-                        ? "Completed"
-                        : module.status === "in-progress"
+                  <div className="flex flex-col gap-4 rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 transition-all cursor-pointer hover:border-accent hover:bg-accent-soft hover:shadow-md hover:scale-[1.01] sm:flex-row sm:items-center sm:justify-between">
+                    <div className="space-y-2 flex-1">
+                      <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
+                        {module.status === "completed"
+                          ? "Completed"
+                          : module.status === "in-progress"
                           ? "In progress"
                           : "Locked"}
-                    </p>
-                    <h4 className="text-sm font-semibold text-foreground">{module.title}</h4>
-                    <p className="text-xs text-muted">Estimated · {module.duration}</p>
-                  </div>
-                  <div className="flex flex-col gap-3 sm:w-56">
-                    <div className="relative h-2 rounded-full bg-accent-soft">
-                      <div
-                        className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400"
-                        style={{ width: `${module.completion}%` }}
-                      />
+                      </p>
+                      <h4 className="text-sm font-semibold text-foreground group-hover:text-accent transition-colors">
+                        {module.title}
+                      </h4>
+                      <p className="text-xs text-muted">
+                        Estimated · {module.duration}
+                      </p>
                     </div>
-                    <p className="text-xs text-right text-muted">{module.completion}%</p>
+                    <div className="flex flex-col gap-3 sm:w-56">
+                      <div className="relative h-2 rounded-full bg-accent-soft">
+                        <div
+                          className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-400 via-blue-400 to-purple-400 transition-all"
+                          style={{ width: `${module.completion}%` }}
+                        />
+                      </div>
+                      <p className="text-xs text-right text-muted">
+                        {module.completion}%
+                      </p>
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Handle download resources
+                      }}
+                      className="flex items-center gap-2 text-xs text-accent cursor-pointer hover:text-foreground transition-colors"
+                    >
+                      <FiDownloadCloud /> Download resources
+                    </button>
                   </div>
-                  <div className="flex items-center gap-2 text-xs text-accent">
-                    <FiDownloadCloud /> Download resources
-                  </div>
-                </div>
+                </a>
               ))}
-            </div>
-            <div className="mt-6 flex flex-wrap items-center gap-3">
-              <AccentButton to={`/dashboard/courses/${course.courseSlug}`} variant="secondary">
-                Open workspace
-              </AccentButton>
             </div>
           </div>
         ))}

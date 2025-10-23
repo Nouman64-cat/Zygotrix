@@ -37,7 +37,19 @@ const SignInPage: React.FC = () => {
   const redirectParam = searchParams.get("redirect");
   const stateRedirect = (location.state as LocationState | null)?.from
     ?.pathname;
-  const redirectTo = redirectParam || stateRedirect || "/portal";
+
+  // If coming from community, redirect back to community; otherwise go to portal
+  let redirectTo = "/portal";
+  if (redirectParam) {
+    redirectTo = redirectParam;
+  } else if (stateRedirect) {
+    // Check if coming from community routes
+    if (stateRedirect.startsWith("/community")) {
+      redirectTo = stateRedirect;
+    } else {
+      redirectTo = "/portal";
+    }
+  }
   const [form, setForm] = useState({
     email: "",
     password: "",
@@ -66,8 +78,18 @@ const SignInPage: React.FC = () => {
     try {
       await signIn({ email: form.email, password: form.password });
       navigate(redirectTo, { replace: true });
-    } catch (err) {
-      setError(extractErrorMessage(err));
+    } catch (err: any) {
+      // Extract and display proper error message
+      let errorMessage =
+        "Invalid credentials. Please check your email and password.";
+
+      if (err?.response?.data?.detail) {
+        errorMessage = err.response.data.detail;
+      } else if (err?.message) {
+        errorMessage = err.message;
+      }
+
+      setError(errorMessage);
     }
   };
 

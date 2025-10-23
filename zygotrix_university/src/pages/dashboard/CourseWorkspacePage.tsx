@@ -1,34 +1,10 @@
 import { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
-import {
-  FiChevronLeft,
-  FiCheckCircle,
-  FiBook,
-  FiClock,
-  FiAward,
-} from "react-icons/fi";
-import PageHeader from "../../components/common/PageHeader";
-import Container from "../../components/common/Container";
+import { FiChevronLeft, FiCheckCircle, FiBook, FiAward } from "react-icons/fi";
 import AccentButton from "../../components/common/AccentButton";
 import LessonModal from "../../components/dashboard/LessonModal";
 import { useCourseWorkspace } from "../../hooks/useCourseWorkspace";
 import { cn } from "../../utils/cn";
-
-const ModuleProgressBar = ({ completion }: { completion: number }) => (
-  <div
-    className="h-2.5 rounded-full bg-accent-soft relative overflow-hidden"
-    role="progressbar"
-    aria-valuenow={completion}
-    aria-valuemin={0}
-    aria-valuemax={100}
-    aria-label={`Module completion: ${completion}%`}
-  >
-    <div
-      className="h-full rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 transition-all duration-500 ease-out"
-      style={{ width: `${completion}%` }}
-    />
-  </div>
-);
 
 const DashboardCourseWorkspacePage = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -39,7 +15,6 @@ const DashboardCourseWorkspacePage = () => {
     saving,
     error,
     toggleItem,
-    completeModule,
     activeLesson,
     setActiveLesson,
   } = useCourseWorkspace(slug);
@@ -265,401 +240,290 @@ const DashboardCourseWorkspacePage = () => {
   }
 
   return (
-    <div className="space-y-12">
-      <PageHeader
-        eyebrow="Course Workspace"
-        title={course.title}
-        description={
-          <div className="space-y-3 text-sm text-muted">
+    <div className="flex gap-6 h-full">
+      {/* Right Sidebar - Module Navigation */}
+      <div className="hidden lg:block w-80 flex-shrink-0">
+        <div className="sticky top-24 space-y-4 max-h-[calc(100vh-8rem)] overflow-y-auto rounded-[1.75rem] border border-border bg-surface p-6">
+          {/* Course Header */}
+          <div className="space-y-2 pb-4 border-b border-border">
+            <h2 className="text-lg font-bold text-foreground line-clamp-2">
+              {course.title}
+            </h2>
+            <div className="flex items-center gap-2 text-xs text-muted">
+              <span className="font-semibold text-accent">
+                {completionSummary}%
+              </span>
+              <span>Complete</span>
+            </div>
+            <div className="relative h-2 rounded-full bg-accent-soft">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500"
+                style={{ width: `${completionSummary}%` }}
+              />
+            </div>
+          </div>
+
+          {/* Modules List */}
+          <div className="space-y-3">
+            {progress &&
+              progress.modules.map((module, moduleIndex) => {
+                const metaModule = course.modules.find(
+                  (baseModule) =>
+                    baseModule.id === module.moduleId ||
+                    baseModule.title === module.title
+                );
+                const totalItems = module.items.length;
+                const completedItems = module.items.filter(
+                  (item) => item.completed
+                ).length;
+                const actualCompletion =
+                  totalItems > 0
+                    ? Math.round((completedItems / totalItems) * 100)
+                    : module.completion;
+
+                return (
+                  <div key={module.moduleId} className="space-y-2">
+                    {/* Module Header */}
+                    <div className="flex items-start gap-2">
+                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-accent-soft text-xs font-bold text-accent flex-shrink-0">
+                        {moduleIndex + 1}
+                      </span>
+                      <div className="flex-1 min-w-0">
+                        <h3 className="text-sm font-semibold text-foreground line-clamp-2">
+                          {module.title}
+                        </h3>
+                        <p className="text-xs text-muted">
+                          {completedItems}/{totalItems} lessons ·{" "}
+                          {actualCompletion}%
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Module Items */}
+                    <div className="ml-8 space-y-1">
+                      {module.items.map((item) => {
+                        const isActive =
+                          activeLesson?.moduleId === module.moduleId &&
+                          activeLesson?.itemId === item.moduleItemId;
+                        const metaItem = metaModule?.items.find(
+                          (baseItem) =>
+                            baseItem.id === item.moduleItemId ||
+                            baseItem.title === item.title
+                        );
+
+                        return (
+                          <button
+                            key={item.moduleItemId}
+                            type="button"
+                            onClick={() => {
+                              if (metaItem?.content) {
+                                setActiveLesson({
+                                  moduleId: module.moduleId,
+                                  itemId: item.moduleItemId,
+                                });
+                              }
+                            }}
+                            disabled={!metaItem?.content}
+                            className={cn(
+                              "w-full text-left px-3 py-2 rounded-lg text-xs transition-all cursor-pointer",
+                              isActive
+                                ? "bg-accent text-white font-semibold"
+                                : item.completed
+                                ? "text-foreground hover:bg-accent-soft"
+                                : "text-muted hover:bg-background-subtle",
+                              !metaItem?.content &&
+                                "cursor-not-allowed opacity-50"
+                            )}
+                          >
+                            <div className="flex items-center gap-2">
+                              {item.completed ? (
+                                <FiCheckCircle className="h-3 w-3 flex-shrink-0 text-emerald-400" />
+                              ) : (
+                                <div className="h-3 w-3 flex-shrink-0 rounded-full border-2 border-current" />
+                              )}
+                              <span className="line-clamp-2">{item.title}</span>
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content Area */}
+      <div className="flex-1 min-w-0 space-y-6">
+        {/* Page Header */}
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <AccentButton
+              to="/dashboard/courses"
+              variant="secondary"
+              icon={<FiChevronLeft />}
+            >
+              Back to courses
+            </AccentButton>
+            {course.slug && (
+              <AccentButton to={`/courses/${course.slug}`} variant="secondary">
+                Course overview
+              </AccentButton>
+            )}
+          </div>
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
+              Course Workspace
+            </p>
+            <h1 className="text-3xl font-bold text-foreground mt-2">
+              {course.title}
+            </h1>
             {course.shortDescription && (
-              <p className="text-base leading-relaxed">
+              <p className="text-sm text-muted mt-2 leading-relaxed">
                 {course.shortDescription}
               </p>
             )}
-            <p className="flex items-center gap-2 text-sm font-semibold uppercase tracking-wider text-accent">
-              <span>Overall progress</span>
-              <span className="text-lg">{completionSummary}%</span>
-            </p>
           </div>
-        }
-        actions={
-          <AccentButton to={`/courses/${course.slug}`} variant="secondary">
-            Course overview
-          </AccentButton>
-        }
-      />
-
-      {error && (
-        <div
-          className="rounded-3xl border-2 border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-500"
-          role="alert"
-          aria-live="assertive"
-        >
-          <p className="font-semibold">Error</p>
-          <p>{error.message}</p>
         </div>
-      )}
 
-      <Container className="space-y-8">
-        {progress && progress.modules.length > 0 ? (
-          progress.modules.map((module, moduleIndex) => {
-            const metaModule = course.modules.find(
-              (baseModule) =>
-                baseModule.id === module.moduleId ||
-                baseModule.title === module.title
-            );
-            const totalItems = module.items.length;
-            const completedItems = module.items.filter(
-              (item) => item.completed
-            ).length;
-            // Calculate actual completion based on items, not server's completion field
-            // For modules with no items, use the module.completion field instead
-            const actualCompletion =
-              totalItems > 0
-                ? Math.round((completedItems / totalItems) * 100)
-                : module.completion; // Use module completion for empty modules
-            const isCompleted = actualCompletion >= 100;
-
-            // Debug: Log inconsistencies between server and actual completion
-            // Only warn for modules with items (empty modules use module.completion directly)
-            if (totalItems > 0 && module.completion !== actualCompletion) {
-              console.warn(
-                `⚠️ Completion mismatch in module "${module.title}":`,
-                {
-                  serverCompletion: module.completion,
-                  actualCompletion,
-                  completedItems,
-                  totalItems,
-                  items: module.items.map((item) => ({
-                    title: item.title,
-                    completed: item.completed,
-                  })),
-                }
-              );
-            }
-
-            return (
-              <article
-                key={module.moduleId}
-                className="space-y-6 rounded-[2.5rem] border border-border bg-surface p-8 shadow-sm transition-all hover:shadow-md"
-                aria-labelledby={`module-${moduleIndex}-title`}
-              >
-                {/* Module Header */}
-                <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-                  <div className="flex-1 space-y-3">
-                    <div className="flex items-center gap-3 flex-wrap">
-                      <span className="inline-flex items-center gap-1.5 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent">
-                        <FiBook className="h-3 w-3" aria-hidden="true" />
-                        Module {moduleIndex + 1}
-                      </span>
-                      {isCompleted && (
-                        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1 text-xs font-semibold text-emerald-400">
-                          <FiCheckCircle
-                            className="h-3 w-3"
-                            aria-hidden="true"
-                          />
-                          Completed
-                        </span>
-                      )}
-                    </div>
-                    <h2
-                      id={`module-${moduleIndex}-title`}
-                      className="text-xl font-bold text-foreground lg:text-2xl"
-                    >
-                      {module.title}
-                    </h2>
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted">
-                      {module.duration && (
-                        <span className="flex items-center gap-1.5">
-                          <FiClock className="h-4 w-4" aria-hidden="true" />
-                          {module.duration}
-                        </span>
-                      )}
-                      {totalItems > 0 && (
-                        <span
-                          aria-label={`${completedItems} of ${totalItems} lessons completed`}
-                        >
-                          {completedItems} / {totalItems} lessons
-                        </span>
-                      )}
-                      <span
-                        className={cn(
-                          "rounded-full px-2.5 py-0.5 text-xs font-medium",
-                          actualCompletion >= 100 &&
-                            "bg-emerald-500/10 text-emerald-400",
-                          actualCompletion > 0 &&
-                            actualCompletion < 100 &&
-                            "bg-blue-500/10 text-blue-400",
-                          actualCompletion === 0 && "bg-muted/10 text-muted"
-                        )}
-                      >
-                        {actualCompletion >= 100
-                          ? "Completed"
-                          : actualCompletion > 0
-                          ? "In progress"
-                          : "Not started"}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Progress Section */}
-                  <div className="w-full space-y-3 lg:w-64">
-                    <div className="flex items-center justify-between text-sm">
-                      <span className="font-medium text-foreground">
-                        Progress
-                      </span>
-                      <span
-                        className="font-semibold text-accent"
-                        aria-live="polite"
-                      >
-                        {actualCompletion}%
-                      </span>
-                    </div>
-                    <ModuleProgressBar completion={actualCompletion} />
-                  </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex flex-wrap gap-3">
-                  {isCompleted ? (
-                    <button
-                      onClick={() => completeModule(module.moduleId, false)}
-                      disabled={saving}
-                      className="inline-flex items-center gap-2 rounded-full border-2 border-secondary-button bg-secondary-button px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-secondary-button transition-all hover:bg-secondary-button-hover focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-60"
-                      aria-label="Reset this module progress"
-                    >
-                      <FiCheckCircle className="h-4 w-4" aria-hidden="true" />
-                      Reset module
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => completeModule(module.moduleId, true)}
-                      disabled={saving || completedItems < totalItems}
-                      className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 px-5 py-2.5 text-xs font-semibold uppercase tracking-wider text-white shadow-lg transition-all hover:brightness-110 hover:shadow-xl focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-surface disabled:cursor-not-allowed disabled:opacity-60"
-                      aria-label="Mark this module as complete"
-                      title={
-                        completedItems < totalItems
-                          ? "Complete all lessons first"
-                          : "Mark module as complete"
-                      }
-                    >
-                      <FiCheckCircle className="h-4 w-4" aria-hidden="true" />
-                      Mark module complete
-                    </button>
-                  )}
-                </div>
-
-                {/* Lessons List */}
-                <div
-                  className="space-y-3"
-                  role="list"
-                  aria-label={`Lessons in ${module.title}`}
-                >
-                  {module.items.length === 0 && (
-                    <div className="rounded-2xl border border-border bg-background-subtle p-6 text-center text-sm text-muted transition-colors">
-                      <p>
-                        Lesson details will appear here as they're released.
-                      </p>
-                    </div>
-                  )}
-                  {module.items.map((item, itemIndex) => {
-                    const metaItem = metaModule?.items.find(
-                      (baseItem) =>
-                        baseItem.id === item.moduleItemId ||
-                        baseItem.title === item.title
-                    );
-                    const isActive =
-                      activeLesson?.moduleId === module.moduleId &&
-                      activeLesson?.itemId === item.moduleItemId;
-                    return (
-                      <div
-                        key={item.moduleItemId}
-                        role="listitem"
-                        className={cn(
-                          "group rounded-2xl border-2 transition-all",
-                          isActive
-                            ? "border-accent bg-accent-soft shadow-md"
-                            : "border-border bg-background-subtle hover:border-accent/50 hover:bg-background-subtle/80"
-                        )}
-                      >
-                        <div className="flex items-start gap-4 p-5">
-                          {/* Checkbox */}
-                          <div className="relative flex items-center pt-1">
-                            <input
-                              id={`lesson-${module.moduleId}-${item.moduleItemId}`}
-                              type="checkbox"
-                              className="h-5 w-5 cursor-pointer rounded border-2 border-accent bg-background-subtle text-accent transition-all hover:scale-110 focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background-subtle disabled:cursor-not-allowed disabled:opacity-50"
-                              checked={item.completed}
-                              onChange={() =>
-                                toggleItem(module.moduleId, item.moduleItemId)
-                              }
-                              disabled={saving}
-                              aria-label={`Mark "${item.title}" as ${
-                                item.completed ? "incomplete" : "complete"
-                              }`}
-                            />
-                          </div>
-
-                          {/* Lesson Content */}
-                          <div className="flex-1 space-y-2">
-                            <div className="flex items-start justify-between gap-3">
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setActiveLesson({
-                                    moduleId: module.moduleId,
-                                    itemId: item.moduleItemId,
-                                  })
-                                }
-                                className="flex-1 text-left text-base font-semibold text-foreground transition-colors hover:text-accent focus:text-accent focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background-subtle group-hover:text-accent"
-                              >
-                                <span className="flex items-baseline gap-2">
-                                  <span className="text-xs text-muted font-normal">
-                                    {itemIndex + 1}.
-                                  </span>
-                                  <span>{item.title}</span>
-                                </span>
-                              </button>
-                              {item.completed && (
-                                <span
-                                  className="mt-1 flex-shrink-0 text-emerald-400"
-                                  aria-label="Completed"
-                                >
-                                  <FiCheckCircle
-                                    className="h-5 w-5"
-                                    aria-hidden="true"
-                                  />
-                                </span>
-                              )}
-                            </div>
-
-                            {metaItem?.description && (
-                              <p className="text-sm leading-relaxed text-muted">
-                                {metaItem.description}
-                              </p>
-                            )}
-
-                            {metaItem?.content && (
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  setActiveLesson({
-                                    moduleId: module.moduleId,
-                                    itemId: item.moduleItemId,
-                                  })
-                                }
-                                className={cn(
-                                  "inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-wider transition-all focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background-subtle rounded-full px-3 py-1",
-                                  isActive
-                                    ? "text-accent bg-accent/10"
-                                    : "text-muted hover:text-accent hover:bg-accent/5"
-                                )}
-                                aria-label={
-                                  isActive
-                                    ? "Currently viewing this lesson"
-                                    : `View lesson: ${item.title}`
-                                }
-                              >
-                                {isActive ? (
-                                  <>
-                                    <span
-                                      className="h-2 w-2 animate-pulse rounded-full bg-accent"
-                                      aria-hidden="true"
-                                    />
-                                    Viewing lesson
-                                  </>
-                                ) : (
-                                  "Read lesson →"
-                                )}
-                              </button>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })}
-                </div>
-              </article>
-            );
-          })
-        ) : (
-          <div className="rounded-[2.5rem] border-2 border-dashed border-border bg-surface p-12 text-center text-muted transition-colors">
-            <FiBook
-              className="mx-auto mb-4 h-12 w-12 text-accent/50"
-              aria-hidden="true"
-            />
-            <p className="text-lg font-medium">No modules available yet</p>
-            <p className="mt-2 text-sm">
-              Modules for this course will appear here once they are available.
-            </p>
+        {error && (
+          <div
+            className="rounded-2xl border-2 border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-500"
+            role="alert"
+            aria-live="assertive"
+          >
+            <p className="font-semibold">Error</p>
+            <p>{error.message}</p>
           </div>
         )}
-      </Container>
 
-      {course.practiceSets && course.practiceSets.length > 0 && (
-        <Container>
-          <h2 className="mb-6 text-2xl font-bold text-foreground">
-            Practice Sets
-          </h2>
-          <div className="grid gap-6 md:grid-cols-2">
-            {course.practiceSets.map((practice) => (
-              <div
-                key={practice.id}
-                className="space-y-4 rounded-[2.5rem] border border-border bg-surface p-6 transition-all hover:shadow-md"
-              >
-                <div className="flex flex-col gap-2">
-                  <span className="text-xs font-semibold uppercase tracking-wider text-accent">
-                    Practice
+        {/* Lesson Content or Module Overview */}
+        {activeLessonMeta && activeLesson ? (
+          <div className="space-y-6">
+            {/* Lesson Header */}
+            <div className="rounded-[1.75rem] border border-border bg-surface p-6">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent">
+                    <FiBook className="h-3 w-3" />
+                    Lesson
                   </span>
-                  <h3 className="text-lg font-semibold text-foreground">
-                    {practice.title}
-                  </h3>
-                  {practice.description && (
-                    <p className="text-sm text-muted leading-relaxed">
-                      {practice.description}
+                  <h2 className="text-2xl font-bold text-foreground mt-3">
+                    {activeLessonMeta.lesson.title}
+                  </h2>
+                  {activeLessonMeta.lesson.description && (
+                    <p className="text-sm text-muted mt-2 leading-relaxed">
+                      {activeLessonMeta.lesson.description}
                     </p>
                   )}
                 </div>
-                <div className="rounded-2xl border border-border bg-background-subtle px-4 py-3 text-xs text-muted transition-colors">
-                  {practice.questions.length} question
-                  {practice.questions.length === 1 ? "" : "s"} • Mix of{" "}
-                  {Array.from(
-                    new Set(
-                      practice.questions.map((q) => q.difficulty || "core")
-                    )
-                  ).join(", ")}
+                <div className="flex items-center gap-3">
+                  {activeLessonProgress?.lesson && (
+                    <label className="flex items-center gap-2 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={activeLessonProgress.lesson.completed}
+                        onChange={() =>
+                          toggleItem(activeLesson.moduleId, activeLesson.itemId)
+                        }
+                        disabled={saving}
+                        className="h-5 w-5 rounded border-2 border-accent bg-background-subtle text-accent transition-all hover:scale-110 focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                      />
+                      <span className="text-sm font-medium text-foreground">
+                        {activeLessonProgress.lesson.completed
+                          ? "Completed"
+                          : "Mark complete"}
+                      </span>
+                    </label>
+                  )}
                 </div>
-                <AccentButton
-                  to={`/practice?set=${practice.slug ?? practice.id}`}
-                  variant="secondary"
-                >
-                  Practice now
-                </AccentButton>
               </div>
-            ))}
-          </div>
-        </Container>
-      )}
+            </div>
 
-      {/* Lesson Modal */}
+            {/* Lesson Content */}
+            <div className="rounded-[1.75rem] border border-border bg-surface p-8">
+              <div
+                className="prose prose-slate max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted prose-a:text-accent prose-strong:text-foreground prose-code:text-accent prose-pre:bg-background-subtle prose-pre:border prose-pre:border-border"
+                dangerouslySetInnerHTML={{
+                  __html:
+                    activeLessonMeta.lesson.content ||
+                    '<p class="text-muted">No content available for this lesson yet.</p>',
+                }}
+              />
+            </div>
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {/* Welcome Message */}
+            <div className="rounded-[1.75rem] border border-border bg-surface p-12 text-center">
+              <FiBook className="mx-auto h-16 w-16 text-accent/50 mb-4" />
+              <h2 className="text-2xl font-bold text-foreground mb-2">
+                Select a lesson to get started
+              </h2>
+              <p className="text-muted">
+                Choose a lesson from the sidebar to view its content and track
+                your progress.
+              </p>
+            </div>
+
+            {/* Quick Module Overview */}
+            {progress && progress.modules.length > 0 && (
+              <div className="grid gap-4 md:grid-cols-2">
+                {progress.modules.map((module, moduleIndex) => {
+                  const totalItems = module.items.length;
+                  const completedItems = module.items.filter(
+                    (item) => item.completed
+                  ).length;
+                  const actualCompletion =
+                    totalItems > 0
+                      ? Math.round((completedItems / totalItems) * 100)
+                      : module.completion;
+
+                  return (
+                    <div
+                      key={module.moduleId}
+                      className="rounded-[1.75rem] border border-border bg-surface p-6"
+                    >
+                      <div className="flex items-start gap-3">
+                        <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-accent-soft text-sm font-bold text-accent flex-shrink-0">
+                          {moduleIndex + 1}
+                        </span>
+                        <div className="flex-1">
+                          <h3 className="text-lg font-semibold text-foreground">
+                            {module.title}
+                          </h3>
+                          <p className="text-xs text-muted mt-1">
+                            {completedItems} of {totalItems} lessons completed
+                          </p>
+                          <div className="mt-3 relative h-2 rounded-full bg-accent-soft">
+                            <div
+                              className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500"
+                              style={{ width: `${actualCompletion}%` }}
+                            />
+                          </div>
+                          <p className="text-xs text-right text-accent font-semibold mt-1">
+                            {actualCompletion}%
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Lesson Modal - Keep for compatibility */}
       <LessonModal
-        isOpen={Boolean(activeLessonMeta && activeLesson)}
-        onClose={() => setActiveLesson(null)}
-        lesson={activeLessonMeta?.lesson ?? null}
-        module={activeLessonMeta?.module ?? null}
-        isCompleted={activeLessonProgress?.lesson.completed ?? false}
-        onToggleComplete={
-          activeLessonProgress?.lesson && activeLesson
-            ? () => {
-                console.log("🎯 Toggle called for lesson:", activeLesson);
-                console.log(
-                  "📊 Current completed state:",
-                  activeLessonProgress.lesson.completed
-                );
-                toggleItem(activeLesson.moduleId, activeLesson.itemId);
-              }
-            : undefined
-        }
+        isOpen={false}
+        onClose={() => {}}
+        lesson={null}
+        module={null}
+        isCompleted={false}
+        onToggleComplete={undefined}
         isSaving={saving}
       />
     </div>

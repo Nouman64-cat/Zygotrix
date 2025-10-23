@@ -14,10 +14,12 @@ import QuestionCard from "../components/community/QuestionCard";
 import AuthPrompt from "../components/community/AuthPrompt";
 import AskQuestionModal from "../components/community/AskQuestionModal";
 import { useAuth } from "../context/AuthContext";
+import { useToast } from "../context/ToastContext";
 
 const CommunityPage: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
+  const { showToast } = useToast();
 
   const [questions, setQuestions] = useState<Question[]>([]);
   const [total, setTotal] = useState(0);
@@ -102,7 +104,7 @@ const CommunityPage: React.FC = () => {
     voteType: -1 | 0 | 1
   ) => {
     if (!user) {
-      alert("Please login to vote");
+      showToast("Please sign in to vote on questions", "warning");
       return;
     }
 
@@ -142,7 +144,7 @@ const CommunityPage: React.FC = () => {
         })
       );
     } catch (err) {
-      alert(err instanceof Error ? err.message : "Failed to vote");
+      showToast(err instanceof Error ? err.message : "Failed to vote", "error");
     }
   };
 

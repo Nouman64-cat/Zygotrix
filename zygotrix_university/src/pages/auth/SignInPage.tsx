@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { FiLock, FiMail, FiArrowRight } from "react-icons/fi";
+import { FiLock, FiMail, FiArrowRight, FiEye, FiEyeOff } from "react-icons/fi";
 import AccentButton from "../../components/common/AccentButton";
 import { useAuth } from "../../context/AuthContext";
 
@@ -13,6 +13,7 @@ const SignInPage = () => {
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
@@ -30,7 +31,9 @@ const SignInPage = () => {
       await signIn(email.trim(), password);
       navigate(redirectTo, { replace: true });
     } catch {
-      setError("Unable to sign in. Please check your credentials and try again.");
+      setError(
+        "Unable to sign in. Please check your credentials and try again."
+      );
     } finally {
       setSubmitting(false);
     }
@@ -50,14 +53,23 @@ const SignInPage = () => {
                 Welcome back, builder.
               </h1>
               <p className="text-sm text-muted">
-                Sign in with your Zygotrix credentials to access your programs, Simulation Studio missions, and adaptive practice dashboard.
+                Sign in with your Zygotrix credentials to access your programs,
+                Simulation Studio missions, and adaptive practice dashboard.
               </p>
               <div className="rounded-[2rem] border border-border bg-background-subtle p-6 text-sm text-muted transition-colors">
-                <p className="font-semibold text-foreground">Need an account?</p>
-                <p className="mt-2 text-sm text-muted">
-                  Join the next cohort and unlock studio-crafted learning experiences.
+                <p className="font-semibold text-foreground">
+                  Need an account?
                 </p>
-                <AccentButton to="/signup" variant="secondary" className="mt-4" icon={<FiArrowRight />}>
+                <p className="mt-2 text-sm text-muted">
+                  Join the next cohort and unlock studio-crafted learning
+                  experiences.
+                </p>
+                <AccentButton
+                  to="/signup"
+                  variant="secondary"
+                  className="mt-4"
+                  icon={<FiArrowRight />}
+                >
                   Create an account
                 </AccentButton>
               </div>
@@ -91,13 +103,27 @@ const SignInPage = () => {
                 <div className="relative">
                   <FiLock className="absolute left-4 top-1/2 -translate-y-1/2 text-accent" />
                   <input
-                    type="password"
+                    type={showPassword ? "text" : "password"}
                     required
                     value={password}
                     onChange={(event) => setPassword(event.target.value)}
                     placeholder="Enter your password"
-                    className="w-full rounded-full border border-border bg-background-subtle py-3 pl-12 pr-4 text-sm text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
+                    className="w-full rounded-full border border-border bg-background-subtle py-3 pl-12 pr-12 text-sm text-foreground placeholder:text-muted transition-colors focus:border-accent focus:outline-none focus:ring-2 focus:ring-[var(--color-primary)] focus:ring-offset-2 ring-offset-theme"
                   />
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword(!showPassword)}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-muted hover:text-accent transition-colors cursor-pointer"
+                    aria-label={
+                      showPassword ? "Hide password" : "Show password"
+                    }
+                  >
+                    {showPassword ? (
+                      <FiEyeOff className="h-4 w-4" />
+                    ) : (
+                      <FiEye className="h-4 w-4" />
+                    )}
+                  </button>
                 </div>
               </div>
 
@@ -116,7 +142,8 @@ const SignInPage = () => {
               </button>
 
               <p className="text-xs text-muted">
-                By continuing you agree to the Zygotrix University terms and privacy policy.
+                By continuing you agree to the Zygotrix University terms and
+                privacy policy.
               </p>
             </form>
           </div>

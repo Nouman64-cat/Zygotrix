@@ -10,6 +10,7 @@ import {
 import type { Question, Comment } from "../../types/community";
 import * as communityApi from "../../services/communityApi";
 import { useAuth } from "../../context/AuthContext";
+import { useToast } from "../../context/ToastContext";
 
 interface QuestionCardProps {
   question: Question;
@@ -18,6 +19,7 @@ interface QuestionCardProps {
 
 const QuestionCard: React.FC<QuestionCardProps> = ({ question, onVote }) => {
   const { user } = useAuth();
+  const { showToast } = useToast();
   const [isExpanded, setIsExpanded] = useState(false);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
@@ -57,9 +59,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, onVote }) => {
       setComments((prev) => [...prev, newComment]);
       setCommentCount((prev) => prev + 1);
       setCommentText("");
+      showToast("Comment posted successfully!", "success");
     } catch (error) {
       console.error("Failed to create comment:", error);
-      alert("Failed to create comment. Please try again.");
+      showToast("Failed to create comment. Please try again.", "error");
     } finally {
       setIsSubmittingComment(false);
     }
@@ -92,9 +95,10 @@ const QuestionCard: React.FC<QuestionCardProps> = ({ question, onVote }) => {
       setCommentCount((prev) => prev + 1);
       setReplyText("");
       setReplyingTo(null);
+      showToast("Reply posted successfully!", "success");
     } catch (error) {
       console.error("Failed to create reply:", error);
-      alert("Failed to create reply. Please try again.");
+      showToast("Failed to create reply. Please try again.", "error");
     } finally {
       setIsSubmittingComment(false);
     }

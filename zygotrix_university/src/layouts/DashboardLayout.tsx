@@ -14,14 +14,16 @@ const DashboardLayout = () => {
 
         <div className="flex min-h-screen flex-1 flex-col overflow-hidden">
           <div className="flex-1 overflow-y-auto">
-            <div className="mx-auto flex h-full max-w-8xl flex-col gap-6 px-4 py-8 sm:px-8">
-              <DashboardTopBar
-                collapsed={collapsed}
-                onToggleSidebar={() => setCollapsed((prev) => !prev)}
-                onOpenMobileNav={() => setMobileNavOpen(true)}
-              />
+            <div className="mx-auto flex h-full max-w-8xl flex-col px-4 sm:px-8">
+              <div className="sticky top-0 z-10 bg-background pt-8 pb-6">
+                <DashboardTopBar
+                  collapsed={collapsed}
+                  onToggleSidebar={() => setCollapsed((prev) => !prev)}
+                  onOpenMobileNav={() => setMobileNavOpen(true)}
+                />
+              </div>
 
-              <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
+              <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors mb-8">
                 <Outlet />
               </div>
             </div>

@@ -1,4 +1,4 @@
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import type { IconType } from "react-icons";
 import {
   FiBarChart2,
@@ -6,11 +6,13 @@ import {
   FiCompass,
   FiHome,
   FiLayers,
+  FiLogOut,
   FiUsers,
   FiZap,
 } from "react-icons/fi";
 import Logo from "../../navigation/Logo";
 import { cn } from "../../../utils/cn";
+import { useAuth } from "../../../context/AuthContext";
 
 interface SidebarNavItem {
   label: string;
@@ -39,13 +41,15 @@ const DashboardSidebar = ({
   onNavigate,
 }: DashboardSidebarProps) => {
   const showLabels = mobile || !collapsed;
+  const { signOut } = useAuth();
+  const navigate = useNavigate();
 
   const wrapperClasses = mobile
     ? "flex h-full w-full flex-col gap-6 overflow-y-auto rounded-[1.75rem] border border-border bg-surface-elevated p-6 transition-colors"
     : cn(
         "hidden rounded-[1.75rem] border border-border bg-surface p-6 transition-all duration-300 transition-colors lg:flex lg:flex-col lg:items-stretch lg:overflow-hidden",
         collapsed ? "lg:w-24" : "lg:w-72",
-        "lg:h-screen lg:sticky lg:top-0",
+        "lg:h-screen lg:sticky lg:top-0"
       );
 
   return (
@@ -53,7 +57,7 @@ const DashboardSidebar = ({
       <div
         className={cn(
           "flex items-center",
-          showLabels ? "justify-between" : "justify-center",
+          showLabels ? "justify-between" : "justify-center"
         )}
       >
         <Logo variant="compact" />
@@ -71,6 +75,7 @@ const DashboardSidebar = ({
             <NavLink
               key={item.to}
               to={item.to}
+              end={item.to === "/dashboard"}
               aria-label={showLabels ? undefined : item.label}
               onClick={onNavigate}
               className={({ isActive }) =>
@@ -79,11 +84,11 @@ const DashboardSidebar = ({
                   "hover:bg-accent-soft hover:text-foreground",
                   isActive &&
                     "border-accent bg-accent-soft text-foreground shadow-theme-card",
-                  !showLabels && "justify-center px-2",
+                  !showLabels && "justify-center px-2"
                 )
               }
             >
-              <Icon className="text-lg" />
+              <Icon className="text-lg flex-shrink-0 w-5 h-5" />
               {showLabels && <span>{item.label}</span>}
             </NavLink>
           );
@@ -93,7 +98,7 @@ const DashboardSidebar = ({
       <div
         className={cn(
           "rounded-2xl border border-border bg-background-subtle p-4 text-xs text-accent transition-colors",
-          !showLabels && "flex flex-col items-center justify-center gap-3",
+          !showLabels && "flex flex-col items-center justify-center gap-3"
         )}
       >
         {showLabels ? (
@@ -102,7 +107,8 @@ const DashboardSidebar = ({
               Simulation Studio
             </p>
             <p className="mt-2 text-[11px] leading-relaxed text-muted">
-              Two new missions are available. Join before Jan 27 to keep your streak alive.
+              Two new missions are available. Join before Jan 27 to keep your
+              streak alive.
             </p>
           </>
         ) : (
@@ -114,6 +120,24 @@ const DashboardSidebar = ({
           </>
         )}
       </div>
+
+      {/* Sign Out Button */}
+      <button
+        type="button"
+        onClick={async () => {
+          await signOut();
+          navigate("/signin");
+        }}
+        className={cn(
+          "flex items-center gap-3 rounded-2xl border border-transparent px-4 py-3 text-sm font-medium text-muted transition-colors cursor-pointer",
+          "hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200",
+          !showLabels && "justify-center px-2"
+        )}
+        aria-label={showLabels ? undefined : "Sign out"}
+      >
+        <FiLogOut className="text-lg flex-shrink-0 w-5 h-5" />
+        {showLabels && <span>Sign Out</span>}
+      </button>
     </aside>
   );
 };

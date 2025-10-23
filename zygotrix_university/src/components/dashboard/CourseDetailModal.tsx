@@ -3,7 +3,6 @@ import {
   FiX,
   FiBook,
   FiClock,
-  FiLayers,
   FiAward,
   FiCheckCircle,
   FiList,
@@ -23,9 +22,6 @@ const CourseDetailModal = ({
   onEnroll,
 }: CourseDetailModalProps) => {
   const [enrolling, setEnrolling] = useState(false);
-  const [expandedModules, setExpandedModules] = useState<Set<string>>(
-    new Set()
-  );
 
   const handleEnroll = async () => {
     try {

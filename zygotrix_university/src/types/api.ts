@@ -1,7 +1,6 @@
 import type {
   AnalyticsStat,
   CourseProgress,
-  CourseProgressMetrics,
   CourseModule,
   CourseOutcome,
   Instructor,

@@ -5,7 +5,7 @@ import {
   useMemo,
   useState,
 } from "react";
-import { ThemeContext, type ThemeMode } from "./ThemeContext.ts";
+import { ThemeContext, type ThemeMode } from "./themeContext";
 
 const STORAGE_KEY = "zygotrix-theme";
 

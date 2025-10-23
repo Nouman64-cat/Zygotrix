@@ -1,4 +1,9 @@
-import { FiExternalLink, FiFileText, FiHeadphones, FiLayers } from "react-icons/fi";
+import {
+  FiExternalLink,
+  FiFileText,
+  FiHeadphones,
+  FiLayers,
+} from "react-icons/fi";
 import type { ResourceItem } from "../../../types";
 import { cn } from "../../../utils/cn";
 
@@ -6,7 +11,9 @@ interface SavedResourcesProps {
   resources: ResourceItem[];
 }
 
-const iconByType: Record<ResourceItem["type"], typeof FiLayers> = {
+type ResourceType = "playbook" | "template" | "recording" | "article";
+
+const iconByType: Record<ResourceType, typeof FiLayers> = {
   playbook: FiLayers,
   template: FiFileText,
   recording: FiHeadphones,
@@ -17,7 +24,9 @@ const SavedResources = ({ resources }: SavedResourcesProps) => {
   return (
     <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
       <div className="flex items-center justify-between">
-        <h3 className="text-lg font-semibold text-foreground">Saved resources</h3>
+        <h3 className="text-lg font-semibold text-foreground">
+          Saved resources
+        </h3>
         <a
           href="#"
           className="inline-flex items-center gap-2 text-xs font-semibold uppercase tracking-[0.24em] text-accent transition-colors hover:text-foreground"
@@ -28,12 +37,13 @@ const SavedResources = ({ resources }: SavedResourcesProps) => {
       </div>
       <ul className="mt-5 space-y-4">
         {resources.map((resource) => {
-          const Icon = iconByType[resource.type];
+          const resourceType = (resource.type as ResourceType) || "article";
+          const Icon = iconByType[resourceType];
           return (
             <li
               key={resource.id}
               className={cn(
-                "rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 transition-colors hover:border-accent",
+                "rounded-[1.25rem] border border-border bg-background-subtle px-4 py-3 transition-colors hover:border-accent"
               )}
             >
               <div className="flex items-center gap-3">

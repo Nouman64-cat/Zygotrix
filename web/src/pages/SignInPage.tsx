@@ -12,21 +12,6 @@ type LocationState = {
   fromSignup?: boolean;
 };
 
-const extractErrorMessage = (error: unknown): string => {
-  if (error instanceof Error) {
-    try {
-      const parsed = JSON.parse(error.message);
-      if (parsed && typeof parsed === "object" && "detail" in parsed) {
-        return String(parsed.detail);
-      }
-    } catch {
-      /* noop */
-    }
-    return error.message;
-  }
-  return "Something went wrong. Please try again.";
-};
-
 const SignInPage: React.FC = () => {
   const { signIn, isAuthenticating } = useAuth();
   const navigate = useNavigate();

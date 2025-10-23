@@ -183,12 +183,19 @@ const LessonModal = ({
               <video
                 src={lesson.video.url}
                 controls
+                controlsList="nodownload"
                 className="w-full aspect-video"
                 preload="metadata"
+                playsInline
               >
                 <track kind="captions" />
                 Your browser does not support the video tag.
               </video>
+              {lesson.video.fileName && (
+                <div className="px-4 py-2 bg-surface/90 text-xs text-muted">
+                  Video: {lesson.video.fileName}
+                </div>
+              )}
             </div>
           )}
 

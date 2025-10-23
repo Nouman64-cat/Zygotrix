@@ -58,15 +58,27 @@ export const useCourseWorkspace = (
     setError(null);
     try {
       const courseData = await universityService.getCourseBySlug(slug);
-      setCourse(courseData);
-      if (courseData && activeLesson) {
-        const moduleExists = courseData.modules.some(
-          (module) => module.id === activeLesson.moduleId
-        );
-        if (!moduleExists) {
-          setActiveLesson(null);
+      setCourse((prevCourse) => {
+        // Only update if course data actually changed
+        if (JSON.stringify(prevCourse) === JSON.stringify(courseData)) {
+          return prevCourse;
         }
-      }
+        return courseData;
+      });
+
+      // Check active lesson separately (don't include in useCallback deps)
+      setActiveLesson((prevLesson) => {
+        if (courseData && prevLesson) {
+          const moduleExists = courseData.modules.some(
+            (module) => module.id === prevLesson.moduleId
+          );
+          if (!moduleExists) {
+            return null;
+          }
+        }
+        return prevLesson;
+      });
+
       if (!courseData || courseData.contentLocked) {
         setProgress(null);
         return;

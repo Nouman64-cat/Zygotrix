@@ -110,6 +110,15 @@ const mapCourse = (
             }
             return null;
           })(),
+          video:
+            (
+              item as unknown as {
+                video?: {
+                  fileName?: string | null;
+                  url?: string | null;
+                } | null;
+              }
+            ).video ?? null,
         })),
       };
     }),

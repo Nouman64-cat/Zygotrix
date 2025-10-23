@@ -51,26 +51,14 @@ def get_current_user_required(
 @router.get("/courses", response_model=CourseListResponse)
 def list_courses(detail: bool = Query(False)) -> CourseListResponse:
     courses = university_services.list_courses(include_details=detail)
-    # When detail flag is False, keep essential info but simplify heavy fields
+    # When detail flag is False, simplify heavy fields but keep instructors & outcomes
     if not detail:
         for course in courses:
-            # Keep instructor summary (name, avatar, title only)
-            if "instructors" in course and course["instructors"]:
-                course["instructors"] = [
-                    {
-                        "id": inst.get("id"),
-                        "name": inst.get("name"),
-                        "title": inst.get("title"),
-                        "avatar": inst.get("avatar"),
-                    }
-                    for inst in course["instructors"]
-                ]
             # Add module count but remove full module details
             if "modules" in course and course["modules"]:
                 course["modules_count"] = len(course["modules"])
                 course.pop("modules", None)
             # Remove other heavy fields
-            course.pop("outcomes", None)
             course.pop("long_description", None)
             course.pop("practice_sets", None)
     return CourseListResponse(courses=courses)

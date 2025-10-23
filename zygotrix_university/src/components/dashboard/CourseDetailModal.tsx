@@ -27,18 +27,6 @@ const CourseDetailModal = ({
     new Set()
   );
 
-  const toggleModule = (moduleId: string) => {
-    setExpandedModules((prev) => {
-      const next = new Set(prev);
-      if (next.has(moduleId)) {
-        next.delete(moduleId);
-      } else {
-        next.add(moduleId);
-      }
-      return next;
-    });
-  };
-
   const handleEnroll = async () => {
     try {
       setEnrolling(true);
@@ -50,11 +38,6 @@ const CourseDetailModal = ({
       setEnrolling(false);
     }
   };
-
-  const totalLessons = course.modules.reduce(
-    (sum, module) => sum + module.items.length,
-    0
-  );
 
   return (
     <div
@@ -99,18 +82,9 @@ const CourseDetailModal = ({
             {/* Stats */}
             <div className="flex items-center gap-4 flex-wrap">
               <div className="flex items-center gap-2">
-                <FiLayers className="h-4 w-4 text-muted" />
-                <span className="text-xs text-muted">
-                  <strong className="text-foreground">
-                    {course.modules.length}
-                  </strong>{" "}
-                  modules
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
                 <FiList className="h-4 w-4 text-muted" />
                 <span className="text-xs text-muted">
-                  <strong className="text-foreground">{totalLessons}</strong>{" "}
+                  <strong className="text-foreground">{course.lessons}</strong>{" "}
                   lessons
                 </span>
               </div>
@@ -209,86 +183,6 @@ const CourseDetailModal = ({
               </div>
             </div>
           )}
-
-          {/* Course Modules */}
-          <div className="rounded-2xl border border-border bg-background-subtle p-6">
-            <h3 className="text-lg font-semibold text-foreground mb-4">
-              Course Content
-            </h3>
-            <div className="space-y-3">
-              {course.modules.map((module, index) => {
-                const isExpanded = expandedModules.has(
-                  module.id || module.title
-                );
-                return (
-                  <div
-                    key={module.id || module.title}
-                    className="rounded-xl border border-border bg-surface overflow-hidden"
-                  >
-                    {/* Module Header */}
-                    <button
-                      onClick={() => toggleModule(module.id || module.title)}
-                      className="w-full flex items-center justify-between gap-4 p-4 text-left transition-colors hover:bg-accent-soft"
-                    >
-                      <div className="flex items-center gap-3 flex-1">
-                        <span className="flex h-8 w-8 items-center justify-center rounded-full bg-accent-soft text-sm font-bold text-accent flex-shrink-0">
-                          {index + 1}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <h4 className="font-semibold text-foreground">
-                            {module.title}
-                          </h4>
-                          <p className="text-xs text-muted">
-                            {module.items.length} lessons
-                            {module.duration && ` · ${module.duration}`}
-                          </p>
-                        </div>
-                      </div>
-                      <FiX
-                        className={cn(
-                          "h-5 w-5 text-muted transition-transform flex-shrink-0",
-                          isExpanded ? "rotate-0" : "rotate-45"
-                        )}
-                      />
-                    </button>
-
-                    {/* Module Items */}
-                    {isExpanded && (
-                      <div className="border-t border-border bg-background-subtle/50 p-4">
-                        {module.description && (
-                          <p className="text-sm text-muted mb-4 pb-4 border-b border-border">
-                            {module.description}
-                          </p>
-                        )}
-                        <div className="space-y-2">
-                          {module.items.map((item, itemIndex) => (
-                            <div
-                              key={item.id || item.title}
-                              className="flex items-start gap-3 rounded-lg p-3 hover:bg-surface transition-colors"
-                            >
-                              <span className="flex h-6 w-6 items-center justify-center rounded-full border border-border bg-surface text-xs font-medium text-muted flex-shrink-0 mt-0.5">
-                                {itemIndex + 1}
-                              </span>
-                              <div className="flex-1 min-w-0">
-                                <p className="text-sm font-medium text-foreground">
-                                  {item.title}
-                                </p>
-                                {item.description && (
-                                  <p className="text-xs text-muted mt-1">
-                                    {item.description}
-                                  </p>
-                                )}
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-                  </div>
-                );
-              })}
-            </div>
-          </div>
         </div>
 
         {/* Footer */}

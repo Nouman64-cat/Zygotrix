@@ -77,6 +77,9 @@ class CourseSummaryModel(BaseModel):
     students: Optional[int] = None
     rating: Optional[float] = None
     image_url: Optional[str] = None
+    instructors: List[InstructorModel] = Field(default_factory=list)
+    outcomes: List[CourseOutcomeModel] = Field(default_factory=list)
+    modules_count: Optional[int] = None  # For browse view (detail=false)
 
 
 class CourseDetailModel(CourseSummaryModel):

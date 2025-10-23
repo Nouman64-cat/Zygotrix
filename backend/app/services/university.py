@@ -396,6 +396,7 @@ def _is_user_enrolled(user_id: str, course_slug: str) -> bool:
 
 def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
     collection = get_course_enrollments_collection(required=True)
+    assert collection is not None  # Type checker hint: required=True ensures this
     now = datetime.now(timezone.utc)
     get_course = _find_course_document(course_slug)
     if not get_course:
@@ -438,19 +439,34 @@ def _serialize_course(
         "image_url": doc.get("image_url"),
     }
 
-    if include_details:
-        outcomes = []
-        for idx, outcome in enumerate(doc.get("outcomes", []), start=1):
-            if isinstance(outcome, dict):
-                outcomes.append(
-                    {
-                        "id": outcome.get("id") or f"{slug}-outcome-{idx}",
-                        "text": outcome.get("text") or outcome.get("description", ""),
-                    }
-                )
-            else:
-                outcomes.append({"id": f"{slug}-outcome-{idx}", "text": str(outcome)})
+    # Always include instructors and outcomes (lightweight data)
+    instructors = []
+    for instructor in doc.get("instructors", []):
+        instructors.append(
+            {
+                "id": instructor.get("id") or instructor.get("email"),
+                "name": instructor.get("name", ""),
+                "title": instructor.get("title"),
+                "avatar": instructor.get("avatar"),
+                "bio": instructor.get("bio"),
+            }
+        )
+    course["instructors"] = instructors
 
+    outcomes = []
+    for idx, outcome in enumerate(doc.get("outcomes", []), start=1):
+        if isinstance(outcome, dict):
+            outcomes.append(
+                {
+                    "id": outcome.get("id") or f"{slug}-outcome-{idx}",
+                    "text": outcome.get("text") or outcome.get("description", ""),
+                }
+            )
+        else:
+            outcomes.append({"id": f"{slug}-outcome-{idx}", "text": str(outcome)})
+    course["outcomes"] = outcomes
+
+    if include_details:
         modules = []
         for midx, module in enumerate(doc.get("modules", []), start=1):
             module_id = module.get("id") or f"{slug}-module-{midx}"
@@ -465,12 +481,22 @@ def _serialize_course(
                     else:
                         content_value = raw_content
 
+                    # Extract video data if present
+                    video_data = item.get("video")
+                    video_payload = None
+                    if video_data and isinstance(video_data, dict):
+                        video_payload = {
+                            "fileName": video_data.get("fileName"),
+                            "url": video_data.get("url"),
+                        }
+
                     items.append(
                         {
                             "id": item.get("id") or f"{module_id}-item-{iidx}",
                             "title": item.get("title", ""),
                             "description": item.get("description"),
                             "content": content_value,
+                            "video": video_payload,
                         }
                     )
                 else:
@@ -480,6 +506,7 @@ def _serialize_course(
                             "title": str(item),
                             "description": None,
                             "content": None,
+                            "video": None,
                         }
                     )
 
@@ -493,21 +520,7 @@ def _serialize_course(
                 }
             )
 
-        instructors = []
-        for instructor in doc.get("instructors", []):
-            instructors.append(
-                {
-                    "id": instructor.get("id") or instructor.get("email"),
-                    "name": instructor.get("name", ""),
-                    "title": instructor.get("title"),
-                    "avatar": instructor.get("avatar"),
-                    "bio": instructor.get("bio"),
-                }
-            )
-
-        course["outcomes"] = outcomes
         course["modules"] = modules
-        course["instructors"] = instructors
 
     return course
 
@@ -592,10 +605,14 @@ def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, An
     if collection is None:
         return None
     doc = collection.find_one({"user_id": user_id, "course_slug": course_slug})
+    
+    # Always get course document for module/item structure
+    course_doc = _find_course_document(course_slug)
+    if not course_doc:
+        return None
+    
     if not doc:
-        course_doc = _find_course_document(course_slug)
-        if not course_doc:
-            return None
+        # No progress yet - create initial structure
         modules_payload = []
         for module in course_doc.get("modules", []):
             items_payload = []
@@ -629,6 +646,43 @@ def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, An
             "resources": [],
             "schedule": [],
         }
+    
+    # Progress exists - enrich with course items if missing
+    enriched_modules = []
+    for module_progress in doc.get("modules", []):
+        module_id = module_progress.get("module_id")
+        
+        # Find corresponding module in course
+        course_module = next(
+            (m for m in course_doc.get("modules", []) if m.get("id") == module_id),
+            None
+        )
+        
+        # Get items from progress, or create from course if missing
+        items_payload = module_progress.get("items", [])
+        if not items_payload and course_module:
+            # Items missing in progress - populate from course
+            items_payload = []
+            for item in course_module.get("items", []):
+                items_payload.append(
+                    {
+                        "module_item_id": item.get("id") or str(uuid4()),
+                        "title": item.get("title"),
+                        "completed": False,
+                    }
+                )
+        
+        enriched_modules.append({
+            "module_id": module_id,
+            "title": module_progress.get("title"),
+            "status": module_progress.get("status", "locked"),
+            "duration": module_progress.get("duration"),
+            "completion": module_progress.get("completion", 0),
+            "items": items_payload,
+        })
+    
+    # Return enriched progress
+    doc["modules"] = enriched_modules
     return _serialize_progress_doc(doc)
 
 
@@ -690,8 +744,9 @@ def save_course_progress(user_id: str, payload: Dict[str, Any]) -> Dict[str, Any
     progress_update: Dict[str, Any] = {}
     if "progress" in payload and payload["progress"] is not None:
         progress_update["progress"] = max(0, min(100, int(payload["progress"])))
+    
+    modules_input: List[Dict[str, Any]] = []  # Initialize to avoid unbound error
     if "modules" in payload and payload["modules"] is not None:
-        modules_input = []
         for module in payload["modules"]:
             module_id = module.get("module_id")
             if not module_id:

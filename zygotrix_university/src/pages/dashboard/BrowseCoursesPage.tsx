@@ -298,10 +298,9 @@ const BrowseCoursesPage = () => {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {filteredCourses.map((course) => (
-            <button
+            <div
               key={course.slug}
-              onClick={() => setSelectedCourse(course)}
-              className="group block rounded-[1.75rem] border border-border bg-surface p-6 text-left transition-all hover:border-accent hover:shadow-lg hover:scale-[1.02]"
+              className="group flex flex-col rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg hover:scale-[1.02]"
             >
               {/* Course Badge */}
               <div className="flex items-center justify-between mb-4">
@@ -324,7 +323,7 @@ const BrowseCoursesPage = () => {
 
               {/* Description */}
               {course.shortDescription && (
-                <p className="text-xs text-muted mb-4 line-clamp-3">
+                <p className="text-xs text-muted mb-4 line-clamp-3 flex-grow">
                   {course.shortDescription}
                 </p>
               )}
@@ -358,13 +357,13 @@ const BrowseCoursesPage = () => {
               )}
 
               {/* Course Stats */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-2 gap-3 mb-4">
                 <div className="flex items-center gap-2">
                   <FiLayers className="h-4 w-4 text-muted" />
                   <div>
-                    <p className="text-xs text-muted">Modules</p>
+                    <p className="text-xs text-muted">Lessons</p>
                     <p className="text-sm font-semibold text-foreground">
-                      {course.modulesCount ?? course.modules?.length ?? 0}
+                      {course.modulesCount ?? course.lessons}
                     </p>
                   </div>
                 </div>
@@ -380,13 +379,22 @@ const BrowseCoursesPage = () => {
                 </div>
               </div>
 
-              {/* View Details Button */}
-              <div className="mt-4 pt-4 border-t border-border">
-                <span className="text-xs font-medium text-accent group-hover:text-foreground transition-colors">
-                  View details →
-                </span>
+              {/* Action Buttons */}
+              <div className="grid grid-cols-2 gap-2 mt-auto pt-4 border-t border-border">
+                <button
+                  onClick={() => setSelectedCourse(course)}
+                  className="px-4 py-2 text-xs font-medium text-accent border border-accent rounded-xl hover:bg-accent-soft transition-colors"
+                >
+                  View Details
+                </button>
+                <button
+                  onClick={() => handleEnroll(course.slug)}
+                  className="px-4 py-2 text-xs font-medium text-white bg-accent rounded-xl hover:bg-accent/90 transition-colors"
+                >
+                  Enroll Now
+                </button>
               </div>
-            </button>
+            </div>
           ))}
         </div>
       )}

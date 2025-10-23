@@ -1,6 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useParams } from "react-router-dom";
 import { FiChevronLeft, FiCheckCircle, FiBook, FiAward } from "react-icons/fi";
+import ReactMarkdown from "react-markdown";
 import AccentButton from "../../components/common/AccentButton";
 import LessonModal from "../../components/dashboard/LessonModal";
 import { useCourseWorkspace } from "../../hooks/useCourseWorkspace";
@@ -487,12 +488,24 @@ const DashboardCourseWorkspacePage = () => {
                 <video
                   src={activeLessonMeta.lesson.video.url}
                   controls
+                  controlsList="nodownload"
                   className="w-full aspect-video"
                   preload="metadata"
+                  playsInline
                 >
                   <track kind="captions" />
                   Your browser does not support the video tag.
                 </video>
+                {activeLessonMeta.lesson.video.fileName && (
+                  <div className="px-6 py-3 bg-surface/90 border-t border-border">
+                    <p className="text-xs text-muted">
+                      <span className="font-semibold text-foreground">
+                        Video:
+                      </span>{" "}
+                      {activeLessonMeta.lesson.video.fileName}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
 
@@ -504,25 +517,143 @@ const DashboardCourseWorkspacePage = () => {
                     <FiBook className="h-5 w-5 text-accent" />
                     Module Overview
                   </h3>
-                  <div
-                    className="prose prose-slate max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted prose-a:text-accent prose-strong:text-foreground prose-code:text-accent"
-                    dangerouslySetInnerHTML={{
-                      __html: activeLessonMeta.module.description,
+                  <ReactMarkdown
+                    className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mb-2 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-muted [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:text-muted [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_ol]:text-sm [&_ol]:text-muted [&_ol]:mb-4 [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-background-subtle [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-xs [&_code]:text-accent [&_code]:font-mono [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-background-subtle [&_pre]:p-4 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_a]:text-accent [&_a]:underline [&_a]:transition-colors hover:[&_a]:text-foreground"
+                    components={{
+                      p: ({ children }) => (
+                        <p className="text-sm leading-7 text-muted mb-4">
+                          {children}
+                        </p>
+                      ),
+                      h1: ({ children }) => (
+                        <h1 className="text-2xl font-semibold text-foreground mb-4">
+                          {children}
+                        </h1>
+                      ),
+                      h2: ({ children }) => (
+                        <h2 className="text-xl font-semibold text-foreground mb-3">
+                          {children}
+                        </h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="text-lg font-semibold text-foreground mb-2">
+                          {children}
+                        </h3>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
+                          {children}
+                        </ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
+                          {children}
+                        </ol>
+                      ),
+                      li: ({ children }) => <li>{children}</li>,
+                      a: ({ children, href }) => (
+                        <a
+                          href={href}
+                          className="text-accent underline transition-colors hover:text-foreground"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {children}
+                        </a>
+                      ),
+                      code: ({ children }) => (
+                        <code className="rounded border border-border bg-background-subtle px-1.5 py-0.5 text-xs text-accent font-mono">
+                          {children}
+                        </code>
+                      ),
+                      pre: ({ children }) => (
+                        <pre className="rounded-lg border border-border bg-background-subtle p-4 mb-4 overflow-x-auto">
+                          {children}
+                        </pre>
+                      ),
+                      strong: ({ children }) => (
+                        <strong className="font-semibold text-foreground">
+                          {children}
+                        </strong>
+                      ),
                     }}
-                  />
+                  >
+                    {activeLessonMeta.module.description}
+                  </ReactMarkdown>
                 </div>
               )}
 
             {/* Lesson Content */}
             <div className="rounded-[1.75rem] border border-border bg-surface p-8">
-              <div
-                className="prose prose-slate max-w-none dark:prose-invert prose-headings:text-foreground prose-p:text-muted prose-a:text-accent prose-strong:text-foreground prose-code:text-accent prose-pre:bg-background-subtle prose-pre:border prose-pre:border-border"
-                dangerouslySetInnerHTML={{
-                  __html:
-                    activeLessonMeta.lesson.content ||
-                    '<p class="text-muted">No content available for this lesson yet.</p>',
-                }}
-              />
+              {activeLessonMeta.lesson.content ? (
+                <ReactMarkdown
+                  className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mb-2 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-muted [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:text-muted [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_ol]:text-sm [&_ol]:text-muted [&_ol]:mb-4 [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-background-subtle [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-xs [&_code]:text-accent [&_code]:font-mono [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-background-subtle [&_pre]:p-4 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_a]:text-accent [&_a]:underline [&_a]:transition-colors hover:[&_a]:text-foreground"
+                  components={{
+                    p: ({ children }) => (
+                      <p className="text-sm leading-7 text-muted mb-4">
+                        {children}
+                      </p>
+                    ),
+                    h1: ({ children }) => (
+                      <h1 className="text-2xl font-semibold text-foreground mb-4">
+                        {children}
+                      </h1>
+                    ),
+                    h2: ({ children }) => (
+                      <h2 className="text-xl font-semibold text-foreground mb-3">
+                        {children}
+                      </h2>
+                    ),
+                    h3: ({ children }) => (
+                      <h3 className="text-lg font-semibold text-foreground mb-2">
+                        {children}
+                      </h3>
+                    ),
+                    ul: ({ children }) => (
+                      <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
+                        {children}
+                      </ul>
+                    ),
+                    ol: ({ children }) => (
+                      <ol className="list-decimal space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
+                        {children}
+                      </ol>
+                    ),
+                    li: ({ children }) => <li>{children}</li>,
+                    a: ({ children, href }) => (
+                      <a
+                        href={href}
+                        className="text-accent underline transition-colors hover:text-foreground"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {children}
+                      </a>
+                    ),
+                    code: ({ children }) => (
+                      <code className="rounded border border-border bg-background-subtle px-1.5 py-0.5 text-xs text-accent font-mono">
+                        {children}
+                      </code>
+                    ),
+                    pre: ({ children }) => (
+                      <pre className="rounded-lg border border-border bg-background-subtle p-4 mb-4 overflow-x-auto">
+                        {children}
+                      </pre>
+                    ),
+                    strong: ({ children }) => (
+                      <strong className="font-semibold text-foreground">
+                        {children}
+                      </strong>
+                    ),
+                  }}
+                >
+                  {activeLessonMeta.lesson.content}
+                </ReactMarkdown>
+              ) : (
+                <p className="text-sm text-muted">
+                  No content available for this lesson yet.
+                </p>
+              )}
             </div>
           </div>
         ) : (

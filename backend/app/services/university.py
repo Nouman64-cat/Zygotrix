@@ -261,7 +261,6 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
                 }
             )
 
-        # Process assessment data
         assessment_payload = None
         assessment_data = module.get("assessment")
         if assessment_data:
@@ -272,7 +271,7 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
             assessment_questions = assessment_data.get("assessmentQuestions") or []
             for question in assessment_questions:
                 logger.info(f"🔍 Processing question: {question}")
-                # Extract prompt - it's a dict with {markdown: "..."} from Hygraph
+
                 prompt_obj = question.get("prompt")
                 if isinstance(prompt_obj, dict):
                     prompt_text = prompt_obj.get("markdown") or _normalise_text(
@@ -281,7 +280,6 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
                 else:
                     prompt_text = _normalise_text(prompt_obj)
 
-                # Extract explanation - it's a dict with {markdown: "..."} from Hygraph
                 explanation_obj = question.get("explanation")
                 if isinstance(explanation_obj, dict):
                     explanation_text = explanation_obj.get(
@@ -423,7 +421,6 @@ def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
     global _hygraph_course_cache
     now = datetime.now(timezone.utc)
 
-    # Temporarily disable cache for debugging
     use_cache = False
 
     if (
@@ -503,7 +500,7 @@ def _is_user_enrolled(user_id: str, course_slug: str) -> bool:
 
 def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
     collection = get_course_enrollments_collection(required=True)
-    assert collection is not None  # Type checker hint: required=True ensures this
+    assert collection is not None
     now = datetime.now(timezone.utc)
     get_course = _find_course_document(course_slug)
     if not get_course:
@@ -546,7 +543,6 @@ def _serialize_course(
         "image_url": doc.get("image_url"),
     }
 
-    # Always include instructors and outcomes (lightweight data)
     instructors = []
     for instructor in doc.get("instructors", []):
         instructors.append(
@@ -588,7 +584,6 @@ def _serialize_course(
                     else:
                         content_value = raw_content
 
-                    # Extract video data if present
                     video_data = item.get("video")
                     video_payload = None
                     if video_data and isinstance(video_data, dict):
@@ -623,9 +618,6 @@ def _serialize_course(
                     "duration": module.get("duration"),
                     "description": module.get("description"),
                     "items": items,
-                    # Include assessment data if present. Convert internal/snake_case shape
-                    # (from Hygraph conversion) to the API's camelCase contract expected
-                    # by the frontend.
                     "assessment": _serialize_module_assessment(
                         module.get("assessment")
                     ),
@@ -671,7 +663,7 @@ def _serialize_module_assessment(assessment: Any) -> Optional[Dict[str, Any]]:
     )
     out_questions = []
     for q in questions:
-        # Normalize prompt
+
         prompt = q.get("prompt")
         if isinstance(prompt, dict):
             prompt_md = (
@@ -680,7 +672,6 @@ def _serialize_module_assessment(assessment: Any) -> Optional[Dict[str, Any]]:
         else:
             prompt_md = _normalise_text(prompt)
 
-        # Normalize explanation
         explanation = q.get("explanation")
         if isinstance(explanation, dict):
             explanation_md = (
@@ -691,7 +682,6 @@ def _serialize_module_assessment(assessment: Any) -> Optional[Dict[str, Any]]:
         else:
             explanation_md = _normalise_text(explanation)
 
-        # Normalize options
         opts = []
         for opt in q.get("options") or []:
             if isinstance(opt, dict):
@@ -706,7 +696,7 @@ def _serialize_module_assessment(assessment: Any) -> Optional[Dict[str, Any]]:
                 elif "isCorrect" in opt:
                     is_corr = bool(opt.get("isCorrect"))
                 else:
-                    # leave as None when unknown
+
                     is_corr = None
             else:
                 text = _normalise_text(opt)
@@ -800,13 +790,12 @@ def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, An
         return None
     doc = collection.find_one({"user_id": user_id, "course_slug": course_slug})
 
-    # Always get course document for module/item structure
     course_doc = _find_course_document(course_slug)
     if not course_doc:
         return None
 
     if not doc:
-        # No progress yet - create initial structure
+
         modules_payload = []
         for module in course_doc.get("modules", []):
             items_payload = []
@@ -844,20 +833,17 @@ def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, An
             "schedule": [],
         }
 
-    # Progress exists - enrich with course items if missing
     enriched_modules = []
     for module_progress in doc.get("modules", []):
         module_id = module_progress.get("module_id")
 
-        # Find corresponding module in course
         course_module = next(
             (m for m in course_doc.get("modules", []) if m.get("id") == module_id), None
         )
 
-        # Get items from progress, or create from course if missing
         items_payload = module_progress.get("items", [])
         if not items_payload and course_module:
-            # Items missing in progress - populate from course
+
             items_payload = []
             for item in course_module.get("items", []):
                 items_payload.append(
@@ -882,7 +868,6 @@ def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, An
             }
         )
 
-    # Return enriched progress
     doc["modules"] = enriched_modules
     return _serialize_progress_doc(doc)
 
@@ -948,7 +933,7 @@ def save_course_progress(user_id: str, payload: Dict[str, Any]) -> Dict[str, Any
     if "progress" in payload and payload["progress"] is not None:
         progress_update["progress"] = max(0, min(100, int(payload["progress"])))
 
-    modules_input: List[Dict[str, Any]] = []  # Initialize to avoid unbound error
+    modules_input: List[Dict[str, Any]] = []
     if "modules" in payload and payload["modules"] is not None:
         for module in payload["modules"]:
             module_id = module.get("module_id")
@@ -1259,11 +1244,6 @@ def list_user_enrollments(user_id: str) -> List[str]:
     return [doc.get("course_slug") for doc in docs if doc.get("course_slug")]
 
 
-# ================================
-# Assessment Functions
-# ================================
-
-
 def submit_assessment(
     user_id: str, course_slug: str, module_id: str, answers: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
@@ -1279,12 +1259,11 @@ def submit_assessment(
     Returns:
         Dict containing the attempt details, score, and pass/fail status
     """
-    # Get the course to retrieve assessment questions
+
     course_doc = get_course_detail(course_slug, user_id)
     if not course_doc:
         raise HTTPException(status_code=404, detail="Course not found")
 
-    # Find the module and its assessment
     module = None
     for mod in course_doc.get("modules", []):
         if mod.get("id") == module_id:
@@ -1308,7 +1287,6 @@ def submit_assessment(
     if not questions:
         raise HTTPException(status_code=404, detail="Assessment has no questions")
 
-    # Calculate score
     total_questions = len(questions)
     correct_answers = 0
     processed_answers = []
@@ -1329,7 +1307,6 @@ def submit_assessment(
         selected_option = options[selected_option_index]
         print(f"🔍 Q{question_index}: selected option = {selected_option}")
 
-        # Check both snake_case and camelCase
         is_correct = (
             selected_option.get("is_correct") == True
             or selected_option.get("isCorrect") == True
@@ -1349,9 +1326,8 @@ def submit_assessment(
         )
 
     score = (correct_answers / total_questions * 100) if total_questions > 0 else 0
-    passed = score >= 80.0  # 80% passing criteria
+    passed = score >= 80.0
 
-    # Get current attempt number
     collection = get_assessment_attempts_collection()
     if collection is None:
         raise HTTPException(status_code=503, detail="Database unavailable")
@@ -1372,7 +1348,6 @@ def submit_assessment(
     if existing_attempts:
         attempt_number = existing_attempts[0].get("attempt_number", 0) + 1
 
-    # Create attempt record
     attempt_id = str(uuid4())
     completed_at = datetime.now(timezone.utc)
 
@@ -1391,7 +1366,6 @@ def submit_assessment(
 
     collection.insert_one(attempt_doc)
 
-    # Update course progress with assessment status
     _update_assessment_progress(user_id, course_slug, module_id, score, passed)
 
     return {
@@ -1430,7 +1404,6 @@ def get_assessment_history(
 
     attempts = list(collection.find(query).sort("completed_at", -1))
 
-    # Remove MongoDB's _id field
     for attempt in attempts:
         attempt.pop("_id", None)
 
@@ -1447,7 +1420,6 @@ def _update_assessment_progress(
     if progress_collection is None:
         return
 
-    # Get current progress
     progress_doc = progress_collection.find_one(
         {
             "user_id": user_id,
@@ -1461,18 +1433,16 @@ def _update_assessment_progress(
         )
         return
 
-    # Find the module and update assessment status
     modules = progress_doc.get("modules", [])
     module_updated = False
 
     for module in modules:
         if module.get("module_id") == module_id:
-            # Update assessment status
+
             current_best = module.get("best_score", 0)
             module["best_score"] = max(current_best, score)
             module["attempt_count"] = module.get("attempt_count", 0) + 1
 
-            # Once passed, always keep as passed (even if they fail on retake)
             current_status = module.get("assessment_status", "not_started")
             if passed or current_status == "passed":
                 module["assessment_status"] = "passed"

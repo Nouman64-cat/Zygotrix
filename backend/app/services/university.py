@@ -231,13 +231,9 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
 
     modules_payload = []
     for idx, module in enumerate(course.get("courseModules") or []):
-        print(f"📦 DEBUG: Processing module {idx}: {module.get('title')}")
         logger.info(f"📦 Processing module {idx}: {module.get('title')}")
         logger.info(f"   Assessment data present: {bool(module.get('assessment'))}")
         if module.get("assessment"):
-            print(
-                f"   DEBUG: Module has assessment! assessmentQuestions = {module.get('assessment', {}).get('assessmentQuestions')}"
-            )
             logger.info(
                 f"   Assessment questions count: {len(module.get('assessment', {}).get('assessmentQuestions', []))}"
             )
@@ -268,19 +264,12 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
         # Process assessment data
         assessment_payload = None
         assessment_data = module.get("assessment")
-        print(f"🔍 DEBUG: Module assessment_data = {assessment_data}")
         if assessment_data:
-            print(
-                f"🔍 DEBUG: Inside assessment_data block for module '{module.get('title')}'"
-            )
             logger.info(
                 f"🔍 Processing assessment for module '{module.get('title')}': {assessment_data}"
             )
             questions_payload = []
             assessment_questions = assessment_data.get("assessmentQuestions") or []
-            print(
-                f"🔍 DEBUG: assessmentQuestions = {assessment_questions}, length = {len(assessment_questions)}"
-            )
             for question in assessment_questions:
                 logger.info(f"🔍 Processing question: {question}")
                 # Extract prompt - it's a dict with {markdown: "..."} from Hygraph
@@ -320,14 +309,10 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
                 )
             if questions_payload:
                 assessment_payload = {"assessment_questions": questions_payload}
-                print(
-                    f"✅ DEBUG: Created assessment_payload with {len(questions_payload)} questions"
-                )
                 logger.info(
                     f"✅ Created assessment payload with {len(questions_payload)} questions"
                 )
             else:
-                print(f"⚠️ DEBUG: questions_payload is empty!")
                 logger.warning(f"⚠️ No questions created for assessment")
 
         modules_payload.append(
@@ -453,15 +438,12 @@ def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
         return _hygraph_course_cache[1]
 
     logger.info("🔄 Fetching courses from Hygraph...")
-    print("🔄 DEBUG: Fetching courses from Hygraph...")
     data = _execute_hygraph_query(HYGRAPH_COURSES_QUERY)
     if not data:
         logger.warning("⚠️  No data returned from Hygraph for courses")
-        print("⚠️ DEBUG: No data returned from Hygraph for courses")
         return None
 
     courses_raw = data.get("courses") or []
-    print(f"📚 DEBUG: Found {len(courses_raw)} courses in Hygraph response")
     logger.info("📚 Found %d courses in Hygraph response", len(courses_raw))
 
     converted = [_convert_hygraph_course_to_document(course) for course in courses_raw]
@@ -634,10 +616,6 @@ def _serialize_course(
                             "video": None,
                         }
                     )
-
-            print(
-                f"📊 DEBUG: About to serialize assessment for module '{module.get('title')}': {module.get('assessment')}"
-            )
             modules.append(
                 {
                     "id": module_id,
@@ -652,9 +630,6 @@ def _serialize_course(
                         module.get("assessment")
                     ),
                 }
-            )
-            print(
-                f"📊 DEBUG: After serialization, assessment = {modules[-1]['assessment']}"
             )
 
         course["modules"] = modules
@@ -686,20 +661,13 @@ def _serialize_module_assessment(assessment: Any) -> Optional[Dict[str, Any]]:
     nested `prompt.markdown` and `explanation.markdown` and options containing
     `text` and `isCorrect`.
     """
-    print(f"🔄 DEBUG _serialize_module_assessment called with: {assessment}")
     if not assessment or not isinstance(assessment, dict):
-        print(
-            f"⚠️ DEBUG _serialize_module_assessment: assessment is None or not dict, returning None"
-        )
         return None
 
     questions = (
         assessment.get("assessment_questions")
         or assessment.get("assessmentQuestions")
         or []
-    )
-    print(
-        f"🔍 DEBUG _serialize_module_assessment: extracted {len(questions)} questions"
     )
     out_questions = []
     for q in questions:
@@ -754,7 +722,6 @@ def _serialize_module_assessment(assessment: Any) -> Optional[Dict[str, Any]]:
         )
 
     result = {"assessmentQuestions": out_questions} if out_questions else None
-    print(f"✅ DEBUG _serialize_module_assessment returning: {result}")
     return result
 
 
@@ -943,9 +910,6 @@ def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
             "attempt_count": module.get("attempt_count"),
             "items": items_payload,
         }
-        print(
-            f"🔍 DEBUG: Serializing module {module_data['module_id']}: assessment_status={module_data['assessment_status']}, best_score={module_data['best_score']}"
-        )
         modules.append(module_data)
 
     metrics = doc.get("metrics") or {}
@@ -1336,13 +1300,11 @@ def submit_assessment(
             status_code=404, detail="No assessment found for this module"
         )
 
-    print(f"🔍 DEBUG submit_assessment - assessment object: {assessment}")
     questions = (
         assessment.get("assessment_questions")
         or assessment.get("assessmentQuestions")
         or []
     )
-    print(f"🔍 DEBUG submit_assessment - questions count: {len(questions)}")
     if not questions:
         raise HTTPException(status_code=404, detail="Assessment has no questions")
 
@@ -1493,7 +1455,6 @@ def _update_assessment_progress(
         }
     )
 
-    print(f"🔍 DEBUG: Found progress_doc: {progress_doc is not None}")
     if not progress_doc:
         print(
             f"⚠️ WARNING: No progress document found for user {user_id}, course {course_slug}"
@@ -1502,8 +1463,6 @@ def _update_assessment_progress(
 
     # Find the module and update assessment status
     modules = progress_doc.get("modules", [])
-    print(f"🔍 DEBUG: Found {len(modules)} modules in progress document")
-    print(f"🔍 DEBUG: Looking for module_id: {module_id}")
     module_updated = False
 
     for module in modules:
@@ -1519,22 +1478,11 @@ def _update_assessment_progress(
                 module["assessment_status"] = "passed"
             else:
                 module["assessment_status"] = "attempted"
-
-            print(
-                f"✅ DEBUG: Updated assessment progress for module {module_id}: status={module['assessment_status']}, score={score}, best_score={module['best_score']}"
-            )
             module_updated = True
             break
-
-    if not module_updated:
-        print(f"⚠️ WARNING: Module {module_id} not found in progress document")
-        print(f"📋 Available module IDs: {[m.get('module_id') for m in modules]}")
 
     if module_updated:
         result = progress_collection.update_one(
             {"user_id": user_id, "course_slug": course_slug},
             {"$set": {"modules": modules, "updated_at": datetime.now(timezone.utc)}},
-        )
-        print(
-            f"💾 DEBUG: Database update result: matched={result.matched_count}, modified={result.modified_count}"
         )

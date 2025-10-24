@@ -283,14 +283,27 @@ const mapProgressModules = (
     };
   });
 
+  // Track both module IDs and titles to prevent duplicates
   const mappedModuleIds = new Set(mapped.map((module) => module.moduleId));
+  const mappedModuleTitles = new Set(
+    mapped
+      .map((module) => module.title)
+      .filter((title): title is string => !!title)
+  );
 
   courseModules.forEach((courseModule, index) => {
     const moduleId =
       courseModule.id ?? courseModule.title ?? `course-module-${index}`;
-    if (mappedModuleIds.has(moduleId)) {
+    const moduleTitle = courseModule.title;
+
+    // Skip if we already have this module (by ID or by title to avoid duplicates)
+    if (
+      mappedModuleIds.has(moduleId) ||
+      (moduleTitle && mappedModuleTitles.has(moduleTitle))
+    ) {
       return;
     }
+
     mapped.push({
       moduleId,
       title: courseModule.title ?? null,
@@ -307,6 +320,12 @@ const mapProgressModules = (
         completed: false,
       })),
     });
+
+    // Track the newly added module to prevent further duplicates
+    mappedModuleIds.add(moduleId);
+    if (moduleTitle) {
+      mappedModuleTitles.add(moduleTitle);
+    }
   });
 
   return mapped;

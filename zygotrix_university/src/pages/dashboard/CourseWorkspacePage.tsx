@@ -28,6 +28,7 @@ const DashboardCourseWorkspacePage = () => {
     toggleItem,
     activeLesson,
     setActiveLesson,
+    refetch,
   } = useCourseWorkspace(slug);
 
   const [assessmentOpen, setAssessmentOpen] = useState(false);
@@ -39,14 +40,39 @@ const DashboardCourseWorkspacePage = () => {
   const [isSubmittingAssessment, setIsSubmittingAssessment] = useState(false);
 
   const completionSummary = useMemo(() => {
-    if (!progress || progress.modules.length === 0) {
+    if (!progress || progress.modules.length === 0 || !course) {
       return 0;
     }
+
+    // Calculate completion including assessments for each module
+    const moduleCompletions = progress.modules.map((module) => {
+      const metaModule = course.modules.find(
+        (m) => m.id === module.moduleId || m.title === module.title
+      );
+
+      const hasAssessment = !!metaModule?.assessment;
+      const totalItems = module.items.length;
+      const completedItems = module.items.filter(
+        (item) => item.completed
+      ).length;
+
+      // If there's an assessment, include it in the total count
+      const totalWithAssessment = hasAssessment ? totalItems + 1 : totalItems;
+      const completedWithAssessment =
+        hasAssessment && module.assessmentStatus === "passed"
+          ? completedItems + 1
+          : completedItems;
+
+      return totalWithAssessment > 0
+        ? Math.round((completedWithAssessment / totalWithAssessment) * 100)
+        : module.completion;
+    });
+
     return Math.round(
-      progress.modules.reduce((sum, module) => sum + module.completion, 0) /
-        progress.modules.length
+      moduleCompletions.reduce((sum, completion) => sum + completion, 0) /
+        moduleCompletions.length
     );
-  }, [progress]);
+  }, [progress, course]);
 
   const activeLessonMeta = useMemo(() => {
     if (!course || !activeLesson) {
@@ -191,10 +217,17 @@ const DashboardCourseWorkspacePage = () => {
   };
 
   const handleCloseResults = () => {
+    console.log("🔄 Closing assessment results and refetching progress...");
     setAssessmentResult(null);
     setActiveAssessmentModule(null);
-  };
 
+    // DON'T clear localStorage - it contains important lesson completion data
+    // The backend should be the source of truth for assessment status
+    // Just refetch to get the latest data
+
+    // Refetch progress to get updated assessment status from backend
+    refetch();
+  };
   if (loading) {
     return (
       <div className="space-y-12">
@@ -301,19 +334,40 @@ const DashboardCourseWorkspacePage = () => {
           <div className="space-y-3">
             {progress &&
               progress.modules.map((module, moduleIndex) => {
+                console.log(`📊 Module ${moduleIndex + 1}:`, {
+                  title: module.title,
+                  assessmentStatus: module.assessmentStatus,
+                  bestScore: module.bestScore,
+                  attemptCount: module.attemptCount,
+                });
+
                 const metaModule = course.modules.find(
                   (baseModule) =>
                     baseModule.id === module.moduleId ||
                     baseModule.title === module.title
                 );
 
+                // Calculate completion including assessment if it exists
+                const hasAssessment = !!metaModule?.assessment;
                 const totalItems = module.items.length;
                 const completedItems = module.items.filter(
                   (item) => item.completed
                 ).length;
+
+                // If there's an assessment, include it in the total count
+                const totalWithAssessment = hasAssessment
+                  ? totalItems + 1
+                  : totalItems;
+                const completedWithAssessment =
+                  hasAssessment && module.assessmentStatus === "passed"
+                    ? completedItems + 1
+                    : completedItems;
+
                 const actualCompletion =
-                  totalItems > 0
-                    ? Math.round((completedItems / totalItems) * 100)
+                  totalWithAssessment > 0
+                    ? Math.round(
+                        (completedWithAssessment / totalWithAssessment) * 100
+                      )
                     : module.completion;
 
                 return (
@@ -337,8 +391,8 @@ const DashboardCourseWorkspacePage = () => {
                           {module.title}
                         </h3>
                         <p className="text-xs text-muted">
-                          {completedItems}/{totalItems} lessons ·{" "}
-                          {actualCompletion}%
+                          {completedWithAssessment}/{totalWithAssessment} items
+                          · {actualCompletion}%
                         </p>
                       </div>
                     </button>
@@ -402,20 +456,26 @@ const DashboardCourseWorkspacePage = () => {
                             disabled={completedItems < totalItems}
                             className={cn(
                               "w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition-all",
-                              completedItems === totalItems
+                              module.assessmentStatus === "passed"
+                                ? "bg-green-500/10 text-green-400 border border-green-500/30"
+                                : completedItems === totalItems
                                 ? "bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer border border-accent/30"
                                 : "bg-background-subtle text-muted cursor-not-allowed opacity-50"
                             )}
                           >
                             <div className="flex items-center gap-2">
-                              <FiFileText className="h-3.5 w-3.5 flex-shrink-0" />
+                              {module.assessmentStatus === "passed" ? (
+                                <FiCheckCircle className="h-3.5 w-3.5 flex-shrink-0 text-green-400" />
+                              ) : (
+                                <FiFileText className="h-3.5 w-3.5 flex-shrink-0" />
+                              )}
                               <div className="flex-1">
                                 <div className="font-semibold">
                                   Module Assessment
                                 </div>
                                 {module.assessmentStatus === "passed" && (
                                   <div className="text-[10px] text-green-400 mt-0.5">
-                                    ✓ Passed ({module.bestScore}%)
+                                    Passed ({module.bestScore}%)
                                   </div>
                                 )}
                                 {module.assessmentStatus === "attempted" && (

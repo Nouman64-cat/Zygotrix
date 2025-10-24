@@ -96,12 +96,14 @@ class ProgressRepository:
         # Get current progress
         progress_doc = self.find_by_user_and_course(user_id, course_slug)
         if not progress_doc:
+            print(f"❌ No progress document found for user {user_id}, course {course_slug}")
             return False
 
         # Find the module and update it
         modules = progress_doc.get("modules", [])
         module_updated = False
 
+        print(f"🔍 Looking for module {module_id} in {len(modules)} modules")
         for module in modules:
             if module.get("module_id") == module_id:
                 # Update assessment fields
@@ -116,10 +118,12 @@ class ProgressRepository:
                 else:
                     module["assessment_status"] = "attempted"
 
+                print(f"✅ Updated module {module_id}: status={module['assessment_status']}, score={module['best_score']}, attempts={module['attempt_count']}")
                 module_updated = True
                 break
 
         if not module_updated:
+            print(f"❌ Module {module_id} not found in progress document!")
             return False
 
         # Save the updated modules back to the database
@@ -128,6 +132,7 @@ class ProgressRepository:
             {"$set": {"modules": modules, "updated_at": datetime.now(timezone.utc)}},
         )
 
+        print(f"💾 Database update result: modified_count={result.modified_count}")
         return result.modified_count > 0
 
     def get_all_user_progress(self, user_id: str) -> List[Dict[str, Any]]:

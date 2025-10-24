@@ -185,7 +185,7 @@ const mapModules = (
       ).items ?? [];
 
     const extendedModule = module as unknown as {
-      assessment_status?: "not-attempted" | "attempted" | "passed" | null;
+      assessment_status?: "not_started" | "attempted" | "passed" | null;
       best_score?: number | null;
       attempt_count?: number | null;
     };
@@ -196,7 +196,12 @@ const mapModules = (
       status: module.status ?? "in-progress",
       duration: module.duration ?? null,
       completion: module.completion ?? 0,
-      assessmentStatus: extendedModule.assessment_status ?? "not-attempted",
+      assessmentStatus:
+        extendedModule.assessment_status === null ||
+        extendedModule.assessment_status === "not_started" ||
+        extendedModule.assessment_status === undefined
+          ? "not-attempted"
+          : extendedModule.assessment_status,
       bestScore: extendedModule.best_score ?? null,
       attemptCount: extendedModule.attempt_count ?? null,
       items: items.map((item) => ({
@@ -265,11 +270,20 @@ const mapProgressModules = (
       }
     });
 
-    // Map backend assessment status (null, "attempted", "passed") to frontend format
-    const assessmentStatus =
-      module.assessment_status === null
+    // Map backend assessment status to frontend format
+    // Backend uses: null, "not_started", "attempted", "passed"
+    // Frontend uses: "not-attempted", "attempted", "passed"
+    console.log(
+      `🔍 Module ${module.module_id} assessment_status from backend:`,
+      module.assessment_status
+    );
+    const assessmentStatus: "not-attempted" | "attempted" | "passed" =
+      module.assessment_status === null ||
+      module.assessment_status === "not_started" ||
+      module.assessment_status === undefined
         ? "not-attempted"
-        : module.assessment_status;
+        : (module.assessment_status as "attempted" | "passed");
+    console.log(`✅ Mapped to frontend assessmentStatus:`, assessmentStatus);
     return {
       moduleId: module.module_id,
       title: module.title ?? courseModule?.title ?? null,

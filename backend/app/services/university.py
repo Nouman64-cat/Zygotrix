@@ -706,6 +706,9 @@ def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
                 }
             )
 
+        assessment_status_raw = module.get("assessment_status")
+        print(f"📤 Serializing module {module.get('module_id')}: assessment_status={assessment_status_raw}, best_score={module.get('best_score')}, attempt_count={module.get('attempt_count')}")
+        
         modules.append(
             {
                 "module_id": module.get("module_id"),
@@ -713,7 +716,7 @@ def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
                 "status": module.get("status", "in-progress"),
                 "duration": module.get("duration"),
                 "completion": module.get("completion", 0),
-                "assessment_status": module.get("assessment_status"),
+                "assessment_status": module.get("assessment_status") or "not_started",
                 "best_score": module.get("best_score"),
                 "attempt_count": module.get("attempt_count"),
                 "items": items_payload,

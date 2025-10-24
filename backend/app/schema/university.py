@@ -174,6 +174,13 @@ class LearningEventModel(BaseModel):
     course_slug: Optional[str] = None
 
 
+class CourseProgressItemModel(BaseModel):
+    """Model for individual module items (lessons)."""
+    module_item_id: str
+    title: Optional[str] = None
+    completed: bool = False
+
+
 class CourseProgressModuleModel(BaseModel):
     module_id: str
     title: Optional[str] = None
@@ -182,6 +189,13 @@ class CourseProgressModuleModel(BaseModel):
     )
     duration: Optional[str] = None
     completion: conint(ge=0, le=100) = 0
+    assessment_status: Optional[str] = Field(
+        default=None,
+        pattern="^(not_started|attempted|passed)$"
+    )
+    best_score: Optional[confloat(ge=0, le=100)] = None
+    attempt_count: Optional[int] = Field(default=None, ge=0)
+    items: List[CourseProgressItemModel] = Field(default_factory=list)
 
 
 class CourseProgressMetricsModel(BaseModel):

@@ -165,11 +165,21 @@ export const useCourseWorkspace = (
                 ? "in-progress"
                 : serverModule.status; // Keep server status if no progress
 
+            console.log(`🔀 Merging module "${serverModule.title}":`, {
+              serverAssessmentStatus: serverModule.assessmentStatus,
+              serverBestScore: serverModule.bestScore,
+              willUse: "server values (not from localStorage)",
+            });
+
             return {
               ...serverModule,
               items: mergedItems,
               completion: actualCompletion,
               status,
+              // Explicitly keep server assessment data (don't let it be overridden)
+              assessmentStatus: serverModule.assessmentStatus,
+              bestScore: serverModule.bestScore,
+              attemptCount: serverModule.attemptCount,
             };
           });
 

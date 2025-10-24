@@ -49,9 +49,9 @@ class ServiceFactory:
 
     def get_assessment_service(self) -> AssessmentService:
         """Get AssessmentService instance."""
-        return AssessmentService(
-            assessment_repo=self.assessment_repo, progress_repo=self.progress_repo
-        )
+        # AssessmentService currently manages its own repository instances.
+        # If DI is needed later, update AssessmentService to accept optional deps.
+        return AssessmentService()
 
 
 # Global service factory instance

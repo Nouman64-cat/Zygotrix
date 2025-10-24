@@ -110,10 +110,15 @@ export const fetchEnrollments = async (): Promise<string[]> => {
 export const submitAssessment = async (
   payload: ApiAssessmentSubmission
 ): Promise<ApiAssessmentResultResponse> => {
+  console.log("🎯 submitAssessment called with payload:", payload);
+  console.log("📝 Answers being sent:", payload.answers);
+
   const response = await apiClient.post<ApiAssessmentResultResponse>(
     API_ROUTES.university.submitAssessment,
     payload
   );
+
+  console.log("✅ Assessment submission response:", response.data);
   return response.data;
 };
 

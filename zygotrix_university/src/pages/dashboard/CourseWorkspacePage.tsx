@@ -165,9 +165,14 @@ const DashboardCourseWorkspacePage = () => {
         module_id: activeAssessmentModule,
         answers: answers,
       });
-      const module = course?.modules.find(
-        (m) => m.id === activeAssessmentModule
+      // Find the course module either by exact ID match (Hygraph ID)
+      // or fall back to matching by title from the progress module
+      const progressModule = progress?.modules.find(
+        (pm) => pm.moduleId === activeAssessmentModule
       );
+      const module =
+        course?.modules.find((m) => m.id === activeAssessmentModule) ||
+        course?.modules.find((m) => m.title === progressModule?.title);
       const assessment = module?.assessment;
 
       if (assessment) {
@@ -732,9 +737,15 @@ const DashboardCourseWorkspacePage = () => {
       {activeAssessmentModule &&
         course &&
         (() => {
-          const activeModule = course.modules.find(
-            (m) => m.id === activeAssessmentModule
+          // Find the course module either by exact ID match (Hygraph ID)
+          // or fall back to matching by title from the progress module
+          const progressModule = progress?.modules.find(
+            (pm) => pm.moduleId === activeAssessmentModule
           );
+          const activeModule =
+            course.modules.find((m) => m.id === activeAssessmentModule) ||
+            course.modules.find((m) => m.title === progressModule?.title);
+
           const assessment = activeModule?.assessment || {
             assessmentQuestions: [],
           };
@@ -757,10 +768,15 @@ const DashboardCourseWorkspacePage = () => {
           isOpen={!!assessmentResult}
           onClose={handleCloseResults}
           result={assessmentResult}
-          moduleTitle={
-            course.modules.find((m) => m.id === activeAssessmentModule)
-              ?.title || "Module"
-          }
+          moduleTitle={(() => {
+            const progressModule = progress?.modules.find(
+              (pm) => pm.moduleId === activeAssessmentModule
+            );
+            const activeModule =
+              course.modules.find((m) => m.id === activeAssessmentModule) ||
+              course.modules.find((m) => m.title === progressModule?.title);
+            return activeModule?.title || "Module";
+          })()}
         />
       )}
     </div>

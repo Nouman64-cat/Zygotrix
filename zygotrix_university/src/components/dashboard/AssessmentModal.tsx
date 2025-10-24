@@ -67,6 +67,16 @@ const AssessmentModal = ({
   const totalQuestions = shuffledQuestions.length;
   const allAnswered = Object.keys(selectedAnswers).length === totalQuestions;
 
+  // Always call hooks before any early returns
+  useEffect(() => {
+    if (!isOpen) {
+      // Reset state when modal closes
+      setCurrentQuestionIndex(0);
+      setSelectedAnswers({});
+      setShowConfirmSubmit(false);
+    }
+  }, [isOpen]);
+
   // Show error if no questions available
   if (!isOpen) return null;
 
@@ -93,15 +103,6 @@ const AssessmentModal = ({
       </div>
     );
   }
-
-  useEffect(() => {
-    if (!isOpen) {
-      // Reset state when modal closes
-      setCurrentQuestionIndex(0);
-      setSelectedAnswers({});
-      setShowConfirmSubmit(false);
-    }
-  }, [isOpen]);
 
   const handleSelectOption = (shuffledIndex: number) => {
     const originalOptionIndex =
@@ -139,6 +140,10 @@ const AssessmentModal = ({
         isCorrect: false, // Will be set by backend
       })
     );
+
+    console.log("🎯 AssessmentModal: Submitting answers:", userAnswers);
+    console.log("📊 Total questions answered:", userAnswers.length);
+    console.log("📊 Total questions in assessment:", shuffledQuestions.length);
 
     await onSubmit(userAnswers);
     setShowConfirmSubmit(false);

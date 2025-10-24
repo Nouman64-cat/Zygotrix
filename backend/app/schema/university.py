@@ -5,7 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, conint, confloat
+from pydantic import BaseModel, Field, conint, confloat, ConfigDict
 
 
 class InstructorModel(BaseModel):
@@ -35,12 +35,10 @@ class CourseModuleItemModel(BaseModel):
 
 
 class AssessmentQuestionOptionModel(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     text: str
     isCorrect: Optional[bool] = Field(default=None, alias="is_correct")
-
-    class Config:
-        populate_by_name = True
-        by_alias = False  # Use field names (camelCase) in responses, not aliases
 
 
 class MarkdownContentModel(BaseModel):
@@ -54,13 +52,11 @@ class AssessmentQuestionModel(BaseModel):
 
 
 class AssessmentModel(BaseModel):
+    model_config = ConfigDict(populate_by_name=True)
+
     assessmentQuestions: List[AssessmentQuestionModel] = Field(
         default_factory=list, alias="assessment_questions"
     )
-
-    class Config:
-        populate_by_name = True
-        by_alias = False  # Use field names (camelCase) in responses, not aliases
 
 
 class CourseModuleModel(BaseModel):

@@ -162,23 +162,177 @@ HYGRAPH_PRACTICE_SETS_QUERY = """
 def submit_assessment(
     user_id: str, course_slug: str, module_id: str, answers: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
-    """Submit assessment - delegates to AssessmentService."""
+    """Submit assessment - delegates to AssessmentService.
+
+    Fetches the module's assessment questions from the course detail to grade answers.
+    Handles legacy module_id mismatch by falling back to title-based lookup via progress.
+    """
     logger.info(
         f"🎯 submit_assessment called for {user_id}, {course_slug}, {module_id}"
     )
 
+    # Fetch course detail to obtain assessment questions
+    course = get_course_detail(course_slug, user_id=None)
+    if not course or not isinstance(course, dict):
+        raise HTTPException(status_code=404, detail="Course not found for assessment")
+
+    modules = course.get("modules") or []
+    logger.info(f"📚 Found {len(modules)} modules in course")
+    logger.info(f"🔍 Looking for module_id: {module_id}")
+
+    # Log all module IDs for debugging
+    for idx, m in enumerate(modules):
+        logger.info(f"  Module {idx}: id={m.get('id')}, title={m.get('title')}")
+
+    # Try to locate module by exact ID first
+    target_module = next((m for m in modules if m.get("id") == module_id), None)
+
+    if target_module:
+        logger.info(f"✅ Found module by exact ID: {target_module.get('title')}")
+
+    # If not found, fall back to matching by title from user's progress (moduleId may be a slug-like ID)
+    if target_module is None:
+        logger.warning(f"⚠️ Module not found by ID, trying progress lookup...")
+        try:
+            progress = get_course_progress(user_id, course_slug)
+            progress_module = None
+            if progress and isinstance(progress, dict):
+                for pm in progress.get("modules", []):
+                    if pm.get("moduleId") == module_id:
+                        progress_module = pm
+                        break
+            if progress_module:
+                title = progress_module.get("title")
+                logger.info(f"🔍 Progress module title: {title}")
+                if title:
+                    target_module = next(
+                        (m for m in modules if m.get("title") == title), None
+                    )
+                    if target_module:
+                        logger.info(f"✅ Found module by title: {title}")
+        except Exception as lookup_err:
+            logger.warning(f"⚠️ Fallback module lookup by title failed: {lookup_err}")
+
+    # Heuristic: try to infer title from slug-like module_id (e.g., "module-1-ai-ethics-foundations")
+    if target_module is None and isinstance(module_id, str):
+        logger.warning(f"⚠️ Trying heuristic slug-to-title matching...")
+        try:
+            import re
+
+            # Remove leading "module-<num>-" if present
+            slug_core = re.sub(r"^module-\d+-", "", module_id)
+            # Replace dashes/underscores with spaces and normalize
+            slug_title = slug_core.replace("-", " ").replace("_", " ").lower()
+            logger.info(f"🔍 Normalized slug: '{slug_title}'")
+
+            def norm(s: str) -> str:
+                return re.sub(r"[^a-z0-9 ]", "", s.lower()).strip()
+
+            norm_slug = norm(slug_title)
+            # First try exact normalized title match
+            for m in modules:
+                module_title = str(m.get("title", ""))
+                norm_title = norm(module_title)
+                logger.info(
+                    f"  Comparing '{norm_slug}' with '{norm_title}' ({module_title})"
+                )
+                if norm_title == norm_slug:
+                    target_module = m
+                    logger.info(
+                        f"✅ Found module by normalized title match: {module_title}"
+                    )
+                    break
+
+            # Then try contains
+            if target_module is None:
+                for m in modules:
+                    module_title = str(m.get("title", ""))
+                    norm_title = norm(module_title)
+                    if norm_slug and norm_slug in norm_title:
+                        target_module = m
+                        logger.info(f"✅ Found module by partial match: {module_title}")
+                        break
+        except Exception as lookup_err2:
+            logger.warning(f"⚠️ Heuristic module lookup from slug failed: {lookup_err2}")
+
+    # Last-resort: pick the first module that has non-empty assessment questions
+    if target_module is None:
+        logger.warning(f"⚠️ Using last-resort: first module with assessment questions")
+        with_questions = [
+            m
+            for m in modules
+            if isinstance(m.get("assessment"), dict)
+            and (
+                (m["assessment"].get("assessmentQuestions") or [])
+                or (m["assessment"].get("assessment_questions") or [])
+            )
+        ]
+        if with_questions:
+            target_module = with_questions[0]
+            logger.info(
+                f"✅ Using first module with assessment questions as fallback: {target_module.get('title')}"
+            )
+
+    # Extract questions array from module's assessment
+    questions: List[Dict[str, Any]] = []
+    if target_module:
+        assessment = target_module.get("assessment") or {}
+        # Support both camelCase and snake_case keys just in case
+        questions = (
+            assessment.get("assessmentQuestions")
+            or assessment.get("assessment_questions")
+            or []
+        )
+        logger.info(
+            f"📝 Extracted {len(questions)} questions from module '{target_module.get('title')}'"
+        )
+    else:
+        logger.error(f"❌ No module found for module_id: {module_id}")
+
     assessment_service = _service_factory.get_assessment_service()
+
+    # Normalize answer keys to snake_case if they arrived as camelCase
+    normalized_answers: List[Dict[str, Any]] = []
+    for a in answers or []:
+        if not isinstance(a, dict):
+            continue
+        if "question_index" in a or "selected_option_index" in a:
+            normalized_answers.append(a)
+        else:
+            normalized_answers.append(
+                {
+                    "question_index": a.get("question_index", a.get("questionIndex")),
+                    "selected_option_index": a.get(
+                        "selected_option_index", a.get("selectedOptionIndex")
+                    ),
+                    "is_correct": a.get("is_correct", a.get("isCorrect")),
+                }
+            )
+
+    logger.info(f"📥 Received {len(answers)} answers from frontend")
+    logger.info(f"📤 Sending {len(normalized_answers)} normalized answers to grader")
+    logger.info(f"📝 Sending {len(questions)} questions to grader")
+
+    if len(questions) == 0:
+        logger.error(f"❌ CRITICAL: No questions found! Module lookup failed.")
+        logger.error(f"   module_id={module_id}, target_module={target_module}")
+        logger.error(
+            f"   This will result in 0% score. Investigate module matching logic."
+        )
 
     try:
         result = assessment_service.submit_assessment(
             user_id=user_id,
             course_slug=course_slug,
             module_id=module_id,
-            answers=answers,
+            questions=questions,
+            answers=normalized_answers,
         )
         logger.info(f"✅ Assessment submitted successfully: {result}")
         return result
 
+    except HTTPException:
+        raise
     except Exception as e:
         logger.error(f"❌ Error submitting assessment via AssessmentService: {e}")
         raise HTTPException(status_code=500, detail=str(e)) from e

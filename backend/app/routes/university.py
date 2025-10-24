@@ -67,7 +67,11 @@ def list_courses(detail: bool = Query(False)) -> CourseListResponse:
     return CourseListResponse(courses=courses)
 
 
-@router.get("/courses/{slug}", response_model=CourseDetailResponse)
+@router.get(
+    "/courses/{slug}",
+    response_model=CourseDetailResponse,
+    response_model_by_alias=False,
+)
 def get_course(
     slug: str,
     current_user: Optional[UserProfile] = Depends(get_current_user_optional),
@@ -151,13 +155,29 @@ def list_enrollments(
 
 
 @router.post(
-    "/assessments/submit", response_model=AssessmentResultResponse, status_code=201
+    "/assessments/submit",
+    response_model=AssessmentResultResponse,
+    status_code=201,
+    response_model_by_alias=True,
 )
 def submit_assessment(
     payload: AssessmentSubmissionRequest,
     current_user: UserProfile = Depends(get_current_user_required),
 ) -> AssessmentResultResponse:
     """Submit an assessment and get the results."""
+    import logging
+
+    logger = logging.getLogger(__name__)
+
+    logger.info(f"🎯 Assessment submission route hit")
+    logger.info(f"   user_id: {current_user.id}")
+    logger.info(f"   course_slug: {payload.course_slug}")
+    logger.info(f"   module_id: {payload.module_id}")
+    logger.info(f"   answers count: {len(payload.answers)}")
+
+    for idx, answer in enumerate(payload.answers):
+        logger.info(f"   Answer {idx}: {answer.dict()}")
+
     result = university_services.submit_assessment(
         user_id=current_user.id,
         course_slug=payload.course_slug,
@@ -168,7 +188,9 @@ def submit_assessment(
 
 
 @router.get(
-    "/assessments/history/{course_slug}", response_model=AssessmentHistoryResponse
+    "/assessments/history/{course_slug}",
+    response_model=AssessmentHistoryResponse,
+    response_model_by_alias=True,
 )
 def get_assessment_history(
     course_slug: str,

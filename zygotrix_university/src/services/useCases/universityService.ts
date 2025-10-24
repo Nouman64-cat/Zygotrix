@@ -122,14 +122,15 @@ const mapCourse = (
         })),
         assessment: (() => {
           const assessmentData = module.assessment;
-
           if (!assessmentData) return null;
 
+          const questions =
+            (assessmentData as any).assessmentQuestions ||
+            (assessmentData as any).assessment_questions ||
+            [];
+
           return {
-            assessmentQuestions:
-              (assessmentData as any).assessmentQuestions ||
-              (assessmentData as any).assessment_questions ||
-              [],
+            assessmentQuestions: questions,
           };
         })(),
       };

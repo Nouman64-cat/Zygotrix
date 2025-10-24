@@ -34,12 +34,40 @@ class CourseModuleItemModel(BaseModel):
     video: Optional[VideoModel] = None
 
 
+class AssessmentQuestionOptionModel(BaseModel):
+    text: str
+    isCorrect: Optional[bool] = Field(default=None, alias="is_correct")
+
+    class Config:
+        populate_by_name = True
+
+
+class MarkdownContentModel(BaseModel):
+    markdown: str
+
+
+class AssessmentQuestionModel(BaseModel):
+    prompt: MarkdownContentModel
+    explanation: MarkdownContentModel
+    options: List[AssessmentQuestionOptionModel] = Field(default_factory=list)
+
+
+class AssessmentModel(BaseModel):
+    assessmentQuestions: List[AssessmentQuestionModel] = Field(
+        default_factory=list, alias="assessment_questions"
+    )
+
+    class Config:
+        populate_by_name = True
+
+
 class CourseModuleModel(BaseModel):
     id: Optional[str] = None
     title: str
     duration: Optional[str] = None
     description: Optional[str] = None
     items: List[CourseModuleItemModel] = Field(default_factory=list)
+    assessment: Optional[AssessmentModel] = None
 
 
 class PracticeAnswerModel(BaseModel):
@@ -226,3 +254,46 @@ class CourseEnrollmentRequest(BaseModel):
 class CourseEnrollmentResponse(BaseModel):
     message: str
     enrolled: bool
+
+
+# Assessment-related models
+class UserAnswerModel(BaseModel):
+    question_index: int = Field(..., ge=0, alias="questionIndex")
+    selected_option_index: int = Field(..., ge=0, alias="selectedOptionIndex")
+    is_correct: Optional[bool] = Field(default=None, alias="isCorrect")
+
+    class Config:
+        populate_by_name = True
+
+
+class AssessmentSubmissionRequest(BaseModel):
+    course_slug: str = Field(..., min_length=1, alias="courseSlug")
+    module_id: str = Field(..., min_length=1, alias="moduleId")
+    answers: List[UserAnswerModel] = Field(..., min_items=1)
+
+    class Config:
+        populate_by_name = True
+
+
+class AssessmentAttemptModel(BaseModel):
+    id: str
+    user_id: str
+    course_slug: str
+    module_id: str
+    attempt_number: int = Field(..., ge=1)
+    answers: List[UserAnswerModel] = Field(default_factory=list)
+    score: float = Field(..., ge=0, le=100)
+    total_questions: int = Field(..., ge=0)
+    passed: bool = False
+    completed_at: datetime
+
+
+class AssessmentResultResponse(BaseModel):
+    attempt: AssessmentAttemptModel
+    passed: bool
+    score: float
+    total_questions: int
+
+
+class AssessmentHistoryResponse(BaseModel):
+    attempts: List[AssessmentAttemptModel] = Field(default_factory=list)

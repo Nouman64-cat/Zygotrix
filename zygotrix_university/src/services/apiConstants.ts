@@ -20,6 +20,9 @@ export const API_ROUTES = {
     updateProgress: "/api/university/progress",
     enroll: "/api/university/enroll",
     enrollments: "/api/university/enrollments",
+    submitAssessment: "/api/university/assessments/submit",
+    assessmentHistory: (slug: string) =>
+      `/api/university/assessments/history/${encodeURIComponent(slug)}`,
   },
 } as const;
 

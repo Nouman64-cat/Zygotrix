@@ -30,6 +30,50 @@ export interface CourseModule {
   duration?: string | null;
   description?: string | null;
   items: CourseModuleItem[];
+  assessment?: Assessment | null;
+}
+
+export interface AssessmentQuestionOption {
+  text: string;
+  isCorrect: boolean | null;
+}
+
+export interface MarkdownContent {
+  markdown: string;
+}
+
+export interface AssessmentQuestion {
+  prompt: MarkdownContent;
+  explanation: MarkdownContent;
+  options: AssessmentQuestionOption[];
+}
+
+export interface Assessment {
+  assessmentQuestions: AssessmentQuestion[];
+}
+
+export interface AssessmentAttempt {
+  id: string;
+  userId: string;
+  courseSlug: string;
+  moduleId: string;
+  attemptNumber: number;
+  answers: UserAnswer[];
+  score: number;
+  totalQuestions: number;
+  passed: boolean;
+  completedAt: string;
+}
+
+export interface UserAnswer {
+  questionIndex: number;
+  selectedOptionIndex: number;
+  isCorrect: boolean;
+}
+
+export interface AssessmentResult {
+  attempt: AssessmentAttempt;
+  questions: AssessmentQuestion[];
 }
 
 export type CourseLevel = "Beginner" | "Intermediate" | "Advanced" | string;
@@ -123,6 +167,9 @@ export interface ModuleProgress {
   duration?: string | null;
   completion: number;
   items: ModuleProgressItem[];
+  assessmentStatus?: "not-attempted" | "attempted" | "passed" | null;
+  bestScore?: number | null;
+  attemptCount?: number | null;
 }
 
 export interface ModuleProgressItem {

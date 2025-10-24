@@ -120,6 +120,29 @@ const mapCourse = (
               }
             ).video ?? null,
         })),
+        assessment: (() => {
+          const assessmentData = module.assessment;
+          console.log(`📋 Module "${module.title}" assessment:`, {
+            raw: assessmentData,
+            hasAssessmentQuestions: !!(assessmentData as any)
+              ?.assessmentQuestions,
+            hasAssessment_questions: !!(assessmentData as any)
+              ?.assessment_questions,
+            questionsCount:
+              (assessmentData as any)?.assessmentQuestions?.length ||
+              (assessmentData as any)?.assessment_questions?.length ||
+              0,
+          });
+
+          if (!assessmentData) return null;
+
+          return {
+            assessmentQuestions:
+              (assessmentData as any).assessmentQuestions ||
+              (assessmentData as any).assessment_questions ||
+              [],
+          };
+        })(),
       };
     }),
     enrolled: apiCourse.enrolled ?? false,
@@ -170,12 +193,22 @@ const mapModules = (
           }>;
         }
       ).items ?? [];
+
+    const extendedModule = module as unknown as {
+      assessment_status?: "not-attempted" | "attempted" | "passed" | null;
+      best_score?: number | null;
+      attempt_count?: number | null;
+    };
+
     return {
       moduleId: module.module_id,
       title: module.title ?? null,
       status: module.status ?? "in-progress",
       duration: module.duration ?? null,
       completion: module.completion ?? 0,
+      assessmentStatus: extendedModule.assessment_status ?? null,
+      bestScore: extendedModule.best_score ?? null,
+      attemptCount: extendedModule.attempt_count ?? null,
       items: items.map((item) => ({
         moduleItemId: item.module_item_id,
         title: item.title ?? null,
@@ -249,12 +282,21 @@ const mapProgressModules = (
       }
     });
 
+    const extendedModule = module as unknown as {
+      assessment_status?: "not-attempted" | "attempted" | "passed" | null;
+      best_score?: number | null;
+      attempt_count?: number | null;
+    };
+
     return {
       moduleId: module.module_id,
       title: module.title ?? courseModule?.title ?? null,
       status: module.status ?? "in-progress",
       duration: module.duration ?? courseModule?.duration ?? null,
       completion: module.completion ?? 0,
+      assessmentStatus: extendedModule.assessment_status ?? null,
+      bestScore: extendedModule.best_score ?? null,
+      attemptCount: extendedModule.attempt_count ?? null,
       items: mergedItems,
     };
   });
@@ -280,6 +322,9 @@ const mapProgressModules = (
       status: "locked",
       duration: courseModule.duration ?? null,
       completion: 0,
+      assessmentStatus: null,
+      bestScore: null,
+      attemptCount: null,
       items: courseModule.items.map((courseItem, itemIndex) => ({
         moduleItemId:
           courseItem.id ?? courseItem.title ?? `${moduleId}-item-${itemIndex}`,
@@ -457,6 +502,14 @@ export const universityService = {
   async getCourseBySlug(slug: string): Promise<Course | null> {
     try {
       const response: ApiCourseDetailResponse = await fetchCourseBySlug(slug);
+      console.log(
+        "🔍 Raw API Response:",
+        JSON.stringify(response.course, null, 2)
+      );
+      console.log(
+        "🔍 Module 0 assessment from API:",
+        response.course.modules?.[0]?.assessment
+      );
       return mapCourse(response.course);
     } catch (error) {
       console.warn(`Unable to fetch course ${slug}, using fallback`, error);

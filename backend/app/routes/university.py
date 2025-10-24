@@ -17,6 +17,9 @@ from ..schema.university import (
     CourseProgressUpdateRequest,
     DashboardSummaryResponse,
     PracticeSetListResponse,
+    AssessmentSubmissionRequest,
+    AssessmentResultResponse,
+    AssessmentHistoryResponse,
 )
 from ..services import auth as auth_services
 from ..services import university as university_services
@@ -140,3 +143,42 @@ def list_enrollments(
     current_user: UserProfile = Depends(get_current_user_required),
 ) -> list[str]:
     return university_services.list_user_enrollments(current_user.id)
+
+
+# ================================
+# Assessment Routes
+# ================================
+
+
+@router.post(
+    "/assessments/submit", response_model=AssessmentResultResponse, status_code=201
+)
+def submit_assessment(
+    payload: AssessmentSubmissionRequest,
+    current_user: UserProfile = Depends(get_current_user_required),
+) -> AssessmentResultResponse:
+    """Submit an assessment and get the results."""
+    result = university_services.submit_assessment(
+        user_id=current_user.id,
+        course_slug=payload.course_slug,
+        module_id=payload.module_id,
+        answers=[answer.dict() for answer in payload.answers],
+    )
+    return AssessmentResultResponse(**result)
+
+
+@router.get(
+    "/assessments/history/{course_slug}", response_model=AssessmentHistoryResponse
+)
+def get_assessment_history(
+    course_slug: str,
+    module_id: str = Query(None, description="Filter by module ID"),
+    current_user: UserProfile = Depends(get_current_user_required),
+) -> AssessmentHistoryResponse:
+    """Get assessment attempt history for a course or specific module."""
+    attempts = university_services.get_assessment_history(
+        user_id=current_user.id,
+        course_slug=course_slug,
+        module_id=module_id,
+    )
+    return AssessmentHistoryResponse(attempts=attempts)

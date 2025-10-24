@@ -84,9 +84,7 @@ def get_course_progress_collection(required: bool = False):
     db = client[settings.mongodb_db_name]
     collection = db[settings.mongodb_course_progress_collection]
     try:
-        collection.create_index(
-            [("user_id", 1), ("course_slug", 1)], unique=True
-        )
+        collection.create_index([("user_id", 1), ("course_slug", 1)], unique=True)
     except Exception:
         pass
     return collection
@@ -102,9 +100,26 @@ def get_course_enrollments_collection(required: bool = False):
     db = client[settings.mongodb_db_name]
     collection = db[settings.mongodb_enrollments_collection]
     try:
-        collection.create_index(
-            [("user_id", 1), ("course_slug", 1)], unique=True
-        )
+        collection.create_index([("user_id", 1), ("course_slug", 1)], unique=True)
+    except Exception:
+        pass
+    return collection
+
+
+def get_assessment_attempts_collection(required: bool = False):
+    client = get_mongo_client()
+    if client is None:
+        if required:
+            raise HTTPException(status_code=503, detail="MongoDB client not available")
+        return None
+    settings = get_settings()
+    db = client[settings.mongodb_db_name]
+    collection = db["assessment_attempts"]
+    try:
+        # Index for querying user's attempts for a specific module
+        collection.create_index([("user_id", 1), ("course_slug", 1), ("module_id", 1)])
+        # Index for querying all attempts by a user
+        collection.create_index("user_id")
     except Exception:
         pass
     return collection

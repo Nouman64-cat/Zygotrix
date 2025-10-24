@@ -7,6 +7,9 @@ import type {
   ApiCourseProgressUpdateRequest,
   ApiDashboardSummary,
   ApiPracticeSetListResponse,
+  ApiAssessmentSubmission,
+  ApiAssessmentResultResponse,
+  ApiAssessmentHistoryResponse,
 } from "../../types/api";
 
 export const fetchCourses = async (
@@ -97,6 +100,32 @@ export const fetchEnrollments = async (): Promise<string[]> => {
     API_ROUTES.university.enrollments,
     {
       params: {
+        _t: Date.now(), // Cache buster
+      },
+    }
+  );
+  return response.data;
+};
+
+export const submitAssessment = async (
+  payload: ApiAssessmentSubmission
+): Promise<ApiAssessmentResultResponse> => {
+  const response = await apiClient.post<ApiAssessmentResultResponse>(
+    API_ROUTES.university.submitAssessment,
+    payload
+  );
+  return response.data;
+};
+
+export const fetchAssessmentHistory = async (
+  courseSlug: string,
+  moduleId?: string
+): Promise<ApiAssessmentHistoryResponse> => {
+  const response = await apiClient.get<ApiAssessmentHistoryResponse>(
+    API_ROUTES.university.assessmentHistory(courseSlug),
+    {
+      params: {
+        module_id: moduleId,
         _t: Date.now(), // Cache buster
       },
     }

@@ -9,6 +9,8 @@ import type {
   PracticeSet,
   PracticeSetDetail,
   ResourceItem,
+  AssessmentAttempt,
+  UserAnswer,
 } from "./index";
 
 export interface ApiInstructor extends Instructor {}
@@ -158,5 +160,25 @@ export interface ApiCourseProgressUpdateRequest {
 }
 
 export interface ApiCourseProgress extends ApiCourseProgressResponse {}
+
+// Assessment API interfaces
+export interface ApiAssessmentSubmission {
+  course_slug: string;
+  module_id: string;
+  answers: UserAnswer[];
+}
+
+export interface ApiAssessmentAttempt extends AssessmentAttempt {}
+
+export interface ApiAssessmentResultResponse {
+  attempt: ApiAssessmentAttempt;
+  passed: boolean;
+  score: number;
+  total_questions: number;
+}
+
+export interface ApiAssessmentHistoryResponse {
+  attempts: ApiAssessmentAttempt[];
+}
 
 export interface ApiDashboardCourse extends CourseProgress {}

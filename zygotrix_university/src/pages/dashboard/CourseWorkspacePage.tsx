@@ -1,10 +1,20 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
-import { FiChevronLeft, FiCheckCircle, FiBook, FiAward } from "react-icons/fi";
+import {
+  FiChevronLeft,
+  FiCheckCircle,
+  FiBook,
+  FiAward,
+  FiFileText,
+} from "react-icons/fi";
 import ReactMarkdown from "react-markdown";
 import AccentButton from "../../components/common/AccentButton";
 import LessonModal from "../../components/dashboard/LessonModal";
+import AssessmentModal from "../../components/dashboard/AssessmentModal";
+import AssessmentResultsModal from "../../components/dashboard/AssessmentResultsModal";
 import { useCourseWorkspace } from "../../hooks/useCourseWorkspace";
+import { submitAssessment } from "../../services/repositories/universityRepository";
+import type { AssessmentResult, UserAnswer } from "../../types";
 import { cn } from "../../utils/cn";
 
 const DashboardCourseWorkspacePage = () => {
@@ -18,7 +28,16 @@ const DashboardCourseWorkspacePage = () => {
     toggleItem,
     activeLesson,
     setActiveLesson,
+    refetch,
   } = useCourseWorkspace(slug);
+
+  const [assessmentOpen, setAssessmentOpen] = useState(false);
+  const [activeAssessmentModule, setActiveAssessmentModule] = useState<
+    string | null
+  >(null);
+  const [assessmentResult, setAssessmentResult] =
+    useState<AssessmentResult | null>(null);
+  const [isSubmittingAssessment, setIsSubmittingAssessment] = useState(false);
 
   const completionSummary = useMemo(() => {
     if (!progress || progress.modules.length === 0) {
@@ -29,6 +48,24 @@ const DashboardCourseWorkspacePage = () => {
         progress.modules.length
     );
   }, [progress]);
+
+  // DEBUG: Log course data when it loads
+  useEffect(() => {
+    if (course) {
+      console.log("📚 Course loaded:", {
+        title: course.title,
+        modulesCount: course.modules.length,
+        modules: course.modules.map((m, i) => ({
+          index: i,
+          id: m.id,
+          title: m.title,
+          hasAssessment: !!m.assessment,
+          assessmentQuestionsCount:
+            m.assessment?.assessmentQuestions?.length || 0,
+        })),
+      });
+    }
+  }, [course]);
 
   const activeLessonMeta = useMemo(() => {
     if (!course || !activeLesson) {
@@ -188,6 +225,56 @@ const DashboardCourseWorkspacePage = () => {
     }
   }, [activeLessonProgress, activeLessonMeta, activeLesson]);
 
+  const handleOpenAssessment = (moduleId: string) => {
+    setActiveAssessmentModule(moduleId);
+    setAssessmentOpen(true);
+  };
+
+  const handleCloseAssessment = () => {
+    setAssessmentOpen(false);
+    setActiveAssessmentModule(null);
+  };
+
+  const handleSubmitAssessment = async (answers: UserAnswer[]) => {
+    if (!slug || !activeAssessmentModule) return;
+
+    setIsSubmittingAssessment(true);
+    try {
+      const result = await submitAssessment({
+        course_slug: slug,
+        module_id: activeAssessmentModule,
+        answers: answers,
+      });
+
+      // Build the full result with questions
+      const module = course?.modules.find(
+        (m) => m.id === activeAssessmentModule
+      );
+      const assessment = module?.assessment;
+
+      if (assessment) {
+        setAssessmentResult({
+          attempt: result.attempt,
+          questions: assessment.assessmentQuestions,
+        });
+      }
+
+      setAssessmentOpen(false);
+      // Refresh progress to show updated assessment status
+      await refetch();
+    } catch (error) {
+      console.error("Failed to submit assessment:", error);
+      alert("Failed to submit assessment. Please try again.");
+    } finally {
+      setIsSubmittingAssessment(false);
+    }
+  };
+
+  const handleCloseResults = () => {
+    setAssessmentResult(null);
+    setActiveAssessmentModule(null);
+  };
+
   if (loading) {
     return (
       <div className="space-y-12">
@@ -299,6 +386,21 @@ const DashboardCourseWorkspacePage = () => {
                     baseModule.id === module.moduleId ||
                     baseModule.title === module.title
                 );
+
+                // DEBUG: Log assessment data
+                if (moduleIndex === 0) {
+                  console.log("🔍 Module 0 Debug:", {
+                    moduleId: module.moduleId,
+                    moduleTitle: module.title,
+                    metaModuleId: metaModule?.id,
+                    metaModuleTitle: metaModule?.title,
+                    hasAssessment: !!metaModule?.assessment,
+                    assessment: metaModule?.assessment,
+                    assessmentQuestions:
+                      metaModule?.assessment?.assessmentQuestions?.length || 0,
+                  });
+                }
+
                 const totalItems = module.items.length;
                 const completedItems = module.items.filter(
                   (item) => item.completed
@@ -384,6 +486,49 @@ const DashboardCourseWorkspacePage = () => {
                           </button>
                         );
                       })}
+
+                      {/* Assessment Button */}
+                      {metaModule?.assessment && (
+                        <div className="mt-3 pt-2 border-t border-border">
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleOpenAssessment(module.moduleId)
+                            }
+                            disabled={completedItems < totalItems}
+                            className={cn(
+                              "w-full text-left px-3 py-2.5 rounded-lg text-xs font-medium transition-all",
+                              completedItems === totalItems
+                                ? "bg-accent/10 text-accent hover:bg-accent/20 cursor-pointer border border-accent/30"
+                                : "bg-background-subtle text-muted cursor-not-allowed opacity-50"
+                            )}
+                          >
+                            <div className="flex items-center gap-2">
+                              <FiFileText className="h-3.5 w-3.5 flex-shrink-0" />
+                              <div className="flex-1">
+                                <div className="font-semibold">
+                                  Module Assessment
+                                </div>
+                                {module.assessmentStatus === "passed" && (
+                                  <div className="text-[10px] text-green-400 mt-0.5">
+                                    ✓ Passed ({module.bestScore}%)
+                                  </div>
+                                )}
+                                {module.assessmentStatus === "attempted" && (
+                                  <div className="text-[10px] text-amber-400 mt-0.5">
+                                    Not passed - Try again ({module.bestScore}%)
+                                  </div>
+                                )}
+                                {completedItems < totalItems && (
+                                  <div className="text-[10px] mt-0.5">
+                                    Complete all lessons first
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          </button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
@@ -683,6 +828,62 @@ const DashboardCourseWorkspacePage = () => {
         onToggleComplete={undefined}
         isSaving={saving}
       />
+
+      {/* Assessment Modal */}
+      {activeAssessmentModule &&
+        course &&
+        (() => {
+          const activeModule = course.modules.find(
+            (m) => m.id === activeAssessmentModule
+          );
+          const assessment = activeModule?.assessment || {
+            assessmentQuestions: [],
+          };
+
+          console.log("🎯 Assessment Modal Data:", {
+            moduleId: activeAssessmentModule,
+            moduleTitle: activeModule?.title,
+            hasAssessment: !!activeModule?.assessment,
+            rawAssessmentObject: activeModule?.assessment,
+            assessment: assessment,
+            questionsCount: assessment?.assessmentQuestions?.length || 0,
+          });
+
+          console.log("🔍 Full active module object:", activeModule);
+          console.log(
+            "🔍 All course modules:",
+            course.modules.map((m) => ({
+              id: m.id,
+              title: m.title,
+              hasAssessment: !!m.assessment,
+              assessment: m.assessment,
+            }))
+          );
+
+          return (
+            <AssessmentModal
+              isOpen={assessmentOpen}
+              onClose={handleCloseAssessment}
+              assessment={assessment}
+              moduleTitle={activeModule?.title || "Module"}
+              onSubmit={handleSubmitAssessment}
+              isSubmitting={isSubmittingAssessment}
+            />
+          );
+        })()}
+
+      {/* Assessment Results Modal */}
+      {assessmentResult && activeAssessmentModule && course && (
+        <AssessmentResultsModal
+          isOpen={!!assessmentResult}
+          onClose={handleCloseResults}
+          result={assessmentResult}
+          moduleTitle={
+            course.modules.find((m) => m.id === activeAssessmentModule)
+              ?.title || "Module"
+          }
+        />
+      )}
     </div>
   );
 };

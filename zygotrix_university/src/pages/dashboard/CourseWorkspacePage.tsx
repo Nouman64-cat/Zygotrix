@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { useParams } from "react-router-dom";
 import {
   FiChevronLeft,
@@ -28,7 +28,6 @@ const DashboardCourseWorkspacePage = () => {
     toggleItem,
     activeLesson,
     setActiveLesson,
-    refetch,
   } = useCourseWorkspace(slug);
 
   const [assessmentOpen, setAssessmentOpen] = useState(false);
@@ -49,30 +48,11 @@ const DashboardCourseWorkspacePage = () => {
     );
   }, [progress]);
 
-  // DEBUG: Log course data when it loads
-  useEffect(() => {
-    if (course) {
-      console.log("📚 Course loaded:", {
-        title: course.title,
-        modulesCount: course.modules.length,
-        modules: course.modules.map((m, i) => ({
-          index: i,
-          id: m.id,
-          title: m.title,
-          hasAssessment: !!m.assessment,
-          assessmentQuestionsCount:
-            m.assessment?.assessmentQuestions?.length || 0,
-        })),
-      });
-    }
-  }, [course]);
-
   const activeLessonMeta = useMemo(() => {
     if (!course || !activeLesson) {
       return null;
     }
 
-    // If itemId is null, this is a module overview request
     const isModuleOverview = activeLesson.itemId === null;
 
     const progressModule = progress?.modules.find(
@@ -106,7 +86,6 @@ const DashboardCourseWorkspacePage = () => {
       return null;
     }
 
-    // For module overview, create a synthetic lesson from module data
     if (isModuleOverview) {
       return {
         module,
@@ -166,65 +145,6 @@ const DashboardCourseWorkspacePage = () => {
     return { module, lesson };
   }, [progress, activeLesson, activeLessonMeta]);
 
-  useEffect(() => {
-    // AUTO-OPEN DISABLED: Users should manually click "READ LESSON" to open lessons
-    // This prevents unwanted modal popups, especially for completed lessons
-    // The commented code below was auto-opening the first lesson on page load
-    // Keeping it here in case we want to re-enable it in the future
-    /*
-    if (!course || !progress) {
-      return;
-    }
-    // Only auto-set active lesson once on initial load
-    // This prevents re-opening the modal after user closes it
-    if (hasInitialized.current || activeLesson !== null) {
-      return;
-    }
-
-    const firstModule = course.modules.find((module) =>
-      module.items.some((item) => item.content)
-    );
-    if (!firstModule) {
-      return;
-    }
-    const firstLesson = firstModule.items.find((item) => item.content);
-    if (!firstLesson) {
-      return;
-    }
-    const progressModule =
-      progress?.modules.find(
-        (module) =>
-          module.moduleId === firstModule.id ||
-          module.moduleId === firstModule.title ||
-          (module.title && module.title === firstModule.title)
-      ) ?? null;
-    const progressLesson = progressModule?.items.find(
-      (item) =>
-        item.moduleItemId === firstLesson.id ||
-        item.moduleItemId === firstLesson.title ||
-        (item.title && item.title === firstLesson.title)
-    );
-    setActiveLesson({
-      moduleId: progressModule?.moduleId ?? firstModule.id ?? firstModule.title,
-      itemId:
-        progressLesson?.moduleItemId ?? firstLesson.id ?? firstLesson.title,
-    });
-    hasInitialized.current = true;
-    */
-  }, [course, progress, activeLesson, setActiveLesson]);
-
-  // Debug: Log when completion state changes
-  useEffect(() => {
-    if (activeLessonProgress?.lesson) {
-      console.log("📝 Lesson completion state updated:", {
-        title: activeLessonMeta?.lesson.title,
-        completed: activeLessonProgress.lesson.completed,
-        moduleId: activeLesson?.moduleId,
-        itemId: activeLesson?.itemId,
-      });
-    }
-  }, [activeLessonProgress, activeLessonMeta, activeLesson]);
-
   const handleOpenAssessment = (moduleId: string) => {
     setActiveAssessmentModule(moduleId);
     setAssessmentOpen(true);
@@ -245,8 +165,6 @@ const DashboardCourseWorkspacePage = () => {
         module_id: activeAssessmentModule,
         answers: answers,
       });
-
-      // Build the full result with questions
       const module = course?.modules.find(
         (m) => m.id === activeAssessmentModule
       );
@@ -260,11 +178,8 @@ const DashboardCourseWorkspacePage = () => {
       }
 
       setAssessmentOpen(false);
-      // Refresh progress to show updated assessment status
-      await refetch();
     } catch (error) {
       console.error("Failed to submit assessment:", error);
-      alert("Failed to submit assessment. Please try again.");
     } finally {
       setIsSubmittingAssessment(false);
     }
@@ -387,20 +302,6 @@ const DashboardCourseWorkspacePage = () => {
                     baseModule.title === module.title
                 );
 
-                // DEBUG: Log assessment data
-                if (moduleIndex === 0) {
-                  console.log("🔍 Module 0 Debug:", {
-                    moduleId: module.moduleId,
-                    moduleTitle: module.title,
-                    metaModuleId: metaModule?.id,
-                    metaModuleTitle: metaModule?.title,
-                    hasAssessment: !!metaModule?.assessment,
-                    assessment: metaModule?.assessment,
-                    assessmentQuestions:
-                      metaModule?.assessment?.assessmentQuestions?.length || 0,
-                  });
-                }
-
                 const totalItems = module.items.length;
                 const completedItems = module.items.filter(
                   (item) => item.completed
@@ -416,11 +317,9 @@ const DashboardCourseWorkspacePage = () => {
                     <button
                       type="button"
                       onClick={() => {
-                        // Allow clicking module even if no items
-                        // This will show the module overview/description
                         setActiveLesson({
                           moduleId: module.moduleId,
-                          itemId: null, // null means show module overview
+                          itemId: null,
                         });
                       }}
                       className="w-full flex items-start gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-accent-soft cursor-pointer text-left"
@@ -839,26 +738,6 @@ const DashboardCourseWorkspacePage = () => {
           const assessment = activeModule?.assessment || {
             assessmentQuestions: [],
           };
-
-          console.log("🎯 Assessment Modal Data:", {
-            moduleId: activeAssessmentModule,
-            moduleTitle: activeModule?.title,
-            hasAssessment: !!activeModule?.assessment,
-            rawAssessmentObject: activeModule?.assessment,
-            assessment: assessment,
-            questionsCount: assessment?.assessmentQuestions?.length || 0,
-          });
-
-          console.log("🔍 Full active module object:", activeModule);
-          console.log(
-            "🔍 All course modules:",
-            course.modules.map((m) => ({
-              id: m.id,
-              title: m.title,
-              hasAssessment: !!m.assessment,
-              assessment: m.assessment,
-            }))
-          );
 
           return (
             <AssessmentModal

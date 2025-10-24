@@ -167,7 +167,7 @@ export interface ModuleProgress {
   duration?: string | null;
   completion: number;
   items: ModuleProgressItem[];
-  assessmentStatus?: "not-attempted" | "attempted" | "passed" | null;
+  assessmentStatus?: "not-attempted" | "attempted" | "passed";
   bestScore?: number | null;
   attemptCount?: number | null;
 }

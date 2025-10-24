@@ -858,6 +858,9 @@ def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, An
                     "status": "locked",
                     "duration": module.get("duration"),
                     "completion": 0,
+                    "assessment_status": None,
+                    "best_score": None,
+                    "attempt_count": 0,
                     "items": items_payload,
                 }
             )
@@ -905,6 +908,9 @@ def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, An
                 "status": module_progress.get("status", "locked"),
                 "duration": module_progress.get("duration"),
                 "completion": module_progress.get("completion", 0),
+                "assessment_status": module_progress.get("assessment_status"),
+                "best_score": module_progress.get("best_score"),
+                "attempt_count": module_progress.get("attempt_count"),
                 "items": items_payload,
             }
         )
@@ -926,16 +932,21 @@ def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
                     "completed": bool(item.get("completed")),
                 }
             )
-        modules.append(
-            {
-                "module_id": module.get("module_id"),
-                "title": module.get("title"),
-                "status": module.get("status", "in-progress"),
-                "duration": module.get("duration"),
-                "completion": module.get("completion", 0),
-                "items": items_payload,
-            }
+        module_data = {
+            "module_id": module.get("module_id"),
+            "title": module.get("title"),
+            "status": module.get("status", "in-progress"),
+            "duration": module.get("duration"),
+            "completion": module.get("completion", 0),
+            "assessment_status": module.get("assessment_status"),
+            "best_score": module.get("best_score"),
+            "attempt_count": module.get("attempt_count"),
+            "items": items_payload,
+        }
+        print(
+            f"🔍 DEBUG: Serializing module {module_data['module_id']}: assessment_status={module_data['assessment_status']}, best_score={module_data['best_score']}"
         )
+        modules.append(module_data)
 
     metrics = doc.get("metrics") or {}
     metrics_payload = None
@@ -1482,11 +1493,17 @@ def _update_assessment_progress(
         }
     )
 
+    print(f"🔍 DEBUG: Found progress_doc: {progress_doc is not None}")
     if not progress_doc:
+        print(
+            f"⚠️ WARNING: No progress document found for user {user_id}, course {course_slug}"
+        )
         return
 
     # Find the module and update assessment status
     modules = progress_doc.get("modules", [])
+    print(f"🔍 DEBUG: Found {len(modules)} modules in progress document")
+    print(f"🔍 DEBUG: Looking for module_id: {module_id}")
     module_updated = False
 
     for module in modules:
@@ -1496,16 +1513,28 @@ def _update_assessment_progress(
             module["best_score"] = max(current_best, score)
             module["attempt_count"] = module.get("attempt_count", 0) + 1
 
-            if passed:
+            # Once passed, always keep as passed (even if they fail on retake)
+            current_status = module.get("assessment_status", "not_started")
+            if passed or current_status == "passed":
                 module["assessment_status"] = "passed"
             else:
                 module["assessment_status"] = "attempted"
 
+            print(
+                f"✅ DEBUG: Updated assessment progress for module {module_id}: status={module['assessment_status']}, score={score}, best_score={module['best_score']}"
+            )
             module_updated = True
             break
 
+    if not module_updated:
+        print(f"⚠️ WARNING: Module {module_id} not found in progress document")
+        print(f"📋 Available module IDs: {[m.get('module_id') for m in modules]}")
+
     if module_updated:
-        progress_collection.update_one(
+        result = progress_collection.update_one(
             {"user_id": user_id, "course_slug": course_slug},
             {"$set": {"modules": modules, "updated_at": datetime.now(timezone.utc)}},
+        )
+        print(
+            f"💾 DEBUG: Database update result: matched={result.matched_count}, modified={result.modified_count}"
         )

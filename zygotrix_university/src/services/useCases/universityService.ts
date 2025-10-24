@@ -122,17 +122,6 @@ const mapCourse = (
         })),
         assessment: (() => {
           const assessmentData = module.assessment;
-          console.log(`📋 Module "${module.title}" assessment:`, {
-            raw: assessmentData,
-            hasAssessmentQuestions: !!(assessmentData as any)
-              ?.assessmentQuestions,
-            hasAssessment_questions: !!(assessmentData as any)
-              ?.assessment_questions,
-            questionsCount:
-              (assessmentData as any)?.assessmentQuestions?.length ||
-              (assessmentData as any)?.assessment_questions?.length ||
-              0,
-          });
 
           if (!assessmentData) return null;
 
@@ -206,7 +195,7 @@ const mapModules = (
       status: module.status ?? "in-progress",
       duration: module.duration ?? null,
       completion: module.completion ?? 0,
-      assessmentStatus: extendedModule.assessment_status ?? null,
+      assessmentStatus: extendedModule.assessment_status ?? "not-attempted",
       bestScore: extendedModule.best_score ?? null,
       attemptCount: extendedModule.attempt_count ?? null,
       items: items.map((item) => ({
@@ -221,13 +210,6 @@ const mapProgressModules = (
   modules: ApiCourseProgressResponse["modules"],
   course?: Course | null
 ): CourseProgress["modules"] => {
-  console.log("🔧 mapProgressModules input:", {
-    modulesCount: modules.length,
-    firstModuleItems: modules[0]?.items?.length ?? 0,
-    hasCourse: Boolean(course),
-    courseModulesCount: course?.modules?.length ?? 0,
-  });
-
   const courseModules = course?.modules ?? [];
   const courseModuleById = new Map<string, (typeof courseModules)[number]>();
   const courseModuleByTitle = new Map<string, (typeof courseModules)[number]>();
@@ -282,30 +264,22 @@ const mapProgressModules = (
       }
     });
 
-    const extendedModule = module as unknown as {
-      assessment_status?: "not-attempted" | "attempted" | "passed" | null;
-      best_score?: number | null;
-      attempt_count?: number | null;
-    };
-
+    // Map backend assessment status (null, "attempted", "passed") to frontend format
+    const assessmentStatus =
+      module.assessment_status === null
+        ? "not-attempted"
+        : module.assessment_status;
     return {
       moduleId: module.module_id,
       title: module.title ?? courseModule?.title ?? null,
       status: module.status ?? "in-progress",
       duration: module.duration ?? courseModule?.duration ?? null,
       completion: module.completion ?? 0,
-      assessmentStatus: extendedModule.assessment_status ?? null,
-      bestScore: extendedModule.best_score ?? null,
-      attemptCount: extendedModule.attempt_count ?? null,
+      assessmentStatus: assessmentStatus,
+      bestScore: module.best_score ?? null,
+      attemptCount: module.attempt_count ?? null,
       items: mergedItems,
     };
-  });
-
-  console.log("✅ mapProgressModules output:", {
-    mappedCount: mapped.length,
-    firstModuleItemsCount: mapped[0]?.items?.length ?? 0,
-    firstModuleCompletedCount:
-      mapped[0]?.items?.filter((item) => item.completed).length ?? 0,
   });
 
   const mappedModuleIds = new Set(mapped.map((module) => module.moduleId));
@@ -322,7 +296,7 @@ const mapProgressModules = (
       status: "locked",
       duration: courseModule.duration ?? null,
       completion: 0,
-      assessmentStatus: null,
+      assessmentStatus: "not-attempted",
       bestScore: null,
       attemptCount: null,
       items: courseModule.items.map((courseItem, itemIndex) => ({
@@ -433,15 +407,6 @@ const mapDashboardSummary = (
         })
       : dashboardModules;
 
-    if (
-      courseRef?.modules &&
-      courseRef.modules.length > dashboardModules.length
-    ) {
-      console.log(
-        `✅ Using fresh course data for "${course.course_slug}": ${courseRef.modules.length} modules (dashboard had ${dashboardModules.length})`
-      );
-    }
-
     return {
       courseSlug: course.course_slug,
       title: course.title ?? courseRef?.title ?? course.course_slug,
@@ -502,14 +467,6 @@ export const universityService = {
   async getCourseBySlug(slug: string): Promise<Course | null> {
     try {
       const response: ApiCourseDetailResponse = await fetchCourseBySlug(slug);
-      console.log(
-        "🔍 Raw API Response:",
-        JSON.stringify(response.course, null, 2)
-      );
-      console.log(
-        "🔍 Module 0 assessment from API:",
-        response.course.modules?.[0]?.assessment
-      );
       return mapCourse(response.course);
     } catch (error) {
       console.warn(`Unable to fetch course ${slug}, using fallback`, error);

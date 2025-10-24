@@ -111,6 +111,9 @@ export interface ApiCourseProgressResponse {
     status: "locked" | "in-progress" | "completed";
     duration?: string | null;
     completion: number;
+    assessment_status?: "not-attempted" | "attempted" | "passed" | null;
+    best_score?: number | null;
+    attempt_count?: number | null;
     items?: Array<{
       module_item_id: string;
       title?: string | null;

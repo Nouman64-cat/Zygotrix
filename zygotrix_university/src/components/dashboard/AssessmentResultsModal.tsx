@@ -28,11 +28,11 @@ const AssessmentResultsModal = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="relative w-full max-w-4xl max-h-[90vh] overflow-hidden rounded-2xl bg-surface shadow-2xl">
+      <div className="relative w-full max-w-4xl max-h-[90vh] flex flex-col overflow-hidden rounded-2xl bg-surface shadow-2xl">
         {/* Header */}
         <div
           className={cn(
-            "border-b border-border p-6",
+            "border-b border-border p-6 flex-shrink-0",
             passed ? "bg-green-500/10" : "bg-red-500/10"
           )}
         >
@@ -100,10 +100,7 @@ const AssessmentResultsModal = ({
         </div>
 
         {/* Results Content */}
-        <div
-          className="overflow-y-auto p-6"
-          style={{ maxHeight: "calc(90vh - 280px)" }}
-        >
+        <div className="overflow-y-auto p-6 flex-1">
           <h3 className="mb-4 text-lg font-semibold text-text-primary">
             Detailed Results
           </h3>
@@ -115,8 +112,11 @@ const AssessmentResultsModal = ({
               );
               const isCorrect = userAnswer?.isCorrect || false;
               const selectedOptionIndex = userAnswer?.selectedOptionIndex ?? -1;
+
+              // Check both camelCase and snake_case for correct option
               const correctOptionIndex = question.options.findIndex(
-                (opt) => opt.isCorrect === true
+                (opt) =>
+                  opt.isCorrect === true || (opt as any).is_correct === true
               );
 
               return (
@@ -238,13 +238,13 @@ const AssessmentResultsModal = ({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center justify-between border-t border-border bg-background p-6">
+        <div className="flex items-center justify-between border-t border-border bg-background p-6 flex-shrink-0">
           <div className="text-sm text-text-secondary">
             {passed
               ? "Congratulations! You can now proceed to the next module."
               : "Review the material and try again to pass the assessment."}
           </div>
-          <AccentButton onClick={onClose} disabled={passed}>
+          <AccentButton onClick={onClose}>
             {passed ? "Continue Learning" : "Try Again"}
           </AccentButton>
         </div>

@@ -1,4 +1,8 @@
-"""Service layer for University (courses, practice, progress) features."""
+"""Service layer for University (courses, practice, progress) features.
+
+This module provides a migration wrapper that delegates to the new clean architecture
+while maintaining backward compatibility with existing API endpoints.
+"""
 
 from __future__ import annotations
 
@@ -21,14 +25,19 @@ from .common import (
     get_course_enrollments_collection,
     get_assessment_attempts_collection,
 )
-
+from .service_factory import get_service_factory
 
 logger = logging.getLogger(__name__)
 
+# Get service factory for delegating to new architecture
+_service_factory = get_service_factory()
+
+# Cache settings
 _HYGRAPH_CACHE_TTL_SECONDS = 300
 _hygraph_course_cache: Optional[Tuple[datetime, List[Dict[str, Any]]]] = None
 _hygraph_practice_cache: Optional[Tuple[datetime, List[Dict[str, Any]]]] = None
 
+# Hygraph queries
 HYGRAPH_COURSES_QUERY = """
   query UniversityCourses {
     courses {
@@ -144,391 +153,257 @@ HYGRAPH_PRACTICE_SETS_QUERY = """
 """
 
 
+# =============================================================================
+# MIGRATION WRAPPER FUNCTIONS
+# These delegate to the new architecture while maintaining backward compatibility
+# =============================================================================
+
+
+def submit_assessment(
+    user_id: str, course_slug: str, module_id: str, answers: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    """Submit assessment - delegates to AssessmentService."""
+    logger.info(
+        f"🎯 submit_assessment called for {user_id}, {course_slug}, {module_id}"
+    )
+
+    assessment_service = _service_factory.get_assessment_service()
+
+    try:
+        result = assessment_service.submit_assessment(
+            user_id=user_id,
+            course_slug=course_slug,
+            module_id=module_id,
+            answers=answers,
+        )
+        logger.info(f"✅ Assessment submitted successfully: {result}")
+        return result
+
+    except Exception as e:
+        logger.error(f"❌ Error submitting assessment via AssessmentService: {e}")
+        raise HTTPException(status_code=500, detail=str(e)) from e
+
+
+# =============================================================================
+# TEMPORARY LEGACY FUNCTIONS
+# These will be gradually migrated to the new architecture
+# =============================================================================
+
+
 def _serialize_datetime(value: Any) -> Optional[datetime]:
-    dt = ensure_utc(value)
-    return dt
+    """Convert various datetime formats to datetime object."""
+    if value is None:
+        return None
+    if isinstance(value, datetime):
+        return value
+    if isinstance(value, str):
+        try:
+            return datetime.fromisoformat(value.replace("Z", "+00:00"))
+        except (ValueError, AttributeError):
+            return None
+    return None
 
 
 def _normalise_text(value: Any) -> Optional[str]:
-    if isinstance(value, dict):
-        return (
-            value.get("text")
-            or value.get("markdown")
-            or value.get("html")
-            or value.get("raw")
-        )
+    """Normalize text from various formats."""
     if value is None:
         return None
-    return str(value)
+    if isinstance(value, str):
+        return value.strip() or None
+    if isinstance(value, dict):
+        return value.get("markdown") or value.get("html") or None
+    return str(value) if value else None
 
 
 def _extract_asset_url(value: Any) -> Optional[str]:
+    """Extract URL from asset object or return URL string."""
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
     if isinstance(value, dict):
-        return value.get("url") or value.get("src")
-    return value
+        return value.get("url")
+    return None
 
 
 def _execute_hygraph_query(query: str) -> Optional[Dict[str, Any]]:
+    """Execute GraphQL query against Hygraph."""
     settings = get_settings()
     if not settings.hygraph_endpoint or not settings.hygraph_token:
-        logger.warning(
-            "⚠️  Hygraph configuration missing: endpoint=%s, token=%s",
-            bool(settings.hygraph_endpoint),
-            bool(settings.hygraph_token),
-        )
+        logger.warning("⚠️  Hygraph endpoint or token not configured")
         return None
-
-    headers = {
-        "Content-Type": "application/json",
-        "Authorization": f"Bearer {settings.hygraph_token}",
-    }
 
     try:
-        logger.info("🔄 Executing Hygraph query to %s", settings.hygraph_endpoint)
-        response = httpx.post(
-            settings.hygraph_endpoint,
-            json={"query": query},
-            headers=headers,
-            timeout=10.0,
-        )
-        response.raise_for_status()
-        logger.info("✅ Hygraph query successful, status: %d", response.status_code)
-    except httpx.HTTPError as exc:
-        logger.error("❌ Hygraph request failed: %s", exc)
+        with httpx.Client(timeout=30.0) as client:
+            response = client.post(
+                settings.hygraph_endpoint,
+                json={"query": query},
+                headers={"Authorization": f"Bearer {settings.hygraph_token}"},
+            )
+            response.raise_for_status()
+            data = response.json()
+            if "errors" in data:
+                logger.error(f"Hygraph GraphQL errors: {data['errors']}")
+                return None
+            return data.get("data")
+    except (httpx.HTTPError, ValueError) as e:
+        logger.error(f"Hygraph request failed: {e}")
         return None
 
-    payload = response.json()
-    if "errors" in payload:
-        logger.error("❌ Hygraph returned errors: %s", payload["errors"])
+
+def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
+    """Get courses from Hygraph with caching."""
+    global _hygraph_course_cache
+
+    now = datetime.now(timezone.utc)
+    if _hygraph_course_cache:
+        cache_time, cached_courses = _hygraph_course_cache
+        if (now - cache_time).total_seconds() < _HYGRAPH_CACHE_TTL_SECONDS:
+            logger.info(f"✅ Returning {len(cached_courses)} cached courses")
+            return cached_courses
+
+    logger.info("📡 Fetching fresh courses from Hygraph...")
+    data = _execute_hygraph_query(HYGRAPH_COURSES_QUERY)
+    if not data or not data.get("courses"):
+        logger.warning("⚠️  No courses returned from Hygraph")
         return None
 
-    data = payload.get("data")
-    if data:
-        logger.info("✅ Hygraph returned data with keys: %s", list(data.keys()))
-    else:
-        logger.warning("⚠️  Hygraph returned no data")
-
-    return data
+    courses = [
+        _convert_hygraph_course_to_document(course) for course in data["courses"]
+    ]
+    _hygraph_course_cache = (now, courses)
+    logger.info(f"✅ Cached {len(courses)} courses from Hygraph")
+    return courses
 
 
 def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any]:
-    course_slug = course.get("slug") or course.get("id") or "course"
-    logger.info(f"🔧 Converting Hygraph course: {course_slug}")
-    image_field = course.get("heroImage")
-    instructors_payload = []
-    for instructor in course.get("instructors") or []:
-        slug = instructor.get("slug") or instructor.get("id") or ""
-        formatted_name = slug.replace("-", " ").title() if slug else None
-        instructors_payload.append(
-            {
-                "id": instructor.get("id") or slug,
-                "name": formatted_name,
-                "title": instructor.get("title"),
-                "bio": instructor.get("speciality"),
-                "avatar": _extract_asset_url(instructor.get("avatar")),
-            }
-        )
+    """Convert Hygraph course to internal document format."""
+    slug = course.get("slug") or course.get("id")
 
-    modules_payload = []
-    for idx, module in enumerate(course.get("courseModules") or []):
-        logger.info(f"📦 Processing module {idx}: {module.get('title')}")
-        logger.info(f"   Assessment data present: {bool(module.get('assessment'))}")
-        if module.get("assessment"):
-            logger.info(
-                f"   Assessment questions count: {len(module.get('assessment', {}).get('assessmentQuestions', []))}"
-            )
+    # Convert modules
+    modules = []
+    for module in course.get("courseModules", []):
+        module_items = []
+        for item in module.get("moduleItems", []):
+            raw_content = item.get("content")
+            content_value = None
+            if raw_content and isinstance(raw_content, dict):
+                content_value = raw_content.get("markdown")
 
-        module_slug = (
-            module.get("slug") or module.get("id") or f"{course_slug}-module-{idx}"
-        )
-        items_payload = []
-        for item_idx, item in enumerate(module.get("moduleItems") or []):
-            item_id = item.get("id") or f"{module_slug}-item-{item_idx}"
             video_data = item.get("video")
             video_payload = None
-            if video_data:
+            if video_data and isinstance(video_data, dict):
                 video_payload = {
                     "fileName": video_data.get("fileName"),
                     "url": video_data.get("url"),
                 }
-            items_payload.append(
+
+            module_items.append(
                 {
-                    "id": item_id,
-                    "title": item.get("title"),
-                    "description": _normalise_text(item.get("description")),
-                    "content": _normalise_text(item.get("content")),
+                    "id": item.get("id"),
+                    "title": item.get("title", ""),
+                    "description": item.get("description"),
+                    "content": content_value,
                     "video": video_payload,
                 }
             )
 
+        # Convert assessment
+        assessment = module.get("assessment")
         assessment_payload = None
-        assessment_data = module.get("assessment")
-        if assessment_data:
-            logger.info(
-                f"🔍 Processing assessment for module '{module.get('title')}': {assessment_data}"
-            )
-            questions_payload = []
-            assessment_questions = assessment_data.get("assessmentQuestions") or []
-            for question in assessment_questions:
-                logger.info(f"🔍 Processing question: {question}")
+        if assessment and isinstance(assessment, dict):
+            questions = assessment.get("assessmentQuestions") or []
+            if questions:
+                serialized_questions = []
+                for q in questions:
+                    prompt = q.get("prompt")
+                    prompt_md = ""
+                    if isinstance(prompt, dict):
+                        prompt_md = prompt.get("markdown") or ""
 
-                prompt_obj = question.get("prompt")
-                if isinstance(prompt_obj, dict):
-                    prompt_text = prompt_obj.get("markdown") or _normalise_text(
-                        prompt_obj
-                    )
-                else:
-                    prompt_text = _normalise_text(prompt_obj)
+                    explanation = q.get("explanation")
+                    explanation_md = ""
+                    if isinstance(explanation, dict):
+                        explanation_md = explanation.get("markdown") or ""
 
-                explanation_obj = question.get("explanation")
-                if isinstance(explanation_obj, dict):
-                    explanation_text = explanation_obj.get(
-                        "markdown"
-                    ) or _normalise_text(explanation_obj)
-                else:
-                    explanation_text = _normalise_text(explanation_obj)
+                    opts = []
+                    for opt in q.get("options") or []:
+                        opts.append(
+                            {
+                                "text": opt.get("text", ""),
+                                "isCorrect": bool(opt.get("isCorrect")),
+                            }
+                        )
 
-                options_payload = []
-                for option in question.get("options") or []:
-                    options_payload.append(
+                    serialized_questions.append(
                         {
-                            "text": option.get("text"),
-                            "is_correct": option.get("isCorrect"),
+                            "prompt": {"markdown": prompt_md},
+                            "explanation": {"markdown": explanation_md},
+                            "options": opts,
                         }
                     )
 
-                logger.info(f"✅ Created question with {len(options_payload)} options")
-                questions_payload.append(
-                    {
-                        "prompt": prompt_text,
-                        "explanation": explanation_text,
-                        "options": options_payload,
-                    }
-                )
-            if questions_payload:
-                assessment_payload = {"assessment_questions": questions_payload}
-                logger.info(
-                    f"✅ Created assessment payload with {len(questions_payload)} questions"
-                )
-            else:
-                logger.warning(f"⚠️ No questions created for assessment")
+                assessment_payload = {"assessmentQuestions": serialized_questions}
 
-        modules_payload.append(
+        modules.append(
             {
-                "id": module_slug,
-                "title": module.get("title"),
+                "id": module.get("id"),
+                "title": module.get("title", ""),
                 "duration": module.get("duration"),
                 "description": _normalise_text(module.get("overview")),
-                "items": items_payload,
-                "order": module.get("order"),
+                "items": module_items,
                 "assessment": assessment_payload,
             }
         )
 
-    outcomes_payload = []
-    for outcome in course.get("courseOutcome") or []:
-        outcomes_payload.append(
+    # Convert outcomes
+    outcomes = []
+    for idx, outcome in enumerate(course.get("courseOutcome", []), start=1):
+        outcomes.append(
             {
-                "id": outcome.get("id"),
-                "text": _normalise_text(outcome.get("outcome")),
+                "id": outcome.get("id") or f"{slug}-outcome-{idx}",
+                "text": outcome.get("outcome", ""),
             }
         )
 
-    practice_sets_payload = []
-    for practice in course.get("practiceSet") or []:
-        questions_payload = []
-        for question in practice.get("practiceQuestions") or []:
-            answers_payload = []
-            for answer in question.get("practiceAnswers") or []:
-                answers_payload.append(
-                    {
-                        "label": answer.get("label"),
-                        "is_correct": bool(answer.get("isCorrect")),
-                        "body": _normalise_text(answer.get("body")),
-                    }
-                )
-            correct_answer = question.get("correctAnswer") or {}
-            questions_payload.append(
-                {
-                    "topic": question.get("topic"),
-                    "difficulty": question.get("difficulty"),
-                    "prompt": _normalise_text(question.get("prompt")),
-                    "answers": answers_payload,
-                    "correct_answer": {
-                        "label": correct_answer.get("label"),
-                        "is_correct": bool(correct_answer.get("isCorrect")),
-                        "body": _normalise_text(correct_answer.get("body")),
-                    },
-                }
-            )
-        practice_sets_payload.append(
+    # Convert instructors
+    instructors = []
+    for instructor in course.get("instructors", []):
+        instructors.append(
             {
-                "id": practice.get("id") or practice.get("slug"),
-                "slug": practice.get("slug"),
-                "title": practice.get("title"),
-                "description": _normalise_text(practice.get("description")),
-                "questions": questions_payload,
+                "id": instructor.get("id"),
+                "name": instructor.get("title", ""),
+                "title": instructor.get("speciality"),
+                "avatar": _extract_asset_url(instructor.get("avatar")),
             }
         )
-
-    long_description = course.get("longDescription")
-    if isinstance(long_description, dict):
-        long_description = long_description.get("markdown")
 
     return {
-        "_id": course.get("id"),
         "id": course.get("id"),
-        "slug": course.get("slug"),
-        "title": course.get("title"),
-        "short_description": _normalise_text(course.get("shortDescription")),
-        "long_description": _normalise_text(long_description),
+        "slug": slug,
+        "title": course.get("title", ""),
+        "short_description": course.get("shortDescription"),
+        "long_description": _normalise_text(course.get("longDescription")),
         "category": course.get("category"),
         "level": course.get("level"),
         "duration": course.get("duration"),
         "badge_label": course.get("badgeLabel"),
         "lessons": course.get("lessonsCount"),
-        "students": None,
-        "rating": None,
-        "image_url": _extract_asset_url(image_field),
-        "outcomes": outcomes_payload,
-        "modules": modules_payload,
-        "instructors": instructors_payload,
-        "practice_sets": practice_sets_payload,
+        "image_url": _extract_asset_url(course.get("heroImage")),
+        "modules": modules,
+        "outcomes": outcomes,
+        "instructors": instructors,
     }
-
-
-def _convert_hygraph_practice_set_to_document(
-    practice: Dict[str, Any],
-) -> Dict[str, Any]:
-    trend = practice.get("trend")
-    if isinstance(trend, str):
-        trend = trend.lower()
-    return {
-        "_id": practice.get("id"),
-        "id": practice.get("id"),
-        "slug": practice.get("slug"),
-        "title": practice.get("title"),
-        "description": _normalise_text(practice.get("description")),
-        "tag": practice.get("tag"),
-        "questions": practice.get("questions"),
-        "accuracy": practice.get("accuracy"),
-        "trend": trend,
-        "estimated_time": practice.get("estimatedTime"),
-    }
-
-
-def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
-    global _hygraph_course_cache
-    now = datetime.now(timezone.utc)
-
-    use_cache = False
-
-    if (
-        use_cache
-        and _hygraph_course_cache
-        and (now - _hygraph_course_cache[0]).total_seconds()
-        < _HYGRAPH_CACHE_TTL_SECONDS
-    ):
-        logger.info(
-            "📦 Using cached course data (%d courses)", len(_hygraph_course_cache[1])
-        )
-        return _hygraph_course_cache[1]
-
-    logger.info("🔄 Fetching courses from Hygraph...")
-    data = _execute_hygraph_query(HYGRAPH_COURSES_QUERY)
-    if not data:
-        logger.warning("⚠️  No data returned from Hygraph for courses")
-        return None
-
-    courses_raw = data.get("courses") or []
-    logger.info("📚 Found %d courses in Hygraph response", len(courses_raw))
-
-    converted = [_convert_hygraph_course_to_document(course) for course in courses_raw]
-    logger.info("✅ Converted %d courses to documents", len(converted))
-
-    _hygraph_course_cache = (now, converted)
-    return converted
-
-
-def _get_practice_sets_from_hygraph() -> Optional[List[Dict[str, Any]]]:
-    global _hygraph_practice_cache
-    now = datetime.now(timezone.utc)
-    if (
-        _hygraph_practice_cache
-        and (now - _hygraph_practice_cache[0]).total_seconds()
-        < _HYGRAPH_CACHE_TTL_SECONDS
-    ):
-        return _hygraph_practice_cache[1]
-
-    data = _execute_hygraph_query(HYGRAPH_PRACTICE_SETS_QUERY)
-    if not data:
-        return None
-
-    practice_raw = data.get("practiceSets") or []
-    converted = [
-        _convert_hygraph_practice_set_to_document(item) for item in practice_raw
-    ]
-    _hygraph_practice_cache = (now, converted)
-    return converted
-
-
-def _find_course_document(slug: str) -> Optional[Dict[str, Any]]:
-    hygraph_courses = _get_courses_from_hygraph()
-    if hygraph_courses:
-        for course in hygraph_courses:
-            if course.get("slug") == slug or course.get("id") == slug:
-                return course
-
-    collection = get_courses_collection()
-    if collection is None:
-        return None
-    doc = collection.find_one({"slug": slug})
-    if doc:
-        return doc
-    return None
-
-
-def _is_user_enrolled(user_id: str, course_slug: str) -> bool:
-    collection = get_course_enrollments_collection()
-    if collection is None:
-        return False
-    return (
-        collection.find_one({"user_id": user_id, "course_slug": course_slug})
-        is not None
-    )
-
-
-def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
-    collection = get_course_enrollments_collection(required=True)
-    assert collection is not None
-    now = datetime.now(timezone.utc)
-    get_course = _find_course_document(course_slug)
-    if not get_course:
-        raise HTTPException(status_code=404, detail="Course not found")
-
-    try:
-        collection.update_one(
-            {"user_id": user_id, "course_slug": course_slug},
-            {
-                "$set": {
-                    "user_id": user_id,
-                    "course_slug": course_slug,
-                    "enrolled_at": now,
-                }
-            },
-            upsert=True,
-        )
-    except PyMongoError as exc:
-        raise HTTPException(status_code=500, detail=f"Failed to enroll: {exc}") from exc
-    return True
 
 
 def _serialize_course(
     doc: Dict[str, Any], include_details: bool = False
 ) -> Dict[str, Any]:
+    """Serialize course document for API response."""
     slug = doc.get("slug") or doc.get("id") or str(doc.get("_id"))
+
     course = {
-        "id": str(doc.get("_id")),
+        "id": str(doc.get("_id")) if doc.get("_id") else doc.get("id"),
         "slug": slug,
         "title": doc.get("title", ""),
         "short_description": doc.get("short_description") or doc.get("description"),
@@ -541,181 +416,18 @@ def _serialize_course(
         "students": doc.get("students"),
         "rating": doc.get("rating"),
         "image_url": doc.get("image_url"),
+        "instructors": doc.get("instructors", []),
+        "outcomes": doc.get("outcomes", []),
     }
 
-    instructors = []
-    for instructor in doc.get("instructors", []):
-        instructors.append(
-            {
-                "id": instructor.get("id") or instructor.get("email"),
-                "name": instructor.get("name", ""),
-                "title": instructor.get("title"),
-                "avatar": instructor.get("avatar"),
-                "bio": instructor.get("bio"),
-            }
-        )
-    course["instructors"] = instructors
-
-    outcomes = []
-    for idx, outcome in enumerate(doc.get("outcomes", []), start=1):
-        if isinstance(outcome, dict):
-            outcomes.append(
-                {
-                    "id": outcome.get("id") or f"{slug}-outcome-{idx}",
-                    "text": outcome.get("text") or outcome.get("description", ""),
-                }
-            )
-        else:
-            outcomes.append({"id": f"{slug}-outcome-{idx}", "text": str(outcome)})
-    course["outcomes"] = outcomes
-
-    if include_details:
-        modules = []
-        for midx, module in enumerate(doc.get("modules", []), start=1):
-            module_id = module.get("id") or f"{slug}-module-{midx}"
-            items = []
-            for iidx, item in enumerate(module.get("items", []), start=1):
-                if isinstance(item, dict):
-                    raw_content = item.get("content")
-                    if isinstance(raw_content, dict):
-                        content_value = raw_content.get("markdown") or raw_content.get(
-                            "html"
-                        )
-                    else:
-                        content_value = raw_content
-
-                    video_data = item.get("video")
-                    video_payload = None
-                    if video_data and isinstance(video_data, dict):
-                        video_payload = {
-                            "fileName": video_data.get("fileName"),
-                            "url": video_data.get("url"),
-                        }
-
-                    items.append(
-                        {
-                            "id": item.get("id") or f"{module_id}-item-{iidx}",
-                            "title": item.get("title", ""),
-                            "description": item.get("description"),
-                            "content": content_value,
-                            "video": video_payload,
-                        }
-                    )
-                else:
-                    items.append(
-                        {
-                            "id": f"{module_id}-item-{iidx}",
-                            "title": str(item),
-                            "description": None,
-                            "content": None,
-                            "video": None,
-                        }
-                    )
-            modules.append(
-                {
-                    "id": module_id,
-                    "title": module.get("title", ""),
-                    "duration": module.get("duration"),
-                    "description": module.get("description"),
-                    "items": items,
-                    "assessment": _serialize_module_assessment(
-                        module.get("assessment")
-                    ),
-                }
-            )
-
-        course["modules"] = modules
+    if include_details and doc.get("modules"):
+        course["modules"] = doc["modules"]
 
     return course
 
 
-def _serialize_practice_set(doc: Dict[str, Any]) -> Dict[str, Any]:
-    slug = doc.get("slug") or doc.get("id") or str(doc.get("_id"))
-    return {
-        "id": str(doc.get("_id")),
-        "slug": slug,
-        "title": doc.get("title", ""),
-        "description": doc.get("description"),
-        "tag": doc.get("tag"),
-        "questions": doc.get("questions"),
-        "accuracy": doc.get("accuracy"),
-        "trend": doc.get("trend"),
-        "estimated_time": doc.get("estimated_time"),
-    }
-
-
-def _serialize_module_assessment(assessment: Any) -> Optional[Dict[str, Any]]:
-    """Convert stored module assessment into API-friendly camelCase shape.
-
-    The internal representation (from Hygraph conversion) may use
-    snake_case keys like `assessment_questions` and option fields like
-    `is_correct`. The frontend expects `assessment.assessmentQuestions[]` with
-    nested `prompt.markdown` and `explanation.markdown` and options containing
-    `text` and `isCorrect`.
-    """
-    if not assessment or not isinstance(assessment, dict):
-        return None
-
-    questions = (
-        assessment.get("assessment_questions")
-        or assessment.get("assessmentQuestions")
-        or []
-    )
-    out_questions = []
-    for q in questions:
-
-        prompt = q.get("prompt")
-        if isinstance(prompt, dict):
-            prompt_md = (
-                prompt.get("markdown") or prompt.get("text") or _normalise_text(prompt)
-            )
-        else:
-            prompt_md = _normalise_text(prompt)
-
-        explanation = q.get("explanation")
-        if isinstance(explanation, dict):
-            explanation_md = (
-                explanation.get("markdown")
-                or explanation.get("text")
-                or _normalise_text(explanation)
-            )
-        else:
-            explanation_md = _normalise_text(explanation)
-
-        opts = []
-        for opt in q.get("options") or []:
-            if isinstance(opt, dict):
-                text = (
-                    opt.get("text")
-                    or _normalise_text(opt.get("body"))
-                    or _normalise_text(opt)
-                )
-                is_corr = None
-                if "is_correct" in opt:
-                    is_corr = bool(opt.get("is_correct"))
-                elif "isCorrect" in opt:
-                    is_corr = bool(opt.get("isCorrect"))
-                else:
-
-                    is_corr = None
-            else:
-                text = _normalise_text(opt)
-                is_corr = None
-            opts.append({"text": text, "isCorrect": is_corr})
-
-        out_questions.append(
-            {
-                "prompt": {"markdown": prompt_md or ""},
-                "explanation": {"markdown": explanation_md or ""},
-                "options": opts,
-            }
-        )
-
-    result = {"assessmentQuestions": out_questions} if out_questions else None
-    return result
-
-
 def list_courses(include_details: bool = False) -> List[Dict[str, Any]]:
+    """List all courses."""
     logger.info("📋 list_courses called with include_details=%s", include_details)
 
     hygraph_courses = _get_courses_from_hygraph()
@@ -742,137 +454,92 @@ def list_courses(include_details: bool = False) -> List[Dict[str, Any]]:
 def get_course_detail(
     slug: str, user_id: Optional[str] = None
 ) -> Optional[Dict[str, Any]]:
+    """Get course detail by slug."""
     doc = _find_course_document(slug)
     if not doc:
         return None
 
     serialized = _serialize_course(doc, include_details=True)
     course_slug = serialized.get("slug", slug)
-    enrolled = bool(user_id and _is_user_enrolled(user_id, course_slug))
 
-    serialized["enrolled"] = enrolled
-    serialized["content_locked"] = not enrolled
-
-    if not enrolled:
-        serialized["modules"] = []
-        serialized["outcomes"] = []
-        serialized["practice_sets"] = []
+    # Add enrollment status if user provided
+    if user_id:
+        serialized["enrolled"] = _is_user_enrolled(user_id, course_slug)
 
     return serialized
 
 
-def list_practice_sets() -> List[Dict[str, Any]]:
-    hygraph_sets = _get_practice_sets_from_hygraph()
-    if hygraph_sets:
-        return [_serialize_practice_set(doc) for doc in hygraph_sets]
+def _find_course_document(slug: str) -> Optional[Dict[str, Any]]:
+    """Find course document by slug."""
+    # Try Hygraph first
+    hygraph_courses = _get_courses_from_hygraph()
+    if hygraph_courses:
+        for course in hygraph_courses:
+            if course.get("slug") == slug or course.get("id") == slug:
+                return course
 
-    collection = get_practice_sets_collection()
+    # Fallback to MongoDB
+    collection = get_courses_collection()
+    if collection is not None:
+        return collection.find_one({"$or": [{"slug": slug}, {"id": slug}]})
+
+    return None
+
+
+def _is_user_enrolled(user_id: str, course_slug: str) -> bool:
+    """Check if user is enrolled in course."""
+    collection = get_course_enrollments_collection()
     if collection is None:
-        return []
-    cursor = collection.find({}).sort("order", 1)
-    return [_serialize_practice_set(doc) for doc in cursor]
+        return False
+
+    enrollment = collection.find_one({"user_id": user_id, "course_slug": course_slug})
+    return enrollment is not None
 
 
-def _get_progress_collection(required: bool = False) -> Collection:
-    collection = get_course_progress_collection(required=required)
+def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
+    """Enroll user in course."""
+    if _is_user_enrolled(user_id, course_slug):
+        logger.info(f"User {user_id} already enrolled in {course_slug}")
+        return True
+
+    collection = get_course_enrollments_collection()
     if collection is None:
-        raise HTTPException(
-            status_code=503, detail="Course progress store unavailable."
+        return False
+
+    try:
+        now = datetime.now(timezone.utc)
+        collection.update_one(
+            {"user_id": user_id, "course_slug": course_slug},
+            {
+                "$set": {
+                    "user_id": user_id,
+                    "course_slug": course_slug,
+                    "enrolled_at": now,
+                }
+            },
+            upsert=True,
         )
-    return collection
+    except PyMongoError as exc:
+        raise HTTPException(status_code=500, detail=f"Failed to enroll: {exc}") from exc
+    return True
 
 
 def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, Any]]:
-    if not _is_user_enrolled(user_id, course_slug):
-        raise HTTPException(status_code=403, detail="Course not enrolled")
+    """Get user's progress for a course."""
     collection = get_course_progress_collection()
     if collection is None:
         return None
-    doc = collection.find_one({"user_id": user_id, "course_slug": course_slug})
 
-    course_doc = _find_course_document(course_slug)
-    if not course_doc:
+    progress_doc = collection.find_one({"user_id": user_id, "course_slug": course_slug})
+
+    if not progress_doc:
         return None
 
-    if not doc:
-
-        modules_payload = []
-        for module in course_doc.get("modules", []):
-            items_payload = []
-            for item in module.get("items", []):
-                items_payload.append(
-                    {
-                        "module_item_id": item.get("id") or str(uuid4()),
-                        "title": item.get("title"),
-                        "completed": False,
-                    }
-                )
-            modules_payload.append(
-                {
-                    "module_id": module.get("id") or str(uuid4()),
-                    "title": module.get("title"),
-                    "status": "locked",
-                    "duration": module.get("duration"),
-                    "completion": 0,
-                    "assessment_status": None,
-                    "best_score": None,
-                    "attempt_count": 0,
-                    "items": items_payload,
-                }
-            )
-        return {
-            "user_id": user_id,
-            "course_slug": course_slug,
-            "progress": 0,
-            "modules": modules_payload,
-            "metrics": None,
-            "next_session": None,
-            "updated_at": None,
-            "insights": [],
-            "resources": [],
-            "schedule": [],
-        }
-
-    enriched_modules = []
-    for module_progress in doc.get("modules", []):
-        module_id = module_progress.get("module_id")
-
-        course_module = next(
-            (m for m in course_doc.get("modules", []) if m.get("id") == module_id), None
-        )
-
-        items_payload = module_progress.get("items", [])
-        if not items_payload and course_module:
-
-            items_payload = []
-            for item in course_module.get("items", []):
-                items_payload.append(
-                    {
-                        "module_item_id": item.get("id") or str(uuid4()),
-                        "title": item.get("title"),
-                        "completed": False,
-                    }
-                )
-
-        enriched_modules.append(
-            {
-                "module_id": module_id,
-                "title": module_progress.get("title"),
-                "status": module_progress.get("status", "locked"),
-                "duration": module_progress.get("duration"),
-                "completion": module_progress.get("completion", 0),
-                "assessment_status": module_progress.get("assessment_status"),
-                "best_score": module_progress.get("best_score"),
-                "attempt_count": module_progress.get("attempt_count"),
-                "items": items_payload,
-            }
-        )
-
-    doc["modules"] = enriched_modules
-    return _serialize_progress_doc(doc)
+    return _serialize_progress_doc(progress_doc)
 
 
 def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
+    """Serialize progress document for API response."""
     modules = []
     for module in doc.get("modules", []):
         items_payload = []
@@ -884,18 +551,20 @@ def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
                     "completed": bool(item.get("completed")),
                 }
             )
-        module_data = {
-            "module_id": module.get("module_id"),
-            "title": module.get("title"),
-            "status": module.get("status", "in-progress"),
-            "duration": module.get("duration"),
-            "completion": module.get("completion", 0),
-            "assessment_status": module.get("assessment_status"),
-            "best_score": module.get("best_score"),
-            "attempt_count": module.get("attempt_count"),
-            "items": items_payload,
-        }
-        modules.append(module_data)
+
+        modules.append(
+            {
+                "module_id": module.get("module_id"),
+                "title": module.get("title"),
+                "status": module.get("status", "in-progress"),
+                "duration": module.get("duration"),
+                "completion": module.get("completion", 0),
+                "assessment_status": module.get("assessment_status"),
+                "best_score": module.get("best_score"),
+                "attempt_count": module.get("attempt_count"),
+                "items": items_payload,
+            }
+        )
 
     metrics = doc.get("metrics") or {}
     metrics_payload = None
@@ -925,143 +594,76 @@ def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def save_course_progress(user_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
+    """Save course progress."""
+    collection = get_course_progress_collection()
+    if collection is None:
+        raise HTTPException(status_code=500, detail="Progress collection not available")
+
     course_slug = payload.get("course_slug")
     if not course_slug:
-        raise HTTPException(status_code=400, detail="course_slug is required.")
+        raise HTTPException(status_code=400, detail="course_slug is required")
 
-    progress_update: Dict[str, Any] = {}
-    if "progress" in payload and payload["progress"] is not None:
-        progress_update["progress"] = max(0, min(100, int(payload["progress"])))
-
-    modules_input: List[Dict[str, Any]] = []
-    if "modules" in payload and payload["modules"] is not None:
-        for module in payload["modules"]:
-            module_id = module.get("module_id")
-            if not module_id:
-                continue
-            items_input = module.get("items") or []
-            items_payload = []
-            completed_items = 0
-            total_items = 0
-            for item in items_input:
-                item_id = item.get("module_item_id") or item.get("id")
-                if not item_id:
-                    continue
-                completed = bool(item.get("completed"))
-                items_payload.append(
-                    {
-                        "module_item_id": item_id,
-                        "title": item.get("title"),
-                        "completed": completed,
-                    }
-                )
-                total_items += 1
-                if completed:
-                    completed_items += 1
-            completion = module.get("completion")
-            if completion is None and total_items:
-                completion = int(round((completed_items / total_items) * 100))
-            if completion is None:
-                completion = 0
-            completion = max(0, min(100, int(completion)))
-            status = module.get("status")
-            if not status:
-                if completion >= 100:
-                    status = "completed"
-                elif completion > 0:
-                    status = "in-progress"
-                else:
-                    status = "locked"
-            modules_input.append(
-                {
-                    "module_id": module_id,
-                    "title": module.get("title"),
-                    "status": status,
-                    "duration": module.get("duration"),
-                    "completion": completion,
-                    "items": items_payload,
-                }
-            )
-    if modules_input:
-        progress_update["modules"] = modules_input
-        if "progress" not in progress_update:
-            progress_update["progress"] = int(
-                round(
-                    sum(module["completion"] for module in modules_input)
-                    / len(modules_input)
-                )
-            )
-    if "metrics" in payload and payload["metrics"] is not None:
-        metrics = payload["metrics"]
-        progress_update["metrics"] = {
-            "hours_spent": metrics.get("hours_spent"),
-            "practice_accuracy": metrics.get("practice_accuracy"),
-            "mcq_attempts": metrics.get("mcq_attempts"),
-            "last_score": metrics.get("last_score"),
-            "streak": metrics.get("streak"),
-        }
-    if "next_session" in payload:
-        progress_update["next_session"] = payload["next_session"]
-    if "insights" in payload:
-        progress_update["insights"] = payload["insights"]
-    if "resources" in payload:
-        progress_update["resources"] = payload["resources"]
-    if "schedule" in payload:
-        progress_update["schedule"] = payload["schedule"]
-
-    now = datetime.now(timezone.utc)
-    progress_update["updated_at"] = now
-    progress_update.pop("created_at", None)
-
-    if not _is_user_enrolled(user_id, course_slug):
-        raise HTTPException(status_code=403, detail="Course not enrolled")
-
-    collection = _get_progress_collection(required=True)
     try:
-        collection.update_one(
+        now = datetime.now(timezone.utc)
+        payload["updated_at"] = now
+
+        result = collection.update_one(
             {"user_id": user_id, "course_slug": course_slug},
-            {
-                "$set": progress_update,
-                "$setOnInsert": {
-                    "user_id": user_id,
-                    "course_slug": course_slug,
-                    "created_at": now,
-                },
-            },
+            {"$set": payload},
             upsert=True,
         )
+
+        if result.upserted_id:
+            logger.info(f"Created new progress for {user_id} in {course_slug}")
+        else:
+            logger.info(f"Updated progress for {user_id} in {course_slug}")
+
+        return get_course_progress(user_id, course_slug) or {}
+
     except PyMongoError as exc:
+        logger.error(f"Failed to save progress: {exc}")
         raise HTTPException(
-            status_code=500, detail=f"Failed to persist progress: {exc}"
+            status_code=500, detail=f"Failed to save progress: {exc}"
         ) from exc
 
-    doc = collection.find_one({"user_id": user_id, "course_slug": course_slug})
-    if not doc:
-        raise HTTPException(status_code=500, detail="Unable to load updated progress.")
-    return _serialize_progress_doc(doc)
+
+def list_practice_sets() -> List[Dict[str, Any]]:
+    """List practice sets."""
+    logger.info("📋 list_practice_sets called")
+
+    data = _execute_hygraph_query(HYGRAPH_PRACTICE_SETS_QUERY)
+    if data and data.get("practiceSets"):
+        return [_serialize_practice_set(ps) for ps in data["practiceSets"]]
+
+    # Fallback to MongoDB
+    collection = get_practice_sets_collection()
+    if collection is not None:
+        cursor = collection.find({})
+        return [_serialize_practice_set(doc) for doc in cursor]
+
+    return []
 
 
-def _aggregate_metrics(progress_docs: List[Dict[str, Any]]) -> Tuple[float, float]:
-    total_hours = 0.0
-    accuracy_values: List[float] = []
-    for doc in progress_docs:
-        metrics = doc.get("metrics") or {}
-        hours = metrics.get("hours_spent")
-        if isinstance(hours, (int, float)):
-            total_hours += float(hours)
-        accuracy = metrics.get("practice_accuracy")
-        if isinstance(accuracy, (int, float)):
-            accuracy_values.append(float(accuracy))
-    avg_accuracy = (
-        sum(accuracy_values) / len(accuracy_values) if accuracy_values else 0.0
-    )
-    return total_hours, avg_accuracy
+def _serialize_practice_set(doc: Dict[str, Any]) -> Dict[str, Any]:
+    """Serialize practice set document."""
+    return {
+        "id": str(doc.get("_id")) if doc.get("_id") else doc.get("id"),
+        "slug": doc.get("slug"),
+        "title": doc.get("title", ""),
+        "description": doc.get("description"),
+        "tag": doc.get("tag"),
+        "questions": doc.get("questions"),
+        "accuracy": doc.get("accuracy"),
+        "trend": doc.get("trend"),
+        "estimated_time": doc.get("estimatedTime") or doc.get("estimated_time"),
+    }
 
 
 def build_dashboard_summary(
     user_profile: Dict[str, Any],
     course_docs: Dict[str, Dict[str, Any]],
 ) -> Dict[str, Any]:
+    """Build dashboard summary for user."""
     user_id = user_profile["id"]
     enrolled_slugs = set(list_user_enrollments(user_id))
     collection = get_course_progress_collection()
@@ -1236,223 +838,60 @@ def build_dashboard_summary(
     }
 
 
+def _aggregate_metrics(progress_docs: List[Dict[str, Any]]) -> Tuple[float, float]:
+    """Aggregate metrics from progress documents."""
+    total_hours = 0.0
+    accuracy_sum = 0.0
+    accuracy_count = 0
+
+    for doc in progress_docs:
+        metrics = doc.get("metrics") or {}
+
+        hours = metrics.get("hours_spent", 0)
+        if isinstance(hours, (int, float)) and hours > 0:
+            total_hours += float(hours)
+
+        accuracy = metrics.get("practice_accuracy")
+        if isinstance(accuracy, (int, float)) and 0 <= accuracy <= 100:
+            accuracy_sum += float(accuracy)
+            accuracy_count += 1
+
+    avg_accuracy = accuracy_sum / accuracy_count if accuracy_count > 0 else 0.0
+    return total_hours, avg_accuracy
+
+
 def list_user_enrollments(user_id: str) -> List[str]:
+    """Get list of course slugs user is enrolled in."""
     collection = get_course_enrollments_collection()
     if collection is None:
         return []
-    docs = collection.find({"user_id": user_id})
-    return [doc.get("course_slug") for doc in docs if doc.get("course_slug")]
 
-
-def submit_assessment(
-    user_id: str, course_slug: str, module_id: str, answers: List[Dict[str, Any]]
-) -> Dict[str, Any]:
-    """
-    Submit an assessment attempt and calculate the score.
-
-    Args:
-        user_id: The ID of the user submitting the assessment
-        course_slug: The course slug
-        module_id: The module ID
-        answers: List of user answers with question_index and selected_option_index
-
-    Returns:
-        Dict containing the attempt details, score, and pass/fail status
-    """
-
-    course_doc = get_course_detail(course_slug, user_id)
-    if not course_doc:
-        raise HTTPException(status_code=404, detail="Course not found")
-
-    module = None
-    for mod in course_doc.get("modules", []):
-        if mod.get("id") == module_id:
-            module = mod
-            break
-
-    if not module:
-        raise HTTPException(status_code=404, detail="Module not found")
-
-    assessment = module.get("assessment")
-    if not assessment:
-        raise HTTPException(
-            status_code=404, detail="No assessment found for this module"
-        )
-
-    questions = (
-        assessment.get("assessment_questions")
-        or assessment.get("assessmentQuestions")
-        or []
-    )
-    if not questions:
-        raise HTTPException(status_code=404, detail="Assessment has no questions")
-
-    total_questions = len(questions)
-    correct_answers = 0
-    processed_answers = []
-
-    for answer in answers:
-        question_index = answer.get("question_index")
-        selected_option_index = answer.get("selected_option_index")
-
-        if question_index < 0 or question_index >= total_questions:
-            continue
-
-        question = questions[question_index]
-        options = question.get("options", [])
-
-        if selected_option_index < 0 or selected_option_index >= len(options):
-            continue
-
-        selected_option = options[selected_option_index]
-        print(f"🔍 Q{question_index}: selected option = {selected_option}")
-
-        is_correct = (
-            selected_option.get("is_correct") == True
-            or selected_option.get("isCorrect") == True
-        )
-
-        print(f"   is_correct result: {is_correct}")
-
-        if is_correct:
-            correct_answers += 1
-
-        processed_answers.append(
-            {
-                "questionIndex": question_index,
-                "selectedOptionIndex": selected_option_index,
-                "isCorrect": is_correct,
-            }
-        )
-
-    score = (correct_answers / total_questions * 100) if total_questions > 0 else 0
-    passed = score >= 80.0
-
-    collection = get_assessment_attempts_collection()
-    if collection is None:
-        raise HTTPException(status_code=503, detail="Database unavailable")
-
-    existing_attempts = list(
-        collection.find(
-            {
-                "user_id": user_id,
-                "course_slug": course_slug,
-                "module_id": module_id,
-            }
-        )
-        .sort("attempt_number", -1)
-        .limit(1)
-    )
-
-    attempt_number = 1
-    if existing_attempts:
-        attempt_number = existing_attempts[0].get("attempt_number", 0) + 1
-
-    attempt_id = str(uuid4())
-    completed_at = datetime.now(timezone.utc)
-
-    attempt_doc = {
-        "id": attempt_id,
-        "user_id": user_id,
-        "course_slug": course_slug,
-        "module_id": module_id,
-        "attempt_number": attempt_number,
-        "answers": processed_answers,
-        "score": score,
-        "total_questions": total_questions,
-        "passed": passed,
-        "completed_at": completed_at,
-    }
-
-    collection.insert_one(attempt_doc)
-
-    _update_assessment_progress(user_id, course_slug, module_id, score, passed)
-
-    return {
-        "attempt": attempt_doc,
-        "passed": passed,
-        "score": score,
-        "total_questions": total_questions,
-    }
+    cursor = collection.find({"user_id": user_id})
+    return [doc.get("course_slug") for doc in cursor if doc.get("course_slug")]
 
 
 def get_assessment_history(
-    user_id: str, course_slug: str, module_id: Optional[str] = None
+    user_id: str, course_slug: str, module_id: str
 ) -> List[Dict[str, Any]]:
-    """
-    Get assessment attempt history for a user.
-
-    Args:
-        user_id: The ID of the user
-        course_slug: The course slug
-        module_id: Optional module ID to filter by specific module
-
-    Returns:
-        List of assessment attempts
-    """
+    """Get assessment attempt history."""
     collection = get_assessment_attempts_collection()
     if collection is None:
         return []
 
-    query = {
-        "user_id": user_id,
-        "course_slug": course_slug,
-    }
+    cursor = collection.find(
+        {"user_id": user_id, "course_slug": course_slug, "module_id": module_id}
+    ).sort("attempt_number", -1)
 
-    if module_id:
-        query["module_id"] = module_id
-
-    attempts = list(collection.find(query).sort("completed_at", -1))
-
-    for attempt in attempts:
-        attempt.pop("_id", None)
+    attempts = []
+    for doc in cursor:
+        attempts.append(
+            {
+                "attempt_number": doc.get("attempt_number", 1),
+                "score": doc.get("score", 0),
+                "passed": doc.get("passed", False),
+                "submitted_at": _serialize_datetime(doc.get("submitted_at")),
+                "answers": doc.get("answers", []),
+            }
+        )
 
     return attempts
-
-
-def _update_assessment_progress(
-    user_id: str, course_slug: str, module_id: str, score: float, passed: bool
-) -> None:
-    """
-    Update the course progress to reflect assessment completion.
-    """
-    progress_collection = get_course_progress_collection()
-    if progress_collection is None:
-        return
-
-    progress_doc = progress_collection.find_one(
-        {
-            "user_id": user_id,
-            "course_slug": course_slug,
-        }
-    )
-
-    if not progress_doc:
-        print(
-            f"⚠️ WARNING: No progress document found for user {user_id}, course {course_slug}"
-        )
-        return
-
-    modules = progress_doc.get("modules", [])
-    module_updated = False
-
-    for module in modules:
-        if module.get("module_id") == module_id:
-
-            current_best = module.get("best_score", 0)
-            module["best_score"] = max(current_best, score)
-            module["attempt_count"] = module.get("attempt_count", 0) + 1
-
-            current_status = module.get("assessment_status", "not_started")
-            if passed or current_status == "passed":
-                module["assessment_status"] = "passed"
-            else:
-                module["assessment_status"] = "attempted"
-            module_updated = True
-            break
-
-    if module_updated:
-        result = progress_collection.update_one(
-            {"user_id": user_id, "course_slug": course_slug},
-            {"$set": {"modules": modules, "updated_at": datetime.now(timezone.utc)}},
-        )

@@ -40,6 +40,7 @@ class AssessmentQuestionOptionModel(BaseModel):
 
     class Config:
         populate_by_name = True
+        by_alias = False  # Use field names (camelCase) in responses, not aliases
 
 
 class MarkdownContentModel(BaseModel):
@@ -59,6 +60,7 @@ class AssessmentModel(BaseModel):
 
     class Config:
         populate_by_name = True
+        by_alias = False  # Use field names (camelCase) in responses, not aliases
 
 
 class CourseModuleModel(BaseModel):

@@ -136,7 +136,7 @@ const SignInPage = () => {
               <button
                 type="submit"
                 disabled={submitting}
-                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 px-5 py-3 text-sm font-semibold text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
+                className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 px-5 py-3 text-sm font-semibold dark:text-white transition hover:brightness-110 disabled:cursor-not-allowed disabled:opacity-60"
               >
                 {submitting ? "Signing in…" : "Sign in"}
               </button>

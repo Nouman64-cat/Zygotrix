@@ -358,30 +358,6 @@ const DashboardCourseWorkspacePage = () => {
             <h2 className="text-lg font-bold text-foreground line-clamp-2">
               {course.title}
             </h2>
-            <div className="flex items-center gap-2 text-xs text-muted">
-              <span className="font-semibold text-accent">
-                {completionSummary}%
-              </span>
-              <span>Complete</span>
-            </div>
-            <div className="relative h-2 rounded-full bg-accent-soft">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500"
-                style={{ width: `${completionSummary}%` }}
-              />
-            </div>
-
-            {/* Certificate Button */}
-            {completionSummary === 100 && (
-              <button
-                onClick={handleGenerateCertificate}
-                disabled={isGeneratingCertificate}
-                className="w-full mt-3 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold text-sm rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <FiAward className="w-4 h-4" />
-                {isGeneratingCertificate ? "Loading..." : "View Certificate"}
-              </button>
-            )}
           </div>
 
           {/* Modules List */}
@@ -587,6 +563,36 @@ const DashboardCourseWorkspacePage = () => {
 
       {/* Main Content Area */}
       <div className="flex-1 min-w-0 space-y-6">
+        {/* Course Progress Bar - Top of Content */}
+        <div className="rounded-[1.75rem] border border-border bg-surface p-6">
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-semibold text-foreground">
+                Course Progress
+              </h3>
+              <span className="text-sm font-bold text-accent">
+                {completionSummary}%
+              </span>
+            </div>
+            <div className="relative h-3 rounded-full bg-accent-soft overflow-hidden">
+              <div
+                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 transition-all duration-500"
+                style={{ width: `${completionSummary}%` }}
+              />
+            </div>
+            {completionSummary === 100 && (
+              <button
+                onClick={handleGenerateCertificate}
+                disabled={isGeneratingCertificate}
+                className="w-full mt-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold text-sm rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <FiAward className="w-4 h-4" />
+                {isGeneratingCertificate ? "Loading..." : "View Certificate"}
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* Page Header */}
         <div className="space-y-4">
           <div className="flex items-center gap-3">

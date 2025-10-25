@@ -5,24 +5,28 @@ import DashboardTopBar from "../components/dashboard/layout/DashboardTopBar";
 
 const DashboardLayout = () => {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
-  const [collapsed, setCollapsed] = useState(false);
+  const [collapsed, setCollapsed] = useState(true);
 
   return (
     <div className="min-h-screen bg-background text-foreground transition-colors">
-      <div className="flex min-h-screen">
+      <div className="flex h-screen overflow-hidden">
         <DashboardSidebar collapsed={collapsed} />
 
-        <div className="flex min-h-screen flex-1 flex-col overflow-hidden">
-          <div className="flex-1 overflow-y-auto">
-            <div className="mx-auto flex h-full max-w-8xl flex-col px-4 sm:px-8">
-              <div className="sticky top-0 z-10 bg-background pt-8 pb-6">
-                <DashboardTopBar
-                  collapsed={collapsed}
-                  onToggleSidebar={() => setCollapsed((prev) => !prev)}
-                  onOpenMobileNav={() => setMobileNavOpen(true)}
-                />
-              </div>
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Fixed Header */}
+          <div className="flex-shrink-0 bg-background px-4 sm:px-8 pt-8 pb-6 border-b border-border">
+            <div className="mx-auto max-w-8xl">
+              <DashboardTopBar
+                collapsed={collapsed}
+                onToggleSidebar={() => setCollapsed((prev) => !prev)}
+                onOpenMobileNav={() => setMobileNavOpen(true)}
+              />
+            </div>
+          </div>
 
+          {/* Scrollable Content */}
+          <div className="flex-1 overflow-y-auto">
+            <div className="mx-auto max-w-8xl px-4 sm:px-8 py-6">
               <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors mb-8">
                 <Outlet />
               </div>

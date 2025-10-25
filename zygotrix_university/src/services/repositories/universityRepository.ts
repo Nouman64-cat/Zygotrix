@@ -10,6 +10,7 @@ import type {
   ApiAssessmentSubmission,
   ApiAssessmentResultResponse,
   ApiAssessmentHistoryResponse,
+  ApiCertificateResponse,
 } from "../../types/api";
 
 export const fetchCourses = async (
@@ -134,6 +135,15 @@ export const fetchAssessmentHistory = async (
         _t: Date.now(), // Cache buster
       },
     }
+  );
+  return response.data;
+};
+
+export const generateCertificate = async (
+  courseSlug: string
+): Promise<ApiCertificateResponse> => {
+  const response = await apiClient.post<ApiCertificateResponse>(
+    API_ROUTES.university.certificate(courseSlug)
   );
   return response.data;
 };

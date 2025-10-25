@@ -11,12 +11,16 @@
     "deploy": "scp -i ~/.ssh/id_ed25519_do -r dist/* root@164.92.190.232:/var/www/site_zyg_university/"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.3.1",
     "@tailwindcss/vite": "^4.1.14",
     "axios": "^1.12.2",
+    "html2canvas": "^1.4.1",
+    "jspdf": "^3.0.3",
     "react": "^19.1.1",
     "react-dom": "^19.1.1",
-    "react-markdown": "^9.0.1",
     "react-icons": "^5.5.0",
+    "react-markdown": "^9.0.1",
+    "react-pdf": "^10.2.0",
     "react-router-dom": "^7.9.4",
     "tailwindcss": "^4.1.14"
   },

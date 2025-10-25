@@ -7,20 +7,19 @@ import {
   FiMoon,
   FiSun,
 } from "react-icons/fi";
-import { Link, NavLink, useNavigate } from "react-router-dom";
-import { cn } from "../../utils/cn";
+import { Link, useNavigate } from "react-router-dom";
 import AccentButton from "../common/AccentButton";
 import Logo from "./Logo";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../hooks/useTheme";
 
-const navItems = [
-  { label: "Programs", to: "/courses" },
-  { label: "Learning Paths", to: "/paths" },
-  { label: "Practice Studio", to: "/practice" },
-  { label: "Community", to: "/community" },
-  { label: "Resources", to: "/resources" },
-];
+// const navItems = [
+//   // { label: "Programs", to: "/courses" },
+//   // { label: "Learning Paths", to: "/paths" },
+//   // { label: "Practice Studio", to: "/practice" },
+//   // { label: "Community", to: "/community" },
+//   // { label: "Resources", to: "/resources" },
+// ];
 
 const ZYGOTRIX_STUDIO_URL = import.meta.env.VITE_ZYGOTRIX_STUDIO_APP;
 
@@ -41,11 +40,11 @@ const NavigationBar = () => {
 
   return (
     <header className="sticky top-0 z-50 border-b border-border bg-overlay backdrop-blur transition-colors">
-      <nav className="mx-auto flex max-w-8xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
+      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6 lg:px-8">
         <Logo />
 
         <div className="hidden items-center gap-8 md:flex">
-          {navItems.map((item) => (
+          {/* {navItems.map((item) => (
             <NavLink
               key={item.to}
               to={item.to}
@@ -59,21 +58,7 @@ const NavigationBar = () => {
             >
               {item.label}
             </NavLink>
-          ))}
-          {user && (
-            <NavLink
-              to="/university"
-              className={({ isActive }) =>
-                cn(
-                  "text-sm font-medium text-muted transition-colors hover:text-foreground",
-                  isActive &&
-                    "text-foreground underline underline-offset-8 decoration-[var(--color-primary)]"
-                )
-              }
-            >
-              University
-            </NavLink>
-          )}
+          ))} */}
         </div>
 
         <div className="hidden items-center gap-3 md:flex">
@@ -121,7 +106,7 @@ const NavigationBar = () => {
         {open && (
           <div className="absolute inset-x-0 top-full border-b border-border bg-overlay px-4 pb-6 pt-4 shadow-lg shadow-black/20 md:hidden transition-colors">
             <div className="flex flex-col gap-3">
-              {navItems.map((item) => (
+              {/* {navItems.map((item) => (
                 <NavLink
                   key={item.to}
                   to={item.to}
@@ -135,21 +120,7 @@ const NavigationBar = () => {
                 >
                   {item.label}
                 </NavLink>
-              ))}
-              {user && (
-                <NavLink
-                  to="/university"
-                  onClick={close}
-                  className={({ isActive }) =>
-                    cn(
-                      "rounded-lg px-3 py-2 text-base font-medium text-muted transition-colors hover:bg-accent-soft hover:text-foreground",
-                      isActive && "bg-accent-soft text-foreground"
-                    )
-                  }
-                >
-                  University
-                </NavLink>
-              )}
+              ))} */}
               <hr className="border-border" />
               <button
                 type="button"
@@ -164,9 +135,6 @@ const NavigationBar = () => {
                 </span>
                 {isDark ? <FiSun size={18} /> : <FiMoon size={18} />}
               </button>
-              <AccentButton to="/courses" onClick={close}>
-                Explore Courses
-              </AccentButton>
               {user ? (
                 <>
                   <AccentButton

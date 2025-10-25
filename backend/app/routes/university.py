@@ -20,6 +20,7 @@ from ..schema.university import (
     AssessmentSubmissionRequest,
     AssessmentResultResponse,
     AssessmentHistoryResponse,
+    CertificateResponse,
 )
 from ..services import auth as auth_services
 from ..services import university as university_services
@@ -204,3 +205,20 @@ def get_assessment_history(
         module_id=module_id,
     )
     return AssessmentHistoryResponse(attempts=attempts)
+
+
+@router.post(
+    "/courses/{course_slug}/certificate",
+    response_model=CertificateResponse,
+    response_model_by_alias=True,
+)
+def generate_certificate(
+    course_slug: str,
+    current_user: UserProfile = Depends(get_current_user_required),
+) -> CertificateResponse:
+    """Generate a certificate for a completed course."""
+    certificate = university_services.generate_certificate(
+        user_id=current_user.id,
+        course_slug=course_slug,
+    )
+    return CertificateResponse(**certificate)

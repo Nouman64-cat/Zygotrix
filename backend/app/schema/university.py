@@ -249,6 +249,9 @@ class CourseProgressResponse(BaseModel):
     insights: List[PracticeInsightModel] = Field(default_factory=list)
     resources: List[DashboardResourceModel] = Field(default_factory=list)
     schedule: List[LearningEventModel] = Field(default_factory=list)
+    completed: bool = False
+    completed_at: Optional[datetime] = None
+    certificate_issued: bool = False
 
 
 class CourseProgressUpdateRequest(BaseModel):
@@ -305,6 +308,17 @@ class AssessmentResultResponse(BaseModel):
     passed: bool
     score: float
     total_questions: int
+
+
+class CertificateResponse(BaseModel):
+    user_name: str = Field(..., alias="userName")
+    course_name: str = Field(..., alias="courseName")
+    course_slug: str = Field(..., alias="courseSlug")
+    completed_at: datetime = Field(..., alias="completedAt")
+    completion_percentage: int = Field(..., ge=0, le=100, alias="completionPercentage")
+
+    class Config:
+        populate_by_name = True
 
 
 class AssessmentHistoryResponse(BaseModel):

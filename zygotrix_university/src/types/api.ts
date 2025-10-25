@@ -184,4 +184,12 @@ export interface ApiAssessmentHistoryResponse {
   attempts: ApiAssessmentAttempt[];
 }
 
+export interface ApiCertificateResponse {
+  userName: string;
+  courseName: string;
+  courseSlug: string;
+  completedAt: string;
+  completionPercentage: number;
+}
+
 export interface ApiDashboardCourse extends CourseProgress {}

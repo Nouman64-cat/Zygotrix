@@ -12,9 +12,14 @@ import AccentButton from "../../components/common/AccentButton";
 import LessonModal from "../../components/dashboard/LessonModal";
 import AssessmentModal from "../../components/dashboard/AssessmentModal";
 import AssessmentResultsModal from "../../components/dashboard/AssessmentResultsModal";
+import CourseCertificate from "../../components/certificates/CourseCertificate";
 import { useCourseWorkspace } from "../../hooks/useCourseWorkspace";
-import { submitAssessment } from "../../services/repositories/universityRepository";
+import {
+  submitAssessment,
+  generateCertificate,
+} from "../../services/repositories/universityRepository";
 import type { AssessmentResult, UserAnswer } from "../../types";
+import type { ApiCertificateResponse } from "../../types/api";
 import { cn } from "../../utils/cn";
 
 const DashboardCourseWorkspacePage = () => {
@@ -26,6 +31,7 @@ const DashboardCourseWorkspacePage = () => {
     saving,
     error,
     toggleItem,
+    completeModule,
     activeLesson,
     setActiveLesson,
     refetch,
@@ -38,6 +44,12 @@ const DashboardCourseWorkspacePage = () => {
   const [assessmentResult, setAssessmentResult] =
     useState<AssessmentResult | null>(null);
   const [isSubmittingAssessment, setIsSubmittingAssessment] = useState(false);
+
+  // Certificate states
+  const [certificateData, setCertificateData] =
+    useState<ApiCertificateResponse | null>(null);
+  const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
+  const [isGeneratingCertificate, setIsGeneratingCertificate] = useState(false);
 
   const completionSummary = useMemo(() => {
     if (!progress || progress.modules.length === 0 || !course) {
@@ -158,6 +170,12 @@ const DashboardCourseWorkspacePage = () => {
     if (!module) {
       return null;
     }
+
+    // If viewing module overview (no itemId), just return module without lesson
+    if (activeLesson.itemId === null) {
+      return { module, lesson: null };
+    }
+
     const lesson =
       module.items.find((item) => item.moduleItemId === activeLesson.itemId) ??
       (activeLessonMeta
@@ -228,6 +246,30 @@ const DashboardCourseWorkspacePage = () => {
     // Refetch progress to get updated assessment status from backend
     refetch();
   };
+
+  const handleGenerateCertificate = async () => {
+    if (!slug || !course) return;
+
+    setIsGeneratingCertificate(true);
+    try {
+      const cert = await generateCertificate(slug);
+      setCertificateData(cert);
+      setIsCertificateModalOpen(true);
+    } catch (error: any) {
+      console.error("Failed to generate certificate:", error);
+      alert(
+        error?.response?.data?.detail ||
+          "Failed to generate certificate. Please ensure you've completed all modules and assessments."
+      );
+    } finally {
+      setIsGeneratingCertificate(false);
+    }
+  };
+
+  const handleCloseCertificateModal = () => {
+    setIsCertificateModalOpen(false);
+  };
+
   if (loading) {
     return (
       <div className="space-y-12">
@@ -328,6 +370,18 @@ const DashboardCourseWorkspacePage = () => {
                 style={{ width: `${completionSummary}%` }}
               />
             </div>
+
+            {/* Certificate Button */}
+            {completionSummary === 100 && (
+              <button
+                onClick={handleGenerateCertificate}
+                disabled={isGeneratingCertificate}
+                className="w-full mt-3 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold text-sm rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+              >
+                <FiAward className="w-4 h-4" />
+                {isGeneratingCertificate ? "Loading..." : "View Certificate"}
+              </button>
+            )}
           </div>
 
           {/* Modules List */}
@@ -381,16 +435,46 @@ const DashboardCourseWorkspacePage = () => {
                           itemId: null,
                         });
                       }}
-                      className="w-full flex items-start gap-2 px-2 py-1.5 rounded-lg transition-colors hover:bg-accent-soft cursor-pointer text-left"
+                      className={cn(
+                        "w-full flex items-start gap-2 px-2 py-1.5 rounded-lg transition-colors cursor-pointer text-left",
+                        activeLesson?.moduleId === module.moduleId &&
+                          activeLesson?.itemId === null
+                          ? "bg-accent text-white"
+                          : "hover:bg-accent-soft"
+                      )}
                     >
-                      <span className="inline-flex items-center justify-center w-6 h-6 rounded-full bg-accent-soft text-xs font-bold text-accent flex-shrink-0">
+                      <span
+                        className={cn(
+                          "inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-bold flex-shrink-0",
+                          activeLesson?.moduleId === module.moduleId &&
+                            activeLesson?.itemId === null
+                            ? "bg-white text-accent"
+                            : "bg-accent-soft text-accent"
+                        )}
+                      >
                         {moduleIndex + 1}
                       </span>
                       <div className="flex-1 min-w-0">
-                        <h3 className="text-sm font-semibold text-foreground line-clamp-2">
+                        <h3
+                          className={cn(
+                            "text-sm font-semibold line-clamp-2",
+                            activeLesson?.moduleId === module.moduleId &&
+                              activeLesson?.itemId === null
+                              ? "text-white"
+                              : "text-foreground"
+                          )}
+                        >
                           {module.title}
                         </h3>
-                        <p className="text-xs text-muted">
+                        <p
+                          className={cn(
+                            "text-xs",
+                            activeLesson?.moduleId === module.moduleId &&
+                              activeLesson?.itemId === null
+                              ? "text-white/80"
+                              : "text-muted"
+                          )}
+                        >
                           {completedWithAssessment}/{totalWithAssessment} items
                           · {actualCompletion}%
                         </p>
@@ -622,10 +706,41 @@ const DashboardCourseWorkspacePage = () => {
             {activeLessonMeta.isModuleOverview &&
               activeLessonMeta.module.description && (
                 <div className="rounded-[1.75rem] border-2 border-accent/20 bg-accent-soft p-6">
-                  <h3 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-                    <FiBook className="h-5 w-5 text-accent" />
-                    Module Overview
-                  </h3>
+                  <div className="flex items-start justify-between gap-4 mb-3">
+                    <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                      <FiBook className="h-5 w-5 text-accent" />
+                      Module Overview
+                    </h3>
+
+                    {/* Show "Mark Module Complete" button if module has no lessons */}
+                    {activeLessonProgress?.module &&
+                      activeLessonProgress.module.items.length === 0 && (
+                        <label className="flex items-center gap-2 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={
+                              activeLessonProgress.module.completion === 100
+                            }
+                            onChange={() => {
+                              // Toggle module completion for modules with no lessons
+                              const isCurrentlyComplete =
+                                activeLessonProgress.module.completion === 100;
+                              completeModule(
+                                activeLesson!.moduleId,
+                                !isCurrentlyComplete
+                              );
+                            }}
+                            disabled={saving}
+                            className="h-5 w-5 rounded border-2 border-accent bg-background-subtle text-accent transition-all hover:scale-110 focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                          />
+                          <span className="text-sm font-medium text-foreground">
+                            {activeLessonProgress.module.completion === 100
+                              ? "Completed"
+                              : "Mark complete"}
+                          </span>
+                        </label>
+                      )}
+                  </div>
                   <ReactMarkdown
                     className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mb-2 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-muted [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:text-muted [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_ol]:text-sm [&_ol]:text-muted [&_ol]:mb-4 [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-background-subtle [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-xs [&_code]:text-accent [&_code]:font-mono [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-background-subtle [&_pre]:p-4 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_a]:text-accent [&_a]:underline [&_a]:transition-colors hover:[&_a]:text-foreground"
                     components={{
@@ -838,6 +953,30 @@ const DashboardCourseWorkspacePage = () => {
             return activeModule?.title || "Module";
           })()}
         />
+      )}
+
+      {/* Certificate Modal */}
+      {isCertificateModalOpen && certificateData && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
+          <div className="relative w-full max-w-5xl max-h-[90vh] overflow-auto bg-background rounded-2xl shadow-2xl">
+            {/* Close Button */}
+            <button
+              onClick={handleCloseCertificateModal}
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-surface hover:bg-border transition-colors"
+            >
+              <FiChevronLeft className="w-6 h-6 text-foreground rotate-180" />
+            </button>
+
+            {/* Certificate */}
+            <div className="p-8">
+              <CourseCertificate
+                userName={certificateData.userName}
+                courseName={certificateData.courseName}
+                completedAt={new Date(certificateData.completedAt)}
+              />
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

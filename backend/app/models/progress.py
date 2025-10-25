@@ -77,6 +77,11 @@ class CourseProgress(BaseModel):
     metrics: Optional[ProgressMetrics] = Field(None, description="Learning metrics")
 
     next_session: Optional[str] = Field(None, description="Next session date")
+    
+    # Certificate fields
+    completed: bool = Field(False, description="Whether course is completed")
+    completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
+    certificate_issued: bool = Field(False, description="Whether certificate was issued")
 
     class Config:
         json_schema_extra = {

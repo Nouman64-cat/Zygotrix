@@ -1214,7 +1214,7 @@ const ProjectWorkspace: React.FC = () => {
     try {
       setIsDeleting(true);
       await deleteProject(projectId);
-      navigate("/portal/projects");
+      navigate("/studio/projects");
     } catch (error) {
       console.error("Failed to delete project:", error);
     } finally {

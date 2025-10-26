@@ -81,7 +81,7 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
               existingProjects.map((project) => (
                 <button
                   key={project.id}
-                  onClick={() => navigate(`/portal/workspace/${project.id}`)}
+                  onClick={() => navigate(`/studio/workspace/${project.id}`)}
                   className="relative w-full text-left p-3 cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group overflow-hidden"
                 >
                   {/* Mini notebook binding holes */}
@@ -149,7 +149,7 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
 
           <div className="mt-6 pt-4 border-t border-gray-200">
             <button
-              onClick={() => navigate("/portal/projects")}
+              onClick={() => navigate("/studio/projects")}
               className="w-full text-left p-2 text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
             >
               View All Projects →
@@ -174,7 +174,7 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
               existingProjects.map((project) => (
                 <button
                   key={project.id}
-                  onClick={() => navigate(`/portal/workspace/${project.id}`)}
+                  onClick={() => navigate(`/studio/workspace/${project.id}`)}
                   className={`w-8 h-8 ${project.color} rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110`}
                   title={`${project.name} - ${project.type}`}
                 >
@@ -194,7 +194,7 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
             {/* View All Projects button as icon */}
             <div className="border-t border-gray-200 pt-2 mt-2">
               <button
-                onClick={() => navigate("/portal/projects")}
+                onClick={() => navigate("/studio/projects")}
                 className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110"
                 title="View All Projects"
               >

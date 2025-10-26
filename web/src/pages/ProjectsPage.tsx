@@ -47,7 +47,7 @@ const ProjectsPage: React.FC = () => {
         from_template: template?.id,
       });
 
-      navigate(`/portal/workspace/${newProject.id}`);
+      navigate(`/studio/workspace/${newProject.id}`);
     } catch (err) {
       console.error("Failed to create project:", err);
     }
@@ -243,13 +243,13 @@ const ProjectsPage: React.FC = () => {
             return (
               <div
                 key={project.id}
-                onClick={() => navigate(`/portal/workspace/${project.id}`)}
+                onClick={() => navigate(`/studio/workspace/${project.id}`)}
                 role="button"
                 tabIndex={0}
                 className="relative bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer aspect-[3/4] min-h-[180px] flex flex-col w-full text-left border border-gray-200 hover:border-gray-300 group overflow-hidden"
                 onKeyPress={(e) => {
                   if (e.key === "Enter" || e.key === " ")
-                    navigate(`/portal/workspace/${project.id}`);
+                    navigate(`/studio/workspace/${project.id}`);
                 }}
               >
                 {/* Notebook binding holes */}

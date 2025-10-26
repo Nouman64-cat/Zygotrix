@@ -349,10 +349,371 @@ const DashboardCourseWorkspacePage = () => {
   }
 
   return (
-    <div className="flex gap-6 h-full">
+    <div className="flex h-full overflow-hidden">
+      {/* Main Content Area - Left Side */}
+      <div className="flex-1 min-w-0 h-full overflow-y-auto">
+        <div className="p-6 space-y-6">
+          {/* Compact Header with Progress */}
+          <div className="flex items-center justify-between gap-4 pb-4 border-b border-border">
+            <div className="flex-1 min-w-0">
+              <h1 className="text-2xl font-bold text-foreground truncate">
+                {course.title}
+              </h1>
+              {course.shortDescription && (
+                <p className="text-xs text-muted mt-1 line-clamp-1">
+                  {course.shortDescription}
+                </p>
+              )}
+            </div>
+
+            {/* Compact Progress Indicator */}
+            <div className="flex items-center gap-3">
+              {/* Circular Progress */}
+              <div className="relative flex items-center justify-center">
+                <svg className="w-14 h-14 transform -rotate-90">
+                  <circle
+                    cx="28"
+                    cy="28"
+                    r="24"
+                    stroke="currentColor"
+                    strokeWidth="4"
+                    fill="none"
+                    className="text-accent-soft"
+                  />
+                  <circle
+                    cx="28"
+                    cy="28"
+                    r="24"
+                    stroke="url(#gradient)"
+                    strokeWidth="4"
+                    fill="none"
+                    strokeDasharray={`${2 * Math.PI * 24}`}
+                    strokeDashoffset={`${
+                      2 * Math.PI * 24 * (1 - completionSummary / 100)
+                    }`}
+                    className="transition-all duration-500"
+                    strokeLinecap="round"
+                  />
+                  <defs>
+                    <linearGradient
+                      id="gradient"
+                      x1="0%"
+                      y1="0%"
+                      x2="100%"
+                      y2="100%"
+                    >
+                      <stop offset="0%" stopColor="#6366f1" />
+                      <stop offset="50%" stopColor="#a855f7" />
+                      <stop offset="100%" stopColor="#3b82f6" />
+                    </linearGradient>
+                  </defs>
+                </svg>
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <span className="text-xs font-bold text-accent">
+                    {completionSummary}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Certificate Button - Only shown when 100% */}
+              {completionSummary === 100 && (
+                <button
+                  onClick={handleGenerateCertificate}
+                  disabled={isGeneratingCertificate}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 dark:text-white text-sm font-semibold rounded-full transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+                  title="View your certificate"
+                >
+                  <FiAward className="w-4 h-4" />
+                  <span className="hidden sm:inline">Certificate</span>
+                </button>
+              )}
+            </div>
+          </div>
+
+          {error && (
+            <div
+              className="rounded-xl border border-rose-500/30 bg-rose-500/10 px-4 py-3 text-sm text-rose-500"
+              role="alert"
+              aria-live="assertive"
+            >
+              <p className="font-semibold">Error</p>
+              <p>{error.message}</p>
+            </div>
+          )}
+
+          {/* Lesson Content or Module Overview */}
+          {activeLessonMeta && activeLesson ? (
+            <div className="space-y-6">
+              {/* Lesson Header */}
+              <div className="rounded-[1.75rem] border border-border bg-surface p-6">
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent">
+                      <FiBook className="h-3 w-3" />
+                      Lesson
+                    </span>
+                    <h2 className="text-2xl font-bold text-foreground mt-3">
+                      {activeLessonMeta.lesson.title}
+                    </h2>
+                    {activeLessonMeta.lesson.description && (
+                      <p className="text-sm text-muted mt-2 leading-relaxed">
+                        {activeLessonMeta.lesson.description}
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-3">
+                    {activeLessonProgress?.lesson && activeLesson?.itemId && (
+                      <label className="flex items-center gap-2 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={activeLessonProgress.lesson.completed}
+                          onChange={() =>
+                            toggleItem(
+                              activeLesson.moduleId,
+                              activeLesson.itemId!
+                            )
+                          }
+                          disabled={saving}
+                          className="h-5 w-5 rounded border-2 border-accent bg-background-subtle text-accent transition-all hover:scale-110 focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                        />
+                        <span className="text-sm font-medium text-foreground">
+                          {activeLessonProgress.lesson.completed
+                            ? "Completed"
+                            : "Mark complete"}
+                        </span>
+                      </label>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              {/* Video Player - Show if video URL exists */}
+              {activeLessonMeta.lesson.video?.url && (
+                <div className="rounded-[1.75rem] border border-border bg-black overflow-hidden shadow-lg">
+                  <video
+                    src={activeLessonMeta.lesson.video.url}
+                    controls
+                    controlsList="nodownload"
+                    className="w-full aspect-video"
+                    preload="metadata"
+                    playsInline
+                  >
+                    <track kind="captions" />
+                    Your browser does not support the video tag.
+                  </video>
+                  {activeLessonMeta.lesson.video.fileName && (
+                    <div className="px-6 py-3 bg-surface/90 border-t border-border">
+                      <p className="text-xs text-muted">
+                        <span className="font-semibold text-foreground">
+                          Video:
+                        </span>{" "}
+                        {activeLessonMeta.lesson.video.fileName}
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Module Overview - Show if this is a module overview */}
+              {activeLessonMeta.isModuleOverview &&
+                activeLessonMeta.module.description && (
+                  <div className="rounded-[1.75rem] border-2 border-accent/20 bg-accent-soft p-6">
+                    <div className="flex items-start justify-between gap-4 mb-3">
+                      <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
+                        <FiBook className="h-5 w-5 text-accent" />
+                        Module Overview
+                      </h3>
+
+                      {/* Show "Mark Module Complete" button if module has no lessons */}
+                      {activeLessonProgress?.module &&
+                        activeLessonProgress.module.items.length === 0 && (
+                          <label className="flex items-center gap-2 cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={
+                                activeLessonProgress.module.completion === 100
+                              }
+                              onChange={() => {
+                                // Toggle module completion for modules with no lessons
+                                const isCurrentlyComplete =
+                                  activeLessonProgress.module.completion ===
+                                  100;
+                                completeModule(
+                                  activeLesson!.moduleId,
+                                  !isCurrentlyComplete
+                                );
+                              }}
+                              disabled={saving}
+                              className="h-5 w-5 rounded border-2 border-accent bg-background-subtle text-accent transition-all hover:scale-110 focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
+                            />
+                            <span className="text-sm font-medium text-foreground">
+                              {activeLessonProgress.module.completion === 100
+                                ? "Completed"
+                                : "Mark complete"}
+                            </span>
+                          </label>
+                        )}
+                    </div>
+                    <ReactMarkdown
+                      className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mb-2 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-muted [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:text-muted [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_ol]:text-sm [&_ol]:text-muted [&_ol]:mb-4 [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-background-subtle [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-xs [&_code]:text-accent [&_code]:font-mono [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-background-subtle [&_pre]:p-4 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_a]:text-accent [&_a]:underline [&_a]:transition-colors hover:[&_a]:text-foreground"
+                      components={{
+                        p: ({ children }) => (
+                          <p className="text-sm leading-7 text-muted mb-4">
+                            {children}
+                          </p>
+                        ),
+                        h1: ({ children }) => (
+                          <h1 className="text-2xl font-semibold text-foreground mb-4">
+                            {children}
+                          </h1>
+                        ),
+                        h2: ({ children }) => (
+                          <h2 className="text-xl font-semibold text-foreground mb-3">
+                            {children}
+                          </h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-lg font-semibold text-foreground mb-2">
+                            {children}
+                          </h3>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
+                            {children}
+                          </ul>
+                        ),
+                        ol: ({ children }) => (
+                          <ol className="list-decimal space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
+                            {children}
+                          </ol>
+                        ),
+                        li: ({ children }) => <li>{children}</li>,
+                        a: ({ children, href }) => (
+                          <a
+                            href={href}
+                            className="text-accent underline transition-colors hover:text-foreground"
+                            target="_blank"
+                            rel="noreferrer"
+                          >
+                            {children}
+                          </a>
+                        ),
+                        code: ({ children }) => (
+                          <code className="rounded border border-border bg-background-subtle px-1.5 py-0.5 text-xs text-accent font-mono">
+                            {children}
+                          </code>
+                        ),
+                        pre: ({ children }) => (
+                          <pre className="rounded-lg border border-border bg-background-subtle p-4 mb-4 overflow-x-auto">
+                            {children}
+                          </pre>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-foreground">
+                            {children}
+                          </strong>
+                        ),
+                      }}
+                    >
+                      {activeLessonMeta.module.description}
+                    </ReactMarkdown>
+                  </div>
+                )}
+
+              {/* Lesson Content */}
+              <div className="rounded-[1.75rem] border border-border bg-surface p-8">
+                {activeLessonMeta.lesson.content ? (
+                  <ReactMarkdown
+                    className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mb-2 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-muted [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:text-muted [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_ol]:text-sm [&_ol]:text-muted [&_ol]:mb-4 [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-background-subtle [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-xs [&_code]:text-accent [&_code]:font-mono [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-background-subtle [&_pre]:p-4 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_a]:text-accent [&_a]:underline [&_a]:transition-colors hover:[&_a]:text-foreground"
+                    components={{
+                      p: ({ children }) => (
+                        <p className="text-sm leading-7 text-muted mb-4">
+                          {children}
+                        </p>
+                      ),
+                      h1: ({ children }) => (
+                        <h1 className="text-2xl font-semibold text-foreground mb-4">
+                          {children}
+                        </h1>
+                      ),
+                      h2: ({ children }) => (
+                        <h2 className="text-xl font-semibold text-foreground mb-3">
+                          {children}
+                        </h2>
+                      ),
+                      h3: ({ children }) => (
+                        <h3 className="text-lg font-semibold text-foreground mb-2">
+                          {children}
+                        </h3>
+                      ),
+                      ul: ({ children }) => (
+                        <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
+                          {children}
+                        </ul>
+                      ),
+                      ol: ({ children }) => (
+                        <ol className="list-decimal space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
+                          {children}
+                        </ol>
+                      ),
+                      li: ({ children }) => <li>{children}</li>,
+                      a: ({ children, href }) => (
+                        <a
+                          href={href}
+                          className="text-accent underline transition-colors hover:text-foreground"
+                          target="_blank"
+                          rel="noreferrer"
+                        >
+                          {children}
+                        </a>
+                      ),
+                      code: ({ children }) => (
+                        <code className="rounded border border-border bg-background-subtle px-1.5 py-0.5 text-xs text-accent font-mono">
+                          {children}
+                        </code>
+                      ),
+                      pre: ({ children }) => (
+                        <pre className="rounded-lg border border-border bg-background-subtle p-4 mb-4 overflow-x-auto">
+                          {children}
+                        </pre>
+                      ),
+                      strong: ({ children }) => (
+                        <strong className="font-semibold text-foreground">
+                          {children}
+                        </strong>
+                      ),
+                    }}
+                  >
+                    {activeLessonMeta.lesson.content}
+                  </ReactMarkdown>
+                ) : (
+                  <p className="text-sm text-muted">
+                    No content available for this lesson yet.
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="space-y-6">
+              {/* Welcome Message */}
+              <div className="rounded-[1.75rem] border border-border bg-surface p-12 text-center">
+                <FiBook className="mx-auto h-16 w-16 text-accent/50 mb-4" />
+                <h2 className="text-2xl font-bold text-foreground mb-2">
+                  Select a lesson to get started
+                </h2>
+                <p className="text-muted">
+                  Choose a lesson from the sidebar to view its content and track
+                  your progress.
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+
       {/* Right Sidebar - Module Navigation */}
-      <div className="hidden lg:block w-80 flex-shrink-0">
-        <div className="sticky top-24 space-y-4 max-h-[calc(100vh-8rem)] overflow-y-auto rounded-[1.75rem] border border-border bg-surface p-6">
+      <div className="hidden lg:block w-80 flex-shrink-0 h-full overflow-y-auto border-l border-border bg-surface">
+        <div className="p-6 space-y-4">
           {/* Course Header */}
           <div className="space-y-2 pb-4 border-b border-border">
             <h2 className="text-lg font-bold text-foreground line-clamp-2">
@@ -364,13 +725,6 @@ const DashboardCourseWorkspacePage = () => {
           <div className="space-y-3">
             {progress &&
               progress.modules.map((module, moduleIndex) => {
-                console.log(`📊 Module ${moduleIndex + 1}:`, {
-                  title: module.title,
-                  assessmentStatus: module.assessmentStatus,
-                  bestScore: module.bestScore,
-                  attemptCount: module.attemptCount,
-                });
-
                 const metaModule = course.modules.find(
                   (baseModule) =>
                     baseModule.id === module.moduleId ||
@@ -559,348 +913,6 @@ const DashboardCourseWorkspacePage = () => {
               })}
           </div>
         </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className="flex-1 min-w-0 space-y-6">
-        {/* Course Progress Bar - Top of Content */}
-        <div className="rounded-[1.75rem] border border-border bg-surface p-6">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <h3 className="text-sm font-semibold text-foreground">
-                Course Progress
-              </h3>
-              <span className="text-sm font-bold text-accent">
-                {completionSummary}%
-              </span>
-            </div>
-            <div className="relative h-3 rounded-full bg-accent-soft overflow-hidden">
-              <div
-                className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-blue-500 transition-all duration-500"
-                style={{ width: `${completionSummary}%` }}
-              />
-            </div>
-            {completionSummary === 100 && (
-              <button
-                onClick={handleGenerateCertificate}
-                disabled={isGeneratingCertificate}
-                className="w-full mt-2 px-4 py-2.5 bg-gradient-to-r from-blue-600 to-green-600 hover:from-blue-700 hover:to-green-700 text-white font-semibold text-sm rounded-lg transition-all shadow-md hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-              >
-                <FiAward className="w-4 h-4" />
-                {isGeneratingCertificate ? "Loading..." : "View Certificate"}
-              </button>
-            )}
-          </div>
-        </div>
-
-        {/* Page Header */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <AccentButton
-              to="/university/courses"
-              variant="secondary"
-              icon={<FiChevronLeft />}
-            >
-              Back to courses
-            </AccentButton>
-            {course.slug && (
-              <AccentButton to={`/courses/${course.slug}`} variant="secondary">
-                Course overview
-              </AccentButton>
-            )}
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-              Course Workspace
-            </p>
-            <h1 className="text-3xl font-bold text-foreground mt-2">
-              {course.title}
-            </h1>
-            {course.shortDescription && (
-              <p className="text-sm text-muted mt-2 leading-relaxed">
-                {course.shortDescription}
-              </p>
-            )}
-          </div>
-        </div>
-
-        {error && (
-          <div
-            className="rounded-2xl border-2 border-rose-500/30 bg-rose-500/10 px-6 py-4 text-sm text-rose-500"
-            role="alert"
-            aria-live="assertive"
-          >
-            <p className="font-semibold">Error</p>
-            <p>{error.message}</p>
-          </div>
-        )}
-
-        {/* Lesson Content or Module Overview */}
-        {activeLessonMeta && activeLesson ? (
-          <div className="space-y-6">
-            {/* Lesson Header */}
-            <div className="rounded-[1.75rem] border border-border bg-surface p-6">
-              <div className="flex items-start justify-between gap-4">
-                <div className="flex-1">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-accent-soft px-3 py-1 text-xs font-semibold uppercase tracking-wider text-accent">
-                    <FiBook className="h-3 w-3" />
-                    Lesson
-                  </span>
-                  <h2 className="text-2xl font-bold text-foreground mt-3">
-                    {activeLessonMeta.lesson.title}
-                  </h2>
-                  {activeLessonMeta.lesson.description && (
-                    <p className="text-sm text-muted mt-2 leading-relaxed">
-                      {activeLessonMeta.lesson.description}
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-3">
-                  {activeLessonProgress?.lesson && activeLesson?.itemId && (
-                    <label className="flex items-center gap-2 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={activeLessonProgress.lesson.completed}
-                        onChange={() =>
-                          toggleItem(
-                            activeLesson.moduleId,
-                            activeLesson.itemId!
-                          )
-                        }
-                        disabled={saving}
-                        className="h-5 w-5 rounded border-2 border-accent bg-background-subtle text-accent transition-all hover:scale-110 focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-                      />
-                      <span className="text-sm font-medium text-foreground">
-                        {activeLessonProgress.lesson.completed
-                          ? "Completed"
-                          : "Mark complete"}
-                      </span>
-                    </label>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Video Player - Show if video URL exists */}
-            {activeLessonMeta.lesson.video?.url && (
-              <div className="rounded-[1.75rem] border border-border bg-black overflow-hidden shadow-lg">
-                <video
-                  src={activeLessonMeta.lesson.video.url}
-                  controls
-                  controlsList="nodownload"
-                  className="w-full aspect-video"
-                  preload="metadata"
-                  playsInline
-                >
-                  <track kind="captions" />
-                  Your browser does not support the video tag.
-                </video>
-                {activeLessonMeta.lesson.video.fileName && (
-                  <div className="px-6 py-3 bg-surface/90 border-t border-border">
-                    <p className="text-xs text-muted">
-                      <span className="font-semibold text-foreground">
-                        Video:
-                      </span>{" "}
-                      {activeLessonMeta.lesson.video.fileName}
-                    </p>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* Module Overview - Show if this is a module overview */}
-            {activeLessonMeta.isModuleOverview &&
-              activeLessonMeta.module.description && (
-                <div className="rounded-[1.75rem] border-2 border-accent/20 bg-accent-soft p-6">
-                  <div className="flex items-start justify-between gap-4 mb-3">
-                    <h3 className="text-lg font-semibold text-foreground flex items-center gap-2">
-                      <FiBook className="h-5 w-5 text-accent" />
-                      Module Overview
-                    </h3>
-
-                    {/* Show "Mark Module Complete" button if module has no lessons */}
-                    {activeLessonProgress?.module &&
-                      activeLessonProgress.module.items.length === 0 && (
-                        <label className="flex items-center gap-2 cursor-pointer">
-                          <input
-                            type="checkbox"
-                            checked={
-                              activeLessonProgress.module.completion === 100
-                            }
-                            onChange={() => {
-                              // Toggle module completion for modules with no lessons
-                              const isCurrentlyComplete =
-                                activeLessonProgress.module.completion === 100;
-                              completeModule(
-                                activeLesson!.moduleId,
-                                !isCurrentlyComplete
-                              );
-                            }}
-                            disabled={saving}
-                            className="h-5 w-5 rounded border-2 border-accent bg-background-subtle text-accent transition-all hover:scale-110 focus:ring-2 focus:ring-accent disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
-                          />
-                          <span className="text-sm font-medium text-foreground">
-                            {activeLessonProgress.module.completion === 100
-                              ? "Completed"
-                              : "Mark complete"}
-                          </span>
-                        </label>
-                      )}
-                  </div>
-                  <ReactMarkdown
-                    className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mb-2 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-muted [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:text-muted [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_ol]:text-sm [&_ol]:text-muted [&_ol]:mb-4 [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-background-subtle [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-xs [&_code]:text-accent [&_code]:font-mono [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-background-subtle [&_pre]:p-4 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_a]:text-accent [&_a]:underline [&_a]:transition-colors hover:[&_a]:text-foreground"
-                    components={{
-                      p: ({ children }) => (
-                        <p className="text-sm leading-7 text-muted mb-4">
-                          {children}
-                        </p>
-                      ),
-                      h1: ({ children }) => (
-                        <h1 className="text-2xl font-semibold text-foreground mb-4">
-                          {children}
-                        </h1>
-                      ),
-                      h2: ({ children }) => (
-                        <h2 className="text-xl font-semibold text-foreground mb-3">
-                          {children}
-                        </h2>
-                      ),
-                      h3: ({ children }) => (
-                        <h3 className="text-lg font-semibold text-foreground mb-2">
-                          {children}
-                        </h3>
-                      ),
-                      ul: ({ children }) => (
-                        <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
-                          {children}
-                        </ul>
-                      ),
-                      ol: ({ children }) => (
-                        <ol className="list-decimal space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
-                          {children}
-                        </ol>
-                      ),
-                      li: ({ children }) => <li>{children}</li>,
-                      a: ({ children, href }) => (
-                        <a
-                          href={href}
-                          className="text-accent underline transition-colors hover:text-foreground"
-                          target="_blank"
-                          rel="noreferrer"
-                        >
-                          {children}
-                        </a>
-                      ),
-                      code: ({ children }) => (
-                        <code className="rounded border border-border bg-background-subtle px-1.5 py-0.5 text-xs text-accent font-mono">
-                          {children}
-                        </code>
-                      ),
-                      pre: ({ children }) => (
-                        <pre className="rounded-lg border border-border bg-background-subtle p-4 mb-4 overflow-x-auto">
-                          {children}
-                        </pre>
-                      ),
-                      strong: ({ children }) => (
-                        <strong className="font-semibold text-foreground">
-                          {children}
-                        </strong>
-                      ),
-                    }}
-                  >
-                    {activeLessonMeta.module.description}
-                  </ReactMarkdown>
-                </div>
-              )}
-
-            {/* Lesson Content */}
-            <div className="rounded-[1.75rem] border border-border bg-surface p-8">
-              {activeLessonMeta.lesson.content ? (
-                <ReactMarkdown
-                  className="prose prose-sm max-w-none [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h1]:mb-4 [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h2]:mb-3 [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_h3]:mb-2 [&_p]:text-sm [&_p]:leading-7 [&_p]:text-muted [&_p]:mb-4 [&_ul]:list-disc [&_ul]:space-y-2 [&_ul]:pl-5 [&_ul]:text-sm [&_ul]:text-muted [&_ul]:mb-4 [&_ol]:list-decimal [&_ol]:space-y-2 [&_ol]:pl-5 [&_ol]:text-sm [&_ol]:text-muted [&_ol]:mb-4 [&_strong]:text-foreground [&_strong]:font-semibold [&_code]:rounded [&_code]:border [&_code]:border-border [&_code]:bg-background-subtle [&_code]:px-1.5 [&_code]:py-0.5 [&_code]:text-xs [&_code]:text-accent [&_code]:font-mono [&_pre]:rounded-lg [&_pre]:border [&_pre]:border-border [&_pre]:bg-background-subtle [&_pre]:p-4 [&_pre]:mb-4 [&_pre]:overflow-x-auto [&_a]:text-accent [&_a]:underline [&_a]:transition-colors hover:[&_a]:text-foreground"
-                  components={{
-                    p: ({ children }) => (
-                      <p className="text-sm leading-7 text-muted mb-4">
-                        {children}
-                      </p>
-                    ),
-                    h1: ({ children }) => (
-                      <h1 className="text-2xl font-semibold text-foreground mb-4">
-                        {children}
-                      </h1>
-                    ),
-                    h2: ({ children }) => (
-                      <h2 className="text-xl font-semibold text-foreground mb-3">
-                        {children}
-                      </h2>
-                    ),
-                    h3: ({ children }) => (
-                      <h3 className="text-lg font-semibold text-foreground mb-2">
-                        {children}
-                      </h3>
-                    ),
-                    ul: ({ children }) => (
-                      <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
-                        {children}
-                      </ul>
-                    ),
-                    ol: ({ children }) => (
-                      <ol className="list-decimal space-y-2 pl-5 text-sm leading-7 text-muted mb-4">
-                        {children}
-                      </ol>
-                    ),
-                    li: ({ children }) => <li>{children}</li>,
-                    a: ({ children, href }) => (
-                      <a
-                        href={href}
-                        className="text-accent underline transition-colors hover:text-foreground"
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        {children}
-                      </a>
-                    ),
-                    code: ({ children }) => (
-                      <code className="rounded border border-border bg-background-subtle px-1.5 py-0.5 text-xs text-accent font-mono">
-                        {children}
-                      </code>
-                    ),
-                    pre: ({ children }) => (
-                      <pre className="rounded-lg border border-border bg-background-subtle p-4 mb-4 overflow-x-auto">
-                        {children}
-                      </pre>
-                    ),
-                    strong: ({ children }) => (
-                      <strong className="font-semibold text-foreground">
-                        {children}
-                      </strong>
-                    ),
-                  }}
-                >
-                  {activeLessonMeta.lesson.content}
-                </ReactMarkdown>
-              ) : (
-                <p className="text-sm text-muted">
-                  No content available for this lesson yet.
-                </p>
-              )}
-            </div>
-          </div>
-        ) : (
-          <div className="space-y-6">
-            {/* Welcome Message */}
-            <div className="rounded-[1.75rem] border border-border bg-surface p-12 text-center">
-              <FiBook className="mx-auto h-16 w-16 text-accent/50 mb-4" />
-              <h2 className="text-2xl font-bold text-foreground mb-2">
-                Select a lesson to get started
-              </h2>
-              <p className="text-muted">
-                Choose a lesson from the sidebar to view its content and track
-                your progress.
-              </p>
-            </div>
-          </div>
-        )}
       </div>
 
       {/* Lesson Modal - Keep for compatibility */}

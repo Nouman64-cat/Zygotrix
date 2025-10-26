@@ -37,7 +37,7 @@ const DashboardTopBar = ({
     : user?.email?.slice(0, 2)?.toUpperCase() ?? "ZU";
 
   return (
-    <div className="flex flex-col gap-4 rounded-[1.75rem] border border-border bg-surface px-6 py-4 transition-colors sm:flex-row sm:items-center sm:justify-between">
+    <div className="flex flex-col gap-4 rounded-full border border-border bg-surface px-6 py-2 transition-colors sm:flex-row sm:items-center sm:justify-between">
       <div className="flex w-full items-center gap-3">
         <button
           type="button"
@@ -89,16 +89,13 @@ const DashboardTopBar = ({
         >
           <FiLogOut />
         </button>
-        <div className="flex items-center gap-3 rounded-full border border-border bg-background-subtle px-3 py-2 transition-colors">
+        <div className="flex items-center gap-3 rounded-3xl px-3 py-2 transition-colors">
           <div className="flex h-10 w-10 items-center justify-center rounded-full border border-border bg-gradient-to-br from-indigo-500 via-purple-500 to-blue-500 text-sm font-semibold text-accent-contrast">
             {initials}
           </div>
           <div>
             <p className="text-sm font-semibold text-foreground">
               {user?.fullName ?? user?.email}
-            </p>
-            <p className="text-[11px] uppercase tracking-[0.24em] text-accent">
-              Member
             </p>
           </div>
         </div>

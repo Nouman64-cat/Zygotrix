@@ -20,7 +20,9 @@ const CourseProgressCard = ({ course }: CourseProgressCardProps) => {
             {course.title}
           </h3>
           {course.instructor && (
-            <p className="text-xs text-muted">Instructor · {course.instructor}</p>
+            <p className="text-xs text-muted">
+              Instructor · {course.instructor}
+            </p>
           )}
         </div>
         <div className="flex flex-col items-end">
@@ -53,7 +55,9 @@ const CourseProgressCard = ({ course }: CourseProgressCardProps) => {
                 style={{ width: `${module.completion}%` }}
               />
             </div>
-            <span className="w-12 text-xs text-muted">{module.completion}%</span>
+            <span className="w-12 text-xs text-muted">
+              {module.completion}%
+            </span>
             <span className="w-40 text-xs text-muted">
               {module.title ?? "Module"}
             </span>
@@ -61,7 +65,7 @@ const CourseProgressCard = ({ course }: CourseProgressCardProps) => {
         ))}
       </div>
       <AccentButton
-        to={`/courses/${course.courseSlug ?? course.title}`}
+        to={`/university/courses/${course.courseSlug ?? course.title}`}
         variant="secondary"
         icon={<FiArrowRight />}
       >

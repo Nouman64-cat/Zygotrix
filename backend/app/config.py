@@ -30,6 +30,7 @@ def _get_bool(name: str, default: bool) -> bool:
 
 @dataclass(frozen=True)
 class Settings:
+    university_url: str = os.getenv("UNIVERSITY_URL", "https://zygotrix.university.courtcierge.online")
     backend_env: str = os.getenv("BACKEND_ENV", "Production")
     mongodb_uri: str = os.getenv("MONGODB_URI", "")
     mongodb_db_name: str = os.getenv("MONGODB_DB_NAME", "zygotrix")

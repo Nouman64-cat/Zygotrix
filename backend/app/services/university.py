@@ -686,18 +686,18 @@ def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
         # Send enrollment email
         try:
             from app.services.email_service import send_enrollment_email
-            from app.repositories.user import get_user_profile
+            from app.services import auth as auth_services
 
             logger.info(
                 f"Attempting to send enrollment email for user {user_id} and course {course_slug}"
             )
 
             # Get user details
-            user_profile = get_user_profile(user_id)
+            user_profile = auth_services.get_user_by_id(user_id)
             logger.info(f"User profile retrieved: {user_profile is not None}")
 
             # Get course details
-            course = get_course_by_slug(course_slug)
+            course = get_course_detail(course_slug)
             logger.info(f"Course details retrieved: {course is not None}")
 
             if user_profile and course:

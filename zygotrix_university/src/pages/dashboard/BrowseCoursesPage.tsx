@@ -1,4 +1,7 @@
 import { useState, useMemo, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import Confetti from "react-confetti";
 import {
   FiSearch,
   FiFilter,
@@ -7,12 +10,15 @@ import {
   FiClock,
   FiLayers,
   FiAward,
+  FiCheckCircle,
+  FiMail,
 } from "react-icons/fi";
 import type { Course } from "../../types";
 import { universityService } from "../../services/useCases/universityService";
 import CourseDetailModal from "../../components/dashboard/CourseDetailModal.js";
 
 const BrowseCoursesPage = () => {
+  const navigate = useNavigate();
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -20,6 +26,14 @@ const BrowseCoursesPage = () => {
   const [selectedLevel, setSelectedLevel] = useState<string>("all");
   const [showFilters, setShowFilters] = useState(false);
   const [selectedCourse, setSelectedCourse] = useState<Course | null>(null);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [enrolledCourseName, setEnrolledCourseName] = useState("");
+  const [enrollingSlug, setEnrollingSlug] = useState<string | null>(null);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
 
   // Load courses and enrollments
   useEffect(() => {
@@ -44,6 +58,19 @@ const BrowseCoursesPage = () => {
       }
     };
     loadData();
+  }, []);
+
+  // Window resize effect for confetti
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
   }, []);
 
   // Extract unique categories and levels
@@ -97,12 +124,60 @@ const BrowseCoursesPage = () => {
 
   const handleEnroll = async (courseSlug: string) => {
     try {
+      setEnrollingSlug(courseSlug);
+      const courseToEnroll = courses.find((c) => c.slug === courseSlug);
       await universityService.enrollInCourse(courseSlug);
+
+      // Show success toast
+      toast.success(
+        () => (
+          <div className="flex items-start gap-3">
+            <div>
+              <p className="font-semibold text-foreground">
+                Successfully enrolled!
+              </p>
+              <p className="text-sm text-muted mt-1">
+                A confirmation email has been sent to you.
+              </p>
+            </div>
+          </div>
+        ),
+        {
+          duration: 4000,
+          position: "top-center",
+          style: {
+            background: "var(--color-surface)",
+            color: "var(--color-foreground)",
+            border: "1px solid var(--color-border)",
+            padding: "16px",
+            borderRadius: "12px",
+            maxWidth: "500px",
+          },
+        }
+      );
+
+      // Show confetti and success message
+      setEnrolledCourseName(courseToEnroll?.title || "");
+      setShowSuccess(true);
+      setShowConfetti(true);
+
+      // Auto redirect after 3 seconds
+      setTimeout(() => {
+        setShowConfetti(false);
+        navigate("/university/courses");
+      }, 3000);
+
       // Remove from available courses
       setCourses((prev) => prev.filter((c) => c.slug !== courseSlug));
       setSelectedCourse(null);
     } catch (error) {
       console.error("Enrollment failed:", error);
+      toast.error("Failed to enroll in course. Please try again.", {
+        duration: 4000,
+        position: "top-center",
+      });
+    } finally {
+      setEnrollingSlug(null);
     }
   };
 
@@ -111,6 +186,46 @@ const BrowseCoursesPage = () => {
     setSelectedLevel("all");
     setSearchQuery("");
   };
+
+  // Success feedback overlay
+  if (showSuccess) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {showConfetti && (
+          <Confetti
+            width={windowSize.width}
+            height={windowSize.height}
+            recycle={false}
+            numberOfPieces={500}
+            gravity={0.3}
+          />
+        )}
+        <div className="relative bg-surface rounded-3xl border-2 border-accent p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="text-center space-y-6">
+            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+              <FiCheckCircle className="w-12 h-12 text-white" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-foreground">
+                Enrollment Successful! 🎉
+              </h3>
+              <p className="text-muted">
+                You've successfully enrolled in{" "}
+                <strong>{enrolledCourseName}</strong>
+              </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-accent mt-3">
+                <FiMail className="h-4 w-4" />
+                <span>Confirmation email sent</span>
+              </div>
+            </div>
+            <div className="text-sm text-muted">
+              Redirecting you to your courses...
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   if (loading) {
     return (
@@ -384,14 +499,42 @@ const BrowseCoursesPage = () => {
                 <button
                   onClick={() => setSelectedCourse(course)}
                   className="px-4 py-2 text-xs font-medium text-accent border border-accent rounded-xl hover:bg-accent-soft transition-colors"
+                  disabled={enrollingSlug === course.slug}
                 >
                   View Details
                 </button>
                 <button
                   onClick={() => handleEnroll(course.slug)}
-                  className="px-4 py-2 text-xs font-medium text-white bg-accent rounded-xl hover:bg-accent/90 transition-colors"
+                  disabled={enrollingSlug === course.slug}
+                  className="px-4 py-2 text-xs font-medium text-white bg-accent rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
-                  Enroll Now
+                  {enrollingSlug === course.slug ? (
+                    <>
+                      <svg
+                        className="animate-spin h-4 w-4"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          className="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          strokeWidth="4"
+                        ></circle>
+                        <path
+                          className="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      Enrolling...
+                    </>
+                  ) : (
+                    "Enroll Now"
+                  )}
                 </button>
               </div>
             </div>

@@ -614,12 +614,16 @@ def get_course_detail(
     if not doc:
         return None
 
-    logger.info(f"📚 get_course_detail: Found doc with {len(doc.get('modules', []))} modules BEFORE serialization")
-    
+    logger.info(
+        f"📚 get_course_detail: Found doc with {len(doc.get('modules', []))} modules BEFORE serialization"
+    )
+
     serialized = _serialize_course(doc, include_details=True)
     course_slug = serialized.get("slug", slug)
-    
-    logger.info(f"📚 get_course_detail: Serialized course has {len(serialized.get('modules', []))} modules AFTER serialization")
+
+    logger.info(
+        f"📚 get_course_detail: Serialized course has {len(serialized.get('modules', []))} modules AFTER serialization"
+    )
 
     # Add enrollment status if user provided
     if user_id:
@@ -678,6 +682,50 @@ def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
             },
             upsert=True,
         )
+
+        # Send enrollment email
+        try:
+            from app.services.email_service import send_enrollment_email
+            from app.repositories.user import get_user_profile
+
+            logger.info(
+                f"Attempting to send enrollment email for user {user_id} and course {course_slug}"
+            )
+
+            # Get user details
+            user_profile = get_user_profile(user_id)
+            logger.info(f"User profile retrieved: {user_profile is not None}")
+
+            # Get course details
+            course = get_course_by_slug(course_slug)
+            logger.info(f"Course details retrieved: {course is not None}")
+
+            if user_profile and course:
+                user_email = user_profile.get("email", "")
+                user_name = (
+                    user_profile.get("full_name")
+                    or user_profile.get("email", "").split("@")[0]
+                )
+                course_title = course.get("title", course_slug)
+
+                logger.info(f"Sending email to: {user_email}")
+
+                if user_email:
+                    email_sent = send_enrollment_email(
+                        user_email, user_name, course_title, course_slug
+                    )
+                    logger.info(f"Email send result: {email_sent}")
+                else:
+                    logger.warning("No email address found for user")
+            else:
+                logger.warning(
+                    f"Missing user_profile or course. user_profile: {user_profile is not None}, course: {course is not None}"
+                )
+        except Exception as email_error:
+            # Don't fail the enrollment if email fails
+            logger.warning(f"Failed to send enrollment email: {email_error}")
+            logger.exception(email_error)
+
     except PyMongoError as exc:
         raise HTTPException(status_code=500, detail=f"Failed to enroll: {exc}") from exc
     return True
@@ -1061,163 +1109,205 @@ def get_assessment_history(
 
 def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
     """Generate a certificate for a completed course.
-    
+
     Validates that all modules, lessons, and assessments are complete,
     marks the course as completed, and returns certificate data.
     """
     # FORCE CACHE INVALIDATION - clear the Hygraph cache to get fresh data
     global _hygraph_course_cache
-    print(f"\n\n🎓 === CERTIFICATE GENERATION START === User: {user_id}, Course: {course_slug}")
+    print(
+        f"\n\n🎓 === CERTIFICATE GENERATION START === User: {user_id}, Course: {course_slug}"
+    )
     print(f"🔄 Invalidating Hygraph cache to fetch fresh course data...")
-    logger.info(f"🎓 === CERTIFICATE GENERATION START === User: {user_id}, Course: {course_slug}")
+    logger.info(
+        f"🎓 === CERTIFICATE GENERATION START === User: {user_id}, Course: {course_slug}"
+    )
     logger.info(f"🔄 Invalidating Hygraph cache to fetch fresh course data...")
     _hygraph_course_cache = None
-    
+
     # Get course details
     course = get_course_detail(course_slug)
     print(f"📊 get_course_detail returned: {type(course)}, is None: {course is None}")
     if course:
         print(f"📊 Course modules count: {len(course.get('modules', []))}")
         print(f"📊 Course keys: {list(course.keys())}")
-    
+
     if not course:
         logger.error(f"❌ CERT ERROR: Course not found - {course_slug}")
         raise HTTPException(status_code=404, detail="Course not found")
-    
+
     print(f"✅ Course found: {course.get('title')}")
     print(f"📚 CERT: Course has {len(course.get('modules', []))} modules")
     logger.info(f"✅ Course found: {course.get('title')}")
     logger.info(f"📚 CERT: Course has {len(course.get('modules', []))} modules")
     logger.info(f"📚 CERT: Course keys: {list(course.keys())}")
-    
+
     # Get user progress
     progress_collection = get_course_progress_collection()
     if progress_collection is None:
         logger.error(f"❌ CERT ERROR: Database connection failed")
         raise HTTPException(status_code=500, detail="Database connection failed")
-    
-    progress_doc = progress_collection.find_one({
-        "user_id": user_id,
-        "course_slug": course_slug
-    })
-    
+
+    progress_doc = progress_collection.find_one(
+        {"user_id": user_id, "course_slug": course_slug}
+    )
+
     if not progress_doc:
-        logger.error(f"❌ CERT ERROR: No progress found for user {user_id} in course {course_slug}")
-        raise HTTPException(status_code=404, detail="Course progress not found. Please enroll first.")
-    
-    logger.info(f"✅ Progress document found. Overall progress: {progress_doc.get('progress', 0)}%")
-    
+        logger.error(
+            f"❌ CERT ERROR: No progress found for user {user_id} in course {course_slug}"
+        )
+        raise HTTPException(
+            status_code=404, detail="Course progress not found. Please enroll first."
+        )
+
+    logger.info(
+        f"✅ Progress document found. Overall progress: {progress_doc.get('progress', 0)}%"
+    )
+
     # Calculate completion percentage
     total_items = 0
     completed_items = 0
     all_assessments_passed = True
-    
+
     modules = progress_doc.get("modules", [])
     course_modules = course.get("modules", [])
-    
+
     print(f"\n📊 DEBUG: modules from progress = {len(modules)}")
     print(f"📊 DEBUG: course_modules from course = {len(course_modules)}")
     print(f"📊 DEBUG: course.get('modules') type = {type(course.get('modules'))}")
-    print(f"📊 DEBUG: First course module = {course_modules[0] if course_modules else 'EMPTY'}")
-    
-    logger.info(f"📚 CERT: Found {len(modules)} progress modules and {len(course_modules)} course modules")
-    logger.info(f"📚 CERT: Progress module IDs: {[m.get('module_id') for m in modules]}")
-    logger.info(f"📚 CERT: Course module IDs/slugs: {[(m.get('id'), m.get('slug'), m.get('title')) for m in course_modules]}")
-    
+    print(
+        f"📊 DEBUG: First course module = {course_modules[0] if course_modules else 'EMPTY'}"
+    )
+
+    logger.info(
+        f"📚 CERT: Found {len(modules)} progress modules and {len(course_modules)} course modules"
+    )
+    logger.info(
+        f"📚 CERT: Progress module IDs: {[m.get('module_id') for m in modules]}"
+    )
+    logger.info(
+        f"📚 CERT: Course module IDs/slugs: {[(m.get('id'), m.get('slug'), m.get('title')) for m in course_modules]}"
+    )
+
     # Debug: Print actual keys in course modules to see what fields are available
     if course_modules:
         print(f"📊 DEBUG: First course module keys: {list(course_modules[0].keys())}")
-        logger.info(f"📊 DEBUG: First course module keys: {list(course_modules[0].keys())}")
-    
+        logger.info(
+            f"📊 DEBUG: First course module keys: {list(course_modules[0].keys())}"
+        )
+
     for module_progress in modules:
         module_id = module_progress.get("module_id")
         logger.info(f"🔍 CERT: Processing module {module_id}")
-        
+
         # Find corresponding course module - try multiple matching strategies
         course_module = next(
-            (m for m in course_modules if 
-             m.get("slug") == module_id or 
-             m.get("id") == module_id or
-             str(m.get("slug")).lower() == str(module_id).lower() or
-             str(m.get("id")).lower() == str(module_id).lower()),
-            None
+            (
+                m
+                for m in course_modules
+                if m.get("slug") == module_id
+                or m.get("id") == module_id
+                or str(m.get("slug")).lower() == str(module_id).lower()
+                or str(m.get("id")).lower() == str(module_id).lower()
+            ),
+            None,
         )
-        
+
         if not course_module:
-            logger.warning(f"⚠️ CERT: Module {module_id} not found in course structure, skipping")
+            logger.warning(
+                f"⚠️ CERT: Module {module_id} not found in course structure, skipping"
+            )
             continue
-        
+
         logger.info(f"✅ CERT: Found course module: {course_module.get('title')}")
-        
+
         # Count lesson items
         module_items = course_module.get("items", [])
         logger.info(f"📝 CERT: Module has {len(module_items)} lesson items")
         total_items += len(module_items)
-        
+
         # Count completed lessons
         items_progress = module_progress.get("items", [])
-        completed_count = sum(1 for item in items_progress if item.get("completed", False))
-        logger.info(f"✅ CERT: {completed_count}/{len(items_progress)} items completed in progress")
+        completed_count = sum(
+            1 for item in items_progress if item.get("completed", False)
+        )
+        logger.info(
+            f"✅ CERT: {completed_count}/{len(items_progress)} items completed in progress"
+        )
         completed_items += completed_count
-        
+
         # For modules with NO lessons, check if module itself is marked complete
         if len(module_items) == 0:
             module_completion = module_progress.get("completion", 0)
-            logger.info(f"📦 CERT: Module has 0 lessons, completion: {module_completion}%")
+            logger.info(
+                f"📦 CERT: Module has 0 lessons, completion: {module_completion}%"
+            )
             if module_completion == 100:
                 # Module with no lessons is marked complete - count it as 1 item
                 total_items += 1
                 completed_items += 1
                 logger.info(f"✅ CERT: Module marked complete, counting as 1/1 item")
-        
+
         # Check assessment - ONLY if the course module actually HAS an assessment
         course_has_assessment = course_module.get("assessment") is not None
         if course_has_assessment:
             # Get assessment questions to verify it's not empty
             assessment_obj = course_module.get("assessment", {})
-            assessment_questions = assessment_obj.get("assessmentQuestions", []) if isinstance(assessment_obj, dict) else []
-            
-            logger.info(f"📊 CERT: Module has assessment with {len(assessment_questions)} questions")
-            
+            assessment_questions = (
+                assessment_obj.get("assessmentQuestions", [])
+                if isinstance(assessment_obj, dict)
+                else []
+            )
+
+            logger.info(
+                f"📊 CERT: Module has assessment with {len(assessment_questions)} questions"
+            )
+
             # Only count assessment if it has questions
             if assessment_questions and len(assessment_questions) > 0:
                 total_items += 1  # Assessment counts as an item
                 assessment_status = module_progress.get("assessment_status")
-                
+
                 logger.info(f"📊 CERT: Assessment status: {assessment_status}")
-                
+
                 if assessment_status == "passed":
                     completed_items += 1
                     logger.info(f"✅ CERT: Assessment passed")
                 else:
                     # Assessment exists with questions but not passed
                     all_assessments_passed = False
-                    logger.warning(f"⚠️ CERT: Assessment NOT passed (status: {assessment_status})")
+                    logger.warning(
+                        f"⚠️ CERT: Assessment NOT passed (status: {assessment_status})"
+                    )
         else:
             logger.info(f"ℹ️ CERT: Module has no assessment")
-    
+
     # Calculate percentage
-    completion_percentage = int((completed_items / total_items * 100)) if total_items > 0 else 0
-    
+    completion_percentage = (
+        int((completed_items / total_items * 100)) if total_items > 0 else 0
+    )
+
     logger.info(f"📊 === CERT VALIDATION SUMMARY ===")
     logger.info(f"📊 Total items: {total_items}")
     logger.info(f"📊 Completed items: {completed_items}")
     logger.info(f"📊 Completion percentage: {completion_percentage}%")
     logger.info(f"📊 All assessments passed: {all_assessments_passed}")
-    
+
     # Verify 100% completion
     if completion_percentage < 100 or not all_assessments_passed:
-        logger.error(f"❌ CERT DENIED: Completion {completion_percentage}%, Assessments passed: {all_assessments_passed}")
+        logger.error(
+            f"❌ CERT DENIED: Completion {completion_percentage}%, Assessments passed: {all_assessments_passed}"
+        )
         raise HTTPException(
             status_code=400,
-            detail=f"Course not fully completed. Progress: {completion_percentage}%. All assessments must be passed."
+            detail=f"Course not fully completed. Progress: {completion_percentage}%. All assessments must be passed.",
         )
-    
+
     logger.info(f"✅ CERT: Validation passed! Marking course as completed...")
-    
+
     # Mark course as completed
     now = datetime.now(timezone.utc)
-    
+
     update_result = progress_collection.update_one(
         {"user_id": user_id, "course_slug": course_slug},
         {
@@ -1227,18 +1317,19 @@ def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
                 "certificate_issued": True,
                 "updated_at": now,
             }
-        }
+        },
     )
-    
+
     if update_result.modified_count == 0:
         logger.warning(f"⚠️ CERT: No document updated when marking course complete")
     else:
         logger.info(f"✅ CERT: Course marked as completed in database")
-    
+
     logger.info(f"✅ CERT: Certificate issued successfully!")
-    
+
     # Get user profile for name
     from ..services import auth as auth_services
+
     try:
         user_data = auth_services.get_user_by_id(user_id)
         user_name = user_data.get("full_name") or user_data.get("name") or "Student"
@@ -1246,9 +1337,9 @@ def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
     except Exception as e:
         logger.warning(f"⚠️ CERT: Failed to get user profile: {e}")
         user_name = "Student"
-    
+
     logger.info(f"🎓 === CERTIFICATE GENERATION COMPLETE ===")
-    
+
     # Return certificate data
     return {
         "user_name": user_name,

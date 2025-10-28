@@ -1,105 +1,176 @@
-import { FiActivity, FiFlag, FiPlay } from "react-icons/fi";
-import AccentButton from "../../components/common/AccentButton";
-import PracticeInsightsList from "../../components/dashboard/widgets/PracticeInsightsList";
-import { usePracticeSets } from "../../hooks/usePracticeSets";
-import { useDashboardSummary } from "../../hooks/useDashboardSummary";
+import {
+  FiActivity,
+  FiCode,
+  FiLayers,
+  FiZap,
+  FiClock,
+  FiTrendingUp,
+} from "react-icons/fi";
 
 const PracticeDashboardPage = () => {
-  const { practiceSets, loading } = usePracticeSets();
-  const { summary } = useDashboardSummary();
-
   return (
     <div className="space-y-8">
-      <div className="flex flex-col gap-4 rounded-[1.75rem] border border-border bg-surface p-6 transition-colors md:flex-row md:items-center md:justify-between">
-        <div>
-          <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background-subtle px-3 py-1 text-xs text-accent transition-colors">
-            <FiActivity /> Practice studio
-          </span>
-          <h2 className="mt-3 text-2xl font-semibold text-foreground">
-            Keep your streak going
-          </h2>
-          <p className="text-sm text-muted">
-            Personalized question sets adapt as you answer. Replay missions,
-            review explanations, and bookmark topics to revisit with a mentor.
-          </p>
-        </div>
-        <div className="flex flex-wrap gap-3">
-          <AccentButton to="/practice" icon={<FiPlay />}>
-            Launch latest set
-          </AccentButton>
-          <AccentButton to="/university/analytics" variant="secondary">
-            View detailed stats
-          </AccentButton>
-        </div>
-      </div>
-
-      <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
-        <h3 className="text-lg font-semibold text-foreground">
-          Recommended topics
-        </h3>
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          {(loading && practiceSets.length === 0 ? [] : practiceSets).map(
-            (topic) => (
-              <div
-                key={topic.id}
-                className="rounded-[1.25rem] border border-border bg-background-subtle px-5 py-4 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <p className="text-sm font-semibold text-foreground">
-                    {topic.title}
-                  </p>
-                  <span className="text-xs font-semibold uppercase tracking-[0.24em] text-accent">
-                    {topic.tag}
-                  </span>
-                </div>
-                <p className="mt-2 text-xs text-muted">
-                  {topic.questions ?? 0} questions •{" "}
-                  {topic.estimatedTime ?? "Approx. 20 mins"}
-                </p>
-                <div className="mt-4 flex items-center justify-between">
-                  <span className="rounded-full border border-border bg-background-subtle px-3 py-1 text-xs text-accent">
-                    Accuracy {topic.accuracy ?? 0}%
-                  </span>
-                  <AccentButton
-                    to="/practice"
-                    variant="ghost"
-                    className="px-3 py-1 text-xs"
-                  >
-                    Start set
-                  </AccentButton>
-                </div>
-              </div>
-            )
-          )}
-          {loading &&
-            practiceSets.length === 0 &&
-            Array.from({ length: 2 }).map((_, index) => (
-              <div
-                key={`skeleton-${index}`}
-                className="h-40 animate-pulse rounded-[1.25rem] border border-border bg-background-subtle"
-              />
-            ))}
-        </div>
-      </div>
-
-      <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-        <PracticeInsightsList insights={summary?.insights ?? []} />
-        <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
-          <h3 className="text-lg font-semibold text-foreground">
-            Weekly challenge
-          </h3>
-          <p className="mt-2 text-sm text-muted">
-            Build an AI readiness canvas for your team. Reference lessons from
-            Module 3 and prepare to present in the next mentor circle.
-          </p>
-          <div className="mt-4 flex flex-wrap gap-3">
-            <span className="rounded-full border border-border bg-background-subtle px-3 py-1 text-xs uppercase tracking-[0.24em] text-accent transition-colors">
-              <FiFlag /> Bonus XP
-            </span>
-            <span className="rounded-full border border-border bg-background-subtle px-3 py-1 text-xs uppercase tracking-[0.24em] text-accent transition-colors">
-              Due Jan 28
-            </span>
+      {/* Coming Soon Hero Section */}
+      <div className="relative overflow-hidden rounded-[1.75rem] border border-border bg-gradient-to-br from-accent/10 via-surface to-accent-secondary/10 p-12 text-center transition-colors">
+        <div className="absolute inset-0 bg-grid-pattern opacity-5" />
+        <div className="relative z-10">
+          <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-full border-2 border-accent bg-accent-soft">
+            <FiActivity className="h-10 w-10 text-accent" />
           </div>
+          <h1 className="mb-4 text-4xl font-bold text-foreground">
+            Practice Studio
+          </h1>
+          <div className="mx-auto mb-6 max-w-2xl">
+            <p className="text-lg text-muted">
+              An interactive learning environment designed to sharpen your
+              genetics knowledge through hands-on practice and real-world
+              scenarios.
+            </p>
+          </div>
+          <div className="inline-flex items-center gap-2 rounded-full border border-accent bg-accent-soft px-6 py-3 text-sm font-semibold text-accent">
+            <FiZap className="h-4 w-4" />
+            Coming Soon
+          </div>
+        </div>
+      </div>
+
+      {/* Features Grid */}
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+        <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-blue-500/10">
+            <FiCode className="h-6 w-6 text-blue-400" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
+            Interactive Challenges
+          </h3>
+          <p className="text-sm text-muted">
+            Solve genetics problems through interactive coding exercises and
+            simulations that adapt to your skill level.
+          </p>
+        </div>
+
+        <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-emerald-500/10">
+            <FiTrendingUp className="h-6 w-6 text-emerald-400" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
+            Progress Tracking
+          </h3>
+          <p className="text-sm text-muted">
+            Monitor your improvement with detailed analytics, accuracy metrics,
+            and personalized learning insights.
+          </p>
+        </div>
+
+        <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-purple-500/10">
+            <FiLayers className="h-6 w-6 text-purple-400" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
+            Curated Problem Sets
+          </h3>
+          <p className="text-sm text-muted">
+            Access expertly crafted question sets covering Mendelian genetics,
+            inheritance patterns, and more.
+          </p>
+        </div>
+
+        <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-orange-500/10">
+            <FiClock className="h-6 w-6 text-orange-400" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
+            Timed Challenges
+          </h3>
+          <p className="text-sm text-muted">
+            Test your knowledge under pressure with timed practice sessions and
+            competitive leaderboards.
+          </p>
+        </div>
+
+        <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-pink-500/10">
+            <FiZap className="h-6 w-6 text-pink-400" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
+            Instant Feedback
+          </h3>
+          <p className="text-sm text-muted">
+            Get immediate explanations and hints for every problem to accelerate
+            your learning journey.
+          </p>
+        </div>
+
+        <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg">
+          <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-cyan-500/10">
+            <FiActivity className="h-6 w-6 text-cyan-400" />
+          </div>
+          <h3 className="mb-2 text-lg font-semibold text-foreground">
+            Adaptive Learning
+          </h3>
+          <p className="text-sm text-muted">
+            Experience personalized difficulty adjustments based on your
+            performance and learning patterns.
+          </p>
+        </div>
+      </div>
+
+      {/* What to Expect Section */}
+      <div className="rounded-[1.75rem] border border-border bg-surface p-8 transition-colors">
+        <h2 className="mb-6 text-2xl font-semibold text-foreground">
+          What to Expect
+        </h2>
+        <div className="grid gap-6 md:grid-cols-2">
+          <div>
+            <h3 className="mb-3 text-lg font-semibold text-foreground">
+              📚 Comprehensive Coverage
+            </h3>
+            <ul className="space-y-2 text-sm text-muted">
+              <li>• Mendelian genetics fundamentals</li>
+              <li>• Punnett square mastery</li>
+              <li>• Complex inheritance patterns</li>
+              <li>• Genetic probability calculations</li>
+              <li>• Real-world genetic scenarios</li>
+            </ul>
+          </div>
+          <div>
+            <h3 className="mb-3 text-lg font-semibold text-foreground">
+              🎯 Learning Benefits
+            </h3>
+            <ul className="space-y-2 text-sm text-muted">
+              <li>• Build confidence through repetition</li>
+              <li>• Learn from detailed explanations</li>
+              <li>• Track your improvement over time</li>
+              <li>• Prepare for assessments effectively</li>
+              <li>• Connect theory to practice</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* Stay Updated */}
+      <div className="rounded-[1.75rem] border border-accent/30 bg-gradient-to-br from-accent/5 to-accent-secondary/5 p-8 text-center transition-colors">
+        <h2 className="mb-3 text-2xl font-semibold text-foreground">
+          Stay Updated
+        </h2>
+        <p className="mx-auto mb-6 max-w-xl text-muted">
+          We're working hard to bring you the best practice experience. In the
+          meantime, continue your learning through course modules and explore
+          other features.
+        </p>
+        <div className="flex flex-wrap justify-center gap-3">
+          <a
+            href="/university/courses"
+            className="rounded-[1.25rem] border border-accent bg-accent px-6 py-3 text-sm font-semibold text-white transition-all hover:scale-105 hover:shadow-lg"
+          >
+            Explore Courses
+          </a>
+          <a
+            href="/university/analytics"
+            className="rounded-[1.25rem] border border-border bg-surface px-6 py-3 text-sm font-semibold text-foreground transition-all hover:border-accent hover:bg-accent-soft"
+          >
+            View Analytics
+          </a>
         </div>
       </div>
     </div>

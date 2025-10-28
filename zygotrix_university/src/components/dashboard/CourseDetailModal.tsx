@@ -1,4 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import toast from "react-hot-toast";
+import Confetti from "react-confetti";
 import {
   FiX,
   FiBook,
@@ -6,6 +9,7 @@ import {
   FiAward,
   FiCheckCircle,
   FiList,
+  FiMail,
 } from "react-icons/fi";
 import type { Course } from "../../types";
 import { cn } from "../../utils/cn";
@@ -21,19 +25,118 @@ const CourseDetailModal = ({
   onClose,
   onEnroll,
 }: CourseDetailModalProps) => {
+  const navigate = useNavigate();
   const [enrolling, setEnrolling] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [showConfetti, setShowConfetti] = useState(false);
+  const [windowSize, setWindowSize] = useState({
+    width: window.innerWidth,
+    height: window.innerHeight,
+  });
+
+  useEffect(() => {
+    const handleResize = () => {
+      setWindowSize({
+        width: window.innerWidth,
+        height: window.innerHeight,
+      });
+    };
+
+    window.addEventListener("resize", handleResize);
+    return () => window.removeEventListener("resize", handleResize);
+  }, []);
 
   const handleEnroll = async () => {
     try {
       setEnrolling(true);
       await onEnroll(course.slug);
+
+      // Show success toast
+      toast.success(
+        () => (
+          <div className="flex items-start gap-3">
+            {/* <FiCheckCircle className="h-5 w-5 text-emerald-500 flex-shrink-0 mt-0.5" /> */}
+            <div>
+              <p className="font-semibold text-foreground">
+                Successfully enrolled!
+              </p>
+              <p className="text-sm text-muted mt-1">
+                A confirmation email has been sent to you.
+              </p>
+            </div>
+          </div>
+        ),
+        {
+          duration: 4000,
+          position: "top-center",
+          style: {
+            background: "var(--color-surface)",
+            color: "var(--color-foreground)",
+            border: "1px solid var(--color-border)",
+            padding: "16px",
+            borderRadius: "12px",
+            maxWidth: "500px",
+          },
+        }
+      );
+
+      // Show confetti and success message
+      setShowSuccess(true);
+      setShowConfetti(true);
+
+      // Auto redirect after 3 seconds to /courses (not /university/courses)
+      setTimeout(() => {
+        setShowConfetti(false);
+        navigate("/university/courses");
+      }, 3000);
     } catch (error) {
       console.error("Enrollment failed:", error);
-      alert("Failed to enroll in course. Please try again.");
-    } finally {
+      toast.error("Failed to enroll in course. Please try again.", {
+        duration: 4000,
+        position: "top-center",
+      });
       setEnrolling(false);
     }
   };
+
+  // Success feedback overlay
+  if (showSuccess) {
+    return (
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+        {showConfetti && (
+          <Confetti
+            width={windowSize.width}
+            height={windowSize.height}
+            recycle={false}
+            numberOfPieces={500}
+            gravity={0.3}
+          />
+        )}
+        <div className="relative bg-surface rounded-3xl border-2 border-accent p-8 max-w-md w-full shadow-2xl animate-in zoom-in-95 duration-200">
+          <div className="text-center space-y-6">
+            <div className="mx-auto w-20 h-20 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center">
+              <FiCheckCircle className="w-12 h-12 text-white" />
+            </div>
+            <div className="space-y-2">
+              <h3 className="text-2xl font-bold text-foreground">
+                Enrollment Successful! 🎉
+              </h3>
+              <p className="text-muted">
+                You've successfully enrolled in <strong>{course.title}</strong>
+              </p>
+              <div className="flex items-center justify-center gap-2 text-sm text-accent mt-3">
+                <FiMail className="h-4 w-4" />
+                <span>Confirmation email sent</span>
+              </div>
+            </div>
+            <div className="text-sm text-muted">
+              Redirecting you to your courses...
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div

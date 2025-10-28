@@ -3,11 +3,9 @@ import type { IconType } from "react-icons";
 import {
   FiBarChart2,
   FiBookOpen,
-  FiCompass,
   FiHome,
   FiLayers,
   FiLogOut,
-  FiUsers,
   FiZap,
   FiMoon,
   FiSun,

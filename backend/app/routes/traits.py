@@ -20,7 +20,6 @@ from ..schema.traits import (
     TraitMutationPayload,
 )
 from zygotrix_engine import Trait
-from ..utils import trait_to_info
 
 router = APIRouter(prefix="/api/traits", tags=["Traits"])
 security = HTTPBearer(auto_error=False)
@@ -164,7 +163,8 @@ def get_trait_by_key_public(
 
 @router.get("/{identifier}", response_model=TraitInfo, tags=["Traits"])
 def get_trait(
-    identifier: str, credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
+    identifier: str,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> TraitInfo:
     """
     Get a specific trait either by ObjectId (owner-only) or by key.
@@ -196,7 +196,9 @@ def get_trait(
                     "Trait validation failed; please resolve issues before running simulations."
                 )
             if validation_errors:
-                raise HTTPException(status_code=422, detail={"errors": validation_errors})
+                raise HTTPException(
+                    status_code=422, detail={"errors": validation_errors}
+                )
         return trait
 
     trait = trait_services.get_trait_by_key(identifier, current_user_id)

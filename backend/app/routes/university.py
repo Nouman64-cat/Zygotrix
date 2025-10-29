@@ -222,3 +222,15 @@ def generate_certificate(
         course_slug=course_slug,
     )
     return CertificateResponse(**certificate)
+
+
+@router.post("/cache/clear", status_code=200)
+def clear_cache(
+    current_user: UserProfile = Depends(get_current_user_required),
+) -> None:
+    from app.utils.redis_client import clear_cache_pattern
+
+    cleared = clear_cache_pattern("hygraph:*")
+    if cleared > 0:
+        return {"cleared": cleared}
+    raise HTTPException(status_code=500, detail="Failed to clear cache")

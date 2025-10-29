@@ -23,14 +23,11 @@ from .common import (
 from .service_factory import get_service_factory
 
 from app.cms.hygraph_queries import HYGRAPH_COURSES_QUERY, HYGRAPH_PRACTICE_SETS_QUERY
+from app.utils.redis_client import get_cache, set_cache, delete_cache
 
 logger = logging.getLogger(__name__)
 
 _service_factory = get_service_factory()
-
-_HYGRAPH_CACHE_TTL_SECONDS = 300
-_hygraph_course_cache: Optional[Tuple[datetime, List[Dict[str, Any]]]] = None
-_hygraph_practice_cache: Optional[Tuple[datetime, List[Dict[str, Any]]]] = None
 
 
 def submit_assessment(
@@ -232,14 +229,17 @@ def _execute_hygraph_query(query: str) -> Optional[Dict[str, Any]]:
 
 
 def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
-    global _hygraph_course_cache
+    """Get courses from Hygraph with Redis caching."""
+    cache_key = "hygraph:courses"
 
-    now = datetime.now(timezone.utc)
-    if _hygraph_course_cache:
-        cache_time, cached_courses = _hygraph_course_cache
-        if (now - cache_time).total_seconds() < _HYGRAPH_CACHE_TTL_SECONDS:
-            return cached_courses
+    # Try to get from Redis cache first
+    cached_courses = get_cache(cache_key)
+    if cached_courses:
+        logger.info(f"✅ Returning {len(cached_courses)} cached courses from Redis")
+        return cached_courses
 
+    # If not in cache, fetch from Hygraph
+    logger.info("📡 Fetching fresh courses from Hygraph...")
     data = _execute_hygraph_query(HYGRAPH_COURSES_QUERY)
     if not data or not data.get("courses"):
         logger.warning("⚠️  No courses returned from Hygraph")
@@ -248,7 +248,11 @@ def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
     courses = [
         _convert_hygraph_course_to_document(course) for course in data["courses"]
     ]
-    _hygraph_course_cache = (now, courses)
+
+    # Store in Redis cache
+    set_cache(cache_key, courses)
+    logger.info(f"✅ Cached {len(courses)} courses in Redis")
+
     return courses
 
 

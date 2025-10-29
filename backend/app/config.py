@@ -30,13 +30,17 @@ def _get_bool(name: str, default: bool) -> bool:
 
 @dataclass(frozen=True)
 class Settings:
-    university_url: str = os.getenv("UNIVERSITY_URL", "https://zygotrix.university.courtcierge.online")
+    university_url: str = os.getenv(
+        "UNIVERSITY_URL", "https://zygotrix.university.courtcierge.online"
+    )
     backend_env: str = os.getenv("BACKEND_ENV", "Production")
     mongodb_uri: str = os.getenv("MONGODB_URI", "")
     mongodb_db_name: str = os.getenv("MONGODB_DB_NAME", "zygotrix")
     mongodb_traits_collection: str = os.getenv("MONGODB_TRAITS_COLLECTION", "traits")
     mongodb_users_collection: str = os.getenv("MONGODB_USERS_COLLECTION", "users")
-    mongodb_pending_signups_collection: str = os.getenv("MONGODB_PENDING_SIGNUPS_COLLECTION", "pending_signups")
+    mongodb_pending_signups_collection: str = os.getenv(
+        "MONGODB_PENDING_SIGNUPS_COLLECTION", "pending_signups"
+    )
     mongodb_project_lines_collection: str = os.getenv(
         "MONGODB_PROJECT_LINES_COLLECTION", "project_lines"
     )
@@ -52,9 +56,7 @@ class Settings:
     mongodb_questions_collection: str = os.getenv(
         "MONGODB_QUESTIONS_COLLECTION", "questions"
     )
-    mongodb_answers_collection: str = os.getenv(
-        "MONGODB_ANSWERS_COLLECTION", "answers"
-    )
+    mongodb_answers_collection: str = os.getenv("MONGODB_ANSWERS_COLLECTION", "answers")
     mongodb_comments_collection: str = os.getenv(
         "MONGODB_COMMENTS_COLLECTION", "comments"
     )
@@ -72,6 +74,8 @@ class Settings:
     )
     hygraph_endpoint: str = os.getenv("HYGRAPH_ENDPOINT", "")
     hygraph_token: str = os.getenv("HYGRAPH_TOKEN", "")
+    redis_url: str = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+    redis_cache_ttl_seconds: int = _get_int("REDIS_CACHE_TTL_SECONDS", 300)
     auth_secret_key: str = os.getenv("AUTH_SECRET_KEY", "change-me-in-prod")
     auth_token_ttl_minutes: int = _get_int("AUTH_TOKEN_TTL_MINUTES", 60)
     auth_jwt_algorithm: str = os.getenv("AUTH_JWT_ALGORITHM", "HS256")

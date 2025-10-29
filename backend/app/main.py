@@ -35,7 +35,6 @@ from .routes.community import router as community_router
 from .routes.university import router as university_router
 from .services.trait_db_setup import create_trait_indexes
 from .config import get_settings
-from .utils import trait_to_info
 from .services import gwas_dataset
 
 app = FastAPI(

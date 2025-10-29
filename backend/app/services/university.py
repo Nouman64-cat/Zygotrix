@@ -1,9 +1,3 @@
-"""Service layer for University (courses, practice, progress) features.
-
-This module provides a migration wrapper that delegates to the new clean architecture
-while maintaining backward compatibility with existing API endpoints.
-"""
-
 from __future__ import annotations
 
 from datetime import datetime, timezone
@@ -53,6 +47,9 @@ HYGRAPH_COURSES_QUERY = """
       duration
       badgeLabel
       lessonsCount
+    tags {
+      hashtag
+    }
       heroImage {
         url
       }
@@ -98,6 +95,7 @@ HYGRAPH_COURSES_QUERY = """
       }
       instructors {
         id
+        name
         title
         slug
         speciality
@@ -527,8 +525,8 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
         instructors.append(
             {
                 "id": instructor.get("id"),
-                "name": instructor.get("title", ""),
-                "title": instructor.get("speciality"),
+                "name": instructor.get("name", ""),
+                "title": instructor.get("title"),
                 "avatar": _extract_asset_url(instructor.get("avatar")),
             }
         )
@@ -548,6 +546,7 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
         "modules": modules,
         "outcomes": outcomes,
         "instructors": instructors,
+        "tags": [t.get("hashtag") for t in course.get("tags", []) if t.get("hashtag")],
     }
 
 
@@ -573,6 +572,11 @@ def _serialize_course(
         "image_url": doc.get("image_url"),
         "instructors": doc.get("instructors", []),
         "outcomes": doc.get("outcomes", []),
+        "tags": (
+            [t for t in doc.get("tags", []) if isinstance(t, str)]
+            if doc.get("tags")
+            else []
+        ),
     }
 
     if include_details and doc.get("modules"):

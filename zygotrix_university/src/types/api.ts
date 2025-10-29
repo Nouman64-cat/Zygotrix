@@ -38,6 +38,7 @@ export interface ApiCourseSummary {
   practice_sets?: PracticeSetDetail[];
   enrolled?: boolean;
   content_locked?: boolean;
+  tags?: string[];
 }
 
 export interface ApiCourseListResponse {

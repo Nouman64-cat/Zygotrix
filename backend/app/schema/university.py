@@ -106,6 +106,7 @@ class CourseSummaryModel(BaseModel):
     instructors: List[InstructorModel] = Field(default_factory=list)
     outcomes: List[CourseOutcomeModel] = Field(default_factory=list)
     modules_count: Optional[int] = None  # For browse view (detail=false)
+    tags: Optional[List[str]] = Field(default_factory=list)
 
 
 class CourseDetailModel(CourseSummaryModel):
@@ -116,6 +117,7 @@ class CourseDetailModel(CourseSummaryModel):
     enrolled: bool = False
     content_locked: bool = False
     practice_sets: List[PracticeSetModel] = Field(default_factory=list)
+    tags: Optional[List[str]] = Field(default_factory=list)
 
 
 class CourseListResponse(BaseModel):

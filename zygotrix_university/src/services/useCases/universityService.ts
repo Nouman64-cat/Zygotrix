@@ -482,6 +482,7 @@ export const universityService = {
       const response: ApiCourseListResponse = await fetchCourses(
         includeDetails
       );
+      console.log("university courses: ", response);
       return response.courses.map((course) => mapCourse(course));
     } catch (error) {
       console.warn(

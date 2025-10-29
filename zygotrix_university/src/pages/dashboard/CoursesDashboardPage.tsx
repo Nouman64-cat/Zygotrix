@@ -1,6 +1,5 @@
 import {
   FiBookOpen,
-  FiExternalLink,
   FiClock,
   FiUsers,
   FiCheckCircle,

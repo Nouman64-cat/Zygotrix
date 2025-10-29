@@ -3,14 +3,7 @@ import CourseProgressCard from "../../components/dashboard/widgets/CourseProgres
 import StatCard from "../../components/dashboard/widgets/StatCard";
 import ScheduleTimeline from "../../components/dashboard/widgets/ScheduleTimeline";
 import PracticeInsightsList from "../../components/dashboard/widgets/PracticeInsightsList";
-import SavedResources from "../../components/dashboard/widgets/SavedResources";
-import {
-  CourseCompletionChart,
-  ModuleProgressChart,
-  LearningTrendChart,
-} from "../../components/dashboard/widgets/LearningCharts";
 import { useDashboardSummary } from "../../hooks/useDashboardSummary";
-import { FiBarChart2, FiTrendingUp, FiPieChart } from "react-icons/fi";
 
 const OverviewDashboardPage = () => {
   const { summary } = useDashboardSummary();

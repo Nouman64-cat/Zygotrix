@@ -19,176 +19,35 @@ from .common import (
     get_course_enrollments_collection,
     get_assessment_attempts_collection,
 )
+
 from .service_factory import get_service_factory
+
+from app.cms.hygraph_queries import HYGRAPH_COURSES_QUERY, HYGRAPH_PRACTICE_SETS_QUERY
 
 logger = logging.getLogger(__name__)
 
-# Get service factory for delegating to new architecture
 _service_factory = get_service_factory()
 
-# Cache settings
 _HYGRAPH_CACHE_TTL_SECONDS = 300
 _hygraph_course_cache: Optional[Tuple[datetime, List[Dict[str, Any]]]] = None
 _hygraph_practice_cache: Optional[Tuple[datetime, List[Dict[str, Any]]]] = None
-
-# Hygraph queries
-HYGRAPH_COURSES_QUERY = """
-  query UniversityCourses {
-    courses {
-      id
-      slug
-      title
-      shortDescription
-      longDescription {
-        markdown
-      }
-      category
-      level
-      duration
-      badgeLabel
-      lessonsCount
-    tags {
-      hashtag
-    }
-      heroImage {
-        url
-      }
-      courseOutcome {
-        id
-        outcome
-      }
-      courseModules(orderBy: order_ASC) {
-        id
-        title
-        duration
-        overview {
-          markdown
-        }
-        slug
-        order
-        moduleItems {
-          id
-          title
-          description
-          content {
-            markdown
-          }
-          video {
-            fileName
-            url
-          }
-        }
-        assessment {
-          assessmentQuestions {
-            prompt {
-              markdown
-            }
-            explanation {
-              markdown
-            }
-            options {
-              text
-              isCorrect
-            }
-          }
-        }
-      }
-      instructors {
-        id
-        name
-        title
-        slug
-        speciality
-        avatar {
-          url
-        }
-      }
-      practiceSet {
-        id
-        slug
-        title
-        description
-        practiceQuestions {
-          topic
-          difficulty
-          prompt {
-            markdown
-          }
-          practiceAnswers {
-            label
-            isCorrect
-            body {
-              markdown
-            }
-          }
-          correctAnswer {
-            label
-            isCorrect
-            body {
-              markdown
-            }
-          }
-        }
-      }
-    }
-  }
-"""
-
-HYGRAPH_PRACTICE_SETS_QUERY = """
-  query UniversityPracticeSets {
-    practiceSets {
-      id
-      slug
-      title
-      description
-      tag
-      questions
-      accuracy
-      trend
-      estimatedTime
-    }
-  }
-"""
-
-
-# =============================================================================
-# MIGRATION WRAPPER FUNCTIONS
-# These delegate to the new architecture while maintaining backward compatibility
-# =============================================================================
 
 
 def submit_assessment(
     user_id: str, course_slug: str, module_id: str, answers: List[Dict[str, Any]]
 ) -> Dict[str, Any]:
-    """Submit assessment - delegates to AssessmentService.
 
-    Fetches the module's assessment questions from the course detail to grade answers.
-    Handles legacy module_id mismatch by falling back to title-based lookup via progress.
-    """
-    logger.info(
-        f"🎯 submit_assessment called for {user_id}, {course_slug}, {module_id}"
-    )
-
-    # Fetch course detail to obtain assessment questions
     course = get_course_detail(course_slug, user_id=None)
     if not course or not isinstance(course, dict):
         raise HTTPException(status_code=404, detail="Course not found for assessment")
 
     modules = course.get("modules") or []
-    logger.info(f"📚 Found {len(modules)} modules in course")
-    logger.info(f"🔍 Looking for module_id: {module_id}")
 
-    # Log all module IDs for debugging
     for idx, m in enumerate(modules):
         logger.info(f"  Module {idx}: id={m.get('id')}, title={m.get('title')}")
 
-    # Try to locate module by exact ID first
     target_module = next((m for m in modules if m.get("id") == module_id), None)
 
-    if target_module:
-        logger.info(f"✅ Found module by exact ID: {target_module.get('title')}")
-
-    # If not found, fall back to matching by title from user's progress (moduleId may be a slug-like ID)
     if target_module is None:
         logger.warning(f"⚠️ Module not found by ID, trying progress lookup...")
         try:
@@ -206,20 +65,15 @@ def submit_assessment(
                     target_module = next(
                         (m for m in modules if m.get("title") == title), None
                     )
-                    if target_module:
-                        logger.info(f"✅ Found module by title: {title}")
         except Exception as lookup_err:
             logger.warning(f"⚠️ Fallback module lookup by title failed: {lookup_err}")
 
-    # Heuristic: try to infer title from slug-like module_id (e.g., "module-1-ai-ethics-foundations")
     if target_module is None and isinstance(module_id, str):
-        logger.warning(f"⚠️ Trying heuristic slug-to-title matching...")
         try:
             import re
 
-            # Remove leading "module-<num>-" if present
             slug_core = re.sub(r"^module-\d+-", "", module_id)
-            # Replace dashes/underscores with spaces and normalize
+
             slug_title = slug_core.replace("-", " ").replace("_", " ").lower()
             logger.info(f"🔍 Normalized slug: '{slug_title}'")
 
@@ -227,7 +81,7 @@ def submit_assessment(
                 return re.sub(r"[^a-z0-9 ]", "", s.lower()).strip()
 
             norm_slug = norm(slug_title)
-            # First try exact normalized title match
+
             for m in modules:
                 module_title = str(m.get("title", ""))
                 norm_title = norm(module_title)
@@ -236,24 +90,18 @@ def submit_assessment(
                 )
                 if norm_title == norm_slug:
                     target_module = m
-                    logger.info(
-                        f"✅ Found module by normalized title match: {module_title}"
-                    )
                     break
 
-            # Then try contains
             if target_module is None:
                 for m in modules:
                     module_title = str(m.get("title", ""))
                     norm_title = norm(module_title)
                     if norm_slug and norm_slug in norm_title:
                         target_module = m
-                        logger.info(f"✅ Found module by partial match: {module_title}")
                         break
         except Exception as lookup_err2:
             logger.warning(f"⚠️ Heuristic module lookup from slug failed: {lookup_err2}")
 
-    # Last-resort: pick the first module that has non-empty assessment questions
     if target_module is None:
         logger.warning(f"⚠️ Using last-resort: first module with assessment questions")
         with_questions = [
@@ -267,15 +115,11 @@ def submit_assessment(
         ]
         if with_questions:
             target_module = with_questions[0]
-            logger.info(
-                f"✅ Using first module with assessment questions as fallback: {target_module.get('title')}"
-            )
 
-    # Extract questions array from module's assessment
     questions: List[Dict[str, Any]] = []
     if target_module:
         assessment = target_module.get("assessment") or {}
-        # Support both camelCase and snake_case keys just in case
+
         questions = (
             assessment.get("assessmentQuestions")
             or assessment.get("assessment_questions")
@@ -289,7 +133,6 @@ def submit_assessment(
 
     assessment_service = _service_factory.get_assessment_service()
 
-    # Normalize answer keys to snake_case if they arrived as camelCase
     normalized_answers: List[Dict[str, Any]] = []
     for a in answers or []:
         if not isinstance(a, dict):
@@ -307,10 +150,6 @@ def submit_assessment(
                 }
             )
 
-    logger.info(f"📥 Received {len(answers)} answers from frontend")
-    logger.info(f"📤 Sending {len(normalized_answers)} normalized answers to grader")
-    logger.info(f"📝 Sending {len(questions)} questions to grader")
-
     if len(questions) == 0:
         logger.error(f"❌ CRITICAL: No questions found! Module lookup failed.")
         logger.error(f"   module_id={module_id}, target_module={target_module}")
@@ -326,7 +165,6 @@ def submit_assessment(
             questions=questions,
             answers=normalized_answers,
         )
-        logger.info(f"✅ Assessment submitted successfully: {result}")
         return result
 
     except HTTPException:
@@ -336,14 +174,7 @@ def submit_assessment(
         raise HTTPException(status_code=500, detail=str(e)) from e
 
 
-# =============================================================================
-# TEMPORARY LEGACY FUNCTIONS
-# These will be gradually migrated to the new architecture
-# =============================================================================
-
-
 def _serialize_datetime(value: Any) -> Optional[datetime]:
-    """Convert various datetime formats to datetime object."""
     if value is None:
         return None
     if isinstance(value, datetime):
@@ -357,7 +188,6 @@ def _serialize_datetime(value: Any) -> Optional[datetime]:
 
 
 def _normalise_text(value: Any) -> Optional[str]:
-    """Normalize text from various formats."""
     if value is None:
         return None
     if isinstance(value, str):
@@ -368,7 +198,6 @@ def _normalise_text(value: Any) -> Optional[str]:
 
 
 def _extract_asset_url(value: Any) -> Optional[str]:
-    """Extract URL from asset object or return URL string."""
     if value is None:
         return None
     if isinstance(value, str):
@@ -379,7 +208,6 @@ def _extract_asset_url(value: Any) -> Optional[str]:
 
 
 def _execute_hygraph_query(query: str) -> Optional[Dict[str, Any]]:
-    """Execute GraphQL query against Hygraph."""
     settings = get_settings()
     if not settings.hygraph_endpoint or not settings.hygraph_token:
         logger.warning("⚠️  Hygraph endpoint or token not configured")
@@ -404,17 +232,14 @@ def _execute_hygraph_query(query: str) -> Optional[Dict[str, Any]]:
 
 
 def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
-    """Get courses from Hygraph with caching."""
     global _hygraph_course_cache
 
     now = datetime.now(timezone.utc)
     if _hygraph_course_cache:
         cache_time, cached_courses = _hygraph_course_cache
         if (now - cache_time).total_seconds() < _HYGRAPH_CACHE_TTL_SECONDS:
-            logger.info(f"✅ Returning {len(cached_courses)} cached courses")
             return cached_courses
 
-    logger.info("📡 Fetching fresh courses from Hygraph...")
     data = _execute_hygraph_query(HYGRAPH_COURSES_QUERY)
     if not data or not data.get("courses"):
         logger.warning("⚠️  No courses returned from Hygraph")
@@ -424,15 +249,12 @@ def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
         _convert_hygraph_course_to_document(course) for course in data["courses"]
     ]
     _hygraph_course_cache = (now, courses)
-    logger.info(f"✅ Cached {len(courses)} courses from Hygraph")
     return courses
 
 
 def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any]:
-    """Convert Hygraph course to internal document format."""
     slug = course.get("slug") or course.get("id")
 
-    # Convert modules
     modules = []
     for module in course.get("courseModules", []):
         module_items = []
@@ -460,7 +282,6 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
                 }
             )
 
-        # Convert assessment
         assessment = module.get("assessment")
         assessment_payload = None
         if assessment and isinstance(assessment, dict):
@@ -500,7 +321,7 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
         modules.append(
             {
                 "id": module.get("id"),
-                "slug": module.get("slug"),  # PRESERVE SLUG FOR MODULE MATCHING
+                "slug": module.get("slug"),
                 "title": module.get("title", ""),
                 "duration": module.get("duration"),
                 "description": _normalise_text(module.get("overview")),
@@ -509,7 +330,6 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
             }
         )
 
-    # Convert outcomes
     outcomes = []
     for idx, outcome in enumerate(course.get("courseOutcome", []), start=1):
         outcomes.append(
@@ -519,7 +339,6 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
             }
         )
 
-    # Convert instructors
     instructors = []
     for instructor in course.get("instructors", []):
         instructors.append(
@@ -553,7 +372,6 @@ def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any
 def _serialize_course(
     doc: Dict[str, Any], include_details: bool = False
 ) -> Dict[str, Any]:
-    """Serialize course document for API response."""
     slug = doc.get("slug") or doc.get("id") or str(doc.get("_id"))
 
     course = {
@@ -586,9 +404,6 @@ def _serialize_course(
 
 
 def list_courses(include_details: bool = False) -> List[Dict[str, Any]]:
-    """List all courses."""
-    logger.info("📋 list_courses called with include_details=%s", include_details)
-
     hygraph_courses = _get_courses_from_hygraph()
     if hygraph_courses:
         logger.info("✅ Returning %d courses from Hygraph", len(hygraph_courses))
@@ -606,30 +421,17 @@ def list_courses(include_details: bool = False) -> List[Dict[str, Any]]:
     courses = [
         _serialize_course(doc, include_details=include_details) for doc in cursor
     ]
-    logger.info("✅ Returning %d courses from MongoDB", len(courses))
     return courses
 
 
 def get_course_detail(
     slug: str, user_id: Optional[str] = None
 ) -> Optional[Dict[str, Any]]:
-    """Get course detail by slug."""
     doc = _find_course_document(slug)
     if not doc:
         return None
-
-    logger.info(
-        f"📚 get_course_detail: Found doc with {len(doc.get('modules', []))} modules BEFORE serialization"
-    )
-
     serialized = _serialize_course(doc, include_details=True)
     course_slug = serialized.get("slug", slug)
-
-    logger.info(
-        f"📚 get_course_detail: Serialized course has {len(serialized.get('modules', []))} modules AFTER serialization"
-    )
-
-    # Add enrollment status if user provided
     if user_id:
         serialized["enrolled"] = _is_user_enrolled(user_id, course_slug)
 
@@ -637,15 +439,12 @@ def get_course_detail(
 
 
 def _find_course_document(slug: str) -> Optional[Dict[str, Any]]:
-    """Find course document by slug."""
-    # Try Hygraph first
     hygraph_courses = _get_courses_from_hygraph()
     if hygraph_courses:
         for course in hygraph_courses:
             if course.get("slug") == slug or course.get("id") == slug:
                 return course
 
-    # Fallback to MongoDB
     collection = get_courses_collection()
     if collection is not None:
         return collection.find_one({"$or": [{"slug": slug}, {"id": slug}]})
@@ -654,7 +453,6 @@ def _find_course_document(slug: str) -> Optional[Dict[str, Any]]:
 
 
 def _is_user_enrolled(user_id: str, course_slug: str) -> bool:
-    """Check if user is enrolled in course."""
     collection = get_course_enrollments_collection()
     if collection is None:
         return False
@@ -664,7 +462,6 @@ def _is_user_enrolled(user_id: str, course_slug: str) -> bool:
 
 
 def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
-    """Enroll user in course."""
     if _is_user_enrolled(user_id, course_slug):
         logger.info(f"User {user_id} already enrolled in {course_slug}")
         return True
@@ -687,22 +484,12 @@ def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
             upsert=True,
         )
 
-        # Send enrollment email
         try:
             from app.services.email_service import send_enrollment_email
             from app.services import auth as auth_services
 
-            logger.info(
-                f"Attempting to send enrollment email for user {user_id} and course {course_slug}"
-            )
-
-            # Get user details
             user_profile = auth_services.get_user_by_id(user_id)
-            logger.info(f"User profile retrieved: {user_profile is not None}")
-
-            # Get course details
             course = get_course_detail(course_slug)
-            logger.info(f"Course details retrieved: {course is not None}")
 
             if user_profile and course:
                 user_email = user_profile.get("email", "")
@@ -726,7 +513,7 @@ def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
                     f"Missing user_profile or course. user_profile: {user_profile is not None}, course: {course is not None}"
                 )
         except Exception as email_error:
-            # Don't fail the enrollment if email fails
+
             logger.warning(f"Failed to send enrollment email: {email_error}")
             logger.exception(email_error)
 
@@ -736,7 +523,6 @@ def enroll_user_in_course(user_id: str, course_slug: str) -> bool:
 
 
 def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, Any]]:
-    """Get user's progress for a course."""
     collection = get_course_progress_collection()
     if collection is None:
         return None
@@ -750,7 +536,6 @@ def get_course_progress(user_id: str, course_slug: str) -> Optional[Dict[str, An
 
 
 def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
-    """Serialize progress document for API response."""
     modules = []
     for module in doc.get("modules", []):
         items_payload = []
@@ -808,7 +593,6 @@ def _serialize_progress_doc(doc: Dict[str, Any]) -> Dict[str, Any]:
 
 
 def save_course_progress(user_id: str, payload: Dict[str, Any]) -> Dict[str, Any]:
-    """Save course progress."""
     collection = get_course_progress_collection()
     if collection is None:
         raise HTTPException(status_code=500, detail="Progress collection not available")
@@ -842,14 +626,10 @@ def save_course_progress(user_id: str, payload: Dict[str, Any]) -> Dict[str, Any
 
 
 def list_practice_sets() -> List[Dict[str, Any]]:
-    """List practice sets."""
-    logger.info("📋 list_practice_sets called")
-
     data = _execute_hygraph_query(HYGRAPH_PRACTICE_SETS_QUERY)
     if data and data.get("practiceSets"):
         return [_serialize_practice_set(ps) for ps in data["practiceSets"]]
 
-    # Fallback to MongoDB
     collection = get_practice_sets_collection()
     if collection is not None:
         cursor = collection.find({})
@@ -859,7 +639,6 @@ def list_practice_sets() -> List[Dict[str, Any]]:
 
 
 def _serialize_practice_set(doc: Dict[str, Any]) -> Dict[str, Any]:
-    """Serialize practice set document."""
     return {
         "id": str(doc.get("_id")) if doc.get("_id") else doc.get("id"),
         "slug": doc.get("slug"),
@@ -877,7 +656,6 @@ def build_dashboard_summary(
     user_profile: Dict[str, Any],
     course_docs: Dict[str, Dict[str, Any]],
 ) -> Dict[str, Any]:
-    """Build dashboard summary for user."""
     user_id = user_profile["id"]
     enrolled_slugs = set(list_user_enrollments(user_id))
     collection = get_course_progress_collection()
@@ -1055,7 +833,6 @@ def build_dashboard_summary(
 
 
 def _aggregate_metrics(progress_docs: List[Dict[str, Any]]) -> Tuple[float, float]:
-    """Aggregate metrics from progress documents."""
     total_hours = 0.0
     accuracy_sum = 0.0
     accuracy_count = 0
@@ -1077,7 +854,6 @@ def _aggregate_metrics(progress_docs: List[Dict[str, Any]]) -> Tuple[float, floa
 
 
 def list_user_enrollments(user_id: str) -> List[str]:
-    """Get list of course slugs user is enrolled in."""
     collection = get_course_enrollments_collection()
     if collection is None:
         return []
@@ -1089,7 +865,6 @@ def list_user_enrollments(user_id: str) -> List[str]:
 def get_assessment_history(
     user_id: str, course_slug: str, module_id: str
 ) -> List[Dict[str, Any]]:
-    """Get assessment attempt history."""
     collection = get_assessment_attempts_collection()
     if collection is None:
         return []
@@ -1114,41 +889,15 @@ def get_assessment_history(
 
 
 def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
-    """Generate a certificate for a completed course.
-
-    Validates that all modules, lessons, and assessments are complete,
-    marks the course as completed, and returns certificate data.
-    """
-    # FORCE CACHE INVALIDATION - clear the Hygraph cache to get fresh data
     global _hygraph_course_cache
-    print(
-        f"\n\n🎓 === CERTIFICATE GENERATION START === User: {user_id}, Course: {course_slug}"
-    )
-    print(f"🔄 Invalidating Hygraph cache to fetch fresh course data...")
-    logger.info(
-        f"🎓 === CERTIFICATE GENERATION START === User: {user_id}, Course: {course_slug}"
-    )
-    logger.info(f"🔄 Invalidating Hygraph cache to fetch fresh course data...")
     _hygraph_course_cache = None
 
-    # Get course details
     course = get_course_detail(course_slug)
-    print(f"📊 get_course_detail returned: {type(course)}, is None: {course is None}")
-    if course:
-        print(f"📊 Course modules count: {len(course.get('modules', []))}")
-        print(f"📊 Course keys: {list(course.keys())}")
 
     if not course:
         logger.error(f"❌ CERT ERROR: Course not found - {course_slug}")
         raise HTTPException(status_code=404, detail="Course not found")
 
-    print(f"✅ Course found: {course.get('title')}")
-    print(f"📚 CERT: Course has {len(course.get('modules', []))} modules")
-    logger.info(f"✅ Course found: {course.get('title')}")
-    logger.info(f"📚 CERT: Course has {len(course.get('modules', []))} modules")
-    logger.info(f"📚 CERT: Course keys: {list(course.keys())}")
-
-    # Get user progress
     progress_collection = get_course_progress_collection()
     if progress_collection is None:
         logger.error(f"❌ CERT ERROR: Database connection failed")
@@ -1166,11 +915,6 @@ def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
             status_code=404, detail="Course progress not found. Please enroll first."
         )
 
-    logger.info(
-        f"✅ Progress document found. Overall progress: {progress_doc.get('progress', 0)}%"
-    )
-
-    # Calculate completion percentage
     total_items = 0
     completed_items = 0
     all_assessments_passed = True
@@ -1178,35 +922,10 @@ def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
     modules = progress_doc.get("modules", [])
     course_modules = course.get("modules", [])
 
-    print(f"\n📊 DEBUG: modules from progress = {len(modules)}")
-    print(f"📊 DEBUG: course_modules from course = {len(course_modules)}")
-    print(f"📊 DEBUG: course.get('modules') type = {type(course.get('modules'))}")
-    print(
-        f"📊 DEBUG: First course module = {course_modules[0] if course_modules else 'EMPTY'}"
-    )
-
-    logger.info(
-        f"📚 CERT: Found {len(modules)} progress modules and {len(course_modules)} course modules"
-    )
-    logger.info(
-        f"📚 CERT: Progress module IDs: {[m.get('module_id') for m in modules]}"
-    )
-    logger.info(
-        f"📚 CERT: Course module IDs/slugs: {[(m.get('id'), m.get('slug'), m.get('title')) for m in course_modules]}"
-    )
-
-    # Debug: Print actual keys in course modules to see what fields are available
-    if course_modules:
-        print(f"📊 DEBUG: First course module keys: {list(course_modules[0].keys())}")
-        logger.info(
-            f"📊 DEBUG: First course module keys: {list(course_modules[0].keys())}"
-        )
-
     for module_progress in modules:
         module_id = module_progress.get("module_id")
         logger.info(f"🔍 CERT: Processing module {module_id}")
 
-        # Find corresponding course module - try multiple matching strategies
         course_module = next(
             (
                 m
@@ -1225,39 +944,29 @@ def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
             )
             continue
 
-        logger.info(f"✅ CERT: Found course module: {course_module.get('title')}")
-
-        # Count lesson items
         module_items = course_module.get("items", [])
         logger.info(f"📝 CERT: Module has {len(module_items)} lesson items")
         total_items += len(module_items)
 
-        # Count completed lessons
         items_progress = module_progress.get("items", [])
         completed_count = sum(
             1 for item in items_progress if item.get("completed", False)
         )
-        logger.info(
-            f"✅ CERT: {completed_count}/{len(items_progress)} items completed in progress"
-        )
         completed_items += completed_count
 
-        # For modules with NO lessons, check if module itself is marked complete
         if len(module_items) == 0:
             module_completion = module_progress.get("completion", 0)
             logger.info(
                 f"📦 CERT: Module has 0 lessons, completion: {module_completion}%"
             )
             if module_completion == 100:
-                # Module with no lessons is marked complete - count it as 1 item
+
                 total_items += 1
                 completed_items += 1
-                logger.info(f"✅ CERT: Module marked complete, counting as 1/1 item")
 
-        # Check assessment - ONLY if the course module actually HAS an assessment
         course_has_assessment = course_module.get("assessment") is not None
         if course_has_assessment:
-            # Get assessment questions to verify it's not empty
+
             assessment_obj = course_module.get("assessment", {})
             assessment_questions = (
                 assessment_obj.get("assessmentQuestions", [])
@@ -1265,22 +974,14 @@ def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
                 else []
             )
 
-            logger.info(
-                f"📊 CERT: Module has assessment with {len(assessment_questions)} questions"
-            )
-
-            # Only count assessment if it has questions
             if assessment_questions and len(assessment_questions) > 0:
-                total_items += 1  # Assessment counts as an item
+                total_items += 1
                 assessment_status = module_progress.get("assessment_status")
-
-                logger.info(f"📊 CERT: Assessment status: {assessment_status}")
 
                 if assessment_status == "passed":
                     completed_items += 1
-                    logger.info(f"✅ CERT: Assessment passed")
                 else:
-                    # Assessment exists with questions but not passed
+
                     all_assessments_passed = False
                     logger.warning(
                         f"⚠️ CERT: Assessment NOT passed (status: {assessment_status})"
@@ -1288,18 +989,10 @@ def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
         else:
             logger.info(f"ℹ️ CERT: Module has no assessment")
 
-    # Calculate percentage
     completion_percentage = (
         int((completed_items / total_items * 100)) if total_items > 0 else 0
     )
 
-    logger.info(f"📊 === CERT VALIDATION SUMMARY ===")
-    logger.info(f"📊 Total items: {total_items}")
-    logger.info(f"📊 Completed items: {completed_items}")
-    logger.info(f"📊 Completion percentage: {completion_percentage}%")
-    logger.info(f"📊 All assessments passed: {all_assessments_passed}")
-
-    # Verify 100% completion
     if completion_percentage < 100 or not all_assessments_passed:
         logger.error(
             f"❌ CERT DENIED: Completion {completion_percentage}%, Assessments passed: {all_assessments_passed}"
@@ -1309,9 +1002,6 @@ def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
             detail=f"Course not fully completed. Progress: {completion_percentage}%. All assessments must be passed.",
         )
 
-    logger.info(f"✅ CERT: Validation passed! Marking course as completed...")
-
-    # Mark course as completed
     now = datetime.now(timezone.utc)
 
     update_result = progress_collection.update_one(
@@ -1330,23 +1020,15 @@ def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
         logger.warning(f"⚠️ CERT: No document updated when marking course complete")
     else:
         logger.info(f"✅ CERT: Course marked as completed in database")
-
-    logger.info(f"✅ CERT: Certificate issued successfully!")
-
-    # Get user profile for name
     from ..services import auth as auth_services
 
     try:
         user_data = auth_services.get_user_by_id(user_id)
         user_name = user_data.get("full_name") or user_data.get("name") or "Student"
-        logger.info(f"✅ CERT: User name retrieved: {user_name}")
     except Exception as e:
         logger.warning(f"⚠️ CERT: Failed to get user profile: {e}")
         user_name = "Student"
 
-    logger.info(f"🎓 === CERTIFICATE GENERATION COMPLETE ===")
-
-    # Return certificate data
     return {
         "user_name": user_name,
         "course_name": course.get("title", "Course"),

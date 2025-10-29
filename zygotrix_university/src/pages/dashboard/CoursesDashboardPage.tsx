@@ -5,6 +5,7 @@ import {
   FiUsers,
   FiCheckCircle,
   FiLayers,
+  FiBook,
 } from "react-icons/fi";
 import { Link } from "react-router-dom";
 import AccentButton from "../../components/common/AccentButton";
@@ -29,6 +30,24 @@ const CoursesDashboardPage = () => {
     );
   }
 
+  if (!summary.courses || summary.courses.length === 0) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] text-center">
+        <FiBookOpen className="h-16 w-16 text-accent mb-6" />
+        <h2 className="text-3xl font-bold text-foreground mb-4">
+          Start Your Learning!
+        </h2>
+        <p className="text-lg text-muted mb-6 max-w-xl">
+          Join a vibrant community of learners and take the next step in your
+          journey today!
+        </p>
+        <AccentButton to="/university/browse-courses" variant="primary">
+          Browse Courses
+        </AccentButton>
+      </div>
+    );
+  }
+
   return (
     <div className="space-y-8">
       {/* Page Header */}
@@ -46,17 +65,14 @@ const CoursesDashboardPage = () => {
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
-          <AccentButton to="/practice" variant="secondary">
+          <AccentButton to="/university/practice" variant="primary">
             Launch practice studio
-          </AccentButton>
-          <AccentButton to="/resources" icon={<FiExternalLink />}>
-            Browse resource hub
           </AccentButton>
         </div>
       </div>
 
       {/* Course Cards Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {summary.courses.map((course) => {
           const totalModules = course.modules.length;
           const completedModules = course.modules.filter(
@@ -75,6 +91,19 @@ const CoursesDashboardPage = () => {
               to={`/university/courses/${course.courseSlug}`}
               className="group block rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg hover:scale-[1.02] no-underline"
             >
+              <div className="w-full h-40 mb-4 rounded-xl overflow-hidden bg-background-subtle flex items-center justify-center">
+                {course.image_url ? (
+                  <img
+                    src={course.image_url ?? ""}
+                    alt={course.title}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted text-2xl">
+                    <FiBook />
+                  </div>
+                )}
+              </div>
               {/* Course Category Badge */}
               <div className="flex items-center justify-between mb-4">
                 <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background-subtle px-3 py-1.5 text-xs font-medium text-accent transition-colors group-hover:border-accent group-hover:bg-accent-soft">

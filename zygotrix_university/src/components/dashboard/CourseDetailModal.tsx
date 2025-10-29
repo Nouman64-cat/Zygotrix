@@ -50,40 +50,9 @@ const CourseDetailModal = ({
     try {
       setEnrolling(true);
       await onEnroll(course.slug);
-
-      // Show success toast
-      toast.success(
-        () => (
-          <div className="flex items-start gap-3">
-            {/* <FiCheckCircle className="h-5 w-5 text-emerald-500 flex-shrink-0 mt-0.5" /> */}
-            <div>
-              <p className="font-semibold text-foreground">
-                Successfully enrolled!
-              </p>
-              <p className="text-sm text-muted mt-1">
-                A confirmation email has been sent to you.
-              </p>
-            </div>
-          </div>
-        ),
-        {
-          duration: 4000,
-          position: "top-center",
-          style: {
-            background: "var(--color-surface)",
-            color: "var(--color-foreground)",
-            border: "1px solid var(--color-border)",
-            padding: "16px",
-            borderRadius: "12px",
-            maxWidth: "500px",
-          },
-        }
-      );
-
       // Show confetti and success message
       setShowSuccess(true);
       setShowConfetti(true);
-
       // Auto redirect after 3 seconds to /courses (not /university/courses)
       setTimeout(() => {
         setShowConfetti(false);
@@ -203,7 +172,7 @@ const CourseDetailModal = ({
           {/* Close Button */}
           <button
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-border bg-background-subtle text-muted transition-all hover:border-accent hover:bg-accent-soft hover:text-accent"
+            className="flex h-10 w-10 items-center justify-center rounded-full border-2 border-border bg-background-subtle text-muted transition-all hover:border-accent hover:bg-accent-soft hover:text-accent cursor-pointer"
             aria-label="Close"
           >
             <FiX className="h-5 w-5" />
@@ -299,7 +268,7 @@ const CourseDetailModal = ({
               onClick={handleEnroll}
               disabled={enrolling}
               className={cn(
-                "inline-flex items-center justify-center gap-2 rounded-xl px-8 py-3 text-sm font-semibold transition-all",
+                "inline-flex items-center justify-center gap-2 rounded-xl px-8 py-3 text-sm font-semibold transition-all cursor-pointer",
                 "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-lg",
                 "hover:scale-105 hover:shadow-xl",
                 "focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2",

@@ -189,6 +189,7 @@ export interface CourseProgressMetrics {
 export interface CourseProgress {
   courseSlug: string;
   title: string;
+  image_url?: string | null;
   instructor?: string | null;
   nextSession?: string | null;
   progress: number;

@@ -70,6 +70,7 @@ export interface ApiDashboardSummary {
     title: string;
     instructor?: string | null;
     next_session?: string | null;
+    image_url?: string | null;
     progress: number;
     level?: string | null;
     category?: string | null;

@@ -411,12 +411,25 @@ const BrowseCoursesPage = () => {
           )}
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid gap-6 sm:grid-cols-2  lg:grid-cols-4">
           {filteredCourses.map((course) => (
             <div
               key={course.slug}
               className="group flex flex-col rounded-[1.75rem] border border-border bg-surface p-6 transition-all hover:border-accent hover:shadow-lg hover:scale-[1.02]"
             >
+              <div className="w-full h-40 mb-4 rounded-xl overflow-hidden bg-background-subtle flex items-center justify-center">
+                {course.imageUrl ? (
+                  <img
+                    src={course.imageUrl}
+                    alt={course.title}
+                    className="object-cover w-full h-full"
+                  />
+                ) : (
+                  <div className="w-full h-full flex items-center justify-center text-muted text-2xl">
+                    <FiBook />
+                  </div>
+                )}
+              </div>
               {/* Course Badge */}
               <div className="flex items-center justify-between mb-4">
                 <span className="inline-flex items-center gap-2 rounded-full border border-border bg-background-subtle px-3 py-1.5 text-xs font-medium text-accent transition-colors group-hover:border-accent group-hover:bg-accent-soft">
@@ -498,7 +511,7 @@ const BrowseCoursesPage = () => {
               <div className="grid grid-cols-2 gap-2 mt-auto pt-4 border-t border-border">
                 <button
                   onClick={() => setSelectedCourse(course)}
-                  className="px-4 py-2 text-xs font-medium text-accent border border-accent rounded-xl hover:bg-accent-soft transition-colors"
+                  className="px-4 py-2 text-xs font-medium text-accent border border-accent rounded-xl hover:bg-accent-soft transition-colors cursor-pointer disabled:cursor-not-allowed"
                   disabled={enrollingSlug === course.slug}
                 >
                   View Details
@@ -506,7 +519,7 @@ const BrowseCoursesPage = () => {
                 <button
                   onClick={() => handleEnroll(course.slug)}
                   disabled={enrollingSlug === course.slug}
-                  className="px-4 py-2 text-xs font-medium text-white bg-accent rounded-xl hover:bg-accent/90 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="px-4 py-2 text-xs font-medium text-white bg-accent rounded-xl hover:bg-accent/90 transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
                 >
                   {enrollingSlug === course.slug ? (
                     <>

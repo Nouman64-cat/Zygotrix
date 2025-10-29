@@ -13,7 +13,7 @@ interface AccentButtonProps
 }
 
 const baseStyles =
-  "inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-theme ";
+  "inline-flex items-center gap-2 rounded-full px-5 py-2.5 text-sm font-medium transition-colors duration-200 focus:outline-none focus-visible:ring-2 focus-visible:ring-offset-2 ring-offset-theme ";
 
 const variantStyles: Record<ButtonVariant, string> = {
   primary:

@@ -344,6 +344,7 @@ const mapCourseProgressResponse = (
   courseSlug: response.course_slug,
   title: course?.title ?? response.course_slug,
   instructor: course?.instructors?.[0]?.name ?? null,
+  image_url: course?.imageUrl ?? null,
   nextSession: response.next_session ?? null,
   progress:
     response.progress ??
@@ -436,6 +437,7 @@ const mapDashboardSummary = (
     return {
       courseSlug: course.course_slug,
       title: course.title ?? courseRef?.title ?? course.course_slug,
+      image_url: course.image_url ?? courseRef?.imageUrl ?? null,
       instructor:
         course.instructor ?? courseRef?.instructors?.[0]?.name ?? null,
       nextSession: course.next_session ?? null,
@@ -523,6 +525,7 @@ export const universityService = {
   async getDashboardSummary(): Promise<DashboardSummary> {
     try {
       const dashboard = await fetchDashboardSummary();
+      console.log("university service: ", dashboard);
 
       // Fetch individual course details for each enrolled course to get accurate module lists
       // The dashboard API may have cached/stale module data, but individual course endpoints are fresh

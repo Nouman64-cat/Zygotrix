@@ -45,7 +45,7 @@ const OverviewDashboardPage = () => {
       </div>
 
       {/* Learning Analytics Charts */}
-      <div className="grid gap-6 lg:grid-cols-3">
+      {/* <div className="grid gap-6 lg:grid-cols-3">
         <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
           <div className="mb-4 flex items-center gap-2">
             <FiPieChart className="h-5 w-5 text-accent" />
@@ -65,10 +65,10 @@ const OverviewDashboardPage = () => {
           </div>
           <ModuleProgressChart courses={summary.courses} />
         </div>
-      </div>
+      </div> */}
 
       {/* Learning Trend */}
-      <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
+      {/* <div className="rounded-[1.75rem] border border-border bg-surface p-6 transition-colors">
         <div className="mb-4 flex items-center gap-2">
           <FiTrendingUp className="h-5 w-5 text-accent" />
           <h3 className="text-lg font-semibold text-foreground">
@@ -76,7 +76,7 @@ const OverviewDashboardPage = () => {
           </h3>
         </div>
         <LearningTrendChart courses={summary.courses} />
-      </div>
+      </div> */}
 
       <div className="grid gap-6 lg:grid-cols-2">
         {summary.courses.map((course) => (
@@ -89,7 +89,7 @@ const OverviewDashboardPage = () => {
         <PracticeInsightsList insights={summary.insights} />
       </div>
 
-      <SavedResources resources={summary.resources} />
+      {/* <SavedResources resources={summary.resources} /> */}
     </div>
   );
 };

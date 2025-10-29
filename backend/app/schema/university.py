@@ -176,6 +176,7 @@ class LearningEventModel(BaseModel):
 
 class CourseProgressItemModel(BaseModel):
     """Model for individual module items (lessons)."""
+
     module_item_id: str
     title: Optional[str] = None
     completed: bool = False
@@ -190,8 +191,7 @@ class CourseProgressModuleModel(BaseModel):
     duration: Optional[str] = None
     completion: conint(ge=0, le=100) = 0
     assessment_status: Optional[str] = Field(
-        default=None,
-        pattern="^(not_started|attempted|passed)$"
+        default=None, pattern="^(not_started|attempted|passed)$"
     )
     best_score: Optional[confloat(ge=0, le=100)] = None
     attempt_count: Optional[int] = Field(default=None, ge=0)
@@ -214,6 +214,7 @@ class DashboardCourseOverviewModel(BaseModel):
     progress: conint(ge=0, le=100) = 0
     level: Optional[str] = None
     category: Optional[str] = None
+    image_url: Optional[str] = None
     metrics: Optional[CourseProgressMetricsModel] = None
     modules: List[CourseProgressModuleModel] = Field(default_factory=list)
 

@@ -917,6 +917,7 @@ def build_dashboard_summary(
                 "category": course.get("category") if course else None,
                 "metrics": metrics or None,
                 "modules": progress.get("modules", []),
+                "image_url": course.get("image_url") if course else None,
             }
         )
 
@@ -1000,6 +1001,7 @@ def build_dashboard_summary(
                 "category": course.get("category"),
                 "metrics": None,
                 "modules": modules_payload,
+                "image_url": course.get("image_url"),
             }
         )
 

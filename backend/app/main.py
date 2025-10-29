@@ -1,6 +1,10 @@
-﻿"""FastAPI application exposing Zygotrix simulation capabilities."""
-
+﻿
 from __future__ import annotations
+import logging
+logging.basicConfig(level=logging.DEBUG)
+"""FastAPI application exposing Zygotrix simulation capabilities."""
+
+
 
 from datetime import datetime, timezone
 from typing import Optional

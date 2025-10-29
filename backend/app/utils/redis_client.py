@@ -19,9 +19,11 @@ def get_redis_client() -> Optional[redis.Redis]:
     global _redis_client
 
     if _redis_client is not None:
+        logger.debug("[Redis] Returning existing Redis client instance.")
         return _redis_client
 
     settings = get_settings()
+    logger.debug(f"[Redis] Attempting to connect to Redis at: {settings.redis_url}")
 
     try:
         _redis_client = redis.from_url(
@@ -30,7 +32,7 @@ def get_redis_client() -> Optional[redis.Redis]:
             socket_connect_timeout=5,
             socket_timeout=5,
         )
-        # Test connection
+        logger.debug("[Redis] Redis client created, testing connection with PING...")
         _redis_client.ping()
         logger.info(f"✅ Redis connection established: {settings.redis_url}")
         return _redis_client
@@ -48,6 +50,7 @@ def set_cache(key: str, value: Any, ttl_seconds: Optional[int] = None) -> bool:
     """Set a value in Redis cache with optional TTL."""
     client = get_redis_client()
     if client is None:
+        logger.debug(f"[Redis] set_cache: No Redis client available for key '{key}'.")
         return False
 
     settings = get_settings()
@@ -55,6 +58,7 @@ def set_cache(key: str, value: Any, ttl_seconds: Optional[int] = None) -> bool:
 
     try:
         serialized = json.dumps(value)
+        logger.debug(f"[Redis] Setting cache for key '{key}' with TTL {ttl}s.")
         client.setex(key, ttl, serialized)
         logger.debug(f"✅ Cache set: {key} (TTL: {ttl}s)")
         return True
@@ -67,9 +71,11 @@ def get_cache(key: str) -> Optional[Any]:
     """Get a value from Redis cache."""
     client = get_redis_client()
     if client is None:
+        logger.debug(f"[Redis] get_cache: No Redis client available for key '{key}'.")
         return None
 
     try:
+        logger.debug(f"[Redis] Attempting to get cache for key '{key}'.")
         cached = client.get(key)
         if cached:
             logger.debug(f"✅ Cache hit: {key}")
@@ -85,9 +91,11 @@ def delete_cache(key: str) -> bool:
     """Delete a value from Redis cache."""
     client = get_redis_client()
     if client is None:
+        logger.debug(f"[Redis] delete_cache: No Redis client available for key '{key}'.")
         return False
 
     try:
+        logger.debug(f"[Redis] Attempting to delete cache for key '{key}'.")
         client.delete(key)
         logger.debug(f"✅ Cache deleted: {key}")
         return True
@@ -100,10 +108,13 @@ def clear_cache_pattern(pattern: str) -> int:
     """Clear all cache keys matching a pattern."""
     client = get_redis_client()
     if client is None:
+        logger.debug(f"[Redis] clear_cache_pattern: No Redis client available for pattern '{pattern}'.")
         return 0
 
     try:
+        logger.debug(f"[Redis] Scanning for keys matching pattern '{pattern}'.")
         keys = list(client.scan_iter(match=pattern))
+        logger.debug(f"[Redis] Found {len(keys)} keys matching pattern '{pattern}'.")
         if keys:
             deleted = client.delete(*keys)
             logger.info(f"✅ Cleared {deleted} cache keys matching: {pattern}")

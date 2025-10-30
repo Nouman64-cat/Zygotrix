@@ -10,9 +10,19 @@ import {
 import { Link } from "react-router-dom";
 import { useDashboardSummary } from "../../hooks/useDashboardSummary";
 import AccentButton from "../../components/common/AccentButton";
+import { useState } from "react";
+import toast from "react-hot-toast";
+import CourseCertificate from "../../components/certificates/CourseCertificate";
+import { generateCertificate } from "../../services/repositories/universityRepository";
 
 const AnalyticsDashboardPage = () => {
   const { summary } = useDashboardSummary();
+
+  const [offscreenCert, setOffscreenCert] = useState<{
+    userName: string;
+    courseName: string;
+    completedAt: Date;
+  } | null>(null);
 
   if (!summary) {
     return (
@@ -38,51 +48,74 @@ const AnalyticsDashboardPage = () => {
     (course) => course.progress >= 100
   );
 
-  const handleDownloadCertificate = (
-    courseSlug: string,
-    courseTitle: string
-  ) => {
-    // Generate a simple certificate download
-    const certificateData = {
-      studentName: summary.profile.name,
-      courseName: courseTitle,
-      completionDate: new Date().toLocaleDateString("en-US", {
-        month: "long",
-        day: "numeric",
-        year: "numeric",
-      }),
-      certificateId: `ZYGO-${courseSlug.toUpperCase()}-${Date.now()}`,
-    };
-
-    // Create a simple text certificate (in production, this would be a PDF)
-    const certificateText = `
-CERTIFICATE OF COMPLETION
-
-This certifies that
-${certificateData.studentName}
-
-has successfully completed the course
-${certificateData.courseName}
-
-Completion Date: ${certificateData.completionDate}
-Certificate ID: ${certificateData.certificateId}
-
-Zygotrix University
-    `.trim();
-
-    const blob = new Blob([certificateText], { type: "text/plain" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = `certificate-${courseSlug}.txt`;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
+  const handleDownloadCertificate = async (courseSlug: string) => {
+    try {
+      const cert = await generateCertificate(courseSlug);
+      setOffscreenCert({
+        userName: cert.userName,
+        courseName: cert.courseName,
+        completedAt: new Date(cert.completedAt),
+      });
+      // Wait for the component to render, then trigger download
+      setTimeout(() => {
+        requestAnimationFrame(() => {
+          const certDiv = document.getElementById("certificate");
+          if (!certDiv) return;
+          import("html2canvas").then(({ default: html2canvas }) =>
+            import("jspdf").then(({ default: jsPDF }) => {
+              html2canvas(certDiv, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: "#fff",
+              }).then((canvas) => {
+                const imgWidth = 297;
+                const imgHeight = (canvas.height * imgWidth) / canvas.width;
+                const pdf = new jsPDF({
+                  orientation: imgHeight > imgWidth ? "portrait" : "landscape",
+                  unit: "mm",
+                  format: "a4",
+                });
+                const imgData = canvas.toDataURL("image/png");
+                pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
+                const filename = `${cert.userName.replace(
+                  /\s+/g,
+                  "_"
+                )}_${cert.courseName
+                  .replace(/\s+/g, "_")
+                  .substring(0, 30)}_Certificate.pdf`;
+                pdf.save(filename);
+                toast.success("Certificate downloaded!");
+                setOffscreenCert(null);
+              });
+            })
+          );
+        });
+      }, 350);
+    } catch {
+      alert("Failed to generate certificate. Please try again.");
+    }
   };
 
   return (
     <div className="space-y-8">
+      {/* Offscreen Certificate for instant download */}
+      {offscreenCert && (
+        <div
+          style={{
+            position: "absolute",
+            left: -9999,
+            top: 0,
+            overflow: "hidden",
+            // No width/height 0, allow natural size
+          }}
+        >
+          <CourseCertificate
+            userName={offscreenCert.userName}
+            courseName={offscreenCert.courseName}
+            completedAt={offscreenCert.completedAt}
+          />
+        </div>
+      )}
       {/* Page Header */}
       <div className="flex flex-col gap-4 rounded-[1.75rem] border border-border bg-surface p-6 transition-colors md:flex-row md:items-center md:justify-between">
         <div>
@@ -308,9 +341,7 @@ Zygotrix University
                     </AccentButton>
                   </Link>
                   <button
-                    onClick={() =>
-                      handleDownloadCertificate(course.courseSlug, course.title)
-                    }
+                    onClick={() => handleDownloadCertificate(course.courseSlug)}
                     className="rounded-[1.25rem] border border-border bg-background-subtle px-4 py-2 text-sm font-medium text-accent transition-colors hover:border-accent hover:bg-accent-soft"
                   >
                     <FiDownload className="h-4 w-4" />

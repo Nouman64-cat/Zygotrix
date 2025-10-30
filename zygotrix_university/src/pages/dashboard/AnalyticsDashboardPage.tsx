@@ -289,7 +289,7 @@ const AnalyticsDashboardPage = () => {
             </p>
           </div>
         ) : (
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 md:grid-cols-3">
             {completedCourses.map((course) => (
               <div
                 key={course.courseSlug}

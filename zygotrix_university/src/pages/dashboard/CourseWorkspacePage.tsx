@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { useParams } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import {
   FiChevronLeft,
   FiCheckCircle,
@@ -10,20 +10,15 @@ import {
 import ReactMarkdown from "react-markdown";
 import AccentButton from "../../components/common/AccentButton";
 import LessonModal from "../../components/dashboard/LessonModal";
-import AssessmentModal from "../../components/dashboard/AssessmentModal";
-import AssessmentResultsModal from "../../components/dashboard/AssessmentResultsModal";
 import CourseCertificate from "../../components/certificates/CourseCertificate";
 import { useCourseWorkspace } from "../../hooks/useCourseWorkspace";
-import {
-  submitAssessment,
-  generateCertificate,
-} from "../../services/repositories/universityRepository";
-import type { AssessmentResult, UserAnswer } from "../../types";
+import { generateCertificate } from "../../services/repositories/universityRepository";
 import type { ApiCertificateResponse } from "../../types/api";
 import { cn } from "../../utils/cn";
 
 const DashboardCourseWorkspacePage = () => {
   const { slug } = useParams<{ slug: string }>();
+  const navigate = useNavigate();
   const {
     course,
     progress,
@@ -34,16 +29,7 @@ const DashboardCourseWorkspacePage = () => {
     completeModule,
     activeLesson,
     setActiveLesson,
-    refetch,
   } = useCourseWorkspace(slug);
-
-  const [assessmentOpen, setAssessmentOpen] = useState(false);
-  const [activeAssessmentModule, setActiveAssessmentModule] = useState<
-    string | null
-  >(null);
-  const [assessmentResult, setAssessmentResult] =
-    useState<AssessmentResult | null>(null);
-  const [isSubmittingAssessment, setIsSubmittingAssessment] = useState(false);
 
   // Certificate states
   const [certificateData, setCertificateData] =
@@ -190,61 +176,15 @@ const DashboardCourseWorkspacePage = () => {
   }, [progress, activeLesson, activeLessonMeta]);
 
   const handleOpenAssessment = (moduleId: string) => {
-    setActiveAssessmentModule(moduleId);
-    setAssessmentOpen(true);
-  };
+    const module = course?.modules?.find((m) => m.id === moduleId);
+    if (!module || !course) return;
 
-  const handleCloseAssessment = () => {
-    setAssessmentOpen(false);
-    setActiveAssessmentModule(null);
-  };
-
-  const handleSubmitAssessment = async (answers: UserAnswer[]) => {
-    if (!slug || !activeAssessmentModule) return;
-
-    setIsSubmittingAssessment(true);
-    try {
-      const result = await submitAssessment({
-        course_slug: slug,
-        module_id: activeAssessmentModule,
-        answers: answers,
-      });
-      // Find the course module either by exact ID match (Hygraph ID)
-      // or fall back to matching by title from the progress module
-      const progressModule = progress?.modules.find(
-        (pm) => pm.moduleId === activeAssessmentModule
-      );
-      const module =
-        course?.modules.find((m) => m.id === activeAssessmentModule) ||
-        course?.modules.find((m) => m.title === progressModule?.title);
-      const assessment = module?.assessment;
-
-      if (assessment) {
-        setAssessmentResult({
-          attempt: result.attempt,
-          questions: assessment.assessmentQuestions,
-        });
-      }
-
-      setAssessmentOpen(false);
-    } catch (error) {
-      console.error("Failed to submit assessment:", error);
-    } finally {
-      setIsSubmittingAssessment(false);
-    }
-  };
-
-  const handleCloseResults = () => {
-    console.log("🔄 Closing assessment results and refetching progress...");
-    setAssessmentResult(null);
-    setActiveAssessmentModule(null);
-
-    // DON'T clear localStorage - it contains important lesson completion data
-    // The backend should be the source of truth for assessment status
-    // Just refetch to get the latest data
-
-    // Refetch progress to get updated assessment status from backend
-    refetch();
+    navigate(`/university/courses/${slug}/assessment/${moduleId}`, {
+      state: {
+        module,
+        courseTitle: course.title,
+      },
+    });
   };
 
   const handleGenerateCertificate = async () => {
@@ -925,53 +865,6 @@ const DashboardCourseWorkspacePage = () => {
         onToggleComplete={undefined}
         isSaving={saving}
       />
-
-      {/* Assessment Modal */}
-      {activeAssessmentModule &&
-        course &&
-        (() => {
-          // Find the course module either by exact ID match (Hygraph ID)
-          // or fall back to matching by title from the progress module
-          const progressModule = progress?.modules.find(
-            (pm) => pm.moduleId === activeAssessmentModule
-          );
-          const activeModule =
-            course.modules.find((m) => m.id === activeAssessmentModule) ||
-            course.modules.find((m) => m.title === progressModule?.title);
-
-          const assessment = activeModule?.assessment || {
-            assessmentQuestions: [],
-          };
-
-          return (
-            <AssessmentModal
-              isOpen={assessmentOpen}
-              onClose={handleCloseAssessment}
-              assessment={assessment}
-              moduleTitle={activeModule?.title || "Module"}
-              onSubmit={handleSubmitAssessment}
-              isSubmitting={isSubmittingAssessment}
-            />
-          );
-        })()}
-
-      {/* Assessment Results Modal */}
-      {assessmentResult && activeAssessmentModule && course && (
-        <AssessmentResultsModal
-          isOpen={!!assessmentResult}
-          onClose={handleCloseResults}
-          result={assessmentResult}
-          moduleTitle={(() => {
-            const progressModule = progress?.modules.find(
-              (pm) => pm.moduleId === activeAssessmentModule
-            );
-            const activeModule =
-              course.modules.find((m) => m.id === activeAssessmentModule) ||
-              course.modules.find((m) => m.title === progressModule?.title);
-            return activeModule?.title || "Module";
-          })()}
-        />
-      )}
 
       {/* Certificate Modal */}
       {isCertificateModalOpen && certificateData && (

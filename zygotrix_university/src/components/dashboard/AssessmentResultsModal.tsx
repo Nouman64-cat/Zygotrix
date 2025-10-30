@@ -1,8 +1,16 @@
-import { FiX, FiCheckCircle, FiXCircle, FiAward } from "react-icons/fi";
+import { useState, useEffect } from "react";
+import {
+  FiX,
+  FiCheckCircle,
+  FiXCircle,
+  FiAward,
+  FiLoader,
+} from "react-icons/fi";
 import ReactMarkdown from "react-markdown";
 import AccentButton from "../common/AccentButton";
 import type { AssessmentResult } from "../../types";
 import { cn } from "../../utils/cn";
+import { getAnswerExplanation } from "../../services/claudeService";
 
 interface AssessmentResultsModalProps {
   isOpen: boolean;
@@ -17,11 +25,65 @@ const AssessmentResultsModal = ({
   result,
   moduleTitle,
 }: AssessmentResultsModalProps) => {
+  const [aiExplanations, setAiExplanations] = useState<Record<number, string>>(
+    {}
+  );
+  const [loadingExplanations, setLoadingExplanations] = useState<
+    Record<number, boolean>
+  >({});
+
+  // Fetch AI explanations for correct answers when modal opens
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const fetchExplanations = async () => {
+      const attempt = result?.attempt;
+      const questions = result?.questions || [];
+
+      // Only fetch for questions user got wrong
+      const incorrectQuestions = questions
+        .map((question, qIndex) => {
+          const userAnswer = attempt?.answers.find(
+            (a) => a.questionIndex === qIndex
+          );
+          const isCorrect = userAnswer?.isCorrect || false;
+          return { question, qIndex, isCorrect };
+        })
+        .filter((q) => !q.isCorrect);
+
+      // Fetch explanations sequentially to avoid rate limits
+      for (const { question, qIndex } of incorrectQuestions) {
+        if (aiExplanations[qIndex]) continue; // Skip if already fetched
+
+        setLoadingExplanations((prev) => ({ ...prev, [qIndex]: true }));
+
+        const correctOption = question.options.find(
+          (opt) => opt.isCorrect === true || (opt as any).is_correct === true
+        );
+
+        if (correctOption) {
+          const explanation = await getAnswerExplanation(
+            question.prompt.markdown,
+            correctOption.text,
+            question.explanation.markdown
+          );
+
+          setAiExplanations((prev) => ({ ...prev, [qIndex]: explanation }));
+        }
+
+        setLoadingExplanations((prev) => ({ ...prev, [qIndex]: false }));
+      }
+    };
+
+    fetchExplanations();
+  }, [isOpen, result]);
+
   if (!isOpen) {
     return null;
   }
 
-  const { attempt, questions } = result;
+  const { attempt } = result;
+  const questions = result?.questions || [];
   const passed = attempt.passed;
   const score = Math.round(attempt.score);
   const correctCount = attempt.answers.filter((a) => a.isCorrect).length;
@@ -225,11 +287,42 @@ const AssessmentResultsModal = ({
                     <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-accent">
                       Explanation
                     </div>
-                    <div className="prose prose-invert prose-sm max-w-none">
+
+                    {/* Original Explanation */}
+                    <div className="prose prose-invert prose-sm max-w-none mb-3">
                       <ReactMarkdown>
                         {question.explanation.markdown}
                       </ReactMarkdown>
                     </div>
+
+                    {/* AI-Enhanced Explanation for incorrect answers */}
+                    {!isCorrect && (
+                      <div className="mt-4 border-t border-border pt-4">
+                        <div className="mb-2 flex items-center gap-2">
+                          <div className="text-xs font-semibold uppercase tracking-wide text-indigo-400">
+                            AI Insight
+                          </div>
+                          {loadingExplanations[qIndex] && (
+                            <FiLoader className="h-3 w-3 animate-spin text-indigo-400" />
+                          )}
+                        </div>
+                        <div className="prose prose-invert prose-sm max-w-none text-text-secondary">
+                          {loadingExplanations[qIndex] ? (
+                            <p className="text-sm italic">
+                              Generating AI explanation...
+                            </p>
+                          ) : aiExplanations[qIndex] ? (
+                            <ReactMarkdown>
+                              {aiExplanations[qIndex]}
+                            </ReactMarkdown>
+                          ) : (
+                            <p className="text-sm italic">
+                              Review the explanation above.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
                 </div>
               );

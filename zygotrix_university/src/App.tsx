@@ -28,6 +28,7 @@ import SignInPage from "./pages/auth/SignInPage";
 import SignUpPage from "./pages/auth/SignUpPage";
 import ProtectedRoute from "./components/auth/ProtectedRoute";
 import DashboardCourseWorkspacePage from "./pages/dashboard/CourseWorkspacePage";
+import AssessmentPage from "./pages/dashboard/AssessmentPage";
 
 const App = () => {
   return (
@@ -52,6 +53,17 @@ const App = () => {
         </Route>
         <Route path="signin" element={<SignInPage />} />
         <Route path="signup" element={<SignUpPage />} />
+
+        {/* Assessment Page - No Dashboard Layout */}
+        <Route
+          path="/university/courses/:slug/assessment/:moduleId"
+          element={
+            <ProtectedRoute>
+              <AssessmentPage />
+            </ProtectedRoute>
+          }
+        />
+
         <Route
           path="/university"
           element={

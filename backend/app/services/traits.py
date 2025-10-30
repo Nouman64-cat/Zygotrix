@@ -760,7 +760,6 @@ def get_traits(
             # 1. Get traits from traits_dataset.json (always public)
             json_traits = _filter_json_traits(filters)
             all_traits.extend(json_traits)
-            print(f"DEBUG: Added {len(json_traits)} traits from JSON file")
         elif not owner_id:
             # No authenticated user; nothing to return for owned_only
             return []
@@ -772,9 +771,6 @@ def get_traits(
                 return all_traits
             collection = get_traits_collection(required=False)
             if collection is None:
-                print(
-                    "DEBUG: No MongoDB connection available, skipping database traits"
-                )
                 return all_traits
 
             # Build query
@@ -838,8 +834,6 @@ def get_traits(
                     print(f"Error serializing trait {doc.get('key', 'unknown')}: {e}")
                     continue
 
-            print(f"DEBUG: Added {db_trait_count} traits from database")
-
         except Exception as e:
             print(f"DEBUG: Error accessing database: {e}")
             # Continue without database traits
@@ -847,8 +841,6 @@ def get_traits(
         return all_traits
 
     except Exception as e:
-        print(f"DEBUG: Unexpected error in get_traits: {e}")
-        # Return at least the JSON traits if there's an error
         return all_traits if all_traits else []
 
 

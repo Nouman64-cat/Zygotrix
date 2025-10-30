@@ -90,9 +90,7 @@ def get_project(project_id: str, user_id: str) -> Optional[Any]:
     except Exception:
         return None
     query = {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}}
-    print(f"[DEBUG] get_project query: {query}")
     project_doc = collection.find_one(query)
-    print(f"[DEBUG] get_project raw result: {project_doc}")
     if not project_doc:
         return None
     return Project.model_validate(_serialize_project_doc(project_doc))
@@ -120,7 +118,6 @@ def update_project(
         updates["tools"] = tools_data
     updates["updated_at"] = datetime.now(timezone.utc)
     query = {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}}
-    print(f"[DEBUG] update_project query: {query}")
     result = collection.find_one_and_update(
         query,
         {"$set": updates},
@@ -141,9 +138,7 @@ def delete_project(project_id: str, user_id: str) -> bool:
     except Exception:
         return False
     query = {"_id": object_id, "owner_id": user_id, "is_template": {"$ne": True}}
-    print(f"[DEBUG] delete_project query: {query}")
     result = collection.delete_one(query)
-    print(f"[DEBUG] delete_project result: {result.deleted_count}")
     return result.deleted_count > 0
 
 

@@ -276,9 +276,6 @@ class AnalyticsService:
                         if not trait_filter or trait_key in trait_filter:
                             trait_counter[trait_key] += 1
                             logs_trait_count += 1
-                print(
-                    f"DEBUG: Added {logs_trait_count} trait usages from simulation logs"
-                )
 
             # Fallback: count traits from project tools only if no simulation logs
             if not trait_counter and projects_collection is not None:
@@ -290,7 +287,6 @@ class AnalyticsService:
                 trait_counter.update(
                     self._accumulate_trait_usage(projects, trait_filter)
                 )
-                print("DEBUG: No simulation logs found, using project tools for traits")
 
             return self._format_popular_traits(trait_counter)
 
@@ -572,7 +568,6 @@ class AnalyticsService:
                     conf_count += 1
                 proc_sum += float(log.get("processing_time_seconds") or 0.0)
                 proc_count += 1
-            print(f"DEBUG: Found {logs_count} simulation logs")
 
         # Fallback: count project tools only if no simulation logs exist
         if total_sims == 0:
@@ -594,9 +589,6 @@ class AnalyticsService:
                     conf_count += ccount
                     proc_sum += psum
                     proc_count += pcount
-            print(
-                f"DEBUG: No simulation logs found, using {project_tools_count} project tools"
-            )
 
         avg_conf = (conf_sum / conf_count) if conf_count else 0.0
         avg_proc = (proc_sum / proc_count) if proc_count else 0.0

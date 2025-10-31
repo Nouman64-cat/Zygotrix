@@ -23,16 +23,13 @@ ChartJS.register(
 );
 
 interface UserStatsChartProps {
-  traitsCount: number | null;
   projectsCount: number | null;
-  publicTraitsCount: number | null;
   loading?: boolean;
   error?: string | null;
   className?: string;
 }
 
 const UserStatsChart: React.FC<UserStatsChartProps> = ({
-  traitsCount,
   projectsCount,
   loading = false,
   error = null,
@@ -40,11 +37,11 @@ const UserStatsChart: React.FC<UserStatsChartProps> = ({
 }) => {
   // Prepare chart data
   const chartData = {
-    labels: ["Your Traits", "Your Projects"],
+    labels: ["Your Projects"],
     datasets: [
       {
         label: "Count",
-        data: [traitsCount || 0, projectsCount || 0],
+        data: [projectsCount || 0],
         backgroundColor: [
           "rgba(59, 130, 246, 0.8)", // Blue for user traits
           "rgba(16, 185, 129, 0.8)", // Green for projects
@@ -180,20 +177,6 @@ const UserStatsChart: React.FC<UserStatsChartProps> = ({
     >
       <div className="h-64 relative">
         <Bar data={chartData} options={chartOptions} />
-      </div>
-
-      {/* Additional stats footer */}
-      <div className="mt-4 pt-4 border-t border-gray-100">
-        <div className="flex items-center justify-between text-sm text-gray-600">
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-blue-500"></div>
-            <span>Your Traits: {traitsCount || 0}</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-3 h-3 rounded-full bg-green-500"></div>
-            <span>Projects: {projectsCount || 0}</span>
-          </div>
-        </div>
       </div>
     </div>
   );

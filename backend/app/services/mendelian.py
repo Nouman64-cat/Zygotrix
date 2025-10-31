@@ -2,7 +2,18 @@ from typing import Mapping, Iterable, List, Dict, Tuple, Optional
 from zygotrix_engine import Simulator, Trait
 from zygotrix_engine.mendelian import MendelianCalculator
 from zygotrix_engine.utils import normalize_probabilities, to_percentage_distribution
-from .traits import filter_traits
+
+from .service_factory import get_service_factory
+
+_trait_service = get_service_factory().get_trait_service()
+
+
+def get_simulator():
+    return _trait_service.get_simulator()
+
+
+def filter_traits(trait_filter: Iterable[str] | None):
+    return _trait_service.filter_engine_traits(trait_filter)
 
 
 def simulate_mendelian_traits(

@@ -96,23 +96,7 @@ const PortalPage: React.FC = () => {
           </div>
 
           {/* Stats */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <StatsCard
-              title="Your Traits"
-              value={traitsCount}
-              loading={loading}
-              error={error}
-              description="Genetic traits you've created"
-              icon={<FaDna className="w-6 h-6" />}
-              actionButton={{
-                label: "Launch Simulation Studio",
-                onClick: () => {
-                  navigate("/studio/simulation-studio");
-                },
-                variant: "primary",
-              }}
-            />
-
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
             <StatsCard
               title="Your Projects"
               value={projectsCount}
@@ -148,9 +132,7 @@ const PortalPage: React.FC = () => {
 
           {/* User Stats Chart */}
           <UserStatsChart
-            traitsCount={traitsCount}
             projectsCount={projectsCount}
-            publicTraitsCount={publicTraitsCount}
             loading={loading}
             error={error}
             className="col-span-full"

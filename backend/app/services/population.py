@@ -15,18 +15,20 @@ from ..schema.population import (
     PopulationSimResponse,
     PopulationTraitResult,
 )
-from .traits import get_trait_registry
+from .service_factory import get_service_factory
 
 
-ALLELE_FREQ_PATH = (
-    Path(__file__).resolve().parent.parent / "data" / "allele_freqs.json"
-)
+ALLELE_FREQ_PATH = Path(__file__).resolve().parent.parent / "data" / "allele_freqs.json"
+
+_trait_service = get_service_factory().get_trait_service()
 
 
 @lru_cache(maxsize=1)
 def load_allele_frequencies() -> Dict[str, Dict[str, Dict[str, Dict[str, float]]]]:
     if not ALLELE_FREQ_PATH.exists():
-        raise HTTPException(status_code=500, detail="Allele frequency reference missing.")
+        raise HTTPException(
+            status_code=500, detail="Allele frequency reference missing."
+        )
     with ALLELE_FREQ_PATH.open("r", encoding="utf-8") as handle:
         data = json.load(handle)
     return data
@@ -66,7 +68,7 @@ def _generate_genotype_distribution(allele_freqs: Dict[str, float]) -> Dict[str,
 
 
 def simulate_population(request: PopulationSimRequest) -> PopulationSimResponse:
-    registry = get_trait_registry()
+    registry = _trait_service.get_trait_registry()
     freq_reference = load_allele_frequencies()
 
     population_key = request.population.upper()
@@ -154,4 +156,3 @@ def simulate_population(request: PopulationSimRequest) -> PopulationSimResponse:
         )
 
     return PopulationSimResponse(results=results, missing_traits=missing_traits)
-

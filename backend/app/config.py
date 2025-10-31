@@ -1,5 +1,3 @@
-"""Application configuration helpers."""
-
 from __future__ import annotations
 
 import os
@@ -97,6 +95,4 @@ class Settings:
 
 @lru_cache(maxsize=1)
 def get_settings() -> Settings:
-    """Return cached application settings."""
-
     return Settings()

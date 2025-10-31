@@ -26,8 +26,6 @@ from app.schema.projects import (
     MendelianProjectTool,
 )
 
-# The following functions implement project workspace functionality
-# for saving and retrieving lines, notes, and drawings.
 
 from bson import ObjectId
 from datetime import datetime, timezone
@@ -41,7 +39,7 @@ from app.services.common import (
 
 
 def _serialize_project_line(document: Dict[str, Any]) -> "ProjectLine":
-    """Convert MongoDB line document to ProjectLine model."""
+
     from app.schema.projects import ProjectLine
 
     data = dict(document)
@@ -51,7 +49,7 @@ def _serialize_project_line(document: Dict[str, Any]) -> "ProjectLine":
 
 
 def _serialize_project_note(document: Dict[str, Any]) -> "ProjectNote":
-    """Convert MongoDB note document to ProjectNote model."""
+
     from app.schema.projects import ProjectNote
 
     data = dict(document)
@@ -61,7 +59,7 @@ def _serialize_project_note(document: Dict[str, Any]) -> "ProjectNote":
 
 
 def _serialize_project_drawing(document: Dict[str, Any]) -> "ProjectDrawing":
-    """Convert MongoDB drawing document to ProjectDrawing model."""
+
     from app.schema.projects import ProjectDrawing
 
     data = dict(document)
@@ -198,7 +196,6 @@ def save_project_lines(
         except Exception:
             summary.ignored += 1
 
-    # Return updated snapshot
     snapshot = get_project_line_snapshot(project_id, user_id)
     if snapshot:
         return ProjectLineSaveResponse(
@@ -263,7 +260,6 @@ def save_project_notes(
         except Exception:
             summary.ignored += 1
 
-    # Return updated snapshot
     snapshot = get_project_note_snapshot(project_id, user_id)
     if snapshot:
         return ProjectNoteSaveResponse(
@@ -330,7 +326,6 @@ def save_project_drawings(
         except Exception:
             summary.ignored += 1
 
-    # Return updated snapshot
     snapshot = get_project_drawing_snapshot(project_id, user_id)
     if snapshot:
         return ProjectDrawingSaveResponse(

@@ -1,5 +1,3 @@
-"""Routes powering University (courses & practice) APIs."""
-
 from __future__ import annotations
 
 from typing import Optional
@@ -55,14 +53,11 @@ def get_current_user_required(
 @router.get("/courses", response_model=CourseListResponse)
 def list_courses(detail: bool = Query(False)) -> CourseListResponse:
     courses = university_services.list_courses(include_details=detail)
-    # When detail flag is False, simplify heavy fields but keep instructors & outcomes
     if not detail:
         for course in courses:
-            # Add module count but remove full module details
             if "modules" in course and course["modules"]:
                 course["modules_count"] = len(course["modules"])
                 course.pop("modules", None)
-            # Remove other heavy fields
             course.pop("long_description", None)
             course.pop("practice_sets", None)
     return CourseListResponse(courses=courses)
@@ -150,11 +145,6 @@ def list_enrollments(
     return university_services.list_user_enrollments(current_user.id)
 
 
-# ================================
-# Assessment Routes
-# ================================
-
-
 @router.post(
     "/assessments/submit",
     response_model=AssessmentResultResponse,
@@ -165,7 +155,7 @@ def submit_assessment(
     payload: AssessmentSubmissionRequest,
     current_user: UserProfile = Depends(get_current_user_required),
 ) -> AssessmentResultResponse:
-    """Submit an assessment and get the results."""
+
     import logging
 
     logger = logging.getLogger(__name__)
@@ -198,7 +188,7 @@ def get_assessment_history(
     module_id: str = Query(None, description="Filter by module ID"),
     current_user: UserProfile = Depends(get_current_user_required),
 ) -> AssessmentHistoryResponse:
-    """Get assessment attempt history for a course or specific module."""
+
     attempts = university_services.get_assessment_history(
         user_id=current_user.id,
         course_slug=course_slug,
@@ -216,7 +206,7 @@ def generate_certificate(
     course_slug: str,
     current_user: UserProfile = Depends(get_current_user_required),
 ) -> CertificateResponse:
-    """Generate a certificate for a completed course."""
+
     certificate = university_services.generate_certificate(
         user_id=current_user.id,
         course_slug=course_slug,

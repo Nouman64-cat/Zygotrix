@@ -1,5 +1,3 @@
-"""Database setup utilities for trait management."""
-
 from datetime import datetime, timezone
 from typing import Dict, Any
 from pymongo.errors import PyMongoError
@@ -7,19 +5,7 @@ from app.services.common import get_traits_collection
 
 
 def create_trait_indexes() -> bool:
-    """
-    Create MongoDB indexes for efficient trait querying and management.
 
-    Indexes created:
-    - unique(key, owner_id): Ensures unique trait keys per owner
-    - partial index for visibility:"public": Efficient public trait queries
-    - compound on (owner_id, status): Owner's trait management
-    - text search on (name, gene_info.gene, category, tags): Full-text search
-    - Additional indexes for filtering
-
-    Returns:
-        bool: True if successful, False otherwise
-    """
     try:
         collection = get_traits_collection(required=True)
         if collection is None:
@@ -29,7 +15,7 @@ def create_trait_indexes() -> bool:
         print("Creating MongoDB indexes for trait management...")
 
         def safe_create_index(spec, **kwargs):
-            """Safely create index, handling existing indexes."""
+
             try:
                 collection.create_index(spec, **kwargs)
                 return True
@@ -45,14 +31,12 @@ def create_trait_indexes() -> bool:
 
         success_count = 0
 
-        # Unique compound index on key and owner_id
         if safe_create_index(
             [("key", 1), ("owner_id", 1)], unique=True, name="unique_key_owner"
         ):
             print("✅ Created unique index on (key, owner_id)")
             success_count += 1
 
-        # Partial index for public visibility
         if safe_create_index(
             [("visibility", 1)],
             partialFilterExpression={"visibility": "public"},
@@ -61,12 +45,10 @@ def create_trait_indexes() -> bool:
             print("✅ Created partial index for public visibility")
             success_count += 1
 
-        # Compound index for owner and status
         if safe_create_index([("owner_id", 1), ("status", 1)], name="owner_status"):
             print("✅ Created compound index on (owner_id, status)")
             success_count += 1
 
-        # Text search index
         if safe_create_index(
             [
                 ("name", "text"),
@@ -79,7 +61,6 @@ def create_trait_indexes() -> bool:
             print("✅ Created text search index")
             success_count += 1
 
-        # Additional filtering indexes
         filter_indexes = [
             ("inheritance_pattern", "inheritance_pattern"),
             ("verification_status", "verification_status"),
@@ -103,12 +84,7 @@ def create_trait_indexes() -> bool:
 
 
 def drop_trait_indexes() -> bool:
-    """
-    Drop all trait-related indexes (for development/testing).
 
-    Returns:
-        bool: True if successful, False otherwise
-    """
     try:
         collection = get_traits_collection(required=True)
         if collection is None:
@@ -117,7 +93,6 @@ def drop_trait_indexes() -> bool:
 
         print("Dropping all trait indexes...")
 
-        # Drop all indexes except _id_
         collection.drop_indexes()
         print("✅ Dropped all trait indexes")
 
@@ -129,12 +104,7 @@ def drop_trait_indexes() -> bool:
 
 
 def setup_trait_collection() -> bool:
-    """
-    Complete setup of trait collection with indexes.
 
-    Returns:
-        bool: True if successful, False otherwise
-    """
     print("🧬 Setting up trait management collection")
     print("=" * 50)
 

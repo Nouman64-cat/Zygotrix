@@ -132,7 +132,6 @@ def simulate_joint_phenotypes(
 
 @router.post("/genotypes", response_model=GenotypeResponse)
 def get_trait_genotypes(request: GenotypeRequest) -> GenotypeResponse:
-    """Get possible genotypes for given trait keys."""
     try:
         genotypes, missing = mendelian_services.get_possible_genotypes_for_traits(
             trait_keys=request.trait_keys,

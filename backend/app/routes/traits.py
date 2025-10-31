@@ -15,7 +15,6 @@ from ..schema.traits import (
     TraitInfo,
     TraitStatus,
     TraitVisibility,
-    # Legacy aliases
     TraitMutationResponse,
     TraitMutationPayload,
 )
@@ -24,7 +23,6 @@ from zygotrix_engine import Trait
 router = APIRouter(prefix="/api/traits", tags=["Traits"])
 security = HTTPBearer(auto_error=False)
 
-# Constants
 INVALID_TOKEN_MESSAGE = "Invalid authentication token"
 
 
@@ -52,14 +50,7 @@ def list_traits(
         description="If true, only return traits owned by the authenticated user",
     ),
 ) -> TraitListResponse:
-    """
-    List traits with filtering and access control.
 
-    - Public traits are visible to everyone
-    - Private/team traits are only visible to the owner
-    - Authentication is optional but provides access to user's private traits
-    """
-    # Get current user ID if authenticated
     current_user_id = None
     if credentials and credentials.credentials:
         try:
@@ -68,10 +59,8 @@ def list_traits(
             )
             current_user_id = current_user.get("id")
         except HTTPException:
-            # Invalid token, continue as anonymous user
             pass
 
-    # Build filters
     filters = TraitFilters(
         inheritance_pattern=inheritance_pattern,
         verification_status=verification_status,
@@ -84,10 +73,8 @@ def list_traits(
         owned_only=owned_only,
     )
 
-    # Get traits with access control
     settings = get_settings()
     if settings.traits_json_only:
-        # Serve only JSON traits; ignore DB and access control
         traits = trait_services.get_traits(filters, None)
     else:
         traits = trait_services.get_traits(filters, current_user_id)
@@ -105,22 +92,12 @@ def create_trait(
     payload: TraitCreatePayload,
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> TraitCreateResponse:
-    """
-    Create a new trait (requires authentication).
 
-    - Validates alleles are non-empty
-    - Canonicalizes genotypes in phenotype_map
-    - Ensures full coverage in phenotype_map
-    - Sets owner_id from JWT token
-    - Defaults to private visibility and draft status
-    """
-    # JSON-only mode: disable writes
     settings = get_settings()
     if settings.traits_json_only:
         raise HTTPException(
             status_code=405, detail="Trait creation disabled in JSON-only mode"
         )
-    # Authenticate user
     if not credentials or not credentials.credentials:
         raise HTTPException(
             status_code=401, detail="Authentication required to create traits"
@@ -132,7 +109,6 @@ def create_trait(
     if not user_id:
         raise HTTPException(status_code=401, detail=INVALID_TOKEN_MESSAGE)
 
-    # Create trait
     trait = trait_services.create_trait(payload, user_id, user_id)
 
     return TraitCreateResponse(trait=trait)
@@ -143,7 +119,6 @@ def get_trait_by_key_public(
     key: str,
     visibility: Optional[TraitVisibility] = Query(None),
 ) -> TraitInfo:
-    """Fetch a trait by key for public consumption (e.g., baselines)."""
 
     if visibility == TraitVisibility.PUBLIC:
         trait = trait_services.get_public_trait_by_key(key)
@@ -166,12 +141,6 @@ def get_trait(
     identifier: str,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
 ) -> TraitInfo:
-    """
-    Get a specific trait either by ObjectId (owner-only) or by key.
-
-    - When identifier is a valid ObjectId, the trait must be owned by the requester
-    - Otherwise falls back to key-based lookup preserving existing behaviour
-    """
 
     current_user_id = None
     if credentials and credentials.credentials:
@@ -216,20 +185,12 @@ def update_trait(
     payload: TraitUpdatePayload,
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> TraitUpdateResponse:
-    """
-    Update an existing trait (requires ownership).
 
-    - Only the trait owner can update
-    - Bumps version automatically
-    - Keeps audit trail of changes
-    """
-    # JSON-only mode: disable writes
     settings = get_settings()
     if settings.traits_json_only:
         raise HTTPException(
             status_code=405, detail="Trait updates disabled in JSON-only mode"
         )
-    # Authenticate user
     if not credentials or not credentials.credentials:
         raise HTTPException(
             status_code=401, detail="Authentication required to update traits"
@@ -241,7 +202,6 @@ def update_trait(
     if not user_id:
         raise HTTPException(status_code=401, detail=INVALID_TOKEN_MESSAGE)
 
-    # Update trait
     trait = trait_services.update_trait(key, payload, user_id, user_id)
 
     return TraitUpdateResponse(trait=trait)
@@ -251,19 +211,12 @@ def update_trait(
 def delete_trait(
     key: str, credentials: HTTPAuthorizationCredentials = Depends(security)
 ):
-    """
-    Soft delete a trait (set status to deprecated).
 
-    - Only the trait owner can delete
-    - Performs soft delete by setting status to 'deprecated'
-    """
-    # JSON-only mode: disable writes
     settings = get_settings()
     if settings.traits_json_only:
         raise HTTPException(
             status_code=405, detail="Trait deletion disabled in JSON-only mode"
         )
-    # Authenticate user
     if not credentials or not credentials.credentials:
         raise HTTPException(
             status_code=401, detail="Authentication required to delete traits"
@@ -275,5 +228,4 @@ def delete_trait(
     if not user_id:
         raise HTTPException(status_code=401, detail=INVALID_TOKEN_MESSAGE)
 
-    # Delete trait
     trait_services.delete_trait(key, user_id)

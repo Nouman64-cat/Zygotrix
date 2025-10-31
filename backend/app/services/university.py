@@ -229,7 +229,6 @@ def _execute_hygraph_query(query: str) -> Optional[Dict[str, Any]]:
 
 
 def _get_courses_from_hygraph() -> Optional[List[Dict[str, Any]]]:
-    """Get courses from Hygraph with Redis caching."""
     cache_key = "hygraph:courses"
 
     # Try to get from Redis cache first

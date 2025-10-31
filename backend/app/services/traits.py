@@ -35,29 +35,22 @@ from .common import get_traits_collection, ensure_utc
 
 
 def _load_real_gene_traits() -> Dict[str, Trait]:
-    """Load traits from JSON file. Supports both real-gene and simplified traits.
-
-    JSON schema (flexible):
-    - Required: trait (str), alleles (list[str]), phenotypes (dict[str,str])
-    - Optional: gene (str), chromosome (int|str), inheritance (str)
-
-    Behavior:
-    - If gene and chromosome are present: category=real_gene, verification_status=verified
-    - Otherwise: category=simple_trait, verification_status=simplified
-    - Missing/bad entries are skipped individually (do not abort entire load)
-    """
     current_dir = os.path.dirname(os.path.abspath(__file__))
     traits_file_path = os.path.join(
         current_dir, "..", "..", "data", "traits_dataset.json"
     )
+
+    traits_file_path = os.path.normpath(traits_file_path)
+
     if not os.path.exists(traits_file_path):
+        print(f"❌ Traits dataset file not found at: {traits_file_path}")
         return {}
+
     real_gene_traits: Dict[str, Trait] = {}
     try:
         with open(traits_file_path, "r", encoding="utf-8") as f:
             traits_data = json.load(f)
     except (json.JSONDecodeError, FileNotFoundError) as e:
-        print(f"Warning: Could not load traits dataset file: {e}")
         return {}
 
     for idx, trait_data in enumerate(traits_data):
@@ -119,9 +112,8 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
             )
             real_gene_traits[trait_key] = trait
         except Exception as e:
-            print(f"Warning: Skipping trait at index {idx}: {e}")
+            print(f"⚠️ Warning: Skipping trait at index {idx}: {e}")
             continue
-
     return real_gene_traits
 
 
@@ -255,7 +247,6 @@ def get_polygenic_calculator() -> PolygenicCalculator:
 
 
 def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
-    """Convert MongoDB document to TraitInfo model."""
 
     trait_id = None
     if "_id" in document:
@@ -345,19 +336,14 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
 
 
 def _canonicalize_genotype(genotype: str) -> str:
-    """Canonicalize genotype by sorting alleles alphabetically."""
+
     return "".join(sorted(genotype))
 
 
 def _validate_phenotype_coverage(
     alleles: List[str], phenotype_map: Dict[str, str]
 ) -> List[str]:
-    """
-    Validate that phenotype map covers all possible genotypes.
 
-    Returns:
-        List[str]: List of validation errors, empty if valid
-    """
     if not alleles:
         return ["Alleles list cannot be empty"]
 
@@ -387,7 +373,7 @@ def _get_alleles_and_phenotype_map(
     payload: Union[TraitCreatePayload, TraitUpdatePayload],
     existing_trait: Optional[Dict] = None,
 ) -> Tuple[List[str], Dict[str, str]]:
-    """Extract alleles and phenotype_map from payload or existing data."""
+
     if isinstance(payload, TraitCreatePayload):
         return payload.alleles, dict(payload.phenotype_map)
 
@@ -407,7 +393,7 @@ def _get_alleles_and_phenotype_map(
 
 
 def _validate_create_payload(payload: TraitCreatePayload) -> List[str]:
-    """Validate creation-specific fields."""
+
     errors = []
     if not payload.key.strip():
         errors.append("Trait key cannot be empty")
@@ -421,7 +407,7 @@ def _validate_create_payload(payload: TraitCreatePayload) -> List[str]:
 def _validate_version_format(
     payload: Union[TraitCreatePayload, TraitUpdatePayload],
 ) -> List[str]:
-    """Validate version format if provided."""
+
     errors = []
 
     payload_any: Any = payload
@@ -438,16 +424,7 @@ def _validate_trait_data(
     payload: Union[TraitCreatePayload, TraitUpdatePayload],
     existing_trait: Optional[Dict] = None,
 ) -> ValidationRules:
-    """
-    Validate trait data and return validation results.
 
-    Args:
-        payload: The trait data to validate
-        existing_trait: Existing trait data for updates
-
-    Returns:
-        ValidationRules: Validation results
-    """
     errors = []
 
     alleles, phenotype_map = _get_alleles_and_phenotype_map(payload, existing_trait)
@@ -469,20 +446,6 @@ def _validate_trait_data(
 def create_trait(
     payload: TraitCreatePayload, owner_id: str, created_by: str
 ) -> TraitInfo:
-    """
-    Create a new trait in MongoDB.
-
-    Args:
-        payload: Trait creation data
-        owner_id: ID of the owner user
-        created_by: ID of the user creating the trait
-
-    Returns:
-        TraitInfo: The created trait
-
-    Raises:
-        HTTPException: If creation fails or validation errors occur
-    """
     try:
         collection = cast(Collection, get_traits_collection(required=True))
 
@@ -551,7 +514,7 @@ def create_trait(
 
 
 def _build_access_control_query(owner_id: Optional[str]) -> Dict[str, Any]:
-    """Build access control part of MongoDB query."""
+
     if owner_id:
         return {
             "$or": [
@@ -572,7 +535,7 @@ def _build_access_control_query(owner_id: Optional[str]) -> Dict[str, Any]:
 
 
 def _apply_basic_filters(query: Dict[str, Any], filters: TraitFilters) -> None:
-    """Apply basic field filters to MongoDB query."""
+
     if filters.inheritance_pattern:
         query["inheritance_pattern"] = filters.inheritance_pattern
 
@@ -590,7 +553,7 @@ def _apply_basic_filters(query: Dict[str, Any], filters: TraitFilters) -> None:
 
 
 def _apply_gene_filter(query: Dict[str, Any], gene_filter: str) -> None:
-    """Apply gene search filter to MongoDB query."""
+
     gene_conditions = [
         {"gene_info.gene": {"$regex": gene_filter, "$options": "i"}},
         {"gene": {"$regex": gene_filter, "$options": "i"}},
@@ -607,7 +570,6 @@ def _apply_gene_filter(query: Dict[str, Any], gene_filter: str) -> None:
 def _apply_visibility_filter(
     query: Dict[str, Any], visibility: TraitVisibility, owner_id: Optional[str]
 ) -> None:
-    """Apply visibility filter to MongoDB query."""
 
     if visibility == TraitVisibility.PUBLIC:
         vis_condition: Dict[str, Any] = {
@@ -636,7 +598,6 @@ def _apply_visibility_filter(
 
 
 def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
-    """Convert a Trait object from traits_dataset.json to TraitInfo."""
 
     from app.utils.trait_helpers import trait_to_info
 
@@ -644,7 +605,7 @@ def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
 
 
 def _filter_json_traits(filters: TraitFilters) -> List[TraitInfo]:
-    """Filter traits from traits_dataset.json based on criteria."""
+
     json_traits = []
 
     for key, trait in REAL_GENE_TRAITS.items():
@@ -693,23 +654,21 @@ def _filter_json_traits(filters: TraitFilters) -> List[TraitInfo]:
 def get_traits(
     filters: TraitFilters, owner_id: Optional[str] = None
 ) -> List[TraitInfo]:
-    """
-    Get traits with filtering from all sources.
-
-    Args:
-        filters: Filtering criteria
-        owner_id: Current user's ID (for access control)
-
-    Returns:
-        List[TraitInfo]: Filtered traits from JSON file, database (public), and user's private traits
-    """
     all_traits: List[TraitInfo] = []
     settings = get_settings()
+
+    print(f"🔍 get_traits called:")
+    print(f"   - traits_json_only: {settings.traits_json_only}")
+    print(f"   - REAL_GENE_TRAITS count: {len(REAL_GENE_TRAITS)}")
+    print(f"   - filters.owned_only: {filters.owned_only}")
+    print(f"   - owner_id: {owner_id}")
 
     try:
 
         if settings.traits_json_only:
+            print("📂 Using JSON-only mode")
             json_traits = _filter_json_traits(filters)
+            print(f"✅ Returning {len(json_traits)} JSON traits")
             return json_traits
 
         if not filters.owned_only:
@@ -790,16 +749,7 @@ def get_traits(
 
 
 def get_trait_by_key(key: str, owner_id: Optional[str] = None) -> Optional[TraitInfo]:
-    """
-    Get a specific trait by key.
 
-    Args:
-        key: Trait key
-        owner_id: Current user's ID (for access control)
-
-    Returns:
-        Optional[TraitInfo]: The trait if found and accessible
-    """
     settings = get_settings()
 
     if settings.traits_json_only:
@@ -858,7 +808,7 @@ def get_public_trait_by_key(key: str) -> Optional[TraitInfo]:
 def _build_update_document_base(
     updated_by: str, validation_rules: ValidationRules
 ) -> Dict[str, Any]:
-    """Build base update document with common fields."""
+
     return {
         "updated_at": datetime.now(timezone.utc),
         "updated_by": updated_by,
@@ -869,7 +819,7 @@ def _build_update_document_base(
 def _apply_basic_updates(
     update_doc: Dict[str, Any], payload: TraitUpdatePayload
 ) -> None:
-    """Apply basic field updates to update document."""
+
     if payload.name is not None:
         update_doc["name"] = payload.name.strip()
     if payload.alleles is not None:
@@ -889,7 +839,7 @@ def _apply_basic_updates(
 def _apply_extended_updates(
     update_doc: Dict[str, Any], payload: TraitUpdatePayload
 ) -> None:
-    """Apply extended field updates to update document."""
+
     if payload.allele_freq is not None:
         update_doc["allele_freq"] = payload.allele_freq
     if payload.epistasis_hint is not None:
@@ -911,7 +861,7 @@ def _apply_extended_updates(
 
 
 def _apply_gene_info_update(update_doc: Dict[str, Any], gene_info: GeneInfo) -> None:
-    """Apply gene info updates including legacy fields."""
+
     update_doc["gene_info"] = gene_info.dict()
 
     update_doc["gene"] = gene_info.gene
@@ -922,7 +872,7 @@ def _apply_gene_info_update(update_doc: Dict[str, Any], gene_info: GeneInfo) -> 
 
 
 def _calculate_new_version(current_version: str) -> str:
-    """Calculate new version by bumping patch number."""
+
     try:
         version_obj = pkg_version.Version(current_version)
         return f"{version_obj.major}.{version_obj.minor}.{version_obj.micro + 1}"
@@ -933,21 +883,7 @@ def _calculate_new_version(current_version: str) -> str:
 def update_trait(
     key: str, payload: TraitUpdatePayload, owner_id: str, updated_by: str
 ) -> TraitInfo:
-    """
-    Update an existing trait.
 
-    Args:
-        key: Trait key to update
-        payload: Update data
-        owner_id: Owner's user ID
-        updated_by: ID of user performing update
-
-    Returns:
-        TraitInfo: Updated trait
-
-    Raises:
-        HTTPException: If trait not found, access denied, or validation fails
-    """
     try:
         collection = cast(Collection, get_traits_collection(required=True))
 
@@ -1001,19 +937,6 @@ def update_trait(
 
 
 def delete_trait(key: str, owner_id: str) -> bool:
-    """
-    Soft delete a trait (set status to deprecated).
-
-    Args:
-        key: Trait key to delete
-        owner_id: Owner's user ID
-
-    Returns:
-        bool: True if deleted successfully
-
-    Raises:
-        HTTPException: If trait not found or access denied
-    """
     try:
         collection = cast(Collection, get_traits_collection(required=True))
 
@@ -1041,7 +964,7 @@ def delete_trait(key: str, owner_id: str) -> bool:
 def filter_traits(
     trait_filter: Iterable[str] | None,
 ) -> Tuple[Dict[str, Trait], List[str]]:
-    """Filter traits by keys and return registry and missing keys."""
+
     registry = get_trait_registry()
 
     if trait_filter is None:

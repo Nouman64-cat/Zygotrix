@@ -39,7 +39,7 @@ from ..schema.projects import (
     ProjectDrawingSnapshot,
 )
 from ..schema.auth import UserProfile
-from ..routes.auth import get_current_user
+from ..dependencies import get_current_user
 
 router = APIRouter(prefix="/api/projects", tags=["Projects"])
 

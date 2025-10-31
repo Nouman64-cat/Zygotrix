@@ -1,15 +1,12 @@
-"""Serializers for transforming data between formats."""
-
 from typing import Any, Dict, List, Optional
 from datetime import datetime
 
 
 class DataSerializer:
-    """Base serializer with common utilities."""
 
     @staticmethod
     def serialize_datetime(value: Any) -> Optional[datetime]:
-        """Convert various datetime formats to datetime object."""
+
         if value is None:
             return None
         if isinstance(value, datetime):
@@ -23,19 +20,18 @@ class DataSerializer:
 
     @staticmethod
     def normalize_text(value: Any) -> Optional[str]:
-        """Normalize text from various formats."""
+
         if value is None:
             return None
         if isinstance(value, str):
             return value.strip() or None
         if isinstance(value, dict):
-            # Handle {markdown: "..."} or {html: "..."}
             return value.get("markdown") or value.get("html") or None
         return str(value) if value else None
 
     @staticmethod
     def extract_asset_url(value: Any) -> Optional[str]:
-        """Extract URL from asset object or return URL string."""
+
         if value is None:
             return None
         if isinstance(value, str):
@@ -46,7 +42,6 @@ class DataSerializer:
 
 
 class CourseSerializer:
-    """Serializes course data for API responses."""
 
     def __init__(self):
         self.base = DataSerializer()
@@ -54,13 +49,7 @@ class CourseSerializer:
     def serialize_course(
         self, doc: Dict[str, Any], include_details: bool = False
     ) -> Dict[str, Any]:
-        """
-        Serialize a course document for API response.
 
-        Args:
-            doc: Course document from database or Hygraph
-            include_details: Whether to include full module details
-        """
         slug = doc.get("slug") or doc.get("id") or str(doc.get("_id"))
 
         course = {
@@ -79,13 +68,10 @@ class CourseSerializer:
             "image_url": doc.get("image_url"),
         }
 
-        # Serialize instructors
         course["instructors"] = self._serialize_instructors(doc.get("instructors", []))
 
-        # Serialize outcomes
         course["outcomes"] = self._serialize_outcomes(doc.get("outcomes", []), slug)
 
-        # Include detailed modules if requested
         if include_details:
             course["modules"] = self._serialize_modules(doc.get("modules", []), slug)
 
@@ -94,7 +80,7 @@ class CourseSerializer:
     def _serialize_instructors(
         self, instructors: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
-        """Serialize instructor data."""
+
         result = []
         for instructor in instructors:
             result.append(
@@ -111,7 +97,7 @@ class CourseSerializer:
     def _serialize_outcomes(
         self, outcomes: List[Any], slug: str
     ) -> List[Dict[str, Any]]:
-        """Serialize course outcomes."""
+
         result = []
         for idx, outcome in enumerate(outcomes, start=1):
             if isinstance(outcome, dict):
@@ -128,16 +114,14 @@ class CourseSerializer:
     def _serialize_modules(
         self, modules: List[Dict[str, Any]], course_slug: str
     ) -> List[Dict[str, Any]]:
-        """Serialize course modules with items and assessments."""
+
         result = []
 
         for midx, module in enumerate(modules, start=1):
             module_id = module.get("id") or f"{course_slug}-module-{midx}"
 
-            # Serialize module items
             items = self._serialize_module_items(module.get("items", []), module_id)
 
-            # Serialize assessment
             assessment = self._serialize_assessment(module.get("assessment"))
 
             result.append(
@@ -156,21 +140,19 @@ class CourseSerializer:
     def _serialize_module_items(
         self, items: List[Dict[str, Any]], module_id: str
     ) -> List[Dict[str, Any]]:
-        """Serialize module items (lessons)."""
+
         result = []
 
         for iidx, item in enumerate(items, start=1):
             if not isinstance(item, dict):
                 continue
 
-            # Extract content
             raw_content = item.get("content")
             if isinstance(raw_content, dict):
                 content_value = raw_content.get("markdown") or raw_content.get("html")
             else:
                 content_value = raw_content
 
-            # Extract video data
             video_data = item.get("video")
             video_payload = None
             if video_data and isinstance(video_data, dict):
@@ -192,7 +174,7 @@ class CourseSerializer:
         return result
 
     def _serialize_assessment(self, assessment: Any) -> Optional[Dict[str, Any]]:
-        """Serialize module assessment."""
+
         if not assessment or not isinstance(assessment, dict):
             return None
 
@@ -207,7 +189,6 @@ class CourseSerializer:
 
         serialized_questions = []
         for q in questions:
-            # Normalize prompt
             prompt = q.get("prompt")
             if isinstance(prompt, dict):
                 prompt_md = (
@@ -218,7 +199,6 @@ class CourseSerializer:
             else:
                 prompt_md = self.base.normalize_text(prompt)
 
-            # Normalize explanation
             explanation = q.get("explanation")
             if isinstance(explanation, dict):
                 explanation_md = (
@@ -229,7 +209,6 @@ class CourseSerializer:
             else:
                 explanation_md = self.base.normalize_text(explanation)
 
-            # Normalize options
             opts = []
             for opt in q.get("options") or []:
                 if isinstance(opt, dict):
@@ -266,13 +245,12 @@ class CourseSerializer:
 
 
 class ProgressSerializer:
-    """Serializes progress data for API responses."""
 
     def __init__(self):
         self.base = DataSerializer()
 
     def serialize_progress(self, doc: Dict[str, Any]) -> Dict[str, Any]:
-        """Serialize a progress document for API response."""
+
         modules = []
         for module in doc.get("modules", []):
             items_payload = []
@@ -299,7 +277,6 @@ class ProgressSerializer:
                 }
             )
 
-        # Serialize metrics
         metrics = doc.get("metrics") or {}
         metrics_payload = None
         if metrics:

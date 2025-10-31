@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends
 
-from ..routes.auth import get_current_user
+from ..dependencies import get_current_user
 from ..schema.auth import UserProfile
 from ..schema.pgs_demo import PGSDemoRequest, PGSDemoResponse
 from ..services.pgs_demo import compute_pgs_demo
@@ -17,4 +17,3 @@ def run_pgs_demo(
     current_user: UserProfile = Depends(get_current_user),  # noqa: F841 - auth guard
 ) -> PGSDemoResponse:
     return compute_pgs_demo(request)
-

@@ -27,35 +27,22 @@ from ..config import get_settings
 
 
 class AnalyticsService:
-    """Service for analytics calculations and data aggregation."""
-
     def __init__(self):
         self.settings = get_settings()
 
     def get_analytics(
         self, user_id: Optional[str] = None, filters: Optional[AnalyticsFilters] = None
     ) -> AnalyticsResponse:
-        """
-        Get comprehensive analytics data.
-
-        Args:
-            user_id: Optional user ID for user-specific analytics
-            filters: Analytics filters and options
-
-        Returns:
-            Complete analytics response
-        """
         if filters is None:
             filters = AnalyticsFilters()
 
         try:
-            # Calculate date ranges
+
             end_date = datetime.now(timezone.utc)
             start_date, previous_start, previous_end = self._calculate_date_ranges(
                 end_date, filters.time_range
             )
 
-            # Calculate all analytics data
             simulation_metrics = self._get_simulation_metrics(
                 start_date, end_date, previous_start, previous_end, user_id
             )
@@ -64,7 +51,6 @@ class AnalyticsService:
             )
             system_performance = self._get_system_performance_metrics()
 
-            # Get optional data
             popular_traits = []
             if filters.include_popular_traits:
                 popular_traits = self._get_popular_traits(
@@ -73,7 +59,7 @@ class AnalyticsService:
 
             time_series = TimeSeriesData()
             if filters.include_time_series:
-                # Ensure time-series respects the requesting user (if provided)
+
                 time_series = self._get_time_series_data(start_date, end_date, user_id)
 
             return AnalyticsResponse(
@@ -93,7 +79,6 @@ class AnalyticsService:
     def _calculate_date_ranges(
         self, end_date: datetime, time_range: TimeRange
     ) -> Tuple[datetime, datetime, datetime]:
-        """Calculate date ranges for current and previous periods."""
         if time_range == TimeRange.LAST_7_DAYS:
             days = 7
         elif time_range == TimeRange.LAST_30_DAYS:
@@ -102,8 +87,8 @@ class AnalyticsService:
             days = 90
         elif time_range == TimeRange.LAST_YEAR:
             days = 365
-        else:  # ALL_TIME
-            days = 10000  # Large number for all-time
+        else:
+            days = 10000
 
         start_date = end_date - timedelta(days=days)
         previous_end = start_date
@@ -119,18 +104,11 @@ class AnalyticsService:
         previous_end: datetime,
         user_id: Optional[str] = None,
     ) -> SimulationMetrics:
-        """Calculate simulation metrics with trends using real stored data.
-
-        We aggregate over projects' tools which contain `simulation_results` and
-        `trait_configurations`. A simulation is counted when a tool has non-empty
-        `simulation_results`. Time attribution uses the project's `updated_at`
-        (best available signal of when the tool was last executed).
-        """
         try:
             projects_collection = get_projects_collection(required=False)
             logs_collection = get_simulation_logs_collection(required=False)
             if projects_collection is None:
-                # No database configured; return zeros to remain truthful
+
                 return SimulationMetrics(
                     total_simulations=self._calculate_trend(0, 0),
                     data_points_analyzed=self._calculate_trend(0, 0),
@@ -180,7 +158,6 @@ class AnalyticsService:
             )
 
     def _get_mock_simulation_metrics(self) -> SimulationMetrics:
-        """Generate mock simulation metrics for demo purposes."""
         return SimulationMetrics(
             total_simulations=MetricTrend(
                 current_value=2847,
@@ -204,17 +181,14 @@ class AnalyticsService:
                 current_value=2.3,
                 previous_value=2.7,
                 percentage_change=-15.2,
-                is_positive=True,  # Lower processing time is better
+                is_positive=True,
             ),
         )
 
     def _get_user_activity_metrics(
         self, start_date: datetime, end_date: datetime, user_id: Optional[str] = None
     ) -> UserActivityMetrics:
-        """Calculate user activity metrics."""
         try:
-            # This would typically query user session logs
-            # For now, we'll estimate based on project activity
 
             projects_collection = get_projects_collection(required=False)
             if projects_collection is None:
@@ -237,8 +211,7 @@ class AnalyticsService:
             return UserActivityMetrics(
                 active_users=max(unique_users, 1),
                 new_users=max(unique_users // 3, 1),
-                total_sessions=len(recent_projects)
-                * 2,  # Estimate 2 sessions per project
+                total_sessions=len(recent_projects) * 2,
                 avg_session_duration=15.0 + (unique_users % 10) * 2.0,
             )
 
@@ -258,14 +231,12 @@ class AnalyticsService:
         user_id: Optional[str] = None,
         trait_filter: Optional[List[str]] = None,
     ) -> List[PopularTraitsData]:
-        """Get most popular traits used in simulations."""
         try:
             projects_collection = get_projects_collection(required=False)
             logs_collection = get_simulation_logs_collection(required=False)
 
             trait_counter = Counter()
 
-            # Primary source: simulation logs (more accurate for API usage)
             if logs_collection is not None:
                 logs_trait_count = 0
                 for log in self._iter_logs_between(
@@ -277,7 +248,6 @@ class AnalyticsService:
                             trait_counter[trait_key] += 1
                             logs_trait_count += 1
 
-            # Fallback: count traits from project tools only if no simulation logs
             if not trait_counter and projects_collection is not None:
                 projects = list(
                     self._iter_projects_between(
@@ -297,7 +267,6 @@ class AnalyticsService:
     def _build_projects_query(
         self, start_date: datetime, end_date: datetime, user_id: Optional[str] = None
     ) -> Dict[str, Any]:
-        """Build MongoDB query for projects."""
         query = {"created_at": {"$gte": start_date, "$lte": end_date}}
         if user_id:
             query["owner_id"] = user_id
@@ -306,7 +275,6 @@ class AnalyticsService:
     def _count_trait_usage(
         self, projects: List[Dict[str, Any]], trait_filter: Optional[List[str]] = None
     ) -> Counter:
-        """Count trait usage across projects."""
         trait_counter = Counter()
         for project in projects:
             traits = project.get("selected_traits", [])
@@ -317,7 +285,6 @@ class AnalyticsService:
         return trait_counter
 
     def _format_popular_traits(self, trait_counter: Counter) -> List[PopularTraitsData]:
-        """Format trait counter into response objects."""
         total_usage = sum(trait_counter.values()) or 1
         popular_traits = []
 
@@ -335,7 +302,6 @@ class AnalyticsService:
         return popular_traits
 
     def _get_mock_popular_traits(self) -> List[PopularTraitsData]:
-        """Generate mock popular traits data."""
         return [
             PopularTraitsData(
                 trait_key="eye_color",
@@ -369,16 +335,9 @@ class AnalyticsService:
             ),
         ]
 
-    def _get_time_series_data(  # noqa: C901
+    def _get_time_series_data(
         self, start_date: datetime, end_date: datetime, user_id: Optional[str] = None
     ) -> TimeSeriesData:
-        """Aggregate real time-series from projects' tool simulations.
-
-        We bucket by day and compute:
-        - simulations_over_time: count of tools with simulation_results per day
-        - accuracy_over_time: average of max phenotype probability per tool
-        - processing_time_over_time: estimated processing time per tool (see metric helper)
-        """
         try:
             projects_collection = get_projects_collection(required=False)
             logs_collection = get_simulation_logs_collection(required=False)
@@ -424,7 +383,6 @@ class AnalyticsService:
                         proc_count_per_day.get(bucket, 0) + proc_c
                     )
 
-            # Also fold in ad-hoc simulation logs (non-project based)
             if logs_collection is not None:
                 for log in self._iter_logs_between(
                     logs_collection, start_date, end_date, user_id
@@ -433,7 +391,7 @@ class AnalyticsService:
                     ts = ts if isinstance(ts, datetime) else start_date
                     bucket = self._bucket_key(ts)
                     sims_per_day[bucket] = sims_per_day.get(bucket, 0) + 1
-                    # Build aggregates similar to project tool summaries
+
                     cval = float(log.get("avg_confidence") or 0.0)
                     if cval > 0:
                         conf_sum_per_day[bucket] = (
@@ -446,7 +404,6 @@ class AnalyticsService:
                     proc_sum_per_day[bucket] = proc_sum_per_day.get(bucket, 0.0) + ptime
                     proc_count_per_day[bucket] = proc_count_per_day.get(bucket, 0) + 1
 
-            # Build ordered series (limit to last 30 days)
             unique_days = sorted(
                 set(
                     list(sims_per_day.keys())
@@ -494,7 +451,6 @@ class AnalyticsService:
             print(f"Error generating time series data: {e}")
             return TimeSeriesData()
 
-    # ---------- Helper methods ----------
     def _iter_projects_between(
         self,
         collection,
@@ -502,7 +458,6 @@ class AnalyticsService:
         end_date: datetime,
         user_id: Optional[str],
     ):
-        """Yield projects whose updated_at or created_at falls within window."""
         criteria: Dict[str, Any] = {
             "$or": [
                 {"updated_at": {"$gte": start_date, "$lte": end_date}},
@@ -516,7 +471,6 @@ class AnalyticsService:
     def _summarize_simulation_dict(
         self, sim_results: Dict[str, Any]
     ) -> tuple[int, float, int, float, int]:
-        """Return (data_points, conf_sum, conf_count, proc_sum, proc_count)."""
         data_points = 0
         conf_sum = 0.0
         conf_count = 0
@@ -553,7 +507,6 @@ class AnalyticsService:
         proc_sum = 0.0
         proc_count = 0
 
-        # Primary count: simulation logs (more accurate for API usage)
         if logs_collection is not None:
             logs_count = 0
             for log in self._iter_logs_between(
@@ -569,7 +522,6 @@ class AnalyticsService:
                 proc_sum += float(log.get("processing_time_seconds") or 0.0)
                 proc_count += 1
 
-        # Fallback: count project tools only if no simulation logs exist
         if total_sims == 0:
             project_tools_count = 0
             for p in self._iter_projects_between(
@@ -599,7 +551,7 @@ class AnalyticsService:
             "avg_processing": avg_proc,
         }
 
-    def _accumulate_trait_usage(  # noqa: C901
+    def _accumulate_trait_usage(
         self, projects: List[Dict[str, Any]], trait_filter: Optional[List[str]]
     ) -> Counter:
         trait_counter: Counter = Counter()
@@ -626,15 +578,13 @@ class AnalyticsService:
         end_date: datetime,
         user_id: Optional[str],
     ):
-        """Yield simulation logs in a time window, filtered by user when provided."""
         criteria: Dict[str, Any] = {"timestamp": {"$gte": start_date, "$lte": end_date}}
         if user_id:
             criteria["user_id"] = user_id
         yield from collection.find(criteria)
 
     def _get_system_performance_metrics(self) -> SystemPerformanceMetrics:
-        """Get system performance metrics."""
-        # In a real system, this would query monitoring systems
+
         return SystemPerformanceMetrics(
             avg_response_time=125.3,
             error_rate=0.2,
@@ -649,13 +599,11 @@ class AnalyticsService:
         previous: float,
         lower_is_better: bool = False,
     ) -> MetricTrend:
-        """Calculate trend between current and previous values."""
         if previous == 0:
             percentage_change = 100.0 if current > 0 else 0.0
         else:
             percentage_change = ((current - previous) / previous) * 100
 
-        # Determine if the change is positive (improvement)
         if lower_is_better:
             is_positive = percentage_change <= 0
         else:
@@ -669,5 +617,4 @@ class AnalyticsService:
         )
 
 
-# Singleton instance
 analytics_service = AnalyticsService()

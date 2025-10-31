@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from datetime import datetime, timezone
+
+from ..dependencies import get_current_user
 
 from ..schema.auth import (
     AuthResponse,
@@ -15,15 +16,6 @@ from ..schema.auth import (
 from ..services import auth as services
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
-
-bearer_scheme = HTTPBearer(auto_error=True)
-
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-) -> UserProfile:
-    user = services.resolve_user_from_token(credentials.credentials)
-    return UserProfile(**user)
 
 
 @router.post("/signup", response_model=SignupInitiateResponse, status_code=202)

@@ -137,17 +137,6 @@ def get_traits_collection(required: bool = False):
 
 
 def get_simulation_logs_collection(required: bool = False):
-    """Return the collection used to store ad-hoc simulation logs.
-
-    This provides analytics even when users run simulations outside of a
-    saved Project/Tool. Schema (flexible):
-      - timestamp: datetime (UTC)
-      - user_id: Optional[str]
-      - traits: List[str]
-      - total_data_points: int
-      - avg_confidence: float  (0-100)
-      - processing_time_seconds: float
-    """
     client = get_mongo_client()
     if client is None:
         if required:

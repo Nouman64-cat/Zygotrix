@@ -43,16 +43,16 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
 
 def hash_password(password: str) -> str:
     # bcrypt has a 72-byte limit, truncate if necessary
-    if len(password.encode('utf-8')) > 72:
-        password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+    if len(password.encode("utf-8")) > 72:
+        password = password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
     return _password_context.hash(password)
 
 
 def verify_password(password: str, password_hash: str) -> bool:
     try:
         # Apply same 72-byte truncation as hash_password for consistency
-        if len(password.encode('utf-8')) > 72:
-            password = password.encode('utf-8')[:72].decode('utf-8', errors='ignore')
+        if len(password.encode("utf-8")) > 72:
+            password = password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
         return _password_context.verify(password, password_hash)
     except ValueError:
         return False
@@ -458,12 +458,6 @@ def resolve_user_from_token(token: str) -> Dict[str, Any]:
     if not isinstance(user_id, str):
         raise HTTPException(status_code=401, detail="Invalid authentication token.")
     return get_user_by_id(user_id)
-
-
-# Alias for backward compatibility
-def get_current_user(token: str) -> Dict[str, Any]:
-    """Get current user from token - alias for resolve_user_from_token for backward compatibility."""
-    return resolve_user_from_token(token)
 
 
 def build_auth_response(user: Dict[str, Any]) -> Dict[str, Any]:

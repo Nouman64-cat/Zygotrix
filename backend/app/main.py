@@ -1,9 +1,7 @@
-﻿
-from __future__ import annotations
+﻿from __future__ import annotations
 import logging
-logging.basicConfig(level=logging.DEBUG)
-"""FastAPI application exposing Zygotrix simulation capabilities."""
 
+logging.basicConfig(level=logging.INFO)
 
 
 from datetime import datetime, timezone
@@ -11,7 +9,6 @@ from typing import Optional
 
 from fastapi import Depends, FastAPI, HTTPException, Response
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from zygotrix_engine import Trait
 
@@ -75,31 +72,22 @@ app.add_middleware(
 )
 
 
-# Register routers
-# Initialize database on startup
 @app.on_event("startup")
 async def startup_event():
-    """Initialize database indexes on application startup."""
     settings = get_settings()
     if settings.traits_json_only:
-        print(
-            "ℹ️ JSON-only mode enabled: skipping MongoDB index initialization for traits"
-        )
         return
     try:
         create_trait_indexes()
-        print("✅ Trait management database indexes initialized")
     except Exception as e:
         print(f"⚠️  Warning: Could not initialize trait indexes: {e}")
 
     try:
         gwas_dataset.ensure_dataset_loaded()
-        print("✅ GWAS dataset ready")
     except gwas_dataset.DatasetLoadError as e:
         print(f"⚠️  Warning: GWAS dataset unavailable: {e}")
 
 
-# Register routers
 app.include_router(auth_router)
 app.include_router(trait_router)
 app.include_router(mendelian_router)
@@ -115,15 +103,6 @@ app.include_router(gwas_router)
 app.include_router(community_router)
 app.include_router(cpp_engine_router)
 app.include_router(university_router)
-
-bearer_scheme = HTTPBearer(auto_error=True)
-
-
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
-) -> UserProfile:
-    user = auth_services.resolve_user_from_token(credentials.credentials)
-    return UserProfile(**user)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])

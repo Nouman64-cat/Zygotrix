@@ -1,5 +1,3 @@
-"""Repository for course data access."""
-
 from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from pymongo.collection import Collection
@@ -14,14 +12,13 @@ logger = logging.getLogger(__name__)
 
 
 class CourseRepository:
-    """Handles all database operations for courses."""
 
     def __init__(self):
         self.courses_collection: Optional[Collection] = None
         self.enrollments_collection: Optional[Collection] = None
 
     def _get_courses_collection(self) -> Collection:
-        """Get the courses collection, lazy-loading if needed."""
+
         if self.courses_collection is None:
             self.courses_collection = get_courses_collection()
         if self.courses_collection is None:
@@ -29,7 +26,7 @@ class CourseRepository:
         return self.courses_collection
 
     def _get_enrollments_collection(self) -> Collection:
-        """Get the enrollments collection, lazy-loading if needed."""
+
         if self.enrollments_collection is None:
             self.enrollments_collection = get_course_enrollments_collection()
         if self.enrollments_collection is None:
@@ -37,17 +34,17 @@ class CourseRepository:
         return self.enrollments_collection
 
     def find_by_slug(self, slug: str) -> Optional[Dict[str, Any]]:
-        """Find a course by its slug."""
+
         collection = self._get_courses_collection()
         return collection.find_one({"slug": slug})
 
     def list_all(self) -> List[Dict[str, Any]]:
-        """Get all courses from the database."""
+
         collection = self._get_courses_collection()
         return list(collection.find())
 
     def upsert_course(self, course_doc: Dict[str, Any]) -> bool:
-        """Insert or update a course document."""
+
         collection = self._get_courses_collection()
         slug = course_doc.get("slug")
         if not slug:
@@ -60,7 +57,7 @@ class CourseRepository:
         return result.modified_count > 0 or result.upserted_id is not None
 
     def bulk_upsert_courses(self, courses: List[Dict[str, Any]]) -> int:
-        """Bulk insert/update courses."""
+
         if not courses:
             return 0
 
@@ -74,14 +71,13 @@ class CourseRepository:
         return updated_count
 
     def is_user_enrolled(self, user_id: str, course_slug: str) -> bool:
-        """Check if a user is enrolled in a course."""
+
         collection = self._get_enrollments_collection()
         doc = collection.find_one({"user_id": user_id, "course_slug": course_slug})
         return doc is not None
 
     def enroll_user(self, user_id: str, course_slug: str) -> bool:
-        """Enroll a user in a course."""
-        # Check if already enrolled
+
         if self.is_user_enrolled(user_id, course_slug):
             return True
 
@@ -101,7 +97,7 @@ class CourseRepository:
             return False
 
     def get_user_enrollments(self, user_id: str) -> List[str]:
-        """Get list of course slugs the user is enrolled in."""
+
         collection = self._get_enrollments_collection()
         enrollments = collection.find({"user_id": user_id})
         return [e["course_slug"] for e in enrollments if "course_slug" in e]

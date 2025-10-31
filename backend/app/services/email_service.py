@@ -1,5 +1,3 @@
-"""Email service for sending transactional emails."""
-
 from __future__ import annotations
 
 import logging
@@ -10,8 +8,11 @@ import resend
 
 logger = logging.getLogger(__name__)
 from app.config import get_settings
+
 settings = get_settings()
-university_url = getattr(settings, "university_url", "https://zygotrix.university.courtcierge.online")
+university_url = getattr(
+    settings, "university_url", "https://zygotrix.university.courtcierge.online"
+)
 
 
 def send_enrollment_email(
@@ -20,18 +21,7 @@ def send_enrollment_email(
     course_title: str,
     course_slug: str,
 ) -> bool:
-    """
-    Send enrollment confirmation email to user.
 
-    Args:
-        user_email: User's email address
-        user_name: User's name
-        course_title: Title of the enrolled course
-        course_slug: Slug of the enrolled course
-
-    Returns:
-        bool: True if email sent successfully, False otherwise
-    """
     try:
         from app.config import get_settings
 
@@ -39,7 +29,6 @@ def send_enrollment_email(
 
         logger.info(f"🔧 Starting email send process for {user_email}")
 
-        # Check if Resend API key is configured
         if not settings.resend_api_key or settings.resend_api_key == "":
             logger.warning("Resend API key not configured, skipping email send")
             return False
@@ -56,8 +45,8 @@ def send_enrollment_email(
         resend.api_key = settings.resend_api_key
         logger.info(f"✓ Resend API key set")
 
-        # Create email content
-        html_content = dedent(f"""
+        html_content = dedent(
+            f"""
             <!DOCTYPE html>
             <html>
             <head>
@@ -72,8 +61,8 @@ def send_enrollment_email(
                 body {{
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
                     line-height: 1.6;
-                    color: #1f2937;
-                    background: #f3f4f6;
+                    color:
+                    background:
                     padding: 20px;
                 }}
                 .email-container {{
@@ -85,7 +74,7 @@ def send_enrollment_email(
                     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
                 }}
                 .header {{
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg,
                     padding: 40px 30px;
                     text-align: center;
                     position: relative;
@@ -129,17 +118,17 @@ def send_enrollment_email(
                 }}
                 .greeting {{
                     font-size: 18px;
-                    color: #1f2937;
+                    color:
                     margin-bottom: 20px;
                 }}
                 .message {{
                     font-size: 16px;
-                    color: #4b5563;
+                    color:
                     margin-bottom: 25px;
                 }}
                 .course-card {{
-                    background: linear-gradient(135deg, #f0f4ff 0%, #e8eeff 100%);
-                    border: 2px solid #667eea;
+                    background: linear-gradient(135deg,
+                    border: 2px solid
                     border-radius: 12px;
                     padding: 25px;
                     margin: 25px 0;
@@ -147,7 +136,7 @@ def send_enrollment_email(
                     box-shadow: 0 4px 12px rgba(102, 126, 234, 0.15);
                 }}
                 .course-card h2 {{
-                    color: #667eea;
+                    color:
                     font-size: 24px;
                     font-weight: 700;
                     margin-bottom: 10px;
@@ -156,7 +145,7 @@ def send_enrollment_email(
                 .course-badge {{
                     display: inline-block;
                     background: rgba(102, 126, 234, 0.2);
-                    color: #667eea;
+                    color:
                     padding: 6px 14px;
                     border-radius: 20px;
                     font-size: 13px;
@@ -165,7 +154,7 @@ def send_enrollment_email(
                 }}
                 .cta-button {{
                     display: inline-block;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg,
                     color: white;
                     padding: 16px 40px;
                     text-decoration: none;
@@ -181,13 +170,13 @@ def send_enrollment_email(
                     box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
                 }}
                 .features {{
-                    background: #f9fafb;
+                    background:
                     border-radius: 12px;
                     padding: 25px;
                     margin: 25px 0;
                 }}
                 .features h3 {{
-                    color: #1f2937;
+                    color:
                     font-size: 18px;
                     margin-bottom: 15px;
                     font-weight: 600;
@@ -198,7 +187,7 @@ def send_enrollment_email(
                 }}
                 .feature-list li {{
                     padding: 10px 0;
-                    color: #4b5563;
+                    color:
                     font-size: 15px;
                     position: relative;
                     padding-left: 30px;
@@ -207,10 +196,10 @@ def send_enrollment_email(
                     content: '✓';
                     position: absolute;
                     left: 0;
-                    color: #10b981;
+                    color:
                     font-weight: bold;
                     font-size: 18px;
-                    background: #d1fae5;
+                    background:
                     width: 22px;
                     height: 22px;
                     border-radius: 50%;
@@ -224,7 +213,7 @@ def send_enrollment_email(
                     justify-content: space-around;
                     margin: 30px 0;
                     padding: 20px;
-                    background: #f9fafb;
+                    background:
                     border-radius: 12px;
                 }}
                 .stat-item {{
@@ -233,27 +222,27 @@ def send_enrollment_email(
                 .stat-value {{
                     font-size: 32px;
                     font-weight: 700;
-                    color: #667eea;
+                    color:
                     display: block;
                 }}
                 .stat-label {{
                     font-size: 13px;
-                    color: #6b7280;
+                    color:
                     margin-top: 5px;
                 }}
                 .divider {{
                     height: 1px;
-                    background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+                    background: linear-gradient(to right, transparent,
                     margin: 30px 0;
                 }}
                 .footer {{
-                    background: #f9fafb;
+                    background:
                     padding: 30px;
                     text-align: center;
-                    border-top: 1px solid #e5e7eb;
+                    border-top: 1px solid
                 }}
                 .footer-text {{
-                    color: #6b7280;
+                    color:
                     font-size: 14px;
                     margin: 5px 0;
                 }}
@@ -263,13 +252,13 @@ def send_enrollment_email(
                 .social-links a {{
                     display: inline-block;
                     margin: 0 8px;
-                    color: #9ca3af;
+                    color:
                     text-decoration: none;
                     font-size: 14px;
                 }}
                 .brand {{
                     font-weight: 700;
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    background: linear-gradient(135deg,
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
@@ -353,54 +342,7 @@ def send_enrollment_email(
             </div>
         </body>
         </html>
-        """).strip()
 
-        # Plain-text fallback
-        text_content = (
-            f"Hi {user_name},\n\n"
-            f"You're enrolled in {course_title}!\n\n"
-            f"Start learning: http://localhost:5174/university/courses/{course_slug}\n\n"
-            "What you get:\n"
-            "- Full access to modules and lessons\n"
-            "- Progress tracking\n"
-            "- Assessments and certificate on completion\n\n"
-            "Happy learning!\nThe Zygotrix University Team"
-        )
-
-        # Send email using Resend
-        params = {
-            "from": settings.resend_from_email,
-            "to": [user_email],
-            "subject": f"🎓 You're enrolled in {course_title}!",
-            "html": html_content,
-            "text": text_content,
-        }
-
-        logger.info(
-            f"📧 Sending email with params: from={settings.resend_from_email}, to={user_email}"
-        )
-
-        response = resend.Emails.send(params)
-        logger.info(
-            f"✅ Enrollment email sent successfully to {user_email} for course {course_slug}"
-        )
-        logger.info(f"Resend response: {response}")
-
-        return True
-
-    except Exception as e:
-        logger.error(f"❌ Failed to send enrollment email: {str(e)}")
-        logger.exception(e)
-        return False
-
-
-def send_course_completion_email(
-    user_email: str,
-    user_name: str,
-    course_title: str,
-    course_slug: str,
-) -> bool:
-    """
     Send course completion email to user.
 
     Args:
@@ -411,19 +353,7 @@ def send_course_completion_email(
 
     Returns:
         bool: True if email sent successfully, False otherwise
-    """
-    try:
-        from app.config import get_settings
 
-        settings = get_settings()
-
-        if not settings.resend_api_key or settings.resend_api_key == "":
-            logger.warning("Resend API key not configured, skipping email send")
-            return False
-
-        resend.api_key = settings.resend_api_key
-
-        html_content = dedent(f"""
             <!DOCTYPE html>
             <html>
             <head>
@@ -438,8 +368,8 @@ def send_course_completion_email(
                 body {{
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
                     line-height: 1.6;
-                    color: #1f2937;
-                    background: #f3f4f6;
+                    color:
+                    background:
                     padding: 20px;
                 }}
                 .email-container {{
@@ -451,7 +381,7 @@ def send_course_completion_email(
                     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
                 }}
                 .header {{
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    background: linear-gradient(135deg,
                     padding: 40px 30px;
                     text-align: center;
                     position: relative;
@@ -490,17 +420,17 @@ def send_course_completion_email(
                 }}
                 .greeting {{
                     font-size: 18px;
-                    color: #1f2937;
+                    color:
                     margin-bottom: 20px;
                 }}
                 .message {{
                     font-size: 16px;
-                    color: #4b5563;
+                    color:
                     margin-bottom: 25px;
                 }}
                 .certificate-card {{
-                    background: linear-gradient(135deg, #d1fae5 0%, #a7f3d0 100%);
-                    border: 3px solid #10b981;
+                    background: linear-gradient(135deg,
+                    border: 3px solid
                     border-radius: 12px;
                     padding: 30px;
                     margin: 30px 0;
@@ -517,7 +447,7 @@ def send_course_completion_email(
                     opacity: 0.3;
                 }}
                 .certificate-card h2 {{
-                    color: #10b981;
+                    color:
                     font-size: 26px;
                     font-weight: 700;
                     margin-bottom: 15px;
@@ -526,7 +456,7 @@ def send_course_completion_email(
                 .certificate-badge {{
                     display: inline-block;
                     background: rgba(16, 185, 129, 0.2);
-                    color: #059669;
+                    color:
                     padding: 8px 16px;
                     border-radius: 20px;
                     font-size: 14px;
@@ -538,7 +468,7 @@ def send_course_completion_email(
                     justify-content: space-around;
                     margin: 30px 0;
                     padding: 25px;
-                    background: #f9fafb;
+                    background:
                     border-radius: 12px;
                 }}
                 .stat-item {{
@@ -550,7 +480,7 @@ def send_course_completion_email(
                 }}
                 .stat-label {{
                     font-size: 13px;
-                    color: #6b7280;
+                    color:
                     font-weight: 500;
                 }}
                 .button-group {{
@@ -559,7 +489,7 @@ def send_course_completion_email(
                 }}
                 .cta-button {{
                     display: inline-block;
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    background: linear-gradient(135deg,
                     color: white;
                     padding: 16px 32px;
                     text-decoration: none;
@@ -571,17 +501,17 @@ def send_course_completion_email(
                     transition: all 0.3s ease;
                 }}
                 .cta-button.secondary {{
-                    background: linear-gradient(135deg, #6b7280 0%, #4b5563 100%);
+                    background: linear-gradient(135deg,
                     box-shadow: 0 4px 14px rgba(107, 114, 128, 0.3);
                 }}
                 .next-steps {{
-                    background: #f9fafb;
+                    background:
                     border-radius: 12px;
                     padding: 25px;
                     margin: 25px 0;
                 }}
                 .next-steps h3 {{
-                    color: #1f2937;
+                    color:
                     font-size: 18px;
                     margin-bottom: 15px;
                     font-weight: 600;
@@ -592,7 +522,7 @@ def send_course_completion_email(
                 }}
                 .step-list li {{
                     padding: 12px 0;
-                    color: #4b5563;
+                    color:
                     font-size: 15px;
                     position: relative;
                     padding-left: 35px;
@@ -601,10 +531,10 @@ def send_course_completion_email(
                     content: '→';
                     position: absolute;
                     left: 0;
-                    color: #10b981;
+                    color:
                     font-weight: bold;
                     font-size: 20px;
-                    background: #d1fae5;
+                    background:
                     width: 24px;
                     height: 24px;
                     border-radius: 50%;
@@ -614,37 +544,37 @@ def send_course_completion_email(
                 }}
                 .divider {{
                     height: 1px;
-                    background: linear-gradient(to right, transparent, #e5e7eb, transparent);
+                    background: linear-gradient(to right, transparent,
                     margin: 30px 0;
                 }}
                 .footer {{
-                    background: #f9fafb;
+                    background:
                     padding: 30px;
                     text-align: center;
-                    border-top: 1px solid #e5e7eb;
+                    border-top: 1px solid
                 }}
                 .footer-text {{
-                    color: #6b7280;
+                    color:
                     font-size: 14px;
                     margin: 5px 0;
                 }}
                 .brand {{
                     font-weight: 700;
-                    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+                    background: linear-gradient(135deg,
                     -webkit-background-clip: text;
                     -webkit-text-fill-color: transparent;
                     background-clip: text;
                 }}
                 .congrats-banner {{
-                    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+                    background: linear-gradient(135deg,
                     padding: 15px;
                     text-align: center;
                     border-radius: 8px;
                     margin-bottom: 25px;
-                    border: 2px solid #fbbf24;
+                    border: 2px solid
                 }}
                 .congrats-banner strong {{
-                    color: #92400e;
+                    color:
                     font-size: 16px;
                 }}
             </style>
@@ -729,7 +659,8 @@ def send_course_completion_email(
             </div>
         </body>
         </html>
-        """).strip()
+        """
+        ).strip()
 
         text_content = (
             f"Hi {user_name},\n\n"

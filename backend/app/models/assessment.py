@@ -1,12 +1,9 @@
-"""Assessment data models."""
-
 from typing import List, Optional
 from datetime import datetime
 from pydantic import BaseModel, Field
 
 
 class AssessmentOption(BaseModel):
-    """Single option in a multiple-choice question."""
 
     text: str = Field(..., description="Option text")
     is_correct: bool = Field(
@@ -14,12 +11,11 @@ class AssessmentOption(BaseModel):
     )
 
     class Config:
-        populate_by_name = True  # Allow both snake_case and camelCase
+        populate_by_name = True
         json_schema_extra = {"example": {"text": "Python", "isCorrect": True}}
 
 
 class AssessmentQuestion(BaseModel):
-    """Single assessment question."""
 
     prompt: str = Field(..., description="Question prompt in markdown")
     explanation: str = Field(..., description="Explanation in markdown")
@@ -39,7 +35,6 @@ class AssessmentQuestion(BaseModel):
 
 
 class Assessment(BaseModel):
-    """Module assessment."""
 
     assessment_questions: List[AssessmentQuestion] = Field(
         ..., alias="assessmentQuestions", description="List of assessment questions"
@@ -50,7 +45,6 @@ class Assessment(BaseModel):
 
 
 class AssessmentAttempt(BaseModel):
-    """User's attempt at an assessment."""
 
     id: str = Field(..., description="Unique attempt ID")
     user_id: str = Field(..., description="User ID")

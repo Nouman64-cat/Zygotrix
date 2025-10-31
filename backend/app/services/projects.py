@@ -7,22 +7,14 @@ from app.config import get_settings
 
 
 def _serialize_project_doc(document: Mapping[str, Any]) -> Dict[str, Any]:
-    """Convert a MongoDB project document into an API-friendly dict.
 
-    - Copies all fields
-    - Converts ObjectId in _id to a string id
-    - Removes the original _id key
-    """
     data: Dict[str, Any] = dict(document)
     if data.get("_id") is not None:
         try:
-            data["id"] = str(data["_id"])  # expose as string id
+            data["id"] = str(data["_id"])
         finally:
             data.pop("_id", None)
     return data
-
-
-# Project CRUD and registry
 
 
 def get_user_projects(

@@ -1,12 +1,9 @@
-"""Course progress data models."""
-
 from typing import List, Optional, Literal
 from datetime import datetime
 from pydantic import BaseModel, Field
 
 
 class ModuleItem(BaseModel):
-    """Progress for a single module item/lesson."""
 
     module_item_id: str = Field(..., description="Item ID")
     title: Optional[str] = Field(None, description="Item title")
@@ -14,7 +11,6 @@ class ModuleItem(BaseModel):
 
 
 class ModuleProgress(BaseModel):
-    """Progress for a single module."""
 
     module_id: str = Field(..., description="Module ID")
     title: Optional[str] = Field(None, description="Module title")
@@ -24,7 +20,6 @@ class ModuleProgress(BaseModel):
     duration: Optional[str] = Field(None, description="Module duration")
     completion: float = Field(0, ge=0, le=100, description="Completion percentage")
 
-    # Assessment-related fields
     assessment_status: Optional[Literal["not_started", "attempted", "passed"]] = Field(
         None, description="Assessment completion status"
     )
@@ -52,7 +47,6 @@ class ModuleProgress(BaseModel):
 
 
 class ProgressMetrics(BaseModel):
-    """Learning metrics."""
 
     hours_spent: Optional[float] = Field(None, ge=0, description="Hours spent")
     practice_accuracy: Optional[float] = Field(
@@ -64,7 +58,6 @@ class ProgressMetrics(BaseModel):
 
 
 class CourseProgress(BaseModel):
-    """User's progress in a course."""
 
     user_id: str = Field(..., description="User ID")
     course_slug: str = Field(..., description="Course slug")
@@ -77,11 +70,12 @@ class CourseProgress(BaseModel):
     metrics: Optional[ProgressMetrics] = Field(None, description="Learning metrics")
 
     next_session: Optional[str] = Field(None, description="Next session date")
-    
-    # Certificate fields
+
     completed: bool = Field(False, description="Whether course is completed")
     completed_at: Optional[datetime] = Field(None, description="Completion timestamp")
-    certificate_issued: bool = Field(False, description="Whether certificate was issued")
+    certificate_issued: bool = Field(
+        False, description="Whether certificate was issued"
+    )
 
     class Config:
         json_schema_extra = {

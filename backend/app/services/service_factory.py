@@ -1,5 +1,3 @@
-"""Service factory for dependency injection."""
-
 from ..repositories.course_repository import CourseRepository
 from ..repositories.progress_repository import ProgressRepository
 from ..repositories.assessment_repository import AssessmentRepository
@@ -12,26 +10,21 @@ from ..config import get_settings
 
 
 class ServiceFactory:
-    """Factory for creating service instances with proper dependencies."""
 
     def __init__(self):
-        # Get config
         self.settings = get_settings()
 
-        # Create repositories (singleton-like)
         self.course_repo = CourseRepository()
         self.progress_repo = ProgressRepository()
         self.assessment_repo = AssessmentRepository()
 
-        # Create integrations (HygraphClient gets settings internally)
         self.hygraph_client = HygraphClient()
 
-        # Create serializers
         self.course_serializer = CourseSerializer()
         self.progress_serializer = ProgressSerializer()
 
     def get_course_service(self) -> CourseService:
-        """Get CourseService instance."""
+
         return CourseService(
             course_repo=self.course_repo,
             progress_repo=self.progress_repo,
@@ -40,7 +33,7 @@ class ServiceFactory:
         )
 
     def get_progress_service(self) -> ProgressService:
-        """Get ProgressService instance."""
+
         return ProgressService(
             progress_repo=self.progress_repo,
             course_repo=self.course_repo,
@@ -48,18 +41,15 @@ class ServiceFactory:
         )
 
     def get_assessment_service(self) -> AssessmentService:
-        """Get AssessmentService instance."""
-        # AssessmentService currently manages its own repository instances.
-        # If DI is needed later, update AssessmentService to accept optional deps.
+
         return AssessmentService()
 
 
-# Global service factory instance
 _service_factory = None
 
 
 def get_service_factory() -> ServiceFactory:
-    """Get the global service factory instance."""
+
     global _service_factory
     if _service_factory is None:
         _service_factory = ServiceFactory()

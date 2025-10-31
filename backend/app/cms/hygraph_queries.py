@@ -1,5 +1,3 @@
-# GraphQL queries for Hygraph CMS integration
-
 HYGRAPH_COURSES_QUERY = """
   query UniversityCourses {
     courses {

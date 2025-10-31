@@ -1,5 +1,3 @@
-"""Utility functions for loading and querying the GWAS dataset."""
-
 from __future__ import annotations
 
 import json
@@ -23,7 +21,7 @@ class DatasetLoadError(RuntimeError):
 
 
 def ensure_dataset_loaded() -> pd.DataFrame:
-    """Return the GWAS dataset DataFrame, downloading it if needed."""
+
     global _dataset_df
 
     if _dataset_df is not None:
@@ -40,17 +38,17 @@ def ensure_dataset_loaded() -> pd.DataFrame:
 
         try:
             _dataset_df = pd.read_parquet(DATASET_PATH, columns=["MAPPED_TRAIT"])
-        except Exception as exc:  # pragma: no cover - defensive programming
+        except Exception as exc:
             raise DatasetLoadError(f"Unable to load GWAS dataset: {exc}") from exc
 
         return _dataset_df
 
 
 def _download_dataset(destination: Path) -> None:
-    """Download the GWAS dataset using gdown."""
+
     try:
-        import gdown  # type: ignore
-    except ModuleNotFoundError as exc:  # pragma: no cover - import guard
+        import gdown
+    except ModuleNotFoundError as exc:
         raise DatasetLoadError(
             "The gdown package is required to download the GWAS dataset."
         ) from exc
@@ -60,7 +58,7 @@ def _download_dataset(destination: Path) -> None:
 
     try:
         gdown.download(url=url, output=output, quiet=False, fuzzy=False)
-    except Exception as exc:  # pragma: no cover - network failure guard
+    except Exception as exc:
         raise DatasetLoadError(f"Failed to download GWAS dataset: {exc}") from exc
 
     if not destination.exists():
@@ -68,7 +66,7 @@ def _download_dataset(destination: Path) -> None:
 
 
 def search_traits(query: str, limit: int = 20) -> List[str]:
-    """Return up to ``limit`` distinct mapped traits that contain ``query``."""
+
     if not query:
         return []
 
@@ -83,7 +81,7 @@ def search_traits(query: str, limit: int = 20) -> List[str]:
 
 
 def trait_records(trait_name: str, limit: int = 50) -> list[dict]:
-    """Return up to ``limit`` study rows for the provided ``trait_name``."""
+
     if not trait_name:
         return []
 
@@ -100,6 +98,6 @@ def trait_records(trait_name: str, limit: int = 50) -> list[dict]:
 
 
 def dataset_columns() -> list[str]:
-    """Return the dataset column names in their stored order."""
+
     df = ensure_dataset_loaded()
     return list(df.columns)

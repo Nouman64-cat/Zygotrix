@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 
-from ..routes.auth import get_current_user
+from ..dependencies import get_current_user
 from ..schema.auth import UserProfile
 from ..schema.data_import import VCFParseResponse
 from ..services.data_import import process_variant_payload
@@ -27,4 +27,3 @@ async def import_genome_file(
         content=contents,
         persist=persist,
     )
-

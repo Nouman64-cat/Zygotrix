@@ -1,5 +1,3 @@
-"""Course service for business logic."""
-
 import logging
 from typing import Dict, Any, List, Optional
 from datetime import datetime
@@ -13,7 +11,6 @@ logger = logging.getLogger(__name__)
 
 
 class CourseService:
-    """Service for course-related business logic."""
 
     def __init__(
         self,
@@ -28,21 +25,13 @@ class CourseService:
         self.serializer = serializer
 
     async def get_course_catalog(self) -> List[Dict[str, Any]]:
-        """
-        Get list of all courses from Hygraph and sync to database.
 
-        Returns:
-            List of course summary objects
-        """
-        # Fetch from Hygraph (with caching)
         hygraph_courses = await self.hygraph_client.get_courses()
 
-        # Sync to local database
         if hygraph_courses:
             synced = await self.course_repo.bulk_upsert_courses(hygraph_courses)
             logger.info(f"Synced {synced} courses to database")
 
-        # Serialize courses
         return [
             self.serializer.serialize_course(course, include_details=False)
             for course in hygraph_courses
@@ -51,20 +40,9 @@ class CourseService:
     async def get_course_by_slug(
         self, slug: str, include_details: bool = True
     ) -> Optional[Dict[str, Any]]:
-        """
-        Get course by slug, preferring local database with Hygraph fallback.
 
-        Args:
-            slug: Course slug identifier
-            include_details: Whether to include module details
-
-        Returns:
-            Serialized course object or None if not found
-        """
-        # Try local database first
         course = await self.course_repo.find_by_slug(slug)
 
-        # Fallback to Hygraph if not in database
         if not course:
             logger.info(f"Course {slug} not in DB, fetching from Hygraph")
             hygraph_courses = await self.hygraph_client.get_courses()
@@ -72,7 +50,6 @@ class CourseService:
             for hc in hygraph_courses:
                 if hc.get("slug") == slug or hc.get("id") == slug:
                     course = hc
-                    # Save to database for future
                     await self.course_repo.upsert_course(course)
                     break
 
@@ -83,34 +60,21 @@ class CourseService:
         return self.serializer.serialize_course(course, include_details=include_details)
 
     async def enroll_user_in_course(self, user_id: str, course_slug: str) -> bool:
-        """
-        Enroll a user in a course and initialize their progress.
 
-        Args:
-            user_id: User identifier
-            course_slug: Course slug identifier
-
-        Returns:
-            True if enrollment successful, False otherwise
-        """
-        # Check if already enrolled
         is_enrolled = await self.course_repo.is_user_enrolled(user_id, course_slug)
         if is_enrolled:
             logger.info(f"User {user_id} already enrolled in {course_slug}")
             return True
 
-        # Get course details to initialize progress
         course = await self.get_course_by_slug(course_slug, include_details=True)
         if not course:
             logger.error(f"Cannot enroll: course {course_slug} not found")
             return False
 
-        # Enroll user
         enrolled = await self.course_repo.enroll_user(user_id, course_slug)
         if not enrolled:
             return False
 
-        # Initialize progress document
         modules = []
         for module in course.get("modules", []):
             items = []
@@ -151,15 +115,7 @@ class CourseService:
         return True
 
     async def get_user_enrollments(self, user_id: str) -> List[Dict[str, Any]]:
-        """
-        Get all courses a user is enrolled in.
 
-        Args:
-            user_id: User identifier
-
-        Returns:
-            List of course objects the user is enrolled in
-        """
         enrolled_slugs = await self.course_repo.get_user_enrollments(user_id)
 
         courses = []

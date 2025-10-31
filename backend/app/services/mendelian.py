@@ -4,8 +4,6 @@ from zygotrix_engine.mendelian import MendelianCalculator
 from zygotrix_engine.utils import normalize_probabilities, to_percentage_distribution
 from .traits import filter_traits
 
-# Mendelian simulation services (registry construction already respects JSON-only mode via get_trait_registry)
-
 
 def simulate_mendelian_traits(
     parent1: Mapping[str, str],
@@ -110,10 +108,7 @@ def _build_preview_trait(
     missing = [gen for gen in trait.all_genotypes() if gen not in canonical_map]
     if missing:
         raise PreviewValidationError(
-            [
-                "Missing phenotype mapping for genotypes: "
-                + ", ".join(sorted(missing))
-            ]
+            ["Missing phenotype mapping for genotypes: " + ", ".join(sorted(missing))]
         )
     return trait
 
@@ -210,9 +205,7 @@ def preview_mendelian(
     tolerance = 0.001
     errors: List[str] = []
     if abs(total_geno - 1.0) > tolerance:
-        errors.append(
-            f"Genotype probabilities sum to {total_geno:.6f}; expected 1.0."
-        )
+        errors.append(f"Genotype probabilities sum to {total_geno:.6f}; expected 1.0.")
     if abs(total_pheno - 1.0) > tolerance:
         errors.append(
             f"Phenotype probabilities sum to {total_pheno:.6f}; expected 1.0."

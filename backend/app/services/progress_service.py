@@ -31,14 +31,7 @@ class ProgressService:
         self.progress_repo = progress_repo
         self.course_repo = course_repo
         self.serializer = serializer
-
-        try:
-            from .service_factory import get_service_factory
-
-            _factory = get_service_factory()
-            self.course_service = _factory.get_course_service()
-        except ImportError:
-            self.course_service = None
+        self.course_service = None
 
     def _get_course_service(self) -> CourseService:
 

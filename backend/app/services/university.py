@@ -62,3 +62,44 @@ def save_course_progress(user_id: str, payload: Dict[str, Any]) -> Dict[str, Any
 def generate_certificate(user_id: str, course_slug: str) -> Dict[str, Any]:
     progress_service = _service_factory.get_progress_service()
     return progress_service.generate_certificate(user_id, course_slug)
+
+
+def submit_assessment(
+    user_id: str, course_slug: str, module_id: str, answers: List[Dict[str, Any]]
+) -> Dict[str, Any]:
+    assessment_service = _service_factory.get_assessment_service()
+
+    normalized_answers: List[Dict[str, Any]] = []
+    for a in answers or []:
+        if not isinstance(a, dict):
+            continue
+        if "question_index" in a or "selected_option_index" in a:
+            normalized_answers.append(a)
+        else:
+            normalized_answers.append(
+                {
+                    "question_index": a.get("question_index", a.get("questionIndex")),
+                    "selected_option_index": a.get(
+                        "selected_option_index", a.get("selectedOptionIndex")
+                    ),
+                    "is_correct": a.get("is_correct", a.get("isCorrect")),
+                }
+            )
+
+    return assessment_service.submit_assessment(
+        user_id=user_id,
+        course_slug=course_slug,
+        module_id=module_id,
+        answers=normalized_answers,
+    )
+
+
+def get_assessment_history(
+    user_id: str, course_slug: str, module_id: str
+) -> List[Dict[str, Any]]:
+    assessment_service = _service_factory.get_assessment_service()
+    return assessment_service.get_assessment_history(
+        user_id=user_id,
+        course_slug=course_slug,
+        module_id=module_id,
+    )

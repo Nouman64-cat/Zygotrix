@@ -23,14 +23,7 @@ class AssessmentService:
 
     def __init__(self):
         self.repo = AssessmentRepository()
-
-        try:
-            from .service_factory import get_service_factory
-
-            _factory = get_service_factory()
-            self.course_service = _factory.get_course_service()
-        except ImportError:
-            self.course_service = None
+        self.course_service = None
 
     def _get_course_service(self) -> CourseService:
 
@@ -160,6 +153,36 @@ class AssessmentService:
 
         return questions
 
+    def get_assessment_history(
+        self, user_id: str, course_slug: str, module_id: str
+    ) -> List[Dict[str, Any]]:
+
+        collection = get_assessment_attempts_collection()
+        if collection is None:
+            return []
+
+        cursor = collection.find(
+            {"user_id": user_id, "course_slug": course_slug, "module_id": module_id}
+        ).sort("attempt_number", -1)
+
+        attempts = []
+        for doc in cursor:
+            attempt_obj = {
+                "id": str(doc.get("_id")),
+                "user_id": doc.get("user_id"),
+                "course_slug": doc.get("course_slug"),
+                "module_id": doc.get("module_id"),
+                "attempt_number": doc.get("attempt_number", 1),
+                "score": doc.get("score", 0),
+                "passed": doc.get("passed", False),
+                "completed_at": self._serialize_datetime(doc.get("submitted_at")),
+                "answers": doc.get("answers", []),
+                "total_questions": doc.get("total_questions", 0),
+            }
+            attempts.append(attempt_obj)
+
+        return attempts
+
     def submit_assessment(
         self,
         user_id: str,
@@ -233,18 +256,26 @@ class AssessmentService:
                 (last_attempt.get("attempt_number", 0) + 1) if last_attempt else 1
             )
 
-            attempts_collection.insert_one(
-                {
-                    "user_id": user_id,
-                    "course_slug": course_slug,
-                    "module_id": module_id,
-                    "attempt_number": attempt_number,
-                    "score": percentage,
-                    "passed": passed,
-                    "answers": results,
-                    "submitted_at": now,
-                }
-            )
+            attempt_doc_to_save = {
+                "user_id": user_id,
+                "course_slug": course_slug,
+                "module_id": module_id,
+                "attempt_number": attempt_number,
+                "score": percentage,
+                "passed": passed,
+                "answers": results,
+                "total_questions": total,
+                "completed_at": now,
+                "submitted_at": now,
+            }
+
+            insert_result = attempts_collection.insert_one(attempt_doc_to_save)
+
+            full_attempt_object = {
+                **attempt_doc_to_save,
+                "id": str(insert_result.inserted_id),
+            }
+            full_attempt_object.pop("submitted_at", None)
 
             progress_doc = progress_collection.find_one(
                 {"user_id": user_id, "course_slug": course_slug}
@@ -288,30 +319,5 @@ class AssessmentService:
             "total_questions": total,
             "correct_answers": score,
             "results": results,
-            "attempt_number": attempt_number,
+            "attempt": full_attempt_object,
         }
-
-    def get_assessment_history(
-        self, user_id: str, course_slug: str, module_id: str
-    ) -> List[Dict[str, Any]]:
-
-        collection = get_assessment_attempts_collection()
-        if collection is None:
-            return []
-
-        cursor = collection.find(
-            {"user_id": user_id, "course_slug": course_slug, "module_id": module_id}
-        ).sort("attempt_number", -1)
-
-        attempts = []
-        for doc in cursor:
-            attempts.append(
-                {
-                    "attempt_number": doc.get("attempt_number", 1),
-                    "score": doc.get("score", 0),
-                    "passed": doc.get("passed", False),
-                    "submitted_at": self._serialize_datetime(doc.get("submitted_at")),
-                    "answers": doc.get("answers", []),
-                }
-            )
-        return attempts

@@ -93,9 +93,7 @@ def dashboard_summary(
         course["slug"]: course
         for course in university_services.list_courses(include_details=True)
     }
-    summary = university_services.build_dashboard_summary(
-        current_user.dict(), course_docs
-    )
+    summary = university_services.build_dashboard_summary(current_user.dict())
     return DashboardSummaryResponse(**summary)
 
 

@@ -33,8 +33,6 @@ from ..schema.traits import (
 )
 from .common import get_traits_collection, ensure_utc
 
-# Legacy trait loading and registry for backward compatibility
-
 
 def _load_real_gene_traits() -> Dict[str, Trait]:
     """Load traits from JSON file. Supports both real-gene and simplified traits.
@@ -76,13 +74,11 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
 
             trait_key = str(name).lower().replace(" ", "_").replace("-", "_")
 
-            # Handle new array format for genes and chromosomes
             genes = trait_data.get("gene", [])
             chromosomes = trait_data.get("chromosome", [])
             trait_type = trait_data.get("type", "unknown")
             inheritance = trait_data.get("inheritance")
 
-            # Ensure genes and chromosomes are lists
             if not isinstance(genes, list):
                 genes = [genes] if genes is not None else []
             if not isinstance(chromosomes, list):
@@ -97,17 +93,13 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
                 "trait_type": trait_type,
             }
 
-            # Store both new array format and legacy single values for backward compatibility
             if genes:
                 metadata["genes"] = ",".join(str(g) for g in genes)
-                metadata["gene"] = str(genes[0])  # Legacy single gene field
+                metadata["gene"] = str(genes[0])
             if chromosomes:
                 metadata["chromosomes"] = ",".join(str(c) for c in chromosomes)
-                metadata["chromosome"] = str(
-                    chromosomes[0]
-                )  # Legacy single chromosome field
+                metadata["chromosome"] = str(chromosomes[0])
 
-            # Create description based on trait type
             if is_real_gene:
                 if trait_type == "polygenic":
                     gene_list = ", ".join(genes)
@@ -135,8 +127,6 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
 
 REAL_GENE_TRAITS = _load_real_gene_traits()
 ALL_TRAITS = dict(REAL_GENE_TRAITS)
-
-# Trait document builder
 
 
 def _build_trait_from_document(document: Mapping[str, object]) -> Trait:
@@ -167,9 +157,6 @@ def _build_trait_from_document(document: Mapping[str, object]) -> Trait:
         description=str(document.get("description", "")),
         metadata=base_metadata,
     )
-
-
-# Trait persistence and filtering
 
 
 def fetch_persistent_traits() -> Dict[str, Trait]:
@@ -239,7 +226,7 @@ def get_trait_registry(
     settings = get_settings()
     registry = dict(ALL_TRAITS)
     if settings.traits_json_only:
-        # JSON-only: do not merge DB traits
+
         return registry
     if not any([inheritance_pattern, verification_status, category, gene_info]):
         registry.update(fetch_persistent_traits())
@@ -267,25 +254,19 @@ def get_polygenic_calculator() -> PolygenicCalculator:
     return PolygenicCalculator()
 
 
-# MongoDB Trait Management Functions
-
-
 def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
     """Convert MongoDB document to TraitInfo model."""
 
-    # Handle ObjectId conversion
     trait_id = None
     if "_id" in document:
         trait_id = str(document["_id"])
         document.pop("_id")
 
-    # Handle datetime fields
     created_at = ensure_utc(document.get("created_at")) or datetime.now(timezone.utc)
     updated_at = ensure_utc(document.get("updated_at")) or datetime.now(timezone.utc)
 
-    # Handle gene_info conversion
     gene_info = document.get("gene_info")
-    # Some legacy docs might have gene_info as a string (gene symbol)
+
     if isinstance(gene_info, str):
         gene_info = GeneInfo(
             genes=[gene_info],
@@ -295,11 +276,11 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
             locus=None,
         )
     elif isinstance(gene_info, dict):
-        # Handle both new format and legacy format
+
         if "genes" in gene_info and "chromosomes" in gene_info:
             gene_info = GeneInfo(**gene_info)
         elif "gene" in gene_info and "chromosome" in gene_info:
-            # Convert legacy format to new format
+
             gene_info = GeneInfo(
                 genes=[gene_info["gene"]] if gene_info["gene"] else [],
                 chromosomes=(
@@ -312,7 +293,7 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
         else:
             gene_info = GeneInfo(**gene_info)
     elif gene_info is None and document.get("gene"):
-        # Backward compatibility: convert legacy gene field
+
         gene_info = GeneInfo(
             genes=[document.get("gene", "")],
             chromosomes=[str(document.get("chromosome", ""))],
@@ -321,14 +302,12 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
             locus=None,
         )
 
-    # Handle validation_rules
     validation_rules = document.get("validation_rules", {})
     if isinstance(validation_rules, dict):
         validation_rules = ValidationRules(**validation_rules)
     else:
         validation_rules = ValidationRules()
 
-    # Create TraitInfo with all fields
     trait_data: Dict[str, Any] = {
         "id": trait_id,
         "key": document.get("key", ""),
@@ -346,7 +325,6 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
         "version": document.get("version", "1.0.0"),
         "status": TraitStatus(document.get("status", "draft")),
         "owner_id": document.get("owner_id", ""),
-        # Backward-compatibility: if visibility missing, treat as PUBLIC so it surfaces in selectors
         "visibility": TraitVisibility(
             document.get("visibility", TraitVisibility.PUBLIC.value)
         ),
@@ -357,7 +335,6 @@ def _serialize_trait_document(document: Dict[str, Any]) -> TraitInfo:
         "updated_at": updated_at,
         "created_by": document.get("created_by", ""),
         "updated_by": document.get("updated_by", ""),
-        # Legacy fields
         "description": document.get("description"),
         "metadata": document.get("metadata", {}),
         "gene": document.get("gene"),
@@ -386,13 +363,11 @@ def _validate_phenotype_coverage(
 
     errors = []
 
-    # Generate all possible genotypes
     expected_genotypes = set()
     for allele1, allele2 in itertools.product(alleles, repeat=2):
         canonical = _canonicalize_genotype(allele1 + allele2)
         expected_genotypes.add(canonical)
 
-    # Check coverage
     provided_genotypes = {_canonicalize_genotype(g) for g in phenotype_map.keys()}
 
     missing = expected_genotypes - provided_genotypes
@@ -416,7 +391,6 @@ def _get_alleles_and_phenotype_map(
     if isinstance(payload, TraitCreatePayload):
         return payload.alleles, dict(payload.phenotype_map)
 
-    # For updates, use payload values or fall back to existing
     existing_alleles = existing_trait.get("alleles", []) if existing_trait else []
     existing_phenotype = (
         existing_trait.get("phenotype_map", {}) if existing_trait else {}
@@ -449,8 +423,7 @@ def _validate_version_format(
 ) -> List[str]:
     """Validate version format if provided."""
     errors = []
-    # Traits currently don't expose a user-settable version in payloads;
-    # keep backward-compatible validation in case a version is provided dynamically.
+
     payload_any: Any = payload
     version_value = getattr(payload_any, "version", None)
     if version_value:
@@ -477,20 +450,16 @@ def _validate_trait_data(
     """
     errors = []
 
-    # Get alleles and phenotype_map
     alleles, phenotype_map = _get_alleles_and_phenotype_map(payload, existing_trait)
 
-    # Validate phenotype coverage if we have both alleles and phenotype_map
     if alleles and phenotype_map:
         coverage_errors = _validate_phenotype_coverage(alleles, phenotype_map)
         errors.extend(coverage_errors)
 
-    # Creation-specific validations
     if isinstance(payload, TraitCreatePayload):
         create_errors = _validate_create_payload(payload)
         errors.extend(create_errors)
 
-    # Version format validation
     version_errors = _validate_version_format(payload)
     errors.extend(version_errors)
 
@@ -517,7 +486,6 @@ def create_trait(
     try:
         collection = cast(Collection, get_traits_collection(required=True))
 
-        # Validate trait data
         validation_rules = _validate_trait_data(payload)
         if not validation_rules.passed:
             raise HTTPException(
@@ -527,7 +495,6 @@ def create_trait(
 
         now = datetime.now(timezone.utc)
 
-        # Prepare document
         document = {
             "key": payload.key.strip(),
             "name": payload.name.strip(),
@@ -554,12 +521,10 @@ def create_trait(
             "updated_at": now,
             "created_by": created_by,
             "updated_by": created_by,
-            # Legacy fields for backward compatibility
             "description": payload.description,
             "metadata": dict(payload.metadata) if payload.metadata else {},
         }
 
-        # Add legacy gene info if gene_info is provided
         if payload.gene_info:
             document["gene"] = payload.gene_info.gene
             try:
@@ -567,10 +532,8 @@ def create_trait(
             except (ValueError, TypeError):
                 document["chromosome"] = payload.gene_info.chromosome
 
-        # Insert document
         result = collection.insert_one(document)
 
-        # Retrieve and return created trait
         created_doc = collection.find_one({"_id": result.inserted_id})
         if not created_doc:
             raise HTTPException(
@@ -593,15 +556,12 @@ def _build_access_control_query(owner_id: Optional[str]) -> Dict[str, Any]:
         return {
             "$or": [
                 {"owner_id": owner_id},
-                # Public traits
                 {"visibility": TraitVisibility.PUBLIC.value},
-                # Backward-compatibility: traits without visibility are considered public
                 {"visibility": {"$exists": False}},
-                # Legacy flag
                 {"is_public": True},
             ]
         }
-    # Anonymous users can see public traits and legacy docs missing visibility
+
     return {
         "$or": [
             {"visibility": TraitVisibility.PUBLIC.value},
@@ -633,11 +593,11 @@ def _apply_gene_filter(query: Dict[str, Any], gene_filter: str) -> None:
     """Apply gene search filter to MongoDB query."""
     gene_conditions = [
         {"gene_info.gene": {"$regex": gene_filter, "$options": "i"}},
-        {"gene": {"$regex": gene_filter, "$options": "i"}},  # Legacy support
+        {"gene": {"$regex": gene_filter, "$options": "i"}},
     ]
 
     if "$or" in query:
-        # Combine with existing $or conditions using $and
+
         query["$and"] = [{"$or": query["$or"]}, {"$or": gene_conditions}]
         del query["$or"]
     else:
@@ -648,8 +608,7 @@ def _apply_visibility_filter(
     query: Dict[str, Any], visibility: TraitVisibility, owner_id: Optional[str]
 ) -> None:
     """Apply visibility filter to MongoDB query."""
-    # When an explicit visibility filter is applied, respect it but
-    # treat missing visibility as PUBLIC for backward compatibility.
+
     if visibility == TraitVisibility.PUBLIC:
         vis_condition: Dict[str, Any] = {
             "$or": [
@@ -672,14 +631,14 @@ def _apply_visibility_filter(
         }
         query["$and"] = [access_control, vis_condition]
     else:
-        # Anonymous users: only visibility filter applies
+
         query.update(vis_condition)
 
 
 def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
     """Convert a Trait object from traits_dataset.json to TraitInfo."""
-    # Use the updated trait_to_info function instead of duplicating logic
-    from ..utils import trait_to_info
+
+    from app.utils.trait_helpers import trait_to_info
 
     return trait_to_info(key, trait)
 
@@ -689,10 +648,9 @@ def _filter_json_traits(filters: TraitFilters) -> List[TraitInfo]:
     json_traits = []
 
     for key, trait in REAL_GENE_TRAITS.items():
-        # Convert to TraitInfo
+
         trait_info = _convert_json_trait_to_trait_info(key, trait)
 
-        # Apply filters
         if (
             filters.inheritance_pattern
             and trait_info.inheritance_pattern != filters.inheritance_pattern
@@ -721,7 +679,6 @@ def _filter_json_traits(filters: TraitFilters) -> List[TraitInfo]:
         if filters.visibility and trait_info.visibility != filters.visibility:
             continue
 
-        # Text search
         if filters.search:
             search_text = filters.search.lower()
             searchable_text = f"{trait_info.name} {trait_info.gene_info.gene if trait_info.gene_info else ''} {trait_info.category or ''} {' '.join(trait_info.tags)}".lower()
@@ -750,53 +707,45 @@ def get_traits(
     settings = get_settings()
 
     try:
-        # If JSON-only mode, serve only JSON traits regardless of owned_only
+
         if settings.traits_json_only:
             json_traits = _filter_json_traits(filters)
             return json_traits
 
-        # If owned_only is set, do not include JSON traits and require owner_id
         if not filters.owned_only:
-            # 1. Get traits from traits_dataset.json (always public)
+
             json_traits = _filter_json_traits(filters)
             all_traits.extend(json_traits)
         elif not owner_id:
-            # No authenticated user; nothing to return for owned_only
+
             return []
 
-        # 2. Get traits from database with access control
         try:
             if settings.traits_json_only:
-                # Shouldn't reach here due to early return, but guard anyway
+
                 return all_traits
             collection = get_traits_collection(required=False)
             if collection is None:
                 return all_traits
 
-            # Build query
             if filters.owned_only and owner_id:
-                # Only current user's traits
+
                 query: Dict[str, Any] = {"owner_id": owner_id}
             else:
-                # Access control: public + (owner's private if authenticated)
+
                 query = _build_access_control_query(owner_id)
 
-            # Apply basic filters
             _apply_basic_filters(query, filters)
 
-            # Apply gene filter
             if filters.gene:
                 _apply_gene_filter(query, filters.gene)
 
-            # Apply visibility filter (overrides access control) only when not owned_only
             if filters.visibility and not filters.owned_only:
                 _apply_visibility_filter(query, filters.visibility, owner_id)
 
-            # Text search
             if filters.search:
                 search_term = str(filters.search)
-                # MongoDB $text search ignores very short tokens (e.g., 1-2 letters)
-                # Fallback to case-insensitive regex for short queries so searches like 'W' work.
+
                 if len(search_term) >= 3:
                     query["$text"] = {"$search": search_term}
                 else:
@@ -805,11 +754,10 @@ def get_traits(
                         {"name": regex},
                         {"key": regex},
                         {"tags": regex},
-                        {"gene_info.gene": regex},  # legacy/structured gene field
-                        {"gene": regex},  # legacy gene field
+                        {"gene_info.gene": regex},
+                        {"gene": regex},
                     ]
 
-                    # If the query already contains an $or (e.g., access control), combine with $and
                     if "$or" in query:
                         query["$and"] = [
                             {"$or": query["$or"]},
@@ -819,10 +767,8 @@ def get_traits(
                     else:
                         query["$or"] = search_conditions
 
-            # Execute query
             cursor = collection.find(query).sort("updated_at", -1)
 
-            # Convert to TraitInfo objects
             db_trait_count = 0
             for doc in cursor:
                 try:
@@ -830,13 +776,12 @@ def get_traits(
                     all_traits.append(trait)
                     db_trait_count += 1
                 except Exception as e:
-                    # Log error but continue with other traits
+
                     print(f"Error serializing trait {doc.get('key', 'unknown')}: {e}")
                     continue
 
         except Exception as e:
             print(f"DEBUG: Error accessing database: {e}")
-            # Continue without database traits
 
         return all_traits
 
@@ -856,10 +801,9 @@ def get_trait_by_key(key: str, owner_id: Optional[str] = None) -> Optional[Trait
         Optional[TraitInfo]: The trait if found and accessible
     """
     settings = get_settings()
-    # JSON-only: search only JSON traits
+
     if settings.traits_json_only:
-        # Build filters-less view from JSON and match by key
-        # trait_key building matches _load_real_gene_traits keying
+
         for k, t in REAL_GENE_TRAITS.items():
             if k == key:
                 return _convert_json_trait_to_trait_info(k, t)
@@ -868,7 +812,6 @@ def get_trait_by_key(key: str, owner_id: Optional[str] = None) -> Optional[Trait
     try:
         collection = cast(Collection, get_traits_collection(required=True))
 
-        # Build query with access control (legacy docs without visibility are treated as public)
         query: Dict[str, Any] = {"key": key}
         if owner_id:
             query["$or"] = [
@@ -970,7 +913,7 @@ def _apply_extended_updates(
 def _apply_gene_info_update(update_doc: Dict[str, Any], gene_info: GeneInfo) -> None:
     """Apply gene info updates including legacy fields."""
     update_doc["gene_info"] = gene_info.dict()
-    # Update legacy fields
+
     update_doc["gene"] = gene_info.gene
     try:
         update_doc["chromosome"] = int(gene_info.chromosome)
@@ -1008,14 +951,12 @@ def update_trait(
     try:
         collection = cast(Collection, get_traits_collection(required=True))
 
-        # Find existing trait (only owner can update)
         existing_doc = collection.find_one({"key": key, "owner_id": owner_id})
         if not existing_doc:
             raise HTTPException(
                 status_code=404, detail=f"Trait '{key}' not found or access denied"
             )
 
-        # Validate updated data
         validation_rules = _validate_trait_data(payload, existing_doc)
         if not validation_rules.passed:
             raise HTTPException(
@@ -1023,18 +964,14 @@ def update_trait(
                 detail=f"Validation failed: {'; '.join(validation_rules.errors)}",
             )
 
-        # Build update document
         update_doc = _build_update_document_base(updated_by, validation_rules)
 
-        # Apply field updates
         _apply_basic_updates(update_doc, payload)
         _apply_extended_updates(update_doc, payload)
 
-        # Handle gene info separately
         if payload.gene_info is not None:
             _apply_gene_info_update(update_doc, payload.gene_info)
 
-        # Version bump and audit trail
         current_version = existing_doc.get("version", "1.0.0")
         update_doc["version"] = _calculate_new_version(current_version)
         update_doc["previous_version"] = {
@@ -1043,7 +980,6 @@ def update_trait(
             "updated_by": existing_doc.get("updated_by"),
         }
 
-        # Update document
         result = collection.update_one(
             {"key": key, "owner_id": owner_id}, {"$set": update_doc}
         )
@@ -1053,7 +989,6 @@ def update_trait(
                 status_code=404, detail=f"Trait '{key}' not found or access denied"
             )
 
-        # Return updated trait
         updated_doc = collection.find_one({"key": key, "owner_id": owner_id})
         if not updated_doc:
             raise HTTPException(
@@ -1082,7 +1017,6 @@ def delete_trait(key: str, owner_id: str) -> bool:
     try:
         collection = cast(Collection, get_traits_collection(required=True))
 
-        # Soft delete: set status to deprecated
         result = collection.update_one(
             {"key": key, "owner_id": owner_id},
             {
@@ -1104,9 +1038,6 @@ def delete_trait(key: str, owner_id: str) -> bool:
         raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
 
 
-# Legacy compatibility functions
-
-
 def filter_traits(
     trait_filter: Iterable[str] | None,
 ) -> Tuple[Dict[str, Trait], List[str]]:
@@ -1119,10 +1050,8 @@ def filter_traits(
     trait_keys = set(trait_filter)
     available_keys = set(registry.keys())
 
-    # Find missing traits
     missing = list(trait_keys - available_keys)
 
-    # Filter registry to only include requested traits that exist
     filtered_registry = {
         key: registry[key] for key in trait_keys if key in available_keys
     }

@@ -1,27 +1,30 @@
 from __future__ import annotations
-
+import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..schema.auth import UserProfile
-from ..schema.university import (
-    CourseDetailResponse,
-    CourseEnrollmentRequest,
-    CourseEnrollmentResponse,
-    CourseListResponse,
-    CourseProgressResponse,
-    CourseProgressUpdateRequest,
-    DashboardSummaryResponse,
-    PracticeSetListResponse,
-    AssessmentSubmissionRequest,
-    AssessmentResultResponse,
-    AssessmentHistoryResponse,
-    CertificateResponse,
-)
 from ..services import auth as auth_services
 from ..services import university as university_services
+from ..services.email_service import EmailService
+from ..schema.university import (
+    CourseListResponse,
+    CertificateResponse,
+    CourseDetailResponse,
+    CourseProgressResponse,
+    DashboardSummaryResponse,
+    PracticeSetListResponse,
+    AssessmentResultResponse,
+    AssessmentHistoryResponse,
+    CourseEnrollmentRequest,
+    CourseEnrollmentResponse,
+    CourseProgressUpdateRequest,
+    AssessmentSubmissionRequest,
+)
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/university", tags=["University"])
 
@@ -131,8 +134,35 @@ def update_progress(
 def enroll_course(
     payload: CourseEnrollmentRequest,
     current_user: UserProfile = Depends(get_current_user_required),
+    email_service: EmailService = Depends(EmailService),
 ) -> CourseEnrollmentResponse:
-    university_services.enroll_user_in_course(current_user.id, payload.course_slug)
+
+    course = university_services.get_course_detail(payload.course_slug, current_user.id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+
+    try:
+        university_services.enroll_user_in_course(current_user.id, payload.course_slug)
+    except Exception as e:
+        logger.error(
+            f"Enrollment failed for {current_user.id} in {payload.course_slug}: {e}"
+        )
+        raise HTTPException(status_code=400, detail=f"Enrollment failed: {e}")
+
+    try:
+        email_success = email_service.send_enrollment_email(
+            user_email=current_user.email,
+            user_name=current_user.name,
+            course_title=course.get("title", "Your New Course"),
+            course_slug=payload.course_slug,
+        )
+        if not email_success:
+            logger.warning(
+                f"User {current_user.id} enrolled successfully, but email failed to send."
+            )
+    except Exception as e:
+        logger.error(f"Email service error after enrollment: {e}", exc_info=True)
+
     return CourseEnrollmentResponse(message="Enrolled successfully.", enrolled=True)
 
 

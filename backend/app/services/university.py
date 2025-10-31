@@ -14,6 +14,7 @@ from app.config import get_settings
 
 from .service_factory import get_service_factory
 
+
 logger = logging.getLogger(__name__)
 
 _service_factory = get_service_factory()

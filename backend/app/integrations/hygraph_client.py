@@ -5,7 +5,165 @@ import logging
 
 from app.config import get_settings
 
+from app.utils.redis_client import get_cache, set_cache
+from app.cms.hygraph_queries import HYGRAPH_COURSES_QUERY, HYGRAPH_PRACTICE_SETS_QUERY
+
 logger = logging.getLogger(__name__)
+
+
+def _normalise_text(value: Any) -> Optional[str]:
+
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value.strip() or None
+    if isinstance(value, dict):
+        return value.get("markdown") or value.get("html") or None
+    return str(value) if value else None
+
+
+def _extract_asset_url(value: Any) -> Optional[str]:
+
+    if value is None:
+        return None
+    if isinstance(value, str):
+        return value
+    if isinstance(value, dict):
+        return value.get("url")
+    return None
+
+
+def _convert_hygraph_course_to_document(course: Dict[str, Any]) -> Dict[str, Any]:
+
+    slug = course.get("slug") or course.get("id")
+
+    modules = []
+    for module in course.get("courseModules", []):
+        module_items = []
+        for item in module.get("moduleItems", []):
+            raw_content = item.get("content")
+            content_value = None
+            if raw_content and isinstance(raw_content, dict):
+                content_value = raw_content.get("markdown")
+
+            video_data = item.get("video")
+            video_payload = None
+            if video_data and isinstance(video_data, dict):
+                video_payload = {
+                    "fileName": video_data.get("fileName"),
+                    "url": video_data.get("url"),
+                }
+
+            module_items.append(
+                {
+                    "id": item.get("id"),
+                    "title": item.get("title", ""),
+                    "description": item.get("description"),
+                    "content": content_value,
+                    "video": video_payload,
+                }
+            )
+
+        assessment = module.get("assessment")
+        assessment_payload = None
+        if assessment and isinstance(assessment, dict):
+            questions = assessment.get("assessmentQuestions") or []
+            if questions:
+                serialized_questions = []
+                for q in questions:
+                    prompt = q.get("prompt")
+                    prompt_md = ""
+                    if isinstance(prompt, dict):
+                        prompt_md = prompt.get("markdown") or ""
+
+                    explanation = q.get("explanation")
+                    explanation_md = ""
+                    if isinstance(explanation, dict):
+                        explanation_md = explanation.get("markdown") or ""
+
+                    opts = []
+                    for opt in q.get("options") or []:
+                        opts.append(
+                            {
+                                "text": opt.get("text", ""),
+                                "isCorrect": bool(opt.get("isCorrect")),
+                            }
+                        )
+
+                    serialized_questions.append(
+                        {
+                            "prompt": {"markdown": prompt_md},
+                            "explanation": {"markdown": explanation_md},
+                            "options": opts,
+                        }
+                    )
+
+                assessment_payload = {"assessmentQuestions": serialized_questions}
+
+        modules.append(
+            {
+                "id": module.get("id"),
+                "slug": module.get("slug"),
+                "title": module.get("title", ""),
+                "duration": module.get("duration"),
+                "description": _normalise_text(module.get("overview")),
+                "items": module_items,
+                "assessment": assessment_payload,
+            }
+        )
+
+    outcomes = []
+    for idx, outcome in enumerate(course.get("courseOutcome", []), start=1):
+        outcomes.append(
+            {
+                "id": outcome.get("id") or f"{slug}-outcome-{idx}",
+                "text": outcome.get("outcome", ""),
+            }
+        )
+
+    instructors = []
+    for instructor in course.get("instructors", []):
+        instructors.append(
+            {
+                "id": instructor.get("id"),
+                "name": instructor.get("name", ""),
+                "title": instructor.get("title"),
+                "avatar": _extract_asset_url(instructor.get("avatar")),
+            }
+        )
+
+    return {
+        "id": course.get("id"),
+        "slug": slug,
+        "title": course.get("title", ""),
+        "short_description": course.get("shortDescription"),
+        "long_description": _normalise_text(course.get("longDescription")),
+        "category": course.get("category"),
+        "level": course.get("level"),
+        "duration": course.get("duration"),
+        "badge_label": course.get("badgeLabel"),
+        "lessons": course.get("lessonsCount"),
+        "image_url": _extract_asset_url(course.get("heroImage")),
+        "modules": modules,
+        "outcomes": outcomes,
+        "instructors": instructors,
+        "tags": [t.get("hashtag") for t in course.get("tags", []) if t.get("hashtag")],
+    }
+
+
+def _serialize_practice_set(doc: Dict[str, Any]) -> Dict[str, Any]:
+
+    return {
+        "id": str(doc.get("_id")) if doc.get("_id") else doc.get("id"),
+        "slug": doc.get("slug"),
+        "title": doc.get("title", ""),
+        "description": doc.get("description"),
+        "tag": doc.get("tag"),
+        "questions": doc.get("questions"),
+        "accuracy": doc.get("accuracy"),
+        "trend": doc.get("trend"),
+        "estimated_time": doc.get("estimatedTime") or doc.get("estimated_time"),
+    }
 
 
 class HygraphClient:
@@ -14,10 +172,6 @@ class HygraphClient:
         self.settings = get_settings()
         self.endpoint = self.settings.hygraph_endpoint
         self.token = self.settings.hygraph_token
-
-        self._course_cache: Optional[tuple[datetime, List[Dict[str, Any]]]] = None
-        self._practice_cache: Optional[tuple[datetime, List[Dict[str, Any]]]] = None
-        self._cache_ttl_seconds = 300
 
     def execute_query(self, query: str) -> Optional[Dict[str, Any]]:
 
@@ -51,115 +205,57 @@ class HygraphClient:
             logger.error(f"Hygraph query failed: {e}")
             return None
 
-    def get_courses(
-        self, force_refresh: bool = False
-    ) -> Optional[List[Dict[str, Any]]]:
+    def get_courses(self) -> Optional[List[Dict[str, Any]]]:
 
-        if not force_refresh and self._course_cache:
-            cache_time, cached_data = self._course_cache
-            age = (datetime.now(timezone.utc) - cache_time).total_seconds()
-            if age < self._cache_ttl_seconds:
-                logger.info(f"📦 Using cached course data ({len(cached_data)} courses)")
-                return cached_data
+        cache_key = "hygraph:courses"
 
-        logger.info("🔄 Fetching courses from Hygraph...")
+        cached_courses = get_cache(cache_key)
+        if cached_courses:
+            logger.info(f"✅ Returning {len(cached_courses)} cached courses from Redis")
+            return cached_courses
 
-        query = """
-        query UniversityCourses {
-          courses {
-            id
-            slug
-            title
-            shortDescription
-            longDescription {
-              markdown
-            }
-            category
-            level
-            duration
-            badgeLabel
-            lessonsCount
-            heroImage {
-              url
-            }
-            courseOutcome {
-              id
-              outcome
-            }
-            courseModules(orderBy: order_ASC) {
-              id
-              title
-              duration
-              overview {
-                markdown
-              }
-              slug
-              order
-              moduleItems {
-                id
-                title
-                description
-                content {
-                  markdown
-                }
-                video {
-                  fileName
-                  url
-                }
-              }
-              assessment {
-                assessmentQuestions {
-                  prompt {
-                    markdown
-                  }
-                  explanation {
-                    markdown
-                  }
-                  options {
-                    text
-                    isCorrect
-                  }
-                }
-              }
-            }
-            instructors {
-              id
-              title
-              slug
-              speciality
-              avatar {
-                url
-              }
-            }
-            practiceSet {
-              id
-              slug
-              title
-              tag
-              description
-            }
-          }
-        }
+        logger.info("📡 Fetching fresh courses from Hygraph...")
+        data = self.execute_query(HYGRAPH_COURSES_QUERY)
+        if not data or not data.get("courses"):
+            logger.warning("⚠️  No courses returned from Hygraph")
+            return None
 
-        Get practice sets from Hygraph with caching.
+        courses = [
+            _convert_hygraph_course_to_document(course) for course in data["courses"]
+        ]
 
-        Args:
-            force_refresh: If True, bypass cache and fetch fresh data
+        set_cache(cache_key, courses)
+        logger.info(f"✅ Cached {len(courses)} courses in Redis")
 
-        query PracticeSets {
-          practiceSets {
-            id
-            slug
-            title
-            description
-            tag
-            questions
-            accuracy
-            trend
-            estimatedTime
-          }
-        }
-Clear all cached data."""
-        self._course_cache = None
-        self._practice_cache = None
-        logger.info("🧹 Hygraph cache cleared")
+        return courses
+
+    def get_practice_sets(self) -> Optional[List[Dict[str, Any]]]:
+
+        cache_key = "hygraph:practice_sets"
+
+        cached_data = get_cache(cache_key)
+        if cached_data:
+            logger.info(
+                f"✅ Returning {len(cached_data)} cached practice sets from Redis"
+            )
+            return cached_data
+
+        logger.info("📡 Fetching fresh practice sets from Hygraph...")
+        data = self.execute_query(HYGRAPH_PRACTICE_SETS_QUERY)
+        if not data or "practiceSets" not in data:
+            logger.warning("⚠️  No practice sets returned from Hygraph")
+            return None
+
+        practice_sets = [_serialize_practice_set(ps) for ps in data["practiceSets"]]
+
+        set_cache(cache_key, practice_sets)
+        logger.info(f"✅ Cached {len(practice_sets)} practice sets in Redis")
+
+        return practice_sets
+
+    def clear_cache(self):
+
+        from app.utils.redis_client import clear_cache_pattern
+
+        cleared = clear_cache_pattern("hygraph:*")
+        logger.info(f"🧹 Hygraph cache cleared ({cleared} keys deleted)")

@@ -1,11 +1,21 @@
+from __future__ import annotations
+from typing import Any, Dict, List, Optional
+from datetime import datetime, timezone
 import logging
-from typing import Dict, Any, List, Optional
-from datetime import datetime
 
-from ..repositories.course_repository import CourseRepository
-from ..repositories.progress_repository import ProgressRepository
-from ..integrations.hygraph_client import HygraphClient
-from ..serializers import CourseSerializer
+from fastapi import HTTPException
+from pymongo.errors import PyMongoError
+
+from .common import (
+    get_courses_collection,
+    get_course_enrollments_collection,
+)
+from app.integrations.hygraph_client import HygraphClient
+from app.repositories.course_repository import CourseRepository
+from app.repositories.progress_repository import ProgressRepository
+from app.serializers import CourseSerializer
+from app.services import auth as auth_services
+from app.services import email_service
 
 logger = logging.getLogger(__name__)
 
@@ -24,104 +34,167 @@ class CourseService:
         self.hygraph_client = hygraph_client
         self.serializer = serializer
 
-    async def get_course_catalog(self) -> List[Dict[str, Any]]:
+    def _serialize_course(
+        self, doc: Dict[str, Any], include_details: bool = False
+    ) -> Dict[str, Any]:
 
-        hygraph_courses = await self.hygraph_client.get_courses()
+        slug = doc.get("slug") or doc.get("id") or str(doc.get("_id"))
 
+        course = {
+            "id": str(doc.get("_id")) if doc.get("_id") else doc.get("id"),
+            "slug": slug,
+            "title": doc.get("title", ""),
+            "short_description": doc.get("short_description") or doc.get("description"),
+            "long_description": doc.get("long_description"),
+            "category": doc.get("category"),
+            "level": doc.get("level"),
+            "duration": doc.get("duration"),
+            "badge_label": doc.get("badge_label"),
+            "lessons": doc.get("lessons"),
+            "students": doc.get("students"),
+            "rating": doc.get("rating"),
+            "image_url": doc.get("image_url"),
+            "instructors": doc.get("instructors", []),
+            "outcomes": doc.get("outcomes", []),
+            "tags": (
+                [t for t in doc.get("tags", []) if isinstance(t, str)]
+                if doc.get("tags")
+                else []
+            ),
+        }
+
+        if include_details and doc.get("modules"):
+            course["modules"] = doc["modules"]
+
+        return course
+
+    def _find_course_document(self, slug: str) -> Optional[Dict[str, Any]]:
+
+        hygraph_courses = self.hygraph_client.get_courses()
         if hygraph_courses:
-            synced = await self.course_repo.bulk_upsert_courses(hygraph_courses)
-            logger.info(f"Synced {synced} courses to database")
+            for course in hygraph_courses:
+                if course.get("slug") == slug or course.get("id") == slug:
+                    return course
 
-        return [
-            self.serializer.serialize_course(course, include_details=False)
-            for course in hygraph_courses
+        collection = get_courses_collection()
+        if collection is not None:
+            return collection.find_one({"$or": [{"slug": slug}, {"id": slug}]})
+
+        return None
+
+    def _is_user_enrolled(self, user_id: str, course_slug: str) -> bool:
+
+        collection = get_course_enrollments_collection()
+        if collection is None:
+            return False
+
+        enrollment = collection.find_one(
+            {"user_id": user_id, "course_slug": course_slug}
+        )
+        return enrollment is not None
+
+    def list_courses(self, include_details: bool = False) -> List[Dict[str, Any]]:
+
+        hygraph_courses = self.hygraph_client.get_courses()
+        if hygraph_courses:
+            logger.info("✅ Returning %d courses from Hygraph", len(hygraph_courses))
+            return [
+                self._serialize_course(doc, include_details=include_details)
+                for doc in hygraph_courses
+            ]
+
+        logger.warning("⚠️  No Hygraph courses, falling back to MongoDB")
+        collection = get_courses_collection()
+        if collection is None:
+            logger.warning("⚠️  MongoDB collection not available")
+            return []
+        cursor = collection.find({}).sort("order", 1)
+        courses = [
+            self._serialize_course(doc, include_details=include_details)
+            for doc in cursor
         ]
+        return courses
 
-    async def get_course_by_slug(
-        self, slug: str, include_details: bool = True
+    def get_course_detail(
+        self, slug: str, user_id: Optional[str] = None
     ) -> Optional[Dict[str, Any]]:
 
-        course = await self.course_repo.find_by_slug(slug)
-
-        if not course:
-            logger.info(f"Course {slug} not in DB, fetching from Hygraph")
-            hygraph_courses = await self.hygraph_client.get_courses()
-
-            for hc in hygraph_courses:
-                if hc.get("slug") == slug or hc.get("id") == slug:
-                    course = hc
-                    await self.course_repo.upsert_course(course)
-                    break
-
-        if not course:
-            logger.warning(f"Course {slug} not found")
+        doc = self._find_course_document(slug)
+        if not doc:
             return None
+        serialized = self._serialize_course(doc, include_details=True)
+        course_slug = serialized.get("slug", slug)
+        if user_id:
+            serialized["enrolled"] = self._is_user_enrolled(user_id, course_slug)
 
-        return self.serializer.serialize_course(course, include_details=include_details)
+        return serialized
 
-    async def enroll_user_in_course(self, user_id: str, course_slug: str) -> bool:
+    def enroll_user_in_course(self, user_id: str, course_slug: str) -> bool:
 
-        is_enrolled = await self.course_repo.is_user_enrolled(user_id, course_slug)
-        if is_enrolled:
+        if self._is_user_enrolled(user_id, course_slug):
             logger.info(f"User {user_id} already enrolled in {course_slug}")
             return True
 
-        course = await self.get_course_by_slug(course_slug, include_details=True)
-        if not course:
-            logger.error(f"Cannot enroll: course {course_slug} not found")
-            return False
+        collection = get_course_enrollments_collection()
+        if collection is None:
+            raise HTTPException(
+                status_code=500, detail="Enrollment service not available"
+            )
 
-        enrolled = await self.course_repo.enroll_user(user_id, course_slug)
-        if not enrolled:
-            return False
-
-        modules = []
-        for module in course.get("modules", []):
-            items = []
-            for item in module.get("items", []):
-                items.append(
-                    {
-                        "module_item_id": item["id"],
-                        "title": item.get("title", ""),
-                        "completed": False,
-                    }
-                )
-
-            modules.append(
+        try:
+            now = datetime.now(timezone.utc)
+            collection.update_one(
+                {"user_id": user_id, "course_slug": course_slug},
                 {
-                    "module_id": module["id"],
-                    "title": module.get("title", ""),
-                    "status": "in-progress" if modules == [] else "locked",
-                    "duration": module.get("duration"),
-                    "completion": 0,
-                    "assessment_status": None,
-                    "best_score": None,
-                    "attempt_count": 0,
-                    "items": items,
-                }
+                    "$set": {
+                        "user_id": user_id,
+                        "course_slug": course_slug,
+                        "enrolled_at": now,
+                    }
+                },
+                upsert=True,
             )
+        except PyMongoError as exc:
+            raise HTTPException(
+                status_code=500, detail=f"Failed to enroll: {exc}"
+            ) from exc
 
-        progress_created = await self.progress_repo.create_progress(
-            user_id=user_id, course_slug=course_slug, modules=modules
-        )
+        try:
+            user_profile = auth_services.get_user_by_id(user_id)
+            course = self.get_course_detail(course_slug)
 
-        if not progress_created:
-            logger.error(
-                f"Failed to initialize progress for {user_id} in {course_slug}"
-            )
-            return False
+            if user_profile and course:
+                user_email = user_profile.get("email", "")
+                user_name = (
+                    user_profile.get("full_name")
+                    or user_profile.get("email", "").split("@")[0]
+                )
+                course_title = course.get("title", course_slug)
 
-        logger.info(f"Successfully enrolled {user_id} in {course_slug}")
+                logger.info(f"Sending enrollment email to: {user_email}")
+
+                if user_email:
+                    email_sent = email_service.send_enrollment_email(
+                        user_email, user_name, course_title, course_slug
+                    )
+                    logger.info(f"Email send result: {email_sent}")
+                else:
+                    logger.warning("No email address found for user")
+            else:
+                logger.warning(
+                    f"Missing user_profile or course. user_profile: {user_profile is not None}, course: {course is not None}"
+                )
+        except Exception as email_error:
+            logger.warning(f"Failed to send enrollment email: {email_error}")
+            logger.exception(email_error)
+
         return True
 
-    async def get_user_enrollments(self, user_id: str) -> List[Dict[str, Any]]:
+    def list_user_enrollments(self, user_id: str) -> List[str]:
 
-        enrolled_slugs = await self.course_repo.get_user_enrollments(user_id)
+        collection = get_course_enrollments_collection()
+        if collection is None:
+            return []
 
-        courses = []
-        for slug in enrolled_slugs:
-            course = await self.get_course_by_slug(slug, include_details=False)
-            if course:
-                courses.append(course)
-
-        return courses
+        cursor = collection.find({"user_id": user_id})
+        return [doc.get("course_slug") for doc in cursor if doc.get("course_slug")]

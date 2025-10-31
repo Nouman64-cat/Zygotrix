@@ -6,6 +6,8 @@ from ..serializers import CourseSerializer, ProgressSerializer
 from ..services.course_service import CourseService
 from ..services.progress_service import ProgressService
 from ..services.assessment_service import AssessmentService
+
+from ..services.dashboard_service import DashboardService
 from ..config import get_settings
 
 
@@ -23,26 +25,41 @@ class ServiceFactory:
         self.course_serializer = CourseSerializer()
         self.progress_serializer = ProgressSerializer()
 
-    def get_course_service(self) -> CourseService:
-
-        return CourseService(
+        self.course_service = CourseService(
             course_repo=self.course_repo,
             progress_repo=self.progress_repo,
             hygraph_client=self.hygraph_client,
             serializer=self.course_serializer,
         )
 
-    def get_progress_service(self) -> ProgressService:
-
-        return ProgressService(
+        self.progress_service = ProgressService(
             progress_repo=self.progress_repo,
             course_repo=self.course_repo,
             serializer=self.progress_serializer,
         )
 
+        self.assessment_service = AssessmentService()
+
+        self.dashboard_service = DashboardService(
+            course_service=self.course_service,
+            progress_service=self.progress_service,
+        )
+
+    def get_course_service(self) -> CourseService:
+
+        return self.course_service
+
+    def get_progress_service(self) -> ProgressService:
+
+        return self.progress_service
+
     def get_assessment_service(self) -> AssessmentService:
 
-        return AssessmentService()
+        return self.assessment_service
+
+    def get_dashboard_service(self) -> DashboardService:
+
+        return self.dashboard_service
 
 
 _service_factory = None

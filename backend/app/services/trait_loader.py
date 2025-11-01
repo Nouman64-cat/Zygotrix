@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 import os
 import logging
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 from zygotrix_engine import Trait
 from app.schema.traits import TraitInfo, TraitFilters
@@ -42,7 +42,8 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
                 or not isinstance(alleles, (list, tuple))
                 or not isinstance(phenotypes, dict)
             ):
-                raise ValueError("Missing required fields: trait, alleles, phenotypes")
+                raise ValueError(
+                    "Missing required fields: trait, alleles, phenotypes")
 
             trait_key = str(name).lower().replace(" ", "_").replace("-", "_")
             genes = trait_data.get("gene", [])
@@ -93,7 +94,8 @@ def _load_real_gene_traits() -> Dict[str, Trait]:
             logger.warning(f"⚠️ Warning: Skipping trait at index {idx}: {e}")
             continue
 
-    logger.info(f"✅ Loaded {len(real_gene_traits)} traits from traits_dataset.json")
+    logger.info(
+        f"✅ Loaded {len(real_gene_traits)} traits from traits_dataset.json")
     return real_gene_traits
 
 
@@ -107,6 +109,8 @@ def _convert_json_trait_to_trait_info(key: str, trait: Trait) -> TraitInfo:
 
 
 def _filter_json_traits(filters: TraitFilters) -> List[TraitInfo]:
+    if filters.owned_only:
+        return []
 
     json_traits = []
     for key, trait in REAL_GENE_TRAITS.items():

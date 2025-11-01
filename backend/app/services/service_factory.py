@@ -1,6 +1,5 @@
 from ..repositories.course_repository import CourseRepository
 from ..repositories.progress_repository import ProgressRepository
-from ..repositories.trait_repository import TraitRepository
 from ..repositories.assessment_repository import AssessmentRepository
 from ..integrations.hygraph_client import HygraphClient
 from ..serializers import CourseSerializer, ProgressSerializer
@@ -22,10 +21,9 @@ class ServiceFactory:
         self.course_repo = CourseRepository()
         self.progress_repo = ProgressRepository()
         self.assessment_repo = AssessmentRepository()
-        self.trait_repo = TraitRepository()
         self.trait_loader = TraitLoader()
         self.trait_service = TraitService(
-            repository=self.trait_repo, loader=self.trait_loader
+            loader=self.trait_loader
         )
 
         self.hygraph_client = HygraphClient()
@@ -54,31 +52,21 @@ class ServiceFactory:
         )
 
     def get_course_service(self) -> CourseService:
-
         return self.course_service
 
     def get_progress_service(self) -> ProgressService:
-
         return self.progress_service
 
     def get_assessment_service(self) -> AssessmentService:
-
         return self.assessment_service
 
     def get_dashboard_service(self) -> DashboardService:
-
         return self.dashboard_service
 
-    def get_trait_repository(self) -> TraitRepository:
-
-        return self.trait_repo
-
     def get_trait_loader(self) -> TraitLoader:
-
         return self.trait_loader
 
     def get_trait_service(self) -> TraitService:
-
         return self.trait_service
 
 
@@ -86,7 +74,6 @@ _service_factory = None
 
 
 def get_service_factory() -> ServiceFactory:
-
     global _service_factory
     if _service_factory is None:
         _service_factory = ServiceFactory()

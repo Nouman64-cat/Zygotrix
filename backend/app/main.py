@@ -1,42 +1,36 @@
 ﻿from __future__ import annotations
+from .services import gwas_dataset
+from .config import get_settings
+from .services.trait_db_setup import create_trait_indexes
+from .routes.traits import router as traits_router
+from .routes.university import router as university_router
+from .routes.community import router as community_router
+from .routes.gwas import router as gwas_router
+from .routes.cpp_engine import router as cpp_engine_router
+from .routes.analytics import router as analytics_router
+from .routes.project_templates import router as project_templates_router
+from .routes.portal import router as portal_router
+from .routes.projects import router as project_router
+from .routes.pgs_demo import router as pgs_demo_router
+from .routes.population import router as population_router
+from .routes.data_import import router as data_import_router
+from .routes.preview import router as preview_router
+from .routes.mendelian import router as mendelian_router
+from .routes.auth import router as auth_router
+from .schema.auth import UserProfile
+from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
+from .schema.common import HealthResponse
+from .services import polygenic as polygenic_services
+from .services import auth as auth_services
+from zygotrix_engine import Trait
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi import Depends, FastAPI, HTTPException, Response
+from typing import Optional
+from datetime import datetime, timezone
 import logging
 
 logging.basicConfig(level=logging.INFO)
 
-
-from datetime import datetime, timezone
-from typing import Optional
-
-from fastapi import Depends, FastAPI, HTTPException, Response
-from fastapi.middleware.cors import CORSMiddleware
-
-from zygotrix_engine import Trait
-
-from .services import auth as auth_services
-from .services import polygenic as polygenic_services
-from .schema.common import HealthResponse
-from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
-from .schema.auth import UserProfile
-
-
-from .routes.auth import router as auth_router
-from .routes.traits import router as trait_router
-from .routes.mendelian import router as mendelian_router
-from .routes.preview import router as preview_router
-from .routes.data_import import router as data_import_router
-from .routes.population import router as population_router
-from .routes.pgs_demo import router as pgs_demo_router
-from .routes.projects import router as project_router
-from .routes.portal import router as portal_router
-from .routes.project_templates import router as project_templates_router
-from .routes.analytics import router as analytics_router
-from .routes.cpp_engine import router as cpp_engine_router
-from .routes.gwas import router as gwas_router
-from .routes.community import router as community_router
-from .routes.university import router as university_router
-from .services.trait_db_setup import create_trait_indexes
-from .config import get_settings
-from .services import gwas_dataset
 
 app = FastAPI(
     title="Zygotrix Backend",
@@ -77,10 +71,6 @@ async def startup_event():
     settings = get_settings()
     if settings.traits_json_only:
         return
-    try:
-        create_trait_indexes()
-    except Exception as e:
-        print(f"⚠️  Warning: Could not initialize trait indexes: {e}")
 
     try:
         gwas_dataset.ensure_dataset_loaded()
@@ -89,7 +79,6 @@ async def startup_event():
 
 
 app.include_router(auth_router)
-app.include_router(trait_router)
 app.include_router(mendelian_router)
 app.include_router(preview_router)
 app.include_router(data_import_router)
@@ -103,6 +92,7 @@ app.include_router(gwas_router)
 app.include_router(community_router)
 app.include_router(cpp_engine_router)
 app.include_router(university_router)
+app.include_router(traits_router)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])

@@ -1,5 +1,19 @@
-from zygotrix_engine import Trait
+from app.models import Trait
 from app.schema.traits import TraitInfo
+from typing import Dict
+
+
+def normalize_probabilities(distribution: Dict[str, float]) -> Dict[str, float]:
+    """Normalize a probability distribution to sum to 1.0"""
+    total = sum(distribution.values())
+    if total == 0:
+        return distribution
+    return {k: v / total for k, v in distribution.items()}
+
+
+def to_percentage_distribution(distribution: Dict[str, float]) -> Dict[str, float]:
+    """Convert probability distribution to percentages"""
+    return {k: v * 100.0 for k, v in distribution.items()}
 
 
 def trait_to_info(key: str, trait: Trait) -> TraitInfo:

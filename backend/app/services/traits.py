@@ -10,7 +10,7 @@ from typing import (
 )
 from functools import lru_cache
 
-from zygotrix_engine import Trait, Simulator, PolygenicCalculator
+from app.models import Trait, Simulator, PolygenicCalculator
 from ..schema.traits import (
     TraitInfo,
     TraitFilters,

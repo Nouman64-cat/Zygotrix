@@ -8,8 +8,8 @@ from bson import ObjectId
 from fastapi import HTTPException
 from pymongo.collection import Collection
 from pymongo.errors import PyMongoError, DuplicateKeyError
-from zygotrix_engine import Trait
 
+from app.models import Trait
 from app.services.common import get_traits_collection
 from app.schema.traits import TraitFilters, TraitStatus, TraitVisibility
 

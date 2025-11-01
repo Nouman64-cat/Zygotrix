@@ -3,10 +3,9 @@ import logging
 import subprocess
 import json
 from pathlib import Path
-from zygotrix_engine import Simulator, Trait
-from zygotrix_engine.mendelian import MendelianCalculator
-from zygotrix_engine.utils import normalize_probabilities, to_percentage_distribution
 
+from app.models import Simulator, Trait, MendelianCalculator
+from app.utils.trait_helpers import normalize_probabilities, to_percentage_distribution
 from .service_factory import get_service_factory
 from .trait_converter import build_cpp_engine_request
 from ..config import get_settings

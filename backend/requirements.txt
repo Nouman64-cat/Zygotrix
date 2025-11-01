@@ -13,4 +13,3 @@ pandas==2.2.3
 pyarrow==17.0.0
 resend==2.7.0
 redis==5.0.1
--e ../zygotrix_engine

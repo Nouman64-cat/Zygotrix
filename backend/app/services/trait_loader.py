@@ -5,7 +5,7 @@ import os
 import logging
 from typing import Any, Dict, List, Optional
 
-from zygotrix_engine import Trait
+from app.models import Trait
 from app.schema.traits import TraitInfo, TraitFilters
 from app.utils.trait_helpers import trait_to_info
 

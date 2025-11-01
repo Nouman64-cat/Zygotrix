@@ -22,7 +22,7 @@ from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.common import HealthResponse
 from .services import polygenic as polygenic_services
 from .services import auth as auth_services
-from zygotrix_engine import Trait
+from app.models import Trait
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Response
 from typing import Optional

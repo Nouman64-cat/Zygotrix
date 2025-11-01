@@ -8,6 +8,9 @@ from .assessment import (
 )
 from .progress import ModuleProgress, CourseProgress, ProgressMetrics
 from .trait import Trait
+from .simulator import Simulator
+from .mendelian_calculator import MendelianCalculator
+from .polygenic_calculator import PolygenicCalculator
 
 __all__ = [
     "Assessment",
@@ -18,4 +21,7 @@ __all__ = [
     "CourseProgress",
     "ProgressMetrics",
     "Trait",
+    "Simulator",
+    "MendelianCalculator",
+    "PolygenicCalculator",
 ]

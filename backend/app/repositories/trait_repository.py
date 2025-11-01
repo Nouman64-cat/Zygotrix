@@ -1,13 +1,14 @@
 from __future__ import annotations
 
 import logging
-from typing import Any, Dict, List, Optional, cast
+from typing import Any, Dict, List, Optional, cast, Mapping
 from datetime import datetime, timezone
 
 from bson import ObjectId
 from fastapi import HTTPException
 from pymongo.collection import Collection
 from pymongo.errors import PyMongoError, DuplicateKeyError
+from zygotrix_engine import Trait
 
 from app.services.common import get_traits_collection
 from app.schema.traits import TraitFilters, TraitStatus, TraitVisibility
@@ -19,7 +20,8 @@ class TraitRepository:
 
     def __init__(self):
         try:
-            self.collection = cast(Collection, get_traits_collection(required=True))
+            self.collection = cast(
+                Collection, get_traits_collection(required=True))
             logger.info("TraitRepository initialized with MongoDB collection.")
         except Exception as e:
             logger.error(
@@ -137,7 +139,8 @@ class TraitRepository:
             if filters.gene:
                 self._apply_gene_filter(query, filters.gene)
             if filters.visibility and not filters.owned_only:
-                self._apply_visibility_filter(query, filters.visibility, owner_id)
+                self._apply_visibility_filter(
+                    query, filters.visibility, owner_id)
             if filters.search:
                 self._apply_search_filter(query, filters.search)
 
@@ -159,7 +162,8 @@ class TraitRepository:
             return self.collection.find_one(query)
         except PyMongoError as e:
             logger.error(f"Error finding trait by key '{key}': {e}")
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Database error: {str(e)}")
 
     def find_one_by_id(self, trait_id: str, owner_id: str) -> Optional[Dict[str, Any]]:
 
@@ -174,12 +178,14 @@ class TraitRepository:
             return self.collection.find_one(query)
         except PyMongoError as e:
             logger.error(f"Error finding trait by id '{trait_id}': {e}")
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Database error: {str(e)}")
 
     def create(self, document: Dict[str, Any]) -> Dict[str, Any]:
 
         if self.collection is None:
-            raise HTTPException(status_code=503, detail="Database not available")
+            raise HTTPException(
+                status_code=503, detail="Database not available")
 
         try:
             result = self.collection.insert_one(document)
@@ -196,7 +202,8 @@ class TraitRepository:
             )
         except PyMongoError as e:
             logger.error(f"Error creating trait: {e}")
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Database error: {str(e)}")
 
     def update(
         self, key: str, owner_id: str, update_doc: Dict[str, Any]
@@ -212,11 +219,13 @@ class TraitRepository:
             if result.matched_count == 0:
                 return None
 
-            updated_doc = self.collection.find_one({"key": key, "owner_id": owner_id})
+            updated_doc = self.collection.find_one(
+                {"key": key, "owner_id": owner_id})
             return updated_doc
         except PyMongoError as e:
             logger.error(f"Error updating trait '{key}': {e}")
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Database error: {str(e)}")
 
     def delete(self, key: str, owner_id: str) -> bool:
 
@@ -236,16 +245,15 @@ class TraitRepository:
             return result.matched_count > 0
         except PyMongoError as e:
             logger.error(f"Error deleting trait '{key}': {e}")
-            raise HTTPException(status_code=500, detail=f"Database error: {str(e)}")
+            raise HTTPException(
+                status_code=500, detail=f"Database error: {str(e)}")
 
     def _build_trait_from_document(self, document: Mapping[str, object]) -> Trait:
-
-        from zygotrix_engine import Trait
-
         base_metadata: Dict[str, str] = {}
         metadata_obj = document.get("metadata", {})
         if isinstance(metadata_obj, dict):
-            base_metadata.update({str(k): str(v) for k, v in metadata_obj.items()})
+            base_metadata.update({str(k): str(v)
+                                 for k, v in metadata_obj.items()})
         alleles_obj = document.get("alleles", [])
         alleles_list = [
             str(a) for a in alleles_obj if isinstance(alleles_obj, (list, tuple))

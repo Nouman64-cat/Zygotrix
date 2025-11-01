@@ -7,6 +7,7 @@ from .assessment import (
     AssessmentAttempt,
 )
 from .progress import ModuleProgress, CourseProgress, ProgressMetrics
+from .trait import Trait
 
 __all__ = [
     "Assessment",
@@ -16,4 +17,5 @@ __all__ = [
     "ModuleProgress",
     "CourseProgress",
     "ProgressMetrics",
+    "Trait",
 ]

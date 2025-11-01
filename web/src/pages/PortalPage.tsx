@@ -20,8 +20,7 @@ import UserStatsChart from "../components/charts/UserStatsChart";
 const PortalPage: React.FC = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { traitsCount, projectsCount, publicTraitsCount, loading, error } =
-    useUserStats();
+  const { projectsCount, publicTraitsCount, loading, error } = useUserStats();
 
   const quickActions = [
     {

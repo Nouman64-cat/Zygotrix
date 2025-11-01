@@ -34,8 +34,10 @@ class Settings:
     backend_env: str = os.getenv("BACKEND_ENV", "Production")
     mongodb_uri: str = os.getenv("MONGODB_URI", "")
     mongodb_db_name: str = os.getenv("MONGODB_DB_NAME", "zygotrix")
-    mongodb_traits_collection: str = os.getenv("MONGODB_TRAITS_COLLECTION", "traits")
-    mongodb_users_collection: str = os.getenv("MONGODB_USERS_COLLECTION", "users")
+    mongodb_traits_collection: str = os.getenv(
+        "MONGODB_TRAITS_COLLECTION", "traits")
+    mongodb_users_collection: str = os.getenv(
+        "MONGODB_USERS_COLLECTION", "users")
     mongodb_pending_signups_collection: str = os.getenv(
         "MONGODB_PENDING_SIGNUPS_COLLECTION", "pending_signups"
     )
@@ -54,7 +56,8 @@ class Settings:
     mongodb_questions_collection: str = os.getenv(
         "MONGODB_QUESTIONS_COLLECTION", "questions"
     )
-    mongodb_answers_collection: str = os.getenv("MONGODB_ANSWERS_COLLECTION", "answers")
+    mongodb_answers_collection: str = os.getenv(
+        "MONGODB_ANSWERS_COLLECTION", "answers")
     mongodb_comments_collection: str = os.getenv(
         "MONGODB_COMMENTS_COLLECTION", "comments"
     )
@@ -78,10 +81,13 @@ class Settings:
     auth_token_ttl_minutes: int = _get_int("AUTH_TOKEN_TTL_MINUTES", 60)
     auth_jwt_algorithm: str = os.getenv("AUTH_JWT_ALGORITHM", "HS256")
     resend_api_key: str = os.getenv("RESEND_API_KEY", "")
-    resend_from_email: str = os.getenv("RESEND_FROM_EMAIL", "onboarding@resend.dev")
+    resend_from_email: str = os.getenv(
+        "RESEND_FROM_EMAIL", "onboarding@resend.dev")
     signup_otp_ttl_minutes: int = _get_int("SIGNUP_OTP_TTL_MINUTES", 10)
     # Trait source control: when true, serve traits from JSON only and disable trait CRUD
     traits_json_only: bool = _get_bool("TRAITS_JSON_ONLY", False)
+    # Migration flag: when true, use C++ engine for Mendelian calculations
+    use_cpp_engine: bool = _get_bool("USE_CPP_ENGINE", True)
     _default_cli = "zyg_cross_cli.exe" if os.name == "nt" else "zyg_cross_cli"
     cpp_engine_cli_path: str = os.getenv(
         "CPP_ENGINE_CLI_PATH",

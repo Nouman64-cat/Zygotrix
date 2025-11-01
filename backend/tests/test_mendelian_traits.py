@@ -5,7 +5,43 @@ from fastapi.testclient import TestClient
 from pymongo.collection import Collection
 
 from app.main import app
-from app.services import get_traits_collection, save_trait
+from app.services.common import get_traits_collection
+
+
+def save_trait(key: str, trait_data: dict) -> dict:
+    """Helper function to save a trait for testing."""
+    collection = get_traits_collection()
+    if collection is None:
+        raise RuntimeError("Traits collection not available")
+
+    # Add key if not present
+    if "key" not in trait_data:
+        trait_data["key"] = key
+
+    # Move Mendelian-specific fields into metadata if they're at top level
+    metadata_fields = [
+        "inheritance_pattern", "verification_status", "gene_info",
+        "category", "chromosome_location", "population_frequency"
+    ]
+
+    # Get existing metadata or create new dict
+    metadata = trait_data.get("metadata", {})
+
+    # Move top-level metadata fields into the metadata dict
+    for field in metadata_fields:
+        if field in trait_data:
+            metadata[field] = trait_data.pop(field)
+
+    # Update metadata in trait_data
+    if metadata:
+        trait_data["metadata"] = metadata
+
+    # Insert the trait
+    result = collection.insert_one(trait_data)
+
+    # Return the created trait
+    created_trait = collection.find_one({"_id": result.inserted_id})
+    return created_trait
 
 
 @pytest.fixture
@@ -41,14 +77,15 @@ class TestMendelianTraitMetadata:
             "category": "physical_traits",
             "metadata": {"source": "test"}
         }
-        
+
         trait = save_trait("test_dimples", trait_data)
-        
-        assert trait.name == "Test Dimples"
-        assert trait.alleles == ("D", "d")
-        assert trait.metadata.get("inheritance_pattern") == "autosomal_dominant"
-        assert trait.metadata.get("verification_status") == "simplified"
-        assert trait.metadata.get("category") == "physical_traits"
+
+        assert trait["name"] == "Test Dimples"
+        assert trait["alleles"] == ["D", "d"]
+        assert trait["metadata"].get(
+            "inheritance_pattern") == "autosomal_dominant"
+        assert trait["metadata"].get("verification_status") == "simplified"
+        assert trait["metadata"].get("category") == "physical_traits"
 
     def test_save_trait_with_gene_info(self, clean_traits_collection):
         """Test saving a trait with gene information."""
@@ -62,11 +99,11 @@ class TestMendelianTraitMetadata:
             "gene_info": "MC1R",
             "category": "physical_traits"
         }
-        
+
         trait = save_trait("test_red_hair", trait_data)
-        
-        assert trait.metadata.get("gene_info") == "MC1R"
-        assert trait.metadata.get("verification_status") == "verified"
+
+        assert trait["metadata"].get("gene_info") == "MC1R"
+        assert trait["metadata"].get("verification_status") == "verified"
 
     def test_trait_backward_compatibility(self, clean_traits_collection):
         """Test that old traits without metadata still work."""
@@ -76,12 +113,12 @@ class TestMendelianTraitMetadata:
             "phenotype_map": {"AA": "Dominant", "Aa": "Dominant", "aa": "Recessive"},
             "description": "Simple test trait"
         }
-        
+
         trait = save_trait("simple_trait", trait_data)
-        
-        assert trait.name == "Simple Trait"
-        assert trait.metadata.get("inheritance_pattern") is None
-        assert trait.metadata.get("verification_status") is None
+
+        assert trait["name"] == "Simple Trait"
+        assert trait.get("metadata", {}).get("inheritance_pattern") is None
+        assert trait.get("metadata", {}).get("verification_status") is None
 
 
 class TestTraitFiltering:
@@ -93,7 +130,7 @@ class TestTraitFiltering:
         collection = get_traits_collection()
         if collection:
             collection.delete_many({})
-        
+
         # Create test traits
         dominant_trait = {
             "name": "Dominant Trait",
@@ -104,9 +141,9 @@ class TestTraitFiltering:
             "category": "physical_traits"
         }
         save_trait("dominant_test", dominant_trait)
-        
+
         recessive_trait = {
-            "name": "Recessive Trait", 
+            "name": "Recessive Trait",
             "alleles": ["R", "r"],
             "phenotype_map": {"RR": "Normal", "Rr": "Normal", "rr": "Trait"},
             "inheritance_pattern": "autosomal_recessive",
@@ -119,43 +156,48 @@ class TestTraitFiltering:
     def test_filter_by_inheritance_pattern(self, client):
         """Test filtering traits by inheritance pattern."""
         self.setup_method()
-        
+
         # Test dominant filter
-        response = client.get("/api/traits?inheritance_pattern=autosomal_dominant")
+        response = client.get(
+            "/api/traits?inheritance_pattern=autosomal_dominant")
         assert response.status_code == 200
         traits = response.json()["traits"]
         assert len(traits) >= 1
-        assert all(t.get("inheritance_pattern") == "autosomal_dominant" for t in traits)
-        
+        assert all(t.get("inheritance_pattern") ==
+                   "autosomal_dominant" for t in traits)
+
         # Test recessive filter
-        response = client.get("/api/traits?inheritance_pattern=autosomal_recessive")
+        response = client.get(
+            "/api/traits?inheritance_pattern=autosomal_recessive")
         assert response.status_code == 200
         traits = response.json()["traits"]
         assert len(traits) >= 1
-        assert all(t.get("inheritance_pattern") == "autosomal_recessive" for t in traits)
+        assert all(t.get("inheritance_pattern") ==
+                   "autosomal_recessive" for t in traits)
 
     def test_filter_by_verification_status(self, client):
         """Test filtering traits by verification status."""
         self.setup_method()
-        
+
         # Test verified filter
         response = client.get("/api/traits?verification_status=verified")
         assert response.status_code == 200
         traits = response.json()["traits"]
         assert len(traits) >= 1
         assert all(t.get("verification_status") == "verified" for t in traits)
-        
+
         # Test simplified filter
         response = client.get("/api/traits?verification_status=simplified")
         assert response.status_code == 200
         traits = response.json()["traits"]
         assert len(traits) >= 1
-        assert all(t.get("verification_status") == "simplified" for t in traits)
+        assert all(t.get("verification_status") ==
+                   "simplified" for t in traits)
 
     def test_filter_by_category(self, client):
         """Test filtering traits by category."""
         self.setup_method()
-        
+
         response = client.get("/api/traits?category=physical_traits")
         assert response.status_code == 200
         traits = response.json()["traits"]
@@ -165,7 +207,7 @@ class TestTraitFiltering:
     def test_filter_by_gene_info(self, client):
         """Test filtering traits by gene information."""
         self.setup_method()
-        
+
         response = client.get("/api/traits?gene_info=TEST_GENE")
         assert response.status_code == 200
         traits = response.json()["traits"]
@@ -175,8 +217,9 @@ class TestTraitFiltering:
     def test_multiple_filters(self, client):
         """Test applying multiple filters simultaneously."""
         self.setup_method()
-        
-        response = client.get("/api/traits?inheritance_pattern=autosomal_recessive&verification_status=verified")
+
+        response = client.get(
+            "/api/traits?inheritance_pattern=autosomal_recessive&verification_status=verified")
         assert response.status_code == 200
         traits = response.json()["traits"]
         assert len(traits) >= 1
@@ -200,10 +243,10 @@ class TestAPI:
             "verification_status": "simplified",
             "category": "physical_traits"
         }
-        
+
         response = client.post("/api/traits", json=payload)
         assert response.status_code == 201
-        
+
         trait_data = response.json()["trait"]
         assert trait_data["key"] == "api_test_trait"
         assert trait_data["inheritance_pattern"] == "autosomal_dominant"
@@ -220,7 +263,7 @@ class TestAPI:
             "phenotype_map": {"UU": "Trait", "Uu": "Trait", "uu": "No trait"}
         }
         client.post("/api/traits", json=create_payload)
-        
+
         # Then update it with metadata
         update_payload = {
             "key": "update_test",
@@ -231,10 +274,10 @@ class TestAPI:
             "verification_status": "verified",
             "gene_info": "UPDATE_GENE"
         }
-        
+
         response = client.put("/api/traits/update_test", json=update_payload)
         assert response.status_code == 200
-        
+
         trait_data = response.json()["trait"]
         assert trait_data["name"] == "Updated Test"
         assert trait_data["inheritance_pattern"] == "autosomal_dominant"
@@ -245,12 +288,13 @@ class TestAPI:
         response = client.get("/api/traits")
         assert response.status_code == 200
         all_traits = response.json()["traits"]
-        
+
         # Test filtering
-        response = client.get("/api/traits?inheritance_pattern=autosomal_dominant")
+        response = client.get(
+            "/api/traits?inheritance_pattern=autosomal_dominant")
         assert response.status_code == 200
         filtered_traits = response.json()["traits"]
-        
+
         # Should have fewer or equal traits when filtered
         assert len(filtered_traits) <= len(all_traits)
 
@@ -266,13 +310,13 @@ class TestMendelianSimulation:
             "traits": ["dimples"],
             "as_percentages": True
         }
-        
+
         response = client.post("/api/mendelian/simulate", json=payload)
         assert response.status_code == 200
-        
+
         results = response.json()["results"]
         assert "dimples" in results
-        
+
         # Should have 50% Dimples, 50% No dimples
         dimples_result = results["dimples"]
         assert "Dimples" in dimples_result
@@ -288,13 +332,13 @@ class TestMendelianSimulation:
             "traits": ["red_hair"],
             "as_percentages": True
         }
-        
+
         response = client.post("/api/mendelian/simulate", json=payload)
         assert response.status_code == 200
-        
+
         results = response.json()["results"]
         assert "red_hair" in results
-        
+
         # Should have 75% Non-red, 25% Red
         red_hair_result = results["red_hair"]
         assert "Non-red" in red_hair_result

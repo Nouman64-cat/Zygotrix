@@ -8,6 +8,7 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(zygotrix_engine STATIC
     src/Engine.cpp
+    src/MendelianCalculator.cpp
 )
 
 target_include_directories(zygotrix_engine
@@ -18,6 +19,9 @@ target_include_directories(zygotrix_engine
 
 add_executable(zyg_demo examples/demo.cpp)
 target_link_libraries(zyg_demo PRIVATE zygotrix_engine)
+
+add_executable(zyg_test_mendelian examples/test_mendelian.cpp)
+target_link_libraries(zyg_test_mendelian PRIVATE zygotrix_engine)
 
 add_executable(zyg_cross_cli
     src/CrossCli.cpp

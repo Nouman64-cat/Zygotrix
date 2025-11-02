@@ -15,7 +15,8 @@ from app.repositories.course_repository import CourseRepository
 from app.repositories.progress_repository import ProgressRepository
 from app.serializers import CourseSerializer
 from app.services import auth as auth_services
-from app.services import email_service
+from app.services.email_service import EmailService
+from app.config import get_settings
 
 logger = logging.getLogger(__name__)
 
@@ -97,7 +98,8 @@ class CourseService:
 
         hygraph_courses = self.hygraph_client.get_courses()
         if hygraph_courses:
-            logger.info("✅ Returning %d courses from Hygraph", len(hygraph_courses))
+            logger.info("✅ Returning %d courses from Hygraph",
+                        len(hygraph_courses))
             return [
                 self._serialize_course(doc, include_details=include_details)
                 for doc in hygraph_courses
@@ -125,7 +127,8 @@ class CourseService:
         serialized = self._serialize_course(doc, include_details=True)
         course_slug = serialized.get("slug", slug)
         if user_id:
-            serialized["enrolled"] = self._is_user_enrolled(user_id, course_slug)
+            serialized["enrolled"] = self._is_user_enrolled(
+                user_id, course_slug)
 
         return serialized
 
@@ -174,6 +177,8 @@ class CourseService:
                 logger.info(f"Sending enrollment email to: {user_email}")
 
                 if user_email:
+                    # Instantiate EmailService
+                    email_service = EmailService(settings=get_settings())
                     email_sent = email_service.send_enrollment_email(
                         user_email, user_name, course_title, course_slug
                     )

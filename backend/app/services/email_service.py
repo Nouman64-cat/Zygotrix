@@ -36,16 +36,19 @@ class EmailService:
         )
 
         if not settings.resend_api_key:
-            logger.warning("RESEND_API_KEY not set. Email service is disabled.")
-            self.client = None
+            logger.warning(
+                "RESEND_API_KEY not set. Email service is disabled.")
+            self.enabled = False
         else:
-            self.client = resend.Client(api_key=settings.resend_api_key)
+            # resend v2.x uses direct API key setting
+            resend.api_key = settings.resend_api_key
+            self.enabled = True
 
     def _send_email(
         self, to: str, subject: str, html_body: str, text_body: str
     ) -> bool:
 
-        if not self.client:
+        if not self.enabled:
             logger.warning(
                 f"Email service disabled. Skipping email to {to} (Subject: {subject})"
             )
@@ -60,7 +63,8 @@ class EmailService:
         }
 
         try:
-            self.client.emails.send(params)
+            # resend v2.x API uses resend.Emails.send() directly
+            resend.Emails.send(params)
             logger.info(f"Email '{subject}' sent successfully to {to}.")
             return True
         except Exception as e:

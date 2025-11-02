@@ -1,3 +1,8 @@
 {
-  "cmake.sourceDirectory": "D:/Zygotrix/zygotrix_engine_cpp"
+  "cmake.sourceDirectory": "D:/Zygotrix/zygotrix_engine_cpp",
+  "files.associations": {
+    "vector": "cpp",
+    "cmath": "cpp",
+    "unordered_map": "cpp"
+  }
 }

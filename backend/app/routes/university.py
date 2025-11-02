@@ -47,7 +47,8 @@ def get_current_user_optional(
 
 
 def get_current_user_required(
-    credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme_required),
+    credentials: HTTPAuthorizationCredentials = Depends(
+        bearer_scheme_required),
 ) -> UserProfile:
     user = auth_services.resolve_user_from_token(credentials.credentials)
     return UserProfile(**user)
@@ -105,7 +106,8 @@ def get_progress(
     course_slug: str,
     current_user: UserProfile = Depends(get_current_user_required),
 ) -> CourseProgressResponse:
-    progress = university_services.get_course_progress(current_user.id, course_slug)
+    progress = university_services.get_course_progress(
+        current_user.id, course_slug)
     if not progress:
         return CourseProgressResponse(
             user_id=current_user.id,
@@ -137,12 +139,14 @@ def enroll_course(
     email_service: EmailService = Depends(EmailService),
 ) -> CourseEnrollmentResponse:
 
-    course = university_services.get_course_detail(payload.course_slug, current_user.id)
+    course = university_services.get_course_detail(
+        payload.course_slug, current_user.id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
 
     try:
-        university_services.enroll_user_in_course(current_user.id, payload.course_slug)
+        university_services.enroll_user_in_course(
+            current_user.id, payload.course_slug)
     except Exception as e:
         logger.error(
             f"Enrollment failed for {current_user.id} in {payload.course_slug}: {e}"
@@ -150,9 +154,12 @@ def enroll_course(
         raise HTTPException(status_code=400, detail=f"Enrollment failed: {e}")
 
     try:
+        # Use full_name or fallback to email username
+        user_name = current_user.full_name or current_user.email.split("@")[0]
+
         email_success = email_service.send_enrollment_email(
             user_email=current_user.email,
-            user_name=current_user.name,
+            user_name=user_name,
             course_title=course.get("title", "Your New Course"),
             course_slug=payload.course_slug,
         )
@@ -161,7 +168,8 @@ def enroll_course(
                 f"User {current_user.id} enrolled successfully, but email failed to send."
             )
     except Exception as e:
-        logger.error(f"Email service error after enrollment: {e}", exc_info=True)
+        logger.error(
+            f"Email service error after enrollment: {e}", exc_info=True)
 
     return CourseEnrollmentResponse(message="Enrolled successfully.", enrolled=True)
 

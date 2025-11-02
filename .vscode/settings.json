@@ -3,6 +3,12 @@
   "files.associations": {
     "vector": "cpp",
     "cmath": "cpp",
-    "unordered_map": "cpp"
+    "unordered_map": "cpp",
+    "random": "cpp",
+    "utility": "cpp",
+    "functional": "cpp",
+    "cctype": "cpp",
+    "map": "cpp",
+    "string": "cpp"
   }
 }

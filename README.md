@@ -1,103 +1,127 @@
 # Zygotrix
 
-Zygotrix ## Core Capabilities
+## Zygotrix Engine
 
-- **19 Mendelian Traits**: Explore classic single-gene inheritance patterns with scientifically verified traits (red hair, PTC tasting) and educational models (eye color, dimples, hair texture).
-- **Advanced Trait Filtering**: Filter traits by inheritance pattern (dominant/recessive), verification status (verified/simplified), gene information, and categories.
-- **Trait-Based Inputs**: Capture parental traits such as eye color, hair color, blood type, height, and more.
-- **Genetic Data Integration**: Optionally import VCF files from services like 23andMe or AncestryDNA to enrich the simulation.
-- **Probabilistic Outputs**: Generate likelihood distributions for potential offspring traits (e.g., "60% chance blue eyes, 40% chance green eyes" or "expected height range: 165–173 cm").
-- **Educational Reports**: Export summaries that explain the underlying genetics concepts and highlight learning takeaways.educational genetics simulation platform that helps students and curious learners explore how parental traits and genetic information can shape possible offspring characteristics. The project is designed as a safe, accessible learning companion�not a diagnostic or medical decision-making tool.
+The Zygotrix engine is developed in **C++** because the engine is responsible for pure computational workflows and ultimately responsible solely for computational outcomes.
 
-## Why Zygotrix?
+---
 
-- Illustrate how Mendelian inheritance and polygenic models interact to influence phenotype outcomes.
-- Provide intuitive visualizations that turn complex genomic concepts into approachable learning experiences.
-- Encourage responsible engagement with genetic data through clear guardrails, consent reminders, and privacy-first defaults.
+### Stochastic Simulation Engine
 
-## Repository Structure
+The "Stochastic" here means **"random"**. The `src/Engine.cpp` component of the Zygotrix project is designed as a stochastic simulation engine. This means it models genetic inheritance by mimicking biological processes through random chance, producing one unique outcome per "run" or "simulation."
 
-- `zygotrix-engine/`: Core Python library that models inheritance logic and calculates trait probabilities; intentionally framework-agnostic so it can be packaged or published independently.
-- `backend/`: FastAPI service that exposes the engine to web and mobile clients while handling authentication, persistence, and orchestration tasks.
-- `web/`: Browser-based frontend that presents interactive simulations, reports, and visual dashboards for desktop users.
-- `mobile/`: Mobile-first experience (React Native/Expo planned) optimized for handheld learning and quick scenario exploration.
-- `docs/`: Concept notes, research references, and product documentation that support curriculum design and stakeholder communication.
-- `examples/`: Sample datasets, notebooks, and walkthroughs that demonstrate how to operate the engine and interpret outputs.
+---
 
-This separation keeps the genetics engine clean and reusable, while the service and UI layers can evolve independently without coupling presentation concerns to core modeling logic.
+### Why is it "Stochastic"?
 
-## Core Capabilities
+The engine's stochastic nature stems directly from its implementation, which heavily relies on random number generation to model the inherent unpredictability of biological events:
 
-- **Trait-Based Inputs**: Capture parental traits such as eye color, hair color, blood type, height, and more.
-- **Genetic Data Integration**: Optionally import VCF files from services like 23andMe or AncestryDNA to enrich the simulation.
-- **Probabilistic Outputs**: Generate likelihood distributions for potential offspring traits (e.g., "60% chance blue eyes, 40% chance green eyes" or "expected height range: 165�173 cm").
-- **Educational Reports**: Export summaries that explain the underlying genetics concepts and highlight learning takeaways.
+1.  **Random Number Generation:** The engine explicitly uses the C++ `<random>` library, employing a `std::mt19937` (Mersenne Twister) random number generator.
 
-## Simulation Workflow
+2.  **Random Gamete Selection:** During gamete formation, `std::bernoulli_distribution(0.5)` is used to randomly select which of a parent's two alleles will be passed on, reflecting Mendelian segregation.
 
-1. **Collect Inputs**: Users provide parental traits and, optionally, VCF genetic data.
-2. **Process Genetics**:
-   - Apply Mendelian inheritance rules for simple traits (dominant/recessive allele modeling).
-   - Calculate polygenic risk scores for complex traits such as height, weight, or disease susceptibility.
-   - Reference public genomic datasets (SNPedia, ClinVar, GWAS Catalog) to map relevant variants to phenotypic outcomes.
-3. **Present Results**: Visualize probability distributions, risk awareness summaries, and optional phenotype renderings that combine predicted traits with user-supplied imagery.
-4. **Encourage Reflection**: Highlight how environmental factors and lifestyle choices can modulate genetic predispositions.
+3.  **Random Sex Determination:** For sex-linked traits, `std::bernoulli_distribution(0.5)` is used to randomly determine the sex of the offspring,
+    typically representing the 50/50 chance of inheriting an X or Y chromosome from the paternal gamete.
 
-## Planned Features
+4.  **Random Crossover Events:** For linked genes, `std::bernoulli_distribution(gene->recombinationProbability)` is employed to model the random occurrence of genetic recombination (crossover) between loci, based on their defined recombination frequency.
 
-- Interactive probability visualizations (charts, graphs, and comparative overlays).
-- Environmental factor sliders to illustrate gene�environment interactions.
-- AI-assisted phenotype previews using GANs or autoencoders for speculative child face morphs.
-- Customizable educational reports for classroom or workshop use.
-- Privacy controls that allow anonymous simulations and local-only data processing.
+---
 
-## Architecture Overview
+### Confidence in Results
 
-- **Inputs**: Parent-reported traits, optional VCF files.
-- **Core Engine**: Rule-based inheritance modeling, polygenic score calculations, and genomic database lookups.
-- **Delivery Layer**: FastAPI backend plus web and mobile clients that translate engine outputs into interactive learning experiences.
-- **Outputs**: Probabilistic trait charts, hereditary risk awareness dashboards, and optional phenotype visualizations.
+While a single run of the Engine is just one random outcome, confidence in the Engine's overall behavior comes from the **Law of Large Numbers**.
 
-## Technology Stack
+#### Use Case Validation: ABO Blood Group Simulation
 
-- **Backend**: Python (pandas, numpy, scikit-learn, biopython) for data processing and modeling; FastAPI for service orchestration; MongoDB for trait persistence.
-- **Visualization**: matplotlib, plotly, or D3.js (if delivered through a web UI).
-- **Frontend (Planned)**: React/Next.js for web, React Native/Expo for mobile.
-- **Machine Learning (Optional)**: GANs/autoencoders for phenotype visualization experiments.
+To illustrate this, we examined a cross for the ABO blood group system with 5000 simulations:
 
-## Data Sources & References
+- **Parent A Genotype:** `BA` (Gametes: 50% `B`, 50% `A`)
+- **Parent B Genotype:** `OO` (Gametes: 100% `O`)
 
-- **SNPedia**: Trait associations and allele frequency primers.
-- **ClinVar**: Clinical significance references for select variants.
-- **GWAS Catalog**: Polygenic risk score research and supporting literature.
+This cross produces two expected genotypes (`BO` and `AO`) and two expected phenotypes (Blood Type B and Blood Type A), each with a 50% probability.
 
-## Roadmap
+#### Simulation Validation: Expected vs. Actual Results (5000 Runs)
 
-1. **Core Simulation Engine**: Implement rule-based inheritance and baseline probability calculations within `zygotrix_engine/`.
-2. **VCF Integration**: Parse genetic files and reconcile variants with SNPedia/ClinVar records.
-3. **Visualization Layer**: Build interactive charts and probability graphs for learners via the `web/` app.
-4. **AI Phenotype Generator**: Prototype speculative phenotype rendering from trait predictions, coordinated across backend and client layers.
-5. **Web Application**: Deploy an interactive, browser-based experience for classrooms and self-guided learning, followed by mobile rollout.
+| Metric                       | Expected Count | Expected % | Actual Count | Actual % |
+| :--------------------------- | :------------- | :--------- | :----------- | :------- |
+| Blood Type A (Genotype `AO`) | 2500           | 50.00%     | 2479         | 49.58%   |
+| Blood Type B (Genotype `BO`) | 2500           | 50.00%     | 2521         | 50.42%   |
+| **Total Phenotype**          | **5000**       | **100%**   | **5000**     | **100%** |
+| Female                       | 2500           | 50.00%     | 2531         | 50.62%   |
+| Male                         | 2500           | 50.00%     | 2469         | 49.38%   |
+| **Total Sex**                | **5000**       | **100%**   | **5000**     | **100%** |
 
-## Project Status
+#### Conclusion from Actual Results
 
-Zygotrix is in early-stage development. The internal team is focused on solidifying data models, validating inheritance logic, and designing user-centered education pathways. External collaboration is not currently open.
+The actual results from 5000 simulations are perfectly consistent with the expected probabilistic outcomes and validate the stochastic nature of the Engine:
 
-## Getting Started (Planned)
+- The observed frequencies for Blood Type A (**49.58%**) and Blood Type B (**50.42%**) are extremely close to the theoretical 50%/50% split.
+- Similarly, the observed sex ratios (Female: **50.62%**, Male: **49.38%**) are nearly identical to the expected 50%/50%.
+- The minor deviations from the exact 2500/2500 split are precisely what is anticipated from random sampling in a stochastic simulation. These variations demonstrate that the engine is indeed introducing randomness while accurately reflecting the underlying biological probabilities over a sufficient number of trials.
 
-- Define Python environment requirements and dependency management approach (e.g., poetry, pipenv, conda).
-- Outline data ingestion samples for both trait-based inputs and VCF files.
-- Prototype core simulation modules within a test harness to validate inheritance logic.
+## Deterministic Probabilistic Engine
 
-Detailed setup instructions will be added as the initial modules are implemented.
+The `src/MendelianCalculator.cpp` is the deterministic probabilistic engine. Its purpose is opposite of the `stochastic simulation engine` instead of simulating one random outcome, it calculates the exact, unchanging probabilities for all possible offspring from a genetic cross.
 
-## Ethics & Responsible Use
+`It is, in effect, a perfect, automated Punnett square.`
 
-- Zygotrix is strictly for educational purposes and must not be used for medical decisions or clinical diagnoses.
-- Always obtain informed consent before using personal genetic data.
-- Respect privacy by storing sensitive files locally and deleting them after simulations are complete.
-- Encourage thoughtful discussions about the limitations of genetic determinism and the importance of environmental context.
+### Why is it "Deterministic"?
 
-## License
+The engine is **deterministic** because its operation is based entirely on mathematical calculations. Given the same two parents, it will produce the exact same set of probabilities every single time, with zero randomness.
 
-License information will be added once finalized.
+1. **No Randomness:** The file does not include the C++ `<random>` library. Its logic is purely mathematical and predictable.
+2. **Calculates, Not Simulates:** Its functions do not "pick" a random outcome. They calculate the odds for all outcomes.
+3. `getGameteProbabilities:` This function doesn't randomly choose one gamete. It returns a map of all possible gametes and their precise probabilities (e.g., a `Bb` parent deterministically produces a map of `{"B": 0.5, "b": 0.5}`).
+4. `combineGametes:` This function mathematically performs the Punnett square. It multiplies the probabilities of the parent gametes `(combinedProb = prob1 * prob2)` to get the exact probability for each resulting genotype.
+5. `genotypesToPhenotypes:` This function aggregates the probabilities of different genotypes that lead to the same phenotype `(e.g., adding the 25% chance of "BB" and 50% chance of "Bb" to get a 75% chance of "Brown")`. This is a simple summation, not a simulation.
+
+## Stochastic vs. Deterministic
+
+- `Engine` **(Stochastic):** Simulates one random outcome. `(e.g., "Child 1 has Blood Type A")`.
+
+- `MendelianCalculator` (**Deterministic):** Calculates the set of all probabilities for any outcome. `(e.g., "There is a 50% chance of a child having Blood Type A").`
+
+## Blueprint `Engine.hpp`
+
+In short, `Engine.hpp` is the foundational blueprint for the entire genetic model. It defines both the "language" (the data structures) that the entire project speaks and the "public API" (the class declaration) for the stochastic simulation engine.
+
+Here are its specific roles:
+
+---
+
+### 1. Defines the Core Data "Language"
+
+This is its most important job. `Engine.hpp` defines all the `enum class` and `struct` types that represent the genetic concepts. These structs are the data containers used by every part of the project:
+
+- `EngineConfig`: The top-level struct that holds the entire genetic setup.
+- `GeneDefinition`: Defines a single gene, its chromosome, dominance pattern, and alleles.
+- `AlleleDefinition`: Defines a specific allele and its effects.
+- `AlleleEffect`: Defines how an allele impacts a specific trait.
+- `EpistasisRule`: Defines how one gene can mask or modify another.
+- `Individual`: Defines what constitutes a parent or child (their `Sex` and genotype).
+
+Every other file—`Engine.cpp`, `MendelianCalculator.cpp`, and `CrossCli.cpp`—includes `Engine.hpp` so they can create, read, and understand these data structures.
+
+---
+
+### 2. Declares the Engine Class API
+
+This is its second role. It provides the public "contract" or "interface" for the stochastic `Engine` class, telling other files what functions they can call. This includes:
+
+- `explicit Engine(EngineConfig config)`: The constructor, showing that the `Engine` is built from a configuration.
+- `Individual mate(...)`: The public function for simulating a single, random offspring.
+- `Phenotype expressPhenotype(...)`: The public function for translating a genotype into its physical traits.
+
+`Engine.cpp` then provides the implementation for these declared functions.
+
+---
+
+### 3. Acts as the Central Configuration Hub
+
+Because `Engine.hpp` defines both the `EngineConfig` struct and the `Engine` class that holds it, it establishes the `Engine` class as the central owner of the genetic rules.
+
+This is why `MendelianCalculator.hpp` also includes `Engine.hpp`. The `MendelianCalculator`'s constructor takes a `const Engine&` not because it needs to run the stochastic simulation, but because it needs to read the `EngineConfig` (all the gene definitions and rules) that the `Engine` object is holding.
+
+---
+
+**In summary:** `Engine.hpp` is the central header file for the entire `zygotrix_engine` library. It defines all the data structures that represent the genetic model and declares the public functions for the stochastic simulation engine.

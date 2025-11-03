@@ -2,6 +2,11 @@
 #include "zygotrix/MendelianCalculator.hpp"
 #include "json11/json11.hpp"
 
+
+#include "zygotrix/ICrossCalculator.hpp"
+#include "zygotrix/ExactCalculatorStrategy.hpp"
+#include "zygotrix/SimulationCalculatorStrategy.hpp"
+
 #include <algorithm>
 #include <cctype>
 #include <iostream>
@@ -10,6 +15,7 @@
 #include <string>
 #include <unordered_map>
 #include <sstream>
+#include <memory> 
 
 using json11::Json;
 using namespace zygotrix;
@@ -122,7 +128,7 @@ namespace
         return obj.is_object() && obj.object_items().count(field) != 0;
     }
 
-} // namespace
+} 
 
 int main()
 {
@@ -142,10 +148,6 @@ int main()
         EngineConfig config;
 
         std::unordered_map<std::string, std::size_t> geneIndex;
-
-        std::vector<std::string> traitOrdering;
-        std::unordered_map<std::string, bool> traitSeen;
-        std::unordered_map<std::string, bool> traitSexSpecific;
 
         if (has_field(request, "genes"))
         {
@@ -196,26 +198,9 @@ int main()
                             {
                                 effect.intermediateDescriptor = effectJson["intermediate_descriptor"].string_value();
                             }
-                            std::string traitIdForRegistration = effect.traitId;
+                            
+                            
                             allele.effects.push_back(std::move(effect));
-
-                            if (!traitIdForRegistration.empty())
-                            {
-                                bool isSexLinked = gene.chromosome != ChromosomeType::Autosomal;
-                                auto [it, inserted] = traitSeen.emplace(traitIdForRegistration, true);
-                                if (inserted)
-                                {
-                                    traitOrdering.push_back(traitIdForRegistration);
-                                }
-                                if (isSexLinked)
-                                {
-                                    traitSexSpecific[traitIdForRegistration] = true;
-                                }
-                                else if (!traitSexSpecific.count(traitIdForRegistration))
-                                {
-                                    traitSexSpecific[traitIdForRegistration] = false;
-                                }
-                            }
                         }
                     }
                     gene.alleles.push_back(std::move(allele));
@@ -367,15 +352,15 @@ int main()
             fatherSex,
             parse_genotype(fatherJson["genotype"]));
 
-        // Determine if we should use exact Mendelian calculation or Monte Carlo simulation
+        
         bool useExactMode = false;
-        bool asPercentages = false;
-        bool jointPhenotypes = false;
+        
+        
 
-        // Use exact mode if:
-        // 1. No simulations parameter specified (default to exact)
-        // 2. as_percentages is specified (indicates exact calculation request)
-        // 3. exact parameter is explicitly true
+        
+        
+        
+        
         if (!has_field(request, "simulations"))
         {
             useExactMode = true;
@@ -386,253 +371,34 @@ int main()
         }
         if (has_field(request, "as_percentages"))
         {
-            asPercentages = request["as_percentages"].bool_value();
-            useExactMode = true; // as_percentages implies exact mode
+            
+            useExactMode = true;
         }
         if (has_field(request, "joint_phenotypes") && request["joint_phenotypes"].bool_value())
         {
-            jointPhenotypes = true;
             useExactMode = true;
         }
 
-        // EXACT MODE: Use MendelianCalculator for exact Punnett square calculations
+        
+
+        
+        std::unique_ptr<zygotrix::ICrossCalculator> calculator;
         if (useExactMode)
         {
-            MendelianCalculator calculator(engine);
-
-            // Collect gene IDs
-            std::vector<std::string> geneIds;
-            for (const auto &gene : config.genes)
-            {
-                geneIds.push_back(gene.id);
-            }
-
-            if (jointPhenotypes)
-            {
-                // Calculate joint phenotypes (e.g., "Brown + Curly")
-                auto jointResults = calculator.calculateJointPhenotypes(
-                    mother, father, geneIds, asPercentages);
-
-                Json::JsonObject resultsJson;
-                for (const auto &[phenotype, prob] : jointResults)
-                {
-                    resultsJson[phenotype] = prob;
-                }
-
-                Json response = Json::JsonObject{
-                    {"results", Json(resultsJson)},
-                    {"missing_traits", Json(Json::JsonArray{})}};
-
-                std::cout << response.dump() << std::endl;
-                return 0;
-            }
-            else
-            {
-                // Calculate individual trait results (genotypic + phenotypic ratios)
-                auto results = calculator.calculateCross(
-                    mother, father, geneIds, asPercentages);
-
-                Json::JsonObject resultsJson;
-                for (const auto &[geneId, result] : results)
-                {
-                    Json::JsonObject genotypicRatios;
-                    for (const auto &[genotype, prob] : result.genotypic_ratios.probabilities)
-                    {
-                        genotypicRatios[genotype] = prob;
-                    }
-
-                    Json::JsonObject phenotypicRatios;
-                    for (const auto &[phenotype, prob] : result.phenotypic_ratios.probabilities)
-                    {
-                        phenotypicRatios[phenotype] = prob;
-                    }
-
-                    resultsJson[geneId] = Json::JsonObject{
-                        {"genotypic_ratios", Json(genotypicRatios)},
-                        {"phenotypic_ratios", Json(phenotypicRatios)}};
-                }
-
-                Json response = Json::JsonObject{
-                    {"results", Json(resultsJson)},
-                    {"missing_traits", Json(Json::JsonArray{})}};
-
-                std::cout << response.dump() << std::endl;
-                return 0;
-            }
+            calculator = std::make_unique<zygotrix::ExactCalculatorStrategy>();
         }
-
-        // SIMULATION MODE: Monte Carlo simulation (existing code)
-        int simulations = 100;
-        if (has_field(request, "simulations"))
+        else
         {
-            simulations = static_cast<int>(request["simulations"].number_value());
-            if (simulations <= 0)
-            {
-                simulations = 1;
-            }
+            calculator = std::make_unique<zygotrix::SimulationCalculatorStrategy>();
         }
 
-        std::unordered_map<std::string, std::unordered_map<std::string, int>> descriptorCounts;
-        std::unordered_map<std::string, double> quantitativeSums;
-        std::unordered_map<std::string, int> quantitativeCounts;
-        std::unordered_map<std::string, int> sexCounts;
-        std::unordered_map<std::string, int> combinedDescriptorCounts;
-
-        std::string combinedTraitId;
-        if (!traitOrdering.empty())
-        {
-            combinedTraitId = traitOrdering.front();
-            for (std::size_t i = 1; i < traitOrdering.size(); ++i)
-            {
-                combinedTraitId += "__" + traitOrdering[i];
-            }
-        }
-
-        for (int i = 0; i < simulations; ++i)
-        {
-            Individual child = engine.mate(mother, father);
-            Phenotype phenotype = engine.expressPhenotype(child);
-
-            sexCounts[child.sex == Sex::Female ? "female" : "male"] += 1;
-
-            std::unordered_map<std::string, std::string> selectedDescriptors;
-
-            for (const auto &traitPair : phenotype.traits)
-            {
-                const std::string &traitId = traitPair.first;
-                const TraitExpression &expression = traitPair.second;
-                quantitativeSums[traitId] += expression.quantitative;
-                quantitativeCounts[traitId] += 1;
-                if (expression.descriptors.empty())
-                {
-                    descriptorCounts[traitId][""] += 1;
-                    selectedDescriptors[traitId] = "";
-                }
-                else
-                {
-                    for (const std::string &descriptor : expression.descriptors)
-                    {
-                        descriptorCounts[traitId][descriptor] += 1;
-                    }
-                    selectedDescriptors[traitId] = expression.descriptors.front();
-                }
-            }
-
-            if (!combinedTraitId.empty())
-            {
-                std::vector<std::string> parts;
-                parts.reserve(traitOrdering.size());
-                for (const auto &traitId : traitOrdering)
-                {
-                    auto it = selectedDescriptors.find(traitId);
-                    std::string descriptor;
-                    if (it != selectedDescriptors.end())
-                    {
-                        descriptor = it->second;
-                    }
-                    else
-                    {
-                        auto traitIt = phenotype.traits.find(traitId);
-                        if (traitIt != phenotype.traits.end())
-                        {
-                            const TraitExpression &expr = traitIt->second;
-                            if (!expr.descriptors.empty())
-                            {
-                                descriptor = expr.descriptors.front();
-                            }
-                            else
-                            {
-                                std::ostringstream os;
-                                os << expr.quantitative;
-                                descriptor = os.str();
-                            }
-                        }
-                    }
-
-                    if (traitSexSpecific[traitId])
-                    {
-                        if (!descriptor.empty())
-                        {
-                            descriptor += " ";
-                        }
-                        descriptor += child.sex == Sex::Female ? "Female" : "Male";
-                    }
-
-                    if (!descriptor.empty())
-                    {
-                        parts.push_back(descriptor);
-                    }
-                }
-
-                if (!parts.empty())
-                {
-                    std::string combinedDescriptor = parts.front();
-                    for (std::size_t idx = 1; idx < parts.size(); ++idx)
-                    {
-                        combinedDescriptor += ", " + parts[idx];
-                    }
-                    combinedDescriptorCounts[combinedDescriptor] += 1;
-                }
-            }
-        }
-
-        Json::JsonObject traitsJson;
-        bool emitIndividualTraits = traitOrdering.size() <= 1;
-
-        for (const auto &traitSum : quantitativeSums)
-        {
-            if (!emitIndividualTraits)
-            {
-                continue;
-            }
-            const std::string &traitId = traitSum.first;
-            double total = traitSum.second;
-            int count = quantitativeCounts[traitId];
-            double mean = count > 0 ? total / static_cast<double>(count) : 0.0;
-
-            Json::JsonObject traitObj;
-            traitObj.emplace("mean_quantitative", Json(mean));
-
-            Json::JsonObject descriptorObj;
-            auto descriptorIt = descriptorCounts.find(traitId);
-            if (descriptorIt != descriptorCounts.end())
-            {
-                for (const auto &entry : descriptorIt->second)
-                {
-                    descriptorObj.emplace(entry.first, Json(static_cast<int>(entry.second)));
-                }
-            }
-            traitObj.emplace("descriptor_counts", Json(descriptorObj));
-            traitsJson.emplace(traitId, Json(traitObj));
-        }
-
-        if (traitOrdering.size() > 1 && !combinedDescriptorCounts.empty())
-        {
-            Json::JsonObject traitObj;
-            traitObj.emplace("mean_quantitative", Json(0.0));
-
-            Json::JsonObject descriptorObj;
-            for (const auto &entry : combinedDescriptorCounts)
-            {
-                descriptorObj.emplace(entry.first, Json(static_cast<int>(entry.second)));
-            }
-            traitObj.emplace("descriptor_counts", Json(descriptorObj));
-            traitsJson[combinedTraitId] = Json(traitObj);
-        }
-
-        Json::JsonObject sexJson;
-        for (const auto &sexCount : sexCounts)
-        {
-            sexJson.emplace(sexCount.first, Json(static_cast<int>(sexCount.second)));
-        }
-
-        Json response = Json(Json::JsonObject{
-            {"simulations", Json(simulations)},
-            {"sex_counts", Json(sexJson)},
-            {"trait_summaries", Json(traitsJson)}});
-
+        
+        Json response = calculator->calculate(engine, mother, father, request);
+        
         std::cout << response.dump() << std::endl;
         return 0;
+
+        
     }
     catch (const std::exception &ex)
     {

@@ -8,6 +8,11 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(zygotrix_engine STATIC
     src/Engine.cpp
+    src/GenotypeUtils.cpp
+    src/GenotypeNormalizer.cpp
+    src/GameteGenerator.cpp
+    src/DominanceStrategy.cpp
+    src/PhenotypeModifier.cpp
     src/MendelianCalculator.cpp
     src/JsonRequestBuilder.cpp
     src/ExactCalculatorStrategy.cpp

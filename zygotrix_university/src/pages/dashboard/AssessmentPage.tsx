@@ -12,8 +12,8 @@ import {
   FiList,
   FiArrowLeft,
 } from "react-icons/fi";
-import ReactMarkdown from "react-markdown";
 import AccentButton from "../../components/common/AccentButton";
+import MarkdownContent from "../../components/common/MarkdownContent";
 import { submitAssessment } from "../../services/repositories/universityRepository";
 import type { CourseModule, AssessmentAttempt } from "../../types";
 import { cn } from "../../utils/cn";
@@ -361,11 +361,9 @@ const AssessmentPage = () => {
                         <div className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">
                           Question
                         </div>
-                        <div className="prose prose-sm max-w-none text-foreground">
-                          <ReactMarkdown>
-                            {question.prompt.markdown}
-                          </ReactMarkdown>
-                        </div>
+                        <MarkdownContent>
+                          {question.prompt.markdown}
+                        </MarkdownContent>
                       </div>
 
                       {/* Options */}
@@ -431,11 +429,9 @@ const AssessmentPage = () => {
                         <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">
                           Explanation
                         </div>
-                        <div className="prose prose-sm max-w-none text-foreground">
-                          <ReactMarkdown>
-                            {question.explanation.markdown}
-                          </ReactMarkdown>
-                        </div>
+                        <MarkdownContent>
+                          {question.explanation.markdown}
+                        </MarkdownContent>
                       </div>
                     </div>
                   )}
@@ -609,11 +605,9 @@ const AssessmentPage = () => {
                       {questionIndex + 1}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <div className="text-sm text-foreground leading-relaxed">
-                        <ReactMarkdown className="prose prose-sm max-w-none">
-                          {question.prompt?.markdown || "No question text"}
-                        </ReactMarkdown>
-                      </div>
+                      <MarkdownContent>
+                        {question.prompt?.markdown || "No question text"}
+                      </MarkdownContent>
                     </div>
                   </div>
 

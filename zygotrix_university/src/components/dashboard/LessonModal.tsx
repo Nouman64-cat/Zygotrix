@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 import { FiX, FiCheckCircle, FiBook } from "react-icons/fi";
-import ReactMarkdown from "react-markdown";
+import MarkdownContent from "../common/MarkdownContent";
 import { cn } from "../../utils/cn";
 
 interface LessonModalProps {
@@ -63,44 +63,7 @@ const LessonModal = ({
         </p>
       );
     }
-    return (
-      <ReactMarkdown
-        className="space-y-4 text-sm leading-7 text-muted [&_h1]:text-2xl [&_h1]:font-semibold [&_h1]:text-foreground [&_h2]:text-xl [&_h2]:font-semibold [&_h2]:text-foreground [&_h3]:text-lg [&_h3]:font-semibold [&_h3]:text-foreground [&_strong]:text-foreground"
-        components={{
-          p: ({ children }) => (
-            <p className="text-sm leading-7 text-muted">{children}</p>
-          ),
-          ul: ({ children }) => (
-            <ul className="list-disc space-y-2 pl-5 text-sm leading-7 text-muted">
-              {children}
-            </ul>
-          ),
-          ol: ({ children }) => (
-            <ol className="list-decimal space-y-2 pl-5 text-sm leading-7 text-muted">
-              {children}
-            </ol>
-          ),
-          li: ({ children }) => <li>{children}</li>,
-          a: ({ children, href }) => (
-            <a
-              href={href}
-              className="text-accent underline transition-colors hover:text-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2"
-              target="_blank"
-              rel="noreferrer"
-            >
-              {children}
-            </a>
-          ),
-          code: ({ children }) => (
-            <code className="rounded border border-border bg-background-subtle px-1.5 py-0.5 text-xs text-accent font-mono">
-              {children}
-            </code>
-          ),
-        }}
-      >
-        {content}
-      </ReactMarkdown>
-    );
+    return <MarkdownContent>{content}</MarkdownContent>;
   };
 
   if (!isOpen || !lesson) return null;

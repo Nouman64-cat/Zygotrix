@@ -183,18 +183,58 @@ export const useCourseWorkspace = (
             };
           });
 
+          // Recalculate overall progress to match the completionSummary calculation
+          // which includes assessments in the completion percentage
+          const moduleCompletionsWithAssessments = mergedModules.map(
+            (module) => {
+              // Find course module metadata to check if it has an assessment
+              const courseModule = courseData.modules.find(
+                (m) => m.id === module.moduleId || m.title === module.title
+              );
+
+              const hasAssessment = !!courseModule?.assessment;
+              const totalItems = module.items.length;
+              const completedItems = module.items.filter(
+                (item) => item.completed
+              ).length;
+
+              // If there's an assessment, include it in the total count
+              const totalWithAssessment = hasAssessment
+                ? totalItems + 1
+                : totalItems;
+              const completedWithAssessment =
+                hasAssessment && module.assessmentStatus === "passed"
+                  ? completedItems + 1
+                  : completedItems;
+
+              return totalWithAssessment > 0
+                ? Math.round(
+                    (completedWithAssessment / totalWithAssessment) * 100
+                  )
+                : module.completion;
+            }
+          );
+
+          const overallProgress = Math.round(
+            moduleCompletionsWithAssessments.reduce(
+              (sum, completion) => sum + completion,
+              0
+            ) / (moduleCompletionsWithAssessments.length || 1)
+          );
+
           const mergedProgress = {
             ...progressData,
             modules: mergedModules,
-            progress: Math.round(
-              mergedModules.reduce(
-                (sum, module) => sum + module.completion,
-                0
-              ) / (mergedModules.length || 1)
-            ),
+            progress: overallProgress,
           };
 
-          console.log("✅ Merged with stored data");
+          console.log(
+            `✅ Merged with stored data. Overall progress: ${overallProgress}%`
+          );
+
+          // Update localStorage with the correctly calculated progress
+          localStorage.setItem(storageKey, JSON.stringify(mergedProgress));
+
           setProgress(mergedProgress);
           return;
         } catch (err) {

@@ -21,7 +21,7 @@ export const fetchCourses = async (
     {
       params: {
         detail: includeDetails,
-        _t: Date.now(), // Cache buster
+        _t: Date.now(),
       },
     }
   );
@@ -36,7 +36,7 @@ export const fetchCourseBySlug = async (
     {
       params: {
         detail: true,
-        _t: Date.now(), // Cache buster - timestamp ensures unique URL every request
+        _t: Date.now(),
       },
     }
   );
@@ -49,7 +49,7 @@ export const fetchPracticeSets =
       API_ROUTES.university.practiceSets,
       {
         params: {
-          _t: Date.now(), // Cache buster
+          _t: Date.now(),
         },
       }
     );
@@ -61,7 +61,7 @@ export const fetchDashboardSummary = async (): Promise<ApiDashboardSummary> => {
     API_ROUTES.university.dashboard,
     {
       params: {
-        _t: Date.now(), // Cache buster
+        _t: Date.now(),
       },
     }
   );
@@ -75,7 +75,7 @@ export const fetchCourseProgress = async (
     API_ROUTES.university.courseProgress(slug),
     {
       params: {
-        _t: Date.now(), // Cache buster - timestamp ensures unique URL every request
+        _t: Date.now(),
       },
     }
   );
@@ -101,7 +101,7 @@ export const fetchEnrollments = async (): Promise<string[]> => {
     API_ROUTES.university.enrollments,
     {
       params: {
-        _t: Date.now(), // Cache buster
+        _t: Date.now(),
       },
     }
   );
@@ -111,15 +111,11 @@ export const fetchEnrollments = async (): Promise<string[]> => {
 export const submitAssessment = async (
   payload: ApiAssessmentSubmission
 ): Promise<ApiAssessmentResultResponse> => {
-  console.log("🎯 submitAssessment called with payload:", payload);
-  console.log("📝 Answers being sent:", payload.answers);
-
   const response = await apiClient.post<ApiAssessmentResultResponse>(
     API_ROUTES.university.submitAssessment,
     payload
   );
 
-  console.log("✅ Assessment submission response:", response.data);
   return response.data;
 };
 
@@ -132,7 +128,7 @@ export const fetchAssessmentHistory = async (
     {
       params: {
         module_id: moduleId,
-        _t: Date.now(), // Cache buster
+        _t: Date.now(),
       },
     }
   );

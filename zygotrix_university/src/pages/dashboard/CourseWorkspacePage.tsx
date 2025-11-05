@@ -7,6 +7,7 @@ import {
   FiAward,
   FiFileText,
 } from "react-icons/fi";
+import { IoMdClose } from "react-icons/io";
 import ReactMarkdown from "react-markdown";
 import AccentButton from "../../components/common/AccentButton";
 import LessonModal from "../../components/dashboard/LessonModal";
@@ -31,7 +32,6 @@ const DashboardCourseWorkspacePage = () => {
     setActiveLesson,
   } = useCourseWorkspace(slug);
 
-  // Certificate states
   const [certificateData, setCertificateData] =
     useState<ApiCertificateResponse | null>(null);
   const [isCertificateModalOpen, setIsCertificateModalOpen] = useState(false);
@@ -42,7 +42,6 @@ const DashboardCourseWorkspacePage = () => {
       return 0;
     }
 
-    // Calculate completion including assessments for each module
     const moduleCompletions = progress.modules.map((module) => {
       const metaModule = course.modules.find(
         (m) => m.id === module.moduleId || m.title === module.title
@@ -54,7 +53,6 @@ const DashboardCourseWorkspacePage = () => {
         (item) => item.completed
       ).length;
 
-      // If there's an assessment, include it in the total count
       const totalWithAssessment = hasAssessment ? totalItems + 1 : totalItems;
       const completedWithAssessment =
         hasAssessment && module.assessmentStatus === "passed"
@@ -157,7 +155,6 @@ const DashboardCourseWorkspacePage = () => {
       return null;
     }
 
-    // If viewing module overview (no itemId), just return module without lesson
     if (activeLesson.itemId === null) {
       return { module, lesson: null };
     }
@@ -213,14 +210,12 @@ const DashboardCourseWorkspacePage = () => {
   if (loading) {
     return (
       <div className="space-y-12">
-        {/* Header Skeleton */}
         <div className="space-y-4">
           <div className="h-4 w-32 animate-pulse rounded bg-accent-soft" />
           <div className="h-10 w-3/4 animate-pulse rounded-lg bg-surface" />
           <div className="h-6 w-1/2 animate-pulse rounded bg-background-subtle" />
         </div>
 
-        {/* Modules Skeleton */}
         <div className="space-y-6">
           {Array.from({ length: 3 }).map((_, index) => (
             <div
@@ -290,10 +285,8 @@ const DashboardCourseWorkspacePage = () => {
 
   return (
     <div className="flex h-full overflow-hidden">
-      {/* Main Content Area - Left Side */}
       <div className="flex-1 min-w-0 h-full overflow-y-auto">
         <div className="p-6 space-y-6">
-          {/* Compact Header with Progress */}
           <div className="flex items-center justify-between gap-4 pb-4 border-b border-border">
             <div className="flex-1 min-w-0">
               <h1 className="text-2xl font-bold text-foreground truncate">
@@ -306,9 +299,7 @@ const DashboardCourseWorkspacePage = () => {
               )}
             </div>
 
-            {/* Compact Progress Indicator */}
             <div className="flex items-center gap-3">
-              {/* Circular Progress */}
               <div className="relative flex items-center justify-center">
                 <svg className="w-14 h-14 transform -rotate-90">
                   <circle
@@ -355,7 +346,6 @@ const DashboardCourseWorkspacePage = () => {
                 </div>
               </div>
 
-              {/* Certificate Button - Only shown when 100% */}
               {completionSummary === 100 && (
                 <button
                   onClick={handleGenerateCertificate}
@@ -381,7 +371,6 @@ const DashboardCourseWorkspacePage = () => {
             </div>
           )}
 
-          {/* Lesson Content or Module Overview */}
           {activeLessonMeta && activeLesson ? (
             <div className="space-y-6">
               {/* Lesson Header */}
@@ -427,7 +416,6 @@ const DashboardCourseWorkspacePage = () => {
                 </div>
               </div>
 
-              {/* Video Player - Show if video URL exists */}
               {activeLessonMeta.lesson.video?.url && (
                 <div className="rounded-[1.75rem] border border-border bg-black overflow-hidden shadow-lg">
                   <video
@@ -454,7 +442,6 @@ const DashboardCourseWorkspacePage = () => {
                 </div>
               )}
 
-              {/* Module Overview - Show if this is a module overview */}
               {activeLessonMeta.isModuleOverview &&
                 activeLessonMeta.module.description && (
                   <div className="rounded-[1.75rem] border-2 border-accent/20 bg-accent-soft p-6">
@@ -463,8 +450,6 @@ const DashboardCourseWorkspacePage = () => {
                         <FiBook className="h-5 w-5 text-accent" />
                         Module Overview
                       </h3>
-
-                      {/* Show "Mark Module Complete" button if module has no lessons */}
                       {activeLessonProgress?.module &&
                         activeLessonProgress.module.items.length === 0 && (
                           <label className="flex items-center gap-2 cursor-pointer">
@@ -474,7 +459,6 @@ const DashboardCourseWorkspacePage = () => {
                                 activeLessonProgress.module.completion === 100
                               }
                               onChange={() => {
-                                // Toggle module completion for modules with no lessons
                                 const isCurrentlyComplete =
                                   activeLessonProgress.module.completion ===
                                   100;
@@ -560,7 +544,6 @@ const DashboardCourseWorkspacePage = () => {
                   </div>
                 )}
 
-              {/* Lesson Content */}
               <div className="rounded-[1.75rem] border border-border bg-surface p-8">
                 {activeLessonMeta.lesson.content ? (
                   <ReactMarkdown
@@ -635,7 +618,6 @@ const DashboardCourseWorkspacePage = () => {
             </div>
           ) : (
             <div className="space-y-6">
-              {/* Welcome Message */}
               <div className="rounded-[1.75rem] border border-border bg-surface p-12 text-center">
                 <FiBook className="mx-auto h-16 w-16 text-accent/50 mb-4" />
                 <h2 className="text-2xl font-bold text-foreground mb-2">
@@ -651,17 +633,14 @@ const DashboardCourseWorkspacePage = () => {
         </div>
       </div>
 
-      {/* Right Sidebar - Module Navigation */}
       <div className="hidden lg:block w-80 flex-shrink-0 h-full overflow-y-auto border-l border-border bg-surface">
         <div className="p-6 space-y-4">
-          {/* Course Header */}
           <div className="space-y-2 pb-4 border-b border-border">
             <h2 className="text-lg font-bold text-foreground line-clamp-2">
               {course.title}
             </h2>
           </div>
 
-          {/* Modules List */}
           <div className="space-y-3">
             {progress &&
               progress.modules.map((module, moduleIndex) => {
@@ -671,14 +650,12 @@ const DashboardCourseWorkspacePage = () => {
                     baseModule.title === module.title
                 );
 
-                // Calculate completion including assessment if it exists
                 const hasAssessment = !!metaModule?.assessment;
                 const totalItems = module.items.length;
                 const completedItems = module.items.filter(
                   (item) => item.completed
                 ).length;
 
-                // If there's an assessment, include it in the total count
                 const totalWithAssessment = hasAssessment
                   ? totalItems + 1
                   : totalItems;
@@ -696,7 +673,6 @@ const DashboardCourseWorkspacePage = () => {
 
                 return (
                   <div key={module.moduleId} className="space-y-2">
-                    {/* Module Header - Clickable */}
                     <button
                       type="button"
                       onClick={() => {
@@ -751,7 +727,6 @@ const DashboardCourseWorkspacePage = () => {
                       </div>
                     </button>
 
-                    {/* Module Items */}
                     <div className="ml-8 space-y-1">
                       {module.items.map((item) => {
                         const isActive =
@@ -799,7 +774,6 @@ const DashboardCourseWorkspacePage = () => {
                         );
                       })}
 
-                      {/* Assessment Button */}
                       {metaModule?.assessment && (
                         <div className="mt-3 pt-2 border-t border-border">
                           <button
@@ -855,7 +829,6 @@ const DashboardCourseWorkspacePage = () => {
         </div>
       </div>
 
-      {/* Lesson Modal - Keep for compatibility */}
       <LessonModal
         isOpen={false}
         onClose={() => {}}
@@ -866,19 +839,15 @@ const DashboardCourseWorkspacePage = () => {
         isSaving={saving}
       />
 
-      {/* Certificate Modal */}
       {isCertificateModalOpen && certificateData && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="relative w-full max-w-5xl max-h-[90vh] overflow-auto bg-background rounded-2xl shadow-2xl">
-            {/* Close Button */}
             <button
               onClick={handleCloseCertificateModal}
-              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-surface hover:bg-border transition-colors"
+              className="absolute top-4 right-4 z-10 p-2 rounded-full bg-surface hover:bg-border transition-colors cursor-pointer"
             >
-              <FiChevronLeft className="w-6 h-6 text-foreground rotate-180" />
+              <IoMdClose className="w-6 h-6 text-foreground rotate-180" />
             </button>
-
-            {/* Certificate */}
             <div className="p-8">
               <CourseCertificate
                 userName={certificateData.userName}

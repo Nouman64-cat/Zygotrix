@@ -6,7 +6,6 @@ import type { SimulationButtonProps } from "./types";
 const SimulationButton: React.FC<SimulationButtonProps> = ({
   project,
   setProject,
-  // traits,
   setSimulationError,
   setShowResultsModal,
   disabled,
@@ -17,12 +16,10 @@ const SimulationButton: React.FC<SimulationButtonProps> = ({
     setSimulationError(null);
     setLoading(true);
     try {
-      // Prepare genotype maps
       const parent1Genotypes: Record<string, string> = {};
       const parent2Genotypes: Record<string, string> = {};
       const traitKeys: string[] = [];
       project.selectedTraits.forEach((trait) => {
-        // Sanitize using allele list for multi-character alleles
         parent1Genotypes[trait.key] = sanitizeDiploidGenotype(
           trait.parent1Genotype,
           trait.alleles
@@ -39,10 +36,6 @@ const SimulationButton: React.FC<SimulationButtonProps> = ({
         setLoading(false);
         return;
       }
-
-      // Debug: Log outgoing genotypes
-      console.log("Simulate: parent1Genotypes", parent1Genotypes);
-      console.log("Simulate: parent2Genotypes", parent2Genotypes);
 
       const response = await simulateMultipleMendelianTraits(
         parent1Genotypes,

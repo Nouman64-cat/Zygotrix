@@ -616,5 +616,200 @@
       "XHY": "Unaffected",
       "XhY": "Wiskott-Aldrich Syndrome"
     }
+  },
+  {
+    "trait": "X-Linked Chronic Granulomatous Disease (CGD)",
+    "gene": ["CYBB"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Mosaic activity)",
+      "XhXh": "Affected (Rare)",
+      "XHY": "Unaffected",
+      "XhY": "Chronic Granulomatous Disease"
+    }
+  },
+  {
+    "trait": "Polydactyly (Polydactylism)",
+    "gene": ["GLI3"],
+    "chromosome": [7],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["P", "p"],
+    "phenotypes": {
+      "PP": "Polydactyly (Severe/Homozygous)",
+      "Pp": "Polydactyly (Heterozygous)",
+      "pp": "Unaffected (5 digits)"
+    }
+  },
+  {
+    "trait": "Duchenne Muscular Dystrophy (DMD)",
+    "gene": ["DMD"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Risk of cardiomyopathy)",
+      "XhXh": "Affected (Extremely rare)",
+      "XHY": "Unaffected",
+      "XhY": "Duchenne Muscular Dystrophy"
+    }
+  },
+  {
+    "trait": "X-linked Sideroblastic Anemia With Ataxia (XLSA/A)",
+    "gene": ["ABCB7"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (May show mild anemia)",
+      "XhXh": "Affected (Extremely rare)",
+      "XHY": "Unaffected",
+      "XhY": "XLSA/A (Anemia + Ataxia)"
+    }
+  },
+  {
+    "trait": "Otosclerosis",
+    "gene": ["TGFB1", "OTSC Loci"],
+    "chromosome": [19],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["T", "t"],
+    "phenotypes": {
+      "TT": "Otosclerosis (Severe/Early Onset)",
+      "Tt": "Otosclerosis (Susceptible - ~40% Penetrance)",
+      "tt": "Unaffected (Normal Hearing)"
+    }
+  },
+  {
+    "trait": "Congenital Generalized Hypertrichosis (CGH)",
+    "gene": ["FGF13"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked dominant",
+    "alleles": ["XD", "Xd", "Y"],
+    "phenotypes": {
+      "XDXD": "Severe Generalized Hypertrichosis (Rare)",
+      "XDXd": "Hypertrichosis (Variable/Patchy severity due to Mosaicism)",
+      "XdXd": "Unaffected (Normal hair growth)",
+      "XDY": "Severe Generalized Hypertrichosis (Full body coverage)",
+      "XdY": "Unaffected"
+    }
+  },
+  {
+    "trait": "Fanconi Anemia (Type A)",
+    "gene": ["FANCA"],
+    "chromosome": [16],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["A", "a"],
+    "phenotypes": {
+      "AA": "Unaffected (Normal DNA Repair)",
+      "Aa": "Carrier (Asymptomatic / Normal Repair)",
+      "aa": "Fanconi Anemia (Bone Marrow Failure / Cancer Risk)"
+    }
+  },
+  {
+    "trait": "Pyruvate Kinase Deficiency",
+    "gene": ["PKLR"],
+    "chromosome": [1],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["P", "p"],
+    "phenotypes": {
+      "PP": "Unaffected (Normal ATP production)",
+      "Pp": "Carrier (Asymptomatic / Normal RBC lifespan)",
+      "pp": "Pyruvate Kinase Deficiency (Chronic Hemolytic Anemia)"
+    }
+  },
+  {
+    "trait": "Spinal Muscular Atrophy (SMA)",
+    "gene": ["SMN1"],
+    "chromosome": [5],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["S", "s"],
+    "phenotypes": {
+      "SS": "Unaffected (Functional SMN Protein)",
+      "Ss": "Carrier (Asymptomatic)",
+      "ss": "Spinal Muscular Atrophy (Motor Neuron Apoptosis)"
+    }
+  },
+  {
+    "trait": "Fragile X Syndrome (FXS)",
+    "gene": ["FMR1"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked dominant",
+    "alleles": ["X", "Xp", "Xf", "Y"],
+    "phenotypes": {
+      "XX": "Unaffected",
+      "XpX": "Carrier (Risk of FXPOI/FXTAS, high risk of expansion to offspring)",
+      "XfX": "Affected (Variable severity due to X-inactivation)",
+      "XY": "Unaffected",
+      "XpY": "Carrier (Risk of FXTAS later in life)",
+      "XfY": "Fragile X Syndrome (Moderate to Severe Intellectual Disability)"
+    }
+  },
+  {
+    "trait": "Tuberous Sclerosis Complex (TSC)",
+    "gene": ["TSC1", "TSC2"],
+    "chromosome": [9, 16],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["T", "t"],
+    "phenotypes": {
+      "TT": "Severe TSC (Likely embryonic lethal or extreme phenotype)",
+      "Tt": "Tuberous Sclerosis Complex (Affected - Multi-system hamartomas)",
+      "tt": "Unaffected (Normal mTOR regulation)"
+    }
+  },
+  {
+    "trait": "Hypertrophic Cardiomyopathy (HCM)",
+    "gene": ["MYH7", "MYBPC3", "TNNT2", "TNNI3"],
+    "chromosome": [14, 11, 1, 19],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Severe HCM (Likely embryonic lethal or infantile onset)",
+      "Hh": "Hypertrophic Cardiomyopathy (Risk of Sudden Cardiac Death)",
+      "hh": "Unaffected (Normal Sarcomere Function)"
+    }
+  },
+  {
+    "trait": "Congenital Adrenal Hyperplasia (21-Hydroxylase Deficiency)",
+    "gene": ["CYP21A2"],
+    "chromosome": [6],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["C", "c"],
+    "phenotypes": {
+      "CC": "Unaffected (Normal Cortisol/Aldosterone)",
+      "Cc": "Carrier (Asymptomatic / Normal 17-OHP levels)",
+      "cc": "Affected (Salt-Wasting or Simple Virilizing CAH)"
+    }
+  },
+  {
+    "trait": "Alport Syndrome (X-Linked)",
+    "gene": ["COL4A5"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XA", "Xa", "Y"],
+    "phenotypes": {
+      "XAXA": "Unaffected",
+      "XAXa": "Carrier (Usually has microscopic hematuria / late-onset risk)",
+      "XaXa": "Affected (Severe renal failure - rare)",
+      "XAY": "Unaffected",
+      "XaY": "Alport Syndrome (Progressive Renal Failure, Hearing Loss)"
+    }
   }
 ]

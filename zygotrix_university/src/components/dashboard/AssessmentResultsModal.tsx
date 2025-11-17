@@ -6,8 +6,8 @@ import {
   FiAward,
   FiLoader,
 } from "react-icons/fi";
-import ReactMarkdown from "react-markdown";
 import AccentButton from "../common/AccentButton";
+import MarkdownContent from "../common/MarkdownContent";
 import type { AssessmentResult } from "../../types";
 import { cn } from "../../utils/cn";
 import { getAnswerExplanation } from "../../services/claudeService";
@@ -202,11 +202,9 @@ const AssessmentResultsModal = ({
                       <div className="mb-2 text-sm font-medium text-text-secondary">
                         Question {qIndex + 1}
                       </div>
-                      <div className="prose prose-invert prose-sm max-w-none">
-                        <ReactMarkdown>
-                          {question.prompt.markdown}
-                        </ReactMarkdown>
-                      </div>
+                      <MarkdownContent>
+                        {question.prompt.markdown}
+                      </MarkdownContent>
                     </div>
                   </div>
 
@@ -289,11 +287,9 @@ const AssessmentResultsModal = ({
                     </div>
 
                     {/* Original Explanation */}
-                    <div className="prose prose-invert prose-sm max-w-none mb-3">
-                      <ReactMarkdown>
-                        {question.explanation.markdown}
-                      </ReactMarkdown>
-                    </div>
+                    <MarkdownContent>
+                      {question.explanation.markdown}
+                    </MarkdownContent>
 
                     {/* AI-Enhanced Explanation for incorrect answers */}
                     {!isCorrect && (
@@ -306,15 +302,15 @@ const AssessmentResultsModal = ({
                             <FiLoader className="h-3 w-3 animate-spin text-indigo-400" />
                           )}
                         </div>
-                        <div className="prose prose-invert prose-sm max-w-none text-text-secondary">
+                        <div className="text-text-secondary">
                           {loadingExplanations[qIndex] ? (
                             <p className="text-sm italic">
                               Generating AI explanation...
                             </p>
                           ) : aiExplanations[qIndex] ? (
-                            <ReactMarkdown>
+                            <MarkdownContent>
                               {aiExplanations[qIndex]}
-                            </ReactMarkdown>
+                            </MarkdownContent>
                           ) : (
                             <p className="text-sm italic">
                               Review the explanation above.

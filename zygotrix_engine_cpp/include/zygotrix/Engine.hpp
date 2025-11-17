@@ -122,26 +122,6 @@ private:
     const GeneDefinition& requireGene(const std::string& geneId) const;
     const AlleleDefinition& requireAllele(const GeneDefinition& gene,
                                           const std::string& alleleId) const;
-    Genotype normalizedGenotype(const GeneDefinition& gene,
-                                const Genotype& provided,
-                                Sex sex) const;
-
-    Gamete generateGamete(
-        const Individual& parent,
-        Sex sex,
-        std::mt19937& rng) const;
-
-    void generateGameteForGroup(const std::vector<const GeneDefinition*>& group,
-                                const Individual& parent,
-                                Gamete& gamete,
-                                bool parentPassesX,
-                                std::mt19937& rng) const;
-
-    void applyEpistasis(const Individual& individual,
-                        Phenotype& phenotype) const;
-    void applyPhenotypeOverrides(const Individual& individual,
-                                 Phenotype& phenotype) const;
-    void applyLinkageTraits(Phenotype& phenotype) const;
 
     std::unordered_map<std::size_t, std::vector<const GeneDefinition*>> linkageMap_;
     std::unordered_map<std::size_t, std::vector<std::string>> linkageTraitIds_;

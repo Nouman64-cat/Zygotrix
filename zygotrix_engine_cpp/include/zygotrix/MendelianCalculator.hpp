@@ -82,7 +82,8 @@ namespace zygotrix
         // Get phenotype description for a genotype
         std::string getPhenotypeForGenotype(
             const GeneDefinition &gene,
-            const Genotype &genotype) const;
+            const Genotype &genotype,
+            const std::string &primaryTraitId) const;
 
         // Normalize genotype to canonical form (e.g., "Aa" → "Aa", "aA" → "Aa")
         std::string normalizeGenotypeString(

@@ -19,7 +19,6 @@ interface MessageResponse {
   message: string;
 }
 
-// Helper function to get auth headers
 function getAuthHeaders(): HeadersInit {
   const token = localStorage.getItem("zygotrix_auth_token");
   const headers: HeadersInit = {
@@ -32,8 +31,6 @@ function getAuthHeaders(): HeadersInit {
 
   return headers;
 }
-
-// Question API functions
 
 export async function listQuestions(
   page: number = 1,
@@ -83,8 +80,6 @@ export async function getQuestion(questionId: string): Promise<QuestionDetail> {
 export async function createQuestion(
   data: QuestionCreateRequest
 ): Promise<Question> {
-  console.log("Creating question with data:", JSON.stringify(data, null, 2));
-
   const response = await fetch(`${API_BASE_URL}/api/community/questions`, {
     method: "POST",
     headers: getAuthHeaders(),
@@ -98,7 +93,6 @@ export async function createQuestion(
     console.error("Create question failed:", error);
     console.error("Status:", response.status, response.statusText);
 
-    // Format validation errors nicely
     if (error.detail && Array.isArray(error.detail)) {
       const messages = error.detail.map((err: any) => err.msg).join(", ");
       throw new Error(messages);
@@ -170,8 +164,6 @@ export async function voteQuestion(
     throw new Error(error.detail || "Failed to vote on question");
   }
 }
-
-// Answer API functions
 
 export async function createAnswer(
   questionId: string,
@@ -277,8 +269,6 @@ export async function voteAnswer(
   }
 }
 
-// Tag API function
-
 export async function getPopularTags(
   limit: number = 20
 ): Promise<PopularTag[]> {
@@ -295,8 +285,6 @@ export async function getPopularTags(
 
   return response.json();
 }
-
-// Comment API functions
 
 export async function createComment(
   questionId: string,

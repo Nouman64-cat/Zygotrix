@@ -141,10 +141,6 @@ const AssessmentModal = ({
       })
     );
 
-    console.log("🎯 AssessmentModal: Submitting answers:", userAnswers);
-    console.log("📊 Total questions answered:", userAnswers.length);
-    console.log("📊 Total questions in assessment:", shuffledQuestions.length);
-
     await onSubmit(userAnswers);
     setShowConfirmSubmit(false);
   };

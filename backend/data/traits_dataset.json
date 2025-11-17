@@ -29,32 +29,6 @@
     }
   },
   {
-    "trait": "Sickle-Cell Anemia",
-    "gene": ["HBB"],
-    "chromosome": [11],
-    "type": "monogenic",
-    "inheritance": "recessive",
-    "alleles": ["H", "S"],
-    "phenotypes": {
-      "HH": "Normal Hemoglobin",
-      "HS": "Carrier (Sickle-cell trait)",
-      "SS": "Sickle-cell disease"
-    }
-  },
-  {
-    "trait": "Cystic Fibrosis",
-    "gene": ["CFTR"],
-    "chromosome": [7],
-    "type": "monogenic",
-    "inheritance": "recessive",
-    "alleles": ["C", "c"],
-    "phenotypes": {
-      "CC": "Normal",
-      "Cc": "Carrier",
-      "cc": "Cystic Fibrosis"
-    }
-  },
-  {
     "trait": "Huntington's Disease",
     "gene": ["HTT"],
     "chromosome": [4],
@@ -518,6 +492,129 @@
       "UU": "Unaffected",
       "Uu": "Carrier (often mild bilirubin elevation)",
       "uu": "Gilbert Syndrome"
+    }
+  },
+  {
+    "trait": "Tongue Rolling",
+    "gene": [""],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["T", "t"],
+    "phenotypes": {
+      "TT": "Tongue Roller",
+      "Tt": "Tongue Roller (Carrier of recessive, but expresses dominant)",
+      "tt": "Non-roller"
+    }
+  },
+  {
+    "trait": "Sickle cell anemia",
+    "gene": ["HBB"],
+    "chromosome": [11],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["HA", "HS"],
+    "phenotypes": {
+      "HAHA": "Unaffected (Normal RBCs)",
+      "HAHS": "Sickle Cell Trait (Carrier)",
+      "HSHS": "Sickle Cell Anemia (Severe disease)"
+    }
+  },
+  {
+    "trait": "Cystic Fibrosis",
+    "gene": ["CFTR"],
+    "chromosome": [7],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["C", "c"],
+    "phenotypes": {
+      "CC": "Unaffected",
+      "Cc": "Carrier",
+      "cc": "Cystic Fibrosis"
+    }
+  },
+  {
+    "trait": "Haemophilia A",
+    "gene": ["F8"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier",
+      "XhXh": "Hemophiliac",
+      "XHY": "Unaffected",
+      "XhY": "Hemophiliac"
+    }
+  },
+  {
+    "trait": "Haemophilia B",
+    "gene": ["F9"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier",
+      "XhXh": "Hemophilia B",
+      "XHY": "Unaffected",
+      "XhY": "Hemophilia B"
+    }
+  },
+  {
+    "trait": "Widow's Peak",
+    "gene": [],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["W", "w"],
+    "phenotypes": {
+      "WW": "Widow's Peak",
+      "Ww": "Widow's Peak (Carrier of straight hairline gene, but shows the peak)",
+      "ww": "Straight Hairline"
+    }
+  },
+  {
+    "trait": "Hitchhiker's Thumb (Distal Hyperextensibility)",
+    "gene": ["LMX1B"],
+    "chromosome": [9],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["S", "s"],
+    "phenotypes": {
+      "SS": "Straight Thumb (Angle < 50)",
+      "Ss": "Straight Thumb (Angle < 50)",
+      "ss": "Hitchhiker's Thumb (Angle > 50)"
+    }
+  },
+  {
+    "trait": "Cerumen Type (Earwax Texture)",
+    "gene": ["ABCC11"],
+    "chromosome": [16],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["G", "A"],
+    "phenotypes": {
+      "GG": "Wet Earwax",
+      "GA": "Wet Earwax",
+      "AA": "Dry Earwax"
+    }
+  },
+  {
+    "trait": "Wiskott Aldrich Syndrome (WAS)",
+    "gene": ["WAS"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier",
+      "XhXh": "Affected",
+      "XHY": "Unaffected",
+      "XhY": "Wiskott-Aldrich Syndrome"
     }
   }
 ]

@@ -8,13 +8,25 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 
 add_library(zygotrix_engine STATIC
     src/Engine.cpp
+    src/GenotypeUtils.cpp
+    src/GenotypeNormalizer.cpp
+    src/GameteGenerator.cpp
+    src/DominanceStrategy.cpp
+    src/PhenotypeModifier.cpp
     src/MendelianCalculator.cpp
+    src/JsonRequestBuilder.cpp
+    src/ExactCalculatorStrategy.cpp
+    src/SimulationCalculatorStrategy.cpp
+    third_party/json11/json11.cpp
 )
 
 target_include_directories(zygotrix_engine
     PUBLIC
         $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
         $<INSTALL_INTERFACE:include>
+    PRIVATE
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
 )
 
 add_executable(zyg_demo examples/demo.cpp)
@@ -25,7 +37,6 @@ target_link_libraries(zyg_test_mendelian PRIVATE zygotrix_engine)
 
 add_executable(zyg_cross_cli
     src/CrossCli.cpp
-    third_party/json11/json11.cpp
 )
 target_link_libraries(zyg_cross_cli PRIVATE zygotrix_engine)
 target_include_directories(zyg_cross_cli PRIVATE

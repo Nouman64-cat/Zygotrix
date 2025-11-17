@@ -33,41 +33,34 @@ const CourseCertificate: React.FC<CourseCertificateProps> = ({
     try {
       setIsGenerating(true);
 
-      // Dynamically import the PDF generation libraries
       const [{ default: html2canvas }, { default: jsPDF }] = await Promise.all([
         import("html2canvas"),
         import("jspdf"),
       ]);
 
-      // Generate canvas from the certificate div
       const canvas = await html2canvas(certificateRef.current, {
-        scale: 2, // Higher quality
+        scale: 2,
         useCORS: true,
         logging: false,
         backgroundColor: "#ffffff",
       });
 
-      // Calculate PDF dimensions (A4 landscape)
-      const imgWidth = 297; // A4 landscape width in mm
+      const imgWidth = 297;
       const imgHeight = (canvas.height * imgWidth) / canvas.width;
 
-      // Create PDF
       const pdf = new jsPDF({
         orientation: imgHeight > imgWidth ? "portrait" : "landscape",
         unit: "mm",
         format: "a4",
       });
 
-      // Add image to PDF
       const imgData = canvas.toDataURL("image/png");
       pdf.addImage(imgData, "PNG", 0, 0, imgWidth, imgHeight);
 
-      // Generate filename
       const filename = `${userName.replace(/\s+/g, "_")}_${courseName
         .replace(/\s+/g, "_")
         .substring(0, 30)}_Certificate.pdf`;
 
-      // Download PDF
       pdf.save(filename);
     } catch (error) {
       console.error("Error generating PDF:", error);
@@ -208,7 +201,7 @@ const CourseCertificate: React.FC<CourseCertificateProps> = ({
       <button
         onClick={handleDownload}
         disabled={isGenerating}
-        className="px-6 py-3 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        className="px-6 py-3 text-white font-semibold rounded-lg hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
         style={{
           background: "linear-gradient(to right, #2563eb, #16a34a)",
         }}

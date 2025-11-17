@@ -289,7 +289,6 @@ const mapProgressModules = (
     };
   });
 
-  // Track both module IDs and titles to prevent duplicates
   const mappedModuleIds = new Set(mapped.map((module) => module.moduleId));
   const mappedModuleTitles = new Set(
     mapped
@@ -302,7 +301,6 @@ const mapProgressModules = (
       courseModule.id ?? courseModule.title ?? `course-module-${index}`;
     const moduleTitle = courseModule.title;
 
-    // Skip if we already have this module (by ID or by title to avoid duplicates)
     if (
       mappedModuleIds.has(moduleId) ||
       (moduleTitle && mappedModuleTitles.has(moduleTitle))
@@ -327,7 +325,6 @@ const mapProgressModules = (
       })),
     });
 
-    // Track the newly added module to prevent further duplicates
     mappedModuleIds.add(moduleId);
     if (moduleTitle) {
       mappedModuleTitles.add(moduleTitle);
@@ -410,12 +407,9 @@ const mapDashboardSummary = (
   const courses: CourseProgress[] = response.courses.map((course) => {
     const courseRef = courseLookup[course.course_slug];
 
-    // If we have course reference with modules, use those instead of dashboard's stale data
-    // This ensures we show the most up-to-date module list from the course detail endpoint
     const dashboardModules = mapModules(course.modules ?? []);
     const modules = courseRef?.modules
       ? courseRef.modules.map((refModule) => {
-          // Try to find matching module in dashboard data to get progress
           const dashboardModule = dashboardModules.find(
             (dm) => dm.moduleId === refModule.id || dm.title === refModule.title
           );
@@ -429,7 +423,7 @@ const mapDashboardSummary = (
               | "completed",
             duration: refModule.duration ?? null,
             completion: dashboardModule?.completion ?? 0,
-            items: [], // Dashboard doesn't need item-level details
+            items: [],
           };
         })
       : dashboardModules;
@@ -482,7 +476,6 @@ export const universityService = {
       const response: ApiCourseListResponse = await fetchCourses(
         includeDetails
       );
-      console.log("university courses: ", response);
       return response.courses.map((course) => mapCourse(course));
     } catch (error) {
       console.warn(
@@ -526,10 +519,7 @@ export const universityService = {
   async getDashboardSummary(): Promise<DashboardSummary> {
     try {
       const dashboard = await fetchDashboardSummary();
-      console.log("university service: ", dashboard);
 
-      // Fetch individual course details for each enrolled course to get accurate module lists
-      // The dashboard API may have cached/stale module data, but individual course endpoints are fresh
       const courseDetailsPromises = dashboard.courses.map((course) =>
         fetchCourseBySlug(course.course_slug)
           .then((response) => mapCourse(response.course))

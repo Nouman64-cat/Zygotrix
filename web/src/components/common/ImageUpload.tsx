@@ -6,7 +6,7 @@ interface ImageUploadProps {
   currentImageUrl?: string;
   placeholder?: string;
   className?: string;
-  maxSize?: number; // in MB
+  maxSize?: number;
   acceptedFormats?: string[];
   disabled?: boolean;
 }
@@ -27,15 +27,7 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
   const [error, setError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  console.log("ImageUpload render - currentImageUrl:", currentImageUrl);
-  console.log("ImageUpload render - previewUrl state:", previewUrl);
-
-  // Update preview when currentImageUrl prop changes
   useEffect(() => {
-    console.log(
-      "ImageUpload useEffect - currentImageUrl changed to:",
-      currentImageUrl
-    );
     if (currentImageUrl) {
       setPreviewUrl(currentImageUrl);
     }
@@ -49,13 +41,10 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
 
     setError(null);
 
-    // Validate file type
     const isValidFormat = acceptedFormats.some((format) => {
-      // Check if format is a MIME type (contains '/')
       if (format.includes("/")) {
         return file.type === format;
       } else {
-        // Check if format is a file extension
         const fileExtension = file.name.split(".").pop()?.toLowerCase();
         return fileExtension === format;
       }
@@ -73,27 +62,22 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
       return;
     }
 
-    // Create preview
     const reader = new FileReader();
     reader.onload = (e) => {
       setPreviewUrl(e.target?.result as string);
     };
     reader.readAsDataURL(file);
 
-    // Upload file
     setIsUploading(true);
     try {
       const result = await onUpload(file);
-      console.log("Upload result in ImageUpload:", result);
-      // If upload returns a URL, use it for preview
+
       if (result?.url) {
-        console.log("Setting preview URL to:", result.url);
         setPreviewUrl(result.url);
       }
     } catch (err) {
       console.error("Upload error in ImageUpload:", err);
       setError(err instanceof Error ? err.message : "Upload failed");
-      // Keep the local preview so the user can still see the image they selected
     } finally {
       setIsUploading(false);
     }
@@ -134,9 +118,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
               src={previewUrl}
               alt="Preview"
               className="w-full h-auto max-h-80 object-contain rounded-lg"
-              onLoad={() =>
-                console.log("Image loaded successfully:", previewUrl)
-              }
               onError={(e) => {
                 console.error("Image failed to load:", previewUrl);
                 console.error("Image error event:", e);
@@ -207,7 +188,6 @@ const ImageUpload: React.FC<ImageUploadProps> = ({
         type="file"
         accept={acceptedFormats
           .map((format) => {
-            // If format is a MIME type, use it as-is; otherwise add a dot for file extension
             return format.includes("/") ? format : `.${format}`;
           })
           .join(",")}

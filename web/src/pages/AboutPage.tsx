@@ -224,7 +224,6 @@ const AboutPage: React.FC = () => {
 
   return (
     <div className="bg-gradient-to-b from-white via-blue-50/30 to-slate-50 min-h-screen">
-      {/* Background Pattern */}
       <div className="pointer-events-none fixed inset-0 opacity-[0.02]">
         <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -252,7 +251,6 @@ const AboutPage: React.FC = () => {
         </svg>
       </div>
 
-      {/* Floating Elements */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
         <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
         <div className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
@@ -260,7 +258,6 @@ const AboutPage: React.FC = () => {
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-24">
-        {/* Hero Section */}
         <div className="grid gap-16 lg:grid-cols-[1.2fr,1fr] lg:items-center">
           <div className="space-y-8">
             <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-blue-100/80 to-purple-100/80 px-6 py-3 backdrop-blur-sm border border-blue-200/50">
@@ -342,7 +339,6 @@ const AboutPage: React.FC = () => {
           </div>
         </div>
 
-        {/* Team section */}
         <div id="team" className="mt-20">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-purple-100/80 to-pink-100/80 px-6 py-3 backdrop-blur-sm border border-purple-200/50 mb-6">
@@ -398,7 +394,6 @@ const AboutPage: React.FC = () => {
                     ? member.introduction
                     : buildFallbackIntro(member);
                 const isFounder = Boolean(member.founder);
-                console.log(isFounder);
                 const badgeLabel = isFounder ? "Founder" : "Contributor";
                 const badgeClasses = isFounder
                   ? "bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border border-blue-200"
@@ -521,7 +516,6 @@ const AboutPage: React.FC = () => {
           )}
         </div>
 
-        {/* Values section */}
         <div className="mt-20">
           <div className="text-center mb-16">
             <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-emerald-100/80 to-cyan-100/80 px-6 py-3 backdrop-blur-sm border border-emerald-200/50 mb-6">

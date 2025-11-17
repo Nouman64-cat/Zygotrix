@@ -267,13 +267,25 @@ namespace zygotrix
     {
         PhenotypeDistribution distribution;
 
+        std::string primaryTraitId;
+
+        if(!gene.alleles.empty() && !gene.alleles[0].effects.empty())
+        {
+            primaryTraitId = gene.alleles[0].effects[0].traitId;
+        }
+
+        if(primaryTraitId.empty())
+        {
+            primaryTraitId = gene.id;
+        }
+
         for (const auto &[genotypeStr, prob] : genotypes.probabilities)
         {
             // Parse genotype string back to Genotype vector
             Genotype genotype = parseGenotypeString(gene, genotypeStr);
 
             // Get phenotype for this genotype
-            std::string phenotype = getPhenotypeForGenotype(gene, genotype);
+            std::string phenotype = getPhenotypeForGenotype(gene, genotype, primaryTraitId);
 
             distribution.probabilities[phenotype] += prob;
         }
@@ -330,157 +342,42 @@ namespace zygotrix
 
     std::string MendelianCalculator::getPhenotypeForGenotype(
         const GeneDefinition &gene,
-        const Genotype &genotype) const
+        const Genotype &genotype,
+        const std::string &primaryTraitId) const
     {
         if (genotype.empty())
         {
             return "Unknown";
         }
 
-        // Handle different dominance patterns
-        if (gene.dominance == DominancePattern::Complete)
+        Individual individual = engine_.createIndividual(Sex::Female, {{gene.id, genotype}});
+
+        Phenotype phenotype = engine_.expressPhenotype(individual);
+
+        auto it = phenotype.traits.find(primaryTraitId);
+        if(it == phenotype.traits.end())
         {
-            // Complete dominance: highest rank allele determines phenotype
-            const AlleleDefinition *dominantAllele = nullptr;
-            int maxRank = -1;
-
-            for (const std::string &alleleId : genotype)
+            for(const auto& traitPair : phenotype.traits)
             {
-                const AlleleDefinition *allele = findAllele(gene, alleleId);
-                if (allele && allele->dominanceRank > maxRank)
+                if(traitPair.first.find(primaryTraitId) != std::string::npos)
                 {
-                    maxRank = allele->dominanceRank;
-                    dominantAllele = allele;
+                    return traitPair.second.summary();
                 }
             }
 
-            if (dominantAllele && !dominantAllele->effects.empty())
+            if(!phenotype.traits.empty())
             {
-                return dominantAllele->effects[0].description;
+                return phenotype.traits.begin() ->second.summary();
             }
-        }
-        else if (gene.dominance == DominancePattern::Codominant)
-        {
-            // Codominant: both alleles express (e.g., AB blood type)
-            // Use a set to avoid duplicates when homozygous
-            std::vector<std::string> descriptions;
-            std::vector<std::string> uniqueDescriptions;
-
-            for (const std::string &alleleId : genotype)
-            {
-                const AlleleDefinition *allele = findAllele(gene, alleleId);
-                if (allele && !allele->effects.empty() && allele->dominanceRank > 0)
-                {
-                    descriptions.push_back(allele->effects[0].description);
-                }
-            }
-
-            // Remove duplicates while preserving order
-            for (const auto &desc : descriptions)
-            {
-                bool found = false;
-                for (const auto &unique : uniqueDescriptions)
-                {
-                    if (unique == desc)
-                    {
-                        found = true;
-                        break;
-                    }
-                }
-                if (!found)
-                {
-                    uniqueDescriptions.push_back(desc);
-                }
-            }
-
-            if (uniqueDescriptions.empty())
-            {
-                // Both alleles are recessive
-                const AlleleDefinition *allele = findAllele(gene, genotype[0]);
-                if (allele && !allele->effects.empty())
-                {
-                    return allele->effects[0].description;
-                }
-            }
-            else if (uniqueDescriptions.size() == 1)
-            {
-                return uniqueDescriptions[0];
-            }
-            else
-            {
-                // Combine unique descriptions (e.g., "Blood Type A" + "Blood Type B" → "Blood Type AB")
-                // For simplicity, concatenate
-                std::string combined = uniqueDescriptions[0];
-                for (size_t i = 1; i < uniqueDescriptions.size(); ++i)
-                {
-                    combined += ", " + uniqueDescriptions[i];
-                }
-                return combined;
-            }
-        }
-        else if (gene.dominance == DominancePattern::Incomplete)
-        {
-            // Incomplete dominance: blending (would need magnitude values)
-            // For now, if heterozygous, look for intermediate descriptor
-            if (genotype.size() == 2 && genotype[0] != genotype[1])
-            {
-                const AlleleDefinition *allele1 = findAllele(gene, genotype[0]);
-                const AlleleDefinition *allele2 = findAllele(gene, genotype[1]);
-
-                if (allele1 && !allele1->effects.empty() &&
-                    !allele1->effects[0].intermediateDescriptor.empty())
-                {
-                    return allele1->effects[0].intermediateDescriptor;
-                }
-                if (allele2 && !allele2->effects.empty() &&
-                    !allele2->effects[0].intermediateDescriptor.empty())
-                {
-                    return allele2->effects[0].intermediateDescriptor;
-                }
-            }
-
-            // Otherwise use dominant allele
-            const AlleleDefinition *dominantAllele = nullptr;
-            int maxRank = -1;
-
-            for (const std::string &alleleId : genotype)
-            {
-                const AlleleDefinition *allele = findAllele(gene, alleleId);
-                if (allele && allele->dominanceRank > maxRank)
-                {
-                    maxRank = allele->dominanceRank;
-                    dominantAllele = allele;
-                }
-            }
-
-            if (dominantAllele && !dominantAllele->effects.empty())
-            {
-                return dominantAllele->effects[0].description;
-            }
+            return "Unknown";
         }
 
-        // Fallback: use first allele's description
-        const AlleleDefinition *firstAllele = findAllele(gene, genotype[0]);
-        if (firstAllele && !firstAllele->effects.empty())
+        std::string summary = it->second.summary();
+        if(summary.empty())
         {
-            return firstAllele->effects[0].description;
+            return "Unknown";
         }
-
-        return "Unknown";
-    }
-
-    const AlleleDefinition *MendelianCalculator::findAllele(
-        const GeneDefinition &gene,
-        const std::string &alleleId) const
-    {
-        for (const auto &allele : gene.alleles)
-        {
-            if (allele.id == alleleId)
-            {
-                return &allele;
-            }
-        }
-        return nullptr;
+        return summary;
     }
 
     std::string MendelianCalculator::genotypeToString(const Genotype &genotype) const

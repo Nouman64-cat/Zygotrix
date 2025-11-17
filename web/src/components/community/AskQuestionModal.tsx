@@ -77,26 +77,19 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
 
     const result = await cloudinaryService.uploadQuestionImage(
       file,
-      `temp-${Date.now()}`, // Will be updated with actual question ID after creation
+      `temp-${Date.now()}`,
       user.id
     );
-
-    console.log("Image upload result:", result);
 
     setImageUrl(result.url);
     setImageThumbnailUrl(result.thumbnailUrl);
 
-    console.log("Set imageUrl to:", result.url);
-    console.log("Set imageThumbnailUrl to:", result.thumbnailUrl);
-
-    // Return the result for the ImageUpload component to use for preview
     return { url: result.url };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (!title.trim()) {
       setError("Title is required");
       return;
@@ -129,15 +122,8 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
         image_thumbnail_url: imageThumbnailUrl || null,
       };
 
-      console.log("=== SUBMITTING QUESTION ===");
-      console.log("Question data:", JSON.stringify(questionData, null, 2));
-
       const question = await communityApi.createQuestion(questionData);
 
-      console.log("=== QUESTION CREATED SUCCESSFULLY ===");
-      console.log("Response:", JSON.stringify(question, null, 2));
-
-      // Reset form
       setTitle("");
       setContent("");
       setTags([]);
@@ -145,7 +131,6 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
       setImageUrl(null);
       setImageThumbnailUrl(null);
 
-      // Close modal and navigate to question
       onClose();
       navigate(`/community/questions/${question.id}`);
     } catch (err) {
@@ -159,7 +144,6 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
   const handleClose = () => {
     if (isSubmitting) return;
 
-    // Reset form on close
     setTitle("");
     setContent("");
     setTags([]);

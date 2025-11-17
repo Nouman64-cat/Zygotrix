@@ -3,22 +3,6 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Course, CourseProgress } from "../types";
 import { universityService } from "../services/useCases/universityService";
 
-/**
- * PROGRESS PERSISTENCE WORKAROUND:
- *
- * Problem: The backend API doesn't return the `items` array with completion states
- * in the GET /progress or PUT /progress responses. This causes lesson completion
- * checkboxes to reset to unchecked after page refresh.
- *
- * Solution: Use localStorage to persist the full progress state (including items)
- * on the frontend. When loading, merge the stored item completion states with the
- * server's module-level data.
- *
- * Ideal Fix: Backend should:
- * 1. Persist the items array with completed states in the database
- * 2. Return the full items array in GET/PUT /progress responses
- */
-
 interface CourseWorkspaceState {
   course: Course | null;
   progress: CourseProgress | null;
@@ -59,14 +43,12 @@ export const useCourseWorkspace = (
     try {
       const courseData = await universityService.getCourseBySlug(slug);
       setCourse((prevCourse) => {
-        // Only update if course data actually changed
         if (JSON.stringify(prevCourse) === JSON.stringify(courseData)) {
           return prevCourse;
         }
         return courseData;
       });
 
-      // Check active lesson separately (don't include in useCallback deps)
       setActiveLesson((prevLesson) => {
         if (courseData && prevLesson) {
           const moduleExists = courseData.modules.some(
@@ -87,32 +69,18 @@ export const useCourseWorkspace = (
         slug,
         courseData
       );
-      console.log(
-        "🔍 Progress data loaded:",
-        JSON.stringify(progressData, null, 2)
-      );
 
-      // Apply locally stored completion states
       const storageKey = `course-progress-${slug}`;
       const stored = localStorage.getItem(storageKey);
       if (stored) {
         try {
           const storedData = JSON.parse(stored) as CourseProgress;
-          console.log("📦 Found stored progress data");
 
-          // Validate that stored data matches current course structure
-          // If number of modules changed, clear localStorage and use fresh server data
           if (storedData.modules.length !== progressData.modules.length) {
-            console.warn(
-              `⚠️ Course structure changed! Stored: ${storedData.modules.length} modules, Server: ${progressData.modules.length} modules. Clearing localStorage.`
-            );
             localStorage.removeItem(storageKey);
 
-            // Also clear any dashboard-related cache to ensure consistency
-            console.log("🧹 Clearing all course-related cache...");
             Object.keys(localStorage).forEach((key) => {
               if (key.includes("course") || key.includes("dashboard")) {
-                console.log(`  Removing: ${key}`);
                 localStorage.removeItem(key);
               }
             });
@@ -121,7 +89,6 @@ export const useCourseWorkspace = (
             return;
           }
 
-          // Merge stored item completion states with server data
           const mergedModules = progressData.modules.map((serverModule) => {
             const storedModule = storedData.modules.find(
               (m) => m.moduleId === serverModule.moduleId
@@ -130,7 +97,6 @@ export const useCourseWorkspace = (
               return serverModule;
             }
 
-            // Merge item completion states
             const mergedItems = serverModule.items.map((serverItem) => {
               const storedItem = storedModule.items.find(
                 (i) => i.moduleItemId === serverItem.moduleItemId
@@ -141,8 +107,6 @@ export const useCourseWorkspace = (
               };
             });
 
-            // Recalculate completion based on actual item states
-            // For empty modules, use stored completion instead of recalculating
             const totalItems = mergedItems.length;
             const completedCount = mergedItems.filter(
               (item) => item.completed
@@ -150,12 +114,9 @@ export const useCourseWorkspace = (
             const actualCompletion =
               totalItems > 0
                 ? Math.round((completedCount / totalItems) * 100)
-                : storedModule.completion; // Use stored completion for empty modules
+                : storedModule.completion;
 
             if (totalItems === 0) {
-              console.log(
-                `📝 Empty module "${serverModule.title}": using stored completion ${storedModule.completion}%`
-              );
             }
 
             const status: "completed" | "in-progress" | "locked" =
@@ -163,43 +124,66 @@ export const useCourseWorkspace = (
                 ? "completed"
                 : completedCount > 0
                 ? "in-progress"
-                : serverModule.status; // Keep server status if no progress
-
-            console.log(`🔀 Merging module "${serverModule.title}":`, {
-              serverAssessmentStatus: serverModule.assessmentStatus,
-              serverBestScore: serverModule.bestScore,
-              willUse: "server values (not from localStorage)",
-            });
-
+                : serverModule.status;
             return {
               ...serverModule,
               items: mergedItems,
               completion: actualCompletion,
               status,
-              // Explicitly keep server assessment data (don't let it be overridden)
+
               assessmentStatus: serverModule.assessmentStatus,
               bestScore: serverModule.bestScore,
               attemptCount: serverModule.attemptCount,
             };
           });
 
+          const moduleCompletionsWithAssessments = mergedModules.map(
+            (module) => {
+              const courseModule = courseData.modules.find(
+                (m) => m.id === module.moduleId || m.title === module.title
+              );
+
+              const hasAssessment = !!courseModule?.assessment;
+              const totalItems = module.items.length;
+              const completedItems = module.items.filter(
+                (item) => item.completed
+              ).length;
+
+              const totalWithAssessment = hasAssessment
+                ? totalItems + 1
+                : totalItems;
+              const completedWithAssessment =
+                hasAssessment && module.assessmentStatus === "passed"
+                  ? completedItems + 1
+                  : completedItems;
+
+              return totalWithAssessment > 0
+                ? Math.round(
+                    (completedWithAssessment / totalWithAssessment) * 100
+                  )
+                : module.completion;
+            }
+          );
+
+          const overallProgress = Math.round(
+            moduleCompletionsWithAssessments.reduce(
+              (sum, completion) => sum + completion,
+              0
+            ) / (moduleCompletionsWithAssessments.length || 1)
+          );
+
           const mergedProgress = {
             ...progressData,
             modules: mergedModules,
-            progress: Math.round(
-              mergedModules.reduce(
-                (sum, module) => sum + module.completion,
-                0
-              ) / (mergedModules.length || 1)
-            ),
+            progress: overallProgress,
           };
 
-          console.log("✅ Merged with stored data");
+          localStorage.setItem(storageKey, JSON.stringify(mergedProgress));
+
           setProgress(mergedProgress);
           return;
         } catch (err) {
           console.error("❌ Error parsing stored progress:", err);
-          // Fall through to use server data
         }
       }
 
@@ -265,10 +249,8 @@ export const useCourseWorkspace = (
 
       setProgress(nextProgress);
 
-      // Save to localStorage for persistence across refreshes
       const storageKey = `course-progress-${slug}`;
       localStorage.setItem(storageKey, JSON.stringify(nextProgress));
-      console.log("💾 Saved progress to localStorage (toggleItem)");
 
       try {
         await universityService.saveCourseProgress(
@@ -290,14 +272,11 @@ export const useCourseWorkspace = (
           },
           course
         );
-        console.log("✅ API call successful - keeping optimistic update");
-        // Keep the optimistic update since we know it's correct
-        // Don't overwrite with potentially stale server data
       } catch (err) {
         const errorInstance =
           err instanceof Error ? err : new Error("Unable to update module");
         setError(errorInstance);
-        // revert optimistic update by reloading
+
         console.error("❌ Error updating progress, reloading:", err);
         await load();
       } finally {
@@ -345,10 +324,8 @@ export const useCourseWorkspace = (
 
       setProgress(nextProgress);
 
-      // Save to localStorage for persistence across refreshes
       const storageKey = `course-progress-${slug}`;
       localStorage.setItem(storageKey, JSON.stringify(nextProgress));
-      console.log("💾 Saved progress to localStorage (completeModule)");
 
       try {
         await universityService.saveCourseProgress(
@@ -370,7 +347,6 @@ export const useCourseWorkspace = (
           },
           course
         );
-        // Keep the optimistic update - don't overwrite with server data
       } catch (err) {
         const errorInstance =
           err instanceof Error ? err : new Error("Unable to update module");

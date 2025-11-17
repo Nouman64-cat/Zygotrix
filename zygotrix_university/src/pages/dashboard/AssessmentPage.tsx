@@ -4,12 +4,16 @@ import {
   FiClock,
   FiAlertCircle,
   FiCheckCircle,
-  FiCircle,
   FiXCircle,
-  FiAward,
+  FiChevronDown,
+  FiChevronUp,
+  FiTarget,
+  FiTrendingUp,
+  FiList,
+  FiArrowLeft,
 } from "react-icons/fi";
-import ReactMarkdown from "react-markdown";
 import AccentButton from "../../components/common/AccentButton";
+import MarkdownContent from "../../components/common/MarkdownContent";
 import { submitAssessment } from "../../services/repositories/universityRepository";
 import type { CourseModule, AssessmentAttempt } from "../../types";
 import { cn } from "../../utils/cn";
@@ -38,6 +42,9 @@ const AssessmentPage = () => {
     passed: boolean;
     score: number;
   } | null>(null);
+  const [expandedQuestions, setExpandedQuestions] = useState<Set<number>>(
+    new Set()
+  );
 
   // Auto-submit when timer reaches 0
   useEffect(() => {
@@ -172,73 +179,126 @@ const AssessmentPage = () => {
     const { attempt, passed, score } = submittedResult;
     const correctCount = attempt.answers.filter((a) => a.isCorrect).length;
 
+    const toggleQuestion = (index: number) => {
+      setExpandedQuestions((prev) => {
+        const newSet = new Set(prev);
+        if (newSet.has(index)) {
+          newSet.delete(index);
+        } else {
+          newSet.add(index);
+        }
+        return newSet;
+      });
+    };
+
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-        {/* Results Header */}
-        <div className="bg-white border-b border-gray-200 shadow-sm">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div className="flex items-center gap-4">
-                {passed ? (
-                  <FiAward className="h-12 w-12 text-green-500" />
-                ) : (
-                  <FiXCircle className="h-12 w-12 text-red-500" />
-                )}
+      <div className="min-h-screen bg-background">
+        {/* Compact Results Header */}
+        <div className="sticky top-0 z-40 bg-surface border-b border-border shadow-sm">
+          <div className="max-w-6xl mx-auto px-4 py-4">
+            <div className="flex items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <button
+                  onClick={() => navigate(`/university/courses/${slug}`)}
+                  className="p-2 hover:bg-background-subtle rounded-lg transition-colors"
+                  title="Back to course"
+                >
+                  <FiArrowLeft className="w-5 h-5 text-foreground" />
+                </button>
                 <div>
-                  <h1 className="text-2xl md:text-3xl font-bold text-gray-900">
-                    {passed ? "Assessment Passed!" : "Assessment Not Passed"}
+                  <h1 className="text-lg font-bold text-foreground">
+                    {module.title}
                   </h1>
-                  <p className="text-gray-600 mt-1">{module.title}</p>
+                  <p className="text-xs text-muted">{courseTitle}</p>
+                </div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div
+                  className={cn(
+                    "px-3 py-1.5 rounded-full text-xs font-semibold",
+                    passed
+                      ? "bg-green-500/10 text-green-600 border border-green-500/20"
+                      : "bg-red-500/10 text-red-600 border border-red-500/20"
+                  )}
+                >
+                  {passed ? "Passed" : "Not Passed"}
                 </div>
               </div>
             </div>
 
-            {/* Score Summary */}
-            <div className="mt-6 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="bg-indigo-50 rounded-lg p-4">
-                <div className="text-3xl font-bold text-indigo-600">
+            {/* Compact Score Cards */}
+            <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
+              <div className="bg-background-subtle rounded-lg p-3 border border-border">
+                <div className="flex items-center gap-2">
+                  <FiTarget className="w-4 h-4 text-accent" />
+                  <div className="text-xs text-muted">Score</div>
+                </div>
+                <div className="text-2xl font-bold text-foreground mt-1">
                   {Math.round(score)}%
                 </div>
-                <div className="text-sm text-gray-600">Your Score</div>
               </div>
-              <div className="bg-green-50 rounded-lg p-4">
-                <div className="text-3xl font-bold text-green-600">
+              <div className="bg-background-subtle rounded-lg p-3 border border-border">
+                <div className="flex items-center gap-2">
+                  <FiCheckCircle className="w-4 h-4 text-green-500" />
+                  <div className="text-xs text-muted">Correct</div>
+                </div>
+                <div className="text-2xl font-bold text-foreground mt-1">
                   {correctCount}/{attempt.totalQuestions}
                 </div>
-                <div className="text-sm text-gray-600">Correct Answers</div>
               </div>
-              <div className="bg-purple-50 rounded-lg p-4">
-                <div className="text-3xl font-bold text-purple-600">
-                  {attempt.attemptNumber}
+              <div className="bg-background-subtle rounded-lg p-3 border border-border">
+                <div className="flex items-center gap-2">
+                  <FiTrendingUp className="w-4 h-4 text-purple-500" />
+                  <div className="text-xs text-muted">Attempt</div>
                 </div>
-                <div className="text-sm text-gray-600">Attempt Number</div>
+                <div className="text-2xl font-bold text-foreground mt-1">
+                  #{attempt.attemptNumber}
+                </div>
               </div>
-              <div className="bg-blue-50 rounded-lg p-4">
-                <div className="text-3xl font-bold text-blue-600">
-                  {passed ? "80%" : "< 80%"}
+              <div className="bg-background-subtle rounded-lg p-3 border border-border">
+                <div className="flex items-center gap-2">
+                  <FiList className="w-4 h-4 text-blue-500" />
+                  <div className="text-xs text-muted">Passing</div>
                 </div>
-                <div className="text-sm text-gray-600">Passing Score</div>
+                <div className="text-2xl font-bold text-foreground mt-1">
+                  80%
+                </div>
               </div>
             </div>
 
             {!passed && (
-              <div className="mt-4 rounded-lg bg-red-50 border border-red-200 p-4">
-                <p className="text-sm text-red-700">
-                  You need 80% or higher to pass. Review the explanations below
-                  and try again.
+              <div className="mt-3 rounded-lg bg-red-500/10 border border-red-500/20 px-3 py-2">
+                <p className="text-xs text-red-600">
+                  You need 80% or higher to pass. Review below and try again.
                 </p>
               </div>
             )}
           </div>
         </div>
 
-        {/* Detailed Results */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <h2 className="text-2xl font-bold text-gray-900 mb-6">
-            Detailed Results
-          </h2>
+        {/* Compact Results List */}
+        <div className="max-w-6xl mx-auto px-4 py-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-base font-semibold text-foreground">
+              Answer Review
+            </h2>
+            <button
+              onClick={() => {
+                if (expandedQuestions.size === questions.length) {
+                  setExpandedQuestions(new Set());
+                } else {
+                  setExpandedQuestions(new Set(questions.map((_, i) => i)));
+                }
+              }}
+              className="text-xs text-accent hover:underline"
+            >
+              {expandedQuestions.size === questions.length
+                ? "Collapse All"
+                : "Expand All"}
+            </button>
+          </div>
 
-          <div className="space-y-6">
+          <div className="space-y-2">
             {questions.map((question, qIndex) => {
               const userAnswer = attempt.answers.find(
                 (a) => a.questionIndex === qIndex
@@ -249,129 +309,147 @@ const AssessmentPage = () => {
                 (opt) =>
                   opt.isCorrect === true || (opt as any).is_correct === true
               );
+              const isExpanded = expandedQuestions.has(qIndex);
 
               return (
                 <div
                   key={qIndex}
                   className={cn(
-                    "rounded-xl border-2 p-6 bg-white",
-                    isCorrect
-                      ? "border-green-200 bg-green-50/30"
-                      : "border-red-200 bg-red-50/30"
+                    "rounded-lg border bg-surface transition-all",
+                    isCorrect ? "border-green-500/30" : "border-red-500/30"
                   )}
                 >
-                  {/* Question Header */}
-                  <div className="flex items-start gap-4 mb-4">
+                  {/* Question Header - Always Visible */}
+                  <button
+                    onClick={() => toggleQuestion(qIndex)}
+                    className="w-full px-4 py-3 flex items-center gap-3 text-left hover:bg-background-subtle transition-colors"
+                  >
                     {isCorrect ? (
-                      <FiCheckCircle className="mt-1 h-6 w-6 flex-shrink-0 text-green-600" />
+                      <FiCheckCircle className="w-5 h-5 flex-shrink-0 text-green-600" />
                     ) : (
-                      <FiXCircle className="mt-1 h-6 w-6 flex-shrink-0 text-red-600" />
+                      <FiXCircle className="w-5 h-5 flex-shrink-0 text-red-600" />
                     )}
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-gray-600 mb-2">
-                        Question {qIndex + 1}
-                      </div>
-                      <div className="prose prose-lg max-w-none text-gray-900">
-                        <ReactMarkdown>
-                          {question.prompt.markdown}
-                        </ReactMarkdown>
+                    <div className="flex-1 min-w-0">
+                      <div className="text-sm font-medium text-foreground line-clamp-1">
+                        Question {qIndex + 1}:{" "}
+                        {question.prompt.markdown.substring(0, 80)}
+                        {question.prompt.markdown.length > 80 ? "..." : ""}
                       </div>
                     </div>
-                  </div>
+                    <div className="flex items-center gap-2 flex-shrink-0">
+                      <span
+                        className={cn(
+                          "text-xs font-medium",
+                          isCorrect ? "text-green-600" : "text-red-600"
+                        )}
+                      >
+                        {isCorrect ? "Correct" : "Incorrect"}
+                      </span>
+                      {isExpanded ? (
+                        <FiChevronUp className="w-4 h-4 text-muted" />
+                      ) : (
+                        <FiChevronDown className="w-4 h-4 text-muted" />
+                      )}
+                    </div>
+                  </button>
 
-                  {/* Options */}
-                  <div className="ml-10 space-y-3">
-                    {question.options.map((option, optIndex) => {
-                      const isUserSelection = selectedOptionIndex === optIndex;
-                      const isCorrectOption = optIndex === correctOptionIndex;
-                      const isUserCorrect = isUserSelection && isCorrectOption;
-
-                      return (
-                        <div
-                          key={optIndex}
-                          className={cn(
-                            "rounded-lg border-2 p-4",
-                            isUserCorrect
-                              ? "border-green-500 bg-green-100"
-                              : isCorrectOption
-                              ? "border-green-400 bg-green-50"
-                              : isUserSelection
-                              ? "border-red-400 bg-red-50"
-                              : "border-gray-200 bg-white"
-                          )}
-                        >
-                          <div className="flex items-start gap-3">
-                            {isUserCorrect && (
-                              <FiCheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
-                            )}
-                            {!isUserCorrect && isCorrectOption && (
-                              <FiCheckCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-green-600" />
-                            )}
-                            {isUserSelection && !isCorrectOption && (
-                              <FiXCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-red-600" />
-                            )}
-                            <div className="flex-1">
-                              <span
-                                className={cn(
-                                  "text-base",
-                                  isUserCorrect
-                                    ? "font-semibold text-green-800"
-                                    : isCorrectOption
-                                    ? "font-semibold text-green-700"
-                                    : isUserSelection
-                                    ? "font-medium text-red-700"
-                                    : "text-gray-700"
-                                )}
-                              >
-                                {option.text}
-                              </span>
-                              {isUserCorrect && (
-                                <span className="ml-2 text-xs text-green-600 font-medium">
-                                  (Your Answer - Correct!)
-                                </span>
-                              )}
-                              {!isUserCorrect && isCorrectOption && (
-                                <span className="ml-2 text-xs text-green-600 font-medium">
-                                  (Correct Answer)
-                                </span>
-                              )}
-                              {isUserSelection && !isCorrectOption && (
-                                <span className="ml-2 text-xs text-red-600 font-medium">
-                                  (Your Answer - Incorrect)
-                                </span>
-                              )}
-                            </div>
-                          </div>
+                  {/* Expandable Details */}
+                  {isExpanded && (
+                    <div className="px-4 pb-4 border-t border-border">
+                      {/* Full Question */}
+                      <div className="mt-3 mb-4">
+                        <div className="text-xs font-semibold text-muted uppercase tracking-wide mb-2">
+                          Question
                         </div>
-                      );
-                    })}
-                  </div>
+                        <MarkdownContent>
+                          {question.prompt.markdown}
+                        </MarkdownContent>
+                      </div>
 
-                  {/* Explanation */}
-                  <div className="ml-10 mt-4 rounded-lg bg-indigo-50 border border-indigo-200 p-4">
-                    <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-indigo-700">
-                      Explanation
+                      {/* Options */}
+                      <div className="space-y-2 mb-4">
+                        {question.options.map((option, optIndex) => {
+                          const isUserSelection =
+                            selectedOptionIndex === optIndex;
+                          const isCorrectOption =
+                            optIndex === correctOptionIndex;
+
+                          return (
+                            <div
+                              key={optIndex}
+                              className={cn(
+                                "rounded-md border px-3 py-2 text-sm",
+                                isUserSelection && isCorrectOption
+                                  ? "border-green-500 bg-green-500/10"
+                                  : isCorrectOption
+                                  ? "border-green-400 bg-green-400/5"
+                                  : isUserSelection
+                                  ? "border-red-400 bg-red-400/10"
+                                  : "border-border bg-background-subtle"
+                              )}
+                            >
+                              <div className="flex items-start gap-2">
+                                {(isUserSelection || isCorrectOption) && (
+                                  <div className="flex-shrink-0 mt-0.5">
+                                    {isCorrectOption ? (
+                                      <FiCheckCircle className="w-4 h-4 text-green-600" />
+                                    ) : (
+                                      <FiXCircle className="w-4 h-4 text-red-600" />
+                                    )}
+                                  </div>
+                                )}
+                                <div className="flex-1">
+                                  <span className="text-foreground">
+                                    {option.text}
+                                  </span>
+                                  {isUserSelection && isCorrectOption && (
+                                    <span className="ml-2 text-xs text-green-600 font-medium">
+                                      (Your answer ✓)
+                                    </span>
+                                  )}
+                                  {isCorrectOption && !isUserSelection && (
+                                    <span className="ml-2 text-xs text-green-600 font-medium">
+                                      (Correct answer)
+                                    </span>
+                                  )}
+                                  {isUserSelection && !isCorrectOption && (
+                                    <span className="ml-2 text-xs text-red-600 font-medium">
+                                      (Your answer ✗)
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+
+                      {/* Explanation */}
+                      <div className="rounded-md bg-blue-500/5 border border-blue-500/20 px-3 py-2">
+                        <div className="text-xs font-semibold text-blue-600 uppercase tracking-wide mb-1">
+                          Explanation
+                        </div>
+                        <MarkdownContent>
+                          {question.explanation.markdown}
+                        </MarkdownContent>
+                      </div>
                     </div>
-                    <div className="prose prose-sm max-w-none text-gray-800">
-                      <ReactMarkdown>
-                        {question.explanation.markdown}
-                      </ReactMarkdown>
-                    </div>
-                  </div>
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {/* Footer Actions */}
-          <div className="mt-8 flex items-center justify-between border-t border-gray-200 pt-6">
-            <div className="text-sm text-gray-600">
+          {/* Footer */}
+          <div className="mt-6 flex items-center justify-between border-t border-border pt-4">
+            <p className="text-sm text-muted">
               {passed
-                ? "Congratulations! You can now proceed to the next module."
-                : "Review the material and try again to pass the assessment."}
-            </div>
+                ? "Great job! Continue to the next module."
+                : "Review the explanations and try again."}
+            </p>
             <AccentButton
               onClick={() => navigate(`/university/courses/${slug}`)}
+              className="cursor-pointer"
             >
               {passed ? "Continue Learning" : "Back to Course"}
             </AccentButton>
@@ -383,88 +461,93 @@ const AssessmentPage = () => {
 
   if (!hasStarted) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 flex items-center justify-center p-4">
-        <div className="max-w-2xl w-full bg-white rounded-2xl shadow-xl p-8 md:p-12">
-          <div className="text-center">
-            <div className="w-20 h-20 bg-indigo-100 rounded-full flex items-center justify-center mx-auto mb-6">
-              <FiCheckCircle className="w-10 h-10 text-indigo-600" />
+      <div className="min-h-screen bg-background flex items-center justify-center p-4">
+        <div className="max-w-xl w-full bg-surface rounded-2xl border border-border shadow-lg p-6">
+          <div className="text-center mb-6">
+            <div className="w-16 h-16 bg-accent/10 rounded-full flex items-center justify-center mx-auto mb-4">
+              <FiCheckCircle className="w-8 h-8 text-accent" />
             </div>
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
-              Ready to Start?
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              {module.title} Assessment
             </h1>
-            <p className="text-lg text-gray-600 mb-2">{courseTitle}</p>
-            <p className="text-xl font-semibold text-gray-800 mb-8">
-              {module.title}
-            </p>
-
-            <div className="bg-indigo-50 border border-indigo-200 rounded-xl p-6 mb-8 text-left">
-              <h2 className="text-lg font-semibold text-gray-900 mb-4 flex items-center gap-2">
-                <FiAlertCircle className="text-indigo-600" />
-                Assessment Instructions
-              </h2>
-              <ul className="space-y-3 text-gray-700">
-                <li className="flex items-start gap-3">
-                  <FiClock className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Time Limit:</strong> You have{" "}
-                    <strong>10 minutes</strong> to complete this assessment.
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <FiAlertCircle className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Auto-Submit:</strong> The timer starts automatically
-                    and cannot be paused. The assessment will auto-submit when
-                    time runs out.
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <FiCheckCircle className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                  <span>
-                    <strong>Questions:</strong> There are{" "}
-                    <strong>{totalQuestions}</strong> questions. Answer all to
-                    maximize your score.
-                  </span>
-                </li>
-                <li className="flex items-start gap-3">
-                  <FiXCircle className="w-5 h-5 text-indigo-600 flex-shrink-0 mt-0.5" />
-                  <span>
-                    <strong>No Going Back:</strong> Once you start, you cannot
-                    leave this page without losing your progress.
-                  </span>
-                </li>
-              </ul>
-            </div>
-
-            <AccentButton
-              onClick={handleStartAssessment}
-              className="w-full md:w-auto px-12 py-4 text-lg"
-            >
-              Start Assessment
-            </AccentButton>
+            <p className="text-sm text-muted">{courseTitle}</p>
           </div>
+
+          <div className="bg-background-subtle rounded-xl p-4 mb-6 space-y-3">
+            <div className="flex items-start gap-3">
+              <FiClock className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-foreground">
+                  10 Minutes
+                </div>
+                <div className="text-xs text-muted">
+                  Timer starts immediately and cannot be paused
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <FiList className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-foreground">
+                  {totalQuestions} Questions
+                </div>
+                <div className="text-xs text-muted">
+                  Answer all questions to maximize your score
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <FiTarget className="w-5 h-5 text-accent flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-foreground">
+                  80% to Pass
+                </div>
+                <div className="text-xs text-muted">
+                  You'll see results immediately after submitting
+                </div>
+              </div>
+            </div>
+            <div className="flex items-start gap-3">
+              <FiAlertCircle className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
+              <div className="flex-1">
+                <div className="text-sm font-semibold text-foreground">
+                  No Navigation
+                </div>
+                <div className="text-xs text-muted">
+                  Don't leave this page or you'll lose progress
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <AccentButton
+            onClick={handleStartAssessment}
+            className="w-full py-3 text-base cursor-pointer"
+          >
+            Start Assessment
+          </AccentButton>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50">
-      {/* Fixed Header with Timer */}
-      <div className="sticky top-0 z-50 bg-white border-b border-gray-200 shadow-sm">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-          <div className="flex items-center justify-between flex-wrap gap-4">
+    <div className="h-screen flex flex-col bg-background overflow-hidden">
+      {/* Compact Header */}
+      <div className="flex-shrink-0 bg-surface border-b border-border shadow-sm">
+        <div className="px-4 py-3">
+          <div className="flex items-center justify-between gap-4">
             <div className="flex-1 min-w-0">
-              <h1 className="text-lg md:text-xl font-bold text-gray-900 truncate">
+              <h1 className="text-base font-bold text-foreground truncate">
                 {module.title}
               </h1>
-              <p className="text-sm text-gray-600 mt-1">
-                {answeredCount} of {totalQuestions} answered
+              <p className="text-xs text-muted">
+                {answeredCount}/{totalQuestions} answered
               </p>
             </div>
             <div
               className={cn(
-                "flex items-center gap-3 px-4 py-2 bg-gray-50 rounded-lg border-2",
+                "flex items-center gap-2 px-3 py-2 rounded-lg border",
                 timeRemaining <= 60
                   ? "border-red-200 bg-red-50"
                   : timeRemaining <= 180
@@ -472,79 +555,64 @@ const AssessmentPage = () => {
                   : "border-green-200 bg-green-50"
               )}
             >
-              <FiClock className={cn("w-5 h-5", getTimeColor())} />
-              <div className="text-right">
-                <div
-                  className={cn("text-2xl font-mono font-bold", getTimeColor())}
-                >
-                  {formatTime(timeRemaining)}
-                </div>
-                <div className="text-xs text-gray-600">remaining</div>
+              <FiClock className={cn("w-4 h-4", getTimeColor())} />
+              <div
+                className={cn("text-xl font-mono font-bold", getTimeColor())}
+              >
+                {formatTime(timeRemaining)}
               </div>
             </div>
           </div>
-
           {/* Progress Bar */}
-          <div className="mt-4">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-sm font-medium text-gray-700">
-                Progress
-              </span>
-              <span className="text-sm font-medium text-indigo-600">
-                {Math.round(progress)}%
-              </span>
-            </div>
-            <div className="w-full bg-gray-200 rounded-full h-2">
+          <div className="mt-2">
+            <div className="w-full bg-background-subtle rounded-full h-1.5">
               <div
-                className="bg-indigo-600 h-2 rounded-full transition-all duration-300"
+                className="bg-accent h-1.5 rounded-full transition-all duration-300"
                 style={{ width: `${progress}%` }}
-                role="progressbar"
-                aria-valuenow={progress}
-                aria-valuemin={0}
-                aria-valuemax={100}
               />
             </div>
           </div>
         </div>
       </div>
 
-      {/* Questions */}
-      <div className="flex-1 overflow-y-auto">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-          <div className="space-y-8">
+      {/* Main Content - Two Column Layout */}
+      <div className="flex-1 flex overflow-hidden">
+        {/* Questions Section - Scrollable */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4 space-y-3">
             {questions.map((question, questionIndex) => {
               const isAnswered = answers[questionIndex] !== undefined;
               return (
                 <div
                   key={questionIndex}
                   className={cn(
-                    "bg-white rounded-xl shadow-lg p-6 md:p-8 border-2 transition-all",
+                    "bg-surface rounded-lg border p-4 transition-all",
                     isAnswered
-                      ? "border-indigo-200 bg-indigo-50/30"
-                      : "border-gray-200"
+                      ? "border-accent shadow-sm"
+                      : "border-border hover:border-accent/50"
                   )}
                 >
-                  {/* Question Number and Text */}
-                  <div className="flex items-start gap-4 mb-6">
+                  {/* Question */}
+                  <div className="flex items-start gap-3 mb-3">
                     <div
                       className={cn(
-                        "flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center text-sm font-bold",
+                        "flex-shrink-0 w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold",
                         isAnswered
-                          ? "bg-indigo-600 text-white"
-                          : "bg-gray-200 text-gray-600"
+                          ? "bg-accent text-white"
+                          : "bg-background-subtle text-muted"
                       )}
                     >
                       {questionIndex + 1}
                     </div>
-                    <div className="flex-1">
-                      <div className="prose prose-lg max-w-none text-gray-900">
+                    <div className="flex-1 min-w-0">
+                      <MarkdownContent>
                         {question.prompt?.markdown || "No question text"}
-                      </div>
+                      </MarkdownContent>
                     </div>
                   </div>
 
                   {/* Options */}
-                  <div className="space-y-3 ml-14">
+                  <div className="space-y-2 ml-10">
                     {question.options?.map((option, optionIndex) => {
                       const isSelected = answers[questionIndex] === optionIndex;
                       return (
@@ -554,39 +622,26 @@ const AssessmentPage = () => {
                             handleAnswerChange(questionIndex, optionIndex)
                           }
                           className={cn(
-                            "w-full text-left p-4 rounded-lg border-2 transition-all group hover:shadow-md",
+                            "w-full text-left px-3 py-2 rounded-md border text-sm transition-all",
                             isSelected
-                              ? "border-indigo-600 bg-indigo-50 shadow-md"
-                              : "border-gray-300 bg-white hover:border-indigo-300 hover:bg-indigo-50/50"
+                              ? "border-accent bg-accent/10 font-medium"
+                              : "border-border bg-background-subtle hover:border-accent/50 hover:bg-accent/5"
                           )}
-                          aria-pressed={isSelected}
-                          aria-label={`Option ${optionIndex + 1}: ${
-                            option.text
-                          }`}
                         >
-                          <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
                             <div
                               className={cn(
-                                "flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center transition-all",
+                                "flex-shrink-0 w-4 h-4 rounded-full border-2 flex items-center justify-center",
                                 isSelected
-                                  ? "border-indigo-600 bg-indigo-600"
-                                  : "border-gray-400 bg-white group-hover:border-indigo-400"
+                                  ? "border-accent bg-accent"
+                                  : "border-muted"
                               )}
                             >
-                              {isSelected ? (
-                                <FiCheckCircle className="w-4 h-4 text-white" />
-                              ) : (
-                                <FiCircle className="w-3 h-3 text-gray-400 group-hover:text-indigo-400" />
+                              {isSelected && (
+                                <div className="w-1.5 h-1.5 rounded-full bg-white" />
                               )}
                             </div>
-                            <span
-                              className={cn(
-                                "text-base",
-                                isSelected
-                                  ? "text-indigo-900 font-medium"
-                                  : "text-gray-700"
-                              )}
-                            >
+                            <span className="text-foreground">
                               {option.text}
                             </span>
                           </div>
@@ -600,81 +655,117 @@ const AssessmentPage = () => {
           </div>
         </div>
 
-        {/* Submit Section - Fixed at Bottom */}
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 shadow-lg">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 md:py-8">
-            <div className="flex items-center justify-between flex-wrap gap-4">
-              <div>
-                <h3 className="text-lg font-semibold text-gray-900">
-                  Ready to Submit?
-                </h3>
-                <p className="text-sm text-gray-600 mt-1">
-                  {answeredCount === totalQuestions ? (
-                    <span className="text-green-600 font-medium">
-                      All questions answered!
-                    </span>
-                  ) : (
-                    <span className="text-yellow-600">
-                      {totalQuestions - answeredCount} question
-                      {totalQuestions - answeredCount !== 1 ? "s" : ""}{" "}
-                      remaining
-                    </span>
-                  )}
-                </p>
+        {/* Right Sidebar - Question Navigator (Desktop Only) */}
+        <div className="hidden lg:flex flex-col w-64 border-l border-border bg-surface">
+          <div className="p-4 border-b border-border">
+            <h3 className="text-sm font-semibold text-foreground mb-2">
+              Question Navigator
+            </h3>
+            <div className="text-xs text-muted">
+              Click to jump to a question
+            </div>
+          </div>
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="grid grid-cols-5 gap-2">
+              {questions.map((_, idx) => {
+                const isAnswered = answers[idx] !== undefined;
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      document
+                        .getElementById(`question-${idx}`)
+                        ?.scrollIntoView({
+                          behavior: "smooth",
+                          block: "center",
+                        });
+                    }}
+                    className={cn(
+                      "aspect-square rounded-md text-xs font-semibold transition-all",
+                      isAnswered
+                        ? "bg-accent text-white shadow-sm"
+                        : "bg-background-subtle text-muted hover:bg-accent/10 hover:text-accent border border-border"
+                    )}
+                  >
+                    {idx + 1}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Submit Button in Sidebar */}
+          <div className="p-4 border-t border-border">
+            <AccentButton
+              onClick={handleSubmit}
+              disabled={isSubmitting || answeredCount === 0}
+              className="w-full py-2.5 text-sm cursor-pointer"
+            >
+              {isSubmitting ? "Submitting..." : "Submit Assessment"}
+            </AccentButton>
+            {answeredCount < totalQuestions && (
+              <p className="text-xs text-amber-600 mt-2 text-center">
+                {totalQuestions - answeredCount} unanswered
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Mobile Submit Button */}
+      <div className="lg:hidden flex-shrink-0 bg-surface border-t border-border p-4">
+        <AccentButton
+          onClick={handleSubmit}
+          disabled={isSubmitting || answeredCount === 0}
+          className="w-full py-3"
+        >
+          {isSubmitting ? "Submitting..." : "Submit Assessment"}
+        </AccentButton>
+        {answeredCount < totalQuestions && (
+          <p className="text-xs text-amber-600 mt-2 text-center">
+            {totalQuestions - answeredCount} question
+            {totalQuestions - answeredCount !== 1 ? "s" : ""} unanswered
+          </p>
+        )}
+      </div>
+
+      {/* Confirmation Modal */}
+      {showConfirmSubmit && (
+        <div
+          className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-surface rounded-xl shadow-2xl max-w-sm w-full p-6 border border-border">
+            <div className="text-center">
+              <div className="w-12 h-12 bg-amber-500/10 rounded-full flex items-center justify-center mx-auto mb-3">
+                <FiAlertCircle className="w-6 h-6 text-amber-600" />
               </div>
-              <AccentButton
-                onClick={handleSubmit}
-                disabled={isSubmitting || answeredCount === 0}
-                className="px-8 py-3"
-              >
-                {isSubmitting ? "Submitting..." : "Submit Assessment"}
-              </AccentButton>
+              <h2 className="text-lg font-bold text-foreground mb-2">
+                Submit Incomplete?
+              </h2>
+              <p className="text-sm text-muted mb-4">
+                {answeredCount}/{totalQuestions} answered. Unanswered questions
+                will be marked incorrect.
+              </p>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => setShowConfirmSubmit(false)}
+                  className="flex-1 px-4 py-2 bg-background-subtle text-foreground rounded-lg text-sm font-medium hover:bg-background transition-colors"
+                >
+                  Go Back
+                </button>
+                <AccentButton
+                  onClick={handleSubmit}
+                  className="flex-1 px-4 py-2"
+                >
+                  Submit
+                </AccentButton>
+              </div>
             </div>
           </div>
         </div>
-
-        {/* Confirmation Modal */}
-        {showConfirmSubmit && (
-          <div
-            className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4"
-            role="dialog"
-            aria-modal="true"
-            aria-labelledby="confirm-submit-title"
-          >
-            <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-yellow-100 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <FiAlertCircle className="w-8 h-8 text-yellow-600" />
-                </div>
-                <h2
-                  id="confirm-submit-title"
-                  className="text-2xl font-bold text-gray-900 mb-2"
-                >
-                  Submit Incomplete Assessment?
-                </h2>
-                <p className="text-gray-600 mb-6">
-                  You have answered {answeredCount} out of {totalQuestions}{" "}
-                  questions. Unanswered questions will be marked as incorrect.
-                </p>
-                <div className="flex gap-3">
-                  <button
-                    onClick={() => setShowConfirmSubmit(false)}
-                    className="flex-1 px-4 py-3 bg-gray-100 text-gray-700 rounded-lg font-medium hover:bg-gray-200 transition-colors"
-                  >
-                    Go Back
-                  </button>
-                  <AccentButton
-                    onClick={handleSubmit}
-                    className="flex-1 px-4 py-3"
-                  >
-                    Submit Anyway
-                  </AccentButton>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
+      )}
     </div>
   );
 };

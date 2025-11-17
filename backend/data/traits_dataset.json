@@ -811,5 +811,44 @@
       "XAY": "Unaffected",
       "XaY": "Alport Syndrome (Progressive Renal Failure, Hearing Loss)"
     }
+  },
+  {
+    "trait": "Retinitis Pigmentosa (Autosomal Recessive)",
+    "gene": ["USH2A", "RPE65", "PDE6A"],
+    "chromosome": [1, 5],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["R", "r"],
+    "phenotypes": {
+      "RR": "Unaffected (Normal Photoreceptors)",
+      "Rr": "Carrier (Asymptomatic)",
+      "rr": "Retinitis Pigmentosa (Rod-Cone Dystrophy / Night Blindness)"
+    }
+  },
+  {
+    "trait": "Charcot-Marie-Tooth Disease Type 1A (CMT1A)",
+    "gene": ["PMP22"],
+    "chromosome": [17],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["D", "d"],
+    "phenotypes": {
+      "DD": "Severe CMT1A (4 copies of PMP22 - Dejerine-Sottas phenotype)",
+      "Dd": "Affected (CMT1A - 3 copies of PMP22)",
+      "dd": "Unaffected (Normal Myelin)"
+    }
+  },
+  {
+    "trait": "Vascular Ehlers-Danlos Syndrome (vEDS)",
+    "gene": ["COL3A1"],
+    "chromosome": [2],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["V", "v"],
+    "phenotypes": {
+      "VV": "Embryonic Lethal (Incompatible with life)",
+      "Vv": "Vascular EDS (High risk of organ/arterial rupture)",
+      "vv": "Unaffected (Normal Type III Collagen)"
+    }
   }
 ]

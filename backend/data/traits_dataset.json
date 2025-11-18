@@ -404,19 +404,6 @@
     }
   },
   {
-    "trait": "Duchenne Muscular Dystrophy",
-    "gene": ["DMD"],
-    "chromosome": ["X"],
-    "type": "monogenic",
-    "inheritance": "X-linked recessive",
-    "alleles": ["D", "d"],
-    "phenotypes": {
-      "DD": "Normal",
-      "Dd": "Carrier (usually normal)",
-      "dd": "Duchenne Muscular Dystrophy"
-    }
-  },
-  {
     "trait": "Beta-Thalassemia",
     "gene": ["HBB"],
     "chromosome": [11],
@@ -646,21 +633,6 @@
     }
   },
   {
-    "trait": "Duchenne Muscular Dystrophy (DMD)",
-    "gene": ["DMD"],
-    "chromosome": [],
-    "type": "monogenic",
-    "inheritance": "X-linked recessive",
-    "alleles": ["XH", "Xh", "Y"],
-    "phenotypes": {
-      "XHXH": "Unaffected",
-      "XHXh": "Carrier (Risk of cardiomyopathy)",
-      "XhXh": "Affected (Extremely rare)",
-      "XHY": "Unaffected",
-      "XhY": "Duchenne Muscular Dystrophy"
-    }
-  },
-  {
     "trait": "X-linked Sideroblastic Anemia With Ataxia (XLSA/A)",
     "gene": ["ABCB7"],
     "chromosome": [],
@@ -813,7 +785,7 @@
     }
   },
   {
-    "trait": "Retinitis Pigmentosa (Autosomal Recessive)",
+    "trait": "Retinitis Pigmentosa",
     "gene": ["USH2A", "RPE65", "PDE6A"],
     "chromosome": [1, 5],
     "type": "monogenic",
@@ -849,6 +821,387 @@
       "VV": "Embryonic Lethal (Incompatible with life)",
       "Vv": "Vascular EDS (High risk of organ/arterial rupture)",
       "vv": "Unaffected (Normal Type III Collagen)"
+    }
+  },
+  {
+    "trait": "X-linked Agammaglobulinemia (XLA)",
+    "gene": ["BTK"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic - Normal antibody levels)",
+      "XhXh": "Affected (Extremely rare female case)",
+      "XHY": "Unaffected",
+      "XhY": "XLA (Absent B-cells / Severe bacterial infections)"
+    }
+  },
+  {
+    "trait": "X-linked Hyper-IgM Syndrome (HIGM1)",
+    "gene": ["CD40LG"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic - Normal Class Switching)",
+      "XhXh": "Affected (Extremely rare)",
+      "XHY": "Unaffected",
+      "XhY": "Hyper-IgM Syndrome (High IgM, Low IgG/IgA, Recurrent Infections)"
+    }
+  },
+  {
+    "trait": "Duchenne Muscular Dystrophy (DMD)",
+    "gene": ["DMD"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic / Risk of Dilated Cardiomyopathy)",
+      "XhXh": "Affected (Extremely rare)",
+      "XHY": "Unaffected",
+      "XhY": "Duchenne Muscular Dystrophy (Severe progression)"
+    }
+  },
+  {
+    "trait": "X-linked Severe Combined Immunodeficiency (X-SCID)",
+    "gene": ["IL2RG"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic - Normal Immune Function)",
+      "XhXh": "Affected (Extremely rare)",
+      "XHY": "Unaffected",
+      "XhY": "X-SCID (T- B+ NK- phenotype / 'Bubble Boy' Disease)"
+    }
+  },
+  {
+    "trait": "X-linked Chondrodysplasia Punctata 1 (CDPX1)",
+    "gene": ["ARSL", "ARSE"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic)",
+      "XhXh": "Affected (Extremely rare female case)",
+      "XHY": "Unaffected",
+      "XhY": "CDPX1 (Stippled epiphyses, Nasal hypoplasia)"
+    }
+  },
+  {
+    "trait": "X-linked Hypoparathyroidism",
+    "gene": [],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic - Normal Calcium levels)",
+      "XhXh": "Affected (Theoretical / Extremely rare)",
+      "XHY": "Unaffected",
+      "XhY": "X-linked Hypoparathyroidism (Severe Hypocalcemia / Tetany)"
+    }
+  },
+  {
+    "trait": "Blue-Cone Monochromacy (BCM)",
+    "gene": ["OPN1LW", "OPN1MW"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected (Normal Trichromatic Vision)",
+      "XHXh": "Carrier (Asymptomatic - Mosaic Retina)",
+      "XhXh": "Affected (Extremely rare female case)",
+      "XHY": "Unaffected",
+      "XhY": "Blue-Cone Monochromacy (Low Acuity, Photophobia, Blue/Rod Vision)"
+    }
+  },
+  {
+    "trait": "X-linked Retinoschisis (XLRS)",
+    "gene": ["RS1"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic - Retinal integrity usually normal)",
+      "XhXh": "Affected (Extremely rare)",
+      "XHY": "Unaffected",
+      "XhY": "X-linked Retinoschisis (Macular splitting / 'Spoke-wheel' pattern)"
+    }
+  },
+  {
+    "trait": "X-linked Ichthyosis (Steroid Sulfatase Deficiency)",
+    "gene": ["STS"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic skin / Corneal opacities possible)",
+      "XhXh": "Affected (Extremely rare)",
+      "XHY": "Unaffected",
+      "XhY": "X-linked Ichthyosis (Dark scaling, retention hyperkeratosis)"
+    }
+  },
+  {
+    "trait": "Hunter Syndrome (MPS II)",
+    "gene": ["IDS"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic - Enzyme levels ~50%)",
+      "XhXh": "Affected (Extremely rare female case / X-autosome translocation)",
+      "XHY": "Unaffected",
+      "XhY": "Hunter Syndrome (Developmental Regression / Organomegaly / Clear Corneas)"
+    }
+  },
+  {
+    "trait": "Biotinidase Deficiency",
+    "gene": ["BTD"],
+    "chromosome": [3],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["B", "b"],
+    "phenotypes": {
+      "BB": "Unaffected (100% Enzyme Activity)",
+      "Bb": "Carrier (Asymptomatic - ~50% Enzyme Activity)",
+      "bb": "Biotinidase Deficiency (Profound <10% or Partial 10-30% activity)"
+    }
+  },
+  {
+    "trait": "Homocystinuria (CBS Deficiency)",
+    "gene": ["CBS"],
+    "chromosome": [21],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["H", "h"],
+    "phenotypes": {
+      "HH": "Unaffected (Normal Homocysteine Metabolism)",
+      "Hh": "Carrier (Asymptomatic - Normal/Slightly elevated Homocysteine)",
+      "hh": "Homocystinuria (Lens dislocation / Thrombosis risk / Marfanoid habitus)"
+    }
+  },
+  {
+    "trait": "Rett Syndrome",
+    "gene": ["MECP2"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked dominant",
+    "alleles": ["XR", "X", "Y"],
+    "phenotypes": {
+      "XX": "Unaffected",
+      "XRX": "Affected (Rett Syndrome - Regression / Hand Stereotypies)",
+      "XRY": "Lethal (Severe Encephalopathy / Neonatal Death)",
+      "XY": "Unaffected"
+    }
+  },
+  {
+    "trait": "Angelman Syndrome",
+    "gene": ["UBE3A"],
+    "chromosome": [15],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["A", "a"],
+    "phenotypes": {
+      "Mat_APat_A": "Unaffected",
+      "Mat_APat_a": "Unaffected Carrier (Child inherits 'a' from father - Paternal allele is silent anyway)",
+      "Mat_aPat_A": "Angelman Syndrome (Maternal allele defective - Brain lacks UBE3A)",
+      "Mat_aPat_a": "Angelman Syndrome (Severe)"
+    }
+  },
+  {
+    "trait": "Insulin Deficiency (INS-Related Neonatal Diabetes / MODY10)",
+    "gene": ["INS"],
+    "chromosome": [11],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["I", "i"],
+    "phenotypes": {
+      "II": "Severe Neonatal Diabetes (Homozygous Lethal or Severe Onset)",
+      "Ii": "Permanent Neonatal Diabetes or MODY10 (Beta cell apoptosis)",
+      "ii": "Unaffected (Normal Insulin Secretion)"
+    }
+  },
+  {
+    "trait": "Prader-Willi Syndrome (PWS)",
+    "gene": ["SNRPN", "NDN", "SNORD116 Cluster"],
+    "chromosome": [15],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["P", "p", "M"],
+    "phenotypes": {
+      "Pat_PMat_M": "Unaffected (Normal Paternal Expression)",
+      "Pat_pMat_M": "Prader-Willi Syndrome (Paternal Deletion - No active gene expression)",
+      "UPD_MatUPD_Mat": "Prader-Willi Syndrome (Maternal Uniparental Disomy - Two silenced copies)"
+    }
+  },
+  {
+    "trait": "Vitamin D Dependent Rickets Type 1 (VDDR-I)",
+    "gene": ["CYP27B1"],
+    "chromosome": [12],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["R", "r"],
+    "phenotypes": {
+      "RR": "Unaffected (Normal 1-alpha-hydroxylase activity)",
+      "Rr": "Carrier (Asymptomatic - Normal bone metabolism)",
+      "rr": "VDDR-I (Severe Rickets / Hypocalcemia / Responds to Calcitriol)"
+    }
+  },
+  {
+    "trait": "Vitamin D Dependent Rickets Type 2 (VDDR-II)",
+    "gene": ["VDR"],
+    "chromosome": [12],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["R", "r"],
+    "phenotypes": {
+      "RR": "Unaffected (Normal Vitamin D sensitivity)",
+      "Rr": "Carrier (Asymptomatic)",
+      "rr": "VDDR-II (Severe Rickets / Alopecia / High 1,25-OHD levels)"
+    }
+  },
+  {
+    "trait": "Hereditary Fructose Intolerance (Aldolase B Deficiency)",
+    "gene": ["ALDOB"],
+    "chromosome": [9],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["B", "b"],
+    "phenotypes": {
+      "BB": "Unaffected (Normal Fructose Metabolism)",
+      "Bb": "Carrier (Asymptomatic - Sufficient Enzyme Activity)",
+      "bb": "Hereditary Fructose Intolerance (Severe Hypoglycemia/Liver damage upon fructose ingestion)"
+    }
+  },
+  {
+    "trait": "Hereditary Prostate Cancer (Susceptibility)",
+    "gene": ["BRCA2", "HOXB13", "RNASEL"],
+    "chromosome": [13, 17, 1],
+    "type": "polygenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["P", "p"],
+    "phenotypes": {
+      "PP": "Average Population Risk",
+      "Pp": "High Risk (Early Onset / Aggressive Phenotype)",
+      "pp": "Severe (Fanconi Anemia if BRCA2 / Very High Cancer Risk if HOXB13)"
+    }
+  },
+  {
+    "trait": "Adermatoglyphia (No Fingerprints)",
+    "gene": ["SMARCAD1"],
+    "chromosome": [4],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["A", "a"],
+    "phenotypes": {
+      "AA": "Adermatoglyphia (Presumed Affected)",
+      "Aa": "Adermatoglyphia (Absent Fingerprints / Mild Hypohidrosis)",
+      "aa": "Unaffected (Normal Dermatoglyphs)"
+    }
+  },
+  {
+    "trait": "Tetrachromacy (Super Color Vision)",
+    "gene": ["OPN1LW", "OPN1MW"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XT1", "XT2", "Y"],
+    "phenotypes": {
+      "XT1XT1": "Normal Trichromat (Three distinct cones)",
+      "XT1XT2": "Genetic Tetrachromat (Four distinct cones - Potential Super Vision)",
+      "XT2XT2": "Color Deficient Female (Anomalous Trichromat - Rare)",
+      "XT1Y": "Normal Male Trichromat",
+      "XT2Y": "Color Deficient Male (Anomalous Trichromat / Deuteranomaly)"
+    }
+  },
+  {
+    "trait": "Myotonic Dystrophy Type 1 (DM1)",
+    "gene": ["DMPK"],
+    "chromosome": [19],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["D", "d"],
+    "phenotypes": {
+      "dd": "Unaffected (Normal repeats)",
+      "Dd_Mild": "Mild DM1 (50-150 repeats - Cataracts, mild myotonia)",
+      "Dd_Classic": "Classic DM1 (100-1000 repeats - Hatchet face, muscle wasting, arrhythmia)",
+      "Dd_Congenital": "Congenital DM1 (>1000 repeats - Hypotonia, respiratory failure, intellectual disability)",
+      "DD": "Severe/Lethal (Homozygous expansion is extremely rare)"
+    }
+  },
+  {
+    "trait": "X-linked Adrenoleukodystrophy (X-ALD)",
+    "gene": ["ABCD1"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XA", "Xa", "Y"],
+    "phenotypes": {
+      "XAXA": "Unaffected",
+      "XAXa": "Carrier (Risk of AMN-like myelopathy in adulthood)",
+      "XaXa": "Affected (Extremely rare female case)",
+      "XAY": "Unaffected",
+      "XaY": "X-ALD (Cerebral Demyelination / Adrenomyeloneuropathy / Addison's Disease)"
+    }
+  },
+  {
+    "trait": "Brachydactyly Type A1",
+    "gene": ["IHH"],
+    "chromosome": [2],
+    "type": "monogenic",
+    "inheritance": "autosomal_dominant",
+    "alleles": ["B", "b"],
+    "phenotypes": {
+      "BB": "Severe Brachydactyly (Likely severe skeletal dysplasia)",
+      "Bb": "Brachydactyly Type A1 (Short/Absent middle phalanges)",
+      "bb": "Unaffected (Normal digit length)"
+    }
+  },
+  {
+    "trait": "Menkes Disease (Kinky Hair Disease)",
+    "gene": ["ATP7A"],
+    "chromosome": [],
+    "type": "monogenic",
+    "inheritance": "X-linked recessive",
+    "alleles": ["XH", "Xh", "Y"],
+    "phenotypes": {
+      "XHXH": "Unaffected",
+      "XHXh": "Carrier (Asymptomatic / Pili Torti may be visible microscopically)",
+      "XhXh": "Affected (Extremely rare female case)",
+      "XHY": "Unaffected",
+      "XhY": "Menkes Disease (Severe Neurodegeneration / Pili Torti)"
+    }
+  },
+  {
+    "trait": "Oculocutaneous Albinism Type 1 (OCA1)",
+    "gene": ["TYR"],
+    "chromosome": [11],
+    "type": "monogenic",
+    "inheritance": "autosomal_recessive",
+    "alleles": ["A", "a"],
+    "phenotypes": {
+      "AA": "Unaffected (Normal Pigmentation)",
+      "Aa": "Carrier (Unaffected)",
+      "aa": "Oculocutaneous Albinism (No Melanin Production)"
     }
   }
 ]

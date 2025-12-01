@@ -68,7 +68,7 @@ const ProjectsPage: React.FC = () => {
   };
 
   const openDeleteModal = (project: Project, e: React.MouseEvent) => {
-    e.stopPropagation(); // Prevent card click
+    e.stopPropagation();
     setProjectToDelete(project);
   };
 
@@ -85,27 +85,44 @@ const ProjectsPage: React.FC = () => {
     return ChartBarIcon;
   };
 
-  // Derive light/background and text color classes from a Tailwind `bg-...-500` class
+  // Enhanced color variants with more vibrant gradients
   const deriveColorVariants = (bgClass?: string) => {
     if (!bgClass || !bgClass.startsWith("bg-")) {
-      return { tab: "bg-blue-500", bg: "bg-blue-100", text: "text-blue-600" };
+      return {
+        gradient: "from-blue-400 via-blue-500 to-blue-600",
+        bg: "bg-blue-100",
+        bgHover: "bg-blue-200",
+        text: "text-blue-700",
+        border: "border-blue-300",
+        shadow: "shadow-blue-200",
+        ring: "ring-blue-400",
+      };
     }
 
-    // Expecting format like 'bg-blue-500' -> extract color and produce variants
     const parts = bgClass.split("-");
     if (parts.length >= 3) {
       const color = parts[1];
       return {
-        tab: `bg-${color}-500`,
+        gradient: `from-${color}-400 via-${color}-500 to-${color}-600`,
         bg: `bg-${color}-100`,
-        text: `text-${color}-600`,
+        bgHover: `bg-${color}-200`,
+        text: `text-${color}-700`,
+        border: `border-${color}-300`,
+        shadow: `shadow-${color}-200`,
+        ring: `ring-${color}-400`,
       };
     }
 
-    return { tab: bgClass, bg: "bg-blue-100", text: "text-blue-600" };
+    return {
+      gradient: "from-blue-400 via-blue-500 to-blue-600",
+      bg: "bg-blue-100",
+      bgHover: "bg-blue-200",
+      text: "text-blue-700",
+      border: "border-blue-300",
+      shadow: "shadow-blue-200",
+      ring: "ring-blue-400",
+    };
   };
-
-  // Use shared formatDate helper for absolute formatted dates
 
   if (loading) {
     return (
@@ -206,39 +223,41 @@ const ProjectsPage: React.FC = () => {
         )}
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
           {/* Start New Project Card */}
           <button
             onClick={() => handleCreateProject()}
-            className="relative bg-gradient-to-br from-white to-gray-50 rounded-lg border-2 border-dashed border-gray-300 hover:border-blue-400 transition-all duration-200 p-3 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[180px] w-full shadow-sm hover:shadow-md"
+            className="relative bg-gradient-to-br from-white via-blue-50 to-indigo-50 rounded-xl border-2 border-dashed border-blue-300 hover:border-blue-400 hover:shadow-xl transition-all duration-300 p-4 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[200px] w-full shadow-lg"
           >
-            {/* Notebook binding holes */}
-            <div className="absolute left-2 top-3 bottom-3 w-1">
-              <div className="flex flex-col justify-start space-y-1.5 h-full">
+            {/* Notebook binding holes - colorful */}
+            <div className="absolute left-3 top-4 bottom-4 w-2">
+              <div className="flex flex-col justify-start space-y-2 h-full">
                 {[...Array(5)].map((_, i) => (
                   <div
                     key={i}
-                    className="w-1 h-1 rounded-full bg-gray-200 group-hover:bg-blue-200 transition-colors"
+                    className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 group-hover:from-indigo-400 group-hover:to-indigo-600 transition-all duration-300 shadow-md"
                   />
                 ))}
               </div>
             </div>
 
-            <div className="ml-3 flex flex-col items-center justify-center h-full">
-              <div className="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center mb-2 group-hover:bg-blue-200 transition-colors">
-                <PlusIcon className="h-4 w-4 text-blue-600" />
+            <div className="ml-4 flex flex-col items-center justify-center h-full">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <PlusIcon className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-sm font-semibold text-gray-900 mb-1">
+              <h3 className="text-sm font-bold text-gray-900 mb-1">
                 Start New Project
               </h3>
-              <p className="text-gray-500 text-xs">
+              <p className="text-gray-600 text-xs px-2">
                 Create a new genomic analysis project
               </p>
             </div>
-          </button>{" "}
+          </button>
+
           {/* Project Cards */}
           {filteredProjects.map((project) => {
             const IconComponent = getProjectIcon(project);
+            const variants = deriveColorVariants(project.color);
 
             return (
               <div
@@ -246,78 +265,62 @@ const ProjectsPage: React.FC = () => {
                 onClick={() => navigate(`/studio/workspace/${project.id}`)}
                 role="button"
                 tabIndex={0}
-                className="relative bg-gradient-to-br from-white to-gray-50 rounded-lg shadow-sm hover:shadow-lg transition-all duration-200 cursor-pointer aspect-[3/4] min-h-[180px] flex flex-col w-full text-left border border-gray-200 hover:border-gray-300 group overflow-hidden"
+                className={`relative bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer aspect-[3/4] min-h-[200px] flex flex-col w-full text-left border-2 ${variants.border} hover:border-opacity-100 border-opacity-60 group overflow-hidden transform hover:-translate-y-1`}
                 onKeyPress={(e) => {
                   if (e.key === "Enter" || e.key === " ")
                     navigate(`/studio/workspace/${project.id}`);
                 }}
               >
-                {/* Notebook binding holes */}
-                <div className="absolute left-2 top-3 bottom-3 w-1 z-10">
-                  <div className="flex flex-col justify-start space-y-1.5 h-full">
+                {/* Notebook binding holes - colorful */}
+                <div className="absolute left-3 top-4 bottom-4 w-2 z-10">
+                  <div className="flex flex-col justify-start space-y-2 h-full">
                     {[...Array(5)].map((_, i) => (
                       <div
                         key={i}
-                        className="w-1 h-1 rounded-full bg-gray-300 shadow-inner"
+                        className={`w-2 h-2 rounded-full bg-gradient-to-br ${variants.gradient} shadow-md`}
                       />
                     ))}
                   </div>
                 </div>
 
-                {/* Color tab on the side */}
-                {(() => {
-                  const variants = deriveColorVariants(project.color);
-                  return (
+                {/* Colorful tab on the side */}
+                <div
+                  className={`absolute right-0 top-4 w-2 h-12 bg-gradient-to-b ${variants.gradient} rounded-l-lg shadow-lg`}
+                />
+
+                {/* Main content */}
+                <div className="p-4 flex flex-col flex-1 pl-7">
+                  <div className="flex items-start justify-between mb-3">
                     <div
-                      className={`absolute right-0 top-3 w-1 h-6 ${variants.tab} rounded-l-md`}
-                    />
-                  );
-                })()}
-
-                {/* Top row: icon, status, actions */}
-                <div className="p-3 flex flex-col flex-1">
-                  <div className="flex items-start justify-between">
-                    <div className="flex items-center space-x-2">
-                      <div
-                        className={`w-5 h-5 rounded-lg flex items-center justify-center ${
-                          deriveColorVariants(project.color).bg
-                        }`}
-                      >
-                        <IconComponent
-                          className={`h-3 w-3 ${
-                            deriveColorVariants(project.color).text
-                          }`}
-                        />
-                      </div>
+                      className={`w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-br ${variants.gradient} shadow-lg transform group-hover:scale-110 transition-transform duration-300`}
+                    >
+                      <IconComponent className="h-4 w-4 text-white" />
                     </div>
 
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          openDeleteModal(project, e);
-                        }}
-                        className="p-1 cursor-pointer text-gray-400 hover:text-red-600"
-                        aria-label={`Delete ${project.name}`}
-                      >
-                        <TrashIcon className="h-4 w-4" />
-                      </button>
-                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openDeleteModal(project, e);
+                      }}
+                      className="p-1.5 rounded-lg cursor-pointer text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      aria-label={`Delete ${project.name}`}
+                    >
+                      <TrashIcon className="h-4 w-4" />
+                    </button>
                   </div>
 
-                  <h3 className="text-sm mt-9 font-semibold text-gray-900 line-clamp-2 leading-tight mt-3">
+                  <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight mb-2">
                     {project.name}
                   </h3>
-                  {/* Description */}
-                  <p className="text-gray-600 text-xs mb-2 line-clamp-3 flex-1">
+
+                  <p className="text-gray-600 text-xs mb-3 line-clamp-3 flex-1">
                     {project.description ||
                       "Study complex inheritance patterns including codominance and incomplete dominance"}
                   </p>
 
-                  {/* Footer with date */}
-                  <div className="border-t border-gray-100 pt-1.5 mt-auto">
-                    <div className="text-xs text-gray-500">
-                      Created:{" "}
+                  {/* Footer with colorful gradient background */}
+                  <div className={`border-t-2 ${variants.border} pt-2 mt-auto`}>
+                    <div className={`text-xs font-medium ${variants.text}`}>
                       {project.created_at
                         ? formatDate(project.created_at)
                         : project.updated_at
@@ -327,18 +330,21 @@ const ProjectsPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Subtle lined paper effect */}
+                {/* Subtle lined paper effect with color */}
                 <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute left-6 right-2 top-8 bottom-6 opacity-10">
+                  <div className="absolute left-8 right-3 top-12 bottom-8 opacity-5">
                     {[...Array(6)].map((_, i) => (
                       <div
                         key={i}
-                        className="border-b border-blue-200 h-2.5"
-                        style={{ marginTop: i === 0 ? 0 : "6px" }}
+                        className={`border-b-2 ${variants.border} h-3`}
+                        style={{ marginTop: i === 0 ? 0 : "8px" }}
                       />
                     ))}
                   </div>
                 </div>
+
+                {/* Gradient overlay on hover */}
+                <div className={`absolute inset-0 bg-gradient-to-br ${variants.gradient} opacity-0 group-hover:opacity-5 transition-opacity duration-300 pointer-events-none`} />
               </div>
             );
           })}

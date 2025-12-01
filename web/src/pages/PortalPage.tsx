@@ -6,7 +6,6 @@ import {
   HiOutlineUpload,
   HiOutlineUser,
   HiOutlineAdjustments,
-  HiOutlineLightningBolt,
   HiOutlineClock,
   HiOutlineTrendingUp,
   HiOutlineBeaker,

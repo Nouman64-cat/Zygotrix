@@ -1609,6 +1609,44 @@ const ProjectWorkspace: React.FC = () => {
     [projectId, items, mapItemToStoredNote, updateMendelianTool]
   );
 
+  const handlePunnettSquareChange = useCallback(
+    (itemId: string, updates: {
+      parent1Genotype?: string;
+      parent2Genotype?: string;
+      phenotypeMap?: Record<string, string>
+    }) => {
+      setItems((prev) =>
+        prev.map((item) =>
+          item.id === itemId
+            ? {
+                ...item,
+                data: {
+                  ...item.data,
+                  ...updates,
+                },
+              }
+            : item
+        )
+      );
+
+      // Save to local storage
+      const projectKey = projectId && projectId !== "new" ? projectId : "new";
+      const updatedItems = items.map((item) =>
+        item.id === itemId
+          ? {
+              ...item,
+              data: {
+                ...item.data,
+                ...updates,
+              },
+            }
+          : item
+      );
+      saveLocalItems(projectKey, updatedItems);
+    },
+    [items, projectId]
+  );
+
   const handleMouseDown = useCallback(
     (e: React.MouseEvent, itemId: string) => {
       if (selectedTool === "hand") return; // disable dragging items in hand mode
@@ -2558,6 +2596,8 @@ const ProjectWorkspace: React.FC = () => {
             item={item}
             commonClasses={commonClasses}
             onMouseDown={handleMouseDown}
+            onDeleteItem={handleDeleteItem}
+            onPunnettSquareChange={handlePunnettSquareChange}
           />
         );
 

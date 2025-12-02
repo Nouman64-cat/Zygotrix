@@ -1,8 +1,9 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { FiLogOut } from "react-icons/fi";
+import { FiLogOut, FiSun, FiMoon } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 import logo from "../../../public/zygotrix-logo.png";
 
 import { PiDna } from "react-icons/pi";
@@ -23,6 +24,11 @@ const Navbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
   const location = useLocation();
   const { user, signOut } = useAuth();
+  const { theme, setTheme } = useTheme();
+
+  const toggleTheme = () => {
+    setTheme(theme === "dark" ? "light" : "dark");
+  };
 
   useEffect(() => {
     setMobileOpen(false);
@@ -36,7 +42,7 @@ const Navbar: React.FC = () => {
     `rounded-full px-4 py-2 text-sm font-semibold transition ${
       isActive
         ? "bg-white dark:bg-slate-700 text-[#1E3A8A] dark:text-white shadow"
-        : "text-gray/80 dark:text-slate-300 hover:opacity-80"
+        : "text-slate-600 dark:text-slate-300 hover:opacity-80"
     }`;
 
   const handleSignOut = () => {
@@ -44,23 +50,23 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-slate-900/95 dark:bg-slate-950/95 backdrop-blur-lg border-b border-white/10 dark:border-slate-700/50">
+    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
       <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         <Link to="/" className="group flex items-center gap-2">
           <div>
             <img src={logo} alt="Zygotrix" className="w-[3rem]" />
           </div>
           <div className="leading-tight">
-            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-gray dark:text-slate-200">
+            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-slate-900 dark:text-slate-200">
               Zygotrix
             </p>
-            <p className="text-xs font-medium text-gray/70 dark:text-slate-400">
+            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
               Genetics intelligence engine
             </p>
           </div>
         </Link>
 
-        <div className="hidden items-center gap-2 rounded-full border border-white/10 dark:border-slate-700 bg-white/5 dark:bg-slate-800/50 px-2 py-1 backdrop-blur-lg lg:flex">
+        <div className="hidden items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100/50 dark:bg-slate-800/50 px-2 py-1 backdrop-blur-lg lg:flex">
           {navItems.map((item) => (
             <NavLink key={item.to} to={item.to} className={linkClasses}>
               {item.label}
@@ -69,6 +75,13 @@ const Navbar: React.FC = () => {
         </div>
 
         <div className="hidden items-center gap-3 lg:flex">
+          <button
+            onClick={toggleTheme}
+            className="p-2 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-slate-800 transition-colors"
+            aria-label="Toggle theme"
+          >
+            {theme === "dark" ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+          </button>
           <a
             href={ZYGOTRIX_UNIVERSITY_URL}
             target="_blank"
@@ -89,7 +102,7 @@ const Navbar: React.FC = () => {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="inline-flex items-center cursor-pointer bg-white dark:bg-slate-700 rounded-full justify-center gap-2 px-5 py-2 text-sm font-semibold text-gray dark:text-slate-300 transition hover:text-red-500 dark:hover:text-red-400"
+                className="inline-flex items-center cursor-pointer bg-white dark:bg-slate-700 rounded-full justify-center gap-2 px-5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-red-500 dark:hover:text-red-400"
               >
                 <FiLogOut className="h-5 w-5" />
                 Sign out
@@ -100,7 +113,7 @@ const Navbar: React.FC = () => {
               <Link
                 to="/signin"
                 state={{ from: { pathname: location.pathname } }}
-                className="inline-flex items-center justify-center rounded-full border border-gray/20 dark:border-slate-600 px-5 py-2 text-sm font-semibold text-gray dark:text-slate-300 transition hover:bg-white dark:hover:bg-slate-700 hover:border-white dark:hover:border-slate-600 hover:text-[#1E3A8A] dark:hover:text-white"
+                className="inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-600 px-5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:text-[#1E3A8A] dark:hover:text-white"
               >
                 Sign in
               </Link>
@@ -110,7 +123,7 @@ const Navbar: React.FC = () => {
 
         <button
           type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-white/20 dark:border-slate-600 text-gray dark:text-slate-300 lg:hidden"
+          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 lg:hidden"
           onClick={() => setMobileOpen((value) => !value)}
           aria-label="Toggle navigation"
         >
@@ -134,14 +147,23 @@ const Navbar: React.FC = () => {
 
       {mobileOpen && (
         <div className="lg:hidden">
-          <div className="mx-4 mb-4 space-y-2 rounded-3xl border border-white/10 dark:border-slate-700 bg-slate-900/95 dark:bg-slate-800/95 p-4 shadow-2xl backdrop-blur">
+          <div className="mx-4 mb-4 space-y-2 rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 p-4 shadow-2xl backdrop-blur">
+            <div className="flex justify-end px-2">
+              <button
+                onClick={toggleTheme}
+                className="p-2 rounded-full text-slate-400 hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-white/10 transition-colors"
+                aria-label="Toggle theme"
+              >
+                {theme === "dark" ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+              </button>
+            </div>
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
                   `block rounded-2xl px-4 py-3 text-base font-semibold transition ${
-                    isActive ? "bg-white dark:bg-slate-700 text-[#1E3A8A] dark:text-white" : "text-gray dark:text-slate-300 hover:bg-blue-100 dark:hover:bg-slate-700"
+                    isActive ? "bg-slate-100 dark:bg-slate-700 text-[#1E3A8A] dark:text-white" : "text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700"
                   }`
                 }
               >
@@ -153,7 +175,7 @@ const Navbar: React.FC = () => {
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="block w-full rounded-2xl border border-white/20 dark:border-slate-600 px-4 py-3 text-center text-base font-semibold text-white dark:text-slate-300"
+                className="block w-full rounded-2xl border border-slate-200 dark:border-slate-600 px-4 py-3 text-center text-base font-semibold text-slate-600 dark:text-slate-300"
               >
                 Sign out
               </button>
@@ -162,7 +184,7 @@ const Navbar: React.FC = () => {
                 <Link
                   to="/signin"
                   state={{ from: { pathname: location.pathname } }}
-                  className="block rounded-2xl border border-white/20 dark:border-slate-600 px-4 py-3 text-center text-base font-semibold text-white dark:text-slate-300"
+                  className="block rounded-2xl border border-slate-200 dark:border-slate-600 px-4 py-3 text-center text-base font-semibold text-slate-600 dark:text-slate-300"
                 >
                   Sign in
                 </Link>

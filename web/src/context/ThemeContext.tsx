@@ -35,7 +35,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
     // Fall back to localStorage
     const stored = localStorage.getItem("zygotrix_theme");
     console.log("[ThemeContext] localStorage theme:", stored);
-    const initialTheme = (stored as Theme) || "light";
+    const initialTheme = (stored as Theme) || "dark";
     console.log("[ThemeContext] Initial theme:", initialTheme);
     return initialTheme;
   });

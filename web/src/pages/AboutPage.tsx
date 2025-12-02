@@ -20,27 +20,27 @@ const cardPalettes = [
     overlayClass:
       "bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-pink-400/5",
     glowGradient: "from-blue-400 to-purple-400",
-    titleGradient: "from-slate-900 to-blue-900",
-    hoverTitleGradient: "group-hover:from-blue-600 group-hover:to-purple-600",
-    arrowColor: "text-blue-600",
+    titleGradient: "from-slate-900 to-blue-900 dark:from-white dark:to-blue-200",
+    hoverTitleGradient: "group-hover:from-blue-600 group-hover:to-purple-600 dark:group-hover:from-blue-300 dark:group-hover:to-purple-300",
+    arrowColor: "text-blue-600 dark:text-blue-400",
   },
   {
     cardClass: "bg-gradient-to-br from-white via-pink-50/30 to-purple-50/30",
     overlayClass:
       "bg-gradient-to-br from-pink-400/5 via-purple-400/5 to-blue-400/5",
     glowGradient: "from-pink-400 to-purple-400",
-    titleGradient: "from-slate-900 to-pink-900",
-    hoverTitleGradient: "group-hover:from-pink-600 group-hover:to-purple-600",
-    arrowColor: "text-pink-600",
+    titleGradient: "from-slate-900 to-pink-900 dark:from-white dark:to-pink-200",
+    hoverTitleGradient: "group-hover:from-pink-600 group-hover:to-purple-600 dark:group-hover:from-pink-300 dark:group-hover:to-purple-300",
+    arrowColor: "text-pink-600 dark:text-pink-400",
   },
   {
     cardClass: "bg-gradient-to-br from-white via-emerald-50/30 to-cyan-50/30",
     overlayClass:
       "bg-gradient-to-br from-emerald-400/5 via-cyan-400/5 to-blue-400/5",
     glowGradient: "from-emerald-400 to-cyan-400",
-    titleGradient: "from-slate-900 to-emerald-900",
-    hoverTitleGradient: "group-hover:from-emerald-600 group-hover:to-cyan-600",
-    arrowColor: "text-emerald-600",
+    titleGradient: "from-slate-900 to-emerald-900 dark:from-white dark:to-emerald-200",
+    hoverTitleGradient: "group-hover:from-emerald-600 group-hover:to-cyan-600 dark:group-hover:from-emerald-300 dark:group-hover:to-cyan-300",
+    arrowColor: "text-emerald-600 dark:text-emerald-400",
   },
 ] as const;
 
@@ -223,7 +223,7 @@ const AboutPage: React.FC = () => {
   const handleRetry = () => setRetryKey((prev) => prev + 1);
 
   return (
-    <div className="bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 min-h-screen">
+    <div className="bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 min-h-screen transition-colors duration-300">
       <div className="pointer-events-none fixed inset-0 opacity-[0.02]">
         <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
           <defs>
@@ -260,14 +260,14 @@ const AboutPage: React.FC = () => {
       <div className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-24">
         <div className="grid gap-16 lg:grid-cols-[1.2fr,1fr] lg:items-center">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 px-6 py-3 backdrop-blur-sm border border-blue-500/30">
+            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 px-6 py-3 backdrop-blur-sm border border-blue-500/20 dark:border-blue-500/30">
               <div className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 animate-pulse" />
-              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-300">
+              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-600 dark:text-blue-300">
                 Our Story
               </span>
             </div>
 
-            <h1 className="text-5xl font-bold leading-tight bg-gradient-to-r from-white via-blue-200 to-purple-200 bg-clip-text text-transparent sm:text-6xl">
+            <h1 className="text-5xl font-bold leading-tight bg-gradient-to-r from-slate-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent sm:text-6xl">
               Zygotrix is crafted for teams who translate
               <span className="relative">
                 <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
@@ -279,7 +279,7 @@ const AboutPage: React.FC = () => {
               into action.
             </h1>
 
-            <p className="text-lg leading-relaxed text-slate-300 max-w-2xl">
+            <p className="text-lg leading-relaxed text-slate-600 dark:text-slate-300 max-w-2xl">
               We believe that understanding inheritance patterns should feel
               intuitive, whether you are prototyping in a notebook or running
               production simulations. Zygotrix distills complex models into
@@ -309,7 +309,7 @@ const AboutPage: React.FC = () => {
               </a>
               <a
                 href="#team"
-                className="inline-flex items-center justify-center rounded-2xl border-2 border-blue-400/50 bg-slate-800/80 backdrop-blur-sm px-8 py-4 text-sm font-semibold text-blue-300 transition-all hover:border-blue-400 hover:bg-slate-700 hover:scale-105"
+                className="inline-flex items-center justify-center rounded-2xl border-2 border-blue-200 dark:border-blue-400/50 bg-white/50 dark:bg-slate-800/80 backdrop-blur-sm px-8 py-4 text-sm font-semibold text-blue-600 dark:text-blue-300 transition-all hover:border-blue-400 hover:bg-white dark:hover:bg-slate-700 hover:scale-105"
               >
                 Meet the team
               </a>
@@ -319,12 +319,12 @@ const AboutPage: React.FC = () => {
           <div className="relative flex justify-center lg:justify-end">
             <div className="relative w-full max-w-sm">
               <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-blue-400/20 via-purple-400/20 to-emerald-400/20 blur-2xl animate-pulse" />
-              <div className="relative overflow-hidden rounded-3xl border-2 border-slate-700/60 bg-slate-800/80 backdrop-blur-lg p-10 shadow-2xl shadow-blue-500/20">
+              <div className="relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg p-10 shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/20">
                 <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-pulse" />
                 <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full animate-pulse delay-1000" />
 
                 <img src={logo} alt="Zygotrix" className="mx-auto w-36 mb-6" />
-                <p className="text-center text-sm leading-relaxed text-slate-300">
+                <p className="text-center text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                   Merging Mendelian logic, polygenic scoring, and thoughtful
                   interaction design into a single learning platform.
                 </p>
@@ -341,16 +341,16 @@ const AboutPage: React.FC = () => {
 
         <div id="team" className="mt-20">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-purple-500/20 to-pink-500/20 px-6 py-3 backdrop-blur-sm border border-purple-500/30 mb-6">
+            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 px-6 py-3 backdrop-blur-sm border border-purple-500/20 dark:border-purple-500/30 mb-6">
               <FaUsers className="w-4 h-4 text-purple-600" />
-              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-purple-300">
+              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-purple-600 dark:text-purple-300">
                 Our Team
               </span>
             </div>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-white via-purple-200 to-pink-200 bg-clip-text text-transparent mb-4">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-purple-800 to-pink-800 dark:from-white dark:via-purple-200 dark:to-pink-200 bg-clip-text text-transparent mb-4">
               Meet the minds behind Zygotrix
             </h2>
-            <p className="text-lg text-slate-300 max-w-2xl mx-auto">
+            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
               Core contributors and collaborators who help guide Zygotrix
               towards making genetics accessible for everyone.
             </p>
@@ -379,7 +379,7 @@ const AboutPage: React.FC = () => {
               [0, 1, 2].map((index) => (
                 <div
                   key={`team-skeleton-${index}`}
-                  className="h-80 rounded-3xl border-2 border-slate-700/60 bg-slate-800/60 shadow-lg animate-pulse"
+                  className="h-80 rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 shadow-lg animate-pulse"
                 />
               ))}
 
@@ -403,7 +403,7 @@ const AboutPage: React.FC = () => {
                   <Link
                     key={member.slug}
                     to={`/team/${member.slug}`}
-                    className={`group relative overflow-hidden rounded-3xl border-2 border-slate-700/60 bg-slate-800/60 p-8 shadow-xl shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-blue-500/20 hover:scale-[1.02]`}
+                    className={`group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-blue-500/20 hover:scale-[1.02]`}
                   >
                     <div
                       className={`absolute inset-0 ${palette.overlayClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
@@ -434,7 +434,7 @@ const AboutPage: React.FC = () => {
                       >
                         {member.name}
                       </h3>
-                      <p className="text-sm text-slate-300 mt-1 mb-2">
+                      <p className="text-sm text-slate-500 dark:text-slate-300 mt-1 mb-2">
                         {member.role}
                       </p>
 
@@ -446,7 +446,7 @@ const AboutPage: React.FC = () => {
                         </span>
                       </div>
 
-                      <p className="text-sm text-slate-300 leading-relaxed">
+                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
                         {intro}
                       </p>
 
@@ -503,11 +503,11 @@ const AboutPage: React.FC = () => {
           </div>
 
           {!teamLoading && teamMembers.length === 0 && !teamError && (
-            <div className="mt-10 mx-auto max-w-3xl rounded-3xl border border-slate-700 bg-slate-800/70 p-8 text-center shadow-md">
-              <h3 className="text-lg font-semibold text-slate-200 mb-2">
+            <div className="mt-10 mx-auto max-w-3xl rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-8 text-center shadow-md">
+              <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">
                 Team roster coming soon
               </h3>
-              <p className="text-slate-300">
+              <p className="text-slate-600 dark:text-slate-300">
                 Our Hygraph workspace does not have any published team members
                 yet. Check back soon to learn more about the people building
                 Zygotrix.
@@ -518,13 +518,13 @@ const AboutPage: React.FC = () => {
 
         <div className="mt-20">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-emerald-500/20 to-cyan-500/20 px-6 py-3 backdrop-blur-sm border border-emerald-500/30 mb-6">
+            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 dark:from-emerald-500/20 dark:to-cyan-500/20 px-6 py-3 backdrop-blur-sm border border-emerald-500/20 dark:border-emerald-500/30 mb-6">
               <div className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 animate-pulse" />
-              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-300">
+              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-300">
                 Our Values
               </span>
             </div>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-white via-emerald-200 to-cyan-200 bg-clip-text text-transparent mb-4">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-emerald-800 to-cyan-800 dark:from-white dark:via-emerald-200 dark:to-cyan-200 bg-clip-text text-transparent mb-4">
               What guides us
             </h2>
           </div>
@@ -535,7 +535,7 @@ const AboutPage: React.FC = () => {
               return (
                 <div
                   key={value.name}
-                  className="group relative overflow-hidden rounded-3xl border-2 border-slate-700/60 bg-slate-800/60 p-8 shadow-xl shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-blue-500/20 hover:scale-[1.02]"
+                  className="group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-blue-500/20 hover:scale-[1.02]"
                   style={{ animationDelay: `${index * 200}ms` }}
                 >
                   <div className="absolute inset-0 bg-gradient-to-br from-slate-400/5 via-blue-400/5 to-purple-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
@@ -547,11 +547,11 @@ const AboutPage: React.FC = () => {
                       <Icon className="w-8 h-8" />
                     </div>
 
-                    <h3 className="text-xl font-bold text-white mb-4 group-hover:text-blue-300 transition-colors">
+                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
                       {value.name}
                     </h3>
 
-                    <p className="text-slate-300 leading-relaxed">
+                    <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                       {value.description}
                     </p>
                   </div>

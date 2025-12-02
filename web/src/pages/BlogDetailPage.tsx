@@ -70,58 +70,58 @@ const BlogDetailPage: React.FC = () => {
 
   const markdownComponents = {
     h1: ({ children }: any) => (
-      <h1 className="text-6xl font-bold text-white mt-8 mb-4 first:mt-0">
+      <h1 className="text-6xl font-bold text-slate-900 dark:text-white mt-8 mb-4 first:mt-0">
         {children}
       </h1>
     ),
     h2: ({ children }: any) => (
-      <h2 className="text-5xl font-bold text-white mt-8 mb-4">
+      <h2 className="text-5xl font-bold text-slate-900 dark:text-white mt-8 mb-4">
         {children}
       </h2>
     ),
     h3: ({ children }: any) => (
-      <h3 className="text-4xl font-bold text-white mt-6 mb-3">
+      <h3 className="text-4xl font-bold text-slate-900 dark:text-white mt-6 mb-3">
         {children}
       </h3>
     ),
     h4: ({ children }: any) => (
-      <h4 className="text-3xl font-bold text-slate-200 mt-6 mb-3">
+      <h4 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mt-6 mb-3">
         {children}
       </h4>
     ),
     h5: ({ children }: any) => (
-      <h5 className="text-base font-semibold text-slate-300 mt-6 mb-3 uppercase tracking-wide">
+      <h5 className="text-base font-semibold text-slate-700 dark:text-slate-300 mt-6 mb-3 uppercase tracking-wide">
         {children}
       </h5>
     ),
     h6: ({ children }: any) => (
-      <h6 className="text-sm font-semibold text-slate-400 mt-5 mb-3 uppercase tracking-[0.2em]">
+      <h6 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-5 mb-3 uppercase tracking-[0.2em]">
         {children}
       </h6>
     ),
     p: ({ children }: any) => (
-      <p className="text-slate-300 text-base leading-relaxed mb-6">
+      <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed mb-6">
         {children}
       </p>
     ),
     ul: ({ children }: any) => (
-      <ul className=" text-base text-slate-300 mb-6 space-y-2">{children}</ul>
+      <ul className=" text-base text-slate-600 dark:text-slate-300 mb-6 space-y-2">{children}</ul>
     ),
     ol: ({ children }: any) => (
-      <ol className=" text-base text-slate-300 mb-6 space-y-2">{children}</ol>
+      <ol className=" text-base text-slate-600 dark:text-slate-300 mb-6 space-y-2">{children}</ol>
     ),
     blockquote: ({ children }: any) => (
-      <blockquote className="border-l-4 border-blue-500 pl-6 py-2 italic text-slate-300 bg-slate-800/50 rounded-r-lg mb-6">
+      <blockquote className="border-l-4 border-blue-500 pl-6 py-2 italic text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 rounded-r-lg mb-6">
         {children}
       </blockquote>
     ),
     code: ({ children }: any) => (
-      <code className="bg-slate-700 text-slate-200 px-2 py-1 rounded text-sm font-mono">
+      <code className="bg-slate-100 dark:bg-slate-700 text-slate-800 dark:text-slate-200 px-2 py-1 rounded text-sm font-mono">
         {children}
       </code>
     ),
     pre: ({ children }: any) => (
-      <pre className="bg-slate-900 text-slate-100 p-6 rounded-lg overflow-x-auto mb-6">
+      <pre className="bg-slate-900 dark:bg-slate-900 text-slate-100 p-6 rounded-lg overflow-x-auto mb-6">
         {children}
       </pre>
     ),
@@ -171,7 +171,7 @@ const BlogDetailPage: React.FC = () => {
   }, []);
 
   return (
-    <div className="relative bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950 pb-24">
+    <div className="relative bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 pb-24 transition-colors duration-300">
       {/* DNA Helix Background Pattern */}
       <div className="pointer-events-none fixed inset-0 opacity-[0.03]">
         <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -219,13 +219,13 @@ const BlogDetailPage: React.FC = () => {
 
       <div className="mx-auto mt-8 w-full max-w-4xl relative z-20">
         {isLoading && (
-          <div className="rounded-3xl bg-slate-800/60 p-8 shadow-xl">
-            <div className="mb-4 h-4 w-1/3 animate-pulse rounded-full bg-slate-200" />
+          <div className="rounded-3xl bg-white dark:bg-slate-800/60 p-8 shadow-xl">
+            <div className="mb-4 h-4 w-1/3 animate-pulse rounded-full bg-slate-200 dark:bg-slate-200" />
             <div className="space-y-4">
               {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                 <div
                   key={`skeleton-${n}`}
-                  className="h-4 w-full animate-pulse rounded-full bg-slate-200"
+                  className="h-4 w-full animate-pulse rounded-full bg-slate-200 dark:bg-slate-200"
                 />
               ))}
             </div>
@@ -233,11 +233,11 @@ const BlogDetailPage: React.FC = () => {
         )}
 
         {!isLoading && error && (
-          <div className="rounded-3xl border border-red-400/50 bg-slate-800/60 p-10 text-center text-red-300">
+          <div className="rounded-3xl border border-red-400/50 bg-white dark:bg-slate-800/60 p-10 text-center text-red-600 dark:text-red-300">
             <h2 className="text-xl font-semibold">{error}</h2>
             <p className="mt-4 text-sm text-red-400">
               Return to the{" "}
-              <Link to="/blogs" className="font-semibold text-blue-400">
+              <Link to="/blogs" className="font-semibold text-blue-600 dark:text-blue-400">
                 blog index
               </Link>{" "}
               for other stories.
@@ -247,7 +247,7 @@ const BlogDetailPage: React.FC = () => {
         {/* Blog Content */}
         <article className=" px-4 sm:px-6 lg:px-8 pb-20">
           {/* Meta Info + Share */}
-          <div className="flex items-center justify-between text-sm text-slate-400 border-slate-700 pb-6">
+          <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 pb-6">
             <div className="flex items-center space-x-6">
               <div className="flex items-center">
                 <FiCalendar className="mr-2 h-4 w-4" />
@@ -266,13 +266,13 @@ const BlogDetailPage: React.FC = () => {
             <div className="flex items-center space-x-3">
               <button
                 onClick={handleShare}
-                className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-600 bg-slate-700/50 px-3 py-1 text-sm text-slate-300 hover:bg-slate-600/50 hover:border-blue-400 transition-all"
+                className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 px-3 py-1 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600/50 hover:border-blue-400 transition-all"
               >
                 <FiShare2 className="h-4 w-4" />
                 <span>Share</span>
               </button>
               {copied && (
-                <span className="text-sm text-green-400">Link copied</span>
+                <span className="text-sm text-green-600 dark:text-green-400">Link copied</span>
               )}
             </div>
           </div>
@@ -281,13 +281,13 @@ const BlogDetailPage: React.FC = () => {
             <div className="mb-4">
               <Link
                 to="/blogs"
-                className="inline-flex items-center text-sm text-slate-400 hover:text-blue-400 transition-colors"
+                className="inline-flex items-center text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
               >
                 <FiArrowLeft className="mr-2 h-4 w-4" /> Back to all articles
               </Link>
             </div>
 
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-white via-blue-200 to-white bg-clip-text text-transparent mb-6 leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 dark:from-white dark:via-blue-200 dark:to-white bg-clip-text text-transparent mb-6 leading-tight">
               {blog?.title}
             </h1>
           </header>
@@ -351,13 +351,13 @@ const BlogDetailPage: React.FC = () => {
                 </svg>
               </div>
 
-              <div className="relative bg-gradient-to-br from-slate-800/60 via-slate-800/50 to-slate-900/50 rounded-2xl p-6 border-2 border-blue-400/50 shadow-lg">
+              <div className="relative bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-800/60 dark:via-slate-800/50 dark:to-slate-900/50 rounded-2xl p-6 border-2 border-blue-200 dark:border-blue-400/50 shadow-lg">
                 <div className="flex items-start gap-4">
                   <div className="flex flex-wrap gap-4 flex-1">
                     {blog.authors.map((author, idx) => (
                       <div
                         key={idx}
-                        className="flex items-start gap-4 bg-slate-700/60 backdrop-blur-sm rounded-xl p-4 flex-1 min-w-[250px] border border-blue-400/50 hover:border-blue-400 transition-all hover:shadow-md group"
+                        className="flex items-start gap-4 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl p-4 flex-1 min-w-[250px] border border-blue-200 dark:border-blue-400/50 hover:border-blue-400 transition-all hover:shadow-md group"
                       >
                         {author.imageUrl && (
                           <div className="relative">
@@ -382,17 +382,17 @@ const BlogDetailPage: React.FC = () => {
                         )}
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center gap-2 mb-1">
-                            <span className="font-semibold text-white text-base">
+                            <span className="font-semibold text-slate-900 dark:text-white text-base">
                               {author.name}
                             </span>
                           </div>
                           {author.role && (
-                            <p className="text-xs text-blue-400 font-medium mb-2 uppercase tracking-wide">
+                            <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2 uppercase tracking-wide">
                               {author.role}
                             </p>
                           )}
                           {author.bio && (
-                            <p className="text-sm text-slate-300 line-clamp-2">
+                            <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
                               {author.bio.substring(0, 120)}
                               {author.bio.length > 120 ? "..." : ""}
                             </p>
@@ -422,7 +422,7 @@ const BlogDetailPage: React.FC = () => {
               {blog.tags.map((tag) => (
                 <span
                   key={tag.slug}
-                  className="rounded-full bg-gradient-to-r from-blue-500/20 to-purple-500/20 border border-blue-400/50 px-4 py-2 text-xs font-semibold text-blue-300 hover:border-blue-400 hover:shadow-md transition-all"
+                  className="rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 border border-blue-200 dark:border-blue-400/50 px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-300 hover:border-blue-400 hover:shadow-md transition-all"
                 >
                   #{tag.title}
                 </span>
@@ -430,10 +430,10 @@ const BlogDetailPage: React.FC = () => {
             </div>
           )}
 
-          <div className="mt-10 flex justify-between text-sm text-slate-400">
+          <div className="mt-10 flex justify-between text-sm text-slate-500 dark:text-slate-400">
             <Link
               to="/blogs"
-              className="font-semibold text-blue-400 hover:text-blue-300 transition-colors"
+              className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
             >
               Back to all articles
             </Link>

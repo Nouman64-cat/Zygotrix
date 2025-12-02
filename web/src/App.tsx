@@ -2,6 +2,7 @@ import React from "react";
 import { Route, Routes } from "react-router-dom";
 
 import RequireAuth from "./components/dashboard/RequireAuth";
+import OnboardingCheck from "./components/dashboard/OnboardingCheck";
 import MainLayout from "./layouts/MainLayout";
 import CommunityLayout from "./layouts/CommunityLayout";
 import AboutPage from "./pages/AboutPage";
@@ -29,6 +30,7 @@ import CommunityPage from "./pages/CommunityPage";
 import QuestionDetailPage from "./pages/QuestionDetailPage";
 import AskQuestionPage from "./pages/AskQuestionPage";
 import SimulationStudioPage from "./pages/SimulationStudioPage";
+import OnboardingPage from "./pages/OnboardingPage";
 
 const App: React.FC = () => {
   return (
@@ -53,7 +55,9 @@ const App: React.FC = () => {
         path="studio"
         element={
           <RequireAuth>
-            <PortalPage />
+            <OnboardingCheck>
+              <PortalPage />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
@@ -61,7 +65,9 @@ const App: React.FC = () => {
         path="studio/projects"
         element={
           <RequireAuth>
-            <ProjectsPage />
+            <OnboardingCheck>
+              <ProjectsPage />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
@@ -69,7 +75,9 @@ const App: React.FC = () => {
         path="studio/browse-traits"
         element={
           <RequireAuth>
-            <BrowseTraitsPage />
+            <OnboardingCheck>
+              <BrowseTraitsPage />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
@@ -77,7 +85,9 @@ const App: React.FC = () => {
         path="studio/simulation-studio"
         element={
           <RequireAuth>
-            <SimulationStudioPage />
+            <OnboardingCheck>
+              <SimulationStudioPage />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
@@ -85,7 +95,9 @@ const App: React.FC = () => {
         path="studio/analytics"
         element={
           <RequireAuth>
-            <AnalyticsPage />
+            <OnboardingCheck>
+              <AnalyticsPage />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
@@ -93,7 +105,9 @@ const App: React.FC = () => {
         path="studio/data"
         element={
           <RequireAuth>
-            <DataManagementPage />
+            <OnboardingCheck>
+              <DataManagementPage />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
@@ -101,7 +115,9 @@ const App: React.FC = () => {
         path="studio/data/import"
         element={
           <RequireAuth>
-            <DataImportPage />
+            <OnboardingCheck>
+              <DataImportPage />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
@@ -133,7 +149,9 @@ const App: React.FC = () => {
         path="studio/population"
         element={
           <RequireAuth>
-            <PopulationSimPage />
+            <OnboardingCheck>
+              <PopulationSimPage />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
@@ -141,7 +159,9 @@ const App: React.FC = () => {
         path="studio/pgs-demo"
         element={
           <RequireAuth>
-            <PGSDemoPage />
+            <OnboardingCheck>
+              <PGSDemoPage />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
@@ -149,12 +169,22 @@ const App: React.FC = () => {
         path="studio/workspace/:projectId"
         element={
           <RequireAuth>
-            <ProjectWorkspace />
+            <OnboardingCheck>
+              <ProjectWorkspace />
+            </OnboardingCheck>
           </RequireAuth>
         }
       />
       <Route path="signin" element={<SignInPage />} />
       <Route path="signup" element={<SignUpPage />} />
+      <Route
+        path="onboarding"
+        element={
+          <RequireAuth>
+            <OnboardingPage />
+          </RequireAuth>
+        }
+      />
     </Routes>
   );
 };

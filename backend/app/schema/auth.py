@@ -9,7 +9,49 @@ class UserProfile(BaseModel):
     id: str
     email: EmailStr
     full_name: Optional[str] = None
+    profile_picture_url: Optional[str] = None
+    profile_picture_thumbnail_url: Optional[str] = None
+    phone: Optional[str] = None
+    organization: Optional[str] = None
+    department: Optional[str] = None
+    title: Optional[str] = None
+    bio: Optional[str] = None
+    location: Optional[str] = None
+    timezone: Optional[str] = None
+    research_interests: Optional[list[str]] = None
+    experience_level: Optional[str] = None
+    use_case: Optional[str] = None
+    organism_focus: Optional[list[str]] = None
+    onboarding_completed: Optional[bool] = False
     created_at: str
+
+
+class UpdateProfileRequest(BaseModel):
+    """Payload for updating user profile information."""
+
+    full_name: Optional[str] = None
+    profile_picture_url: Optional[str] = None
+    profile_picture_thumbnail_url: Optional[str] = None
+    phone: Optional[str] = None
+    organization: Optional[str] = None
+    department: Optional[str] = None
+    title: Optional[str] = None
+    bio: Optional[str] = None
+    location: Optional[str] = None
+    timezone: Optional[str] = None
+
+
+class OnboardingRequest(BaseModel):
+    """Payload for completing user onboarding."""
+
+    research_interests: Optional[list[str]] = None
+    experience_level: Optional[str] = None
+    use_case: Optional[str] = None
+    organism_focus: Optional[list[str]] = None
+    organization: Optional[str] = None
+    title: Optional[str] = None
+    department: Optional[str] = None
+    onboarding_completed: bool = True
 
 
 class SignupInitiateRequest(BaseModel):

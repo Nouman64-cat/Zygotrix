@@ -9,6 +9,7 @@ export const API_ROUTES = {
     login: "/api/auth/login",
     me: "/api/auth/me",
     updateProfile: "/api/auth/profile",
+    onboarding: "/api/auth/onboarding",
   },
   portal: {
     status: "/api/portal/status",

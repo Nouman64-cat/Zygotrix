@@ -10,6 +10,8 @@ import type {
   SignupResendPayload,
   SignupVerifyPayload,
   UserProfile,
+  UpdateProfilePayload,
+  OnboardingPayload,
 } from "../types/auth";
 
 export const requestSignupOtp = async (
@@ -75,5 +77,25 @@ export const updateProfilePicture = async (
     profile_picture_url: profilePictureUrl,
     profile_picture_thumbnail_url: thumbnailUrl,
   });
+  return response.data;
+};
+
+export const updateProfile = async (
+  payload: UpdateProfilePayload
+): Promise<UserProfile> => {
+  const response = await API.patch<UserProfile>(
+    API_ROUTES.auth.updateProfile,
+    payload
+  );
+  return response.data;
+};
+
+export const completeOnboarding = async (
+  payload: OnboardingPayload
+): Promise<UserProfile> => {
+  const response = await API.post<UserProfile>(
+    API_ROUTES.auth.onboarding,
+    payload
+  );
   return response.data;
 };

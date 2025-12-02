@@ -12,6 +12,8 @@ from ..schema.auth import (
     MessageResponse,
     UserLoginRequest,
     UserProfile,
+    UpdateProfileRequest,
+    OnboardingRequest,
 )
 from ..services import auth as services
 
@@ -62,3 +64,25 @@ def read_current_user(
     current_user: UserProfile = Depends(get_current_user),
 ) -> UserProfile:
     return current_user
+
+
+@router.patch("/profile", response_model=UserProfile)
+def update_profile(
+    payload: UpdateProfileRequest,
+    current_user: UserProfile = Depends(get_current_user),
+) -> UserProfile:
+    """Update the current user's profile information."""
+    updates = payload.model_dump(exclude_unset=True)
+    updated_user = services.update_user_profile(current_user.id, updates)
+    return UserProfile(**updated_user)
+
+
+@router.post("/onboarding", response_model=UserProfile)
+def complete_onboarding(
+    payload: OnboardingRequest,
+    current_user: UserProfile = Depends(get_current_user),
+) -> UserProfile:
+    """Complete user onboarding and save preferences."""
+    updates = payload.model_dump(exclude_unset=True)
+    updated_user = services.update_user_profile(current_user.id, updates)
+    return UserProfile(**updated_user)

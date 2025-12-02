@@ -37,6 +37,20 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
         "id": str(document.get("_id")),
         "email": str(document.get("email", "")),
         "full_name": _clean_full_name(document.get("full_name")),
+        "profile_picture_url": document.get("profile_picture_url"),
+        "profile_picture_thumbnail_url": document.get("profile_picture_thumbnail_url"),
+        "phone": document.get("phone"),
+        "organization": document.get("organization"),
+        "department": document.get("department"),
+        "title": document.get("title"),
+        "bio": document.get("bio"),
+        "location": document.get("location"),
+        "timezone": document.get("timezone"),
+        "research_interests": document.get("research_interests"),
+        "experience_level": document.get("experience_level"),
+        "use_case": document.get("use_case"),
+        "organism_focus": document.get("organism_focus"),
+        "onboarding_completed": document.get("onboarding_completed", False),
         "created_at": created_iso,
     }
 
@@ -467,3 +481,46 @@ def build_auth_response(user: Dict[str, Any]) -> Dict[str, Any]:
         "token_type": "bearer",
         "user": user,
     }
+
+
+def update_user_profile(user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]:
+    """Update user profile fields and return the updated user."""
+    collection = get_users_collection(required=True)
+    assert collection is not None, "Users collection is required"
+
+    try:
+        object_id = ObjectId(user_id)
+    except Exception as exc:
+        raise HTTPException(
+            status_code=401, detail="Invalid user ID."
+        ) from exc
+
+    # Clean the full_name if it's being updated
+    if "full_name" in updates:
+        updates["full_name"] = _clean_full_name(updates["full_name"])
+
+    # Filter out None values to avoid overwriting existing data
+    filtered_updates = {k: v for k, v in updates.items() if v is not None}
+
+    if not filtered_updates:
+        # If no updates provided, just return current user
+        return get_user_by_id(user_id)
+
+    try:
+        result = collection.update_one(
+            {"_id": object_id},
+            {"$set": filtered_updates}
+        )
+
+        if result.matched_count == 0:
+            raise HTTPException(status_code=404, detail="User not found.")
+
+        # Clear cache for this user
+        clear_user_cache(user_id)
+
+        # Return updated user
+        return get_user_by_id(user_id)
+    except PyMongoError as exc:
+        raise HTTPException(
+            status_code=500, detail=f"Failed to update profile: {exc}"
+        ) from exc

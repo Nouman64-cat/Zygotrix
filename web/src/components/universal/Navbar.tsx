@@ -104,13 +104,6 @@ const Navbar: React.FC = () => {
               >
                 Sign in
               </Link>
-              <Link
-                to="/signup"
-                state={{ from: { pathname: location.pathname } }}
-                className="inline-flex items-center justify-center rounded-full bg-white dark:bg-slate-700 px-5 py-2 text-sm font-semibold text-[#1E3A8A] dark:text-white shadow-lg shadow-black/20 dark:shadow-black/40 transition hover:shadow-black/40 dark:hover:shadow-black/60"
-              >
-                Get started
-              </Link>
             </>
           )}
         </div>

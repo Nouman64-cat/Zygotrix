@@ -300,39 +300,39 @@ const QuestionDetailPage: React.FC = () => {
                 </div>
 
                 {/* Stats Bar Skeleton */}
-                <div className="flex items-center gap-3 sm:gap-6 p-3 bg-slate-100 rounded-xl flex-wrap">
-                  <div className="h-4 bg-slate-200 rounded w-12 sm:w-16 animate-pulse"></div>
-                  <div className="h-4 bg-slate-200 rounded w-16 sm:w-20 animate-pulse"></div>
-                  <div className="h-4 bg-slate-200 rounded w-10 sm:w-12 animate-pulse"></div>
+                <div className="flex items-center gap-3 sm:gap-6 p-3 bg-slate-800 rounded-xl flex-wrap">
+                  <div className="h-4 bg-slate-700 rounded w-12 sm:w-16 animate-pulse"></div>
+                  <div className="h-4 bg-slate-700 rounded w-16 sm:w-20 animate-pulse"></div>
+                  <div className="h-4 bg-slate-700 rounded w-10 sm:w-12 animate-pulse"></div>
                 </div>
 
                 {/* Content Skeleton */}
                 <div className="space-y-2">
-                  <div className="h-4 bg-slate-200 rounded w-full animate-pulse"></div>
-                  <div className="h-4 bg-slate-200 rounded w-full animate-pulse"></div>
-                  <div className="h-4 bg-slate-200 rounded w-3/4 animate-pulse"></div>
+                  <div className="h-4 bg-slate-700 rounded w-full animate-pulse"></div>
+                  <div className="h-4 bg-slate-700 rounded w-full animate-pulse"></div>
+                  <div className="h-4 bg-slate-700 rounded w-3/4 animate-pulse"></div>
                 </div>
 
                 {/* Tags Skeleton */}
                 <div className="flex gap-2">
-                  <div className="h-8 bg-slate-200 rounded-lg w-16 animate-pulse"></div>
-                  <div className="h-8 bg-slate-200 rounded-lg w-20 animate-pulse"></div>
-                  <div className="h-8 bg-slate-200 rounded-lg w-14 animate-pulse"></div>
+                  <div className="h-8 bg-slate-700 rounded-lg w-16 animate-pulse"></div>
+                  <div className="h-8 bg-slate-700 rounded-lg w-20 animate-pulse"></div>
+                  <div className="h-8 bg-slate-700 rounded-lg w-14 animate-pulse"></div>
                 </div>
 
                 {/* Author Section Skeleton */}
-                <div className="flex items-center justify-between pt-6 border-t border-slate-200">
+                <div className="flex items-center justify-between pt-6 border-t border-slate-700">
                   <div className="flex items-center gap-3">
-                    <div className="w-12 h-12 bg-slate-200 rounded-full animate-pulse"></div>
+                    <div className="w-12 h-12 bg-slate-700 rounded-full animate-pulse"></div>
                     <div className="space-y-1">
-                      <div className="h-4 bg-slate-200 rounded w-24 animate-pulse"></div>
-                      <div className="h-3 bg-slate-200 rounded w-20 animate-pulse"></div>
+                      <div className="h-4 bg-slate-700 rounded w-24 animate-pulse"></div>
+                      <div className="h-3 bg-slate-700 rounded w-20 animate-pulse"></div>
                     </div>
                   </div>
                   <div className="flex gap-2">
-                    <div className="w-8 h-8 bg-slate-200 rounded-lg animate-pulse"></div>
-                    <div className="w-8 h-8 bg-slate-200 rounded-lg animate-pulse"></div>
-                    <div className="w-8 h-8 bg-slate-200 rounded-lg animate-pulse"></div>
+                    <div className="w-8 h-8 bg-slate-700 rounded-lg animate-pulse"></div>
+                    <div className="w-8 h-8 bg-slate-700 rounded-lg animate-pulse"></div>
+                    <div className="w-8 h-8 bg-slate-700 rounded-lg animate-pulse"></div>
                   </div>
                 </div>
               </div>
@@ -343,8 +343,8 @@ const QuestionDetailPage: React.FC = () => {
         {/* Answers Section Skeleton */}
         <div className="mb-8">
           <div className="flex items-center justify-between mb-6">
-            <div className="h-8 bg-slate-200 rounded w-32 animate-pulse"></div>
-            <div className="h-6 bg-slate-200 rounded w-24 animate-pulse"></div>
+            <div className="h-8 bg-slate-700 rounded w-32 animate-pulse"></div>
+            <div className="h-6 bg-slate-700 rounded w-24 animate-pulse"></div>
           </div>
 
           {/* Answer Cards Skeleton */}

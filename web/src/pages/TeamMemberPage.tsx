@@ -17,50 +17,50 @@ import { FiCalendar, FiArrowRight } from "react-icons/fi";
 
 const markdownComponents = {
   h1: ({ children }: any) => (
-    <h1 className="text-6xl font-bold text-slate-900 mt-8 mb-4 first:mt-0">
+    <h1 className="text-6xl font-bold text-white mt-8 mb-4 first:mt-0">
       {children}
     </h1>
   ),
   h2: ({ children }: any) => (
-    <h2 className="text-5xl font-bold text-slate-900 mt-8 mb-4">{children}</h2>
+    <h2 className="text-5xl font-bold text-white mt-8 mb-4">{children}</h2>
   ),
   h3: ({ children }: any) => (
-    <h3 className="text-4xl font-bold text-slate-900 mt-6 mb-3">{children}</h3>
+    <h3 className="text-4xl font-bold text-white mt-6 mb-3">{children}</h3>
   ),
   h4: ({ children }: any) => (
-    <h4 className="text-3xl font-bold text-slate-800 mt-6 mb-3">{children}</h4>
+    <h4 className="text-3xl font-bold text-slate-200 mt-6 mb-3">{children}</h4>
   ),
   h5: ({ children }: any) => (
-    <h5 className="text-base font-semibold text-slate-700 mt-6 mb-3 uppercase tracking-wide">
+    <h5 className="text-base font-semibold text-slate-300 mt-6 mb-3 uppercase tracking-wide">
       {children}
     </h5>
   ),
   h6: ({ children }: any) => (
-    <h6 className="text-sm font-semibold text-slate-600 mt-5 mb-3 uppercase tracking-[0.2em]">
+    <h6 className="text-sm font-semibold text-slate-400 mt-5 mb-3 uppercase tracking-[0.2em]">
       {children}
     </h6>
   ),
   p: ({ children }: any) => (
-    <p className="text-slate-700 text-base leading-relaxed mb-6">{children}</p>
+    <p className="text-slate-300 text-base leading-relaxed mb-6">{children}</p>
   ),
   ul: ({ children }: any) => (
-    <ul className=" text-base text-slate-700 mb-6 space-y-2">{children}</ul>
+    <ul className=" text-base text-slate-300 mb-6 space-y-2">{children}</ul>
   ),
   ol: ({ children }: any) => (
-    <ol className=" text-base text-slate-700 mb-6 space-y-2">{children}</ol>
+    <ol className=" text-base text-slate-300 mb-6 space-y-2">{children}</ol>
   ),
   blockquote: ({ children }: any) => (
-    <blockquote className="border-l-4 border-blue-600 pl-6 py-2 italic text-slate-700 bg-slate-50 rounded-r-lg mb-6">
+    <blockquote className="border-l-4 border-blue-500 pl-6 py-2 italic text-slate-300 bg-slate-800/50 rounded-r-lg mb-6">
       {children}
     </blockquote>
   ),
   code: ({ children }: any) => (
-    <code className="bg-slate-100 text-slate-800 px-2 py-1 rounded text-sm font-mono">
+    <code className="bg-slate-800 text-slate-200 px-2 py-1 rounded text-sm font-mono border border-slate-700">
       {children}
     </code>
   ),
   pre: ({ children }: any) => (
-    <pre className="bg-slate-900 text-slate-100 p-6 rounded-lg overflow-x-auto mb-6">
+    <pre className="bg-slate-950 text-slate-100 p-6 rounded-lg overflow-x-auto mb-6 border border-slate-800">
       {children}
     </pre>
   ),
@@ -119,25 +119,25 @@ const TeamMemberPage: React.FC = () => {
   const getSocialColor = (platform: string) => {
     switch (platform.toLowerCase()) {
       case "linkedin":
-        return "hover:text-[#0A66C2] hover:bg-[#0A66C2]/10";
+        return "hover:text-[#0A66C2] hover:bg-[#0A66C2]/20";
       case "github":
-        return "hover:text-gray-900 hover:bg-gray-900/10";
+        return "hover:text-white hover:bg-white/10";
       case "twitter":
-        return "hover:text-[#1DA1F2] hover:bg-[#1DA1F2]/10";
+        return "hover:text-[#1DA1F2] hover:bg-[#1DA1F2]/20";
       case "instagram":
-        return "hover:text-[#E4405F] hover:bg-[#E4405F]/10";
+        return "hover:text-[#E4405F] hover:bg-[#E4405F]/20";
       default:
-        return "hover:text-blue-600 hover:bg-blue-600/10";
+        return "hover:text-blue-400 hover:bg-blue-400/20";
     }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         <div className="mx-auto max-w-4xl px-6 py-24">
           {/* Back button skeleton */}
           <div className="mb-8">
-            <div className="h-10 w-32 bg-slate-200 rounded-lg animate-pulse"></div>
+            <div className="h-10 w-32 bg-slate-700 rounded-lg animate-pulse"></div>
           </div>
 
           {/* Content skeleton */}
@@ -145,26 +145,26 @@ const TeamMemberPage: React.FC = () => {
             <div className="space-y-8">
               {/* Header skeleton */}
               <div className="space-y-4">
-                <div className="h-12 w-3/4 bg-slate-200 rounded-lg animate-pulse"></div>
-                <div className="h-6 w-1/2 bg-slate-200 rounded-lg animate-pulse"></div>
+                <div className="h-12 w-3/4 bg-slate-700 rounded-lg animate-pulse"></div>
+                <div className="h-6 w-1/2 bg-slate-700 rounded-lg animate-pulse"></div>
               </div>
 
               {/* Bio skeleton */}
               <div className="space-y-4">
-                <div className="h-6 w-full bg-slate-200 rounded animate-pulse"></div>
-                <div className="h-6 w-full bg-slate-200 rounded animate-pulse"></div>
-                <div className="h-6 w-3/4 bg-slate-200 rounded animate-pulse"></div>
-                <div className="h-6 w-full bg-slate-200 rounded animate-pulse"></div>
-                <div className="h-6 w-2/3 bg-slate-200 rounded animate-pulse"></div>
+                <div className="h-6 w-full bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-6 w-full bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-6 w-3/4 bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-6 w-full bg-slate-700 rounded animate-pulse"></div>
+                <div className="h-6 w-2/3 bg-slate-700 rounded animate-pulse"></div>
               </div>
             </div>
 
             {/* Sidebar skeleton */}
             <div className="space-y-6">
-              <div className="w-64 h-64 bg-slate-200 rounded-2xl animate-pulse mx-auto"></div>
+              <div className="w-64 h-64 bg-slate-700 rounded-2xl animate-pulse mx-auto"></div>
               <div className="space-y-3">
-                <div className="h-10 w-full bg-slate-200 rounded-lg animate-pulse"></div>
-                <div className="h-10 w-full bg-slate-200 rounded-lg animate-pulse"></div>
+                <div className="h-10 w-full bg-slate-700 rounded-lg animate-pulse"></div>
+                <div className="h-10 w-full bg-slate-700 rounded-lg animate-pulse"></div>
               </div>
             </div>
           </div>
@@ -175,18 +175,18 @@ const TeamMemberPage: React.FC = () => {
 
   if (error || !teamMember) {
     return (
-      <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100">
+      <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
         <div className="mx-auto max-w-4xl px-6 py-24">
           <Link
             to="/about"
-            className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 mb-8"
+            className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700 mb-8"
           >
             <FaArrowLeft className="h-4 w-4" />
             Back to About
           </Link>
 
           <div className="text-center py-16">
-            <div className="w-24 h-24 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-6">
+            <div className="w-24 h-24 bg-red-900/20 rounded-full flex items-center justify-center mx-auto mb-6">
               <svg
                 className="w-12 h-12 text-red-500"
                 fill="none"
@@ -201,16 +201,16 @@ const TeamMemberPage: React.FC = () => {
                 />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-slate-900 mb-4">
+            <h1 className="text-2xl font-bold text-white mb-4">
               Team Member Not Found
             </h1>
-            <p className="text-slate-600 mb-8">
+            <p className="text-slate-400 mb-8">
               {error ||
                 "The team member you're looking for doesn't exist or may have been removed."}
             </p>
             <Link
               to="/about"
-              className="inline-flex items-center gap-2 rounded-lg bg-[#1E3A8A] px-6 py-3 text-white font-medium transition hover:bg-[#162b63]"
+              className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white font-medium transition hover:bg-blue-700"
             >
               <FaArrowLeft className="h-4 w-4" />
               Return to Team
@@ -222,7 +222,7 @@ const TeamMemberPage: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-white via-slate-50 to-slate-100">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-800 to-slate-900">
       {/* DNA Pattern Background */}
       <div className="pointer-events-none fixed inset-0 opacity-[0.02]">
         <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -255,7 +255,7 @@ const TeamMemberPage: React.FC = () => {
         {/* Back Button */}
         <Link
           to="/about"
-          className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition hover:bg-slate-50 mb-8 shadow-sm hover:shadow-md"
+          className="inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-800 px-4 py-2 text-sm font-medium text-slate-300 transition hover:bg-slate-700 mb-8 shadow-sm hover:shadow-md"
         >
           <FaArrowLeft className="h-4 w-4" />
           Back to About
@@ -273,15 +273,15 @@ const TeamMemberPage: React.FC = () => {
           {/* Left Column (Scrollable) */}
           <div className="space-y-4 overflow-y-auto pr-2 lg:pr-0">
             {/* name */}
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-[#1E3A8A] to-blue-600 bg-clip-text text-transparent lg:text-4xl">
+            <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent lg:text-4xl">
               {teamMember.name}
             </h1>
             {/* role */}
-            <span className="inline-block rounded-full bg-gradient-to-r from-[#1E3A8A]/10 to-blue-600/10 border-2 border-blue-200 px-4 py-2 text-base font-semibold text-[#1E3A8A]">
+            <span className="inline-block rounded-full bg-gradient-to-r from-blue-900/20 to-blue-600/20 border-2 border-blue-500/30 px-4 py-2 text-base font-semibold text-blue-400">
               {teamMember.role}
             </span>
             {/* bio */}
-            <div className="prose prose-slate prose-lg max-w-none prose-headings:text-[#1E3A8A] prose-strong:text-[#1E3A8A] prose-links:text-blue-600 prose-links:no-underline hover:prose-links:underline prose-p:text-slate-700 prose-p:leading-relaxed prose-p:mb-6 [&>p]:mb-6 [&>p:last-child]:mb-0">
+            <div className="prose prose-invert prose-lg max-w-none prose-headings:text-blue-400 prose-strong:text-blue-400 prose-links:text-blue-400 prose-links:no-underline hover:prose-links:underline prose-p:text-slate-300 prose-p:leading-relaxed prose-p:mb-6 [&>p]:mb-6 [&>p:last-child]:mb-0">
               <ReactMarkdown
                 remarkPlugins={[remarkGfm]}
                 components={markdownComponents}
@@ -291,10 +291,10 @@ const TeamMemberPage: React.FC = () => {
             </div>
           </div>
           {/* Right Column (Sticky) */}
-          <div className="space-y-6 lg:border-l lg:pl-8 lg:border-slate-200 lg:sticky lg:top-24">
+          <div className="space-y-6 lg:border-l lg:pl-8 lg:border-slate-700 lg:sticky lg:top-24">
             {/* image */}
-            <div className="relative z-10 overflow-hidden rounded-2xl border-2 border-blue-200 bg-white/90 p-4 shadow-xl shadow-blue-500/10 max-w-sm mx-auto lg:mx-0">
-              <div className="aspect-square overflow-hidden rounded-xl ring-2 ring-blue-100 flex items-center justify-center bg-slate-100">
+            <div className="relative z-10 overflow-hidden rounded-2xl border-2 border-blue-500/30 bg-slate-800/90 p-4 shadow-xl shadow-blue-500/10 max-w-sm mx-auto lg:mx-0">
+              <div className="aspect-square overflow-hidden rounded-xl ring-2 ring-blue-500/30 flex items-center justify-center bg-slate-800">
                 {teamMember.photo && teamMember.photo.url ? (
                   <img
                     src={teamMember.photo.url}
@@ -302,7 +302,7 @@ const TeamMemberPage: React.FC = () => {
                     className="h-full w-full object-cover transition duration-300 hover:scale-105"
                   />
                 ) : (
-                  <span className="text-4xl font-bold text-slate-400 select-none">
+                  <span className="text-4xl font-bold text-slate-600 select-none">
                     {teamMember.name
                       .split(" ")
                       .filter(Boolean)
@@ -317,7 +317,7 @@ const TeamMemberPage: React.FC = () => {
             {teamMember.socialProfiles &&
               teamMember.socialProfiles.length > 0 && (
                 <div className="mt-4 space-y-3">
-                  <h3 className="text-sm font-semibold text-[#1E3A8A] uppercase tracking-wide">
+                  <h3 className="text-sm font-semibold text-blue-400 uppercase tracking-wide">
                     Connect
                   </h3>
                   <div className="space-y-2">
@@ -327,22 +327,22 @@ const TeamMemberPage: React.FC = () => {
                         href={profile.url}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className={`flex items-center gap-3 rounded-lg border border-slate-200 bg-white/80 backdrop-blur-sm p-3 text-slate-700 transition ${getSocialColor(
+                        className={`flex items-center gap-3 rounded-lg border border-slate-700 bg-slate-800/80 backdrop-blur-sm p-3 text-slate-300 transition ${getSocialColor(
                           profile.platform
-                        )} hover:border-transparent hover:shadow-md group hover:bg-white`}
+                        )} hover:border-transparent hover:shadow-md group hover:bg-slate-800`}
                       >
-                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 group-hover:bg-white transition-colors">
+                        <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-700 group-hover:bg-slate-700 transition-colors">
                           {getSocialIcon(profile.platform)}
                         </div>
                         <div className="flex-1 min-w-0">
-                          <div className="text-sm font-medium text-slate-900 capitalize">
+                          <div className="text-sm font-medium text-white capitalize">
                             {profile.platform}
                           </div>
-                          <div className="text-xs text-slate-500 truncate">
+                          <div className="text-xs text-slate-400 truncate">
                             @{profile.username}
                           </div>
                         </div>
-                        <FaExternalLinkAlt className="h-3 w-3 text-slate-400 group-hover:text-current transition-colors" />
+                        <FaExternalLinkAlt className="h-3 w-3 text-slate-500 group-hover:text-current transition-colors" />
                       </a>
                     ))}
                   </div>
@@ -363,11 +363,11 @@ const TeamMemberPage: React.FC = () => {
                 >
                   <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                 </svg>
-                <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent">
+                <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
                   Published Research & Articles
                 </h2>
               </div>
-              <p className="text-slate-600">
+              <p className="text-slate-400">
                 Explore {authoredBlogs.length} research{" "}
                 {authoredBlogs.length === 1 ? "article" : "articles"} published
                 by {teamMember.name}
@@ -380,7 +380,7 @@ const TeamMemberPage: React.FC = () => {
                 <Link
                   key={blog.slug}
                   to={`/blogs/${blog.slug}`}
-                  className="group relative overflow-hidden rounded-2xl border-2 border-blue-100 bg-gradient-to-br from-white to-blue-50/30 p-6 shadow-lg transition-all hover:shadow-2xl hover:border-blue-300 hover:-translate-y-1"
+                  className="group relative overflow-hidden rounded-2xl border-2 border-blue-900/30 bg-gradient-to-br from-slate-800 to-blue-900/10 p-6 shadow-lg transition-all hover:shadow-2xl hover:border-blue-500/50 hover:-translate-y-1"
                 >
                   {/* Molecule decoration */}
                   <div className="absolute top-0 right-0 w-32 h-32 opacity-5 group-hover:opacity-10 transition-opacity">
@@ -430,7 +430,7 @@ const TeamMemberPage: React.FC = () => {
                   </div>
 
                   {blog.imageUrl && (
-                    <div className="mb-4 aspect-video overflow-hidden rounded-xl ring-2 ring-blue-200 group-hover:ring-blue-400 transition-all">
+                    <div className="mb-4 aspect-video overflow-hidden rounded-xl ring-2 ring-blue-500/30 group-hover:ring-blue-400 transition-all">
                       <img
                         src={blog.imageUrl}
                         alt={blog.title}
@@ -440,11 +440,11 @@ const TeamMemberPage: React.FC = () => {
                   )}
 
                   <div className="relative z-10">
-                    <h3 className="text-lg font-bold text-slate-900 mb-3 line-clamp-2 group-hover:text-blue-700 transition-colors">
+                    <h3 className="text-lg font-bold text-white mb-3 line-clamp-2 group-hover:text-blue-400 transition-colors">
                       {blog.title}
                     </h3>
 
-                    <p className="text-sm text-slate-600 mb-4 line-clamp-3">
+                    <p className="text-sm text-slate-400 mb-4 line-clamp-3">
                       {blog.excerpt}
                     </p>
 
@@ -453,7 +453,7 @@ const TeamMemberPage: React.FC = () => {
                         <FiCalendar className="h-3 w-3" />
                         <span>{formatDate(blog.date)}</span>
                       </div>
-                      <div className="flex items-center gap-1 text-blue-600 font-medium group-hover:gap-2 transition-all">
+                      <div className="flex items-center gap-1 text-blue-400 font-medium group-hover:gap-2 transition-all">
                         Read More
                         <FiArrowRight className="h-3 w-3" />
                       </div>
@@ -465,7 +465,7 @@ const TeamMemberPage: React.FC = () => {
                         {blog.categories.slice(0, 2).map((category) => (
                           <span
                             key={category.slug}
-                            className="rounded-full bg-blue-100 border border-blue-200 px-3 py-1 text-xs font-medium text-blue-700"
+                            className="rounded-full bg-blue-900/30 border border-blue-500/30 px-3 py-1 text-xs font-medium text-blue-400"
                           >
                             {category.title}
                           </span>
@@ -491,7 +491,7 @@ const TeamMemberPage: React.FC = () => {
               {[1, 2, 3].map((n) => (
                 <div
                   key={n}
-                  className="h-80 animate-pulse rounded-2xl bg-white/60 shadow-lg"
+                  className="h-80 animate-pulse rounded-2xl bg-slate-800/60 shadow-lg"
                 />
               ))}
             </div>
@@ -502,12 +502,12 @@ const TeamMemberPage: React.FC = () => {
         {!blogsLoading && authoredBlogs.length === 0 && (
           <div className="mt-16">
             <div className="mb-8">
-              <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 bg-clip-text text-transparent">
+              <h2 className="text-3xl font-bold bg-gradient-to-r from-white to-blue-400 bg-clip-text text-transparent">
                 Published Research & Articles
               </h2>
             </div>
-            <div className="text-center py-12 rounded-2xl border-2 border-slate-200 bg-gradient-to-br from-white to-slate-50">
-              <div className="w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <div className="text-center py-12 rounded-2xl border-2 border-slate-700 bg-gradient-to-br from-slate-800 to-slate-900">
+              <div className="w-16 h-16 bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
                 <svg
                   className="w-8 h-8 text-slate-400"
                   fill="none"
@@ -522,7 +522,7 @@ const TeamMemberPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <p className="text-slate-600">
+              <p className="text-slate-400">
                 {teamMember.name} hasn't published any articles yet. Check back
                 later for their research contributions!
               </p>

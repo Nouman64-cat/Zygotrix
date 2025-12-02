@@ -219,7 +219,7 @@ const SignUpPage: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20">
+    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900/10 to-emerald-900/10">
       {/* Animated Background */}
       <div className="absolute inset-0">
         <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/5 via-transparent to-[#10B981]/5" />
@@ -245,11 +245,11 @@ const SignUpPage: React.FC = () => {
 
           <div className="relative z-10 w-full max-w-2xl">
             <div className="text-center mb-2">
-              <h2 className="text-4xl font-bold text-[#1E3A8A] mb-4">
+              <h2 className="text-4xl font-bold text-blue-400 mb-4">
                 {step === "form" && (
                   <>
                     Begin Your Journey in
-                    <span className="block bg-gradient-to-r from-[#1E3A8A] to-[#10B981] bg-clip-text text-transparent">
+                    <span className="block bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
                       Genetic Research
                     </span>
                   </>
@@ -257,7 +257,7 @@ const SignUpPage: React.FC = () => {
                 {step === "otp" && (
                   <>
                     Almost There!
-                    <span className="block bg-gradient-to-r from-[#1E3A8A] to-[#10B981] bg-clip-text text-transparent">
+                    <span className="block bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
                       Verify Your Email
                     </span>
                   </>
@@ -265,13 +265,13 @@ const SignUpPage: React.FC = () => {
                 {step === "success" && (
                   <>
                     Account Created!
-                    <span className="block bg-gradient-to-r from-[#1E3A8A] to-[#10B981] bg-clip-text text-transparent">
+                    <span className="block bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
                       Ready to Explore
                     </span>
                   </>
                 )}
               </h2>
-              <p className="text-lg text-slate-600 max-w-md mx-auto">
+              <p className="text-lg text-slate-400 max-w-md mx-auto">
                 {step === "form" &&
                   "Join thousands of researchers using Zygotrix for cutting-edge genetic analysis."}
                 {step === "otp" &&
@@ -298,7 +298,7 @@ const SignUpPage: React.FC = () => {
               {/* Glow Effect Behind Form */}
               <div className="absolute -inset-4 rounded-3xl bg-gradient-to-r from-[#1E3A8A]/10 via-[#3B82F6]/10 to-[#10B981]/10 opacity-0 blur-xl transition-opacity duration-500 hover:opacity-100" />
 
-              <div className="relative space-y-8 rounded-3xl border border-white/80 bg-white/95 backdrop-blur-sm p-8 shadow-2xl shadow-slate-200/60">
+              <div className="relative space-y-8 rounded-3xl border border-slate-700/80 bg-slate-800/95 backdrop-blur-sm p-8 shadow-2xl shadow-black/20">
                 {/* Logo and Header */}
                 <div className="text-center space-y-4">
                   <div className="relative inline-block">
@@ -315,23 +315,23 @@ const SignUpPage: React.FC = () => {
                 {step === "form" && (
                   <div className="space-y-6">
                     <div className="text-center space-y-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-[#1E3A8A]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#1E3A8A]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                      <span className="inline-flex items-center gap-2 rounded-full bg-blue-900/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         Create Account
                       </span>
-                      <h1 className="text-3xl font-bold text-[#1E3A8A]">
+                      <h1 className="text-3xl font-bold text-white">
                         Join Zygotrix
                       </h1>
-                      <p className="text-sm text-slate-600 max-w-sm mx-auto">
+                      <p className="text-sm text-slate-400 max-w-sm mx-auto">
                         Enter your details to create your research account and
                         unlock genetic modeling tools.
                       </p>
                     </div>
 
                     {error && (
-                      <div className="rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-red-100/50 px-4 py-3 text-sm text-red-600 animate-fade-in">
+                      <div className="rounded-2xl border border-red-500/30 bg-red-900/20 px-4 py-3 text-sm text-red-400 animate-fade-in">
                         <div className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-red-500" />
+                          <span className="h-2 w-2 rounded-full bg-red-400" />
                           {error}
                         </div>
                       </div>
@@ -340,7 +340,7 @@ const SignUpPage: React.FC = () => {
                     <form className="space-y-5" onSubmit={handleSubmitForm}>
                       <div className="space-y-4">
                         <div className="group">
-                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                          <label className="block text-sm font-semibold text-slate-300 mb-2">
                             Full Name (Optional)
                           </label>
                           <div className="relative">
@@ -350,14 +350,14 @@ const SignUpPage: React.FC = () => {
                               value={form.full_name}
                               onChange={handleChange}
                               placeholder="Dr. Amina Farooq"
-                              className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 shadow-inner transition-all duration-300 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:bg-white group-hover:border-slate-300"
+                              className="w-full rounded-2xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white shadow-inner transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-slate-900 group-hover:border-slate-500 placeholder-slate-500"
                             />
                             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#1E3A8A]/5 to-[#10B981]/5 opacity-0 pointer-events-none transition-opacity duration-300 group-focus-within:opacity-100" />
                           </div>
                         </div>
 
                         <div className="group">
-                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                          <label className="block text-sm font-semibold text-slate-300 mb-2">
                             Email Address
                           </label>
                           <div className="relative">
@@ -369,19 +369,19 @@ const SignUpPage: React.FC = () => {
                               required
                               autoComplete="email"
                               placeholder="researcher@university.edu"
-                              className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 text-sm text-slate-900 shadow-inner transition-all duration-300 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:bg-white group-hover:border-slate-300"
+                              className="w-full rounded-2xl border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white shadow-inner transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-slate-900 group-hover:border-slate-500 placeholder-slate-500"
                             />
                             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#1E3A8A]/5 to-[#10B981]/5 opacity-0 pointer-events-none transition-opacity duration-300 group-focus-within:opacity-100" />
                           </div>
                         </div>
 
                         <div className="group">
-                          <label className="block text-sm font-semibold text-slate-700 mb-2">
+                          <label className="block text-sm font-semibold text-slate-300 mb-2">
                             Password
                           </label>
                           <div className="relative">
                             <input
-                              type={showPassword ? "text" : "password"}
+                              type="text"
                               name="password"
                               value={form.password}
                               onChange={handleChange}
@@ -389,12 +389,12 @@ const SignUpPage: React.FC = () => {
                               required
                               autoComplete="new-password"
                               placeholder="Minimum 8 characters"
-                              className="w-full rounded-2xl border border-slate-200 bg-white/80 px-4 py-3 pr-12 text-sm text-slate-900 shadow-inner transition-all duration-300 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:bg-white group-hover:border-slate-300"
+                              className="w-full rounded-2xl border border-slate-600 bg-slate-900/50 px-4 py-3 pr-12 text-sm text-white shadow-inner transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-slate-900 group-hover:border-slate-500 placeholder-slate-500"
                             />
                             <button
                               type="button"
                               onClick={() => setShowPassword(!showPassword)}
-                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors duration-200 z-10 cursor-pointer"
+                              className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors duration-200 z-10 cursor-pointer"
                               aria-label={
                                 showPassword ? "Hide password" : "Show password"
                               }
@@ -430,12 +430,12 @@ const SignUpPage: React.FC = () => {
                     </form>
 
                     <div className="text-center">
-                      <p className="text-sm text-slate-600">
+                      <p className="text-sm text-slate-400">
                         Already have an account?{" "}
                         <Link
                           to="/signin"
                           state={{ from: { pathname: redirectTo } }}
-                          className="font-semibold text-[#1E3A8A] hover:text-[#3B82F6] transition-colors duration-300"
+                          className="font-semibold text-blue-400 hover:text-blue-300 transition-colors duration-300"
                         >
                           Sign in here
                         </Link>
@@ -448,25 +448,25 @@ const SignUpPage: React.FC = () => {
                 {step === "otp" && (
                   <div className="space-y-6">
                     <div className="text-center space-y-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-[#3B82F6]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#3B82F6]">
-                        <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                      <span className="inline-flex items-center gap-2 rounded-full bg-blue-900/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-400">
+                        <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                         Verify Code
                       </span>
-                      <h1 className="text-3xl font-bold text-[#1E3A8A]">
+                      <h1 className="text-3xl font-bold text-white">
                         Check Your Email
                       </h1>
                       <div className="space-y-1">
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-slate-400">
                           We sent a 6-digit code to{" "}
-                          <span className="font-semibold text-[#1E3A8A]">
+                          <span className="font-semibold text-blue-400">
                             {pendingEmail}
                           </span>
                         </p>
                         {message && (
-                          <p className="text-xs text-slate-500">{message}</p>
+                          <p className="text-xs text-slate-400">{message}</p>
                         )}
                         {formatExpiry(expiresAt) && (
-                          <p className="text-xs text-slate-400">
+                          <p className="text-xs text-slate-500">
                             Expires at{" "}
                             <span className="font-semibold">
                               {formatExpiry(expiresAt)}
@@ -477,9 +477,9 @@ const SignUpPage: React.FC = () => {
                     </div>
 
                     {error && (
-                      <div className="rounded-2xl border border-red-200 bg-gradient-to-r from-red-50 to-red-100/50 px-4 py-3 text-sm text-red-600 animate-fade-in">
+                      <div className="rounded-2xl border border-red-500/30 bg-red-900/20 px-4 py-3 text-sm text-red-400 animate-fade-in">
                         <div className="flex items-center gap-2">
-                          <span className="h-2 w-2 rounded-full bg-red-500" />
+                          <span className="h-2 w-2 rounded-full bg-red-400" />
                           {error}
                         </div>
                       </div>
@@ -487,7 +487,7 @@ const SignUpPage: React.FC = () => {
 
                     <form className="space-y-6" onSubmit={handleVerifySubmit}>
                       <div className="space-y-4">
-                        <label className="block text-sm font-semibold text-slate-700 text-center">
+                        <label className="block text-sm font-semibold text-slate-300 text-center">
                           Verification Code
                         </label>
                         <div className="flex justify-center gap-2">
@@ -505,7 +505,7 @@ const SignUpPage: React.FC = () => {
                               onChange={handleOtpInputChange(index)}
                               onKeyDown={handleOtpKeyDown(index)}
                               onPaste={handleOtpPaste(index)}
-                              className="h-14 w-12 rounded-2xl border border-slate-200 bg-white/80 text-center text-lg font-bold text-slate-900 shadow-inner transition-all duration-300 focus:border-[#3B82F6] focus:outline-none focus:ring-2 focus:ring-[#3B82F6]/20 focus:bg-white hover:border-slate-300"
+                              className="h-14 w-12 rounded-2xl border border-slate-600 bg-slate-900/50 text-center text-lg font-bold text-white shadow-inner transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-slate-900 hover:border-slate-500"
                             />
                           ))}
                         </div>
@@ -538,18 +538,18 @@ const SignUpPage: React.FC = () => {
                         type="button"
                         onClick={handleResend}
                         disabled={isSubmitting}
-                        className="w-full rounded-2xl border border-slate-200 bg-white/50 px-4 py-3 text-sm font-semibold text-slate-700 transition-all duration-300 hover:border-[#3B82F6] hover:text-[#3B82F6] hover:bg-white disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full rounded-2xl border border-slate-600 bg-slate-800/50 px-4 py-3 text-sm font-semibold text-slate-300 transition-all duration-300 hover:border-blue-500 hover:text-blue-400 hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
                       >
                         {isSubmitting ? "Sending..." : "Resend Code"}
                       </button>
 
                       <div className="text-center">
-                        <p className="text-sm text-slate-600">
+                        <p className="text-sm text-slate-400">
                           Wrong email?{" "}
                           <button
                             type="button"
                             onClick={handleStartOver}
-                            className="font-semibold cursor-pointer text-[#1E3A8A] hover:text-[#3B82F6] transition-colors duration-300"
+                            className="font-semibold cursor-pointer text-blue-400 hover:text-blue-300 transition-colors duration-300"
                           >
                             Start over
                           </button>
@@ -580,14 +580,14 @@ const SignUpPage: React.FC = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-[#10B981]/10 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-[#10B981]">
-                          <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] animate-pulse" />
+                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-900/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-400">
+                          <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                           Success
                         </span>
-                        <h1 className="text-3xl font-bold text-[#1E3A8A]">
+                        <h1 className="text-3xl font-bold text-white">
                           Account Created!
                         </h1>
-                        <p className="text-sm text-slate-600 max-w-sm mx-auto">
+                        <p className="text-sm text-slate-400 max-w-sm mx-auto">
                           {message ||
                             "Your Zygotrix account is ready. Sign in to begin your genetic research journey."}
                         </p>

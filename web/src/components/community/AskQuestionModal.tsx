@@ -166,26 +166,26 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
 
       {/* Modal */}
       <div
-        className="relative z-10 w-full max-w-2xl transform rounded-2xl bg-white text-left align-middle shadow-xl transition-all dark:bg-gray-800"
+        className="relative z-10 w-full max-w-2xl transform rounded-2xl bg-slate-800 text-left align-middle shadow-xl transition-all border border-slate-700"
         onClick={(e) => e.stopPropagation()}
       >
         <div className="flex max-h-[calc(100vh-theme(spacing.8))] flex-col overflow-hidden min-h-0">
           {/* Header */}
-          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200">
+          <div className="flex items-center justify-between px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-700">
             <div>
               <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
                 Ask a Question
               </h2>
-              <p className="text-[10px] sm:text-xs text-slate-600 mt-0.5">
+              <p className="text-[10px] sm:text-xs text-slate-400 mt-0.5">
                 Share your question with the community
               </p>
             </div>
             <button
               onClick={handleClose}
               disabled={isSubmitting}
-              className="p-1.5 sm:p-2 hover:bg-slate-100 rounded-lg transition disabled:opacity-50"
+              className="p-1.5 sm:p-2 hover:bg-slate-700 rounded-lg transition disabled:opacity-50"
             >
-              <FiX className="h-4 w-4 sm:h-5 sm:w-5 text-slate-600" />
+              <FiX className="h-4 w-4 sm:h-5 sm:w-5 text-slate-400" />
             </button>
           </div>
 
@@ -197,9 +197,9 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
             <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 sm:py-6 space-y-3 sm:space-y-4">
               {/* Error Alert */}
               {error && (
-                <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-red-50 border border-red-200 rounded-lg">
-                  <FiAlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-600 flex-shrink-0 mt-0.5" />
-                  <p className="text-xs sm:text-sm text-red-700 font-medium">
+                <div className="flex items-start gap-2 sm:gap-3 p-2 sm:p-3 bg-red-900/20 border border-red-500/30 rounded-lg">
+                  <FiAlertCircle className="h-4 w-4 sm:h-5 sm:w-5 text-red-500 flex-shrink-0 mt-0.5" />
+                  <p className="text-xs sm:text-sm text-red-400 font-medium">
                     {error}
                   </p>
                 </div>
@@ -209,7 +209,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
               <div>
                 <label
                   htmlFor="title"
-                  className="block text-xs sm:text-sm font-semibold text-slate-900 mb-1 sm:mb-1.5"
+                  className="block text-xs sm:text-sm font-semibold text-white mb-1 sm:mb-1.5"
                 >
                   Title <span className="text-red-500">*</span>
                 </label>
@@ -219,18 +219,18 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
                   placeholder="e.g., How do I interpret GWAS results for polygenic traits?"
-                  className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition text-xs sm:text-sm"
+                  className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-600 bg-slate-900/50 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition text-xs sm:text-sm placeholder-slate-500"
                   required
                   maxLength={200}
                   disabled={isSubmitting}
                 />
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-[10px] sm:text-xs text-slate-500">
+                  <p className="text-[10px] sm:text-xs text-slate-400">
                     Be specific and clear (min. 10 characters)
                   </p>
                   <p
                     className={`text-[10px] sm:text-xs ${
-                      title.length >= 10 ? "text-green-600" : "text-slate-500"
+                      title.length >= 10 ? "text-green-400" : "text-slate-400"
                     }`}
                   >
                     {title.length}/200
@@ -242,7 +242,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
               <div>
                 <label
                   htmlFor="content"
-                  className="block text-xs sm:text-sm font-semibold text-slate-900 mb-1 sm:mb-1.5"
+                  className="block text-xs sm:text-sm font-semibold text-white mb-1 sm:mb-1.5"
                 >
                   Details <span className="text-red-500">*</span>
                 </label>
@@ -252,21 +252,21 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                   onChange={(e) => setContent(e.target.value)}
                   placeholder="Provide more details about your question. Include any relevant context, what you've tried, and what you're hoping to achieve..."
                   rows={6}
-                  className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition resize-none text-xs sm:text-sm"
+                  className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-600 bg-slate-900/50 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition resize-none text-xs sm:text-sm placeholder-slate-500"
                   required
                   disabled={isSubmitting}
                 />
                 <div className="flex items-center justify-between mt-1">
-                  <p className="text-[10px] sm:text-xs text-slate-500">
+                  <p className="text-[10px] sm:text-xs text-slate-400">
                     Provide context and details (min. 20 characters)
                   </p>
                   <p
                     className={`text-[10px] sm:text-xs ${
                       content.length >= 20
-                        ? "text-green-600"
+                        ? "text-green-400"
                         : content.length > 0
-                        ? "text-orange-600"
-                        : "text-slate-500"
+                        ? "text-orange-400"
+                        : "text-slate-400"
                     }`}
                   >
                     {content.length}{" "}
@@ -281,7 +281,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
               <div>
                 <label
                   htmlFor="tags"
-                  className="block text-xs sm:text-sm font-semibold text-slate-900 mb-1 sm:mb-1.5"
+                  className="block text-xs sm:text-sm font-semibold text-white mb-1 sm:mb-1.5"
                 >
                   Tags (up to 5)
                 </label>
@@ -292,14 +292,14 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                     {tags.map((tag) => (
                       <div
                         key={tag}
-                        className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-gradient-to-r from-blue-100 to-purple-100 border border-blue-300 text-blue-700 rounded-lg text-[10px] sm:text-xs font-medium"
+                        className="inline-flex items-center gap-1 sm:gap-1.5 px-2 sm:px-2.5 py-0.5 sm:py-1 bg-blue-500/20 border border-blue-500/30 text-blue-300 rounded-lg text-[10px] sm:text-xs font-medium"
                       >
                         <FiTag className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         <span>{tag}</span>
                         <button
                           type="button"
                           onClick={() => handleRemoveTag(tag)}
-                          className="hover:text-blue-900 transition"
+                          className="hover:text-blue-100 transition"
                         >
                           <FiX className="h-3 w-3 sm:h-3.5 sm:w-3.5" />
                         </button>
@@ -316,10 +316,10 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
                   onChange={(e) => setTagInput(e.target.value)}
                   onKeyDown={handleAddTag}
                   placeholder="Type a tag and press Enter or comma"
-                  className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-300 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition text-xs sm:text-sm"
+                  className="w-full px-2.5 sm:px-3 py-2 sm:py-2.5 rounded-lg border border-slate-600 bg-slate-900/50 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition text-xs sm:text-sm placeholder-slate-500"
                   disabled={tags.length >= 5 || isSubmitting}
                 />
-                <p className="mt-1 text-[10px] sm:text-xs text-slate-500">
+                <p className="mt-1 text-[10px] sm:text-xs text-slate-400">
                   Press Enter or comma to add. Examples: gwas, genetics,
                   variant-analysis
                 </p>
@@ -327,7 +327,7 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
 
               {/* Image Upload */}
               <div>
-                <label className="block text-xs sm:text-sm font-semibold text-slate-900 mb-1 sm:mb-1.5">
+                <label className="block text-xs sm:text-sm font-semibold text-white mb-1 sm:mb-1.5">
                   Add Image (Optional)
                 </label>
                 <ImageUpload
@@ -342,12 +342,12 @@ const AskQuestionModal: React.FC<AskQuestionModalProps> = ({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-200">
+            <div className="flex items-center justify-end gap-2 sm:gap-3 px-4 sm:px-6 py-3 sm:py-4 border-t border-slate-700">
               <button
                 type="button"
                 onClick={handleClose}
                 disabled={isSubmitting}
-                className="px-3 sm:px-4 py-1.5 sm:py-2 text-slate-700 text-xs sm:text-sm font-medium hover:bg-slate-100 rounded-lg transition disabled:opacity-50"
+                className="px-3 sm:px-4 py-1.5 sm:py-2 text-slate-300 text-xs sm:text-sm font-medium hover:bg-slate-700 rounded-lg transition disabled:opacity-50"
               >
                 Cancel
               </button>

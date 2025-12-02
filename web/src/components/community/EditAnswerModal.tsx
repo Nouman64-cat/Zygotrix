@@ -72,16 +72,16 @@ const EditAnswerModal: React.FC<EditAnswerModalProps> = ({
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+      <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-slate-700">
         {/* Header */}
-        <div className="flex items-center justify-between p-6 border-b border-slate-200">
+        <div className="flex items-center justify-between p-6 border-b border-slate-700">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-green-100 rounded-xl flex items-center justify-center">
-              <FiEdit3 className="h-5 w-5 text-green-600" />
+            <div className="w-10 h-10 bg-green-900/20 rounded-xl flex items-center justify-center">
+              <FiEdit3 className="h-5 w-5 text-green-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-slate-900">Edit Answer</h2>
-              <p className="text-sm text-slate-600">
+              <h2 className="text-xl font-bold text-white">Edit Answer</h2>
+              <p className="text-sm text-slate-400">
                 Update your answer content
               </p>
             </div>
@@ -89,7 +89,7 @@ const EditAnswerModal: React.FC<EditAnswerModalProps> = ({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+            className="p-2 text-slate-400 hover:text-slate-300 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
           >
             <FiX className="h-5 w-5" />
           </button>
@@ -100,14 +100,14 @@ const EditAnswerModal: React.FC<EditAnswerModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-4">
-                <p className="text-sm text-red-600">{error}</p>
+              <div className="bg-red-900/20 border-2 border-red-500/30 rounded-xl p-4">
+                <p className="text-sm text-red-400">{error}</p>
               </div>
             )}
 
             {/* Answer Content */}
             <div>
-              <label className="block text-sm font-semibold text-slate-700 mb-2">
+              <label className="block text-sm font-semibold text-white mb-2">
                 Your Answer
               </label>
               <textarea
@@ -115,11 +115,11 @@ const EditAnswerModal: React.FC<EditAnswerModalProps> = ({
                 onChange={(e) => setContent(e.target.value)}
                 rows={12}
                 placeholder="Provide a comprehensive answer to help solve the question. Include examples, explanations, and relevant details..."
-                className="w-full px-4 py-3 border-2 border-slate-200 rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/10 focus:outline-none transition-all text-sm resize-none"
+                className="w-full px-4 py-3 border-2 border-slate-600 bg-slate-900/50 text-white rounded-xl focus:border-green-500 focus:ring-4 focus:ring-green-500/10 focus:outline-none transition-all text-sm resize-none placeholder-slate-500"
                 disabled={isSubmitting}
                 required
               />
-              <p className="mt-1 text-xs text-slate-500">
+              <p className="mt-1 text-xs text-slate-400">
                 {content.length} characters (minimum 20)
               </p>
             </div>
@@ -127,12 +127,12 @@ const EditAnswerModal: React.FC<EditAnswerModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-3 justify-end p-6 border-t border-slate-200">
+        <div className="flex gap-3 justify-end p-6 border-t border-slate-700">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800 border-2 border-slate-600 rounded-xl hover:bg-slate-700 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>

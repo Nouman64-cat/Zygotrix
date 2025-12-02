@@ -212,21 +212,21 @@ const dominancePalette: Record<
 > = {
   complete: {
     label: "Complete",
-    badge: "border border-emerald-300 bg-emerald-100 text-emerald-800",
-    dot: "bg-emerald-500",
-    text: "text-emerald-600",
+    badge: "border border-emerald-300 dark:border-emerald-700 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300",
+    dot: "bg-emerald-500 dark:bg-emerald-400",
+    text: "text-emerald-600 dark:text-emerald-400",
   },
   codominant: {
     label: "Codominant",
-    badge: "border border-amber-300 bg-amber-100 text-amber-800",
-    dot: "bg-amber-500",
-    text: "text-amber-600",
+    badge: "border border-amber-300 dark:border-amber-700 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300",
+    dot: "bg-amber-500 dark:bg-amber-400",
+    text: "text-amber-600 dark:text-amber-400",
   },
   incomplete: {
     label: "Incomplete",
-    badge: "border border-violet-300 bg-violet-100 text-violet-800",
-    dot: "bg-violet-500",
-    text: "text-violet-600",
+    badge: "border border-violet-300 dark:border-violet-700 bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300",
+    dot: "bg-violet-500 dark:bg-violet-400",
+    text: "text-violet-600 dark:text-violet-400",
   },
 };
 
@@ -697,7 +697,7 @@ const SimulationStudioPage: React.FC = () => {
           onChange={(event) =>
             updateParentAllele(parent, gene.id, 0, event.target.value)
           }
-          className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-800 outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+          className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 outline-none transition-all focus:border-blue-400 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30"
         >
           {options}
         </select>
@@ -716,7 +716,7 @@ const SimulationStudioPage: React.FC = () => {
             onChange={(event) =>
               updateParentAllele(parent, gene.id, index, event.target.value)
             }
-            className="w-full rounded border border-slate-300 bg-white px-2 py-1.5 text-xs font-medium text-slate-800 outline-none transition-all focus:border-blue-400 focus:ring-2 focus:ring-blue-100"
+            className="w-full rounded border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-2 py-1.5 text-xs font-medium text-slate-800 dark:text-slate-200 outline-none transition-all focus:border-blue-400 dark:focus:border-blue-500 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30"
           >
             {options}
           </select>
@@ -770,20 +770,20 @@ const SimulationStudioPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="-m-4 flex overflow-hidden bg-slate-50 lg:-m-6" style={{ height: 'calc(100vh - 4rem)' }}>
+      <div className="-m-4 flex overflow-hidden bg-slate-50 dark:bg-slate-950 lg:-m-6" style={{ height: 'calc(100vh - 4rem)' }}>
         {/* Left Sidebar - Controls */}
-        <aside className="flex w-80 flex-shrink-0 flex-col border-r border-slate-200 bg-white">
+        <aside className="flex w-80 flex-shrink-0 flex-col border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
           {/* Header */}
-          <div className="flex-shrink-0 border-b border-slate-200 p-4">
+          <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 p-4">
             <div className="flex items-center gap-3">
               <div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 p-2">
                 <FaDna className="h-5 w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-bold text-slate-900">
+                <h1 className="text-lg font-bold text-slate-900 dark:text-white">
                   Genetics Studio
                 </h1>
-                <p className="text-[10px] text-slate-600">
+                <p className="text-[10px] text-slate-600 dark:text-slate-400">
                   Predict offspring traits
                 </p>
               </div>
@@ -794,7 +794,7 @@ const SimulationStudioPage: React.FC = () => {
           <div className="min-h-0 flex-1 overflow-y-auto p-4">
             <div className="space-y-4">
               <div>
-                <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-700">
+                <h2 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">
                   Add Traits
                 </h2>
                 <div className="space-y-2">
@@ -802,7 +802,7 @@ const SimulationStudioPage: React.FC = () => {
                     value={selectedTraitKey}
                     onChange={(event) => setSelectedTraitKey(event.target.value)}
                     disabled={isLoadingTraits || !traitOptions.length}
-                    className="w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-xs font-medium text-slate-800 outline-none transition-all focus:border-blue-500 focus:ring-2 focus:ring-blue-100 disabled:cursor-not-allowed disabled:bg-slate-100"
+                    className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 outline-none transition-all focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-700"
                   >
                     {isLoadingTraits && <option value="">Loading...</option>}
                     {!isLoadingTraits && !traitOptions.length && (
@@ -826,14 +826,14 @@ const SimulationStudioPage: React.FC = () => {
                   </button>
                 </div>
                 {traitsError && (
-                  <p className="mt-2 text-[10px] text-rose-600">{traitsError}</p>
+                  <p className="mt-2 text-[10px] text-rose-600 dark:text-rose-400">{traitsError}</p>
                 )}
               </div>
 
               {/* Active Traits */}
               {genes.length > 0 && (
                 <div>
-                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-700">
+                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">
                     Active Traits ({genes.length})
                   </h3>
                   <div className="space-y-2">
@@ -844,8 +844,8 @@ const SimulationStudioPage: React.FC = () => {
                           key={gene.uid}
                           className={`group flex items-center justify-between rounded-lg border p-2 transition-all ${
                             isActive
-                              ? "border-blue-400 bg-blue-50"
-                              : "border-slate-200 bg-white hover:border-slate-300"
+                              ? "border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30"
+                              : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
                           }`}
                         >
                           <button
@@ -853,7 +853,7 @@ const SimulationStudioPage: React.FC = () => {
                             onClick={() => setActiveGene(gene.uid)}
                             className="flex flex-1 items-center gap-2 text-left focus:outline-none"
                           >
-                            <span className="text-xs font-semibold text-slate-800">
+                            <span className="text-xs font-semibold text-slate-800 dark:text-white">
                               {gene.displayName || gene.id}
                             </span>
                             <DominanceIndicator
@@ -878,10 +878,10 @@ const SimulationStudioPage: React.FC = () => {
               )}
 
               {/* Legend */}
-              <div className="rounded-lg border border-slate-200 bg-slate-50 p-3">
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3">
                 <div className="mb-2 flex items-center gap-1.5">
-                  <FaInfoCircle className="h-3 w-3 text-slate-500" />
-                  <span className="text-[10px] font-bold uppercase text-slate-700">
+                  <FaInfoCircle className="h-3 w-3 text-slate-500 dark:text-slate-400" />
+                  <span className="text-[10px] font-bold uppercase text-slate-700 dark:text-slate-300">
                     Dominance
                   </span>
                 </div>
@@ -891,7 +891,7 @@ const SimulationStudioPage: React.FC = () => {
                     return (
                       <div key={pattern} className="flex items-center gap-2">
                         <span className={`h-2 w-2 rounded-full ${palette.dot}`} />
-                        <span className="text-[10px] text-slate-600">{palette.label}</span>
+                        <span className="text-[10px] text-slate-600 dark:text-slate-400">{palette.label}</span>
                       </div>
                     );
                   })}
@@ -901,13 +901,13 @@ const SimulationStudioPage: React.FC = () => {
           </div>
 
           {/* Simulation Controls */}
-          <div className="flex-shrink-0 border-t border-slate-200 bg-gradient-to-br from-emerald-50 to-teal-50 p-4">
+          <div className="flex-shrink-0 border-t border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 p-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label htmlFor="simSlider" className="text-xs font-bold text-slate-700">
+                <label htmlFor="simSlider" className="text-xs font-bold text-slate-700 dark:text-slate-300">
                   Simulations
                 </label>
-                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-700">
+                <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
                   {simulations.toLocaleString()}
                 </span>
               </div>
@@ -948,15 +948,15 @@ const SimulationStudioPage: React.FC = () => {
           {/* Parents Section */}
           <div className="flex min-w-0 flex-1 overflow-hidden">
             {/* Parent A */}
-            <div className="flex w-1/2 min-w-0 flex-col border-r border-slate-200 bg-gradient-to-br from-pink-50 to-purple-50">
-              <div className="flex-shrink-0 border-b border-pink-200 bg-white/80 px-4 py-3">
+            <div className="flex w-1/2 min-w-0 flex-col border-r border-slate-200 dark:border-slate-700 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950 dark:to-purple-950">
+              <div className="flex-shrink-0 border-b border-pink-200 dark:border-pink-900 bg-white/80 dark:bg-slate-900/80 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <div className="rounded-full bg-gradient-to-br from-pink-500 to-pink-600 p-2">
                     <FaFemale className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Parent A</h3>
-                    <p className="text-[10px] text-slate-600">Female genotype</p>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Parent A</h3>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400">Female genotype</p>
                   </div>
                 </div>
               </div>
@@ -964,7 +964,7 @@ const SimulationStudioPage: React.FC = () => {
                 {genes.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
                     <FaDna className="h-16 w-16 text-slate-300" />
-                    <p className="text-sm font-medium text-slate-500">
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                       Add traits to configure genotypes
                     </p>
                   </div>
@@ -983,14 +983,14 @@ const SimulationStudioPage: React.FC = () => {
                               setActiveGene(gene.uid);
                             }
                           }}
-                          className={`cursor-pointer rounded-lg border-2 bg-white p-3 shadow-sm transition-all ${
+                          className={`cursor-pointer rounded-lg border-2 bg-white dark:bg-slate-800 p-3 shadow-sm transition-all ${
                             isActive
-                              ? "border-pink-400 ring-2 ring-pink-200"
-                              : "border-slate-200 hover:border-pink-300"
+                              ? "border-pink-400 dark:border-pink-500 ring-2 ring-pink-200 dark:ring-pink-900/50"
+                              : "border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-600"
                           }`}
                         >
                           <div className="mb-2 flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-800">
+                            <span className="text-xs font-bold text-slate-800 dark:text-white">
                               {gene.displayName || gene.id}
                             </span>
                             <DominanceIndicator
@@ -1009,15 +1009,15 @@ const SimulationStudioPage: React.FC = () => {
             </div>
 
             {/* Parent B */}
-            <div className="flex w-1/2 min-w-0 flex-col bg-gradient-to-br from-blue-50 to-cyan-50">
-              <div className="flex-shrink-0 border-b border-blue-200 bg-white/80 px-4 py-3">
+            <div className="flex w-1/2 min-w-0 flex-col bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
+              <div className="flex-shrink-0 border-b border-blue-200 dark:border-blue-900 bg-white/80 dark:bg-slate-900/80 px-4 py-3">
                 <div className="flex items-center gap-2">
                   <div className="rounded-full bg-gradient-to-br from-blue-500 to-blue-600 p-2">
                     <FaMale className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900">Parent B</h3>
-                    <p className="text-[10px] text-slate-600">Male genotype</p>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Parent B</h3>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400">Male genotype</p>
                   </div>
                 </div>
               </div>
@@ -1025,7 +1025,7 @@ const SimulationStudioPage: React.FC = () => {
                 {genes.length === 0 ? (
                   <div className="flex h-full flex-col items-center justify-center gap-3 text-center">
                     <FaDna className="h-16 w-16 text-slate-300" />
-                    <p className="text-sm font-medium text-slate-500">
+                    <p className="text-sm font-medium text-slate-500 dark:text-slate-400">
                       Add traits to configure genotypes
                     </p>
                   </div>
@@ -1044,14 +1044,14 @@ const SimulationStudioPage: React.FC = () => {
                               setActiveGene(gene.uid);
                             }
                           }}
-                          className={`cursor-pointer rounded-lg border-2 bg-white p-3 shadow-sm transition-all ${
+                          className={`cursor-pointer rounded-lg border-2 bg-white dark:bg-slate-800 p-3 shadow-sm transition-all ${
                             isActive
-                              ? "border-blue-400 ring-2 ring-blue-200"
-                              : "border-slate-200 hover:border-blue-300"
+                              ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/50"
+                              : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600"
                           }`}
                         >
                           <div className="mb-2 flex items-center justify-between">
-                            <span className="text-xs font-bold text-slate-800">
+                            <span className="text-xs font-bold text-slate-800 dark:text-white">
                               {gene.displayName || gene.id}
                             </span>
                             <DominanceIndicator
@@ -1071,16 +1071,16 @@ const SimulationStudioPage: React.FC = () => {
           </div>
 
           {/* Results Panel */}
-          <aside className="flex w-96 flex-shrink-0 flex-col border-l border-slate-200 bg-gradient-to-br from-purple-50 to-indigo-50">
-            <div className="flex-shrink-0 border-b border-purple-200 bg-white/90 px-4 py-3 backdrop-blur">
+          <aside className="flex w-96 flex-shrink-0 flex-col border-l border-slate-200 dark:border-slate-700 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950">
+            <div className="flex-shrink-0 border-b border-purple-200 dark:border-purple-900 bg-white/90 dark:bg-slate-900/90 px-4 py-3 backdrop-blur">
               <div className="flex items-center gap-2">
                 <div className="rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-2">
                   <HiOutlineSparkles className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900">Results</h3>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Results</h3>
                   {result && (
-                    <p className="text-[10px] text-slate-600">
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400">
                       {result.simulations.toLocaleString()} runs
                     </p>
                   )}
@@ -1089,24 +1089,24 @@ const SimulationStudioPage: React.FC = () => {
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto p-4">
               {!result ? (
-                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-slate-300 bg-white/50 p-8 text-center">
-                  <FaDna className="h-12 w-12 text-slate-300" />
-                  <p className="text-xs font-medium text-slate-600">
+                <div className="flex flex-col items-center justify-center gap-3 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/50 dark:bg-slate-800/50 p-8 text-center">
+                  <FaDna className="h-12 w-12 text-slate-300 dark:text-slate-600" />
+                  <p className="text-xs font-medium text-slate-600 dark:text-slate-400">
                     Run simulation to see results
                   </p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {/* Sex Distribution */}
-                  <div className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm">
-                    <h4 className="mb-3 text-xs font-bold text-slate-800">Sex Distribution</h4>
+                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-sm">
+                    <h4 className="mb-3 text-xs font-bold text-slate-800 dark:text-white">Sex Distribution</h4>
                     <div className="space-y-2">
                       {sexBreakdown.map((entry) => (
                         <div key={entry.sex} className="flex items-center gap-2">
-                          <span className="w-12 text-[10px] font-semibold uppercase text-slate-700">
+                          <span className="w-12 text-[10px] font-semibold uppercase text-slate-700 dark:text-slate-300">
                             {entry.sex}
                           </span>
-                          <div className="h-5 flex-1 overflow-hidden rounded-full bg-slate-200">
+                          <div className="h-5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
                             <div
                               className="flex h-full items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 text-[9px] font-bold text-white"
                               style={{ width: `${entry.share}%` }}
@@ -1114,7 +1114,7 @@ const SimulationStudioPage: React.FC = () => {
                               {entry.share}%
                             </div>
                           </div>
-                          <span className="w-8 text-right text-[10px] font-bold text-slate-700">
+                          <span className="w-8 text-right text-[10px] font-bold text-slate-700 dark:text-slate-300">
                             {entry.count}
                           </span>
                         </div>
@@ -1126,11 +1126,11 @@ const SimulationStudioPage: React.FC = () => {
                   {traitSummaries.map((summary) => (
                     <div
                       key={summary.id}
-                      className="rounded-lg border border-slate-200 bg-white p-3 shadow-sm"
+                      className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-sm"
                     >
                       <div className="mb-2 flex items-center justify-between">
-                        <h4 className="text-xs font-bold text-slate-800">{summary.label}</h4>
-                        <span className="rounded-full bg-purple-100 px-2 py-0.5 text-[9px] font-bold text-purple-700">
+                        <h4 className="text-xs font-bold text-slate-800 dark:text-white">{summary.label}</h4>
+                        <span className="rounded-full bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 text-[9px] font-bold text-purple-700 dark:text-purple-300">
                           μ {summary.mean.toFixed(2)}
                         </span>
                       </div>
@@ -1138,7 +1138,7 @@ const SimulationStudioPage: React.FC = () => {
                         {summary.descriptors.map(([label, value]) => (
                           <span
                             key={label || "unspecified"}
-                            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 bg-slate-50 px-2 py-1 text-[10px] font-semibold text-slate-700"
+                            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 px-2 py-1 text-[10px] font-semibold text-slate-700 dark:text-slate-300"
                           >
                             {label || "unspecified"}
                             <span className="rounded-full bg-blue-500 px-1.5 py-0.5 text-[9px] font-bold text-white">

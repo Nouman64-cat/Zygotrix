@@ -156,18 +156,18 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-2 sm:p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col">
+      <div className="bg-slate-800 rounded-xl sm:rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] flex flex-col border border-slate-700">
         {/* Header */}
-        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-200">
+        <div className="flex items-center justify-between p-4 sm:p-6 border-b border-slate-700">
           <div className="flex items-center gap-2 sm:gap-3">
-            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-100 rounded-xl flex items-center justify-center">
-              <FiEdit3 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-600" />
+            <div className="w-8 h-8 sm:w-10 sm:h-10 bg-blue-900/20 rounded-xl flex items-center justify-center">
+              <FiEdit3 className="h-4 w-4 sm:h-5 sm:w-5 text-blue-400" />
             </div>
             <div>
-              <h2 className="text-lg sm:text-xl font-bold text-slate-900">
+              <h2 className="text-lg sm:text-xl font-bold text-white">
                 Edit Question
               </h2>
-              <p className="text-[10px] sm:text-sm text-slate-600">
+              <p className="text-[10px] sm:text-sm text-slate-400">
                 Update your question details
               </p>
             </div>
@@ -175,7 +175,7 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
           <button
             onClick={onClose}
             disabled={isSubmitting}
-            className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+            className="p-1.5 sm:p-2 text-slate-400 hover:text-slate-300 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
           >
             <FiX className="h-4 w-4 sm:h-5 sm:w-5" />
           </button>
@@ -186,14 +186,14 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
           <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-6">
             {/* Error Message */}
             {error && (
-              <div className="bg-red-50 border-2 border-red-200 rounded-xl p-3 sm:p-4">
-                <p className="text-xs sm:text-sm text-red-600">{error}</p>
+              <div className="bg-red-900/20 border-2 border-red-500/30 rounded-xl p-3 sm:p-4">
+                <p className="text-xs sm:text-sm text-red-400">{error}</p>
               </div>
             )}
 
             {/* Title */}
             <div>
-              <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-white mb-1.5 sm:mb-2">
                 Question Title
               </label>
               <input
@@ -202,18 +202,18 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
                 value={form.title}
                 onChange={handleInputChange}
                 placeholder="What's your question? Be specific and clear..."
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all text-xs sm:text-sm"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-slate-600 bg-slate-900/50 text-white rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all text-xs sm:text-sm placeholder-slate-500"
                 disabled={isSubmitting}
                 required
               />
-              <p className="mt-1 text-[10px] sm:text-xs text-slate-500">
+              <p className="mt-1 text-[10px] sm:text-xs text-slate-400">
                 {form.title.length}/100 characters (minimum 10)
               </p>
             </div>
 
             {/* Content */}
             <div>
-              <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-white mb-1.5 sm:mb-2">
                 Question Details
               </label>
               <textarea
@@ -222,18 +222,18 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
                 onChange={handleInputChange}
                 rows={8}
                 placeholder="Provide detailed information about your question. Include context, what you've tried, and what you're expecting..."
-                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-slate-200 rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all text-xs sm:text-sm resize-none"
+                className="w-full px-3 sm:px-4 py-2 sm:py-3 border-2 border-slate-600 bg-slate-900/50 text-white rounded-xl focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all text-xs sm:text-sm resize-none placeholder-slate-500"
                 disabled={isSubmitting}
                 required
               />
-              <p className="mt-1 text-[10px] sm:text-xs text-slate-500">
+              <p className="mt-1 text-[10px] sm:text-xs text-slate-400">
                 {form.content.length} characters (minimum 20)
               </p>
             </div>
 
             {/* Tags */}
             <div>
-              <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-white mb-1.5 sm:mb-2">
                 Tags
               </label>
               <div className="space-y-2 sm:space-y-3">
@@ -246,7 +246,7 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
                       onChange={(e) => setTagInput(e.target.value)}
                       onKeyDown={handleTagInputKeyDown}
                       placeholder="Add a tag..."
-                      className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 border-2 border-slate-200 rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all text-xs sm:text-sm"
+                      className="w-full pl-8 sm:pl-10 pr-3 sm:pr-4 py-1.5 sm:py-2 border-2 border-slate-600 bg-slate-900/50 text-white rounded-lg focus:border-blue-500 focus:ring-4 focus:ring-blue-500/10 focus:outline-none transition-all text-xs sm:text-sm placeholder-slate-500"
                       disabled={isSubmitting || form.tags.length >= 5}
                     />
                   </div>
@@ -268,14 +268,14 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
                     {form.tags.map((tag) => (
                       <span
                         key={tag}
-                        className="inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-100 text-blue-800 rounded-full text-[11px] sm:text-sm font-medium"
+                        className="inline-flex items-center gap-1 px-2 sm:px-3 py-0.5 sm:py-1 bg-blue-900/20 text-blue-400 rounded-full text-[11px] sm:text-sm font-medium"
                       >
                         #{tag}
                         <button
                           type="button"
                           onClick={() => handleRemoveTag(tag)}
                           disabled={isSubmitting}
-                          className="text-blue-600 hover:text-blue-800 transition-colors disabled:opacity-50"
+                          className="text-blue-400 hover:text-blue-300 transition-colors disabled:opacity-50"
                         >
                           <FiX className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                         </button>
@@ -283,7 +283,7 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
                     ))}
                   </div>
                 )}
-                <p className="text-[10px] sm:text-xs text-slate-500">
+                <p className="text-[10px] sm:text-xs text-slate-400">
                   {form.tags.length}/5 tags • Press Enter or comma to add tags
                 </p>
               </div>
@@ -291,7 +291,7 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
 
             {/* Image Upload */}
             <div>
-              <label className="block text-xs sm:text-sm font-semibold text-slate-700 mb-1.5 sm:mb-2">
+              <label className="block text-xs sm:text-sm font-semibold text-white mb-1.5 sm:mb-2">
                 Question Image (Optional)
               </label>
               <ImageUpload
@@ -307,12 +307,12 @@ const EditQuestionModal: React.FC<EditQuestionModalProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="flex gap-2 sm:gap-3 justify-end p-4 sm:p-6 border-t border-slate-200">
+        <div className="flex gap-2 sm:gap-3 justify-end p-4 sm:p-6 border-t border-slate-700">
           <button
             type="button"
             onClick={onClose}
             disabled={isSubmitting}
-            className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+            className="px-3 sm:px-4 py-1.5 sm:py-2 text-xs sm:text-sm font-medium text-slate-300 bg-slate-800 border-2 border-slate-600 rounded-xl hover:bg-slate-700 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
           >
             Cancel
           </button>

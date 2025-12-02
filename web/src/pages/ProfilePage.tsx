@@ -128,8 +128,8 @@ const ProfilePage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Profile Settings</h1>
-              <p className="text-slate-600 mt-2">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Profile Settings</h1>
+              <p className="text-slate-600 dark:text-slate-400 mt-2">
                 Manage your personal information and preferences
               </p>
             </div>
@@ -139,14 +139,14 @@ const ProfilePage: React.FC = () => {
                   <button
                     onClick={handleCancel}
                     disabled={isSaving}
-                    className="px-5 py-2.5 text-sm font-medium text-slate-700 bg-white border border-slate-300 rounded-lg hover:bg-slate-50 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="px-5 py-2.5 text-sm font-medium text-slate-700 dark:text-slate-300 bg-white dark:bg-slate-700 border border-slate-300 dark:border-slate-600 rounded-lg hover:bg-slate-50 dark:hover:bg-slate-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     Cancel
                   </button>
                   <button
                     onClick={handleSave}
                     disabled={isSaving}
-                    className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                    className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
                   >
                     {isSaving ? (
                       <>
@@ -161,7 +161,7 @@ const ProfilePage: React.FC = () => {
               ) : (
                 <button
                   onClick={() => setIsEditing(true)}
-                  className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors flex items-center gap-2"
+                  className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors flex items-center gap-2"
                 >
                   <svg
                     className="w-4 h-4"
@@ -187,8 +187,8 @@ const ProfilePage: React.FC = () => {
             <div
               className={`mt-4 p-4 rounded-lg flex items-center gap-3 ${
                 saveMessage.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
-                  : "bg-red-50 text-red-800 border border-red-200"
+                  ? "bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800"
+                  : "bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800"
               }`}
             >
               {saveMessage.type === "success" ? (
@@ -224,7 +224,7 @@ const ProfilePage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
           {/* Profile Picture & Quick Info */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 sticky top-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 sticky top-6">
               <div className="text-center">
                 <div className="mx-auto mb-6">
                   <ProfilePictureUpload
@@ -247,25 +247,25 @@ const ProfilePage: React.FC = () => {
                     size="lg"
                   />
                 </div>
-                <h3 className="text-xl font-semibold text-slate-900">
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white">
                   {profileData.firstName} {profileData.lastName}
                 </h3>
                 {profileData.title && (
-                  <p className="text-blue-600 text-sm font-medium mt-1">
+                  <p className="text-blue-600 dark:text-blue-400 text-sm font-medium mt-1">
                     {profileData.title}
                   </p>
                 )}
                 {profileData.organization && (
-                  <p className="text-slate-600 text-sm mt-0.5">
+                  <p className="text-slate-600 dark:text-slate-400 text-sm mt-0.5">
                     {profileData.organization}
                   </p>
                 )}
               </div>
 
-              <div className="mt-6 pt-6 border-t border-slate-200 space-y-4">
+              <div className="mt-6 pt-6 border-t border-slate-200 dark:border-slate-700 space-y-4">
                 <div className="flex items-start gap-3 text-sm">
                   <svg
-                    className="w-5 h-5 text-slate-400 flex-shrink-0 mt-0.5"
+                    className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0 mt-0.5"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -277,14 +277,14 @@ const ProfilePage: React.FC = () => {
                       d="M3 8l7.89 4.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
                     />
                   </svg>
-                  <span className="text-slate-700 break-all">
+                  <span className="text-slate-700 dark:text-slate-300 break-all">
                     {profileData.email}
                   </span>
                 </div>
                 {profileData.phone && (
                   <div className="flex items-center gap-3 text-sm">
                     <svg
-                      className="w-5 h-5 text-slate-400 flex-shrink-0"
+                      className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -296,13 +296,13 @@ const ProfilePage: React.FC = () => {
                         d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"
                       />
                     </svg>
-                    <span className="text-slate-700">{profileData.phone}</span>
+                    <span className="text-slate-700 dark:text-slate-300">{profileData.phone}</span>
                   </div>
                 )}
                 {profileData.location && (
                   <div className="flex items-center gap-3 text-sm">
                     <svg
-                      className="w-5 h-5 text-slate-400 flex-shrink-0"
+                      className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -320,7 +320,7 @@ const ProfilePage: React.FC = () => {
                         d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
                       />
                     </svg>
-                    <span className="text-slate-700">
+                    <span className="text-slate-700 dark:text-slate-300">
                       {profileData.location}
                     </span>
                   </div>
@@ -328,7 +328,7 @@ const ProfilePage: React.FC = () => {
                 {user && (
                   <div className="flex items-center gap-3 text-sm">
                     <svg
-                      className="w-5 h-5 text-slate-400 flex-shrink-0"
+                      className="w-5 h-5 text-slate-400 dark:text-slate-500 flex-shrink-0"
                       fill="none"
                       stroke="currentColor"
                       viewBox="0 0 24 24"
@@ -340,7 +340,7 @@ const ProfilePage: React.FC = () => {
                         d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
                       />
                     </svg>
-                    <span className="text-slate-700">
+                    <span className="text-slate-700 dark:text-slate-300">
                       Member since{" "}
                       {new Date(user.created_at).toLocaleDateString("en-US", {
                         month: "short",
@@ -356,10 +356,10 @@ const ProfilePage: React.FC = () => {
           {/* Profile Details */}
           <div className="lg:col-span-2 space-y-6">
             {/* Personal Information */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <svg
-                  className="w-5 h-5 text-blue-600"
+                  className="w-5 h-5 text-blue-600 dark:text-blue-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -376,7 +376,7 @@ const ProfilePage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     First Name
                   </label>
                   {isEditing ? (
@@ -389,20 +389,20 @@ const ProfilePage: React.FC = () => {
                           firstName: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-shadow"
                       placeholder="Enter first name"
                     />
                   ) : (
-                    <p className="text-slate-900 py-2.5 px-4 bg-slate-50 rounded-lg">
+                    <p className="text-slate-900 dark:text-slate-200 py-2.5 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                       {profileData.firstName || (
-                        <span className="text-slate-400">Not set</span>
+                        <span className="text-slate-400 dark:text-slate-500">Not set</span>
                       )}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Last Name
                   </label>
                   {isEditing ? (
@@ -415,20 +415,20 @@ const ProfilePage: React.FC = () => {
                           lastName: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-shadow"
                       placeholder="Enter last name"
                     />
                   ) : (
-                    <p className="text-slate-900 py-2.5 px-4 bg-slate-50 rounded-lg">
+                    <p className="text-slate-900 dark:text-slate-200 py-2.5 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                       {profileData.lastName || (
-                        <span className="text-slate-400">Not set</span>
+                        <span className="text-slate-400 dark:text-slate-500">Not set</span>
                       )}
                     </p>
                   )}
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Email Address
                   </label>
                   <div className="relative">
@@ -436,16 +436,16 @@ const ProfilePage: React.FC = () => {
                       type="email"
                       value={profileData.email}
                       disabled
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 cursor-not-allowed"
                     />
-                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                    <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-600 px-2 py-1 rounded">
                       Cannot be changed
                     </span>
                   </div>
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Phone Number
                   </label>
                   {isEditing ? (
@@ -458,20 +458,20 @@ const ProfilePage: React.FC = () => {
                           phone: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-shadow"
                       placeholder="+1 (555) 123-4567"
                     />
                   ) : (
-                    <p className="text-slate-900 py-2.5 px-4 bg-slate-50 rounded-lg">
+                    <p className="text-slate-900 dark:text-slate-200 py-2.5 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                       {profileData.phone || (
-                        <span className="text-slate-400">Not set</span>
+                        <span className="text-slate-400 dark:text-slate-500">Not set</span>
                       )}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Location
                   </label>
                   {isEditing ? (
@@ -484,20 +484,20 @@ const ProfilePage: React.FC = () => {
                           location: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-shadow"
                       placeholder="City, State/Country"
                     />
                   ) : (
-                    <p className="text-slate-900 py-2.5 px-4 bg-slate-50 rounded-lg">
+                    <p className="text-slate-900 dark:text-slate-200 py-2.5 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                       {profileData.location || (
-                        <span className="text-slate-400">Not set</span>
+                        <span className="text-slate-400 dark:text-slate-500">Not set</span>
                       )}
                     </p>
                   )}
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Timezone
                   </label>
                   {isEditing ? (
@@ -509,7 +509,7 @@ const ProfilePage: React.FC = () => {
                           timezone: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-shadow"
                     >
                       {timezones.map((tz) => (
                         <option key={tz} value={tz}>
@@ -518,7 +518,7 @@ const ProfilePage: React.FC = () => {
                       ))}
                     </select>
                   ) : (
-                    <p className="text-slate-900 py-2.5 px-4 bg-slate-50 rounded-lg">
+                    <p className="text-slate-900 dark:text-slate-200 py-2.5 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                       {profileData.timezone}
                     </p>
                   )}
@@ -527,10 +527,10 @@ const ProfilePage: React.FC = () => {
             </div>
 
             {/* Professional Information */}
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-              <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
                 <svg
-                  className="w-5 h-5 text-blue-600"
+                  className="w-5 h-5 text-blue-600 dark:text-blue-500"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -547,7 +547,7 @@ const ProfilePage: React.FC = () => {
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Organization
                   </label>
                   {isEditing ? (
@@ -560,20 +560,20 @@ const ProfilePage: React.FC = () => {
                           organization: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-shadow"
                       placeholder="Company or institution name"
                     />
                   ) : (
-                    <p className="text-slate-900 py-2.5 px-4 bg-slate-50 rounded-lg">
+                    <p className="text-slate-900 dark:text-slate-200 py-2.5 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                       {profileData.organization || (
-                        <span className="text-slate-400">Not set</span>
+                        <span className="text-slate-400 dark:text-slate-500">Not set</span>
                       )}
                     </p>
                   )}
                 </div>
 
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Department
                   </label>
                   {isEditing ? (
@@ -586,20 +586,20 @@ const ProfilePage: React.FC = () => {
                           department: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-shadow"
                       placeholder="Department or team"
                     />
                   ) : (
-                    <p className="text-slate-900 py-2.5 px-4 bg-slate-50 rounded-lg">
+                    <p className="text-slate-900 dark:text-slate-200 py-2.5 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                       {profileData.department || (
-                        <span className="text-slate-400">Not set</span>
+                        <span className="text-slate-400 dark:text-slate-500">Not set</span>
                       )}
                     </p>
                   )}
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Job Title
                   </label>
                   {isEditing ? (
@@ -612,20 +612,20 @@ const ProfilePage: React.FC = () => {
                           title: e.target.value,
                         })
                       }
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-shadow"
                       placeholder="Your role or position"
                     />
                   ) : (
-                    <p className="text-slate-900 py-2.5 px-4 bg-slate-50 rounded-lg">
+                    <p className="text-slate-900 dark:text-slate-200 py-2.5 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg">
                       {profileData.title || (
-                        <span className="text-slate-400">Not set</span>
+                        <span className="text-slate-400 dark:text-slate-500">Not set</span>
                       )}
                     </p>
                   )}
                 </div>
 
                 <div className="md:col-span-2">
-                  <label className="block text-sm font-medium text-slate-700 mb-2">
+                  <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                     Bio
                   </label>
                   {isEditing ? (
@@ -635,13 +635,13 @@ const ProfilePage: React.FC = () => {
                         setProfileData({ ...profileData, bio: e.target.value })
                       }
                       rows={4}
-                      className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-shadow resize-none"
+                      className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent transition-shadow resize-none"
                       placeholder="Tell us about yourself, your research interests, or professional background..."
                     />
                   ) : (
-                    <p className="text-slate-900 py-2.5 px-4 bg-slate-50 rounded-lg min-h-[100px]">
+                    <p className="text-slate-900 dark:text-slate-200 py-2.5 px-4 bg-slate-50 dark:bg-slate-700/50 rounded-lg min-h-[100px]">
                       {profileData.bio || (
-                        <span className="text-slate-400">Not set</span>
+                        <span className="text-slate-400 dark:text-slate-500">Not set</span>
                       )}
                     </p>
                   )}

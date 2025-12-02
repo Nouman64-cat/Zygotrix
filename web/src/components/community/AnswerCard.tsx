@@ -48,13 +48,13 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
   const shouldShowCollapse = isLongContent && !isExpanded;
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 transition-shadow hover:shadow-md">
+    <div className="bg-slate-800/60 rounded-xl shadow-sm border border-slate-700 transition-shadow hover:shadow-md">
       <div className="p-4 sm:p-5">
         {/* Accepted Answer Badge */}
         {answer.is_accepted && (
-          <div className="flex items-center gap-2 mb-3 p-2 bg-green-50 border border-green-200 rounded-lg">
-            <FiCheck className="h-4 w-4 text-green-600" />
-            <span className="text-sm font-medium text-green-700">
+          <div className="flex items-center gap-2 mb-3 p-2 bg-green-900/20 border border-green-500/30 rounded-lg">
+            <FiCheck className="h-4 w-4 text-green-400" />
+            <span className="text-sm font-medium text-green-300">
               Accepted Answer
             </span>
           </div>
@@ -66,10 +66,10 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
             {(answer.author.full_name || answer.author.email)[0].toUpperCase()}
           </div>
           <div>
-            <div className="font-medium text-slate-900 text-sm">
+            <div className="font-medium text-white text-sm">
               {answer.author.full_name || answer.author.email}
             </div>
-            <div className="text-xs text-slate-500">
+            <div className="text-xs text-slate-400">
               Answered {formatDate(answer.created_at)}
               {answer.updated_at && answer.updated_at !== answer.created_at && (
                 <span className="ml-2">
@@ -82,7 +82,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
 
         {/* Content */}
         <div className="prose prose-sm max-w-none mb-4">
-          <p className="text-xs md:text-sm text-slate-700 whitespace-pre-wrap">
+          <p className="text-xs md:text-sm text-slate-300 whitespace-pre-wrap">
             {shouldShowCollapse
               ? `${answer.content.substring(0, 240)}...`
               : answer.content}
@@ -91,7 +91,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
           {isLongContent && (
             <button
               onClick={() => setIsExpanded(!isExpanded)}
-              className="inline-flex items-center gap-1 mt-2 text-blue-600 hover:text-blue-700 text-sm font-medium transition-colors"
+              className="inline-flex items-center gap-1 mt-2 text-blue-400 hover:text-blue-300 text-sm font-medium transition-colors"
             >
               {isExpanded ? (
                 <>
@@ -109,7 +109,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
         </div>
 
         {/* Bottom Actions */}
-        <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+        <div className="flex items-center justify-between pt-3 border-t border-slate-700">
           {/* Voting and Accept */}
           <div className="flex items-center gap-3">
             {/* Upvote */}
@@ -117,8 +117,8 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
               onClick={() => onVote(answer.user_vote === 1 ? 0 : 1)}
               className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg transition-all duration-200 ${
                 answer.user_vote === 1
-                  ? "bg-blue-100 text-blue-600 shadow-sm"
-                  : "bg-slate-100 text-slate-600 hover:bg-blue-50 hover:text-blue-600"
+                  ? "bg-blue-900/30 text-blue-400 shadow-sm"
+                  : "bg-slate-700 text-slate-300 hover:bg-blue-900/20 hover:text-blue-400"
               }`}
             >
               <FiThumbsUp className="h-4 w-4" />
@@ -130,8 +130,8 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
               onClick={() => onVote(answer.user_vote === -1 ? 0 : -1)}
               className={`flex items-center gap-1.5 p-1.5 rounded-lg transition-all duration-200 ${
                 answer.user_vote === -1
-                  ? "bg-red-100 text-red-600 shadow-sm"
-                  : "bg-slate-100 text-slate-600 hover:bg-red-50 hover:text-red-600"
+                  ? "bg-red-900/30 text-red-400 shadow-sm"
+                  : "bg-slate-700 text-slate-300 hover:bg-red-900/20 hover:text-red-400"
               }`}
             >
               <FiThumbsDown className="h-4 w-4" />
@@ -142,7 +142,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
             {canAccept && !answer.is_accepted && onAccept && (
               <button
                 onClick={onAccept}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-green-50 text-green-600 hover:bg-green-100 rounded-lg transition-all duration-200"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-green-900/20 text-green-400 hover:bg-green-900/30 rounded-lg transition-all duration-200"
                 title="Accept this answer"
               >
                 <FiCheck className="h-4 w-4" />
@@ -157,7 +157,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
               {onEdit && (
                 <button
                   onClick={onEdit}
-                  className="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition"
+                  className="p-1.5 text-blue-400 hover:bg-blue-900/20 rounded-lg transition"
                   title="Edit answer"
                 >
                   <FiEdit3 className="h-4 w-4" />
@@ -166,7 +166,7 @@ const AnswerCard: React.FC<AnswerCardProps> = ({
               {onDelete && (
                 <button
                   onClick={onDelete}
-                  className="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition"
+                  className="p-1.5 text-red-400 hover:bg-red-900/20 rounded-lg transition"
                   title="Delete answer"
                 >
                   <FiTrash2 className="h-4 w-4" />

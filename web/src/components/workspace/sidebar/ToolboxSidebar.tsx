@@ -30,20 +30,20 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
     <div
       className={`${
         isToolsCollapsed ? "w-12" : "w-64"
-      } bg-white border-r border-gray-200 flex-shrink-0 overflow-hidden transition-all duration-300 flex flex-col h-screen`}
+      } bg-white dark:bg-slate-900 border-r border-gray-200 dark:border-slate-700 flex-shrink-0 overflow-hidden transition-all duration-300 flex flex-col h-screen`}
     >
       {/* Collapse/Expand Button */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
-        {!isToolsCollapsed && <h3 className="font-semibold">Tools</h3>}
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
+        {!isToolsCollapsed && <h3 className="font-semibold text-gray-900 dark:text-white">Tools</h3>}
         <button
           onClick={() => setIsToolsCollapsed(!isToolsCollapsed)}
-          className="p-1 hover:bg-gray-100 rounded transition-colors"
+          className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors text-gray-700 dark:text-slate-300"
           title={isToolsCollapsed ? "Expand Tools" : "Collapse Tools"}
         >
           {isToolsCollapsed ? (
-            <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+            <ChevronRightIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
           ) : (
-            <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
+            <ChevronLeftIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
           )}
         </button>
       </div>
@@ -64,8 +64,8 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
                   }
                   className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
                     selectedTool === tool.id
-                      ? "border-blue-500 bg-blue-50"
-                      : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                      ? "border-blue-500 dark:border-blue-400 bg-blue-50 dark:bg-blue-900/30"
+                      : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800"
                   }`}
                 >
                   <div
@@ -73,14 +73,14 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
                   >
                     <tool.icon className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium">{tool.label}</span>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">{tool.label}</span>
                 </button>
               ))}
           </div>
 
           {/* Mendelian Genetics Section */}
-          <div className="mt-6 border-t border-gray-200 pt-4">
-            <h4 className="font-semibold mb-3 text-indigo-700">
+          <div className="mt-6 border-t border-gray-200 dark:border-slate-700 pt-4">
+            <h4 className="font-semibold mb-3 text-indigo-700 dark:text-indigo-400">
               Mendelian Genetics
             </h4>
             <div className="space-y-2">
@@ -88,14 +88,14 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
                 onClick={() => setShowMendelianModal(true)}
                 className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
                   showMendelianModal
-                    ? "border-indigo-500 bg-indigo-50"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    ? "border-indigo-500 dark:border-indigo-400 bg-indigo-50 dark:bg-indigo-900/30"
+                    : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800"
                 }`}
               >
                 <div className="w-8 h-8 bg-indigo-500 rounded flex items-center justify-center mr-3">
                   <AcademicCapIcon className="h-4 w-4 text-white" />
                 </div>
-                <span className="text-sm font-medium">Inheritance Study</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Inheritance Study</span>
               </button>
 
               <button
@@ -106,23 +106,23 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
                 }
                 className={`w-full flex items-center p-3 rounded-lg border transition-all cursor-pointer ${
                   selectedTool === "punnett-square"
-                    ? "border-pink-500 bg-pink-50"
-                    : "border-gray-200 hover:border-gray-300 hover:bg-gray-50"
+                    ? "border-pink-500 dark:border-pink-400 bg-pink-50 dark:bg-pink-900/30"
+                    : "border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800"
                 }`}
               >
                 <div className="w-8 h-8 bg-pink-500 rounded flex items-center justify-center mr-3">
                   <AcademicCapIcon className="h-4 w-4 text-white" />
                 </div>
-                <span className="text-sm font-medium">Punnett Square</span>
+                <span className="text-sm font-medium text-gray-900 dark:text-white">Punnett Square</span>
               </button>
             </div>
           </div>
 
           <div className="mt-8">
-            <h4 className="font-medium text-sm text-gray-700 mb-2">
+            <h4 className="font-medium text-sm text-gray-700 dark:text-slate-300 mb-2">
               Instructions
             </h4>
-            <p className="text-xs text-gray-500">
+            <p className="text-xs text-gray-500 dark:text-slate-400">
               {selectedTool
                 ? `Click on the canvas to add a ${
                     toolboxItems.find((t) => t.id === selectedTool)?.label
@@ -160,7 +160,7 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
               ))}
 
             {/* Divider */}
-            <div className="h-px bg-gray-200 my-2"></div>
+            <div className="h-px bg-gray-200 dark:bg-slate-700 my-2"></div>
 
             {/* Mendelian Genetics Tools */}
             <button
@@ -190,7 +190,7 @@ const ToolboxSidebar: React.FC<ToolboxSidebarProps> = ({
             </button>
 
             {/* Divider */}
-            <div className="h-px bg-gray-200 my-2"></div>
+            <div className="h-px bg-gray-200 dark:bg-slate-700 my-2"></div>
 
             {/* Canvas Drawing Actions */}
             {clearCanvasDrawings && (

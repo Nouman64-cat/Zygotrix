@@ -98,9 +98,9 @@ const SettingsPage: React.FC = () => {
   const renderAccountSettings = () => (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
           <svg
-            className="w-5 h-5 text-blue-600"
+            className="w-5 h-5 text-blue-600 dark:text-blue-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -116,7 +116,7 @@ const SettingsPage: React.FC = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Full Name
             </label>
             <input
@@ -125,13 +125,13 @@ const SettingsPage: React.FC = () => {
               onChange={(e) =>
                 setAccountData({ ...accountData, fullName: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
               placeholder="Enter your full name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Email Address
             </label>
             <div className="relative">
@@ -139,16 +139,16 @@ const SettingsPage: React.FC = () => {
                 type="email"
                 value={accountData.email}
                 disabled
-                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed"
+                className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-slate-50 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 cursor-not-allowed"
               />
-              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 dark:text-slate-400 bg-slate-100 dark:bg-slate-600 px-2 py-1 rounded">
                 Cannot be changed
               </span>
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Phone Number
             </label>
             <input
@@ -157,13 +157,13 @@ const SettingsPage: React.FC = () => {
               onChange={(e) =>
                 setAccountData({ ...accountData, phone: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
               placeholder="+1 (555) 123-4567"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Location
             </label>
             <input
@@ -172,13 +172,13 @@ const SettingsPage: React.FC = () => {
               onChange={(e) =>
                 setAccountData({ ...accountData, location: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
               placeholder="City, State/Country"
             />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Timezone
             </label>
             <select
@@ -186,7 +186,7 @@ const SettingsPage: React.FC = () => {
               onChange={(e) =>
                 setAccountData({ ...accountData, timezone: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
             >
               {timezones.map((tz) => (
                 <option key={tz} value={tz}>
@@ -198,10 +198,10 @@ const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
           <svg
-            className="w-5 h-5 text-blue-600"
+            className="w-5 h-5 text-blue-600 dark:text-blue-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -217,7 +217,7 @@ const SettingsPage: React.FC = () => {
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Organization
             </label>
             <input
@@ -226,13 +226,13 @@ const SettingsPage: React.FC = () => {
               onChange={(e) =>
                 setAccountData({ ...accountData, organization: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
               placeholder="Company or institution name"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Department
             </label>
             <input
@@ -241,13 +241,13 @@ const SettingsPage: React.FC = () => {
               onChange={(e) =>
                 setAccountData({ ...accountData, department: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
               placeholder="Department or team"
             />
           </div>
 
           <div className="md:col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-2">
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
               Job Title
             </label>
             <input
@@ -256,7 +256,7 @@ const SettingsPage: React.FC = () => {
               onChange={(e) =>
                 setAccountData({ ...accountData, title: e.target.value })
               }
-              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
               placeholder="Your role or position"
             />
           </div>
@@ -268,9 +268,9 @@ const SettingsPage: React.FC = () => {
   const renderSecuritySettings = () => (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
           <svg
-            className="w-5 h-5 text-blue-600"
+            className="w-5 h-5 text-blue-600 dark:text-blue-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -285,31 +285,31 @@ const SettingsPage: React.FC = () => {
           Password & Authentication
         </h3>
         <div className="space-y-4">
-          <div className="p-5 border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-colors">
+          <div className="p-5 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h4 className="font-medium text-slate-900 mb-1">Password</h4>
-                <p className="text-sm text-slate-600">
+                <h4 className="font-medium text-slate-900 dark:text-white mb-1">Password</h4>
+                <p className="text-sm text-slate-600 dark:text-slate-400">
                   Last changed {user ? new Date(user.created_at).toLocaleDateString() : "never"}
                 </p>
               </div>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+              <button className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium">
                 Change Password
               </button>
             </div>
           </div>
 
-          <div className="p-5 border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-colors">
+          <div className="p-5 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
             <div className="flex items-center justify-between">
               <div>
-                <h4 className="font-medium text-slate-900 mb-1">
+                <h4 className="font-medium text-slate-900 dark:text-white mb-1">
                   Two-Factor Authentication
                 </h4>
-                <p className="text-sm text-slate-600">
+                <p className="text-sm text-slate-600 dark:text-slate-400">
                   Add an extra layer of security to your account
                 </p>
               </div>
-              <button className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium">
+              <button className="px-4 py-2 border-2 border-blue-600 dark:border-blue-500 text-blue-600 dark:text-blue-400 rounded-lg hover:bg-blue-50 dark:hover:bg-blue-900/30 transition-colors text-sm font-medium">
                 Enable 2FA
               </button>
             </div>
@@ -317,10 +317,10 @@ const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
           <svg
-            className="w-5 h-5 text-blue-600"
+            className="w-5 h-5 text-blue-600 dark:text-blue-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -346,12 +346,12 @@ const SettingsPage: React.FC = () => {
           ].map((session, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-5 border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-colors"
+              className="flex items-center justify-between p-5 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-600 transition-colors"
             >
               <div className="flex items-center gap-4">
-                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-green-600"
+                    className="w-6 h-6 text-green-600 dark:text-green-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -366,15 +366,15 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium text-slate-900">{session.device}</p>
+                    <p className="font-medium text-slate-900 dark:text-white">{session.device}</p>
                     {session.current && (
-                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                      <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-1 rounded-full font-medium">
                         Current
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-600">{session.browser}</p>
-                  <p className="text-xs text-slate-500 mt-1">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">{session.browser}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                     {session.location} • {session.time}
                   </p>
                 </div>
@@ -389,9 +389,9 @@ const SettingsPage: React.FC = () => {
   const renderDataPrivacySettings = () => (
     <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
           <svg
-            className="w-5 h-5 text-blue-600"
+            className="w-5 h-5 text-blue-600 dark:text-blue-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -405,17 +405,17 @@ const SettingsPage: React.FC = () => {
           </svg>
           Data Export
         </h3>
-        <div className="p-5 border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-colors">
+        <div className="p-5 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <h4 className="font-medium text-slate-900 mb-2">
+              <h4 className="font-medium text-slate-900 dark:text-white mb-2">
                 Download Your Data
               </h4>
-              <p className="text-sm text-slate-600 mb-4">
+              <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
                 Export all your personal data, projects, and analysis results in a
                 machine-readable format.
               </p>
-              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+              <button className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium">
                 Request Data Export
               </button>
             </div>
@@ -423,10 +423,10 @@ const SettingsPage: React.FC = () => {
         </div>
       </div>
 
-      <div className="border-t border-slate-200 pt-8">
-        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+      <div className="border-t border-slate-200 dark:border-slate-700 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-6 flex items-center gap-2">
           <svg
-            className="w-5 h-5 text-red-600"
+            className="w-5 h-5 text-red-600 dark:text-red-500"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -441,13 +441,13 @@ const SettingsPage: React.FC = () => {
           Danger Zone
         </h3>
         <div className="space-y-4">
-          <div className="p-5 border-2 border-red-200 bg-red-50 rounded-xl">
+          <div className="p-5 border-2 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 rounded-xl">
             <div className="flex items-start justify-between">
               <div className="flex-1">
-                <h4 className="font-medium text-red-900 mb-2">
+                <h4 className="font-medium text-red-900 dark:text-red-300 mb-2">
                   Delete Account
                 </h4>
-                <p className="text-sm text-red-700 mb-4">
+                <p className="text-sm text-red-700 dark:text-red-400 mb-4">
                   Permanently delete your account and all associated data. This
                   action cannot be undone.
                 </p>
@@ -482,8 +482,8 @@ const SettingsPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
-              <p className="text-slate-600 mt-2">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Settings</h1>
+              <p className="text-slate-600 dark:text-slate-400 mt-2">
                 Manage your account settings and security preferences
               </p>
             </div>
@@ -491,7 +491,7 @@ const SettingsPage: React.FC = () => {
               <button
                 onClick={handleSave}
                 disabled={isSaving}
-                className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+                className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
               >
                 {isSaving ? (
                   <>
@@ -525,8 +525,8 @@ const SettingsPage: React.FC = () => {
             <div
               className={`mt-4 p-4 rounded-lg flex items-center gap-3 ${
                 saveMessage.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
-                  : "bg-red-50 text-red-800 border border-red-200"
+                  ? "bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800"
+                  : "bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800"
               }`}
             >
               {saveMessage.type === "success" ? (
@@ -562,7 +562,7 @@ const SettingsPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-6">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-4 sticky top-6">
               <nav className="space-y-2">
                 {tabs.map((tab) => (
                   <button
@@ -570,8 +570,8 @@ const SettingsPage: React.FC = () => {
                     onClick={() => setActiveTab(tab.id)}
                     className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${
                       activeTab === tab.id
-                        ? "bg-blue-50 text-blue-700 border-2 border-blue-200 shadow-sm"
-                        : "text-slate-700 hover:bg-slate-50 border-2 border-transparent"
+                        ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-400 border-2 border-blue-200 dark:border-blue-700 shadow-sm"
+                        : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-2 border-transparent"
                     }`}
                   >
                     <span className="text-xl">{tab.icon}</span>
@@ -584,7 +584,7 @@ const SettingsPage: React.FC = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
+            <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-8">
               {renderContent()}
             </div>
           </div>

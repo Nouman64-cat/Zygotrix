@@ -59,18 +59,18 @@ const getTraitTypeStyle = (traitType: string | undefined) => {
 
   const styles = {
     monogenic: {
-      indicator: "bg-blue-500",
-      badge: "bg-blue-100 text-blue-800",
+      indicator: "bg-blue-500 dark:bg-blue-600",
+      badge: "bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300",
       label: "Monogenic",
     },
     polygenic: {
-      indicator: "bg-violet-500",
-      badge: "bg-violet-100 text-violet-800",
+      indicator: "bg-violet-500 dark:bg-violet-600",
+      badge: "bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300",
       label: "Polygenic",
     },
     other: {
-      indicator: "bg-orange-500",
-      badge: "bg-orange-100 text-orange-800",
+      indicator: "bg-orange-500 dark:bg-orange-600",
+      badge: "bg-orange-100 dark:bg-orange-900/30 text-orange-800 dark:text-orange-300",
       label: "Other",
     },
   };
@@ -210,12 +210,12 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
   if (loading) {
     return (
       <div
-        className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}
+        className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 ${className}`}
       >
         <div className="flex items-center justify-center h-64">
           <div className="flex items-center gap-3">
-            <div className="animate-spin h-8 w-8 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-            <span className="text-gray-600 font-medium">Loading traits...</span>
+            <div className="animate-spin h-8 w-8 border-2 border-blue-600 dark:border-blue-500 border-t-transparent rounded-full"></div>
+            <span className="text-gray-600 dark:text-slate-400 font-medium">Loading traits...</span>
           </div>
         </div>
       </div>
@@ -224,15 +224,15 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}
+      className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-gray-200 dark:border-slate-700 ${className}`}
     >
       {/* Search and Stats Header */}
-      <div className="p-4 border-b border-gray-200">
+      <div className="p-4 border-b border-gray-200 dark:border-slate-700">
         <div className="flex items-center justify-between gap-4">
           <div className="relative flex-1 max-w-md">
             <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
               <svg
-                className="h-4 w-4 text-gray-400"
+                className="h-4 w-4 text-gray-400 dark:text-slate-500"
                 fill="none"
                 stroke="currentColor"
                 viewBox="0 0 24 24"
@@ -248,7 +248,7 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
             <input
               type="text"
               placeholder="Search traits by name, gene, category..."
-              className="block w-full pl-9 pr-3 py-2 text-sm border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className="block w-full pl-9 pr-3 py-2 text-sm border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
               value={searchTerm}
               onChange={(e) => {
                 setSearchTerm(e.target.value);
@@ -256,7 +256,7 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
               }}
             />
           </div>
-          <div className="text-sm text-gray-600">
+          <div className="text-sm text-gray-600 dark:text-slate-400">
             {filteredAndSortedTraits.length} of {traits.length} traits
           </div>
         </div>
@@ -265,12 +265,12 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
       {/* Table */}
       <div className="overflow-x-auto">
         <table className="w-full">
-          <thead className="bg-gray-50">
+          <thead className="bg-gray-50 dark:bg-slate-700">
             <tr>
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort("name")}
-                  className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide hover:text-gray-700 cursor-pointer"
+                  className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide hover:text-gray-700 dark:hover:text-slate-100 cursor-pointer"
                 >
                   Trait Name
                   {getSortIcon("name")}
@@ -279,26 +279,26 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort("trait_type")}
-                  className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide hover:text-gray-700 cursor-pointer"
+                  className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide hover:text-gray-700 dark:hover:text-slate-100 cursor-pointer"
                 >
                   Type
                   {getSortIcon("trait_type")}
                 </button>
               </th>
               <th className="px-4 py-3 text-left">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <span className="text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide">
                   Genes
                 </span>
               </th>
               <th className="px-4 py-3 text-left">
-                <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">
+                <span className="text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide">
                   Chromosomes
                 </span>
               </th>
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort("inheritance_pattern")}
-                  className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide hover:text-gray-700 cursor-pointer"
+                  className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide hover:text-gray-700 dark:hover:text-slate-100 cursor-pointer"
                 >
                   Inheritance
                   {getSortIcon("inheritance_pattern")}
@@ -307,26 +307,26 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
               <th className="px-4 py-3 text-left">
                 <button
                   onClick={() => handleSort("category")}
-                  className="flex items-center gap-1 text-xs font-medium text-gray-500 uppercase tracking-wide hover:text-gray-700 cursor-pointer"
+                  className="flex items-center gap-1 text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide hover:text-gray-700 dark:hover:text-slate-100 cursor-pointer"
                 >
                   Category
                   {getSortIcon("category")}
                 </button>
               </th>
-              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wide">
+              <th className="px-4 py-3 text-center text-xs font-medium text-gray-500 dark:text-slate-300 uppercase tracking-wide">
                 Actions
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-200">
+          <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
             {paginatedTraits.map((trait) => (
               <tr
                 key={trait.key}
-                className="hover:bg-gray-50 transition-colors"
+                className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors"
               >
                 <td className="px-4 py-3">
                   <div>
-                    <div className="font-medium text-gray-900">
+                    <div className="font-medium text-gray-900 dark:text-white">
                       {trait.name}
                     </div>
                   </div>
@@ -335,7 +335,7 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                   {(() => {
                     const typeStyle = getTraitTypeStyle(trait.trait_type);
                     if (!typeStyle)
-                      return <span className="text-gray-400">—</span>;
+                      return <span className="text-gray-400 dark:text-slate-500">—</span>;
 
                     return (
                       <div className="flex items-center space-x-2">
@@ -351,7 +351,7 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                     );
                   })()}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700">
+                <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">
                   {(() => {
                     const genes = getGenesArray(trait);
                     if (genes.length === 0) return "—";
@@ -361,13 +361,13 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                         {genes.slice(0, 2).map((gene) => (
                           <span
                             key={gene}
-                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800"
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300"
                           >
                             {gene}
                           </span>
                         ))}
                         {genes.length > 2 && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300">
                             +{genes.length - 2} more
                           </span>
                         )}
@@ -375,7 +375,7 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                     );
                   })()}
                 </td>
-                <td className="px-4 py-3 text-sm text-gray-700">
+                <td className="px-4 py-3 text-sm text-gray-700 dark:text-slate-300">
                   {(() => {
                     const chromosomes = getChromosomesArray(trait);
                     if (chromosomes.length === 0) return "—";
@@ -386,13 +386,13 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                         {chromosomes.slice(0, 3).map((chr) => (
                           <span
                             key={chr}
-                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800"
+                            className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
                           >
                             Chr {chr}
                           </span>
                         ))}
                         {chromosomes.length > 3 && (
-                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 text-gray-600">
+                          <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300">
                             +{chromosomes.length - 3} more
                           </span>
                         )}
@@ -401,19 +401,19 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                   })()}
                 </td>
                 <td className="px-4 py-3">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/30 text-blue-800 dark:text-blue-300">
                     {trait.inheritance_pattern || "Unknown"}
                   </span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-800 dark:text-slate-300">
                     {trait.category || "General"}
                   </span>
                 </td>
                 <td className="px-4 py-3 text-center">
                   <button
                     onClick={() => onTraitClick(trait)}
-                    className="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium text-blue-600 hover:text-blue-800 hover:bg-blue-50 rounded-md transition-colors cursor-pointer"
+                    className="inline-flex items-center gap-2 px-3 py-1 text-sm font-medium text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300 hover:bg-blue-50 dark:hover:bg-blue-900/30 rounded-md transition-colors cursor-pointer"
                   >
                     <SparklesIcon className="w-4 h-4" />
                     <p className="font-medium">Ask AI</p>
@@ -427,8 +427,8 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-          <div className="text-sm text-gray-700">
+        <div className="px-4 py-3 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between">
+          <div className="text-sm text-gray-700 dark:text-slate-300">
             Showing {(currentPage - 1) * itemsPerPage + 1} to{" "}
             {Math.min(
               currentPage * itemsPerPage,
@@ -440,7 +440,7 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
             <button
               onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
               disabled={currentPage === 1}
-              className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="px-3 py-1 text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 border border-gray-300 dark:border-slate-600 rounded-md hover:bg-gray-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               Previous
             </button>
@@ -453,8 +453,8 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                     onClick={() => setCurrentPage(page)}
                     className={`px-3 py-1 text-sm rounded-md cursor-pointer ${
                       currentPage === page
-                        ? "bg-blue-600 text-white"
-                        : "bg-white border border-gray-300 hover:bg-gray-50"
+                        ? "bg-blue-600 dark:bg-blue-700 text-white"
+                        : "bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 border border-gray-300 dark:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-600"
                     }`}
                   >
                     {page}
@@ -467,7 +467,7 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
                 setCurrentPage((prev) => Math.min(prev + 1, totalPages))
               }
               disabled={currentPage === totalPages}
-              className="px-3 py-1 text-sm bg-white border border-gray-300 rounded-md hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+              className="px-3 py-1 text-sm bg-white dark:bg-slate-700 text-gray-900 dark:text-slate-200 border border-gray-300 dark:border-slate-600 rounded-md hover:bg-gray-50 dark:hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
             >
               Next
             </button>
@@ -491,10 +491,10 @@ const TraitsTable: React.FC<TraitsTableProps> = ({
               d="M9 5H7a2 2 0 00-2 2v10a2 2 0 002 2h8a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
             />
           </svg>
-          <h3 className="mt-2 text-sm font-medium text-gray-900">
+          <h3 className="mt-2 text-sm font-medium text-gray-900 dark:text-white">
             No traits found
           </h3>
-          <p className="mt-1 text-sm text-gray-500">
+          <p className="mt-1 text-sm text-gray-500 dark:text-slate-400">
             {searchTerm
               ? "Try adjusting your search terms"
               : "No traits available to display"}

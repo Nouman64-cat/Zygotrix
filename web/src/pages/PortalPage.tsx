@@ -20,7 +20,7 @@ import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useUserStats } from "../hooks/useUserStats";
 import StatsCard from "../components/universal/StatsCard";
-import ThemeDebugger from "../components/debug/ThemeDebugger";
+
 
 const PortalPage: React.FC = () => {
   const { user } = useAuth();
@@ -149,7 +149,6 @@ const PortalPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <ThemeDebugger />
       <div className="space-y-6 pb-8">
         {/* Hero Section */}
         <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-8 text-white shadow-2xl">

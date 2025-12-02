@@ -37,23 +37,23 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
     <div
       className={`${
         isProjectsCollapsed ? "w-12 min-w-[3rem]" : "w-64 min-w-[16rem]"
-      } bg-white border-l border-gray-200 flex-shrink-0 overflow-hidden transition-all duration-300`}
+      } bg-white dark:bg-slate-900 border-l border-gray-200 dark:border-slate-700 flex-shrink-0 overflow-hidden transition-all duration-300`}
     >
       {/* Collapse/Expand Button */}
-      <div className="flex items-center justify-between p-4 border-b border-gray-200">
+      <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-slate-700">
         <button
           onClick={() => setIsProjectsCollapsed(!isProjectsCollapsed)}
-          className="p-1 hover:bg-gray-100 rounded transition-colors"
+          className="p-1 hover:bg-gray-100 dark:hover:bg-slate-800 rounded transition-colors text-gray-700 dark:text-slate-300"
           title={isProjectsCollapsed ? "Expand Projects" : "Collapse Projects"}
         >
           {isProjectsCollapsed ? (
-            <ChevronLeftIcon className="h-4 w-4 text-gray-600" />
+            <ChevronLeftIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
           ) : (
-            <ChevronRightIcon className="h-4 w-4 text-gray-600" />
+            <ChevronRightIcon className="h-4 w-4 text-gray-600 dark:text-slate-400" />
           )}
         </button>
         {!isProjectsCollapsed && (
-          <h3 className="font-semibold">Existing Projects</h3>
+          <h3 className="font-semibold text-gray-900 dark:text-white">Existing Projects</h3>
         )}
       </div>
 
@@ -66,11 +66,11 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
                 {[...Array(3)].map((_, i) => (
                   <div key={i} className="animate-pulse ">
                     <div className="flex items-start space-x-3 p-3">
-                      <div className="w-8 h-8 bg-gray-200 rounded"></div>
+                      <div className="w-8 h-8 bg-gray-200 dark:bg-slate-700 rounded"></div>
                       <div className="flex-1">
-                        <div className="h-4 bg-gray-200 rounded mb-2"></div>
-                        <div className="h-3 bg-gray-200 rounded w-2/3 mb-1"></div>
-                        <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                        <div className="h-4 bg-gray-200 dark:bg-slate-700 rounded mb-2"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-2/3 mb-1"></div>
+                        <div className="h-3 bg-gray-200 dark:bg-slate-700 rounded w-1/2"></div>
                       </div>
                     </div>
                   </div>
@@ -82,7 +82,7 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
                 <button
                   key={project.id}
                   onClick={() => navigate(`/studio/workspace/${project.id}`)}
-                  className="relative w-full text-left p-3 cursor-pointer rounded-lg border border-gray-200 hover:border-gray-300 hover:bg-gray-50 transition-all group overflow-hidden"
+                  className="relative w-full text-left p-3 cursor-pointer rounded-lg border border-gray-200 dark:border-slate-700 hover:border-gray-300 dark:hover:border-slate-600 hover:bg-gray-50 dark:hover:bg-slate-800 transition-all group overflow-hidden"
                 >
                   {/* Mini notebook binding holes */}
                   <div className="absolute left-2 top-3 bottom-3 w-1">
@@ -90,7 +90,7 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
                       {[...Array(4)].map((_, i) => (
                         <div
                           key={i}
-                          className="w-1 h-1 rounded-full bg-gray-300"
+                          className="w-1 h-1 rounded-full bg-gray-300 dark:bg-slate-600"
                         />
                       ))}
                     </div>
@@ -103,20 +103,20 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
                       <project.icon className="h-4 w-4 text-white" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-sm text-gray-900 truncate">
+                      <h4 className="font-medium text-sm text-gray-900 dark:text-white truncate">
                         {project.name}
                       </h4>
-                      <p className="text-xs text-gray-500 mt-1">
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
                         {project.type}
                         {project.toolCount > 0 && (
-                          <span className="ml-1 text-gray-400">
+                          <span className="ml-1 text-gray-400 dark:text-slate-500">
                             • {project.toolCount} tool
                             {project.toolCount !== 1 ? "s" : ""}
                           </span>
                         )}
                       </p>
                       <div className="flex items-center justify-between mt-1">
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-gray-400 dark:text-slate-500">
                           Created: {project.createdAt || "Unknown"}
                         </p>
                       </div>
@@ -129,7 +129,7 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
                       {[...Array(3)].map((_, i) => (
                         <div
                           key={i}
-                          className="border-b border-gray-300 h-2"
+                          className="border-b border-gray-300 dark:border-slate-600 h-2"
                           style={{ marginTop: i === 0 ? 0 : "6px" }}
                         />
                       ))}
@@ -140,17 +140,17 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
             ) : (
               // Empty state
               <div className="text-center py-6">
-                <div className="text-gray-400 text-sm">
+                <div className="text-gray-400 dark:text-slate-500 text-sm">
                   No other projects found
                 </div>
               </div>
             )}
           </div>
 
-          <div className="mt-6 pt-4 border-t border-gray-200">
+          <div className="mt-6 pt-4 border-t border-gray-200 dark:border-slate-700">
             <button
               onClick={() => navigate("/studio/projects")}
-              className="w-full text-left p-2 text-sm text-blue-600 hover:text-blue-700 font-medium cursor-pointer"
+              className="w-full text-left p-2 text-sm text-blue-600 dark:text-blue-400 hover:text-blue-700 dark:hover:text-blue-300 font-medium cursor-pointer"
             >
               View All Projects →
             </button>
@@ -165,7 +165,7 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
                 {[...Array(3)].map((_, i) => (
                   <div
                     key={i}
-                    className="w-8 h-8 bg-gray-200 rounded animate-pulse"
+                    className="w-8 h-8 bg-gray-200 dark:bg-slate-700 rounded animate-pulse"
                   ></div>
                 ))}
               </div>
@@ -184,21 +184,21 @@ const ProjectsSidebar: React.FC<ProjectsSidebarProps> = ({
             ) : (
               // Empty state for collapsed
               <div
-                className="w-8 h-8 bg-gray-200 rounded flex items-center justify-center"
+                className="w-8 h-8 bg-gray-200 dark:bg-slate-700 rounded flex items-center justify-center"
                 title="No projects"
               >
-                <FolderIcon className="h-4 w-4 text-gray-400" />
+                <FolderIcon className="h-4 w-4 text-gray-400 dark:text-slate-500" />
               </div>
             )}
 
             {/* View All Projects button as icon */}
-            <div className="border-t border-gray-200 pt-2 mt-2">
+            <div className="border-t border-gray-200 dark:border-slate-700 pt-2 mt-2">
               <button
                 onClick={() => navigate("/studio/projects")}
-                className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110"
+                className="w-8 h-8 bg-blue-100 dark:bg-blue-900/50 rounded flex items-center justify-center transition-all cursor-pointer hover:scale-110"
                 title="View All Projects"
               >
-                <ArrowLeftIcon className="h-4 w-4 text-blue-600 rotate-180" />
+                <ArrowLeftIcon className="h-4 w-4 text-blue-600 dark:text-blue-400 rotate-180" />
               </button>
             </div>
           </div>

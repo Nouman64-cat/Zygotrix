@@ -221,12 +221,12 @@ const SimulationTrendsChart: React.FC<SimulationTrendsChartProps> = ({
   if (loading) {
     return (
       <div
-        className={`bg-white rounded-lg shadow-sm border border-slate-200 p-6 ${className}`}
+        className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 ${className}`}
       >
         <div className="flex items-center justify-center h-96">
           <div className="flex flex-col items-center space-y-4">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
-            <p className="text-slate-600">Loading chart data...</p>
+            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-500"></div>
+            <p className="text-slate-600 dark:text-slate-400">Loading chart data...</p>
           </div>
         </div>
       </div>
@@ -236,11 +236,11 @@ const SimulationTrendsChart: React.FC<SimulationTrendsChartProps> = ({
   if (error) {
     return (
       <div
-        className={`bg-white rounded-lg shadow-sm border border-slate-200 p-6 ${className}`}
+        className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 ${className}`}
       >
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="text-red-500 mb-2">
+            <div className="text-red-500 dark:text-red-400 mb-2">
               <svg
                 className="w-12 h-12 mx-auto"
                 fill="none"
@@ -255,8 +255,8 @@ const SimulationTrendsChart: React.FC<SimulationTrendsChartProps> = ({
                 />
               </svg>
             </div>
-            <p className="text-slate-600 mb-2">Failed to load chart data</p>
-            <p className="text-sm text-slate-500">{error}</p>
+            <p className="text-slate-600 dark:text-slate-400 mb-2">Failed to load chart data</p>
+            <p className="text-sm text-slate-500 dark:text-slate-500">{error}</p>
           </div>
         </div>
       </div>
@@ -266,11 +266,11 @@ const SimulationTrendsChart: React.FC<SimulationTrendsChartProps> = ({
   if (!chartData) {
     return (
       <div
-        className={`bg-white rounded-lg shadow-sm border border-slate-200 p-6 ${className}`}
+        className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 ${className}`}
       >
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <div className="text-slate-400 mb-4">
+            <div className="text-slate-400 dark:text-slate-600 mb-4">
               <svg
                 className="w-16 h-16 mx-auto"
                 fill="none"
@@ -285,8 +285,8 @@ const SimulationTrendsChart: React.FC<SimulationTrendsChartProps> = ({
                 />
               </svg>
             </div>
-            <p className="text-slate-600 mb-2">No trend data available</p>
-            <p className="text-sm text-slate-500">
+            <p className="text-slate-600 dark:text-slate-400 mb-2">No trend data available</p>
+            <p className="text-sm text-slate-500 dark:text-slate-500">
               Run some simulations to see trends and patterns over time
             </p>
           </div>
@@ -297,13 +297,13 @@ const SimulationTrendsChart: React.FC<SimulationTrendsChartProps> = ({
 
   return (
     <div
-      className={`bg-white rounded-lg shadow-sm border border-slate-200 p-6 ${className}`}
+      className={`bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 ${className}`}
     >
       <div className="mb-4">
-        <h3 className="text-lg font-semibold text-slate-900">
+        <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
           Simulation Trends
         </h3>
-        <p className="text-sm text-slate-600">
+        <p className="text-sm text-slate-600 dark:text-slate-400">
           Track simulation performance, accuracy, and processing time over time
         </p>
       </div>

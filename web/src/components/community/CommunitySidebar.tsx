@@ -81,16 +81,16 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({ className }) => {
   return (
     <div className={`space-y-6 ${className}`}>
       {/* Famous Questions Section */}
-      <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-        <div className="bg-gradient-to-r from-orange-50 to-red-50 px-4 py-3 border-b border-slate-200">
+      <div className="bg-slate-800/60 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
+        <div className="bg-gradient-to-r from-orange-900/30 to-red-900/30 px-4 py-3 border-b border-slate-700">
           <div className="flex items-center gap-2">
             <FiTrendingUp className="h-4 w-4 text-orange-600" />
-            <h3 className="font-semibold text-slate-900">Famous Questions</h3>
+            <h3 className="font-semibold text-white">Famous Questions</h3>
           </div>
-          <p className="text-xs text-slate-600 mt-1">Most voted and viewed</p>
+          <p className="text-xs text-slate-400 mt-1">Most voted and viewed</p>
         </div>
 
-        <div className="divide-y divide-slate-100">
+        <div className="divide-y divide-slate-700">
           {isLoading
             ? // Loading skeleton
               Array.from({ length: 5 }).map((_, i) => (
@@ -107,12 +107,12 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({ className }) => {
                 <Link
                   key={question.id}
                   to={`/community/questions/${question.id}`}
-                  className="block p-3 hover:bg-slate-50 transition-colors group"
+                  className="block p-3 hover:bg-slate-700/50 transition-colors group"
                 >
-                  <h4 className="text-sm font-medium text-slate-900 group-hover:text-blue-600 transition-colors mb-1 leading-tight">
+                  <h4 className="text-sm font-medium text-white group-hover:text-blue-400 transition-colors mb-1 leading-tight">
                     {truncateText(question.title, 80)}
                   </h4>
-                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                  <div className="flex items-center gap-3 text-xs text-slate-400">
                     <div className="flex items-center gap-1">
                       <FiArrowUp className="h-3 w-3" />
                       <span>{formatNumber(question.upvotes)}</span>
@@ -131,7 +131,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({ className }) => {
                       {question.tags.slice(0, 2).map((tag) => (
                         <span
                           key={tag}
-                          className="px-1.5 py-0.5 bg-blue-50 text-blue-700 rounded text-xs font-medium"
+                          className="px-1.5 py-0.5 bg-blue-500/20 text-blue-300 rounded text-xs font-medium"
                         >
                           {tag}
                         </span>
@@ -147,10 +147,10 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({ className }) => {
               ))}
         </div>
 
-        <div className="p-3 bg-slate-50 border-t border-slate-200">
+        <div className="p-3 bg-slate-900/30 border-t border-slate-700">
           <Link
             to="/community?sort=most_voted"
-            className="text-xs text-blue-600 hover:text-blue-700 font-medium"
+            className="text-xs text-blue-400 hover:text-blue-300 font-medium"
           >
             View all famous questions →
           </Link>
@@ -159,18 +159,18 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({ className }) => {
 
       {/* Related Questions Section (only on question detail pages) */}
       {isQuestionDetailPage && (
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 px-4 py-3 border-b border-slate-200">
+        <div className="bg-slate-800/60 rounded-xl shadow-sm border border-slate-700 overflow-hidden">
+          <div className="bg-gradient-to-r from-green-900/30 to-emerald-900/30 px-4 py-3 border-b border-slate-700">
             <div className="flex items-center gap-2">
               <FiMessageSquare className="h-4 w-4 text-green-600" />
-              <h3 className="font-semibold text-slate-900">
+              <h3 className="font-semibold text-white">
                 Related Questions
               </h3>
             </div>
-            <p className="text-xs text-slate-600 mt-1">Similar topics</p>
+            <p className="text-xs text-slate-400 mt-1">Similar topics</p>
           </div>
 
-          <div className="divide-y divide-slate-100">
+          <div className="divide-y divide-slate-700">
             {isLoading ? (
               // Loading skeleton
               Array.from({ length: 3 }).map((_, i) => (
@@ -188,12 +188,12 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({ className }) => {
                 <Link
                   key={question.id}
                   to={`/community/questions/${question.id}`}
-                  className="block p-3 hover:bg-slate-50 transition-colors group"
+                  className="block p-3 hover:bg-slate-700/50 transition-colors group"
                 >
-                  <h4 className="text-sm font-medium text-slate-900 group-hover:text-green-600 transition-colors mb-1 leading-tight">
+                  <h4 className="text-sm font-medium text-white group-hover:text-green-400 transition-colors mb-1 leading-tight">
                     {truncateText(question.title, 70)}
                   </h4>
-                  <div className="flex items-center gap-3 text-xs text-slate-500">
+                  <div className="flex items-center gap-3 text-xs text-slate-400">
                     <div className="flex items-center gap-1">
                       <FiArrowUp className="h-3 w-3" />
                       <span>{formatNumber(question.upvotes)}</span>
@@ -208,7 +208,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({ className }) => {
                       {question.tags.slice(0, 2).map((tag) => (
                         <span
                           key={tag}
-                          className="px-1.5 py-0.5 bg-green-50 text-green-700 rounded text-xs font-medium"
+                          className="px-1.5 py-0.5 bg-green-500/20 text-green-300 rounded text-xs font-medium"
                         >
                           {tag}
                         </span>
@@ -218,7 +218,7 @@ const CommunitySidebar: React.FC<CommunitySidebarProps> = ({ className }) => {
                 </Link>
               ))
             ) : (
-              <div className="p-4 text-center text-sm text-slate-500">
+              <div className="p-4 text-center text-sm text-slate-400">
                 No related questions found
               </div>
             )}

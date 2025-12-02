@@ -2720,16 +2720,16 @@ const ProjectWorkspace: React.FC = () => {
 
       {/* Modern Drawing Controls Panel - Samsung Notes Style */}
       {selectedTool === "drawing" && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-white rounded-2xl shadow-xl border border-gray-100 p-3">
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 p-3">
           <div className="flex items-center space-x-3">
             {/* Mode Toggle Buttons */}
-            <div className="flex bg-gray-100 rounded-xl p-1">
+            <div className="flex bg-gray-100 dark:bg-slate-700 rounded-xl p-1">
               <button
                 onClick={() => setIsEraserMode(false)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
                   !isEraserMode
-                    ? "bg-white shadow-sm text-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
                 }`}
               >
                 <svg
@@ -2745,8 +2745,8 @@ const ProjectWorkspace: React.FC = () => {
                 onClick={() => setIsEraserMode(true)}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
                   isEraserMode
-                    ? "bg-white shadow-sm text-pink-600"
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "bg-white dark:bg-slate-900 shadow-sm text-pink-600 dark:text-pink-400"
+                    : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
                 }`}
               >
                 <svg
@@ -2766,14 +2766,14 @@ const ProjectWorkspace: React.FC = () => {
             </div>
 
             {/* Divider */}
-            <div className="w-px h-8 bg-gray-200"></div>
+            <div className="w-px h-8 bg-gray-200 dark:bg-slate-600"></div>
 
             {/* Drawing Controls - only show when in draw mode */}
             {!isEraserMode && (
               <>
                 {/* Color Palette */}
                 <div className="flex items-center space-x-2">
-                  <span className="text-xs text-gray-500 font-medium">
+                  <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">
                     Color
                   </span>
                   <div className="flex space-x-1">
@@ -2791,8 +2791,8 @@ const ProjectWorkspace: React.FC = () => {
                         onClick={() => setDrawingStrokeColor(color)}
                         className={`w-6 h-6 rounded-full border-2 transition-all ${
                           drawingStrokeColor === color
-                            ? "border-gray-400 scale-110"
-                            : "border-gray-200 hover:border-gray-300"
+                            ? "border-gray-400 dark:border-slate-500 scale-110"
+                            : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
                         }`}
                         style={{ backgroundColor: color }}
                       />
@@ -2801,17 +2801,17 @@ const ProjectWorkspace: React.FC = () => {
                       type="color"
                       value={drawingStrokeColor}
                       onChange={(e) => setDrawingStrokeColor(e.target.value)}
-                      className="w-6 h-6 rounded-full border-2 border-gray-200 cursor-pointer"
+                      className="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-slate-600 cursor-pointer"
                     />
                   </div>
                 </div>
 
                 {/* Divider */}
-                <div className="w-px h-8 bg-gray-200"></div>
+                <div className="w-px h-8 bg-gray-200 dark:bg-slate-600"></div>
 
                 {/* Brush Size */}
                 <div className="flex items-center space-x-3">
-                  <span className="text-xs text-gray-500 font-medium">
+                  <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">
                     Size
                   </span>
                   <div className="flex items-center space-x-2">
@@ -2831,9 +2831,9 @@ const ProjectWorkspace: React.FC = () => {
                       onChange={(e) =>
                         setDrawingStrokeWidth(parseInt(e.target.value))
                       }
-                      className="w-16 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      className="w-16 h-2 bg-gray-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
                     />
-                    <span className="text-xs text-gray-500 w-4 text-center">
+                    <span className="text-xs text-gray-500 dark:text-slate-400 w-4 text-center">
                       {drawingStrokeWidth}
                     </span>
                   </div>
@@ -2846,7 +2846,7 @@ const ProjectWorkspace: React.FC = () => {
               {/* Clear All */}
               <button
                 onClick={() => setCanvasDrawings([])}
-                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                className="p-2 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                 title="Clear All Drawings"
               >
                 <svg
@@ -2867,7 +2867,7 @@ const ProjectWorkspace: React.FC = () => {
               {/* Close */}
               <button
                 onClick={() => setSelectedTool(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                 title="Exit Drawing Mode"
               >
                 <svg
@@ -2891,20 +2891,20 @@ const ProjectWorkspace: React.FC = () => {
 
       {/* Line Controls Panel */}
       {selectedTool === "line" && (
-        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-white rounded-2xl shadow-xl border border-gray-100 p-3">
+        <div className="fixed top-20 left-1/2 transform -translate-x-1/2 z-40 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-gray-100 dark:border-slate-700 p-3">
           <div className="flex items-center space-x-3">
             {/* Debug: Show current mode */}
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-gray-500 dark:text-slate-400">
               Mode: {isLineEraserMode ? "ERASE" : "DRAW"}
             </div>
             {/* Arrow Type Selection */}
-            <div className="flex bg-gray-100 rounded-xl p-1">
+            <div className="flex bg-gray-100 dark:bg-slate-700 rounded-xl p-1">
               <button
                 onClick={() => setLineArrowType("none")}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
                   lineArrowType === "none"
-                    ? "bg-white shadow-sm text-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
                 }`}
               >
                 <div className="w-6 h-1 bg-current rounded"></div>
@@ -2914,8 +2914,8 @@ const ProjectWorkspace: React.FC = () => {
                 onClick={() => setLineArrowType("end")}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
                   lineArrowType === "end"
-                    ? "bg-white shadow-sm text-green-600"
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "bg-white dark:bg-slate-900 shadow-sm text-green-600 dark:text-green-400"
+                    : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
                 }`}
               >
                 <div className="flex items-center">
@@ -2927,18 +2927,18 @@ const ProjectWorkspace: React.FC = () => {
             </div>
 
             {/* Divider */}
-            <div className="w-px h-8 bg-gray-200"></div>
+            <div className="w-px h-8 bg-gray-200 dark:bg-slate-600"></div>
 
             {/* Mode Toggle Buttons */}
-            <div className="flex bg-gray-100 rounded-xl p-1">
+            <div className="flex bg-gray-100 dark:bg-slate-700 rounded-xl p-1">
               <button
                 onClick={() => {
                   setIsLineEraserMode(false);
                 }}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
                   !isLineEraserMode
-                    ? "bg-white shadow-sm text-blue-600"
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "bg-white dark:bg-slate-900 shadow-sm text-blue-600 dark:text-blue-400"
+                    : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
                 }`}
               >
                 <svg
@@ -2962,8 +2962,8 @@ const ProjectWorkspace: React.FC = () => {
                 }}
                 className={`flex items-center space-x-2 px-4 py-2 rounded-lg transition-all ${
                   isLineEraserMode
-                    ? "bg-white shadow-sm text-red-600"
-                    : "text-gray-600 hover:text-gray-800"
+                    ? "bg-white dark:bg-slate-900 shadow-sm text-red-600 dark:text-red-400"
+                    : "text-gray-600 dark:text-slate-400 hover:text-gray-800 dark:hover:text-slate-200"
                 }`}
               >
                 <svg
@@ -2984,11 +2984,11 @@ const ProjectWorkspace: React.FC = () => {
             </div>
 
             {/* Divider */}
-            <div className="w-px h-8 bg-gray-200"></div>
+            <div className="w-px h-8 bg-gray-200 dark:bg-slate-600"></div>
 
             {/* Color Palette */}
             <div className="flex items-center space-x-2">
-              <span className="text-xs text-gray-500 font-medium">Color</span>
+              <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">Color</span>
               <div className="flex space-x-1">
                 {[
                   "#000000",
@@ -3004,8 +3004,8 @@ const ProjectWorkspace: React.FC = () => {
                     onClick={() => setDrawingStrokeColor(color)}
                     className={`w-6 h-6 rounded-full border-2 transition-all ${
                       drawingStrokeColor === color
-                        ? "border-gray-400 scale-110"
-                        : "border-gray-200 hover:border-gray-300"
+                        ? "border-gray-400 dark:border-slate-500 scale-110"
+                        : "border-gray-200 dark:border-slate-600 hover:border-gray-300 dark:hover:border-slate-500"
                     }`}
                     style={{ backgroundColor: color }}
                   />
@@ -3014,17 +3014,17 @@ const ProjectWorkspace: React.FC = () => {
                   type="color"
                   value={drawingStrokeColor}
                   onChange={(e) => setDrawingStrokeColor(e.target.value)}
-                  className="w-6 h-6 rounded-full border-2 border-gray-200 cursor-pointer"
+                  className="w-6 h-6 rounded-full border-2 border-gray-200 dark:border-slate-600 cursor-pointer"
                 />
               </div>
             </div>
 
             {/* Divider */}
-            <div className="w-px h-8 bg-gray-200"></div>
+            <div className="w-px h-8 bg-gray-200 dark:bg-slate-600"></div>
 
             {/* Line Width */}
             <div className="flex items-center space-x-3">
-              <span className="text-xs text-gray-500 font-medium">Width</span>
+              <span className="text-xs text-gray-500 dark:text-slate-400 font-medium">Width</span>
               <div className="flex items-center space-x-2">
                 <div
                   className="rounded-full bg-current transition-all"
@@ -3042,9 +3042,9 @@ const ProjectWorkspace: React.FC = () => {
                   onChange={(e) =>
                     setDrawingStrokeWidth(parseInt(e.target.value))
                   }
-                  className="w-16 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                  className="w-16 h-2 bg-gray-200 dark:bg-slate-600 rounded-lg appearance-none cursor-pointer slider"
                 />
-                <span className="text-xs text-gray-500 w-4 text-center">
+                <span className="text-xs text-gray-500 dark:text-slate-400 w-4 text-center">
                   {drawingStrokeWidth}
                 </span>
               </div>
@@ -3099,7 +3099,7 @@ const ProjectWorkspace: React.FC = () => {
                       )
                     );
                 }}
-                className="p-2 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-lg transition-colors"
+                className="p-2 text-gray-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
                 title="Clear All Lines"
               >
                 <svg
@@ -3120,7 +3120,7 @@ const ProjectWorkspace: React.FC = () => {
               {/* Close */}
               <button
                 onClick={() => setSelectedTool(null)}
-                className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+                className="p-2 text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
                 title="Exit Line Mode"
               >
                 <svg

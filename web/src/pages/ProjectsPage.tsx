@@ -227,7 +227,7 @@ const ProjectsPage: React.FC = () => {
           {/* Start New Project Card */}
           <button
             onClick={() => handleCreateProject()}
-            className="relative bg-gradient-to-br from-white via-blue-50 to-indigo-50 rounded-xl border-2 border-dashed border-blue-300 hover:border-blue-400 hover:shadow-xl transition-all duration-300 p-4 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[200px] w-full shadow-lg"
+            className="relative bg-gradient-to-br from-white via-blue-50 to-indigo-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-xl border-2 border-dashed border-blue-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xl transition-all duration-300 p-4 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[200px] w-full shadow-lg"
           >
             {/* Notebook binding holes - colorful */}
             <div className="absolute left-3 top-4 bottom-4 w-2">
@@ -235,20 +235,20 @@ const ProjectsPage: React.FC = () => {
                 {[...Array(5)].map((_, i) => (
                   <div
                     key={i}
-                    className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 group-hover:from-indigo-400 group-hover:to-indigo-600 transition-all duration-300 shadow-md"
+                    className="w-2 h-2 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 dark:from-blue-500 dark:to-blue-700 group-hover:from-indigo-400 group-hover:to-indigo-600 dark:group-hover:from-indigo-500 dark:group-hover:to-indigo-700 transition-all duration-300 shadow-md"
                   />
                 ))}
               </div>
             </div>
 
             <div className="ml-4 flex flex-col items-center justify-center h-full">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg">
                 <PlusIcon className="h-6 w-6 text-white" />
               </div>
-              <h3 className="text-sm font-bold text-gray-900 mb-1">
+              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
                 Start New Project
               </h3>
-              <p className="text-gray-600 text-xs px-2">
+              <p className="text-gray-600 dark:text-slate-400 text-xs px-2">
                 Create a new genomic analysis project
               </p>
             </div>

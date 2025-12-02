@@ -67,11 +67,11 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
   }, [saveSummary]);
 
   return (
-    <div className="bg-white border-b border-gray-200 px-6 py-2 flex items-center justify-between flex-shrink-0">
+    <div className="bg-white dark:bg-slate-900 border-b border-gray-200 dark:border-slate-700 px-6 py-2 flex items-center justify-between flex-shrink-0">
       <div className="flex items-center space-x-4">
         <button
           onClick={() => navigate("/studio/projects")}
-          className="p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer"
+          className="p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer text-gray-700 dark:text-slate-300"
         >
           <ArrowLeftIcon className="h-5 w-5" />
         </button>
@@ -96,13 +96,13 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                 }
               }}
               autoFocus
-              className="text-lg font-extrabold text-gray-700 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+              className="text-lg font-extrabold text-gray-700 dark:text-slate-200 bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 rounded px-1"
             />
           ) : (
             <button
               type="button"
               onClick={() => setIsEditingName(true)}
-              className="text-lg cursor-text font-extrabold text-gray-700 hover:bg-gray-50 rounded px-1 transition-colors text-left"
+              className="text-lg cursor-text font-extrabold text-gray-700 dark:text-slate-200 hover:bg-gray-50 dark:hover:bg-slate-800 rounded px-1 transition-colors text-left"
               aria-label="Edit project name"
             >
               {projectName}
@@ -131,13 +131,13 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
                 }
               }}
               autoFocus
-              className="text-gray-500 text-xs bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 rounded px-1"
+              className="text-gray-500 dark:text-slate-400 text-xs bg-transparent border-none outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 rounded px-1"
             />
           ) : (
             <button
               type="button"
               onClick={() => setIsEditingDescription(true)}
-              className="text-gray-500 text-xs hover:bg-gray-50 rounded px-1 transition-colors text-left"
+              className="text-gray-500 dark:text-slate-400 text-xs hover:bg-gray-50 dark:hover:bg-slate-800 rounded px-1 transition-colors text-left"
               aria-label="Edit project description"
             >
               {projectDescription}
@@ -157,17 +157,17 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
         {/* Save/modified indicator */}
         {saving ? (
-          <div className="flex items-center space-x-2 text-sm text-gray-500">
+          <div className="flex items-center space-x-2 text-sm text-gray-500 dark:text-slate-400">
             <CloudArrowUpIcon className="h-4 w-4 animate-pulse" />
             <span>Saving...</span>
           </div>
         ) : workspaceDirty ? (
-          <div className="flex items-center space-x-2 text-sm text-amber-600">
+          <div className="flex items-center space-x-2 text-sm text-amber-600 dark:text-amber-400">
             <CloudArrowUpIcon className="h-4 w-4" />
             <span>Unsaved changes</span>
           </div>
         ) : aggregatedSummary.hasSummary ? (
-          <div className="flex items-center space-x-2 text-sm text-emerald-600">
+          <div className="flex items-center space-x-2 text-sm text-emerald-600 dark:text-emerald-400">
             <CloudArrowUpIcon className="h-4 w-4" />
             <span>
               Saved (c/u/d/i): {aggregatedSummary.totals.created}/
@@ -177,7 +177,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
             </span>
           </div>
         ) : project ? (
-          <div className="text-sm text-gray-600 flex items-center space-x-1">
+          <div className="text-sm text-gray-600 dark:text-slate-400 flex items-center space-x-1">
             <CloudArrowUpIcon className="h-4 w-4" />
             <span>
               {project?.updated_at
@@ -188,7 +188,7 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         ) : null}
 
         {isOffline && (
-          <div className="flex items-center space-x-1 text-xs text-amber-700">
+          <div className="flex items-center space-x-1 text-xs text-amber-700 dark:text-amber-400">
             <ExclamationTriangleIcon className="h-4 w-4" />
             <span>Offline</span>
           </div>
@@ -196,19 +196,19 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
         {/* Error indicator */}
         {error && (
-          <div className="text-sm text-red-600 flex items-center space-x-1">
+          <div className="text-sm text-red-600 dark:text-red-400 flex items-center space-x-1">
             <ExclamationTriangleIcon className="h-4 w-4" />
             <span>Error</span>
           </div>
         )}
 
         {/* Loading indicator */}
-        {loading && <div className="text-sm text-gray-500">Loading...</div>}
+        {loading && <div className="text-sm text-gray-500 dark:text-slate-400">Loading...</div>}
 
         <button
           onClick={handleManualSave}
           disabled={saving || !project}
-          className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+          className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 cursor-pointer transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
         >
           {saving ? "Saving..." : "Save Project"}
         </button>
@@ -217,8 +217,8 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
         <div className="relative">
           <button
             onClick={handleSettingsClick}
-            className={`p-2 hover:bg-gray-100 rounded-lg transition-colors cursor-pointer ${
-              showSettingsDropdown ? "bg-gray-100" : ""
+            className={`p-2 hover:bg-gray-100 dark:hover:bg-slate-800 rounded-lg transition-colors cursor-pointer text-gray-700 dark:text-slate-300 ${
+              showSettingsDropdown ? "bg-gray-100 dark:bg-slate-800" : ""
             }`}
           >
             <Cog6ToothIcon className="h-5 w-5" />
@@ -226,11 +226,11 @@ const WorkspaceHeader: React.FC<WorkspaceHeaderProps> = ({
 
           {/* Dropdown Menu */}
           {showSettingsDropdown && (
-            <div className="absolute right-0 mt-2 w-48 bg-white rounded-lg shadow-lg border border-gray-200 z-[9999]">
+            <div className="absolute right-0 mt-2 w-48 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 z-[9999]">
               <div className="py-1">
                 <button
                   onClick={handleDeleteClick}
-                  className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 flex items-center space-x-2"
+                  className="w-full px-4 py-2 text-left text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center space-x-2"
                 >
                   <TrashIcon className="h-4 w-4" />
                   <span>Delete Project</span>

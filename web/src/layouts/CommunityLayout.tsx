@@ -13,6 +13,7 @@ import {
 import AskQuestionModal from "../components/community/AskQuestionModal";
 import { useAuth } from "../context/AuthContext";
 import CommunitySidebar from "../components/community/CommunitySidebar";
+import { PiDna } from "react-icons/pi";
 
 const CommunityLayout: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -28,7 +29,7 @@ const CommunityLayout: React.FC = () => {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-50">
+    <div className="min-h-screen bg-gradient-to-b from-slate-900 via-slate-900/95 to-slate-950">
       {/* DNA Pattern Background */}
       <div className="pointer-events-none fixed inset-0 opacity-[0.015]">
         <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
@@ -54,7 +55,7 @@ const CommunityLayout: React.FC = () => {
       </div>
 
       {/* Compact Header */}
-      <header className="sticky top-0 z-50 border-b border-slate-200 bg-white/80 backdrop-blur-lg shadow-sm">
+      <header className="sticky top-0 z-50 border-b border-slate-700 bg-slate-900/80 backdrop-blur-lg shadow-sm">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           <div className="flex h-16 items-center justify-between">
             {/* Logo & Brand */}
@@ -64,10 +65,10 @@ const CommunityLayout: React.FC = () => {
                   <FiHome className="h-5 w-5 text-white" />
                 </div>
                 <div className="hidden sm:block">
-                  <div className="text-sm font-bold bg-gradient-to-r from-slate-900 to-slate-700 bg-clip-text text-transparent">
+                  <div className="text-sm font-bold bg-gradient-to-r from-white to-slate-200 bg-clip-text text-transparent">
                     ZYGOTRIX
                   </div>
-                  <div className="text-xs text-slate-500">Community</div>
+                  <div className="text-xs text-slate-400">Community</div>
                 </div>
               </Link>
 
@@ -77,8 +78,8 @@ const CommunityLayout: React.FC = () => {
                   to="/community"
                   className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
                     isActive("/community")
-                      ? "bg-blue-50 text-blue-700"
-                      : "text-slate-600 hover:bg-slate-100 hover:text-slate-900"
+                      ? "bg-blue-900/30 text-blue-400"
+                      : "text-slate-300 hover:bg-slate-800 hover:text-white"
                   }`}
                 >
                   <FiMessageSquare className="h-4 w-4" />
@@ -108,17 +109,16 @@ const CommunityLayout: React.FC = () => {
                       to="/studio"
                       className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-blue-600 to-purple-600 px-4 py-2 text-sm font-semibold text-white shadow-lg hover:shadow-xl hover:from-blue-700 hover:to-purple-700 transition-all duration-200"
                     >
-                      <FiUser className="h-4 w-4" />
-                      Zygotrix Studio
+                      <PiDna className="h-4 w-4" />
                     </Link>
-                    <div className="flex items-center gap-2 text-sm text-slate-600">
+                    <div className="flex items-center gap-2 text-sm text-slate-300">
                       <span className="max-w-[120px] truncate">
                         {user.full_name || user.email.split("@")[0]}
                       </span>
                     </div>
                     <button
                       onClick={handleSignOut}
-                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                      className="flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-900/20 transition"
                     >
                       <FiLogOut className="h-4 w-4" />
                       Sign Out
@@ -129,7 +129,7 @@ const CommunityLayout: React.FC = () => {
                     <Link
                       to="/signin"
                       state={{ from: { pathname: location.pathname } }}
-                      className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-200 px-4 py-2 text-sm font-medium text-slate-700 hover:border-blue-600 hover:text-blue-600 transition"
+                      className="inline-flex items-center gap-2 rounded-lg border-2 border-slate-600 px-4 py-2 text-sm font-medium text-slate-300 hover:border-blue-500 hover:text-blue-400 transition"
                     >
                       <FiLogIn className="h-4 w-4" />
                       Sign In
@@ -148,7 +148,7 @@ const CommunityLayout: React.FC = () => {
               {/* Mobile Menu Button */}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg text-slate-600 hover:bg-slate-100 transition"
+                className="md:hidden flex items-center justify-center h-9 w-9 rounded-lg text-slate-300 hover:bg-slate-800 transition"
               >
                 {mobileMenuOpen ? (
                   <FiX className="h-5 w-5" />
@@ -161,14 +161,14 @@ const CommunityLayout: React.FC = () => {
 
           {/* Mobile Menu */}
           {mobileMenuOpen && (
-            <div className="md:hidden border-t border-slate-200 py-4 space-y-2">
+            <div className="md:hidden border-t border-slate-700 py-4 space-y-2">
               <Link
                 to="/community"
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium transition ${
                   isActive("/community")
-                    ? "bg-blue-50 text-blue-700"
-                    : "text-slate-600 hover:bg-slate-100"
+                    ? "bg-blue-900/30 text-blue-400"
+                    : "text-slate-300 hover:bg-slate-800"
                 }`}
               >
                 <FiMessageSquare className="h-4 w-4" />
@@ -185,12 +185,12 @@ const CommunityLayout: React.FC = () => {
                     <FiUser className="h-4 w-4" />
                     Zygotrix Studio
                   </Link>
-                  <div className="px-3 py-2 text-sm text-slate-600">
+                  <div className="px-3 py-2 text-sm text-slate-300">
                     Welcome, {user.full_name || user.email.split("@")[0]}
                   </div>
                   <button
                     onClick={handleSignOut}
-                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-50 transition"
+                    className="w-full flex items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-red-400 hover:bg-red-900/20 transition"
                   >
                     <FiLogOut className="h-4 w-4" />
                     Sign Out
@@ -202,7 +202,7 @@ const CommunityLayout: React.FC = () => {
                     to="/signin"
                     state={{ from: { pathname: location.pathname } }}
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex items-center gap-2 rounded-lg border-2 border-slate-200 px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+                    className="flex items-center gap-2 rounded-lg border-2 border-slate-600 px-3 py-2 text-sm font-medium text-slate-300 hover:bg-slate-800"
                   >
                     <FiLogIn className="h-4 w-4" />
                     Sign In

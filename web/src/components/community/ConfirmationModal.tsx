@@ -30,31 +30,31 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
     switch (type) {
       case "danger":
         return {
-          iconBg: "bg-red-100",
-          iconColor: "text-red-600",
+          iconBg: "bg-red-900/20",
+          iconColor: "text-red-400",
           confirmBtn: "bg-red-600 hover:bg-red-700 focus:ring-red-500",
-          titleColor: "text-red-900",
+          titleColor: "text-red-400",
         };
       case "warning":
         return {
-          iconBg: "bg-yellow-100",
-          iconColor: "text-yellow-600",
+          iconBg: "bg-yellow-900/20",
+          iconColor: "text-yellow-400",
           confirmBtn: "bg-yellow-600 hover:bg-yellow-700 focus:ring-yellow-500",
-          titleColor: "text-yellow-900",
+          titleColor: "text-yellow-400",
         };
       case "info":
         return {
-          iconBg: "bg-blue-100",
-          iconColor: "text-blue-600",
+          iconBg: "bg-blue-900/20",
+          iconColor: "text-blue-400",
           confirmBtn: "bg-blue-600 hover:bg-blue-700 focus:ring-blue-500",
-          titleColor: "text-blue-900",
+          titleColor: "text-blue-400",
         };
       default:
         return {
-          iconBg: "bg-gray-100",
-          iconColor: "text-gray-600",
-          confirmBtn: "bg-gray-600 hover:bg-gray-700 focus:ring-gray-500",
-          titleColor: "text-gray-900",
+          iconBg: "bg-slate-700",
+          iconColor: "text-slate-400",
+          confirmBtn: "bg-slate-600 hover:bg-slate-700 focus:ring-slate-500",
+          titleColor: "text-white",
         };
     }
   };
@@ -72,7 +72,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
       className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 z-50"
       onClick={handleBackdropClick}
     >
-      <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all">
+      <div className="bg-slate-800 rounded-2xl shadow-2xl max-w-md w-full mx-4 transform transition-all border border-slate-700">
         <div className="p-6">
           {/* Header */}
           <div className="flex items-start gap-4 mb-6">
@@ -89,14 +89,14 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
               <h3 className={`text-lg font-bold ${styles.titleColor} mb-2`}>
                 {title}
               </h3>
-              <p className="text-sm text-slate-600 leading-relaxed">
+              <p className="text-sm text-slate-400 leading-relaxed">
                 {message}
               </p>
             </div>
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="flex-shrink-0 p-2 text-slate-400 hover:text-slate-600 hover:bg-slate-100 rounded-lg transition-colors disabled:opacity-50"
+              className="flex-shrink-0 p-2 text-slate-400 hover:text-slate-300 hover:bg-slate-700 rounded-lg transition-colors disabled:opacity-50"
             >
               <FiX className="h-5 w-5" />
             </button>
@@ -107,7 +107,7 @@ const ConfirmationModal: React.FC<ConfirmationModalProps> = ({
             <button
               onClick={onClose}
               disabled={isLoading}
-              className="px-4 py-2 text-sm font-medium text-slate-700 bg-white border-2 border-slate-200 rounded-xl hover:bg-slate-50 hover:border-slate-300 focus:outline-none focus:ring-2 focus:ring-slate-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+              className="px-4 py-2 text-sm font-medium text-slate-300 bg-slate-800 border-2 border-slate-600 rounded-xl hover:bg-slate-700 hover:border-slate-500 focus:outline-none focus:ring-2 focus:ring-slate-500/20 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
               {cancelText}
             </button>

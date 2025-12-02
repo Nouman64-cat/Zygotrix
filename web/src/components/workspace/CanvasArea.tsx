@@ -41,10 +41,10 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
       {/* Top-center zoom controls removed - bottom-right controls used instead */}
 
       {/* Canvas */}
-      <div className="flex-1 relative overflow-hidden">
+      <div className="flex-1 relative overflow-hidden bg-white dark:bg-slate-950">
         <div
           ref={canvasRef}
-          className={`w-full h-full relative ${
+          className={`w-full h-full relative bg-white dark:bg-slate-950 ${
             // Eraser handled via inline custom cursor
             selectedTool === "drawing" && isEraserMode
               ? ""
@@ -98,9 +98,9 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
             }}
             className="relative"
           >
-            {/* Grid Background */}
+            {/* Grid Background - Light Mode */}
             <div
-              className="absolute"
+              className="absolute dark:hidden"
               style={{
                 left: "-5000px",
                 top: "-5000px",
@@ -108,7 +108,19 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
                 height: "20000px",
                 backgroundImage: `repeating-radial-gradient(circle at 10px 10px, rgba(0,0,0,0.08) 0px, rgba(0,0,0,0.08) 2px, transparent 2px, transparent 20px)`,
                 backgroundSize: "20px 20px",
-                opacity: 0.9,
+              }}
+            />
+            
+            {/* Grid Background - Dark Mode */}
+            <div
+              className="absolute hidden dark:block"
+              style={{
+                left: "-5000px",
+                top: "-5000px",
+                width: "20000px",
+                height: "20000px",
+                backgroundImage: `repeating-radial-gradient(circle at 10px 10px, rgba(255,255,255,0.12) 0px, rgba(255,255,255,0.12) 2px, transparent 2px, transparent 20px)`,
+                backgroundSize: "20px 20px",
               }}
             />
 
@@ -118,7 +130,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
             {/* Text Area Drawing Preview */}
             {isDrawingTextArea && (
               <div
-                className="absolute border-2 border-dashed border-cyan-500 bg-cyan-50 bg-opacity-50 pointer-events-none"
+                className="absolute border-2 border-dashed border-cyan-500 dark:border-cyan-400 bg-cyan-50 dark:bg-cyan-900/30 bg-opacity-50 pointer-events-none"
                 style={{
                   left: Math.min(textAreaStart.x, textAreaEnd.x),
                   top: Math.min(textAreaStart.y, textAreaEnd.y),
@@ -126,7 +138,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
                   height: Math.abs(textAreaEnd.y - textAreaStart.y),
                 }}
               >
-                <div className="flex items-center justify-center h-full text-cyan-600 text-sm font-medium">
+                <div className="flex items-center justify-center h-full text-cyan-600 dark:text-cyan-400 text-sm font-medium">
                   Text Area
                 </div>
               </div>
@@ -246,36 +258,36 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
                 <div className="text-center max-w-md pointer-events-auto">
                   {/* Animated Icon Container */}
                   <div className="relative mb-8">
-                    <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
-                      <CubeIcon className="h-12 w-12 text-blue-500" />
+                    <div className="w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 dark:from-blue-900/50 dark:to-purple-900/50 rounded-full flex items-center justify-center mx-auto mb-4 animate-pulse">
+                      <CubeIcon className="h-12 w-12 text-blue-500 dark:text-blue-400" />
                     </div>
                     {/* Floating Icons */}
-                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-100 rounded-full flex items-center justify-center animate-bounce">
-                      <BeakerIcon className="h-4 w-4 text-green-500" />
+                    <div className="absolute -top-2 -right-2 w-8 h-8 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center animate-bounce">
+                      <BeakerIcon className="h-4 w-4 text-green-500 dark:text-green-400" />
                     </div>
                     <div
-                      className="absolute -bottom-2 -left-2 w-8 h-8 bg-orange-100 rounded-full flex items-center justify-center animate-bounce"
+                      className="absolute -bottom-2 -left-2 w-8 h-8 bg-orange-100 dark:bg-orange-900/50 rounded-full flex items-center justify-center animate-bounce"
                       style={{ animationDelay: "0.2s" }}
                     >
-                      <ChartBarIcon className="h-4 w-4 text-orange-500" />
+                      <ChartBarIcon className="h-4 w-4 text-orange-500 dark:text-orange-400" />
                     </div>
                     <div
-                      className="absolute top-1/2 -right-6 w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center animate-bounce"
+                      className="absolute top-1/2 -right-6 w-6 h-6 bg-purple-100 dark:bg-purple-900/50 rounded-full flex items-center justify-center animate-bounce"
                       style={{ animationDelay: "0.4s" }}
                     >
-                      <DocumentTextIcon className="h-3 w-3 text-purple-500" />
+                      <DocumentTextIcon className="h-3 w-3 text-purple-500 dark:text-purple-400" />
                     </div>
                   </div>
 
                   {/* Improved Content */}
-                  <h3 className="text-2xl font-bold text-gray-900 mb-3">
+                  <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-3">
                     Start Building Your Project
                   </h3>
-                  <p className="text-gray-600 mb-6 leading-relaxed">
+                  <p className="text-gray-600 dark:text-slate-400 mb-6 leading-relaxed">
                     Create your genomics workspace by selecting tools from the
                     left panel and placing them anywhere on this canvas.
                     <br />
-                    <span className="text-sm text-gray-500 mt-2 block">
+                    <span className="text-sm text-gray-500 dark:text-slate-500 mt-2 block">
                       💡 Tip: Drag to pan around • Ctrl+scroll to zoom • Use
                       zoom controls (bottom-right)
                     </span>
@@ -286,10 +298,10 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
               </div>
             )}
           {/* Bottom-right magnification controls */}
-          <div className="absolute bottom-4 right-4 z-30 bg-white rounded-lg shadow-lg border border-gray-200 p-2 flex items-center space-x-2">
+          <div className="absolute bottom-4 right-4 z-30 bg-white dark:bg-slate-800 rounded-lg shadow-lg border border-gray-200 dark:border-slate-700 p-2 flex items-center space-x-2">
             <button
               onClick={handleZoomOut}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-700 dark:text-slate-300"
               title="Zoom Out"
             >
               <svg
@@ -309,7 +321,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
 
             <button
               onClick={handleZoomReset}
-              className="px-2 py-1 text-xs bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+              className="px-2 py-1 text-xs bg-gray-50 dark:bg-slate-700 rounded hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors text-gray-700 dark:text-slate-300"
               title="Reset Zoom"
             >
               {Math.round(zoom * 100)}%
@@ -318,7 +330,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
             {handleCenterView && (
               <button
                 onClick={handleCenterView}
-                className="px-2 py-1 text-xs bg-gray-50 rounded hover:bg-gray-100 transition-colors"
+                className="px-2 py-1 text-xs bg-gray-50 dark:bg-slate-700 rounded hover:bg-gray-100 dark:hover:bg-slate-600 transition-colors text-gray-700 dark:text-slate-300"
                 title="Center View"
               >
                 Center
@@ -327,7 +339,7 @@ const CanvasArea: React.FC<CanvasAreaProps> = ({
 
             <button
               onClick={handleZoomIn}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
+              className="p-1 hover:bg-gray-100 dark:hover:bg-slate-700 rounded transition-colors text-gray-700 dark:text-slate-300"
               title="Zoom In"
             >
               <svg

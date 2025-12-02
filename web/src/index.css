@@ -369,3 +369,17 @@ button:not(.btn-large) {
   animation: fadeInUp 0.6s ease-out forwards;
   opacity: 0;
 }
+
+/* Canvas grid pattern colors for light and dark themes */
+.grid-pattern-light {
+  color: rgba(0, 0, 0, 0.6);
+}
+
+.grid-pattern-dark {
+  color: rgba(255, 255, 255, 0.15);
+}
+
+:global(.dark) .grid-pattern-dark {
+  color: rgba(255, 255, 255, 0.4);
+}
+

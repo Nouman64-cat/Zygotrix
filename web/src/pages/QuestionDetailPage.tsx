@@ -278,7 +278,7 @@ const QuestionDetailPage: React.FC = () => {
         </div>
 
         {/* Question Card Skeleton */}
-        <div className="bg-white rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-8 relative">
+        <div className="bg-slate-800/60 rounded-2xl shadow-lg border border-slate-700 overflow-hidden mb-8 relative">
           {/* Badge Skeleton */}
           <div className="absolute top-0 left-0 h-6 w-24 bg-gradient-to-r from-slate-200 to-slate-300 rounded-br-lg animate-pulse"></div>
 
@@ -389,13 +389,13 @@ const QuestionDetailPage: React.FC = () => {
   if (error || !question) {
     return (
       <div className="max-w-4xl mx-auto py-8 px-4 sm:px-6 lg:px-0">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 sm:p-6 text-center">
-          <p className="text-red-600 font-medium mb-4">
+        <div className="bg-red-900/30 border border-red-400/50 rounded-lg p-4 sm:p-6 text-center">
+          <p className="text-red-300 font-medium mb-4">
             {error || "Question not found"}
           </p>
           <Link
             to="/community"
-            className="inline-block text-blue-600 hover:text-blue-700 font-medium"
+            className="inline-block text-blue-400 hover:text-blue-300 font-medium"
           >
             Back to Community
           </Link>
@@ -413,7 +413,7 @@ const QuestionDetailPage: React.FC = () => {
       <div className="flex items-center mb-4 sm:hidden">
         <button
           onClick={() => navigate(-1)}
-          className="flex items-center gap-2 px-3 py-2 text-slate-600 hover:text-slate-900 hover:bg-slate-100 rounded-lg transition-all duration-200"
+          className="flex items-center gap-2 px-3 py-2 text-slate-300 hover:text-white hover:bg-slate-800 rounded-lg transition-all duration-200"
         >
           <FiArrowLeft className="h-5 w-5" />
           <span className="text-sm font-medium">Back</span>
@@ -421,18 +421,18 @@ const QuestionDetailPage: React.FC = () => {
       </div>
 
       {/* Enhanced Question Card */}
-      <div className="bg-white rounded-xl sm:rounded-2xl shadow-lg border border-slate-200 overflow-hidden mb-6 sm:mb-8 relative">
+      <div className="bg-slate-800/60 rounded-xl sm:rounded-2xl shadow-lg border border-slate-700 overflow-hidden mb-6 sm:mb-8 relative">
         <div className="p-3 sm:p-4 md:p-6 pt-6 sm:pt-8 md:pt-12">
           <div className="flex items-center gap-2 sm:gap-3 mb-2">
             <div className="w-8 h-8 sm:w-10 sm:h-10 md:w-12 md:h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold">
               <FiUser className="h-4 w-4 sm:h-5 sm:w-5 md:h-6 md:w-6" />
             </div>
             <div>
-              <div className="text-xs sm:text-sm font-semibold text-slate-900">
+              <div className="text-xs sm:text-sm font-semibold text-white">
                 {question.author.full_name ||
                   question.author.email.split("@")[0]}
               </div>
-              <div className="text-[10px] sm:text-xs text-slate-500 flex items-center gap-1">
+              <div className="text-[10px] sm:text-xs text-slate-400 flex items-center gap-1">
                 <FiClock className="h-2.5 w-2.5 sm:h-3 sm:w-3" />
                 <span className="hidden sm:inline">Asked</span>{" "}
                 {getTimeAgo(question.created_at)}
@@ -444,31 +444,31 @@ const QuestionDetailPage: React.FC = () => {
             {/* Author Info with Enhanced Design */}
             <div className="flex-1 min-w-0 order-1 sm:order-2">
               {/* Title with gradient */}
-              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-900 via-slate-800 to-slate-700 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
+              <h1 className="text-xl sm:text-2xl md:text-3xl font-bold bg-gradient-to-r from-white via-slate-200 to-slate-300 bg-clip-text text-transparent mb-3 sm:mb-4 leading-tight">
                 {question.title}
               </h1>
 
               {/* Enhanced Stats Bar */}
-              <div className="flex items-center gap-2 sm:gap-3 md:gap-6 mb-4 sm:mb-6 p-2 sm:p-3 bg-gradient-to-r from-slate-50 to-slate-100 rounded-lg sm:rounded-xl flex-wrap">
-                <div className="flex items-center gap-1 sm:gap-2 text-slate-600">
+              <div className="flex items-center gap-2 sm:gap-3 md:gap-6 mb-4 sm:mb-6 p-2 sm:p-3 bg-gradient-to-r from-slate-800/50 to-slate-900/50 rounded-lg sm:rounded-xl flex-wrap">
+                <div className="flex items-center gap-1 sm:gap-2 text-slate-300">
                   <FiEye className="h-3 w-3 sm:h-4 sm:w-4 text-blue-500" />
                   <span className="text-xs sm:text-sm font-medium">
                     {question.view_count.toLocaleString()}
                   </span>
-                  <span className="text-[10px] sm:text-xs text-slate-500 hidden sm:inline">
+                  <span className="text-[10px] sm:text-xs text-slate-400 hidden sm:inline">
                     views
                   </span>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-2 text-slate-600">
+                <div className="flex items-center gap-1 sm:gap-2 text-slate-300">
                   <FiMessageSquare className="h-3 w-3 sm:h-4 sm:w-4 text-green-500" />
                   <span className="text-xs sm:text-sm font-medium">
                     {question.answer_count}
                   </span>
-                  <span className="text-[10px] sm:text-xs text-slate-500 hidden sm:inline">
+                  <span className="text-[10px] sm:text-xs text-slate-400 hidden sm:inline">
                     answers
                   </span>
                 </div>
-                <div className="flex items-center gap-1 sm:gap-2 text-slate-600">
+                <div className="flex items-center gap-1 sm:gap-2 text-slate-300">
                   <FiClock className="h-3 w-3 sm:h-4 sm:w-4 text-purple-500" />
                   <span className="text-xs sm:text-sm font-medium">
                     {getTimeAgo(question.created_at)}
@@ -478,7 +478,7 @@ const QuestionDetailPage: React.FC = () => {
 
               {/* Enhanced Content */}
               <div className="prose prose-slate max-w-none mb-4 sm:mb-6">
-                <p className="text-sm sm:text-base md:text-lg text-slate-700 leading-relaxed whitespace-pre-wrap">
+                <p className="text-sm sm:text-base md:text-lg text-slate-300 leading-relaxed whitespace-pre-wrap">
                   {question.content}
                 </p>
               </div>
@@ -489,7 +489,7 @@ const QuestionDetailPage: React.FC = () => {
                   <img
                     src={question.image_url}
                     alt="Question illustration"
-                    className="w-full max-w-full sm:max-w-2xl h-auto rounded-lg sm:rounded-xl border border-slate-200 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
+                    className="w-full max-w-full sm:max-w-2xl h-auto rounded-lg sm:rounded-xl border border-slate-700 shadow-sm hover:shadow-md transition-shadow cursor-pointer"
                     onClick={() =>
                       question.image_url &&
                       window.open(question.image_url, "_blank")
@@ -520,15 +520,15 @@ const QuestionDetailPage: React.FC = () => {
               )}
 
               {/* Interactive Action Bar */}
-              <div className="flex sm:flex-row items-start sm:items-center justify-end pt-4 sm:pt-6 border-t border-slate-200 gap-3 sm:gap-4">
+              <div className="flex sm:flex-row items-start sm:items-center justify-end pt-4 sm:pt-6 border-t border-slate-700 gap-3 sm:gap-4">
                 {/* Interactive Actions */} {/* Bookmark Button */}
                 <div className="flex items-center gap-3">
                   <button
                     onClick={handleBookmark}
                     className={`p-1.5 sm:p-2 rounded-lg transition-all duration-200 ${
                       isBookmarked
-                        ? "bg-yellow-100 text-yellow-600 hover:bg-yellow-200"
-                        : "bg-slate-100 text-slate-600 hover:bg-slate-200"
+                        ? "bg-yellow-500/20 text-yellow-400 hover:bg-yellow-500/30"
+                        : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                     }`}
                     title="Bookmark this question"
                   >
@@ -541,7 +541,7 @@ const QuestionDetailPage: React.FC = () => {
                   {/* Share Button */}
                   <button
                     onClick={handleShare}
-                    className="p-1.5 sm:p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-600 transition-all duration-200"
+                    className="p-1.5 sm:p-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-blue-900/20 hover:text-blue-400 transition-all duration-200"
                     title="Share this question"
                   >
                     <FiShare2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -550,7 +550,7 @@ const QuestionDetailPage: React.FC = () => {
                   <div className="relative">
                     <button
                       onClick={handleCopyLink}
-                      className="p-1.5 sm:p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-green-100 hover:text-green-600 transition-all duration-200"
+                      className="p-1.5 sm:p-2 rounded-lg bg-slate-700 text-slate-300 hover:bg-green-900/20 hover:text-green-400 transition-all duration-200"
                       title="Copy link"
                     >
                       <FiCopy className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -566,14 +566,14 @@ const QuestionDetailPage: React.FC = () => {
                     <>
                       <button
                         onClick={handleEditQuestion}
-                        className="p-1.5 sm:p-2 rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100 transition-all duration-200"
+                        className="p-1.5 sm:p-2 rounded-lg bg-blue-900/20 text-blue-400 hover:bg-blue-900/30 transition-all duration-200"
                         title="Edit question"
                       >
                         <FiEdit3 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
                       </button>
                       <button
                         onClick={handleDeleteQuestion}
-                        className="p-1.5 sm:p-2 rounded-lg bg-red-50 text-red-600 hover:bg-red-100 transition-all duration-200"
+                        className="p-1.5 sm:p-2 rounded-lg bg-red-900/20 text-red-400 hover:bg-red-900/30 transition-all duration-200"
                         title="Delete question"
                       >
                         <FiTrash2 className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
@@ -592,7 +592,7 @@ const QuestionDetailPage: React.FC = () => {
         {/* Answers Header with Stats */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between mb-6 gap-4 sm:gap-0">
           <div className="flex items-center gap-4 flex-wrap">
-            <h2 className="text-xl sm:text-2xl font-bold text-slate-900 flex items-center gap-3">
+            <h2 className="text-xl sm:text-2xl font-bold text-white flex items-center gap-3">
               <div className="flex items-center gap-2">
                 <FiMessageSquare className="h-5 w-5 sm:h-6 sm:w-6 text-blue-600" />
                 <span>{question.answer_count}</span>
@@ -612,7 +612,7 @@ const QuestionDetailPage: React.FC = () => {
           </div>
 
           {/* Answer Stats */}
-          <div className="flex items-center gap-4 text-xs sm:text-sm text-slate-600">
+          <div className="flex items-center gap-4 text-xs sm:text-sm text-slate-300">
             <div className="flex items-center gap-1">
               <FiHeart className="h-3 w-3 sm:h-4 sm:w-4 text-red-500" />
               <span>
@@ -685,8 +685,8 @@ const QuestionDetailPage: React.FC = () => {
                   <div
                     className={`rounded-2xl overflow-hidden transition-all duration-200 hover:shadow-md ${
                       answer.upvotes >= 5
-                        ? "border-2 border-blue-200 bg-blue-50/30"
-                        : "border border-slate-200 bg-white"
+                        ? "border-2 border-blue-400/50 bg-blue-900/10"
+                        : "border border-slate-700 bg-slate-800/60"
                     }`}
                   >
                     <AnswerCard
@@ -718,12 +718,12 @@ const QuestionDetailPage: React.FC = () => {
           </div>
         ) : (
           /* No Answers State */
-          <div className="text-center py-8 sm:py-12 bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-dashed border-slate-300">
+          <div className="text-center py-8 sm:py-12 bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl border-2 border-dashed border-slate-600">
             <FiMessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-slate-400 mx-auto mb-4" />
-            <h3 className="text-base sm:text-lg font-semibold text-slate-600 mb-2">
+            <h3 className="text-base sm:text-lg font-semibold text-slate-300 mb-2">
               No answers yet
             </h3>
-            <p className="text-sm sm:text-base text-slate-500 mb-4">
+            <p className="text-sm sm:text-base text-slate-400 mb-4">
               Be the first to help solve this question!
             </p>
             {user && (
@@ -769,7 +769,7 @@ const QuestionDetailPage: React.FC = () => {
           </button>
         </div>
       ) : (
-        <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-2xl border-2 border-dashed border-slate-300 p-4 sm:p-8">
+        <div className="bg-gradient-to-br from-slate-800/50 to-slate-900/50 rounded-2xl border-2 border-dashed border-slate-600 p-4 sm:p-8">
           <AuthPrompt
             message="Join the community to share your knowledge"
             action="answer this question"

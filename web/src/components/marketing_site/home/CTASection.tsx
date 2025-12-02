@@ -3,9 +3,9 @@ import React from "react";
 const CTASection: React.FC = () => {
   return (
     <section id="cta" className="relative overflow-hidden py-24">
-      <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A] via-[#3B82F6] to-[#10B981]" />
+      <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A] via-[#3B82F6] to-[#10B981] dark:from-[#1E3A8A]/95 dark:via-[#3B82F6]/95 dark:to-[#10B981]/95" />
       <div className="relative mx-auto flex max-w-4xl flex-col items-center gap-6 px-6 text-center text-white">
-        <span className="rounded-full bg-white/10 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80">
+        <span className="rounded-full bg-white/10 dark:bg-white/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-white/80 dark:text-white/90">
           Join the next cohort
         </span>
         <h2 className="text-3xl font-semibold sm:text-4xl">

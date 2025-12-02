@@ -78,23 +78,23 @@ const SubmitAnswerModal: React.FC<SubmitAnswerModalProps> = ({
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200">
+      <div className="relative bg-slate-800 rounded-2xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-hidden animate-in fade-in slide-in-from-bottom-4 duration-200 border border-slate-700">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-gradient-to-r from-blue-50 to-purple-50">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-700 bg-gradient-to-r from-blue-900/20 to-purple-900/20">
           <div>
             <h2 className="text-xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Write Your Answer
             </h2>
-            <p className="text-xs lg:text-sm text-slate-600 mt-1">
+            <p className="text-xs lg:text-sm text-slate-400 mt-1">
               Share your knowledge and help the community
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-slate-200 transition-colors"
+            className="p-2 rounded-lg hover:bg-slate-700 transition-colors"
             disabled={isSubmitting}
           >
-            <FiX className="h-5 w-5 text-slate-600" />
+            <FiX className="h-5 w-5 text-slate-400" />
           </button>
         </div>
 
@@ -103,7 +103,7 @@ const SubmitAnswerModal: React.FC<SubmitAnswerModalProps> = ({
           <div className="px-6 py-5 overflow-y-auto max-h-[calc(90vh-180px)]">
             {/* Error Message */}
             {error && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
+              <div className="mb-4 p-3 bg-red-900/20 border border-red-500/30 rounded-lg text-sm text-red-400">
                 {error}
               </div>
             )}
@@ -112,7 +112,7 @@ const SubmitAnswerModal: React.FC<SubmitAnswerModalProps> = ({
             <div className="mb-4">
               <label
                 htmlFor="answer-content"
-                className="block text-sm font-medium text-slate-700 mb-2"
+                className="block text-sm font-medium text-white mb-2"
               >
                 Your Answer <span className="text-red-500">*</span>
               </label>
@@ -122,20 +122,20 @@ const SubmitAnswerModal: React.FC<SubmitAnswerModalProps> = ({
                 onChange={(e) => setContent(e.target.value)}
                 placeholder="Provide a detailed answer to help solve this question..."
                 rows={12}
-                className="w-full px-4 py-3 rounded-lg border-2 border-slate-200 focus:border-blue-500 focus:ring-2 focus:ring-blue-200 focus:outline-none transition-all resize-none text-sm"
+                className="w-full px-4 py-3 rounded-lg border-2 border-slate-600 bg-slate-900/50 text-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none transition-all resize-none text-sm placeholder-slate-500"
                 disabled={isSubmitting}
                 required
               />
             </div>
 
             {/* Character Count */}
-            <div className="flex justify-between items-center text-xs text-slate-500">
+            <div className="flex justify-between items-center text-xs text-slate-400">
               <span>
                 {content.length > 0 && `${content.length} characters`}
               </span>
               <span>
                 {content.length < 20 && content.length > 0 && (
-                  <span className="text-orange-600">
+                  <span className="text-orange-400">
                     ⚠️ Consider adding more details
                   </span>
                 )}
@@ -144,12 +144,12 @@ const SubmitAnswerModal: React.FC<SubmitAnswerModalProps> = ({
           </div>
 
           {/* Footer */}
-          <div className="px-6 py-4 border-t border-slate-200 bg-slate-50 flex items-center justify-end gap-3">
+          <div className="px-6 py-4 border-t border-slate-700 bg-slate-900/30 flex items-center justify-end gap-3">
             <div className="flex gap-3">
               <button
                 type="button"
                 onClick={onClose}
-                className="px-5 py-2 text-sm font-medium text-slate-700 bg-white border-2 border-slate-300 rounded-lg hover:bg-slate-50 transition-colors"
+                className="px-5 py-2 text-sm font-medium text-slate-300 bg-slate-800 border-2 border-slate-600 rounded-lg hover:bg-slate-700 transition-colors"
                 disabled={isSubmitting}
               >
                 Cancel

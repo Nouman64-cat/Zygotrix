@@ -23,18 +23,18 @@ const AnalyticsPage: React.FC = () => {
       ).map((skeletonKey) => (
         <div
           key={skeletonKey}
-          className="bg-white rounded-lg shadow-sm border border-slate-200 p-6 animate-pulse"
+          className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6 animate-pulse"
         >
           <div className="flex items-center justify-between">
             <div>
-              <div className="h-4 bg-slate-200 rounded w-24 mb-2"></div>
-              <div className="h-8 bg-slate-200 rounded w-16"></div>
+              <div className="h-4 bg-slate-200 dark:bg-slate-600 rounded w-24 mb-2"></div>
+              <div className="h-8 bg-slate-200 dark:bg-slate-600 rounded w-16"></div>
             </div>
-            <div className="w-6 h-6 bg-slate-200 rounded"></div>
+            <div className="w-6 h-6 bg-slate-200 dark:bg-slate-600 rounded"></div>
           </div>
           <div className="mt-4 flex items-center">
-            <div className="h-4 bg-slate-200 rounded w-12"></div>
-            <div className="h-4 bg-slate-200 rounded w-20 ml-2"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-600 rounded w-12"></div>
+            <div className="h-4 bg-slate-200 dark:bg-slate-600 rounded w-20 ml-2"></div>
           </div>
         </div>
       ));
@@ -42,10 +42,10 @@ const AnalyticsPage: React.FC = () => {
 
     if (error) {
       return (
-        <div className="col-span-full bg-red-50 border border-red-200 rounded-lg p-6">
+        <div className="col-span-full bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-6">
           <div className="flex items-center">
             <svg
-              className="w-5 h-5 text-red-400 mr-2"
+              className="w-5 h-5 text-red-400 dark:text-red-500 mr-2"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -57,14 +57,14 @@ const AnalyticsPage: React.FC = () => {
                 d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
               />
             </svg>
-            <span className="text-red-800 font-medium">
+            <span className="text-red-800 dark:text-red-300 font-medium">
               Failed to load analytics data
             </span>
           </div>
-          <p className="text-red-600 mt-1">{error}</p>
+          <p className="text-red-600 dark:text-red-400 mt-1">{error}</p>
           <button
             onClick={refetch}
-            className="mt-2 text-red-700 hover:text-red-800 font-medium text-sm"
+            className="mt-2 text-red-700 dark:text-red-400 hover:text-red-800 dark:hover:text-red-300 font-medium text-sm"
           >
             Try again
           </button>
@@ -74,17 +74,17 @@ const AnalyticsPage: React.FC = () => {
 
     return metrics.map((metric, index) => {
       const gradientClasses = [
-        "from-blue-50 to-blue-100 border-blue-200",
-        "from-emerald-50 to-emerald-100 border-emerald-200",
-        "from-amber-50 to-amber-100 border-amber-200",
-        "from-purple-50 to-purple-100 border-purple-200",
+        "from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 border-blue-200 dark:border-blue-700",
+        "from-emerald-50 to-emerald-100 dark:from-emerald-900/20 dark:to-emerald-800/20 border-emerald-200 dark:border-emerald-700",
+        "from-amber-50 to-amber-100 dark:from-amber-900/20 dark:to-amber-800/20 border-amber-200 dark:border-amber-700",
+        "from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 border-purple-200 dark:border-purple-700",
       ];
 
       const iconColors = [
-        "text-blue-500",
-        "text-emerald-500",
-        "text-amber-500",
-        "text-purple-500",
+        "text-blue-500 dark:text-blue-400",
+        "text-emerald-500 dark:text-emerald-400",
+        "text-amber-500 dark:text-amber-400",
+        "text-purple-500 dark:text-purple-400",
       ];
 
       return (
@@ -94,15 +94,15 @@ const AnalyticsPage: React.FC = () => {
         >
           <div className="flex items-start justify-between">
             <div className="flex-1">
-              <p className="text-sm font-semibold text-slate-700 uppercase tracking-wide">
+              <p className="text-sm font-semibold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
                 {metric.title}
               </p>
-              <p className="text-3xl font-bold text-slate-900 mt-2">
+              <p className="text-3xl font-bold text-slate-900 dark:text-white mt-2">
                 {metric.value}
               </p>
             </div>
             <div
-              className={`${iconColors[index]} bg-white/60 backdrop-blur-sm rounded-lg p-2 group-hover:scale-110 transition-transform duration-200`}
+              className={`${iconColors[index]} bg-white/60 dark:bg-slate-800/60 backdrop-blur-sm rounded-lg p-2 group-hover:scale-110 transition-transform duration-200`}
             >
               {metric.icon}
             </div>
@@ -111,8 +111,8 @@ const AnalyticsPage: React.FC = () => {
             <div
               className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold ${
                 metric.changeType === "positive"
-                  ? "bg-green-100 text-green-800"
-                  : "bg-red-100 text-red-800"
+                  ? "bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300"
+                  : "bg-red-100 dark:bg-red-900/30 text-red-800 dark:text-red-300"
               }`}
             >
               <span className="mr-1">
@@ -120,7 +120,7 @@ const AnalyticsPage: React.FC = () => {
               </span>
               {metric.change}
             </div>
-            <span className="text-xs text-slate-600 ml-2 font-medium">
+            <span className="text-xs text-slate-600 dark:text-slate-400 ml-2 font-medium">
               from last month
             </span>
           </div>
@@ -225,13 +225,13 @@ const AnalyticsPage: React.FC = () => {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">
+              <h1 className="text-2xl font-bold text-slate-900 dark:text-white">
                 Analytics & Reports
               </h1>
-              <p className="text-slate-600 mt-1">
+              <p className="text-slate-600 dark:text-slate-400 mt-1">
                 Monitor performance metrics and generate detailed reports for
                 your genetic analysis platform.
               </p>
@@ -240,7 +240,7 @@ const AnalyticsPage: React.FC = () => {
               <select
                 value={timeRange}
                 onChange={(e) => setTimeRange(e.target.value as TimeRange)}
-                className="border border-slate-300 rounded-lg px-3 py-2 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className="border border-slate-300 dark:border-slate-600 rounded-lg px-3 py-2 text-sm bg-white dark:bg-slate-900 text-gray-900 dark:text-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-blue-500 dark:focus:border-blue-400"
               >
                 <option value={TimeRange.LAST_7_DAYS}>Last 7 days</option>
                 <option value={TimeRange.LAST_30_DAYS}>Last 30 days</option>
@@ -267,7 +267,7 @@ const AnalyticsPage: React.FC = () => {
           />
 
           {/* Popular Traits */}
-          <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-6">
             <PopularTraitsChart
               data={analytics?.popular_traits || []}
               loading={loading}

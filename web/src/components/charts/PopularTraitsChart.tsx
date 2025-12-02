@@ -151,15 +151,15 @@ const PopularTraitsChart: React.FC<PopularTraitsChartProps> = ({
 
   if (loading) {
     return (
-      <div className="h-64 flex items-center justify-center bg-slate-50 rounded-lg animate-pulse">
+      <div className="h-64 flex items-center justify-center bg-slate-50 dark:bg-slate-700/30 rounded-lg animate-pulse">
         <div className="flex items-center space-x-2">
-          <div className="w-4 h-4 bg-slate-300 rounded-full animate-bounce"></div>
+          <div className="w-4 h-4 bg-slate-300 dark:bg-slate-600 rounded-full animate-bounce"></div>
           <div
-            className="w-4 h-4 bg-slate-300 rounded-full animate-bounce"
+            className="w-4 h-4 bg-slate-300 dark:bg-slate-600 rounded-full animate-bounce"
             style={{ animationDelay: "0.1s" }}
           ></div>
           <div
-            className="w-4 h-4 bg-slate-300 rounded-full animate-bounce"
+            className="w-4 h-4 bg-slate-300 dark:bg-slate-600 rounded-full animate-bounce"
             style={{ animationDelay: "0.2s" }}
           ></div>
         </div>
@@ -169,10 +169,10 @@ const PopularTraitsChart: React.FC<PopularTraitsChartProps> = ({
 
   if (error) {
     return (
-      <div className="flex items-center justify-center h-64 bg-red-50 rounded-lg">
+      <div className="flex items-center justify-center h-64 bg-red-50 dark:bg-red-900/20 rounded-lg">
         <div className="text-center">
           <svg
-            className="w-12 h-12 text-red-400 mx-auto mb-3"
+            className="w-12 h-12 text-red-400 dark:text-red-500 mx-auto mb-3"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -184,8 +184,8 @@ const PopularTraitsChart: React.FC<PopularTraitsChartProps> = ({
               d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"
             />
           </svg>
-          <p className="text-red-600 font-medium">Failed to load traits</p>
-          <p className="text-red-500 text-sm mt-1">{error}</p>
+          <p className="text-red-600 dark:text-red-400 font-medium">Failed to load traits</p>
+          <p className="text-red-500 dark:text-red-400 text-sm mt-1">{error}</p>
         </div>
       </div>
     );
@@ -193,10 +193,10 @@ const PopularTraitsChart: React.FC<PopularTraitsChartProps> = ({
 
   if (!data || data.length === 0) {
     return (
-      <div className="flex items-center justify-center h-64 bg-slate-50 rounded-lg">
+      <div className="flex items-center justify-center h-64 bg-slate-50 dark:bg-slate-700/30 rounded-lg">
         <div className="text-center">
           <svg
-            className="w-12 h-12 text-slate-400 mx-auto mb-3"
+            className="w-12 h-12 text-slate-400 dark:text-slate-600 mx-auto mb-3"
             fill="none"
             stroke="currentColor"
             viewBox="0 0 24 24"
@@ -208,8 +208,8 @@ const PopularTraitsChart: React.FC<PopularTraitsChartProps> = ({
               d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
             />
           </svg>
-          <p className="text-slate-500 font-medium">No trait data available</p>
-          <p className="text-slate-400 text-sm mt-1">
+          <p className="text-slate-500 dark:text-slate-400 font-medium">No trait data available</p>
+          <p className="text-slate-400 dark:text-slate-500 text-sm mt-1">
             Start running simulations to see trait usage patterns
           </p>
         </div>
@@ -226,14 +226,14 @@ const PopularTraitsChart: React.FC<PopularTraitsChartProps> = ({
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-lg font-semibold text-slate-900">
+          <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
             Popular Traits
           </h3>
-          <p className="text-xs text-slate-500">Usage frequency trends</p>
+          <p className="text-xs text-slate-500 dark:text-slate-400">Usage frequency trends</p>
         </div>
         <div className="text-right">
-          <div className="text-lg font-bold text-blue-600">{totalUsage}</div>
-          <div className="text-xs text-slate-500">total uses</div>
+          <div className="text-lg font-bold text-blue-600 dark:text-blue-400">{totalUsage}</div>
+          <div className="text-xs text-slate-500 dark:text-slate-400">total uses</div>
         </div>
       </div>
 
@@ -245,7 +245,7 @@ const PopularTraitsChart: React.FC<PopularTraitsChartProps> = ({
       {/* Additional trait stats */}
       {data.length > 6 && (
         <div className="text-center">
-          <span className="text-sm text-slate-500">
+          <span className="text-sm text-slate-500 dark:text-slate-400">
             Showing top 6 of {data.length} traits
           </span>
         </div>

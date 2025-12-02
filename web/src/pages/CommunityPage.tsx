@@ -154,13 +154,14 @@ const CommunityPage: React.FC = () => {
       label: "Questions",
       value: total.toLocaleString(),
       color: "blue",
-      gradient: "from-blue-50 via-blue-100 to-indigo-100",
-      border: "border-blue-200",
-      hoverBorder: "hover:border-blue-300",
-      iconBg: "bg-blue-200",
-      iconHoverBg: "group-hover:bg-blue-300",
-      textColor: "text-blue-900",
-      icon: <FiMessageSquare className="h-5 w-5 text-blue-800" />,
+      gradient: "from-blue-900/40 via-blue-800/40 to-indigo-900/40",
+      border: "border-blue-500/30",
+      hoverBorder: "hover:border-blue-400/50",
+      iconBg: "bg-blue-500/20",
+      iconHoverBg: "group-hover:bg-blue-500/30",
+      textColor: "text-blue-100",
+      labelColor: "text-blue-300",
+      icon: <FiMessageSquare className="h-5 w-5 text-blue-400" />,
     },
     {
       label: "Answers",
@@ -168,37 +169,40 @@ const CommunityPage: React.FC = () => {
         .reduce((sum, q) => sum + q.answer_count, 0)
         .toLocaleString(),
       color: "green",
-      gradient: "from-green-50 via-green-100 to-emerald-100",
-      border: "border-green-200",
-      hoverBorder: "hover:border-green-300",
-      iconBg: "bg-green-200",
-      iconHoverBg: "group-hover:bg-green-300",
-      textColor: "text-green-900",
-      icon: <FiUsers className="h-5 w-5 text-green-800" />,
+      gradient: "from-green-900/40 via-green-800/40 to-emerald-900/40",
+      border: "border-green-500/30",
+      hoverBorder: "hover:border-green-400/50",
+      iconBg: "bg-green-500/20",
+      iconHoverBg: "group-hover:bg-green-500/30",
+      textColor: "text-green-100",
+      labelColor: "text-green-300",
+      icon: <FiUsers className="h-5 w-5 text-green-400" />,
     },
     {
       label: "Active Tags",
       value: popularTags.length,
       color: "purple",
-      gradient: "from-purple-50 via-purple-100 to-violet-100",
-      border: "border-purple-200",
-      hoverBorder: "hover:border-purple-300",
-      iconBg: "bg-purple-200",
-      iconHoverBg: "group-hover:bg-purple-300",
-      textColor: "text-purple-900",
-      icon: <FiTag className="h-5 w-5 text-purple-800" />,
+      gradient: "from-purple-900/40 via-purple-800/40 to-violet-900/40",
+      border: "border-purple-500/30",
+      hoverBorder: "hover:border-purple-400/50",
+      iconBg: "bg-purple-500/20",
+      iconHoverBg: "group-hover:bg-purple-500/30",
+      textColor: "text-purple-100",
+      labelColor: "text-purple-300",
+      icon: <FiTag className="h-5 w-5 text-purple-400" />,
     },
     {
       label: "Total Votes",
       value: questions.reduce((sum, q) => sum + q.upvotes, 0).toLocaleString(),
       color: "amber",
-      gradient: "from-amber-50 via-amber-100 to-orange-100",
-      border: "border-amber-200",
-      hoverBorder: "hover:border-amber-300",
-      iconBg: "bg-amber-200",
-      iconHoverBg: "group-hover:bg-amber-300",
-      textColor: "text-amber-900",
-      icon: <FiThumbsUp className="h-5 w-5 text-amber-800" />,
+      gradient: "from-amber-900/40 via-amber-800/40 to-orange-900/40",
+      border: "border-amber-500/30",
+      hoverBorder: "hover:border-amber-400/50",
+      iconBg: "bg-amber-500/20",
+      iconHoverBg: "group-hover:bg-amber-500/30",
+      textColor: "text-amber-100",
+      labelColor: "text-amber-300",
+      icon: <FiThumbsUp className="h-5 w-5 text-amber-400" />,
     },
   ];
 
@@ -222,11 +226,11 @@ const CommunityPage: React.FC = () => {
         {/* Main Layout with Sidebar and Content */}
         <div className="flex flex-1 min-h-0">
           {/* Left Sidebar - Stats (Hidden on mobile) */}
-          <div className="hidden lg:block w-80 px-6 border-r border-slate-200 bg-slate-50/50">
+          <div className="hidden lg:block w-80 px-6 border-r border-slate-700 bg-slate-800/50">
             <div className="space-y-6 overflow-y-auto scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-slate-100">
               {/* Stats Cards */}
               <div>
-                <h1 className="text-2xl font-bold">Community Stats</h1>
+                <h1 className="text-2xl font-bold text-white">Community Stats</h1>
               </div>
               <div className="space-y-4">
                 {statsConfig.map((stat) => (
@@ -245,7 +249,7 @@ const CommunityPage: React.FC = () => {
                           {stat.value}
                         </div>
                         <div
-                          className={`text-sm font-semibold text-${stat.color}-700`}
+                          className={`text-sm font-semibold ${stat.labelColor}`}
                         >
                           {stat.label}
                         </div>
@@ -263,7 +267,7 @@ const CommunityPage: React.FC = () => {
               {/* Popular Tags */}
               {popularTags.length > 0 && (
                 <div>
-                  <h3 className="text-sm font-semibold text-slate-700 mb-3 flex items-center gap-2">
+                  <h3 className="text-sm font-semibold text-slate-300 mb-3 flex items-center gap-2">
                     <FiTag className="h-4 w-4" />
                     Popular Tags
                   </h3>
@@ -275,7 +279,7 @@ const CommunityPage: React.FC = () => {
                         className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-medium transition-all truncate max-w-xs cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${
                           selectedTag === tag.tag
                             ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent shadow-md"
-                            : "bg-slate-100 text-slate-700 border-slate-200 hover:bg-blue-50 hover:border-blue-300"
+                            : "bg-slate-700 text-slate-300 border-slate-600 hover:bg-blue-900/30 hover:border-blue-400"
                         }`}
                         title={tag.tag}
                       >
@@ -308,42 +312,42 @@ const CommunityPage: React.FC = () => {
               <div className="block lg:hidden mb-4 sm:mb-6">
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3">
                   {/* Questions Stat - Mobile */}
-                  <div className="bg-gradient-to-br from-blue-50 to-blue-100 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-blue-200 text-center">
-                    <div className="text-base sm:text-lg font-bold text-blue-900">
+                  <div className="bg-gradient-to-br from-blue-900/40 to-blue-800/40 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-blue-500/30 text-center">
+                    <div className="text-base sm:text-lg font-bold text-blue-100">
                       {total.toLocaleString()}
                     </div>
-                    <div className="text-[10px] sm:text-xs text-blue-700">
+                    <div className="text-[10px] sm:text-xs text-blue-300">
                       Questions
                     </div>
                   </div>
                   {/* Answers Stat - Mobile */}
-                  <div className="bg-gradient-to-br from-green-50 to-green-100 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-green-200 text-center">
-                    <div className="text-base sm:text-lg font-bold text-green-900">
+                  <div className="bg-gradient-to-br from-green-900/40 to-green-800/40 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-green-500/30 text-center">
+                    <div className="text-base sm:text-lg font-bold text-green-100">
                       {questions
                         .reduce((sum, q) => sum + q.answer_count, 0)
                         .toLocaleString()}
                     </div>
-                    <div className="text-[10px] sm:text-xs text-green-700">
+                    <div className="text-[10px] sm:text-xs text-green-300">
                       Answers
                     </div>
                   </div>
                   {/* Tags Stat - Mobile */}
-                  <div className="bg-gradient-to-br from-purple-50 to-purple-100 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-purple-200 text-center">
-                    <div className="text-base sm:text-lg font-bold text-purple-900">
+                  <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/40 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-purple-500/30 text-center">
+                    <div className="text-base sm:text-lg font-bold text-purple-100">
                       {popularTags.length}
                     </div>
-                    <div className="text-[10px] sm:text-xs text-purple-700">
+                    <div className="text-[10px] sm:text-xs text-purple-300">
                       Tags
                     </div>
                   </div>
                   {/* Votes Stat - Mobile */}
-                  <div className="bg-gradient-to-br from-amber-50 to-amber-100 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-amber-200 text-center">
-                    <div className="text-base sm:text-lg font-bold text-amber-900">
+                  <div className="bg-gradient-to-br from-amber-900/40 to-amber-800/40 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-amber-500/30 text-center">
+                    <div className="text-base sm:text-lg font-bold text-amber-100">
                       {questions
                         .reduce((sum, q) => sum + q.upvotes, 0)
                         .toLocaleString()}
                     </div>
-                    <div className="text-[10px] sm:text-xs text-amber-700">
+                    <div className="text-[10px] sm:text-xs text-amber-300">
                       Votes
                     </div>
                   </div>
@@ -352,7 +356,7 @@ const CommunityPage: React.FC = () => {
                 {/* Mobile Popular Tags */}
                 {popularTags.length > 0 && (
                   <div className="mt-3 sm:mt-4">
-                    <h3 className="text-xs sm:text-sm font-semibold text-slate-700 mb-2">
+                    <h3 className="text-xs sm:text-sm font-semibold text-slate-300 mb-2">
                       Popular Tags
                     </h3>
                     <div className="flex flex-wrap gap-1.5 sm:gap-2">
@@ -363,7 +367,7 @@ const CommunityPage: React.FC = () => {
                           className={`px-2 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-medium transition-all ${
                             selectedTag === tag.tag
                               ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
-                              : "bg-slate-100 text-slate-700 hover:bg-slate-200"
+                              : "bg-slate-700 text-slate-300 hover:bg-slate-600"
                           }`}
                         >
                           {tag.tag} ({tag.count})
@@ -379,7 +383,7 @@ const CommunityPage: React.FC = () => {
                   {[1, 2, 3, 4].map((n) => (
                     <div
                       key={n}
-                      className="bg-white rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-slate-200 animate-pulse"
+                      className="bg-slate-800/60 rounded-2xl p-4 sm:p-6 shadow-lg border-2 border-slate-700 animate-pulse"
                     >
                       <div className="flex gap-3 sm:gap-4">
                         <div className="w-8 h-8 sm:w-10 sm:h-10 bg-slate-300 rounded-full flex-shrink-0"></div>
@@ -397,27 +401,27 @@ const CommunityPage: React.FC = () => {
 
               {/* Error State */}
               {!isLoading && error && (
-                <div className="bg-gradient-to-br from-red-50 to-red-100 border-2 border-red-200 rounded-xl p-4 sm:p-8 text-center shadow-sm">
-                  <div className="w-16 h-16 bg-red-200 rounded-full flex items-center justify-center mx-auto mb-4">
+                <div className="bg-gradient-to-br from-red-900/30 to-red-800/30 border-2 border-red-400/50 rounded-xl p-4 sm:p-8 text-center shadow-sm">
+                  <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
                     <span className="text-3xl">⚠️</span>
                   </div>
-                  <p className="text-red-700 font-semibold text-lg mb-2">
+                  <p className="text-red-300 font-semibold text-lg mb-2">
                     Oops! Something went wrong
                   </p>
-                  <p className="text-red-600 text-sm">{error}</p>
+                  <p className="text-red-400 text-sm">{error}</p>
                 </div>
               )}
 
               {/* Empty State */}
               {!isLoading && !error && questions.length === 0 && (
-                <div className="bg-gradient-to-br from-slate-50 to-slate-100 rounded-xl p-6 sm:p-12 text-center shadow-sm border border-slate-200">
+                <div className="bg-gradient-to-br from-slate-800/60 to-slate-900/60 rounded-xl p-6 sm:p-12 text-center shadow-sm border border-slate-700">
                   <div className="w-20 h-20 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-4 shadow-md">
                     <FiSearch className="h-10 w-10 text-blue-600" />
                   </div>
-                  <h3 className="text-xl font-bold text-slate-900 mb-2">
+                  <h3 className="text-xl font-bold text-white mb-2">
                     No questions yet
                   </h3>
-                  <p className="text-slate-600 text-sm mb-6 max-w-md mx-auto">
+                  <p className="text-slate-300 text-sm mb-6 max-w-md mx-auto">
                     Be the first to start a conversation in the Zygotrix
                     community!
                   </p>
@@ -457,7 +461,7 @@ const CommunityPage: React.FC = () => {
                       <button
                         onClick={() => handlePageChange(page - 1)}
                         disabled={page <= 1}
-                        className="px-3 sm:px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs sm:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 hover:border-slate-400 transition shadow-sm"
+                        className="px-3 sm:px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 text-xs sm:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-700 hover:border-slate-500 transition shadow-sm"
                       >
                         <span className="hidden sm:inline">← Previous</span>
                         <span className="sm:hidden">←</span>
@@ -485,7 +489,7 @@ const CommunityPage: React.FC = () => {
                                 className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs sm:text-sm font-medium transition ${
                                   page === pageNum
                                     ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
-                                    : "bg-white border border-slate-300 text-slate-700 hover:bg-slate-50"
+                                    : "bg-slate-800 border border-slate-600 text-slate-300 hover:bg-slate-700"
                                 }`}
                               >
                                 {pageNum}
@@ -498,7 +502,7 @@ const CommunityPage: React.FC = () => {
                       <button
                         onClick={() => handlePageChange(page + 1)}
                         disabled={page >= totalPages}
-                        className="px-3 sm:px-4 py-2 rounded-lg bg-white border border-slate-300 text-slate-700 text-xs sm:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-50 hover:border-slate-400 transition shadow-sm"
+                        className="px-3 sm:px-4 py-2 rounded-lg bg-slate-800 border border-slate-600 text-slate-300 text-xs sm:text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed hover:bg-slate-700 hover:border-slate-500 transition shadow-sm"
                       >
                         <span className="hidden sm:inline">Next →</span>
                         <span className="sm:hidden">→</span>

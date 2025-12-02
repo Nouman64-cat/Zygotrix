@@ -146,15 +146,15 @@ const PreferencesPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Preferences</h1>
-              <p className="text-slate-600 mt-2">
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Preferences</h1>
+              <p className="text-slate-600 dark:text-slate-400 mt-2">
                 Customize your Zygotrix experience and workflow settings
               </p>
             </div>
             <button
               onClick={handleSave}
               disabled={isSaving}
-              className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 dark:bg-blue-700 rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
             >
               {isSaving ? (
                 <>
@@ -187,8 +187,8 @@ const PreferencesPage: React.FC = () => {
             <div
               className={`mt-4 p-4 rounded-lg flex items-center gap-3 ${
                 saveMessage.type === "success"
-                  ? "bg-green-50 text-green-800 border border-green-200"
-                  : "bg-red-50 text-red-800 border border-red-200"
+                  ? "bg-green-50 dark:bg-green-900/20 text-green-800 dark:text-green-300 border border-green-200 dark:border-green-800"
+                  : "bg-red-50 dark:bg-red-900/20 text-red-800 dark:text-red-300 border border-red-200 dark:border-red-800"
               }`}
             >
               {saveMessage.type === "success" ? (
@@ -223,11 +223,11 @@ const PreferencesPage: React.FC = () => {
 
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           {/* Appearance Settings */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-blue-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-blue-100 dark:bg-blue-900/50 flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-blue-600"
+                  className="w-5 h-5 text-blue-600 dark:text-blue-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -240,11 +240,11 @@ const PreferencesPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900">Appearance</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Appearance</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Theme
                 </label>
                 <div className="grid grid-cols-3 gap-3">
@@ -258,12 +258,12 @@ const PreferencesPage: React.FC = () => {
                       onClick={() => handleSelect("theme", option.value)}
                       className={`p-3 rounded-lg border-2 transition-all ${
                         preferences.theme === option.value
-                          ? "border-blue-600 bg-blue-50"
-                          : "border-slate-200 hover:border-slate-300"
+                          ? "border-blue-600 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30"
+                          : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500"
                       }`}
                     >
                       <div className="text-2xl mb-1">{option.icon}</div>
-                      <div className="text-xs font-medium text-slate-900">
+                      <div className="text-xs font-medium text-slate-900 dark:text-white">
                         {option.label}
                       </div>
                     </button>
@@ -272,13 +272,13 @@ const PreferencesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Language
                 </label>
                 <select
                   value={preferences.language}
                   onChange={(e) => handleSelect("language", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                 >
                   <option value="en">English</option>
                   <option value="es">Spanish</option>
@@ -289,13 +289,13 @@ const PreferencesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Date Format
                 </label>
                 <select
                   value={preferences.dateFormat}
                   onChange={(e) => handleSelect("dateFormat", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                 >
                   <option value="MM/DD/YYYY">MM/DD/YYYY</option>
                   <option value="DD/MM/YYYY">DD/MM/YYYY</option>
@@ -304,13 +304,13 @@ const PreferencesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Time Format
                 </label>
                 <select
                   value={preferences.timeFormat}
                   onChange={(e) => handleSelect("timeFormat", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                 >
                   <option value="12h">12 Hour</option>
                   <option value="24h">24 Hour</option>
@@ -320,11 +320,11 @@ const PreferencesPage: React.FC = () => {
           </div>
 
           {/* Notification Settings */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-purple-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-purple-100 dark:bg-purple-900/50 flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-purple-600"
+                  className="w-5 h-5 text-purple-600 dark:text-purple-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -337,7 +337,7 @@ const PreferencesPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Notifications
               </h3>
             </div>
@@ -379,10 +379,10 @@ const PreferencesPage: React.FC = () => {
                   className="flex items-center justify-between py-2"
                 >
                   <div>
-                    <label className="text-sm font-medium text-slate-900">
+                    <label className="text-sm font-medium text-slate-900 dark:text-white">
                       {item.label}
                     </label>
-                    <p className="text-xs text-slate-600">{item.description}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">{item.description}</p>
                   </div>
                   <button
                     onClick={() =>
@@ -390,8 +390,8 @@ const PreferencesPage: React.FC = () => {
                     }
                     className={`relative inline-flex w-11 h-6 rounded-full transition-colors ${
                       preferences[item.key as keyof UserPreferences]
-                        ? "bg-blue-600"
-                        : "bg-slate-300"
+                        ? "bg-blue-600 dark:bg-blue-500"
+                        : "bg-slate-300 dark:bg-slate-600"
                     }`}
                   >
                     <span
@@ -408,11 +408,11 @@ const PreferencesPage: React.FC = () => {
           </div>
 
           {/* Privacy Settings */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-green-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-green-100 dark:bg-green-900/50 flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-green-600"
+                  className="w-5 h-5 text-green-600 dark:text-green-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -425,11 +425,11 @@ const PreferencesPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900">Privacy</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Privacy</h3>
             </div>
             <div className="space-y-4">
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Profile Visibility
                 </label>
                 <select
@@ -437,7 +437,7 @@ const PreferencesPage: React.FC = () => {
                   onChange={(e) =>
                     handleSelect("profileVisibility", e.target.value)
                   }
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                 >
                   <option value="public">Public</option>
                   <option value="team">Team Only</option>
@@ -462,10 +462,10 @@ const PreferencesPage: React.FC = () => {
                   className="flex items-center justify-between py-2"
                 >
                   <div>
-                    <label className="text-sm font-medium text-slate-900">
+                    <label className="text-sm font-medium text-slate-900 dark:text-white">
                       {item.label}
                     </label>
-                    <p className="text-xs text-slate-600">{item.description}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">{item.description}</p>
                   </div>
                   <button
                     onClick={() =>
@@ -473,8 +473,8 @@ const PreferencesPage: React.FC = () => {
                     }
                     className={`relative inline-flex w-11 h-6 rounded-full transition-colors ${
                       preferences[item.key as keyof UserPreferences]
-                        ? "bg-blue-600"
-                        : "bg-slate-300"
+                        ? "bg-blue-600 dark:bg-blue-500"
+                        : "bg-slate-300 dark:bg-slate-600"
                     }`}
                   >
                     <span
@@ -491,11 +491,11 @@ const PreferencesPage: React.FC = () => {
           </div>
 
           {/* Data Processing Settings */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-orange-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-orange-100 dark:bg-orange-900/50 flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-orange-600"
+                  className="w-5 h-5 text-orange-600 dark:text-orange-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -508,24 +508,24 @@ const PreferencesPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Data Processing
               </h3>
             </div>
             <div className="space-y-4">
               <div className="flex items-center justify-between py-2">
                 <div>
-                  <label className="text-sm font-medium text-slate-900">
+                  <label className="text-sm font-medium text-slate-900 dark:text-white">
                     Auto-Save
                   </label>
-                  <p className="text-xs text-slate-600">
+                  <p className="text-xs text-slate-600 dark:text-slate-400">
                     Automatically save work progress
                   </p>
                 </div>
                 <button
                   onClick={() => handleToggle("autoSave")}
                   className={`relative inline-flex w-11 h-6 rounded-full transition-colors ${
-                    preferences.autoSave ? "bg-blue-600" : "bg-slate-300"
+                    preferences.autoSave ? "bg-blue-600 dark:bg-blue-500" : "bg-slate-300 dark:bg-slate-600"
                   }`}
                 >
                   <span
@@ -537,7 +537,7 @@ const PreferencesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Compression Level
                 </label>
                 <select
@@ -545,7 +545,7 @@ const PreferencesPage: React.FC = () => {
                   onChange={(e) =>
                     handleSelect("compressionLevel", e.target.value)
                   }
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                 >
                   <option value="low">Low (Faster processing)</option>
                   <option value="medium">Medium (Balanced)</option>
@@ -554,13 +554,13 @@ const PreferencesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Max File Size
                 </label>
                 <select
                   value={preferences.maxFileSize}
                   onChange={(e) => handleSelect("maxFileSize", e.target.value)}
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                 >
                   <option value="50MB">50 MB</option>
                   <option value="100MB">100 MB</option>
@@ -570,7 +570,7 @@ const PreferencesPage: React.FC = () => {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-slate-700 mb-2">
+                <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
                   Default Data Format
                 </label>
                 <select
@@ -578,7 +578,7 @@ const PreferencesPage: React.FC = () => {
                   onChange={(e) =>
                     handleSelect("defaultDataFormat", e.target.value)
                   }
-                  className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2.5 border border-slate-300 dark:border-slate-600 rounded-lg bg-white dark:bg-slate-900 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
                 >
                   <option value="vcf">VCF (Variant Call Format)</option>
                   <option value="csv">CSV (Comma Separated)</option>
@@ -590,11 +590,11 @@ const PreferencesPage: React.FC = () => {
           </div>
 
           {/* Collaboration Settings */}
-          <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 lg:col-span-2">
+          <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 lg:col-span-2">
             <div className="flex items-center gap-3 mb-6">
-              <div className="w-10 h-10 rounded-lg bg-indigo-100 flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
                 <svg
-                  className="w-5 h-5 text-indigo-600"
+                  className="w-5 h-5 text-indigo-600 dark:text-indigo-400"
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -607,7 +607,7 @@ const PreferencesPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
                 Collaboration
               </h3>
             </div>
@@ -631,10 +631,10 @@ const PreferencesPage: React.FC = () => {
               ].map((item) => (
                 <div key={item.key} className="flex items-start justify-between">
                   <div className="flex-1 mr-4">
-                    <label className="text-sm font-medium text-slate-900">
+                    <label className="text-sm font-medium text-slate-900 dark:text-white">
                       {item.label}
                     </label>
-                    <p className="text-xs text-slate-600 mt-1">
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
                       {item.description}
                     </p>
                   </div>
@@ -644,8 +644,8 @@ const PreferencesPage: React.FC = () => {
                     }
                     className={`relative inline-flex w-11 h-6 rounded-full transition-colors flex-shrink-0 ${
                       preferences[item.key as keyof UserPreferences]
-                        ? "bg-blue-600"
-                        : "bg-slate-300"
+                        ? "bg-blue-600 dark:bg-blue-500"
+                        : "bg-slate-300 dark:bg-slate-600"
                     }`}
                   >
                     <span
@@ -663,19 +663,19 @@ const PreferencesPage: React.FC = () => {
         </div>
 
         {/* Reset Section */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 mt-6">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 mt-6">
           <div className="flex items-center justify-between">
             <div>
-              <h3 className="text-lg font-semibold text-slate-900 mb-1">
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white mb-1">
                 Reset Settings
               </h3>
-              <p className="text-sm text-slate-600">
+              <p className="text-sm text-slate-600 dark:text-slate-400">
                 Restore all preferences to their default values
               </p>
             </div>
             <button
               onClick={handleReset}
-              className="px-5 py-2.5 text-sm font-medium text-red-600 border-2 border-red-600 rounded-lg hover:bg-red-50 transition-colors"
+              className="px-5 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 border-2 border-red-600 dark:border-red-500 rounded-lg hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
             >
               Reset All
             </button>

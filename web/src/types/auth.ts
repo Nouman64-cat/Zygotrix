@@ -1,3 +1,26 @@
+export type UserPreferences = {
+  theme?: "light" | "dark" | "auto";
+  language?: string;
+  dateFormat?: string;
+  timeFormat?: string;
+  emailNotifications?: boolean;
+  pushNotifications?: boolean;
+  analysisComplete?: boolean;
+  projectUpdates?: boolean;
+  systemAlerts?: boolean;
+  weeklyDigest?: boolean;
+  profileVisibility?: string;
+  dataSharing?: boolean;
+  analyticsTracking?: boolean;
+  autoSave?: boolean;
+  compressionLevel?: string;
+  maxFileSize?: string;
+  defaultDataFormat?: string;
+  allowInvitations?: boolean;
+  showOnlineStatus?: boolean;
+  shareByDefault?: boolean;
+};
+
 export type UserProfile = {
   id: string;
   email: string;
@@ -16,6 +39,7 @@ export type UserProfile = {
   use_case?: string | null;
   organism_focus?: string[] | null;
   onboarding_completed?: boolean | null;
+  preferences?: UserPreferences | null;
   created_at: string;
 };
 
@@ -30,6 +54,7 @@ export type UpdateProfilePayload = {
   bio?: string;
   location?: string;
   timezone?: string;
+  preferences?: UserPreferences;
 };
 
 export type AuthResponse = {

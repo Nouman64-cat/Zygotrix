@@ -128,7 +128,7 @@ const ProjectsPage: React.FC = () => {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-64">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 dark:border-blue-400"></div>
         </div>
       </DashboardLayout>
     );
@@ -138,10 +138,10 @@ const ProjectsPage: React.FC = () => {
     return (
       <DashboardLayout>
         <div className="text-center py-12">
-          <h3 className="text-lg font-medium text-gray-900 mb-2">
+          <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
             Error loading projects
           </h3>
-          <p className="text-gray-500">{error}</p>
+          <p className="text-slate-500 dark:text-slate-400">{error}</p>
         </div>
       </DashboardLayout>
     );
@@ -153,14 +153,14 @@ const ProjectsPage: React.FC = () => {
         {/* Header */}
         <div className="flex justify-between items-center">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Projects</h1>
-            <p className="text-gray-600 mt-1">
+            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Projects</h1>
+            <p className="text-slate-600 dark:text-slate-400 mt-1">
               Manage your genomic analysis projects
             </p>
           </div>
           <button
             onClick={() => setShowTemplates(!showTemplates)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors cursor-pointer"
+            className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors cursor-pointer"
           >
             {showTemplates ? "Hide Templates" : "Browse Templates"}
           </button>
@@ -168,25 +168,25 @@ const ProjectsPage: React.FC = () => {
 
         {/* Search */}
         <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-slate-400 dark:text-slate-500" />
           <input
             type="text"
             placeholder="Search projects..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 pr-4 py-2 w-full border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            className="pl-10 pr-4 py-2 w-full border border-slate-300 dark:border-slate-700 rounded-lg bg-white dark:bg-slate-800 text-slate-900 dark:text-white placeholder-slate-400 dark:placeholder-slate-500 focus:ring-2 focus:ring-blue-500 dark:focus:ring-blue-400 focus:border-transparent"
           />
         </div>
 
         {/* Templates Section */}
         {showTemplates && (
-          <div className="bg-gray-50 rounded-lg p-6">
-            <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-6">
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
               Project Templates
             </h2>
             {templatesLoading ? (
               <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
               </div>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -194,22 +194,22 @@ const ProjectsPage: React.FC = () => {
                   <button
                     key={template.id}
                     onClick={() => handleCreateProject(template)}
-                    className="bg-white rounded-lg p-4 border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all duration-200 text-left"
+                    className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm transition-all duration-200 text-left"
                   >
                     <div className="flex items-center space-x-3 mb-2">
-                      <BeakerIcon className="h-6 w-6 text-purple-600" />
-                      <h3 className="font-medium text-gray-900">
+                      <BeakerIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+                      <h3 className="font-medium text-slate-900 dark:text-white">
                         {template.name}
                       </h3>
                     </div>
-                    <p className="text-sm text-gray-600 mb-3">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 mb-3">
                       {template.description}
                     </p>
                     <div className="flex flex-wrap gap-1">
                       {template.tags.map((tag, index) => (
                         <span
                           key={index}
-                          className="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full"
+                          className="px-2 py-1 bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 text-xs rounded-full"
                         >
                           {tag}
                         </span>
@@ -265,7 +265,7 @@ const ProjectsPage: React.FC = () => {
                 onClick={() => navigate(`/studio/workspace/${project.id}`)}
                 role="button"
                 tabIndex={0}
-                className={`relative bg-gradient-to-br from-white to-gray-50 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer aspect-[3/4] min-h-[200px] flex flex-col w-full text-left border-2 ${variants.border} hover:border-opacity-100 border-opacity-60 group overflow-hidden transform hover:-translate-y-1`}
+                className={`relative bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer aspect-[3/4] min-h-[200px] flex flex-col w-full text-left border-2 ${variants.border} hover:border-opacity-100 border-opacity-60 group overflow-hidden transform hover:-translate-y-1`}
                 onKeyPress={(e) => {
                   if (e.key === "Enter" || e.key === " ")
                     navigate(`/studio/workspace/${project.id}`);
@@ -302,18 +302,18 @@ const ProjectsPage: React.FC = () => {
                         e.stopPropagation();
                         openDeleteModal(project, e);
                       }}
-                      className="p-1.5 rounded-lg cursor-pointer text-gray-400 hover:text-red-600 hover:bg-red-50 transition-colors"
+                      className="p-1.5 rounded-lg cursor-pointer text-slate-400 dark:text-slate-500 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors"
                       aria-label={`Delete ${project.name}`}
                     >
                       <TrashIcon className="h-4 w-4" />
                     </button>
                   </div>
 
-                  <h3 className="text-sm font-bold text-gray-900 line-clamp-2 leading-tight mb-2">
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-tight mb-2">
                     {project.name}
                   </h3>
 
-                  <p className="text-gray-600 text-xs mb-3 line-clamp-3 flex-1">
+                  <p className="text-slate-600 dark:text-slate-400 text-xs mb-3 line-clamp-3 flex-1">
                     {project.description ||
                       "Study complex inheritance patterns including codominance and incomplete dominance"}
                   </p>
@@ -352,18 +352,18 @@ const ProjectsPage: React.FC = () => {
 
         {filteredProjects.length === 0 && !loading && (
           <div className="text-center py-12">
-            <BeakerIcon className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-            <h3 className="text-lg font-medium text-gray-900 mb-2">
+            <BeakerIcon className="mx-auto h-12 w-12 text-slate-400 dark:text-slate-500 mb-4" />
+            <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
               No projects found
             </h3>
-            <p className="text-gray-500 mb-4">
+            <p className="text-slate-500 dark:text-slate-400 mb-4">
               {searchTerm
                 ? "Try adjusting your search terms."
                 : "Get started by creating your first project."}
             </p>
             <button
               onClick={() => handleCreateProject()}
-              className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+              className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors"
             >
               Create New Project
             </button>

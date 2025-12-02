@@ -51,6 +51,7 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
         "use_case": document.get("use_case"),
         "organism_focus": document.get("organism_focus"),
         "onboarding_completed": document.get("onboarding_completed", False),
+        "preferences": document.get("preferences"),
         "created_at": created_iso,
     }
 

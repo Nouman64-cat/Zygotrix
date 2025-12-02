@@ -62,7 +62,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
   };
 
   return (
-    <div className="h-screen bg-slate-50 flex flex-col">
+    <div className="h-screen bg-slate-50 dark:bg-slate-900 flex flex-col transition-colors duration-200">
       {/* Dashboard Header */}
       <DashboardHeader onMenuToggle={handleMenuToggle} />
 
@@ -76,7 +76,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto">
+        <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
           <div className="p-4 lg:p-6">{children}</div>
         </main>
       </div>

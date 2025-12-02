@@ -1,22 +1,118 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import { useAuth } from "../context/AuthContext";
+import * as authApi from "../services/auth.api";
 
 const SettingsPage: React.FC = () => {
-  const [activeTab, setActiveTab] = useState("general");
+  const { user, refreshUser } = useAuth();
+  const [activeTab, setActiveTab] = useState("account");
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveMessage, setSaveMessage] = useState<{
+    type: "success" | "error";
+    text: string;
+  } | null>(null);
+
+  const [accountData, setAccountData] = useState({
+    fullName: "",
+    email: "",
+    organization: "",
+    department: "",
+    title: "",
+    phone: "",
+    location: "",
+    timezone: "Pacific Standard Time (PST)",
+  });
+
+  // Load user data
+  useEffect(() => {
+    if (user) {
+      const nameParts = user.full_name?.split(" ") || [];
+      setAccountData({
+        fullName: user.full_name || "",
+        email: user.email || "",
+        organization: user.organization || "",
+        department: user.department || "",
+        title: user.title || "",
+        phone: user.phone || "",
+        location: user.location || "",
+        timezone: user.timezone || "Pacific Standard Time (PST)",
+      });
+    }
+  }, [user]);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setSaveMessage(null);
+
+    try {
+      await authApi.updateProfile({
+        full_name: accountData.fullName,
+        organization: accountData.organization,
+        department: accountData.department,
+        title: accountData.title,
+        phone: accountData.phone,
+        location: accountData.location,
+        timezone: accountData.timezone,
+      });
+      await refreshUser();
+
+      setSaveMessage({
+        type: "success",
+        text: "Settings updated successfully!",
+      });
+
+      setTimeout(() => setSaveMessage(null), 3000);
+    } catch (error) {
+      console.error("Failed to update settings:", error);
+      setSaveMessage({
+        type: "error",
+        text: "Failed to update settings. Please try again.",
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const tabs = [
-    { id: "general", label: "General", icon: "⚙️" },
+    { id: "account", label: "Account", icon: "👤" },
     { id: "security", label: "Security", icon: "🔒" },
-    { id: "notifications", label: "Notifications", icon: "🔔" },
-    { id: "integrations", label: "Integrations", icon: "🔗" },
-    { id: "billing", label: "Billing", icon: "💳" },
+    { id: "data", label: "Data & Privacy", icon: "📊" },
   ];
 
-  const renderGeneralSettings = () => (
-    <div className="space-y-6">
+  const timezones = [
+    "Pacific Standard Time (PST)",
+    "Mountain Standard Time (MST)",
+    "Central Standard Time (CST)",
+    "Eastern Standard Time (EST)",
+    "Alaska Standard Time (AKST)",
+    "Hawaii-Aleutian Standard Time (HST)",
+    "Greenwich Mean Time (GMT)",
+    "Central European Time (CET)",
+    "Eastern European Time (EET)",
+    "India Standard Time (IST)",
+    "China Standard Time (CST)",
+    "Japan Standard Time (JST)",
+    "Australian Eastern Standard Time (AEST)",
+  ];
+
+  const renderAccountSettings = () => (
+    <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Profile Information
+        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+          <svg
+            className="w-5 h-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"
+            />
+          </svg>
+          Basic Information
         </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
@@ -25,69 +121,144 @@ const SettingsPage: React.FC = () => {
             </label>
             <input
               type="text"
-              defaultValue="Nouman Ejaz"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={accountData.fullName}
+              onChange={(e) =>
+                setAccountData({ ...accountData, fullName: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Enter your full name"
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Email
+              Email Address
+            </label>
+            <div className="relative">
+              <input
+                type="email"
+                value={accountData.email}
+                disabled
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-lg bg-slate-50 text-slate-500 cursor-not-allowed"
+              />
+              <span className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-slate-500 bg-slate-100 px-2 py-1 rounded">
+                Cannot be changed
+              </span>
+            </div>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Phone Number
             </label>
             <input
-              type="email"
-              defaultValue="nouman@example.com"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              type="tel"
+              value={accountData.phone}
+              onChange={(e) =>
+                setAccountData({ ...accountData, phone: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="+1 (555) 123-4567"
             />
           </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Location
+            </label>
+            <input
+              type="text"
+              value={accountData.location}
+              onChange={(e) =>
+                setAccountData({ ...accountData, location: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="City, State/Country"
+            />
+          </div>
+
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Timezone
+            </label>
+            <select
+              value={accountData.timezone}
+              onChange={(e) =>
+                setAccountData({ ...accountData, timezone: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            >
+              {timezones.map((tz) => (
+                <option key={tz} value={tz}>
+                  {tz}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      </div>
+
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+          <svg
+            className="w-5 h-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+          Professional Information
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
               Organization
             </label>
             <input
               type="text"
-              defaultValue="Genetics Research Lab"
-              className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              value={accountData.organization}
+              onChange={(e) =>
+                setAccountData({ ...accountData, organization: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Company or institution name"
             />
           </div>
+
           <div>
             <label className="block text-sm font-medium text-slate-700 mb-2">
-              Time Zone
+              Department
             </label>
-            <select className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
-              <option>UTC+05:00 Pakistan Standard Time</option>
-              <option>UTC+00:00 Coordinated Universal Time</option>
-              <option>UTC-05:00 Eastern Standard Time</option>
-            </select>
+            <input
+              type="text"
+              value={accountData.department}
+              onChange={(e) =>
+                setAccountData({ ...accountData, department: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Department or team"
+            />
           </div>
-        </div>
-      </div>
 
-      <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Platform Preferences
-        </h3>
-        <div className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-slate-900">Dark Mode</h4>
-              <p className="text-sm text-slate-500">
-                Use dark theme across the platform
-              </p>
-            </div>
-            <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-slate-200 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-              <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1" />
-            </button>
-          </div>
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="text-sm font-medium text-slate-900">Auto-save</h4>
-              <p className="text-sm text-slate-500">
-                Automatically save your work every 5 minutes
-              </p>
-            </div>
-            <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-              <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6" />
-            </button>
+          <div className="md:col-span-2">
+            <label className="block text-sm font-medium text-slate-700 mb-2">
+              Job Title
+            </label>
+            <input
+              type="text"
+              value={accountData.title}
+              onChange={(e) =>
+                setAccountData({ ...accountData, title: e.target.value })
+              }
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              placeholder="Your role or position"
+            />
           </div>
         </div>
       </div>
@@ -95,76 +266,119 @@ const SettingsPage: React.FC = () => {
   );
 
   const renderSecuritySettings = () => (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
+        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+          <svg
+            className="w-5 h-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"
+            />
+          </svg>
           Password & Authentication
         </h3>
         <div className="space-y-4">
-          <button className="w-full md:w-auto bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-            Change Password
-          </button>
-          <div className="flex items-center justify-between p-4 border border-slate-200 rounded-lg">
-            <div>
-              <h4 className="text-sm font-medium text-slate-900">
-                Two-Factor Authentication
-              </h4>
-              <p className="text-sm text-slate-500">
-                Add an extra layer of security to your account
-              </p>
+          <div className="p-5 border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-colors">
+            <div className="flex items-center justify-between mb-3">
+              <div>
+                <h4 className="font-medium text-slate-900 mb-1">Password</h4>
+                <p className="text-sm text-slate-600">
+                  Last changed {user ? new Date(user.created_at).toLocaleDateString() : "never"}
+                </p>
+              </div>
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                Change Password
+              </button>
             </div>
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-              Enable 2FA
-            </button>
+          </div>
+
+          <div className="p-5 border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-colors">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-medium text-slate-900 mb-1">
+                  Two-Factor Authentication
+                </h4>
+                <p className="text-sm text-slate-600">
+                  Add an extra layer of security to your account
+                </p>
+              </div>
+              <button className="px-4 py-2 border-2 border-blue-600 text-blue-600 rounded-lg hover:bg-blue-50 transition-colors text-sm font-medium">
+                Enable 2FA
+              </button>
+            </div>
           </div>
         </div>
       </div>
 
-      <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+          <svg
+            className="w-5 h-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
           Active Sessions
         </h3>
         <div className="space-y-3">
           {[
             {
-              device: "MacBook Pro",
-              location: "Lahore, Pakistan",
+              device: "Current Session",
+              browser: "Chrome on Windows",
+              location: "Your Current Location",
+              time: "Active now",
               current: true,
-            },
-            {
-              device: "iPhone 14",
-              location: "Lahore, Pakistan",
-              current: false,
-            },
-            {
-              device: "Chrome Browser",
-              location: "Karachi, Pakistan",
-              current: false,
             },
           ].map((session, index) => (
             <div
               key={index}
-              className="flex items-center justify-between p-4 border border-slate-200 rounded-lg"
+              className="flex items-center justify-between p-5 border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-colors"
             >
-              <div className="flex items-center gap-3">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <div>
-                  <p className="text-sm font-medium text-slate-900">
-                    {session.device}
-                  </p>
-                  <p className="text-xs text-slate-500">{session.location}</p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                  <svg
+                    className="w-6 h-6 text-green-600"
+                    fill="none"
+                    stroke="currentColor"
+                    viewBox="0 0 24 24"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                    />
+                  </svg>
                 </div>
-                {session.current && (
-                  <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full">
-                    Current
-                  </span>
-                )}
+                <div>
+                  <div className="flex items-center gap-2 mb-1">
+                    <p className="font-medium text-slate-900">{session.device}</p>
+                    {session.current && (
+                      <span className="text-xs bg-green-100 text-green-800 px-2 py-1 rounded-full font-medium">
+                        Current
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-600">{session.browser}</p>
+                  <p className="text-xs text-slate-500 mt-1">
+                    {session.location} • {session.time}
+                  </p>
+                </div>
               </div>
-              {!session.current && (
-                <button className="text-red-600 hover:text-red-700 text-sm">
-                  Revoke
-                </button>
-              )}
             </div>
           ))}
         </div>
@@ -172,197 +386,76 @@ const SettingsPage: React.FC = () => {
     </div>
   );
 
-  const renderNotificationSettings = () => (
-    <div className="space-y-6">
+  const renderDataPrivacySettings = () => (
+    <div className="space-y-8">
       <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Email Notifications
+        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+          <svg
+            className="w-5 h-5 text-blue-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"
+            />
+          </svg>
+          Data Export
         </h3>
-        <div className="space-y-4">
-          {[
-            {
-              label: "Simulation Complete",
-              description:
-                "Get notified when your simulations finish processing",
-            },
-            {
-              label: "Data Upload",
-              description: "Receive updates about data upload status",
-            },
-            {
-              label: "System Maintenance",
-              description: "Important system updates and maintenance schedules",
-            },
-            {
-              label: "Weekly Reports",
-              description: "Weekly summary of your platform activity",
-            },
-          ].map((notification, index) => (
-            <div key={index} className="flex items-center justify-between">
-              <div>
-                <h4 className="text-sm font-medium text-slate-900">
-                  {notification.label}
-                </h4>
-                <p className="text-sm text-slate-500">
-                  {notification.description}
-                </p>
-              </div>
-              <button className="relative inline-flex h-6 w-11 items-center rounded-full bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
-                <span className="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-6" />
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderIntegrationsSettings = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          API Access
-        </h3>
-        <div className="space-y-4">
-          <div className="p-4 border border-slate-200 rounded-lg">
-            <div className="flex items-center justify-between mb-3">
-              <h4 className="text-sm font-medium text-slate-900">API Key</h4>
-              <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-                Generate New
-              </button>
-            </div>
-            <div className="flex items-center gap-3">
-              <code className="flex-1 p-2 bg-slate-100 rounded text-sm font-mono">
-                zgt_1234567890abcdef...
-              </code>
-              <button className="text-slate-600 hover:text-slate-700">
-                <svg
-                  className="w-5 h-5"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"
-                  />
-                </svg>
-              </button>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Connected Apps
-        </h3>
-        <div className="space-y-3">
-          {[
-            {
-              name: "Slack",
-              description: "Get notifications in your Slack workspace",
-              connected: true,
-            },
-            {
-              name: "GitHub",
-              description: "Sync with your code repositories",
-              connected: false,
-            },
-            {
-              name: "Google Drive",
-              description: "Store exports in your Google Drive",
-              connected: true,
-            },
-          ].map((app, index) => (
-            <div
-              key={index}
-              className="flex items-center justify-between p-4 border border-slate-200 rounded-lg"
-            >
-              <div>
-                <h4 className="text-sm font-medium text-slate-900">
-                  {app.name}
-                </h4>
-                <p className="text-sm text-slate-500">{app.description}</p>
-              </div>
-              <button
-                className={`px-3 py-1 text-sm font-medium rounded ${
-                  app.connected
-                    ? "text-red-600 hover:text-red-700"
-                    : "text-blue-600 hover:text-blue-700"
-                }`}
-              >
-                {app.connected ? "Disconnect" : "Connect"}
-              </button>
-            </div>
-          ))}
-        </div>
-      </div>
-    </div>
-  );
-
-  const renderBillingSettings = () => (
-    <div className="space-y-6">
-      <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Current Plan
-        </h3>
-        <div className="p-6 border border-slate-200 rounded-lg">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h4 className="text-lg font-semibold text-slate-900">
-                Professional Plan
+        <div className="p-5 border-2 border-slate-200 rounded-xl hover:border-blue-300 transition-colors">
+          <div className="flex items-start justify-between">
+            <div className="flex-1">
+              <h4 className="font-medium text-slate-900 mb-2">
+                Download Your Data
               </h4>
-              <p className="text-slate-500">$99/month</p>
+              <p className="text-sm text-slate-600 mb-4">
+                Export all your personal data, projects, and analysis results in a
+                machine-readable format.
+              </p>
+              <button className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                Request Data Export
+              </button>
             </div>
-            <span className="bg-green-100 text-green-800 px-3 py-1 rounded-full text-sm font-medium">
-              Active
-            </span>
-          </div>
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-600">Simulations per month</span>
-              <span className="text-slate-900">Unlimited</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-600">Storage</span>
-              <span className="text-slate-900">10 TB</span>
-            </div>
-            <div className="flex justify-between text-sm">
-              <span className="text-slate-600">API calls per month</span>
-              <span className="text-slate-900">1,000,000</span>
-            </div>
-          </div>
-          <div className="mt-4 pt-4 border-t border-slate-200">
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-              Upgrade Plan
-            </button>
           </div>
         </div>
       </div>
 
-      <div>
-        <h3 className="text-lg font-semibold text-slate-900 mb-4">
-          Payment Method
+      <div className="border-t border-slate-200 pt-8">
+        <h3 className="text-lg font-semibold text-slate-900 mb-6 flex items-center gap-2">
+          <svg
+            className="w-5 h-5 text-red-600"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"
+            />
+          </svg>
+          Danger Zone
         </h3>
-        <div className="p-4 border border-slate-200 rounded-lg">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-100 rounded flex items-center justify-center">
-                💳
-              </div>
-              <div>
-                <p className="text-sm font-medium text-slate-900">
-                  •••• •••• •••• 4242
+        <div className="space-y-4">
+          <div className="p-5 border-2 border-red-200 bg-red-50 rounded-xl">
+            <div className="flex items-start justify-between">
+              <div className="flex-1">
+                <h4 className="font-medium text-red-900 mb-2">
+                  Delete Account
+                </h4>
+                <p className="text-sm text-red-700 mb-4">
+                  Permanently delete your account and all associated data. This
+                  action cannot be undone.
                 </p>
-                <p className="text-xs text-slate-500">Expires 12/25</p>
+                <button className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors text-sm font-medium">
+                  Delete Account
+                </button>
               </div>
             </div>
-            <button className="text-blue-600 hover:text-blue-700 text-sm font-medium">
-              Update
-            </button>
           </div>
         </div>
       </div>
@@ -371,56 +464,117 @@ const SettingsPage: React.FC = () => {
 
   const renderContent = () => {
     switch (activeTab) {
-      case "general":
-        return renderGeneralSettings();
+      case "account":
+        return renderAccountSettings();
       case "security":
         return renderSecuritySettings();
-      case "notifications":
-        return renderNotificationSettings();
-      case "integrations":
-        return renderIntegrationsSettings();
-      case "billing":
-        return renderBillingSettings();
+      case "data":
+        return renderDataPrivacySettings();
       default:
-        return renderGeneralSettings();
+        return renderAccountSettings();
     }
   };
 
   return (
     <DashboardLayout>
-      <div className="space-y-6">
+      <div className="max-w-5xl mx-auto">
         {/* Page Header */}
-        <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+        <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold text-slate-900">Settings</h1>
-              <p className="text-slate-600 mt-1">
-                Manage your account preferences and platform configuration.
+              <h1 className="text-3xl font-bold text-slate-900">Settings</h1>
+              <p className="text-slate-600 mt-2">
+                Manage your account settings and security preferences
               </p>
             </div>
-            <button className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
-              Save Changes
-            </button>
+            {activeTab === "account" && (
+              <button
+                onClick={handleSave}
+                disabled={isSaving}
+                className="px-5 py-2.5 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
+              >
+                {isSaving ? (
+                  <>
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <svg
+                      className="w-4 h-4"
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M5 13l4 4L19 7"
+                      />
+                    </svg>
+                    Save Changes
+                  </>
+                )}
+              </button>
+            )}
           </div>
+
+          {/* Success/Error Message */}
+          {saveMessage && (
+            <div
+              className={`mt-4 p-4 rounded-lg flex items-center gap-3 ${
+                saveMessage.type === "success"
+                  ? "bg-green-50 text-green-800 border border-green-200"
+                  : "bg-red-50 text-red-800 border border-red-200"
+              }`}
+            >
+              {saveMessage.type === "success" ? (
+                <svg
+                  className="w-5 h-5 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              ) : (
+                <svg
+                  className="w-5 h-5 flex-shrink-0"
+                  fill="currentColor"
+                  viewBox="0 0 20 20"
+                >
+                  <path
+                    fillRule="evenodd"
+                    d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z"
+                    clipRule="evenodd"
+                  />
+                </svg>
+              )}
+              <span className="font-medium">{saveMessage.text}</span>
+            </div>
+          )}
         </div>
 
-        {/* Settings Content */}
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Sidebar Navigation */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-4">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-4 sticky top-6">
               <nav className="space-y-2">
                 {tabs.map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={`w-full flex items-center gap-3 px-3 py-2 text-left rounded-lg transition-colors ${
+                    className={`w-full flex items-center gap-3 px-4 py-3 text-left rounded-lg transition-all ${
                       activeTab === tab.id
-                        ? "bg-blue-50 text-blue-700 border border-blue-200"
-                        : "text-slate-700 hover:bg-slate-50"
+                        ? "bg-blue-50 text-blue-700 border-2 border-blue-200 shadow-sm"
+                        : "text-slate-700 hover:bg-slate-50 border-2 border-transparent"
                     }`}
                   >
-                    <span>{tab.icon}</span>
+                    <span className="text-xl">{tab.icon}</span>
                     <span className="text-sm font-medium">{tab.label}</span>
                   </button>
                 ))}
@@ -430,7 +584,7 @@ const SettingsPage: React.FC = () => {
 
           {/* Main Content */}
           <div className="lg:col-span-3">
-            <div className="bg-white rounded-lg shadow-sm border border-slate-200 p-6">
+            <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-8">
               {renderContent()}
             </div>
           </div>

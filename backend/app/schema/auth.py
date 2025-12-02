@@ -23,6 +23,7 @@ class UserProfile(BaseModel):
     use_case: Optional[str] = None
     organism_focus: Optional[list[str]] = None
     onboarding_completed: Optional[bool] = False
+    preferences: Optional[dict] = None
     created_at: str
 
 
@@ -39,6 +40,7 @@ class UpdateProfileRequest(BaseModel):
     bio: Optional[str] = None
     location: Optional[str] = None
     timezone: Optional[str] = None
+    preferences: Optional[dict] = None
 
 
 class OnboardingRequest(BaseModel):

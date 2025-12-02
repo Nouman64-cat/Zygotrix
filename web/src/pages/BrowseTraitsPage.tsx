@@ -54,15 +54,15 @@ const BrowseTraitsPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="flex flex-col h-full bg-gray-50">
+      <div className="flex flex-col h-full bg-slate-50 dark:bg-slate-900">
         {/* Header */}
-        <div className="bg-white shadow-sm border-b">
+        <div className="bg-white dark:bg-slate-800 shadow-sm border-b border-slate-200 dark:border-slate-700">
           <div className="px-6 py-6">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
+                <div className="w-10 h-10 bg-purple-100 dark:bg-purple-900/50 rounded-lg flex items-center justify-center">
                   <svg
-                    className="w-6 h-6 text-purple-600"
+                    className="w-6 h-6 text-purple-600 dark:text-purple-400"
                     fill="none"
                     stroke="currentColor"
                     viewBox="0 0 24 24"
@@ -76,10 +76,10 @@ const BrowseTraitsPage: React.FC = () => {
                   </svg>
                 </div>
                 <div>
-                  <h1 className="text-3xl font-bold text-gray-900">
+                  <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
                     Browse Genetic Traits
                   </h1>
-                  <p className="text-gray-600 mt-1">
+                  <p className="text-slate-600 dark:text-slate-400 mt-1">
                     Explore our comprehensive database of genetic traits with
                     AI-powered insights
                   </p>
@@ -89,16 +89,16 @@ const BrowseTraitsPage: React.FC = () => {
               {!loading && traits.length > 0 && (
                 <div className="flex items-center gap-4">
                   <div className="text-right">
-                    <div className="text-2xl font-bold text-purple-600">
+                    <div className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                       {traits.length.toLocaleString()}
                     </div>
-                    <div className="text-sm text-gray-500">
+                    <div className="text-sm text-slate-500 dark:text-slate-400">
                       Available Traits
                     </div>
                   </div>
                   <button
                     onClick={loadTraits}
-                    className="p-2 text-gray-400 hover:text-gray-600 transition-colors rounded-lg hover:bg-gray-100 cursor-pointer"
+                    className="p-2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors rounded-lg hover:bg-slate-100 dark:hover:bg-slate-700 cursor-pointer"
                     title="Refresh traits"
                   >
                     <svg
@@ -124,9 +124,9 @@ const BrowseTraitsPage: React.FC = () => {
         {/* Main Content */}
         <div className="flex-1 p-6">
           {error ? (
-            <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-8">
+            <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm border border-slate-200 dark:border-slate-700 p-8">
               <div className="text-center">
-                <div className="w-16 h-16 mx-auto mb-4 text-red-400">
+                <div className="w-16 h-16 mx-auto mb-4 text-red-400 dark:text-red-500">
                   <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path
                       strokeLinecap="round"
@@ -136,13 +136,13 @@ const BrowseTraitsPage: React.FC = () => {
                     />
                   </svg>
                 </div>
-                <h3 className="text-lg font-medium text-gray-900 mb-2">
+                <h3 className="text-lg font-medium text-slate-900 dark:text-white mb-2">
                   Failed to Load Traits
                 </h3>
-                <p className="text-gray-600 mb-4">{error}</p>
+                <p className="text-slate-600 dark:text-slate-400 mb-4">{error}</p>
                 <button
                   onClick={handleRetry}
-                  className="px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors cursor-pointer"
+                  className="px-4 py-2 bg-purple-600 dark:bg-purple-700 text-white rounded-lg hover:bg-purple-700 dark:hover:bg-purple-600 transition-colors cursor-pointer"
                 >
                   Try Again
                 </button>
@@ -152,9 +152,9 @@ const BrowseTraitsPage: React.FC = () => {
             <div className="space-y-6">
               {/* Info Cards */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg p-4 border border-blue-200">
+                <div className="bg-gradient-to-r from-blue-50 to-blue-100 dark:from-blue-900/20 dark:to-blue-800/20 rounded-lg p-4 border border-blue-200 dark:border-blue-700">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-blue-500 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-blue-500 dark:bg-blue-600 rounded-lg flex items-center justify-center">
                       <svg
                         className="w-4 h-4 text-white"
                         fill="none"
@@ -170,19 +170,19 @@ const BrowseTraitsPage: React.FC = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-blue-900">
+                      <h3 className="font-semibold text-blue-900 dark:text-blue-200">
                         Comprehensive Database
                       </h3>
-                      <p className="text-sm text-blue-700">
+                      <p className="text-sm text-blue-700 dark:text-blue-300">
                         Verified genetic traits from scientific literature
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-green-50 to-green-100 rounded-lg p-4 border border-green-200">
+                <div className="bg-gradient-to-r from-green-50 to-green-100 dark:from-green-900/20 dark:to-green-800/20 rounded-lg p-4 border border-green-200 dark:border-green-700">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-green-500 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-green-500 dark:bg-green-600 rounded-lg flex items-center justify-center">
                       <svg
                         className="w-4 h-4 text-white"
                         fill="none"
@@ -198,19 +198,19 @@ const BrowseTraitsPage: React.FC = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-green-900">
+                      <h3 className="font-semibold text-green-900 dark:text-green-200">
                         AI-Powered Insights
                       </h3>
-                      <p className="text-sm text-green-700">
+                      <p className="text-sm text-green-700 dark:text-green-300">
                         Click any trait to get detailed AI analysis
                       </p>
                     </div>
                   </div>
                 </div>
 
-                <div className="bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg p-4 border border-purple-200">
+                <div className="bg-gradient-to-r from-purple-50 to-purple-100 dark:from-purple-900/20 dark:to-purple-800/20 rounded-lg p-4 border border-purple-200 dark:border-purple-700">
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 bg-purple-500 rounded-lg flex items-center justify-center">
+                    <div className="w-8 h-8 bg-purple-500 dark:bg-purple-600 rounded-lg flex items-center justify-center">
                       <svg
                         className="w-4 h-4 text-white"
                         fill="none"
@@ -226,10 +226,10 @@ const BrowseTraitsPage: React.FC = () => {
                       </svg>
                     </div>
                     <div>
-                      <h3 className="font-semibold text-purple-900">
+                      <h3 className="font-semibold text-purple-900 dark:text-purple-200">
                         Advanced Search
                       </h3>
-                      <p className="text-sm text-purple-700">
+                      <p className="text-sm text-purple-700 dark:text-purple-300">
                         Filter by gene, chromosome, inheritance pattern
                       </p>
                     </div>

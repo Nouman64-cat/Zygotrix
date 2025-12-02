@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@config "../tailwind.config.js";
 @plugin "@tailwindcss/typography";
 
 :root {
@@ -48,7 +49,7 @@
 }
 
 body {
-  @apply text-slate-700 antialiased leading-snug;
+  @apply text-slate-700 dark:text-slate-200 antialiased leading-snug bg-white dark:bg-slate-900 transition-colors duration-200;
 }
 
 * {

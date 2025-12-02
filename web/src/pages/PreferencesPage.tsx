@@ -7,7 +7,7 @@ import type { UserPreferences } from "../types/auth";
 
 const PreferencesPage: React.FC = () => {
   const { user, refreshUser } = useAuth();
-  const { theme, setTheme } = useTheme();
+  const { setTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);
   const [saveMessage, setSaveMessage] = useState<{
     type: "success" | "error";

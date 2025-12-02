@@ -26,7 +26,6 @@ const SettingsPage: React.FC = () => {
   // Load user data
   useEffect(() => {
     if (user) {
-      const nameParts = user.full_name?.split(" ") || [];
       setAccountData({
         fullName: user.full_name || "",
         email: user.email || "",

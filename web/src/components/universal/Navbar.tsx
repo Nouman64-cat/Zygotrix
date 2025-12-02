@@ -1,6 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { FiBookOpen, FiCodesandbox, FiLogOut } from "react-icons/fi";
+import { FiLogOut } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
 import logo from "../../../public/zygotrix-logo.png";

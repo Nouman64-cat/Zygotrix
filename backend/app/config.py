@@ -84,6 +84,8 @@ class Settings:
     resend_from_email: str = os.getenv(
         "RESEND_FROM_EMAIL", "onboarding@resend.dev")
     signup_otp_ttl_minutes: int = _get_int("SIGNUP_OTP_TTL_MINUTES", 10)
+    # Super admin configuration
+    super_admin_email: str = os.getenv("SUPER_ADMIN_EMAIL", "")
     # Trait source control: when true, serve traits from JSON only and disable trait CRUD
     traits_json_only: bool = _get_bool("TRAITS_JSON_ONLY", False)
     # Migration flag: when true, use C++ engine for Mendelian calculations

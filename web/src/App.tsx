@@ -31,6 +31,7 @@ import QuestionDetailPage from "./pages/QuestionDetailPage";
 import AskQuestionPage from "./pages/AskQuestionPage";
 import SimulationStudioPage from "./pages/SimulationStudioPage";
 import OnboardingPage from "./pages/OnboardingPage";
+import AdminUsersPage from "./pages/AdminUsersPage";
 
 const App: React.FC = () => {
   return (
@@ -162,6 +163,14 @@ const App: React.FC = () => {
             <OnboardingCheck>
               <PGSDemoPage />
             </OnboardingCheck>
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="studio/admin/users"
+        element={
+          <RequireAuth>
+            <AdminUsersPage />
           </RequireAuth>
         }
       />

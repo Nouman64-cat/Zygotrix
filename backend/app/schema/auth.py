@@ -1,6 +1,14 @@
 from datetime import datetime
-from typing import Optional
+from enum import Enum
+from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, SecretStr, field_validator
+
+
+class UserRole(str, Enum):
+    """User role enumeration."""
+    USER = "user"
+    ADMIN = "admin"
+    SUPER_ADMIN = "super_admin"
 
 
 class UserProfile(BaseModel):
@@ -34,6 +42,11 @@ class UserProfile(BaseModel):
     university_onboarding_completed: Optional[bool] = False
     preferences: Optional[dict] = None
     created_at: str
+    # Admin-related fields
+    user_role: Optional[str] = UserRole.USER.value
+    is_active: Optional[bool] = True
+    deactivated_at: Optional[str] = None
+    deactivated_by: Optional[str] = None
 
 
 class UpdateProfileRequest(BaseModel):
@@ -135,3 +148,50 @@ class AuthResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
     user: UserProfile
+
+
+# Admin-specific schemas
+class AdminUserListItem(BaseModel):
+    """Condensed user info for admin listing."""
+
+    id: str
+    email: EmailStr
+    full_name: Optional[str] = None
+    user_role: str = UserRole.USER.value
+    is_active: bool = True
+    created_at: str
+    organization: Optional[str] = None
+    onboarding_completed: Optional[bool] = False
+    university_onboarding_completed: Optional[bool] = False
+    deactivated_at: Optional[str] = None
+
+
+class AdminUserListResponse(BaseModel):
+    """Response containing list of users for admin."""
+
+    users: List[AdminUserListItem]
+    total: int
+    page: int
+    page_size: int
+    total_pages: int
+
+
+class AdminUserActionRequest(BaseModel):
+    """Request to perform action on a user."""
+
+    user_id: str
+    reason: Optional[str] = None
+
+
+class AdminUserActionResponse(BaseModel):
+    """Response after performing admin action on user."""
+
+    message: str
+    user: UserProfile
+
+
+class AdminUpdateUserRoleRequest(BaseModel):
+    """Request to update user role."""
+
+    user_id: str
+    new_role: UserRole

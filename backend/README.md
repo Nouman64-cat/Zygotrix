@@ -3,23 +3,25 @@
 The Zygotrix backend exposes a REST API for Mendelian and polygenic simulations powered by the core `zygotrix_engine` package. It is built with FastAPI and now supports persisting custom trait definitions in MongoDB so they can be shared across clients.
 
 ## Features
-- **Trait catalogue** – discover the bundled traits and their allele/phenotype mappings, with optional overrides stored in MongoDB.
-- **Trait management** – create, update, and delete custom traits via REST endpoints.
-- **Mendelian simulation** – submit parent genotypes and receive phenotype probability or percentage distributions.
-- **Polygenic scoring** – compute expected offspring scores from additive SNP weights.
-- **Authentication** – password-based login backed by JWT access tokens with configurable TTLs.
-- **OTP-protected signup** – request an email one-time password to validate new accounts (Resend.com integration, 10-minute expiry, resend support).
-- **CORS-enabled** – ready to be queried by local web/mobile clients.
+
+- **Trait catalogue** ï¿½ discover the bundled traits and their allele/phenotype mappings, with optional overrides stored in MongoDB.
+- **Trait management** ï¿½ create, update, and delete custom traits via REST endpoints.
+- **Mendelian simulation** ï¿½ submit parent genotypes and receive phenotype probability or percentage distributions.
+- **Polygenic scoring** ï¿½ compute expected offspring scores from additive SNP weights.
+- **Authentication** ï¿½ password-based login backed by JWT access tokens with configurable TTLs.
+- **OTP-protected signup** ï¿½ request an email one-time password to validate new accounts (Resend.com integration, 10-minute expiry, resend support).
+- **CORS-enabled** ï¿½ ready to be queried by local web/mobile clients.
 
 ## Project layout
+
 ```
 backend/
 +-- app/
-¦   +-- __init__.py
-¦   +-- config.py       # Environment-driven settings (MongoDB URI, auth secrets, Resend, etc.)
-¦   +-- main.py         # FastAPI application entrypoint
-¦   +-- schemas.py      # Pydantic request/response models
-¦   +-- services.py     # Orchestrates zygotrix_engine + MongoDB integrations
+ï¿½   +-- __init__.py
+ï¿½   +-- config.py       # Environment-driven settings (MongoDB URI, auth secrets, Resend, etc.)
+ï¿½   +-- main.py         # FastAPI application entrypoint
+ï¿½   +-- schemas.py      # Pydantic request/response models
+ï¿½   +-- services.py     # Orchestrates zygotrix_engine + MongoDB integrations
 +-- requirements.txt    # Runtime dependencies
 +-- .env.example        # Backend environment configuration template
 +-- tests/
@@ -29,6 +31,7 @@ backend/
 ## Getting started
 
 1. Create a virtual environment and install dependencies:
+
    ```bash
    python -m venv .venv
    source .venv/bin/activate  # On Windows use: .venv\Scripts\activate
@@ -37,10 +40,13 @@ backend/
    ```
 
 2. Copy the example environment file and fill in your MongoDB connection + auth/email details:
+
    ```bash
    cp .env.example .env
    ```
+
    Required variables:
+
    - `MONGODB_URI`: connection string (e.g. `mongodb+srv://...` or `mongomock://localhost` for local testing)
    - `MONGODB_DB_NAME`: database to target (defaults to `zygotrix`)
    - `MONGODB_TRAITS_COLLECTION`: collection for persisted traits (defaults to `traits`)
@@ -54,6 +60,7 @@ backend/
    - `SIGNUP_OTP_TTL_MINUTES`: OTP validity window in minutes (defaults to `10`)
 
 3. Run the development server:
+
    ```bash
    uvicorn app.main:app --reload
    ```
@@ -61,23 +68,49 @@ backend/
 4. Explore the interactive docs at http://127.0.0.1:8000/docs.
 
 ## Available endpoints
-- `GET /health` – basic readiness probe.
-- `POST /api/auth/signup` – initiate signup, generate OTP, and send via email.
-- `POST /api/auth/signup/verify` – validate the OTP and create the user account.
-- `POST /api/auth/signup/resend` – issue a fresh OTP email.
-- `POST /api/auth/login` – authenticate an existing account.
-- `GET /api/auth/me` – fetch the profile of the authenticated user.
-- `GET /api/portal/status` – example protected endpoint for portal clients.
-- `GET /api/traits` – list the registered traits (bundled + custom).
-- `POST /api/traits` – create or overwrite a trait definition.
-- `PUT /api/traits/{key}` – update an existing trait by key.
-- `DELETE /api/traits/{key}` – remove a trait from the persistent store.
-- `POST /api/mendelian/simulate` – request phenotype distributions.
-- `POST /api/polygenic/score` – calculate an expected polygenic score.
+
+- `GET /health` â€” basic readiness probe.
+- `POST /api/auth/signup` â€” initiate signup, generate OTP, and send via email.
+- `POST /api/auth/signup/verify` â€” validate the OTP and create the user account.
+- `POST /api/auth/signup/resend` â€” issue a fresh OTP email.
+- `POST /api/auth/login` â€” authenticate an existing account.
+- `GET /api/auth/me` â€” fetch the profile of the authenticated user.
+- `GET /api/portal/status` â€” example protected endpoint for portal clients.
+- `GET /api/traits` â€” list the registered traits (bundled + custom).
+- `POST /api/traits` â€” create or overwrite a trait definition.
+- `PUT /api/traits/{key}` â€” update an existing trait by key.
+- `DELETE /api/traits/{key}` â€” remove a trait from the persistent store.
+- `POST /api/mendelian/simulate` â€” request phenotype distributions.
+- `POST /api/polygenic/score` â€” calculate an expected polygenic score.
+
+### Admin Endpoints (requires admin or super_admin role)
+
+- `GET /api/admin/users` â€” list all users with pagination and filtering.
+- `GET /api/admin/users/{user_id}` â€” get detailed user information.
+- `POST /api/admin/users/{user_id}/deactivate` â€” deactivate a user account.
+- `POST /api/admin/users/{user_id}/reactivate` â€” reactivate a deactivated user.
+- `DELETE /api/admin/users/{user_id}` â€” permanently delete a user (super_admin only).
+- `PATCH /api/admin/users/{user_id}/role` â€” update user role (super_admin only).
+- `GET /api/admin/stats` â€” get user statistics.
+
+## Super Admin Setup
+
+To designate a super admin, set the `SUPER_ADMIN_EMAIL` environment variable to the email address of the user who should have super admin privileges. When a user registers with this email, they will automatically be assigned the `super_admin` role.
+
+```bash
+SUPER_ADMIN_EMAIL=admin@yourcompany.com
+```
+
+User roles:
+
+- `user` â€” Standard user with access to their own data
+- `admin` â€” Can view all users and deactivate/reactivate accounts
+- `super_admin` â€” Full access including user deletion and role management
 
 ## Testing
 
 Install testing dependencies and run pytest (mongomock is used automatically for MongoDB interactions when `MONGODB_URI` is set to `mongomock://localhost`):
+
 ```bash
 pip install -r requirements.txt
 pip install -e ../zygotrix_engine

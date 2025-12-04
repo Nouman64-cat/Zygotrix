@@ -41,6 +41,11 @@ export type UserProfile = {
   onboarding_completed?: boolean | null;
   preferences?: UserPreferences | null;
   created_at: string;
+  // Admin-related fields
+  user_role?: string | null;
+  is_active?: boolean | null;
+  deactivated_at?: string | null;
+  deactivated_by?: string | null;
 };
 
 export type UpdateProfilePayload = {
@@ -106,4 +111,48 @@ export type OnboardingPayload = {
   title?: string;
   department?: string;
   onboarding_completed: boolean;
+};
+
+// Admin types
+export type UserRole = "user" | "admin" | "super_admin";
+
+export type AdminUserListItem = {
+  id: string;
+  email: string;
+  full_name?: string | null;
+  user_role: string;
+  is_active: boolean;
+  created_at: string;
+  organization?: string | null;
+  onboarding_completed?: boolean;
+  university_onboarding_completed?: boolean;
+  deactivated_at?: string | null;
+};
+
+export type AdminUserListResponse = {
+  users: AdminUserListItem[];
+  total: number;
+  page: number;
+  page_size: number;
+  total_pages: number;
+};
+
+export type AdminUserActionResponse = {
+  message: string;
+  user: UserProfile;
+};
+
+export type AdminUserStats = {
+  total_users: number;
+  active_users: number;
+  inactive_users: number;
+  by_role: {
+    super_admin: number;
+    admin: number;
+    user: number;
+  };
+  onboarding: {
+    web_completed: number;
+    university_completed: number;
+  };
 };

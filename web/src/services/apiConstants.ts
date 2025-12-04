@@ -74,6 +74,18 @@ export const API_ROUTES = {
     global: "/api/analytics/global",
     health: "/api/analytics/health",
   },
+  admin: {
+    users: "/api/admin/users",
+    userDetail: (userId: string) =>
+      "/api/admin/users/" + encodeURIComponent(userId),
+    deactivateUser: (userId: string) =>
+      "/api/admin/users/" + encodeURIComponent(userId) + "/deactivate",
+    reactivateUser: (userId: string) =>
+      "/api/admin/users/" + encodeURIComponent(userId) + "/reactivate",
+    updateUserRole: (userId: string) =>
+      "/api/admin/users/" + encodeURIComponent(userId) + "/role",
+    stats: "/api/admin/stats",
+  },
 } as const;
 
 export type ApiRoutes = typeof API_ROUTES;

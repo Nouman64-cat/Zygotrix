@@ -36,6 +36,13 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
         created_iso = created_at.astimezone(timezone.utc).isoformat()
     else:
         created_iso = datetime.now(timezone.utc).isoformat()
+
+    deactivated_at = document.get("deactivated_at")
+    if isinstance(deactivated_at, datetime):
+        deactivated_iso = deactivated_at.astimezone(timezone.utc).isoformat()
+    else:
+        deactivated_iso = None
+
     return {
         "id": str(document.get("_id")),
         "email": str(document.get("email", "")),
@@ -65,6 +72,11 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
         "university_onboarding_completed": document.get("university_onboarding_completed", False),
         "preferences": document.get("preferences"),
         "created_at": created_iso,
+        # Admin-related fields
+        "user_role": document.get("user_role", "user"),
+        "is_active": document.get("is_active", True),
+        "deactivated_at": deactivated_iso,
+        "deactivated_by": document.get("deactivated_by"),
     }
 
 
@@ -143,11 +155,20 @@ def _insert_user_document(
 ) -> Dict[str, Any]:
     collection = cast(Collection, get_users_collection(required=True))
     name = _clean_full_name(full_name)
+    settings = get_settings()
+
+    # Check if this email is the super admin email
+    normalized_email = _normalize_email(email)
+    is_super_admin = normalized_email == _normalize_email(
+        settings.super_admin_email) if settings.super_admin_email else False
+
     document = {
-        "email": _normalize_email(email),
+        "email": normalized_email,
         "password_hash": password_hash,
         "full_name": name,
         "created_at": datetime.now(timezone.utc),
+        "user_role": "super_admin" if is_super_admin else "user",
+        "is_active": True,
     }
     try:
         result = collection.insert_one(document)

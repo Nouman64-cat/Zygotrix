@@ -17,6 +17,7 @@ from .routes.data_import import router as data_import_router
 from .routes.preview import router as preview_router
 from .routes.mendelian import router as mendelian_router
 from .routes.auth import router as auth_router
+from .routes.admin import router as admin_router
 from .schema.auth import UserProfile
 from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.common import HealthResponse
@@ -79,6 +80,7 @@ async def startup_event():
 
 
 app.include_router(auth_router)
+app.include_router(admin_router)
 app.include_router(mendelian_router)
 app.include_router(preview_router)
 app.include_router(data_import_router)

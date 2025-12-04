@@ -25,11 +25,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   onToggleCollapse,
 }) => {
   const location = useLocation();
-  const { signOut } = useAuth();
+  const { signOut, user } = useAuth();
 
   const handleSignOut = () => {
     signOut();
   };
+
+  const isAdmin =
+    user?.user_role === "admin" || user?.user_role === "super_admin";
 
   const sidebarItems: SidebarItem[] = [
     {
@@ -295,6 +298,32 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
     },
   ];
 
+  // Admin items - only shown to admins and super admins
+  const adminItems: SidebarItem[] = isAdmin
+    ? [
+        {
+          id: "admin-users",
+          label: "User Management",
+          href: "/studio/admin/users",
+          icon: (
+            <svg
+              className="w-5 h-5"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+              />
+            </svg>
+          ),
+        },
+      ]
+    : [];
+
   const isActivePath = (href: string) => {
     if (href === "/studio") {
       return location.pathname === "/studio";
@@ -403,7 +432,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               >
                 <span
                   className={`${
-                    isActivePath(item.href) ? "text-blue-600 dark:text-blue-400" : "text-slate-500 dark:text-slate-400"
+                    isActivePath(item.href)
+                      ? "text-blue-600 dark:text-blue-400"
+                      : "text-slate-500 dark:text-slate-400"
                   }`}
                 >
                   {item.icon}
@@ -438,6 +469,57 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               )}
             </div>
           ))}
+
+          {/* Admin Section */}
+          {adminItems.length > 0 && (
+            <>
+              {/* Admin Separator */}
+              <div className={`my-4 ${isCollapsed ? "mx-2" : "mx-0"}`}>
+                <div className="border-t border-slate-200 dark:border-slate-600"></div>
+                {!isCollapsed && (
+                  <p className="mt-2 px-3 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
+                    Admin
+                  </p>
+                )}
+              </div>
+
+              {/* Admin Navigation Items */}
+              {adminItems.map((item) => (
+                <div key={item.id} className="relative group">
+                  <Link
+                    to={item.href}
+                    onClick={onClose}
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
+                      isActivePath(item.href)
+                        ? "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700"
+                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
+                    } ${isCollapsed ? "justify-center" : ""}`}
+                  >
+                    <span
+                      className={`${
+                        isActivePath(item.href)
+                          ? "text-purple-600 dark:text-purple-400"
+                          : "text-slate-500 dark:text-slate-400"
+                      }`}
+                    >
+                      {item.icon}
+                    </span>
+                    {!isCollapsed && (
+                      <span className="flex-1">{item.label}</span>
+                    )}
+                  </Link>
+
+                  {/* Tooltip for collapsed state */}
+                  {isCollapsed && (
+                    <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                      {item.label}
+                      <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
+                    </div>
+                  )}
+                </div>
+              ))}
+            </>
+          )}
         </nav>
 
         {/* Footer */}

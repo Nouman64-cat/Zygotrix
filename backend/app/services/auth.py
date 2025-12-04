@@ -94,7 +94,27 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
         "last_ip_address": document.get("last_ip_address"),
         "last_location": document.get("last_location"),
         "last_browser": document.get("last_browser"),
+        "login_history": _serialize_login_history(document.get("login_history")),
     }
+
+
+def _serialize_login_history(history: Any) -> Optional[list]:
+    """Serialize login history entries."""
+    if not history or not isinstance(history, list):
+        return None
+
+    serialized = []
+    for entry in history:
+        if isinstance(entry, dict):
+            serialized.append({
+                "timestamp": _serialize_datetime(entry.get("timestamp")) or "",
+                "ip_address": entry.get("ip_address", "Unknown"),
+                "location": entry.get("location", "Unknown"),
+                "browser": entry.get("browser", "Unknown"),
+            })
+
+    # Return in reverse order (most recent first)
+    return list(reversed(serialized)) if serialized else None
 
 
 def hash_password(password: str) -> str:
@@ -644,42 +664,48 @@ def update_user_activity(
     ip_address: Optional[str] = None,
     user_agent: Optional[str] = None
 ) -> None:
-    """Update user's last activity information."""
-    print(f"[DEBUG UPDATE] Starting update for user_id={user_id}")
+    """Update user's last activity information and login history."""
     collection = get_users_collection(required=True)
     assert collection is not None, "Users collection is required"
 
     try:
         object_id = ObjectId(user_id)
-    except Exception as e:
-        print(f"[DEBUG UPDATE] Invalid ObjectId: {e}")
+    except Exception:
         return
 
     now = datetime.now(timezone.utc)
-    print(f"[DEBUG UPDATE] Current UTC time: {now}")
+    browser = _parse_user_agent(user_agent) if user_agent else "Unknown"
+    location = _get_location_from_ip(ip_address) if ip_address else None
+
+    # Create login history entry
+    login_entry = {
+        "timestamp": now,
+        "ip_address": ip_address or "Unknown",
+        "location": location or "Unknown",
+        "browser": browser,
+    }
 
     updates: Dict[str, Any] = {
         "last_accessed_at": now,
+        "last_ip_address": ip_address,
+        "last_location": location,
+        "last_browser": browser,
     }
 
-    if ip_address:
-        updates["last_ip_address"] = ip_address
-        location = _get_location_from_ip(ip_address)
-        if location:
-            updates["last_location"] = location
-
-    if user_agent:
-        updates["last_browser"] = _parse_user_agent(user_agent)
-
-    print(f"[DEBUG UPDATE] Updates to apply: {updates}")
-
     try:
-        result = collection.update_one(
+        # Update last activity and push to login history (keep last 10)
+        collection.update_one(
             {"_id": object_id},
-            {"$set": updates}
+            {
+                "$set": updates,
+                "$push": {
+                    "login_history": {
+                        "$each": [login_entry],
+                        "$slice": -10  # Keep only last 10 entries
+                    }
+                }
+            }
         )
-        print(
-            f"[DEBUG UPDATE] MongoDB result: matched={result.matched_count}, modified={result.modified_count}")
         # Clear cache for this user
         clear_user_cache(user_id)
     except PyMongoError:

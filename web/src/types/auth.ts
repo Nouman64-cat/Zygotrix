@@ -121,6 +121,13 @@ export type OnboardingPayload = {
 // Admin types
 export type UserRole = "user" | "admin" | "super_admin";
 
+export type LoginHistoryEntry = {
+  timestamp: string;
+  ip_address: string;
+  location: string;
+  browser: string;
+};
+
 export type AdminUserListItem = {
   id: string;
   email: string;
@@ -137,6 +144,7 @@ export type AdminUserListItem = {
   last_ip_address?: string | null;
   last_location?: string | null;
   last_browser?: string | null;
+  login_history?: LoginHistoryEntry[] | null;
 };
 
 export type AdminUserListResponse = {

@@ -35,6 +35,7 @@ const AdminUsersPage: React.FC = () => {
   const [showDeactivateModal, setShowDeactivateModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
+  const [showLoginHistoryModal, setShowLoginHistoryModal] = useState(false);
   const [selectedUser, setSelectedUser] = useState<AdminUserListItem | null>(
     null
   );
@@ -505,6 +506,19 @@ const AdminUsersPage: React.FC = () => {
                               —
                             </span>
                           )}
+                          {/* Login History Button */}
+                          {user.login_history &&
+                            user.login_history.length > 0 && (
+                              <button
+                                onClick={() => {
+                                  setSelectedUser(user);
+                                  setShowLoginHistoryModal(true);
+                                }}
+                                className="text-xs text-indigo-500 dark:text-indigo-400 mt-1 hover:text-indigo-700 dark:hover:text-indigo-300 hover:underline"
+                              >
+                                View {user.login_history.length} login(s)
+                              </button>
+                            )}
                         </div>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
@@ -854,6 +868,140 @@ const AdminUsersPage: React.FC = () => {
                     className="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
                   >
                     Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* Login History Modal */}
+        {showLoginHistoryModal && selectedUser && (
+          <div className="fixed inset-0 z-50 overflow-y-auto">
+            <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
+              <div
+                className="fixed inset-0 transition-opacity bg-black/50"
+                onClick={() => setShowLoginHistoryModal(false)}
+              />
+              <div className="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl dark:bg-gray-800 sm:my-8 sm:align-middle sm:max-w-xl sm:w-full sm:p-6">
+                <div>
+                  <div className="flex items-center justify-center w-12 h-12 mx-auto bg-indigo-100 rounded-full dark:bg-indigo-900">
+                    <svg
+                      className="w-6 h-6 text-indigo-600 dark:text-indigo-400"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        strokeWidth={2}
+                        d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                      />
+                    </svg>
+                  </div>
+                  <div className="mt-3 text-center sm:mt-5">
+                    <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
+                      Login History
+                    </h3>
+                    <div className="mt-2">
+                      <p className="text-sm text-gray-500 dark:text-gray-400">
+                        Recent login activity for{" "}
+                        <strong>{selectedUser.email}</strong>
+                      </p>
+                    </div>
+                  </div>
+                  <div className="mt-4 max-h-80 overflow-y-auto">
+                    {selectedUser.login_history &&
+                    selectedUser.login_history.length > 0 ? (
+                      <div className="space-y-3">
+                        {selectedUser.login_history.map((entry, idx) => (
+                          <div
+                            key={idx}
+                            className="p-3 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600"
+                          >
+                            <div className="flex items-start justify-between">
+                              <div className="flex items-center gap-2">
+                                <svg
+                                  className="w-4 h-4 text-gray-400"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                                  />
+                                </svg>
+                                <span className="font-medium text-gray-900 dark:text-white">
+                                  {entry.browser}
+                                </span>
+                              </div>
+                              <span className="text-xs text-gray-500 dark:text-gray-400">
+                                {formatDateTime(entry.timestamp)}
+                              </span>
+                            </div>
+                            <div className="mt-2 flex items-center gap-4 text-sm text-gray-500 dark:text-gray-400">
+                              <div className="flex items-center gap-1">
+                                <svg
+                                  className="w-3.5 h-3.5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                  />
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                  />
+                                </svg>
+                                <span>{entry.location}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <svg
+                                  className="w-3.5 h-3.5"
+                                  fill="none"
+                                  stroke="currentColor"
+                                  viewBox="0 0 24 24"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                  />
+                                </svg>
+                                <span className="font-mono text-xs">
+                                  {entry.ip_address}
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-center text-sm text-gray-500 dark:text-gray-400 py-4">
+                        No login history available
+                      </p>
+                    )}
+                  </div>
+                </div>
+                <div className="mt-5 sm:mt-6">
+                  <button
+                    type="button"
+                    onClick={() => setShowLoginHistoryModal(false)}
+                    className="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:text-sm"
+                  >
+                    Close
                   </button>
                 </div>
               </div>

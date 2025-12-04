@@ -156,6 +156,14 @@ class AuthResponse(BaseModel):
 
 
 # Admin-specific schemas
+class LoginHistoryEntry(BaseModel):
+    """Single login history entry."""
+    timestamp: str
+    ip_address: str
+    location: str
+    browser: str
+
+
 class AdminUserListItem(BaseModel):
     """Condensed user info for admin listing."""
 
@@ -174,6 +182,7 @@ class AdminUserListItem(BaseModel):
     last_ip_address: Optional[str] = None
     last_location: Optional[str] = None
     last_browser: Optional[str] = None
+    login_history: Optional[List[LoginHistoryEntry]] = None
 
 
 class AdminUserListResponse(BaseModel):

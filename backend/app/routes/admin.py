@@ -41,11 +41,6 @@ def list_users(
         status_filter=status,
     )
 
-    # Debug: check what last_accessed_at looks like
-    for u in users:
-        print(
-            f"[DEBUG ADMIN] {u.get('email')}: last_accessed_at = {u.get('last_accessed_at')} (type: {type(u.get('last_accessed_at'))})")
-
     user_items = [
         AdminUserListItem(
             id=u["id"],
@@ -64,6 +59,7 @@ def list_users(
             last_ip_address=u.get("last_ip_address"),
             last_location=u.get("last_location"),
             last_browser=u.get("last_browser"),
+            login_history=u.get("login_history"),
         )
         for u in users
     ]

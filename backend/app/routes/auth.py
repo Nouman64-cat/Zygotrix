@@ -68,24 +68,19 @@ def _get_client_ip(request: Request) -> str:
 
 @router.post("/login", response_model=AuthResponse)
 def login(payload: UserLoginRequest, request: Request) -> AuthResponse:
-    print(f"[DEBUG LOGIN] Login attempt for: {payload.email}")
     user = services.authenticate_user(
         email=payload.email,
         password=payload.password.get_secret_value(),
     )
-    print(f"[DEBUG LOGIN] User authenticated: {user['id']}")
 
     # Update user activity with IP and browser info
     ip_address = _get_client_ip(request)
     user_agent = request.headers.get("User-Agent")
-    print(
-        f"[DEBUG LOGIN] Calling update_user_activity with id={user['id']}, ip={ip_address}")
     services.update_user_activity(
         user_id=user["id"],
         ip_address=ip_address,
         user_agent=user_agent
     )
-    print(f"[DEBUG LOGIN] update_user_activity completed")
 
     return AuthResponse(**services.build_auth_response(user))
 

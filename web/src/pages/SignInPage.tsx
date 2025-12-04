@@ -79,10 +79,10 @@ const SignInPage: React.FC = () => {
   };
 
   return (
-    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-900 via-blue-900/10 to-emerald-900/10">
+    <section className="relative min-h-screen overflow-hidden bg-gradient-to-br from-slate-100 via-blue-50/30 to-emerald-50/30 dark:from-slate-900 dark:via-blue-900/10 dark:to-emerald-900/10">
       {/* Animated Background */}
       <div className="absolute inset-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/5 via-transparent to-[#10B981]/5" />
+        <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/5 via-transparent to-[#10B981]/5 dark:from-[#1E3A8A]/5 dark:via-transparent dark:to-[#10B981]/5" />
 
         {/* Molecular Grid Pattern */}
         <div
@@ -105,13 +105,13 @@ const SignInPage: React.FC = () => {
 
           <div className="relative z-10 w-full max-w-2xl">
             <div className="text-center mb-2">
-              <h2 className="text-4xl font-bold text-blue-400 mb-4">
+              <h2 className="text-4xl font-bold text-blue-600 dark:text-blue-400 mb-4">
                 Secure Access to Your
-                <span className="block bg-gradient-to-r from-blue-400 to-emerald-400 bg-clip-text text-transparent">
+                <span className="block bg-gradient-to-r from-blue-600 to-emerald-600 dark:from-blue-400 dark:to-emerald-400 bg-clip-text text-transparent">
                   Genetic Research Studio
                 </span>
               </h2>
-              <p className="text-lg text-slate-400 max-w-md mx-auto">
+              <p className="text-lg text-slate-600 dark:text-slate-400 max-w-md mx-auto">
                 Your gateway to advanced genetic analysis, trait modeling, and
                 simulation tools.
               </p>
@@ -134,7 +134,7 @@ const SignInPage: React.FC = () => {
               {/* Glow Effect Behind Form */}
               <div className="absolute -inset-4 rounded-3xl bg-gradient-to-r from-[#1E3A8A]/10 via-[#3B82F6]/10 to-[#10B981]/10 opacity-0 blur-xl transition-opacity duration-500 hover:opacity-100" />
 
-              <div className="relative space-y-8 rounded-3xl border border-slate-700/80 bg-slate-800/95 backdrop-blur-sm p-8 shadow-2xl shadow-black/20">
+              <div className="relative space-y-8 rounded-3xl border border-slate-200 dark:border-slate-700/80 bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm p-8 shadow-2xl shadow-slate-300/30 dark:shadow-black/20">
                 {/* Logo and Header */}
                 <div className="text-center space-y-4">
                   <div className="relative inline-block">
@@ -147,14 +147,14 @@ const SignInPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-blue-900/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-400">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-600 dark:text-blue-400">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                       Sign In
                     </span>
-                    <h1 className="text-3xl font-bold text-white">
+                    <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
                       Welcome Back
                     </h1>
-                    <p className="text-sm text-slate-400 max-w-sm mx-auto">
+                    <p className="text-sm text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
                       Access your Zygotrix studio to continue your genetic
                       research and analysis.
                     </p>
@@ -163,18 +163,18 @@ const SignInPage: React.FC = () => {
 
                 {/* Flash Messages */}
                 {flashMessage && (
-                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-900/20 px-4 py-3 text-sm text-emerald-400 animate-fade-in">
+                  <div className="rounded-2xl border border-emerald-500/30 bg-emerald-100 dark:bg-emerald-900/20 px-4 py-3 text-sm text-emerald-700 dark:text-emerald-400 animate-fade-in">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-emerald-400" />
+                      <span className="h-2 w-2 rounded-full bg-emerald-500 dark:bg-emerald-400" />
                       {flashMessage}
                     </div>
                   </div>
                 )}
 
                 {error && (
-                  <div className="rounded-2xl border border-red-500/30 bg-red-900/20 px-4 py-3 text-sm text-red-400 animate-fade-in">
+                  <div className="rounded-2xl border border-red-500/30 bg-red-100 dark:bg-red-900/20 px-4 py-3 text-sm text-red-700 dark:text-red-400 animate-fade-in">
                     <div className="flex items-center gap-2">
-                      <span className="h-2 w-2 rounded-full bg-red-400" />
+                      <span className="h-2 w-2 rounded-full bg-red-500 dark:bg-red-400" />
                       {error}
                     </div>
                   </div>
@@ -184,7 +184,7 @@ const SignInPage: React.FC = () => {
                 <form className="space-y-6" onSubmit={handleSubmit}>
                   <div className="space-y-4">
                     <div className="group">
-                      <label className="block text-sm font-semibold text-slate-300 mb-2">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                         Email Address
                       </label>
                       <div className="relative">
@@ -195,7 +195,7 @@ const SignInPage: React.FC = () => {
                           onChange={handleChange}
                           required
                           autoComplete="email"
-                          className="w-full rounded-full border border-slate-600 bg-slate-900/50 px-4 py-3 text-sm text-white shadow-inner transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-slate-900 group-hover:border-slate-500 placeholder-slate-500"
+                          className="w-full rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 px-4 py-3 text-sm text-slate-900 dark:text-white shadow-inner transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-slate-900 group-hover:border-slate-400 dark:group-hover:border-slate-500 placeholder-slate-400 dark:placeholder-slate-500"
                           placeholder="researcher@university.edu"
                         />
                         <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-[#1E3A8A]/5 to-[#10B981]/5 opacity-0 pointer-events-none transition-opacity duration-300 group-focus-within:opacity-100" />
@@ -203,7 +203,7 @@ const SignInPage: React.FC = () => {
                     </div>
 
                     <div className="group">
-                      <label className="block text-sm font-semibold text-slate-300 mb-2">
+                      <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
                         Password
                       </label>
                       <div className="relative">
@@ -214,13 +214,13 @@ const SignInPage: React.FC = () => {
                           onChange={handleChange}
                           required
                           autoComplete="current-password"
-                          className="w-full rounded-full border border-slate-600 bg-slate-900/50 px-4 py-3 pr-12 text-sm text-white shadow-inner transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-slate-900 group-hover:border-slate-500 placeholder-slate-500"
+                          className="w-full rounded-full border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 px-4 py-3 pr-12 text-sm text-slate-900 dark:text-white shadow-inner transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-slate-900 group-hover:border-slate-400 dark:group-hover:border-slate-500 placeholder-slate-400 dark:placeholder-slate-500"
                           placeholder="••••••••"
                         />
                         <button
                           type="button"
                           onClick={() => setShowPassword(!showPassword)}
-                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-slate-300 transition-colors duration-200 z-10 cursor-pointer"
+                          className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 dark:text-slate-500 hover:text-slate-600 dark:hover:text-slate-300 transition-colors duration-200 z-10 cursor-pointer"
                           aria-label={
                             showPassword ? "Hide password" : "Show password"
                           }
@@ -257,12 +257,12 @@ const SignInPage: React.FC = () => {
 
                 {/* Sign Up Link */}
                 <div className="text-center">
-                  <p className="text-sm text-slate-400">
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
                     New to Zygotrix?{" "}
                     <Link
                       to="/signup"
                       state={{ from: { pathname: redirectTo } }}
-                      className="font-semibold text-blue-400 hover:text-blue-300 transition-colors duration-300"
+                      className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-300"
                     >
                       Create your account
                     </Link>

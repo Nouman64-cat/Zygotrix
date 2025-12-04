@@ -463,7 +463,9 @@ const SignUpPage: React.FC = () => {
                           </span>
                         </p>
                         {message && (
-                          <p className="text-xs text-slate-500 dark:text-slate-400">{message}</p>
+                          <p className="text-xs text-slate-500 dark:text-slate-400">
+                            {message}
+                          </p>
                         )}
                         {formatExpiry(expiresAt) && (
                           <p className="text-xs text-slate-400 dark:text-slate-500">

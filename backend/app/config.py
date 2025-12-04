@@ -95,6 +95,11 @@ class Settings:
         "CPP_ENGINE_CLI_PATH",
         os.path.join("..", "zygotrix_engine_cpp", "build", _default_cli),
     )
+    # Twilio WhatsApp notification settings
+    twilio_account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")
+    twilio_auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")
+    twilio_whatsapp_from: str = os.getenv("TWILIO_WHATSAPP_FROM", "")
+    admin_whatsapp_to: str = os.getenv("ADMIN_WHATSAPP_TO", "")
 
     @property
     def is_development(self) -> bool:

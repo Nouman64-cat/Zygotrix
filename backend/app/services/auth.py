@@ -10,6 +10,7 @@ from fastapi import HTTPException
 from passlib.context import CryptContext
 from pymongo.errors import DuplicateKeyError, PyMongoError
 from app.config import get_settings
+from app.services.notifications import send_new_user_whatsapp_notification
 
 _password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 _OTP_LENGTH = 6
@@ -436,6 +437,18 @@ def verify_signup_otp(email: str, otp: str) -> Dict[str, Any]:
     full_name = pending.get("full_name")
     user = _insert_user_document(normalized_email, password_hash, full_name)
     collection.delete_one({"email": normalized_email})
+
+    # Send WhatsApp notification to admin about new registration
+    # This runs asynchronously and doesn't block the signup process
+    try:
+        send_new_user_whatsapp_notification(
+            email=normalized_email,
+            full_name=full_name
+        )
+    except Exception:
+        # Don't fail signup if notification fails
+        pass
+
     return user
 
 

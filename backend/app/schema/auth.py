@@ -47,6 +47,11 @@ class UserProfile(BaseModel):
     is_active: Optional[bool] = True
     deactivated_at: Optional[str] = None
     deactivated_by: Optional[str] = None
+    # Activity tracking fields
+    last_accessed_at: Optional[str] = None
+    last_ip_address: Optional[str] = None
+    last_location: Optional[str] = None
+    last_browser: Optional[str] = None
 
 
 class UpdateProfileRequest(BaseModel):
@@ -164,6 +169,11 @@ class AdminUserListItem(BaseModel):
     onboarding_completed: Optional[bool] = False
     university_onboarding_completed: Optional[bool] = False
     deactivated_at: Optional[str] = None
+    # Activity tracking fields
+    last_accessed_at: Optional[str] = None
+    last_ip_address: Optional[str] = None
+    last_location: Optional[str] = None
+    last_browser: Optional[str] = None
 
 
 class AdminUserListResponse(BaseModel):

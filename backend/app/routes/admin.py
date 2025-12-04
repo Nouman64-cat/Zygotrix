@@ -41,6 +41,11 @@ def list_users(
         status_filter=status,
     )
 
+    # Debug: check what last_accessed_at looks like
+    for u in users:
+        print(
+            f"[DEBUG ADMIN] {u.get('email')}: last_accessed_at = {u.get('last_accessed_at')} (type: {type(u.get('last_accessed_at'))})")
+
     user_items = [
         AdminUserListItem(
             id=u["id"],
@@ -54,6 +59,11 @@ def list_users(
             university_onboarding_completed=u.get(
                 "university_onboarding_completed", False),
             deactivated_at=u.get("deactivated_at"),
+            # Activity tracking fields
+            last_accessed_at=u.get("last_accessed_at"),
+            last_ip_address=u.get("last_ip_address"),
+            last_location=u.get("last_location"),
+            last_browser=u.get("last_browser"),
         )
         for u in users
     ]

@@ -197,6 +197,33 @@ const AdminUsersPage: React.FC = () => {
     });
   };
 
+  const formatDateTime = (dateString: string) => {
+    const date = new Date(dateString);
+    const now = new Date();
+
+    // Both dates are already in the same timezone context when using Date objects
+    // The issue was the ISO string from backend - ensure proper parsing
+    const diffMs = now.getTime() - date.getTime();
+    const diffSecs = Math.floor(diffMs / 1000);
+    const diffMins = Math.floor(diffSecs / 60);
+    const diffHours = Math.floor(diffMins / 60);
+    const diffDays = Math.floor(diffHours / 24);
+
+    // Show relative time for recent activity
+    if (diffSecs < 60) return "Just now";
+    if (diffMins < 60) return `${diffMins}m ago`;
+    if (diffHours < 24) return `${diffHours}h ago`;
+    if (diffDays < 7) return `${diffDays}d ago`;
+
+    // Show date for older activity
+    return date.toLocaleDateString("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  };
+
   // Auto-hide success messages
   useEffect(() => {
     if (successMessage) {
@@ -210,7 +237,7 @@ const AdminUsersPage: React.FC = () => {
       <DashboardLayout>
         <div className="flex items-center justify-center h-96">
           <div className="text-center">
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+            <h2 className="mb-2 text-2xl font-bold text-gray-900 dark:text-white">
               Access Denied
             </h2>
             <p className="text-gray-600 dark:text-gray-400">
@@ -224,7 +251,7 @@ const AdminUsersPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="space-y-6 p-6">
+      <div className="p-6 space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between">
           <div>
@@ -239,8 +266,8 @@ const AdminUsersPage: React.FC = () => {
 
         {/* Stats Cards */}
         {stats && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Total Users
               </p>
@@ -248,7 +275,7 @@ const AdminUsersPage: React.FC = () => {
                 {stats.total_users}
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <div className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Active Users
               </p>
@@ -256,7 +283,7 @@ const AdminUsersPage: React.FC = () => {
                 {stats.active_users}
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <div className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Inactive Users
               </p>
@@ -264,7 +291,7 @@ const AdminUsersPage: React.FC = () => {
                 {stats.inactive_users}
               </p>
             </div>
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+            <div className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
               <p className="text-sm font-medium text-gray-500 dark:text-gray-400">
                 Admins / Super Admins
               </p>
@@ -277,18 +304,18 @@ const AdminUsersPage: React.FC = () => {
 
         {/* Messages */}
         {successMessage && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+          <div className="p-4 border border-green-200 rounded-lg bg-green-50 dark:bg-green-900/20 dark:border-green-800">
             <p className="text-green-800 dark:text-green-200">
               {successMessage}
             </p>
           </div>
         )}
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4">
+          <div className="p-4 border border-red-200 rounded-lg bg-red-50 dark:bg-red-900/20 dark:border-red-800">
             <p className="text-red-800 dark:text-red-200">{error}</p>
             <button
               onClick={() => setError(null)}
-              className="mt-2 text-sm text-red-600 dark:text-red-400 underline"
+              className="mt-2 text-sm text-red-600 underline dark:text-red-400"
             >
               Dismiss
             </button>
@@ -296,7 +323,7 @@ const AdminUsersPage: React.FC = () => {
         )}
 
         {/* Filters */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow p-4">
+        <div className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
           <form onSubmit={handleSearch} className="flex flex-wrap gap-4">
             <div className="flex-1 min-w-[200px]">
               <input
@@ -304,7 +331,7 @@ const AdminUsersPage: React.FC = () => {
                 placeholder="Search by email or name..."
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                className="w-full px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
               />
             </div>
             <select
@@ -313,7 +340,7 @@ const AdminUsersPage: React.FC = () => {
                 setRoleFilter(e.target.value as UserRole | "");
                 setPage(1);
               }}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">All Roles</option>
               <option value="user">User</option>
@@ -326,7 +353,7 @@ const AdminUsersPage: React.FC = () => {
                 setStatusFilter(e.target.value as "active" | "inactive" | "");
                 setPage(1);
               }}
-              className="px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500"
+              className="px-4 py-2 text-gray-900 bg-white border border-gray-300 rounded-lg dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500"
             >
               <option value="">All Status</option>
               <option value="active">Active</option>
@@ -334,7 +361,7 @@ const AdminUsersPage: React.FC = () => {
             </select>
             <button
               type="submit"
-              className="px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition-colors"
+              className="px-6 py-2 text-white transition-colors bg-indigo-600 rounded-lg hover:bg-indigo-700 focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2"
             >
               Search
             </button>
@@ -342,10 +369,10 @@ const AdminUsersPage: React.FC = () => {
         </div>
 
         {/* Users Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow overflow-hidden">
+        <div className="overflow-hidden bg-white rounded-lg shadow dark:bg-gray-800">
           {loading ? (
             <div className="flex items-center justify-center h-64">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-indigo-600"></div>
+              <div className="w-8 h-8 border-b-2 border-indigo-600 rounded-full animate-spin"></div>
             </div>
           ) : users.length === 0 ? (
             <div className="flex items-center justify-center h-64">
@@ -358,27 +385,30 @@ const AdminUsersPage: React.FC = () => {
               <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
                 <thead className="bg-gray-50 dark:bg-gray-900">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
                       User
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
                       Role
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                      Last Accessed
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                      Location / Browser
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
                       Joined
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                      Onboarding
-                    </th>
-                    <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-right text-gray-500 uppercase dark:text-gray-400">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                <tbody className="bg-white divide-y divide-gray-200 dark:bg-gray-800 dark:divide-gray-700">
                   {users.map((user) => (
                     <tr
                       key={user.id}
@@ -417,34 +447,70 @@ const AdminUsersPage: React.FC = () => {
                           {user.is_active ? "Active" : "Inactive"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">
-                        {formatDate(user.created_at)}
-                      </td>
                       <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="flex space-x-2">
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs rounded ${
-                              user.onboarding_completed
-                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
-                            }`}
-                            title="Web Onboarding"
-                          >
-                            Web
-                          </span>
-                          <span
-                            className={`inline-flex px-2 py-1 text-xs rounded ${
-                              user.university_onboarding_completed
-                                ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200"
-                                : "bg-gray-100 text-gray-600 dark:bg-gray-700 dark:text-gray-400"
-                            }`}
-                            title="University Onboarding"
-                          >
-                            Uni
-                          </span>
+                        <div>
+                          <div className="text-sm text-gray-900 dark:text-white">
+                            {user.last_accessed_at
+                              ? formatDateTime(user.last_accessed_at)
+                              : "Never"}
+                          </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <div>
+                          {user.last_location && (
+                            <div className="flex items-center gap-1 text-sm text-gray-900 dark:text-white">
+                              <svg
+                                className="w-3.5 h-3.5 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"
+                                />
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"
+                                />
+                              </svg>
+                              <span>{user.last_location}</span>
+                            </div>
+                          )}
+                          {user.last_browser && (
+                            <div className="flex items-center gap-1 text-xs text-gray-500 dark:text-gray-400">
+                              <svg
+                                className="w-3 h-3 text-gray-400"
+                                fill="none"
+                                stroke="currentColor"
+                                viewBox="0 0 24 24"
+                              >
+                                <path
+                                  strokeLinecap="round"
+                                  strokeLinejoin="round"
+                                  strokeWidth={2}
+                                  d="M21 12a9 9 0 01-9 9m9-9a9 9 0 00-9-9m9 9H3m9 9a9 9 0 01-9-9m9 9c1.657 0 3-4.03 3-9s-1.343-9-3-9m0 18c-1.657 0-3-4.03-3-9s1.343-9 3-9m-9 9a9 9 0 019-9"
+                                />
+                              </svg>
+                              <span>{user.last_browser}</span>
+                            </div>
+                          )}
+                          {!user.last_location && !user.last_browser && (
+                            <span className="text-xs text-gray-400 dark:text-gray-500">
+                              —
+                            </span>
+                          )}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-sm text-gray-500 whitespace-nowrap dark:text-gray-400">
+                        {formatDate(user.created_at)}
+                      </td>
+                      <td className="px-6 py-4 text-sm font-medium text-right whitespace-nowrap">
                         <div className="flex justify-end space-x-2">
                           {/* Don't show actions for current user or super admins (unless current user is super admin) */}
                           {user.id !== currentUser?.id && (
@@ -507,7 +573,7 @@ const AdminUsersPage: React.FC = () => {
                             </>
                           )}
                           {user.id === currentUser?.id && (
-                            <span className="text-gray-400 dark:text-gray-500 italic">
+                            <span className="italic text-gray-400 dark:text-gray-500">
                               You
                             </span>
                           )}
@@ -522,19 +588,19 @@ const AdminUsersPage: React.FC = () => {
 
           {/* Pagination */}
           {!loading && users.length > 0 && (
-            <div className="bg-white dark:bg-gray-800 px-4 py-3 flex items-center justify-between border-t border-gray-200 dark:border-gray-700 sm:px-6">
-              <div className="flex-1 flex justify-between sm:hidden">
+            <div className="flex items-center justify-between px-4 py-3 bg-white border-t border-gray-200 dark:bg-gray-800 dark:border-gray-700 sm:px-6">
+              <div className="flex justify-between flex-1 sm:hidden">
                 <button
                   onClick={() => setPage(Math.max(1, page - 1))}
                   disabled={page === 1}
-                  className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                  className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md dark:border-gray-600 dark:text-gray-200 dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                 >
                   Previous
                 </button>
                 <button
                   onClick={() => setPage(Math.min(totalPages, page + 1))}
                   disabled={page === totalPages}
-                  className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 text-sm font-medium rounded-md text-gray-700 dark:text-gray-200 bg-white dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                  className="relative inline-flex items-center px-4 py-2 ml-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md dark:border-gray-600 dark:text-gray-200 dark:bg-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                 >
                   Next
                 </button>
@@ -554,21 +620,21 @@ const AdminUsersPage: React.FC = () => {
                   </p>
                 </div>
                 <div>
-                  <nav className="relative z-0 inline-flex rounded-md shadow-sm -space-x-px">
+                  <nav className="relative z-0 inline-flex -space-x-px rounded-md shadow-sm">
                     <button
                       onClick={() => setPage(Math.max(1, page - 1))}
                       disabled={page === 1}
-                      className="relative inline-flex items-center px-2 py-2 rounded-l-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                      className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-l-md dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                     >
                       Previous
                     </button>
-                    <span className="relative inline-flex items-center px-4 py-2 border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 text-sm font-medium text-gray-700 dark:text-gray-200">
+                    <span className="relative inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200">
                       Page {page} of {totalPages}
                     </span>
                     <button
                       onClick={() => setPage(Math.min(totalPages, page + 1))}
                       disabled={page === totalPages}
-                      className="relative inline-flex items-center px-2 py-2 rounded-r-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-sm font-medium text-gray-500 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
+                      className="relative inline-flex items-center px-2 py-2 text-sm font-medium text-gray-500 bg-white border border-gray-300 rounded-r-md dark:border-gray-600 dark:bg-gray-700 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50"
                     >
                       Next
                     </button>
@@ -584,14 +650,14 @@ const AdminUsersPage: React.FC = () => {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
               <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 transition-opacity bg-gray-500 bg-opacity-75"
                 onClick={() => setShowDeactivateModal(false)}
               />
-              <div className="relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl dark:bg-gray-800 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 <div>
-                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-yellow-100 dark:bg-yellow-900">
+                  <div className="flex items-center justify-center w-12 h-12 mx-auto bg-yellow-100 rounded-full dark:bg-yellow-900">
                     <svg
-                      className="h-6 w-6 text-yellow-600 dark:text-yellow-400"
+                      className="w-6 h-6 text-yellow-600 dark:text-yellow-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -605,7 +671,7 @@ const AdminUsersPage: React.FC = () => {
                     </svg>
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
                       Deactivate User
                     </h3>
                     <div className="mt-2">
@@ -618,7 +684,7 @@ const AdminUsersPage: React.FC = () => {
                     <div className="mt-4">
                       <label
                         htmlFor="reason"
-                        className="block text-sm font-medium text-gray-700 dark:text-gray-300 text-left"
+                        className="block text-sm font-medium text-left text-gray-700 dark:text-gray-300"
                       >
                         Reason (optional)
                       </label>
@@ -627,7 +693,7 @@ const AdminUsersPage: React.FC = () => {
                         rows={3}
                         value={deactivateReason}
                         onChange={(e) => setDeactivateReason(e.target.value)}
-                        className="mt-1 block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="block w-full px-3 py-2 mt-1 text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                         placeholder="Enter reason for deactivation..."
                       />
                     </div>
@@ -638,7 +704,7 @@ const AdminUsersPage: React.FC = () => {
                     type="button"
                     onClick={handleDeactivate}
                     disabled={actionLoading === selectedUser.id}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-yellow-600 text-base font-medium text-white hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
+                    className="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-yellow-600 border border-transparent rounded-md shadow-sm hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
                   >
                     {actionLoading === selectedUser.id
                       ? "Processing..."
@@ -650,7 +716,7 @@ const AdminUsersPage: React.FC = () => {
                       setShowDeactivateModal(false);
                       setDeactivateReason("");
                     }}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                    className="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
                   >
                     Cancel
                   </button>
@@ -665,14 +731,14 @@ const AdminUsersPage: React.FC = () => {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
               <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 transition-opacity bg-black/50"
                 onClick={() => setShowDeleteModal(false)}
               />
-              <div className="relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl dark:bg-gray-800 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 <div>
-                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 dark:bg-red-900">
+                  <div className="flex items-center justify-center w-12 h-12 mx-auto bg-red-100 rounded-full dark:bg-red-900">
                     <svg
-                      className="h-6 w-6 text-red-600 dark:text-red-400"
+                      className="w-6 h-6 text-red-600 dark:text-red-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -686,7 +752,7 @@ const AdminUsersPage: React.FC = () => {
                     </svg>
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
                       Delete User Permanently
                     </h3>
                     <div className="mt-2">
@@ -704,7 +770,7 @@ const AdminUsersPage: React.FC = () => {
                     type="button"
                     onClick={handleDelete}
                     disabled={actionLoading === selectedUser.id}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-red-600 text-base font-medium text-white hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
+                    className="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-red-600 border border-transparent rounded-md shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-red-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
                   >
                     {actionLoading === selectedUser.id
                       ? "Processing..."
@@ -713,7 +779,7 @@ const AdminUsersPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowDeleteModal(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                    className="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
                   >
                     Cancel
                   </button>
@@ -728,14 +794,14 @@ const AdminUsersPage: React.FC = () => {
           <div className="fixed inset-0 z-50 overflow-y-auto">
             <div className="flex items-center justify-center min-h-screen px-4 pt-4 pb-20 text-center sm:p-0">
               <div
-                className="fixed inset-0 bg-gray-500 bg-opacity-75 transition-opacity"
+                className="fixed inset-0 transition-opacity bg-black/50"
                 onClick={() => setShowRoleModal(false)}
               />
-              <div className="relative inline-block align-bottom bg-white dark:bg-gray-800 rounded-lg px-4 pt-5 pb-4 text-left overflow-hidden shadow-xl transform transition-all sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
+              <div className="relative inline-block px-4 pt-5 pb-4 overflow-hidden text-left align-bottom transition-all transform bg-white rounded-lg shadow-xl dark:bg-gray-800 sm:my-8 sm:align-middle sm:max-w-lg sm:w-full sm:p-6">
                 <div>
-                  <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-indigo-100 dark:bg-indigo-900">
+                  <div className="flex items-center justify-center w-12 h-12 mx-auto bg-indigo-100 rounded-full dark:bg-indigo-900">
                     <svg
-                      className="h-6 w-6 text-indigo-600 dark:text-indigo-400"
+                      className="w-6 h-6 text-indigo-600 dark:text-indigo-400"
                       fill="none"
                       viewBox="0 0 24 24"
                       stroke="currentColor"
@@ -749,7 +815,7 @@ const AdminUsersPage: React.FC = () => {
                     </svg>
                   </div>
                   <div className="mt-3 text-center sm:mt-5">
-                    <h3 className="text-lg leading-6 font-medium text-gray-900 dark:text-white">
+                    <h3 className="text-lg font-medium leading-6 text-gray-900 dark:text-white">
                       Update User Role
                     </h3>
                     <div className="mt-2">
@@ -762,7 +828,7 @@ const AdminUsersPage: React.FC = () => {
                       <select
                         value={newRole}
                         onChange={(e) => setNewRole(e.target.value as UserRole)}
-                        className="block w-full border border-gray-300 dark:border-gray-600 rounded-md shadow-sm py-2 px-3 bg-white dark:bg-gray-700 text-gray-900 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                        className="block w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                       >
                         <option value="user">User</option>
                         <option value="admin">Admin</option>
@@ -776,7 +842,7 @@ const AdminUsersPage: React.FC = () => {
                     type="button"
                     onClick={handleUpdateRole}
                     disabled={actionLoading === selectedUser.id}
-                    className="w-full inline-flex justify-center rounded-md border border-transparent shadow-sm px-4 py-2 bg-indigo-600 text-base font-medium text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
+                    className="inline-flex justify-center w-full px-4 py-2 text-base font-medium text-white bg-indigo-600 border border-transparent rounded-md shadow-sm hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:col-start-2 sm:text-sm disabled:opacity-50"
                   >
                     {actionLoading === selectedUser.id
                       ? "Processing..."
@@ -785,7 +851,7 @@ const AdminUsersPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => setShowRoleModal(false)}
-                    className="mt-3 w-full inline-flex justify-center rounded-md border border-gray-300 dark:border-gray-600 shadow-sm px-4 py-2 bg-white dark:bg-gray-700 text-base font-medium text-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
+                    className="inline-flex justify-center w-full px-4 py-2 mt-3 text-base font-medium text-gray-700 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-gray-200 hover:bg-gray-50 dark:hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 sm:mt-0 sm:col-start-1 sm:text-sm"
                   >
                     Cancel
                   </button>

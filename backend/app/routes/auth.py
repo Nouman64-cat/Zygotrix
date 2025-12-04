@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from datetime import datetime, timezone
 
 from ..dependencies import get_current_user
@@ -50,12 +50,43 @@ def resend_signup_otp(payload: SignupResendRequest) -> SignupInitiateResponse:
     )
 
 
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP from request, handling proxies."""
+    # Check for forwarded headers (when behind proxy/load balancer)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        # Get the first IP in the chain (original client)
+        return forwarded_for.split(",")[0].strip()
+
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip.strip()
+
+    # Fall back to direct client IP
+    return request.client.host if request.client else "Unknown"
+
+
 @router.post("/login", response_model=AuthResponse)
-def login(payload: UserLoginRequest) -> AuthResponse:
+def login(payload: UserLoginRequest, request: Request) -> AuthResponse:
+    print(f"[DEBUG LOGIN] Login attempt for: {payload.email}")
     user = services.authenticate_user(
         email=payload.email,
         password=payload.password.get_secret_value(),
     )
+    print(f"[DEBUG LOGIN] User authenticated: {user['id']}")
+
+    # Update user activity with IP and browser info
+    ip_address = _get_client_ip(request)
+    user_agent = request.headers.get("User-Agent")
+    print(
+        f"[DEBUG LOGIN] Calling update_user_activity with id={user['id']}, ip={ip_address}")
+    services.update_user_activity(
+        user_id=user["id"],
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
+    print(f"[DEBUG LOGIN] update_user_activity completed")
+
     return AuthResponse(**services.build_auth_response(user))
 
 

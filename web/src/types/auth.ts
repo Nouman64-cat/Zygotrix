@@ -46,6 +46,11 @@ export type UserProfile = {
   is_active?: boolean | null;
   deactivated_at?: string | null;
   deactivated_by?: string | null;
+  // Activity tracking fields
+  last_accessed_at?: string | null;
+  last_ip_address?: string | null;
+  last_location?: string | null;
+  last_browser?: string | null;
 };
 
 export type UpdateProfilePayload = {
@@ -127,6 +132,11 @@ export type AdminUserListItem = {
   onboarding_completed?: boolean;
   university_onboarding_completed?: boolean;
   deactivated_at?: string | null;
+  // Activity tracking fields
+  last_accessed_at?: string | null;
+  last_ip_address?: string | null;
+  last_location?: string | null;
+  last_browser?: string | null;
 };
 
 export type AdminUserListResponse = {

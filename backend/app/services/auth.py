@@ -30,6 +30,18 @@ def _clean_full_name(full_name: Optional[str]) -> Optional[str]:
     return cleaned or None
 
 
+def _serialize_datetime(dt: Any) -> Optional[str]:
+    """Helper to serialize datetime to ISO format string."""
+    if isinstance(dt, datetime):
+        # If datetime is naive (no timezone), assume it's UTC
+        if dt.tzinfo is None:
+            utc_dt = dt.replace(tzinfo=timezone.utc)
+        else:
+            utc_dt = dt.astimezone(timezone.utc)
+        return utc_dt.strftime("%Y-%m-%dT%H:%M:%S.%f")[:-3] + "Z"
+    return None
+
+
 def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
     created_at = document.get("created_at")
     if isinstance(created_at, datetime):
@@ -77,6 +89,11 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
         "is_active": document.get("is_active", True),
         "deactivated_at": deactivated_iso,
         "deactivated_by": document.get("deactivated_by"),
+        # Activity tracking fields
+        "last_accessed_at": _serialize_datetime(document.get("last_accessed_at")),
+        "last_ip_address": document.get("last_ip_address"),
+        "last_location": document.get("last_location"),
+        "last_browser": document.get("last_browser"),
     }
 
 
@@ -571,3 +588,99 @@ def update_user_profile(user_id: str, updates: Dict[str, Any]) -> Dict[str, Any]
         raise HTTPException(
             status_code=500, detail=f"Failed to update profile: {exc}"
         ) from exc
+
+
+def _parse_user_agent(user_agent: Optional[str]) -> str:
+    """Parse user agent string to get browser info."""
+    if not user_agent:
+        return "Unknown"
+
+    # Simple parsing - can be enhanced with user-agents library
+    ua_lower = user_agent.lower()
+
+    if "edge" in ua_lower or "edg/" in ua_lower:
+        return "Microsoft Edge"
+    elif "chrome" in ua_lower and "chromium" not in ua_lower:
+        return "Google Chrome"
+    elif "firefox" in ua_lower:
+        return "Mozilla Firefox"
+    elif "safari" in ua_lower and "chrome" not in ua_lower:
+        return "Apple Safari"
+    elif "opera" in ua_lower or "opr/" in ua_lower:
+        return "Opera"
+    elif "msie" in ua_lower or "trident" in ua_lower:
+        return "Internet Explorer"
+    else:
+        return "Unknown Browser"
+
+
+def _get_location_from_ip(ip_address: Optional[str]) -> Optional[str]:
+    """Get location from IP address using free IP geolocation API."""
+    if not ip_address or ip_address in ["127.0.0.1", "localhost", "::1"]:
+        return "Local"
+
+    try:
+        # Using ip-api.com (free tier, 45 requests per minute)
+        response = httpx.get(
+            f"http://ip-api.com/json/{ip_address}?fields=status,country,city",
+            timeout=5.0
+        )
+        if response.status_code == 200:
+            data = response.json()
+            if data.get("status") == "success":
+                city = data.get("city", "")
+                country = data.get("country", "")
+                if city and country:
+                    return f"{city}, {country}"
+                return country or city or None
+    except Exception:
+        pass
+
+    return None
+
+
+def update_user_activity(
+    user_id: str,
+    ip_address: Optional[str] = None,
+    user_agent: Optional[str] = None
+) -> None:
+    """Update user's last activity information."""
+    print(f"[DEBUG UPDATE] Starting update for user_id={user_id}")
+    collection = get_users_collection(required=True)
+    assert collection is not None, "Users collection is required"
+
+    try:
+        object_id = ObjectId(user_id)
+    except Exception as e:
+        print(f"[DEBUG UPDATE] Invalid ObjectId: {e}")
+        return
+
+    now = datetime.now(timezone.utc)
+    print(f"[DEBUG UPDATE] Current UTC time: {now}")
+
+    updates: Dict[str, Any] = {
+        "last_accessed_at": now,
+    }
+
+    if ip_address:
+        updates["last_ip_address"] = ip_address
+        location = _get_location_from_ip(ip_address)
+        if location:
+            updates["last_location"] = location
+
+    if user_agent:
+        updates["last_browser"] = _parse_user_agent(user_agent)
+
+    print(f"[DEBUG UPDATE] Updates to apply: {updates}")
+
+    try:
+        result = collection.update_one(
+            {"_id": object_id},
+            {"$set": updates}
+        )
+        print(
+            f"[DEBUG UPDATE] MongoDB result: matched={result.matched_count}, modified={result.modified_count}")
+        # Clear cache for this user
+        clear_user_cache(user_id)
+    except PyMongoError:
+        pass  # Silently fail - activity tracking is not critical

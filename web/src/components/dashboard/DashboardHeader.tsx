@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from "react-router-dom";
 import logo from "../../../public/zygotrix-logo.png";
 import { useAuth } from "../../context/AuthContext";
+import { useTheme } from "../../context/ThemeContext";
 
 interface DashboardHeaderProps {
   onMenuToggle?: () => void;
@@ -9,9 +10,82 @@ interface DashboardHeaderProps {
 
 const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }) => {
   const { user, signOut } = useAuth();
+  const { theme, setTheme, resolvedTheme } = useTheme();
 
   const handleSignOut = () => {
     signOut();
+  };
+
+  const cycleTheme = () => {
+    // Cycle through: light -> dark -> auto -> light
+    if (theme === "light") {
+      setTheme("dark");
+    } else if (theme === "dark") {
+      setTheme("auto");
+    } else {
+      setTheme("light");
+    }
+  };
+
+  const getThemeIcon = () => {
+    if (theme === "auto") {
+      // Auto/System icon
+      return (
+        <svg
+          className="w-5 h-5 text-slate-600 dark:text-slate-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+          />
+        </svg>
+      );
+    } else if (resolvedTheme === "dark") {
+      // Moon icon for dark mode
+      return (
+        <svg
+          className="w-5 h-5 text-slate-600 dark:text-slate-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"
+          />
+        </svg>
+      );
+    } else {
+      // Sun icon for light mode
+      return (
+        <svg
+          className="w-5 h-5 text-slate-600 dark:text-slate-300"
+          fill="none"
+          stroke="currentColor"
+          viewBox="0 0 24 24"
+        >
+          <path
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            strokeWidth={2}
+            d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"
+          />
+        </svg>
+      );
+    }
+  };
+
+  const getThemeLabel = () => {
+    if (theme === "auto") return "System";
+    if (theme === "dark") return "Dark";
+    return "Light";
   };
 
   return (
@@ -53,7 +127,24 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }) => {
         </div>
 
         {/* Right section with user info and actions */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-2 sm:gap-4">
+          {/* Theme Toggle */}
+          <div className="relative group">
+            <button
+              onClick={cycleTheme}
+              className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors"
+              aria-label={`Current theme: ${getThemeLabel()}. Click to change.`}
+            >
+              {getThemeIcon()}
+            </button>
+            {/* Tooltip */}
+            <div className="absolute right-0 top-full mt-2 px-3 py-2 bg-gray-900 text-white text-xs rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
+              Theme: {getThemeLabel()}
+              <br />
+              <span className="text-gray-400">Click to change</span>
+            </div>
+          </div>
+
           {/* Notifications */}
           <button className="p-2 rounded-md hover:bg-slate-100 dark:hover:bg-slate-700 transition-colors relative">
             <svg
@@ -78,7 +169,9 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }) => {
               <p className="text-sm font-medium text-slate-900 dark:text-white">
                 {user?.full_name || "User"}
               </p>
-              <p className="text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                {user?.email}
+              </p>
             </div>
 
             <div className="relative group">

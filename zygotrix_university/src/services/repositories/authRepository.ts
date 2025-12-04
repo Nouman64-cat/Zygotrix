@@ -1,6 +1,11 @@
 import apiClient from "../apiClient";
 import { API_ROUTES } from "../apiConstants";
-import type { AuthResponse, MessageResponse, SignupInitiateResponse, UserProfile } from "../../types/auth";
+import type {
+  AuthResponse,
+  MessageResponse,
+  SignupInitiateResponse,
+  UserProfile,
+} from "../../types/auth";
 
 interface SignupRequest {
   email: string;
@@ -36,7 +41,9 @@ export const authRepository = {
   },
 
   async resendSignup(email: string): Promise<SignupInitiateResponse> {
-    const response = await apiClient.post(API_ROUTES.auth.signupResend, { email });
+    const response = await apiClient.post(API_ROUTES.auth.signupResend, {
+      email,
+    });
     const data = response.data as { message: string; expires_at: string };
     return {
       message: data.message,
@@ -53,6 +60,15 @@ export const authRepository = {
         id: string;
         email: string;
         full_name?: string | null;
+        learning_goals?: string[] | null;
+        experience_level?: string | null;
+        learning_style?: string | null;
+        topics_of_interest?: string[] | null;
+        time_commitment?: string | null;
+        institution?: string | null;
+        role?: string | null;
+        field_of_study?: string | null;
+        university_onboarding_completed?: boolean;
         created_at: string;
       };
     };
@@ -64,6 +80,16 @@ export const authRepository = {
         id: data.user.id,
         email: data.user.email,
         fullName: data.user.full_name ?? null,
+        learningGoals: data.user.learning_goals ?? null,
+        experienceLevel: data.user.experience_level ?? null,
+        learningStyle: data.user.learning_style ?? null,
+        topicsOfInterest: data.user.topics_of_interest ?? null,
+        timeCommitment: data.user.time_commitment ?? null,
+        institution: data.user.institution ?? null,
+        role: data.user.role ?? null,
+        fieldOfStudy: data.user.field_of_study ?? null,
+        universityOnboardingCompleted:
+          data.user.university_onboarding_completed ?? false,
         createdAt: data.user.created_at,
       },
     };
@@ -75,12 +101,31 @@ export const authRepository = {
       id: string;
       email: string;
       full_name?: string | null;
+      learning_goals?: string[] | null;
+      experience_level?: string | null;
+      learning_style?: string | null;
+      topics_of_interest?: string[] | null;
+      time_commitment?: string | null;
+      institution?: string | null;
+      role?: string | null;
+      field_of_study?: string | null;
+      university_onboarding_completed?: boolean;
       created_at: string;
     };
     return {
       id: data.id,
       email: data.email,
       fullName: data.full_name ?? null,
+      learningGoals: data.learning_goals ?? null,
+      experienceLevel: data.experience_level ?? null,
+      learningStyle: data.learning_style ?? null,
+      topicsOfInterest: data.topics_of_interest ?? null,
+      timeCommitment: data.time_commitment ?? null,
+      institution: data.institution ?? null,
+      role: data.role ?? null,
+      fieldOfStudy: data.field_of_study ?? null,
+      universityOnboardingCompleted:
+        data.university_onboarding_completed ?? false,
       createdAt: data.created_at,
     };
   },

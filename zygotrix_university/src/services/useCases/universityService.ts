@@ -582,4 +582,13 @@ export const universityService = {
       return [];
     }
   },
+
+  async completeOnboarding(
+    payload: import("../../types/auth").UniversityOnboardingPayload
+  ): Promise<import("../../types/auth").UserProfile> {
+    const { completeUniversityOnboarding } = await import(
+      "../repositories/universityRepository"
+    );
+    return await completeUniversityOnboarding(payload);
+  },
 };

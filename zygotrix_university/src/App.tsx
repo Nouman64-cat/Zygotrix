@@ -4,6 +4,7 @@ import MainLayout from "./layouts/MainLayout";
 import DashboardLayout from "./layouts/DashboardLayout";
 import HomePage from "./pages/HomePage";
 import NotFoundPage from "./pages/NotFoundPage";
+import OnboardingPage from "./pages/OnboardingPage";
 import OverviewDashboardPage from "./pages/dashboard/OverviewDashboardPage";
 import CoursesDashboardPage from "./pages/dashboard/CoursesDashboardPage";
 import BrowseCoursesPage from "./pages/dashboard/BrowseCoursesPage";
@@ -27,6 +28,14 @@ const App = () => {
         </Route>
         <Route path="signin" element={<SignInPage />} />
         <Route path="signup" element={<SignUpPage />} />
+        <Route
+          path="onboarding"
+          element={
+            <ProtectedRoute>
+              <OnboardingPage />
+            </ProtectedRoute>
+          }
+        />
 
         {/* Assessment Page - No Dashboard Layout */}
         <Route

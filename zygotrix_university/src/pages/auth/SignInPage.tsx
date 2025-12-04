@@ -9,7 +9,7 @@ const SignInPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const params = new URLSearchParams(location.search);
-  const redirectTo = params.get("redirect") ?? "/university";
+  const defaultRedirect = "/university";
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -17,19 +17,27 @@ const SignInPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
 
+  // Helper to determine where to redirect based on onboarding status
+  const getRedirectPath = (userProfile: typeof user) => {
+    if (userProfile && !userProfile.universityOnboardingCompleted) {
+      return "/onboarding";
+    }
+    return params.get("redirect") ?? defaultRedirect;
+  };
+
   useEffect(() => {
     if (user) {
-      navigate(redirectTo, { replace: true });
+      navigate(getRedirectPath(user), { replace: true });
     }
-  }, [user, redirectTo, navigate]);
+  }, [user, navigate]);
 
   const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     setError(null);
     setSubmitting(true);
     try {
-      await signIn(email.trim(), password);
-      navigate(redirectTo, { replace: true });
+      const loggedInUser = await signIn(email.trim(), password);
+      navigate(getRedirectPath(loggedInUser), { replace: true });
     } catch {
       setError(
         "Unable to sign in. Please check your credentials and try again."

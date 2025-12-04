@@ -143,3 +143,13 @@ export const generateCertificate = async (
   );
   return response.data;
 };
+
+export const completeUniversityOnboarding = async (
+  payload: import("../../types/auth").UniversityOnboardingPayload
+): Promise<import("../../types/auth").UserProfile> => {
+  const response = await apiClient.post<import("../../types/auth").UserProfile>(
+    API_ROUTES.university.onboarding,
+    payload
+  );
+  return response.data;
+};

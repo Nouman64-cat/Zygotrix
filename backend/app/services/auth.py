@@ -2,7 +2,10 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any, Mapping, cast
 from bson import ObjectId
 from pymongo.collection import Collection
-import secrets, string, httpx, jwt
+import secrets
+import string
+import httpx
+import jwt
 from fastapi import HTTPException
 from passlib.context import CryptContext
 from pymongo.errors import DuplicateKeyError, PyMongoError
@@ -51,6 +54,15 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
         "use_case": document.get("use_case"),
         "organism_focus": document.get("organism_focus"),
         "onboarding_completed": document.get("onboarding_completed", False),
+        # University-specific onboarding fields
+        "learning_goals": document.get("learning_goals"),
+        "learning_style": document.get("learning_style"),
+        "topics_of_interest": document.get("topics_of_interest"),
+        "time_commitment": document.get("time_commitment"),
+        "institution": document.get("institution"),
+        "role": document.get("role"),
+        "field_of_study": document.get("field_of_study"),
+        "university_onboarding_completed": document.get("university_onboarding_completed", False),
         "preferences": document.get("preferences"),
         "created_at": created_iso,
     }
@@ -59,7 +71,8 @@ def _serialize_user(document: Mapping[str, Any]) -> Dict[str, Any]:
 def hash_password(password: str) -> str:
     # bcrypt has a 72-byte limit, truncate if necessary
     if len(password.encode("utf-8")) > 72:
-        password = password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
+        password = password.encode(
+            "utf-8")[:72].decode("utf-8", errors="ignore")
     return _password_context.hash(password)
 
 
@@ -67,7 +80,8 @@ def verify_password(password: str, password_hash: str) -> bool:
     try:
         # Apply same 72-byte truncation as hash_password for consistency
         if len(password.encode("utf-8")) > 72:
-            password = password.encode("utf-8")[:72].decode("utf-8", errors="ignore")
+            password = password.encode(
+                "utf-8")[:72].decode("utf-8", errors="ignore")
         return _password_context.verify(password, password_hash)
     except ValueError:
         return False
@@ -138,7 +152,8 @@ def _insert_user_document(
     try:
         result = collection.insert_one(document)
     except DuplicateKeyError:
-        raise HTTPException(status_code=400, detail="Email is already registered.")
+        raise HTTPException(
+            status_code=400, detail="Email is already registered.")
     except PyMongoError as exc:
         raise HTTPException(
             status_code=500, detail=f"Failed to create user: {exc}"
@@ -190,7 +205,8 @@ def _extract_resend_error(response: httpx.Response) -> str:
         return text or response.reason_phrase or "unknown error"
     if isinstance(data, dict):
         return str(
-            data.get("message") or data.get("error") or data.get("detail") or data
+            data.get("message") or data.get(
+                "error") or data.get("detail") or data
         )
     return str(data)
 
@@ -201,7 +217,8 @@ def send_signup_otp_email(
     settings = get_settings()
     api_key = settings.resend_api_key
     if not api_key:
-        raise HTTPException(status_code=503, detail="Email service is not configured.")
+        raise HTTPException(
+            status_code=503, detail="Email service is not configured.")
     if api_key.startswith("test"):
         return
     subject = "Your Zygotrix verification code"
@@ -277,12 +294,15 @@ def request_signup_otp(email: str, password: str, full_name: Optional[str]) -> d
     # In development mode, bypass OTP and create the account immediately
     if get_settings().is_development:
         if _get_user_document_by_email(email):
-            raise HTTPException(status_code=400, detail="Email is already registered.")
-        create_user_account(email=email, password=password, full_name=full_name)
+            raise HTTPException(
+                status_code=400, detail="Email is already registered.")
+        create_user_account(email=email, password=password,
+                            full_name=full_name)
         # Return an immediate expiry timestamp; route will still fit response model
         return datetime.now(timezone.utc)
     if _get_user_document_by_email(email):
-        raise HTTPException(status_code=400, detail="Email is already registered.")
+        raise HTTPException(
+            status_code=400, detail="Email is already registered.")
     collection = get_pending_signups_collection(required=True)
     assert collection is not None, "Pending signups collection is required"
     normalized_email = _normalize_email(email)
@@ -309,7 +329,8 @@ def request_signup_otp(email: str, password: str, full_name: Optional[str]) -> d
         raise HTTPException(
             status_code=500, detail=f"Failed to start signup: {exc}"
         ) from exc
-    send_signup_otp_email(normalized_email, otp_code, pending_document["full_name"])
+    send_signup_otp_email(normalized_email, otp_code,
+                          pending_document["full_name"])
     return expires_at
 
 
@@ -351,7 +372,8 @@ def verify_signup_otp(email: str, otp: str) -> Dict[str, Any]:
             {"email": normalized_email},
             {"$inc": {"otp_attempts": 1}, "$set": {"updated_at": now}},
         )
-        raise HTTPException(status_code=400, detail="Invalid OTP. Please try again.")
+        raise HTTPException(
+            status_code=400, detail="Invalid OTP. Please try again.")
     password_hash = str(pending.get("password_hash", ""))
     full_name = pending.get("full_name")
     user = _insert_user_document(normalized_email, password_hash, full_name)
@@ -399,7 +421,8 @@ def authenticate_user(email: str, password: str) -> Dict[str, Any]:
     assert collection is not None, "Users collection is required"
     user = collection.find_one({"email": _normalize_email(email)})
     if not user or not verify_password(password, str(user.get("password_hash", ""))):
-        raise HTTPException(status_code=401, detail="Invalid email or password.")
+        raise HTTPException(
+            status_code=401, detail="Invalid email or password.")
     return _serialize_user(user)
 
 
@@ -455,7 +478,8 @@ def decode_access_token(token: str) -> Dict[str, Any]:
     settings = get_settings()
     try:
         return jwt.decode(
-            token, settings.auth_secret_key, algorithms=[settings.auth_jwt_algorithm]
+            token, settings.auth_secret_key, algorithms=[
+                settings.auth_jwt_algorithm]
         )
     except jwt.ExpiredSignatureError as exc:
         raise HTTPException(
@@ -471,7 +495,8 @@ def resolve_user_from_token(token: str) -> Dict[str, Any]:
     payload = decode_access_token(token)
     user_id = payload.get("sub")
     if not isinstance(user_id, str):
-        raise HTTPException(status_code=401, detail="Invalid authentication token.")
+        raise HTTPException(
+            status_code=401, detail="Invalid authentication token.")
     return get_user_by_id(user_id)
 
 

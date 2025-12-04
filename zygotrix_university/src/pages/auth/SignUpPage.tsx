@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import {
   FiArrowLeft,
   FiArrowRight,
@@ -12,8 +12,11 @@ import {
 } from "react-icons/fi";
 import AccentButton from "../../components/common/AccentButton";
 import { authService } from "../../services/useCases/authService";
+import { useAuth } from "../../context/AuthContext";
 
 const SignUpPage = () => {
+  const navigate = useNavigate();
+  const { signIn } = useAuth();
   const [email, setEmail] = useState("");
   const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
@@ -57,8 +60,10 @@ const SignUpPage = () => {
     setError(null);
     setSubmitting(true);
     try {
-      const response = await authService.verifySignup(email.trim(), otp.trim());
-      setMessage(response.message + " You can now sign in.");
+      await authService.verifySignup(email.trim(), otp.trim());
+      // Auto sign in and redirect to onboarding
+      await signIn(email.trim(), password);
+      navigate("/onboarding");
     } catch {
       setError("Invalid code. Please verify and try again.");
     } finally {

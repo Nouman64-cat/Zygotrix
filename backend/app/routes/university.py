@@ -5,7 +5,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from ..schema.auth import UserProfile
+from ..schema.auth import UserProfile, UniversityOnboardingRequest
 from ..services import auth as auth_services
 from ..services import university as university_services
 from ..services.email_service import EmailService
@@ -260,3 +260,14 @@ def clear_cache(
     if cleared > 0:
         return {"cleared": cleared}
     raise HTTPException(status_code=500, detail="Failed to clear cache")
+
+
+@router.post("/onboarding", response_model=UserProfile)
+def complete_university_onboarding(
+    payload: UniversityOnboardingRequest,
+    current_user: UserProfile = Depends(get_current_user_required),
+) -> UserProfile:
+    """Complete Zygotrix University user onboarding and save learning preferences."""
+    updates = payload.model_dump(exclude_unset=True)
+    updated_user = auth_services.update_user_profile(current_user.id, updates)
+    return UserProfile(**updated_user)

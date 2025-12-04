@@ -23,6 +23,15 @@ class UserProfile(BaseModel):
     use_case: Optional[str] = None
     organism_focus: Optional[list[str]] = None
     onboarding_completed: Optional[bool] = False
+    # University-specific onboarding fields
+    learning_goals: Optional[list[str]] = None
+    learning_style: Optional[str] = None
+    topics_of_interest: Optional[list[str]] = None
+    time_commitment: Optional[str] = None
+    institution: Optional[str] = None
+    role: Optional[str] = None
+    field_of_study: Optional[str] = None
+    university_onboarding_completed: Optional[bool] = False
     preferences: Optional[dict] = None
     created_at: str
 
@@ -56,12 +65,27 @@ class OnboardingRequest(BaseModel):
     onboarding_completed: bool = True
 
 
+class UniversityOnboardingRequest(BaseModel):
+    """Payload for completing Zygotrix University user onboarding."""
+
+    learning_goals: Optional[list[str]] = None
+    experience_level: Optional[str] = None
+    learning_style: Optional[str] = None
+    topics_of_interest: Optional[list[str]] = None
+    time_commitment: Optional[str] = None
+    institution: Optional[str] = None
+    role: Optional[str] = None
+    field_of_study: Optional[str] = None
+    university_onboarding_completed: bool = True
+
+
 class SignupInitiateRequest(BaseModel):
     """Payload required to start the signup process."""
 
     email: EmailStr
     password: SecretStr
-    full_name: Optional[str] = Field(default=None, description="Optional display name.")
+    full_name: Optional[str] = Field(
+        default=None, description="Optional display name.")
 
     @field_validator("password")
     @classmethod

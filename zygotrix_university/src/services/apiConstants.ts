@@ -25,6 +25,7 @@ export const API_ROUTES = {
       `/api/university/assessments/history/${encodeURIComponent(slug)}`,
     certificate: (slug: string) =>
       `/api/university/courses/${encodeURIComponent(slug)}/certificate`,
+    onboarding: "/api/university/onboarding",
   },
 } as const;
 

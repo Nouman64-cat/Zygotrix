@@ -180,8 +180,8 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
 
   return (
     <>
-      <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-        <div className="bg-white rounded-xl shadow-2xl max-w-7xl w-full max-h-[85vh] overflow-hidden flex flex-col border border-gray-100">
+      <div className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4">
+        <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-7xl w-full max-h-[85vh] overflow-hidden flex flex-col border border-gray-100 dark:border-slate-700">
           {/* Primary Header */}
           <HeaderBar
             title="Study Setup"
@@ -209,7 +209,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                 />
                 <button
                   onClick={onClose}
-                  className="p-2 text-gray-400 cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+                  className="p-2 text-gray-400 dark:text-slate-400 cursor-pointer hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-all duration-200"
                 >
                   <XMarkIcon className="h-5 w-5" />
                 </button>
@@ -220,7 +220,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
           {/* Main Content Area */}
           <div className="flex flex-1 overflow-hidden">
             {/* Left Column - Study Details */}
-            <div className="w-80 p-5 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 border-r border-gray-200 overflow-y-auto">
+            <div className="w-80 p-5 bg-gradient-to-br from-blue-50/50 to-indigo-50/50 dark:from-slate-800/50 dark:to-slate-900/50 border-r border-gray-200 dark:border-slate-700 overflow-y-auto">
               <LabeledInput
                 label="Study Name"
                 value={project.name}
@@ -241,26 +241,28 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
               />
 
               <div className="mb-6">
-                <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 border border-indigo-200/50 rounded-xl p-4 shadow-sm">
+                <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-pink-50 dark:from-indigo-900/30 dark:via-purple-900/30 dark:to-pink-900/30 border border-indigo-200/50 dark:border-indigo-700/50 rounded-xl p-4 shadow-sm">
                   <div className="flex items-center gap-2 mb-3">
                     <div className="w-6 h-6 bg-gradient-to-r from-indigo-500 to-purple-600 rounded-lg flex items-center justify-center">
                       <SparklesIcon className="h-3 w-3 text-white" />
                     </div>
-                    <div className="font-semibold text-sm text-gray-800">
+                    <div className="font-semibold text-sm text-gray-800 dark:text-slate-200">
                       Selected Traits
                     </div>
-                    <div className="ml-auto bg-indigo-100 text-indigo-700 text-xs font-bold px-2 py-1 rounded-full">
+                    <div className="ml-auto bg-indigo-100 dark:bg-indigo-900/50 text-indigo-700 dark:text-indigo-300 text-xs font-bold px-2 py-1 rounded-full">
                       {project.selectedTraits.length}/5
                     </div>
                   </div>
 
                   {project.selectedTraits.length === 0 ? (
                     <div className="text-center py-4">
-                      <div className="text-gray-400 text-2xl mb-2">🧬</div>
-                      <p className="text-xs text-gray-500 font-medium">
+                      <div className="text-gray-400 dark:text-slate-500 text-2xl mb-2">
+                        🧬
+                      </div>
+                      <p className="text-xs text-gray-500 dark:text-slate-400 font-medium">
                         No traits selected yet
                       </p>
-                      <p className="text-xs text-gray-400 mt-1">
+                      <p className="text-xs text-gray-400 dark:text-slate-500 mt-1">
                         Add traits from the browser →
                       </p>
                     </div>
@@ -286,11 +288,11 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                           <div
                             key={index}
                             className={`
-                              bg-white/70 backdrop-blur-sm rounded-lg p-3 border transition-all duration-200
+                              bg-white/70 dark:bg-slate-700/70 backdrop-blur-sm rounded-lg p-3 border transition-all duration-200
                               ${
                                 isComplete
-                                  ? "border-green-200 bg-green-50/30"
-                                  : "border-gray-200 bg-white/50"
+                                  ? "border-green-200 dark:border-green-700 bg-green-50/30 dark:bg-green-900/20"
+                                  : "border-gray-200 dark:border-slate-600 bg-white/50 dark:bg-slate-700/50"
                               }
                             `}
                           >
@@ -304,14 +306,14 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                     ${
                                       isComplete
                                         ? "bg-green-500 text-white"
-                                        : "bg-gray-300 text-gray-600"
+                                        : "bg-gray-300 dark:bg-slate-600 text-gray-600 dark:text-slate-300"
                                     }
                                   `}
                                   >
                                     {isComplete ? "✓" : index + 1}
                                   </div>
                                   <span
-                                    className="font-semibold text-sm text-gray-800 truncate"
+                                    className="font-semibold text-sm text-gray-800 dark:text-slate-200 truncate"
                                     title={trait.name}
                                   >
                                     {trait.name}
@@ -319,7 +321,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                                 </div>
 
                                 {!isComplete && (
-                                  <span className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-full font-medium flex-shrink-0">
+                                  <span className="text-xs text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-900/30 px-2 py-1 rounded-full font-medium flex-shrink-0">
                                     Configure →
                                   </span>
                                 )}
@@ -328,20 +330,20 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                               {/* Genetic cross display */}
                               {isComplete && (
                                 <div className="flex items-center justify-center gap-2 pt-1">
-                                  <div className="flex items-center gap-1 bg-purple-100/80 px-2 py-1 rounded-lg border border-purple-200/50">
-                                    <GiFemale className="h-3 w-3 text-purple-600 flex-shrink-0" />
-                                    <span className="text-purple-800 font-bold text-xs whitespace-nowrap">
+                                  <div className="flex items-center gap-1 bg-purple-100/80 dark:bg-purple-900/50 px-2 py-1 rounded-lg border border-purple-200/50 dark:border-purple-700/50">
+                                    <GiFemale className="h-3 w-3 text-purple-600 dark:text-purple-400 flex-shrink-0" />
+                                    <span className="text-purple-800 dark:text-purple-300 font-bold text-xs whitespace-nowrap">
                                       {parent1}
                                     </span>
                                   </div>
-                                  <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-r from-purple-100 to-blue-100 rounded-full border border-gray-200">
-                                    <span className="text-gray-600 font-bold text-sm">
+                                  <div className="flex items-center justify-center w-6 h-6 bg-gradient-to-r from-purple-100 to-blue-100 dark:from-purple-900/50 dark:to-blue-900/50 rounded-full border border-gray-200 dark:border-slate-600">
+                                    <span className="text-gray-600 dark:text-slate-300 font-bold text-sm">
                                       ×
                                     </span>
                                   </div>
-                                  <div className="flex items-center gap-1 bg-blue-100/80 px-2 py-1 rounded-lg border border-blue-200/50">
-                                    <IoMale className="h-3 w-3 text-blue-600 flex-shrink-0" />
-                                    <span className="text-blue-800 font-bold text-xs whitespace-nowrap">
+                                  <div className="flex items-center gap-1 bg-blue-100/80 dark:bg-blue-900/50 px-2 py-1 rounded-lg border border-blue-200/50 dark:border-blue-700/50">
+                                    <IoMale className="h-3 w-3 text-blue-600 dark:text-blue-400 flex-shrink-0" />
+                                    <span className="text-blue-800 dark:text-blue-300 font-bold text-xs whitespace-nowrap">
                                       {parent2}
                                     </span>
                                   </div>
@@ -358,7 +360,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
             </div>
 
             {/* Middle Column - Selected Traits Configuration */}
-            <div className="flex-1 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 border-r border-gray-200 p-5 overflow-y-auto">
+            <div className="flex-1 bg-gradient-to-br from-indigo-50/50 to-purple-50/50 dark:from-slate-800/50 dark:to-slate-900/50 border-r border-gray-200 dark:border-slate-700 p-5 overflow-y-auto">
               {project.selectedTraits.length === 0 ? (
                 <EmptyState message="Start Your Genetic Study" />
               ) : (
@@ -368,7 +370,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                   {project.selectedTraits.map((selectedTrait) => (
                     <div
                       key={selectedTrait.key}
-                      className="bg-white/90 backdrop-blur-sm border border-purple-200/60 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-purple-300/80"
+                      className="bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm border border-purple-200/60 dark:border-purple-700/60 rounded-2xl p-6 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-purple-300/80 dark:hover:border-purple-600/80"
                     >
                       {/* Trait Header */}
                       <SelectedTraitHeader
@@ -382,10 +384,10 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                         <div className="flex items-center justify-between flex-wrap gap-2 lg:gap-4">
                           {/* Parent 1 */}
                           <div className="relative flex-1 min-w-[140px]">
-                            <div className="absolute -top-2 left-3 bg-white px-2 z-10">
-                              <label className="text-xs font-bold text-purple-700 uppercase tracking-wider flex items-center space-x-1">
+                            <div className="absolute -top-2 left-3 bg-white dark:bg-slate-700 px-2 z-10">
+                              <label className="text-xs font-bold text-purple-700 dark:text-purple-400 uppercase tracking-wider flex items-center space-x-1">
                                 <span>Female Parent</span>
-                                <GiFemale className="h-4 w-4 text-purple-600" />
+                                <GiFemale className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                               </label>
                             </div>
                             <ParentGenotypeSelect
@@ -422,8 +424,8 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
 
                           {/* Cross Symbol */}
                           <div className="flex justify-center items-center mx-2">
-                            <div className="w-12 h-12 bg-gradient-to-r from-pink-100 to-purple-100 rounded-full flex items-center justify-center border-2 border-purple-200 shadow-sm">
-                              <span className="text-2xl font-bold text-purple-600">
+                            <div className="w-12 h-12 bg-gradient-to-r from-pink-100 to-purple-100 dark:from-pink-900/50 dark:to-purple-900/50 rounded-full flex items-center justify-center border-2 border-purple-200 dark:border-purple-700 shadow-sm">
+                              <span className="text-2xl font-bold text-purple-600 dark:text-purple-400">
                                 ×
                               </span>
                             </div>
@@ -431,10 +433,10 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
 
                           {/* Parent 2 */}
                           <div className="relative flex-1 min-w-[140px]">
-                            <div className="absolute -top-2 left-3 bg-white px-2 z-10">
-                              <label className="text-xs font-bold text-indigo-700 uppercase tracking-wider flex items-center space-x-1">
+                            <div className="absolute -top-2 left-3 bg-white dark:bg-slate-700 px-2 z-10">
+                              <label className="text-xs font-bold text-indigo-700 dark:text-indigo-400 uppercase tracking-wider flex items-center space-x-1">
                                 <span>Male Parent</span>
-                                <IoMale className="h-4 w-4 text-indigo-600" />
+                                <IoMale className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
                               </label>
                             </div>
                             <ParentGenotypeSelect
@@ -477,15 +479,17 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
 
               {/* Error display */}
               {simulationError && (
-                <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
-                  <p className="text-red-800 text-sm">{simulationError}</p>
+                <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-700 rounded-lg">
+                  <p className="text-red-800 dark:text-red-300 text-sm">
+                    {simulationError}
+                  </p>
                 </div>
               )}
               {/* SimulationButton moved to header */}
             </div>
 
             {/* Right Column - Trait Browser */}
-            <div className="w-80 p-5 bg-gradient-to-br from-purple-50/50 to-pink-50/50 overflow-y-auto">
+            <div className="w-80 p-5 bg-gradient-to-br from-purple-50/50 to-pink-50/50 dark:from-slate-800/50 dark:to-slate-900/50 overflow-y-auto">
               <TraitSelector
                 searchTerm={searchTerm}
                 onSearch={(e) => setSearchTerm(e.target.value)}
@@ -495,7 +499,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
               />
 
               {project.selectedTraits.length >= 5 && (
-                <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 border border-yellow-200 rounded-lg">
+                <div className="mt-4 p-4 bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 border border-yellow-200 dark:border-yellow-700 rounded-lg">
                   <div className="flex items-center">
                     <div className="flex-shrink-0">
                       <svg
@@ -511,7 +515,7 @@ const MendelianStudyModal: React.FC<MendelianStudyModalProps> = ({
                       </svg>
                     </div>
                     <div className="ml-3">
-                      <p className="text-yellow-800 text-xs font-medium">
+                      <p className="text-yellow-800 dark:text-yellow-300 text-xs font-medium">
                         Maximum of 5 traits reached. Remove a trait to add more.
                       </p>
                     </div>

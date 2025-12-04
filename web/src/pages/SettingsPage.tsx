@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
 import * as authApi from "../services/auth.api";
+import { FiUser, FiLock, FiDatabase } from "react-icons/fi";
 
 const SettingsPage: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -73,9 +74,13 @@ const SettingsPage: React.FC = () => {
   };
 
   const tabs = [
-    { id: "account", label: "Account", icon: "👤" },
-    { id: "security", label: "Security", icon: "🔒" },
-    { id: "data", label: "Data & Privacy", icon: "📊" },
+    { id: "account", label: "Account", icon: <FiUser className="w-5 h-5" /> },
+    { id: "security", label: "Security", icon: <FiLock className="w-5 h-5" /> },
+    {
+      id: "data",
+      label: "Data & Privacy",
+      icon: <FiDatabase className="w-5 h-5" />,
+    },
   ];
 
   const timezones = [
@@ -287,9 +292,14 @@ const SettingsPage: React.FC = () => {
           <div className="p-5 border-2 border-slate-200 dark:border-slate-700 rounded-xl hover:border-blue-300 dark:hover:border-blue-600 transition-colors">
             <div className="flex items-center justify-between mb-3">
               <div>
-                <h4 className="font-medium text-slate-900 dark:text-white mb-1">Password</h4>
+                <h4 className="font-medium text-slate-900 dark:text-white mb-1">
+                  Password
+                </h4>
                 <p className="text-sm text-slate-600 dark:text-slate-400">
-                  Last changed {user ? new Date(user.created_at).toLocaleDateString() : "never"}
+                  Last changed{" "}
+                  {user
+                    ? new Date(user.created_at).toLocaleDateString()
+                    : "never"}
                 </p>
               </div>
               <button className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium">
@@ -365,14 +375,18 @@ const SettingsPage: React.FC = () => {
                 </div>
                 <div>
                   <div className="flex items-center gap-2 mb-1">
-                    <p className="font-medium text-slate-900 dark:text-white">{session.device}</p>
+                    <p className="font-medium text-slate-900 dark:text-white">
+                      {session.device}
+                    </p>
                     {session.current && (
                       <span className="text-xs bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-300 px-2 py-1 rounded-full font-medium">
                         Current
                       </span>
                     )}
                   </div>
-                  <p className="text-sm text-slate-600 dark:text-slate-400">{session.browser}</p>
+                  <p className="text-sm text-slate-600 dark:text-slate-400">
+                    {session.browser}
+                  </p>
                   <p className="text-xs text-slate-500 dark:text-slate-500 mt-1">
                     {session.location} • {session.time}
                   </p>
@@ -411,8 +425,8 @@ const SettingsPage: React.FC = () => {
                 Download Your Data
               </h4>
               <p className="text-sm text-slate-600 dark:text-slate-400 mb-4">
-                Export all your personal data, projects, and analysis results in a
-                machine-readable format.
+                Export all your personal data, projects, and analysis results in
+                a machine-readable format.
               </p>
               <button className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors text-sm font-medium">
                 Request Data Export
@@ -481,7 +495,9 @@ const SettingsPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Settings</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                Settings
+              </h1>
               <p className="text-slate-600 dark:text-slate-400 mt-2">
                 Manage your account settings and security preferences
               </p>
@@ -573,7 +589,9 @@ const SettingsPage: React.FC = () => {
                         : "text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700/50 border-2 border-transparent"
                     }`}
                   >
-                    <span className="text-xl">{tab.icon}</span>
+                    <span className="text-blue-600 dark:text-blue-400">
+                      {tab.icon}
+                    </span>
                     <span className="text-sm font-medium">{tab.label}</span>
                   </button>
                 ))}

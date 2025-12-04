@@ -18,9 +18,9 @@ const ParentGenotypeSelect: React.FC<ParentGenotypeSelectProps> = ({
   <select
     value={value}
     onChange={onChange}
-    className="w-full rounded-lg border-2 border-gray-200 focus:border-purple-400 focus:ring-2 cursor-pointer focus:ring-purple-200 bg-white py-3 px-1 text-gray-700 font-semibold shadow-sm transition-all duration-200 text-xs"
+    className="w-full rounded-lg border-2 border-gray-200 dark:border-slate-600 focus:border-purple-400 dark:focus:border-purple-500 focus:ring-2 cursor-pointer focus:ring-purple-200 dark:focus:ring-purple-800 bg-white dark:bg-slate-800 py-3 px-1 text-gray-700 dark:text-slate-200 font-semibold shadow-sm transition-all duration-200 text-xs"
   >
-    <option value="" className="text-xs">
+    <option value="" className="text-xs dark:bg-slate-800">
       Select genotype
     </option>
     {options.map((opt) => {
@@ -46,7 +46,7 @@ const ParentGenotypeSelect: React.FC<ParentGenotypeSelectProps> = ({
           aboMap[opt] || aboMap[opt.split("").sort().join("")] || opt;
       }
       return (
-        <option key={opt} value={opt} className="text-xs">
+        <option key={opt} value={opt} className="text-xs dark:bg-slate-800">
           {displayOpt}
           {displayPheno ? ` → ${displayPheno}` : ""}
         </option>

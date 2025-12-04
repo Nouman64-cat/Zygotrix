@@ -22,13 +22,13 @@ const TraitCard: React.FC<{
   <button
     onClick={() => onAddTrait(trait.key)}
     disabled={isDisabled}
-    className={`w-full text-left p-4 bg-white/80 cursor-pointer backdrop-blur-sm border rounded-xl hover:bg-white hover:shadow-md disabled:bg-gray-100 disabled:cursor-not-allowed transition-all duration-200 group ${borderColor}`}
+    className={`w-full text-left p-4 bg-white/80 dark:bg-slate-700/80 cursor-pointer backdrop-blur-sm border rounded-xl hover:bg-white dark:hover:bg-slate-700 hover:shadow-md disabled:bg-gray-100 dark:disabled:bg-slate-800 disabled:cursor-not-allowed transition-all duration-200 group ${borderColor} dark:border-slate-600`}
   >
     <div className="flex items-center justify-between">
       <div className="flex-1 min-w-0">
         <div className="flex items-center space-x-2 mb-1 flex-wrap">
           <h4
-            className="font-semibold text-gray-900 text-sm group-hover:text-purple-700 transition-colors truncate"
+            className="font-semibold text-gray-900 dark:text-white text-sm group-hover:text-purple-700 dark:group-hover:text-purple-400 transition-colors truncate"
             title={trait.name}
           >
             {trait.name}
@@ -43,20 +43,20 @@ const TraitCard: React.FC<{
               return (
                 <div className="flex items-center space-x-1 flex-shrink-0">
                   {genes.length === 1 ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 whitespace-nowrap">
                       {genes[0]}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300 whitespace-nowrap">
                       {genes.length} genes
                     </span>
                   )}
                   {chromosomes.length === 1 ? (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 whitespace-nowrap">
                       Chr&nbsp;{chromosomes[0]}
                     </span>
                   ) : (
-                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800 whitespace-nowrap">
+                    <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300 whitespace-nowrap">
                       {chromosomes.length} chromosomes
                     </span>
                   )}
@@ -66,7 +66,7 @@ const TraitCard: React.FC<{
             return null;
           })()}
         </div>
-        <p className="text-xs text-gray-500">
+        <p className="text-xs text-gray-500 dark:text-slate-400">
           <span className="font-medium">Alleles:</span>{" "}
           {trait.key === "abo_blood_group"
             ? formatABOAlleles(trait.alleles)
@@ -80,8 +80,8 @@ const TraitCard: React.FC<{
         </p>
       </div>
       <div className="flex-shrink-0 ml-3">
-        <div className="p-1.5 bg-purple-100 rounded-lg group-hover:bg-purple-200 transition-colors">
-          <PlusIcon className="h-4 w-4 text-purple-600 group-hover:scale-110 transition-transform" />
+        <div className="p-1.5 bg-purple-100 dark:bg-purple-900/50 rounded-lg group-hover:bg-purple-200 dark:group-hover:bg-purple-800 transition-colors">
+          <PlusIcon className="h-4 w-4 text-purple-600 dark:text-purple-400 group-hover:scale-110 transition-transform" />
         </div>
       </div>
     </div>
@@ -182,10 +182,12 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
           <div className="p-2 bg-gradient-to-r from-purple-500 to-pink-600 rounded-lg">
             <MagnifyingGlassIcon className="h-5 w-5 text-white" />
           </div>
-          <h3 className="text-lg font-bold text-gray-900">Trait Browser</h3>
+          <h3 className="text-lg font-bold text-gray-900 dark:text-white">
+            Trait Browser
+          </h3>
         </div>
         <div>
-          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 text-gray-700 border border-gray-200">
+          <span className="inline-flex items-center px-2 py-1 rounded-md text-xs font-medium bg-gray-100 dark:bg-slate-700 text-gray-700 dark:text-slate-300 border border-gray-200 dark:border-slate-600">
             {traitCounts[activeFilter]} available
           </span>
         </div>
@@ -194,26 +196,26 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
       {/* Search */}
       <div className="mb-4">
         <div className="relative">
-          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+          <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400 dark:text-slate-500" />
           <input
             type="text"
             value={searchTerm}
             onChange={onSearch}
             placeholder="Search traits..."
-            className="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white/80 backdrop-blur-sm text-sm"
+            className="w-full pl-10 pr-4 py-3 border border-gray-300 dark:border-slate-600 rounded-lg focus:ring-2 focus:ring-purple-500 dark:focus:ring-purple-400 focus:border-purple-500 dark:focus:border-purple-400 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500"
           />
         </div>
       </div>
 
       {/* Filter Badges */}
       <div className="mb-4">
-        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 scrollbar-track-transparent">
+        <div className="flex gap-2 overflow-x-auto pb-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-slate-600 scrollbar-track-transparent">
           <button
             onClick={() => setActiveFilter("all")}
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 whitespace-nowrap flex-shrink-0 cursor-pointer ${
               activeFilter === "all"
-                ? "bg-gray-600 text-white shadow-md"
-                : "bg-gray-100 text-gray-600 hover:bg-gray-200"
+                ? "bg-gray-600 dark:bg-slate-500 text-white shadow-md"
+                : "bg-gray-100 dark:bg-slate-700 text-gray-600 dark:text-slate-300 hover:bg-gray-200 dark:hover:bg-slate-600"
             }`}
           >
             All Traits ({traitCounts.all})
@@ -223,7 +225,7 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 whitespace-nowrap flex-shrink-0 cursor-pointer ${
               activeFilter === "monogenic"
                 ? "bg-blue-500 text-white shadow-md"
-                : "bg-blue-100 text-blue-600 hover:bg-blue-200"
+                : "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 hover:bg-blue-200 dark:hover:bg-blue-800"
             }`}
           >
             <div className="w-2 h-2 bg-current rounded-full"></div>
@@ -234,7 +236,7 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 whitespace-nowrap flex-shrink-0 cursor-pointer ${
               activeFilter === "polygenic"
                 ? "bg-violet-500 text-white shadow-md"
-                : "bg-violet-100 text-violet-600 hover:bg-violet-200"
+                : "bg-violet-100 dark:bg-violet-900/50 text-violet-600 dark:text-violet-400 hover:bg-violet-200 dark:hover:bg-violet-800"
             }`}
           >
             <div className="w-2 h-2 bg-current rounded-full"></div>
@@ -245,7 +247,7 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
             className={`px-3 py-1.5 rounded-full text-xs font-medium transition-all duration-200 flex items-center space-x-1 whitespace-nowrap flex-shrink-0 cursor-pointer ${
               activeFilter === "other"
                 ? "bg-orange-500 text-white shadow-md"
-                : "bg-orange-100 text-orange-600 hover:bg-orange-200"
+                : "bg-orange-100 dark:bg-orange-900/50 text-orange-600 dark:text-orange-400 hover:bg-orange-200 dark:hover:bg-orange-800"
             }`}
           >
             <div className="w-2 h-2 bg-current rounded-full"></div>
@@ -260,8 +262,10 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
           if (loading) {
             return (
               <div className="text-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 mx-auto"></div>
-                <p className="text-sm text-gray-500 mt-2">Loading traits...</p>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600 dark:border-purple-400 mx-auto"></div>
+                <p className="text-sm text-gray-500 dark:text-slate-400 mt-2">
+                  Loading traits...
+                </p>
               </div>
             );
           }
@@ -269,7 +273,9 @@ const TraitSelector: React.FC<TraitSelectorProps> = ({
           if (error) {
             return (
               <div className="text-center py-8">
-                <p className="text-sm text-red-600">Error loading traits</p>
+                <p className="text-sm text-red-600 dark:text-red-400">
+                  Error loading traits
+                </p>
               </div>
             );
           }

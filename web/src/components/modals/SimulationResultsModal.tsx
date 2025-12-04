@@ -19,17 +19,20 @@ import { explainSimulationResults } from "../../services/gemini.api";
 // Markdown components for styling
 const markdownComponents = {
   p: ({ children, ...props }: React.HTMLAttributes<HTMLParagraphElement>) => (
-    <p className="mb-1 text-gray-700 text-xs leading-relaxed" {...props}>
+    <p
+      className="mb-1 text-gray-700 dark:text-slate-300 text-xs leading-relaxed"
+      {...props}
+    >
       {children}
     </p>
   ),
   strong: ({ children, ...props }: React.HTMLAttributes<HTMLElement>) => (
-    <strong className="font-semibold text-gray-900" {...props}>
+    <strong className="font-semibold text-gray-900 dark:text-white" {...props}>
       {children}
     </strong>
   ),
   em: ({ children, ...props }: React.HTMLAttributes<HTMLElement>) => (
-    <em className="italic text-gray-700" {...props}>
+    <em className="italic text-gray-700 dark:text-slate-300" {...props}>
       {children}
     </em>
   ),
@@ -39,7 +42,7 @@ const markdownComponents = {
     </ul>
   ),
   li: ({ children, ...props }: React.HTMLAttributes<HTMLLIElement>) => (
-    <li className="text-xs text-gray-700" {...props}>
+    <li className="text-xs text-gray-700 dark:text-slate-300" {...props}>
       {children}
     </li>
   ),
@@ -151,7 +154,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/60 dark:bg-black/80 backdrop-blur-sm flex items-center justify-center z-50 p-4"
       style={{ fontFamily: "Axiforma, sans-serif" }}
       role="dialog"
       aria-modal="true"
@@ -160,7 +163,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
       onClick={(e) => e.target === e.currentTarget && onClose()}
       onKeyDown={(e) => e.key === "Escape" && onClose()}
     >
-      <div className="bg-white/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in duration-300">
+      <div className="bg-white/95 dark:bg-slate-800/95 backdrop-blur-sm rounded-2xl shadow-2xl border border-white/20 dark:border-slate-700 max-w-6xl w-full max-h-[90vh] overflow-hidden flex flex-col animate-in fade-in duration-300">
         {/* Compact Header */}
         <div className="relative bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 p-4">
           <div className="flex items-center justify-between">
@@ -216,15 +219,15 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                   return (
                     <div
                       key={traitKey}
-                      className="bg-gradient-to-r from-red-50 to-orange-50 rounded-xl p-4 border border-red-200/50"
+                      className="bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl p-4 border border-red-200/50 dark:border-red-700/50"
                     >
                       <div className="flex items-center gap-2 mb-2">
                         <span className="text-lg">⚠️</span>
-                        <h4 className="text-base font-semibold text-gray-900">
+                        <h4 className="text-base font-semibold text-gray-900 dark:text-white">
                           {trait?.name || traitKey}
                         </h4>
                       </div>
-                      <p className="text-sm text-red-600">
+                      <p className="text-sm text-red-600 dark:text-red-400">
                         No simulation data available for this trait.
                       </p>
                     </div>
@@ -233,10 +236,10 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                 return (
                   <div
                     key={traitKey}
-                    className="bg-white/80 backdrop-blur-sm rounded-xl border border-gray-200/50 shadow-sm hover:shadow-md transition-all duration-200"
+                    className="bg-white/80 dark:bg-slate-700/80 backdrop-blur-sm rounded-xl border border-gray-200/50 dark:border-slate-600/50 shadow-sm hover:shadow-md transition-all duration-200"
                   >
                     {/* Trait Header - Title | Genetic Cross | Action Buttons */}
-                    <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 px-4 py-3 rounded-t-xl border-b border-gray-200/50">
+                    <div className="bg-gradient-to-r from-gray-50 to-gray-100/50 dark:from-slate-700 dark:to-slate-800/50 px-4 py-3 rounded-t-xl border-b border-gray-200/50 dark:border-slate-600/50">
                       <div className="flex items-center justify-between">
                         {/* Title Section */}
                         <div className="flex items-center gap-2">
@@ -245,7 +248,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                               {trait?.name?.charAt(0)?.toUpperCase() || "T"}
                             </span>
                           </div>
-                          <h4 className="text-base font-semibold text-gray-900">
+                          <h4 className="text-base font-semibold text-gray-900 dark:text-white">
                             {trait?.name || traitKey}
                           </h4>
                         </div>
@@ -267,16 +270,18 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                                 : selectedTrait?.parent2Genotype;
                             return (
                               <>
-                                <div className="flex items-center gap-1 bg-purple-100 px-2 py-1 rounded-md">
-                                  <GiFemale className="h-3 w-3 text-purple-600" />
-                                  <span className="text-purple-700 font-medium">
+                                <div className="flex items-center gap-1 bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded-md">
+                                  <GiFemale className="h-3 w-3 text-purple-600 dark:text-purple-400" />
+                                  <span className="text-purple-700 dark:text-purple-300 font-medium">
                                     {parent1}
                                   </span>
                                 </div>
-                                <span className="text-gray-400">×</span>
-                                <div className="flex items-center gap-1 bg-blue-100 px-2 py-1 rounded-md">
-                                  <IoMale className="h-3 w-3 text-blue-600" />
-                                  <span className="text-blue-700 font-medium">
+                                <span className="text-gray-400 dark:text-slate-500">
+                                  ×
+                                </span>
+                                <div className="flex items-center gap-1 bg-blue-100 dark:bg-blue-900/50 px-2 py-1 rounded-md">
+                                  <IoMale className="h-3 w-3 text-blue-600 dark:text-blue-400" />
+                                  <span className="text-blue-700 dark:text-blue-300 font-medium">
                                     {parent2}
                                   </span>
                                 </div>
@@ -342,7 +347,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
 
                     {/* AI Explanation Display - Integrated */}
                     {showAiExplanation[traitKey] && aiExplanation[traitKey] && (
-                      <div className="mx-4 mb-4 bg-gradient-to-r from-violet-50 via-purple-50 to-indigo-50 rounded-xl border border-violet-200/50 overflow-hidden">
+                      <div className="mx-4 mb-4 bg-gradient-to-r from-violet-50 via-purple-50 to-indigo-50 dark:from-violet-900/20 dark:via-purple-900/20 dark:to-indigo-900/20 rounded-xl border border-violet-200/50 dark:border-violet-700/50 overflow-hidden">
                         <div className="bg-gradient-to-r from-violet-500 to-purple-600 px-4 py-2 flex items-center justify-between">
                           <div className="flex items-center gap-2 text-white">
                             <HiSparkles className="h-4 w-4" />
@@ -369,7 +374,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
 
                     {/* AI Error Display - Integrated */}
                     {showAiExplanation[traitKey] && aiError[traitKey] && (
-                      <div className="mx-4 mb-4 bg-gradient-to-r from-red-50 to-orange-50 rounded-xl border border-red-200/50 overflow-hidden">
+                      <div className="mx-4 mb-4 bg-gradient-to-r from-red-50 to-orange-50 dark:from-red-900/20 dark:to-orange-900/20 rounded-xl border border-red-200/50 dark:border-red-700/50 overflow-hidden">
                         <div className="bg-gradient-to-r from-red-500 to-orange-600 px-4 py-2 flex items-center justify-between">
                           <div className="flex items-center gap-2 text-white">
                             <span className="text-sm">⚠️</span>
@@ -384,7 +389,7 @@ const SimulationResultsModal: React.FC<SimulationResultsModalProps> = ({
                           </button>
                         </div>
                         <div className="p-3">
-                          <p className="text-xs text-red-700">
+                          <p className="text-xs text-red-700 dark:text-red-400">
                             {aiError[traitKey]}
                           </p>
                         </div>

@@ -23,11 +23,11 @@ const GenotypicRatios: React.FC<GenotypicRatiosProps> = ({
     const order = ["AA", "AB", "BB", "AO", "BO", "OO"];
     return (
       <div>
-        <h5 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
+        <h5 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2 flex items-center">
           <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
           <span>Genotypic Ratios</span>
         </h5>
-        <div className="flex flex-row flex-wrap gap-4 bg-blue-50/30 rounded-lg p-3 border border-blue-100 mb-4 justify-center">
+        <div className="flex flex-row flex-wrap gap-4 bg-blue-50/30 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-100 dark:border-blue-800/50 mb-4 justify-center">
           {order
             .filter(
               (backendGenotype) =>
@@ -39,15 +39,15 @@ const GenotypicRatios: React.FC<GenotypicRatiosProps> = ({
                 className="flex flex-col items-center justify-center min-w-[60px]"
               >
                 <span
+                  className="text-slate-800 dark:text-slate-200"
                   style={{
                     fontSize: "1.25em",
                     fontWeight: 600,
-                    color: "#1e293b",
                   }}
                 >
                   {genotypeMap[backendGenotype] || backendGenotype}
                 </span>
-                <span className="text-xs text-blue-700 font-semibold mt-1">
+                <span className="text-xs text-blue-700 dark:text-blue-400 font-semibold mt-1">
                   {genotypicRatios[backendGenotype] !== undefined
                     ? `${genotypicRatios[backendGenotype].toFixed(1)}%`
                     : "0.0%"}
@@ -60,23 +60,25 @@ const GenotypicRatios: React.FC<GenotypicRatiosProps> = ({
   }
   return (
     <div>
-      <h5 className="text-sm font-semibold text-gray-800 mb-2 flex items-center">
+      <h5 className="text-sm font-semibold text-gray-800 dark:text-slate-200 mb-2 flex items-center">
         <span className="w-2 h-2 bg-purple-500 rounded-full mr-2"></span>
         <span>Genotypic Ratios</span>
       </h5>
-      <div className="space-y-2 bg-blue-50/30 rounded-lg p-3 border border-blue-100">
+      <div className="space-y-2 bg-blue-50/30 dark:bg-blue-900/20 rounded-lg p-3 border border-blue-100 dark:border-blue-800/50">
         {Object.entries(genotypicRatios).map(([genotype, percentage]) => (
           <div key={genotype} className="flex items-center gap-3">
             <div className="w-24 text-xs">
-              <div className="font-medium text-gray-800">{genotype}</div>
+              <div className="font-medium text-gray-800 dark:text-slate-200">
+                {genotype}
+              </div>
             </div>
-            <div className="flex-1 h-3 bg-white rounded-full overflow-hidden border border-blue-100">
+            <div className="flex-1 h-3 bg-white dark:bg-slate-700 rounded-full overflow-hidden border border-blue-100 dark:border-blue-800/50">
               <div
                 className="h-full bg-gradient-to-r from-blue-500 to-blue-400 transition-all"
                 style={{ width: `${Math.max(percentage, 2)}%` }}
               />
             </div>
-            <div className="w-12 text-right text-xs font-semibold text-blue-600">
+            <div className="w-12 text-right text-xs font-semibold text-blue-600 dark:text-blue-400">
               {`${percentage.toFixed(1)}%`}
             </div>
           </div>

@@ -10,7 +10,7 @@ const HowTheseResultsButton: React.FC<HowTheseResultsButtonProps> = ({
 }) => (
   <button
     onClick={onClick}
-    className="bg-blue-600 cursor-pointer hover:bg-blue-800 text-white py-2 px-4 rounded-lg font-medium hover:from-yellow-500 hover:to-orange-600 transition-all duration-200 shadow-md mt-2 flex items-center gap-2"
+    className="flex items-center gap-2 px-4 py-2 mt-2 font-medium text-white transition-all duration-200 bg-blue-600 rounded-lg shadow-md cursor-pointer dark:bg-blue-700 hover:bg-blue-700 dark:hover:bg-blue-600 dark:shadow-blue-900/30"
     type="button"
   >
     <p className="flex items-center gap-2 text-sm">

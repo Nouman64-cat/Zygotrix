@@ -4,6 +4,8 @@ import { useAuth } from "../context/AuthContext";
 import { useTheme } from "../context/ThemeContext";
 import * as authApi from "../services/auth.api";
 import type { UserPreferences } from "../types/auth";
+import { FiSun, FiMoon } from "react-icons/fi";
+import { HiOutlineComputerDesktop } from "react-icons/hi2";
 
 const PreferencesPage: React.FC = () => {
   const { user, refreshUser } = useAuth();
@@ -67,7 +69,10 @@ const PreferencesPage: React.FC = () => {
     setPreferences(updatedPreferences);
 
     // Immediately update theme if theme preference changes
-    if (key === "theme" && (value === "light" || value === "dark" || value === "auto")) {
+    if (
+      key === "theme" &&
+      (value === "light" || value === "dark" || value === "auto")
+    ) {
       console.log("[PreferencesPage] Updating theme to:", value);
       setTheme(value);
       console.log("[PreferencesPage] Theme updated via setTheme");
@@ -77,9 +82,14 @@ const PreferencesPage: React.FC = () => {
       try {
         await authApi.updateProfile({ preferences: updatedPreferences });
         await refreshUser();
-        console.log("[PreferencesPage] Theme saved to database and user refreshed");
+        console.log(
+          "[PreferencesPage] Theme saved to database and user refreshed"
+        );
       } catch (error) {
-        console.error("[PreferencesPage] Failed to save theme to database:", error);
+        console.error(
+          "[PreferencesPage] Failed to save theme to database:",
+          error
+        );
       }
     }
   };
@@ -146,7 +156,9 @@ const PreferencesPage: React.FC = () => {
         <div className="mb-8">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Preferences</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                Preferences
+              </h1>
               <p className="text-slate-600 dark:text-slate-400 mt-2">
                 Customize your Zygotrix experience and workflow settings
               </p>
@@ -240,7 +252,9 @@ const PreferencesPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Appearance</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                Appearance
+              </h3>
             </div>
             <div className="space-y-4">
               <div>
@@ -249,9 +263,21 @@ const PreferencesPage: React.FC = () => {
                 </label>
                 <div className="grid grid-cols-3 gap-3">
                   {[
-                    { value: "light", label: "Light", icon: "☀️" },
-                    { value: "dark", label: "Dark", icon: "🌙" },
-                    { value: "auto", label: "Auto", icon: "🔄" },
+                    {
+                      value: "light",
+                      label: "Light",
+                      icon: <FiSun className="w-6 h-6" />,
+                    },
+                    {
+                      value: "dark",
+                      label: "Dark",
+                      icon: <FiMoon className="w-6 h-6" />,
+                    },
+                    {
+                      value: "auto",
+                      label: "Auto",
+                      icon: <HiOutlineComputerDesktop className="w-6 h-6" />,
+                    },
                   ].map((option) => (
                     <button
                       key={option.value}
@@ -262,7 +288,9 @@ const PreferencesPage: React.FC = () => {
                           : "border-slate-200 dark:border-slate-600 hover:border-slate-300 dark:hover:border-slate-500"
                       }`}
                     >
-                      <div className="text-2xl mb-1">{option.icon}</div>
+                      <div className="text-blue-600 dark:text-blue-400 mb-1 flex justify-center">
+                        {option.icon}
+                      </div>
                       <div className="text-xs font-medium text-slate-900 dark:text-white">
                         {option.label}
                       </div>
@@ -382,7 +410,9 @@ const PreferencesPage: React.FC = () => {
                     <label className="text-sm font-medium text-slate-900 dark:text-white">
                       {item.label}
                     </label>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">{item.description}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      {item.description}
+                    </p>
                   </div>
                   <button
                     onClick={() =>
@@ -425,7 +455,9 @@ const PreferencesPage: React.FC = () => {
                   />
                 </svg>
               </div>
-              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">Privacy</h3>
+              <h3 className="text-lg font-semibold text-slate-900 dark:text-white">
+                Privacy
+              </h3>
             </div>
             <div className="space-y-4">
               <div>
@@ -465,7 +497,9 @@ const PreferencesPage: React.FC = () => {
                     <label className="text-sm font-medium text-slate-900 dark:text-white">
                       {item.label}
                     </label>
-                    <p className="text-xs text-slate-600 dark:text-slate-400">{item.description}</p>
+                    <p className="text-xs text-slate-600 dark:text-slate-400">
+                      {item.description}
+                    </p>
                   </div>
                   <button
                     onClick={() =>
@@ -525,7 +559,9 @@ const PreferencesPage: React.FC = () => {
                 <button
                   onClick={() => handleToggle("autoSave")}
                   className={`relative inline-flex w-11 h-6 rounded-full transition-colors ${
-                    preferences.autoSave ? "bg-blue-600 dark:bg-blue-500" : "bg-slate-300 dark:bg-slate-600"
+                    preferences.autoSave
+                      ? "bg-blue-600 dark:bg-blue-500"
+                      : "bg-slate-300 dark:bg-slate-600"
                   }`}
                 >
                   <span
@@ -629,7 +665,10 @@ const PreferencesPage: React.FC = () => {
                   description: "Make new projects shareable",
                 },
               ].map((item) => (
-                <div key={item.key} className="flex items-start justify-between">
+                <div
+                  key={item.key}
+                  className="flex items-start justify-between"
+                >
                   <div className="flex-1 mr-4">
                     <label className="text-sm font-medium text-slate-900 dark:text-white">
                       {item.label}

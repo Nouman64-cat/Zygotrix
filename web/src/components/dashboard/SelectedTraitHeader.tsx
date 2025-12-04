@@ -17,7 +17,7 @@ const SelectedTraitHeader: React.FC<SelectedTraitHeaderProps> = ({
         <div className="flex-1">
           <div className="flex items-center space-x-2 mb-1">
             <h4
-              className="font-bold text-gray-900 text-base truncate"
+              className="font-bold text-gray-900 dark:text-white text-base truncate"
               style={{ maxWidth: "220px", display: "inline-block" }}
               title={selectedTrait.name}
             >
@@ -25,16 +25,16 @@ const SelectedTraitHeader: React.FC<SelectedTraitHeaderProps> = ({
             </h4>
             {traitInfo?.gene && traitInfo?.chromosome && (
               <div className="flex items-center space-x-1">
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 text-blue-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">
                   {traitInfo.gene}
                 </span>
-                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 text-green-800">
+                <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">
                   Chr {traitInfo.chromosome}
                 </span>
               </div>
             )}
           </div>
-          <p className="text-xs text-gray-500">
+          <p className="text-xs text-gray-500 dark:text-slate-400">
             <span className="font-medium">Alleles:</span>{" "}
             {selectedTrait.key === "abo_blood_group"
               ? (() => {
@@ -63,7 +63,7 @@ const SelectedTraitHeader: React.FC<SelectedTraitHeaderProps> = ({
       </div>
       <button
         onClick={() => onRemove(selectedTrait.key)}
-        className="p-2.5 text-red-400 cursor-pointer hover:text-red-600 hover:bg-red-50 rounded-xl transition-all duration-200 hover:scale-105"
+        className="p-2.5 text-red-400 dark:text-red-500 cursor-pointer hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl transition-all duration-200 hover:scale-105"
       >
         <TrashIcon className="h-5 w-5" />
       </button>

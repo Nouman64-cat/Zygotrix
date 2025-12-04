@@ -99,30 +99,30 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
   }
   return (
     <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4"
+      className="fixed inset-0 bg-black/50 dark:bg-black/70 flex items-center justify-center z-50 p-4"
       style={{ fontFamily: "Axiforma, sans-serif" }}
     >
-      <div className="bg-white rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col">
-        <div className="flex items-center justify-between p-6 border-b border-gray-200 bg-gradient-to-r from-blue-50 to-indigo-50">
-          <h2 className="text-xl font-bold text-gray-900">
+      <div className="bg-white dark:bg-slate-800 rounded-xl shadow-2xl max-w-lg w-full max-h-[85vh] overflow-hidden flex flex-col">
+        <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-slate-800 dark:to-slate-700">
+          <h2 className="text-xl font-bold text-gray-900 dark:text-white">
             How these results? — {traitName}
           </h2>
           <button
             onClick={onClose}
-            className="p-2 text-gray-400 cursor-pointer hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-all duration-200"
+            className="p-2 text-gray-400 dark:text-slate-400 cursor-pointer hover:text-gray-600 dark:hover:text-slate-200 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-all duration-200"
           >
             ✕
           </button>
         </div>
         <div className="flex-1 p-6 overflow-y-auto">
-          <div className="mb-4 text-sm text-gray-700">
+          <div className="mb-4 text-sm text-gray-700 dark:text-slate-300">
             This Punnett square shows all possible genotype combinations for the
             selected cross.
           </div>
           <div className="flex flex-col items-center">
-            <div className="grid grid-cols-3 grid-rows-3 gap-0 border border-blue-200 rounded overflow-hidden">
-              <div className="bg-blue-50"></div>
-              <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
+            <div className="grid grid-cols-3 grid-rows-3 gap-0 border border-blue-200 dark:border-blue-700 rounded overflow-hidden">
+              <div className="bg-blue-50 dark:bg-slate-700"></div>
+              <div className="bg-blue-100 dark:bg-blue-900/50 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px] dark:text-blue-200">
                 {isAbo ? (
                   p2Split[0] === "O" ? (
                     <span>i</span>
@@ -135,7 +135,7 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
                   formatGenotype(p2Split[0])
                 )}
               </div>
-              <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
+              <div className="bg-blue-100 dark:bg-blue-900/50 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px] dark:text-blue-200">
                 {isAbo ? (
                   p2Split[1] === "O" ? (
                     <span>i</span>
@@ -148,7 +148,7 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
                   formatGenotype(p2Split[1])
                 )}
               </div>
-              <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
+              <div className="bg-blue-100 dark:bg-blue-900/50 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px] dark:text-blue-200">
                 {isAbo ? (
                   p1Split[0] === "O" ? (
                     <span>i</span>
@@ -161,13 +161,13 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
                   formatGenotype(p1Split[0])
                 )}
               </div>
-              <div className="bg-white flex items-center justify-center min-w-[60px] min-h-[40px]">
+              <div className="bg-white dark:bg-slate-800 flex items-center justify-center min-w-[60px] min-h-[40px] dark:text-slate-200">
                 {formatGenotype(grid[0]?.[0])}
               </div>
-              <div className="bg-white flex items-center justify-center min-w-[60px] min-h-[40px]">
+              <div className="bg-white dark:bg-slate-800 flex items-center justify-center min-w-[60px] min-h-[40px] dark:text-slate-200">
                 {formatGenotype(grid[0]?.[1])}
               </div>
-              <div className="bg-blue-100 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px]">
+              <div className="bg-blue-100 dark:bg-blue-900/50 font-semibold flex items-center justify-center min-w-[60px] min-h-[40px] dark:text-blue-200">
                 {isAbo ? (
                   p1Split[1] === "O" ? (
                     <span>i</span>
@@ -180,10 +180,10 @@ const PunnettSquareModal: React.FC<PunnettSquareModalProps> = ({
                   formatGenotype(p1Split[1])
                 )}
               </div>
-              <div className="bg-white flex items-center justify-center min-w-[60px] min-h-[40px]">
+              <div className="bg-white dark:bg-slate-800 flex items-center justify-center min-w-[60px] min-h-[40px] dark:text-slate-200">
                 {formatGenotype(grid[1]?.[0])}
               </div>
-              <div className="bg-white flex items-center justify-center min-w-[60px] min-h-[40px]">
+              <div className="bg-white dark:bg-slate-800 flex items-center justify-center min-w-[60px] min-h-[40px] dark:text-slate-200">
                 {formatGenotype(grid[1]?.[1])}
               </div>
             </div>

@@ -77,9 +77,9 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
   if (!isOpen) return null;
 
   return (
-    <div className="fixed bottom-24 right-6 w-[500px] h-[600px] bg-white dark:bg-[#060914] rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border border-gray-200 dark:border-gray-800 z-50 animate-slide-up">
+    <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 w-full sm:w-[400px] md:w-[450px] lg:w-[500px] h-full sm:h-[500px] md:h-[550px] lg:h-[600px] bg-white dark:bg-[#060914] sm:rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border-0 sm:border border-gray-200 dark:border-gray-800 z-50 animate-slide-up">
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-6 flex items-center justify-between">
+      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
             <LuBiohazard className="text-2xl text-indigo-600" />
@@ -110,14 +110,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-[#101111]">
+      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 bg-gray-50 dark:bg-[#101111]">
         {messages.map((message, index) => (
           <div
             key={index}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[80%] rounded-2xl px-4 py-3 ${
+              className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 sm:px-4 py-2 sm:py-3 ${
                 message.role === 'user'
                   ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
                   : 'bg-white dark:bg-[#060914] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-800'
@@ -154,7 +154,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
       </div>
 
       {/* Input */}
-      <div className="p-4 bg-white dark:bg-[#060914] border-t border-gray-200 dark:border-gray-800">
+      <div className="p-3 sm:p-4 bg-white dark:bg-[#060914] border-t border-gray-200 dark:border-gray-800 safe-area-inset-bottom">
         <div className="flex gap-2">
           <input
             type="text"
@@ -163,12 +163,12 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             onKeyPress={handleKeyPress}
             placeholder="Ask me anything..."
             disabled={isLoading}
-            className="flex-1 px-4 py-3 rounded-full bg-gray-100 dark:bg-[#03050f] border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 text-gray-800 dark:text-gray-100 placeholder-gray-400 disabled:opacity-50"
+            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-full bg-gray-100 dark:bg-[#03050f] border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 text-gray-800 dark:text-gray-100 placeholder-gray-400 disabled:opacity-50 text-sm sm:text-base"
           />
           <button
             onClick={handleSend}
             disabled={!inputValue.trim() || isLoading}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full p-3 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer"
+            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full p-2.5 sm:p-3 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
           >
             <svg
               className="w-5 h-5"

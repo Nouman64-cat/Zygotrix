@@ -24,10 +24,11 @@ export const FloatingChatButton: React.FC = () => {
         userName={user?.full_name || user?.email?.split('@')[0] || 'there'}
       />
 
+      {/* Hide button when chat is open on mobile (since chat is fullscreen) */}
       <button
         onClick={handleToggle}
-        className={`fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all duration-300 z-50 flex items-center justify-center group cursor-pointer ${
-          isOpen ? 'rotate-180 scale-90' : 'hover:scale-110'
+        className={`fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all duration-300 z-50 flex items-center justify-center group cursor-pointer ${
+          isOpen ? 'sm:rotate-180 sm:scale-90 hidden sm:flex' : 'hover:scale-110'
         }`}
         aria-label="Toggle chat"
       >
@@ -40,7 +41,7 @@ export const FloatingChatButton: React.FC = () => {
         <div className="relative">
           {isOpen ? (
             <svg
-              className="w-7 h-7 transition-transform"
+              className="w-6 h-6 sm:w-7 sm:h-7 transition-transform"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
@@ -53,13 +54,13 @@ export const FloatingChatButton: React.FC = () => {
               />
             </svg>
           ) : (
-            <LuBiohazard className="w-7 h-7 transition-transform" />
+            <LuBiohazard className="w-6 h-6 sm:w-7 sm:h-7 transition-transform" />
           )}
         </div>
 
-        {/* Tooltip */}
+        {/* Tooltip - hidden on mobile/touch devices */}
         <div
-          className={`absolute right-20 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-opacity ${
+          className={`absolute right-20 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-opacity hidden sm:block ${
             isOpen ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'
           }`}
         >

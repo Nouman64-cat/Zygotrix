@@ -5,12 +5,14 @@ from pydantic import BaseModel
 import httpx
 import logging
 import os
+import re
 from dotenv import load_dotenv, find_dotenv
 
 
 load_dotenv(find_dotenv())
 
 from ..prompt_engineering.prompts import ZIGI_SYSTEM_PROMPT
+from ..chatbot_tools import get_traits_count, search_traits, get_trait_details
 
 logger = logging.getLogger(__name__)
 
@@ -145,6 +147,101 @@ async def retrieve_context(query: str) -> str:
         return ""
 
 
+def get_traits_context(message: str) -> str:
+    """
+    Detect trait-related queries and fetch relevant data from the traits database.
+    
+    Returns formatted context string with trait information.
+    """
+    message_lower = message.lower()
+    context_parts = []
+    
+    # Check for count queries
+    count_patterns = [
+        r"how many traits",
+        r"number of traits",
+        r"total traits",
+        r"traits.*count",
+        r"count.*traits",
+        r"traits.*available",
+        r"traits.*have",
+        r"traits.*database"
+    ]
+    
+    if any(re.search(pattern, message_lower) for pattern in count_patterns):
+        count_data = get_traits_count()
+        if not count_data.get("error"):
+            context_parts.append(f"""
+TRAITS DATABASE INFO:
+{count_data['message']}
+- Total traits: {count_data['total_traits']}
+- Monogenic traits (single gene): {count_data['monogenic_traits']}
+- Polygenic traits (multiple genes): {count_data['polygenic_traits']}
+""")
+    
+    # Check for trait explanation queries
+    explain_patterns = [
+        r"explain\s+(.+?)(?:\s+trait)?$",
+        r"tell me about\s+(.+?)(?:\s+trait)?$",
+        r"what is\s+(.+?)(?:\s+trait)?$",
+        r"describe\s+(.+?)(?:\s+trait)?$",
+        r"how does\s+(.+?)\s+work",
+        r"information about\s+(.+)",
+        r"details on\s+(.+)",
+    ]
+    
+    for pattern in explain_patterns:
+        match = re.search(pattern, message_lower)
+        if match:
+            trait_query = match.group(1).strip()
+            # Skip generic words
+            if trait_query not in ["the", "a", "this", "it", "that", "trait", "genetics"]:
+                trait_details = get_trait_details(trait_query)
+                if trait_details.get("found"):
+                    context_parts.append(f"""
+TRAIT DETAILS FROM DATABASE:
+Trait Name: {trait_details['name']}
+Type: {trait_details['type']}
+Inheritance: {trait_details['inheritance']}
+Gene(s): {trait_details['genes']}
+Chromosome(s): {trait_details['chromosomes']}
+Alleles: {', '.join(trait_details['alleles'])}
+Phenotypes: {'; '.join(trait_details['phenotype_summary'])}
+
+Description: {trait_details['description']}
+""")
+                break
+    
+    # Check for trait search queries 
+    search_patterns = [
+        r"search.*trait.*(.+)",
+        r"find.*trait.*(.+)",
+        r"traits.*related to\s+(.+)",
+        r"(.+)\s+traits?",
+        r"list.*(.+)\s+traits",
+    ]
+    
+    # Also check for specific trait names in the message
+    if not context_parts:
+        # Try a general search with the message
+        search_result = search_traits(message_lower, limit=3)
+        if search_result.get("found") and search_result.get("count", 0) > 0:
+            results = search_result.get("results", [])
+            if results:
+                traits_info = []
+                for r in results[:3]:
+                    traits_info.append(f"- {r['name']} ({r['type']}, {r['inheritance']})")
+                
+                context_parts.append(f"""
+RELATED TRAITS FROM DATABASE:
+Found {len(results)} matching trait(s):
+{chr(10).join(traits_info)}
+
+(User can ask for more details about any of these traits)
+""")
+    
+    return "\n".join(context_parts)
+
 async def generate_response(user_message: str, context: str, page_context: PageContext | None = None, user_name: str = "there") -> str:
     """Generate response using Claude AI."""
     try:
@@ -229,11 +326,20 @@ async def chat(request: ChatRequest) -> ChatResponse:
     """
     try:
         # Step 1: Retrieve relevant context from LlamaCloud
-        context = await retrieve_context(request.message)
+        llama_context = await retrieve_context(request.message)
+        
+        # Step 2: Get traits-specific context from the traits database
+        traits_context = get_traits_context(request.message)
+        
+        # Step 3: Combine contexts
+        combined_context = llama_context
+        if traits_context:
+            combined_context = f"{traits_context}\n\n{llama_context}" if llama_context else traits_context
+            logger.info(f"Added traits context: {len(traits_context)} chars")
 
-        # Step 2: Generate response using Claude with context, page context, and user name
+        # Step 4: Generate response using Claude with context, page context, and user name
         user_name = request.userName or "there"
-        response = await generate_response(request.message, context, request.pageContext, user_name)
+        response = await generate_response(request.message, combined_context, request.pageContext, user_name)
 
         return ChatResponse(response=response)
     except HTTPException:

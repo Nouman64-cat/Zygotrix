@@ -47,13 +47,147 @@ def get_all_subscriptions(
     }
 
 
+@router.get("/unsubscribe/{email}")
+def unsubscribe_from_newsletter_public(email: str):
+    """
+    Unsubscribe an email from the newsletter (Public endpoint for email links).
+
+    This endpoint is public and can be accessed by anyone clicking the unsubscribe
+    link in a newsletter email. Returns an HTML page confirming unsubscription.
+    """
+    from fastapi.responses import HTMLResponse
+
+    try:
+        newsletter_service.unsubscribe_from_newsletter(email=email)
+        html_content = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Unsubscribed - Zygotrix</title>
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0;
+                    padding: 20px;
+                }
+                .container {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 16px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    max-width: 500px;
+                    text-align: center;
+                }
+                h1 {
+                    color: #10B981;
+                    font-size: 32px;
+                    margin-bottom: 16px;
+                }
+                p {
+                    color: #6B7280;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    margin-bottom: 24px;
+                }
+                .email {
+                    background: #F3F4F6;
+                    padding: 12px 20px;
+                    border-radius: 8px;
+                    color: #374151;
+                    font-weight: 600;
+                    margin: 20px 0;
+                }
+                a {
+                    display: inline-block;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    color: white;
+                    padding: 12px 32px;
+                    border-radius: 8px;
+                    text-decoration: none;
+                    font-weight: 600;
+                    transition: transform 0.2s;
+                }
+                a:hover {
+                    transform: translateY(-2px);
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>✓ Successfully Unsubscribed</h1>
+                <p>You've been unsubscribed from the Zygotrix newsletter.</p>
+                <div class="email">""" + email + """</div>
+                <p>We're sorry to see you go! If you change your mind, you can always subscribe again from our website.</p>
+                <a href="https://zygotrix.com">Visit Zygotrix</a>
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=html_content)
+    except Exception as e:
+        error_html = """
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Error - Zygotrix</title>
+            <style>
+                body {
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                    min-height: 100vh;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    margin: 0;
+                    padding: 20px;
+                }
+                .container {
+                    background: white;
+                    padding: 40px;
+                    border-radius: 16px;
+                    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+                    max-width: 500px;
+                    text-align: center;
+                }
+                h1 {
+                    color: #EF4444;
+                    font-size: 32px;
+                    margin-bottom: 16px;
+                }
+                p {
+                    color: #6B7280;
+                    font-size: 16px;
+                    line-height: 1.6;
+                }
+            </style>
+        </head>
+        <body>
+            <div class="container">
+                <h1>⚠ Error</h1>
+                <p>""" + str(e) + """</p>
+            </div>
+        </body>
+        </html>
+        """
+        return HTMLResponse(content=error_html, status_code=404)
+
+
 @router.delete("/unsubscribe/{email}")
-def unsubscribe_from_newsletter(
+def unsubscribe_from_newsletter_admin(
     email: str,
     current_user: UserProfile = Depends(get_current_admin)
 ):
     """
-    Unsubscribe an email from the newsletter (Admin only).
+    Unsubscribe an email from the newsletter (Admin only - for dashboard use).
 
     This endpoint is restricted to admin users only.
     """

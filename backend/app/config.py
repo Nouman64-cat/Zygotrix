@@ -31,6 +31,9 @@ class Settings:
     university_url: str = os.getenv(
         "UNIVERSITY_URL", "https://zygotrix.university.courtcierge.online"
     )
+    backend_url: str = os.getenv(
+        "BACKEND_URL", "http://127.0.0.1:8000"
+    )
     backend_env: str = os.getenv("BACKEND_ENV", "Production")
     mongodb_uri: str = os.getenv("MONGODB_URI", "")
     mongodb_db_name: str = os.getenv("MONGODB_DB_NAME", "zygotrix")

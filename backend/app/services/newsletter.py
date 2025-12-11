@@ -166,7 +166,7 @@ def send_newsletter_email(
             detail=f"Invalid template type. Must be one of: {', '.join(valid_templates)}"
         )
 
-    # Load and render template
+    # Load template
     template_name = f"newsletter_{template_type}.html"
     try:
         template = jinja_env.get_template(template_name)
@@ -176,22 +176,24 @@ def send_newsletter_email(
             detail=f"Email template '{template_name}' not found."
         )
 
-    # Prepare template context
-    context = {
-        "subject": subject,
-        "content": content,
-        "current_year": datetime.now().year,
-        "unsubscribe_url": f"{settings.university_url}/newsletter/unsubscribe",
-    }
-
-    html_body = template.render(context)
-
-    # Send emails
+    # Send emails with personalized unsubscribe URLs
     success_count = 0
     failed_emails = []
 
     for email in recipient_emails:
         try:
+            # Prepare personalized template context for each recipient
+            from urllib.parse import quote
+            context = {
+                "subject": subject,
+                "content": content,
+                "current_year": datetime.now().year,
+                "unsubscribe_url": f"{settings.backend_url}/api/newsletter/unsubscribe/{quote(email)}",
+            }
+
+            # Render template with personalized unsubscribe link
+            html_body = template.render(context)
+
             params = {
                 "from": settings.resend_from_email,
                 "to": [email],

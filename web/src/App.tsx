@@ -33,6 +33,7 @@ import SimulationStudioPage from "./pages/SimulationStudioPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminNewsletterPage from "./pages/AdminNewsletterPage";
+import AdminContactPage from "./pages/AdminContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 
@@ -184,6 +185,14 @@ const App: React.FC = () => {
         element={
           <RequireAuth>
             <AdminNewsletterPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="studio/admin/contact"
+        element={
+          <RequireAuth>
+            <AdminContactPage />
           </RequireAuth>
         }
       />

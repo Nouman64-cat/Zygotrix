@@ -93,6 +93,14 @@ export const API_ROUTES = {
       "/api/newsletter/unsubscribe/" + encodeURIComponent(email),
     send: "/api/newsletter/send",
   },
+  contact: {
+    submit: "/api/contact/submit",
+    submissions: "/api/contact/submissions",
+    markAsRead: (submissionId: string) =>
+      "/api/contact/submissions/" + encodeURIComponent(submissionId) + "/read",
+    deleteSubmission: (submissionId: string) =>
+      "/api/contact/submissions/" + encodeURIComponent(submissionId),
+  },
 } as const;
 
 export type ApiRoutes = typeof API_ROUTES;

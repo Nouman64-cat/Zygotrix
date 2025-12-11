@@ -5,7 +5,9 @@ from .tools import (
     search_traits,
     get_trait_details,
     list_traits_by_type,
-    list_traits_by_inheritance
+    list_traits_by_inheritance,
+    calculate_punnett_square,
+    parse_cross_from_message
 )
 
 __all__ = [
@@ -13,5 +15,8 @@ __all__ = [
     "search_traits",
     "get_trait_details",
     "list_traits_by_type",
-    "list_traits_by_inheritance"
+    "list_traits_by_inheritance",
+    "calculate_punnett_square",
+    "parse_cross_from_message"
 ]
+

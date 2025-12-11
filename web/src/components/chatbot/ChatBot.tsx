@@ -2,6 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { sendMessage, type ChatMessage } from '../../services/chatbotService';
 import { getPageContext } from '../../utils/pageContext';
 import { LuBiohazard } from "react-icons/lu";
+import ReactMarkdown from 'react-markdown';
 
 interface ChatBotProps {
   isOpen: boolean;
@@ -15,7 +16,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
-      content: `Hi ${userName}! I'm Zigi, your Zygotrix assistant! 🧬 I see you're on the ${pageContext.pageName}. Ask me anything about this page, genetics, or how to get started!`,
+      content: `Hi ${userName}! I'm **Zigi**, your Zygotrix assistant! 🧬 I see you're on the **${pageContext.pageName}**. Ask me anything about this page, genetics, or how to get started!`,
       timestamp: new Date(),
     },
   ]);
@@ -123,7 +124,13 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
                   : 'bg-white dark:bg-[#060914] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-800'
               }`}
             >
-              <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+              {message.role === 'assistant' ? (
+                <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-indigo-600 dark:prose-strong:text-indigo-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs max-w-none">
+                  <ReactMarkdown>{message.content}</ReactMarkdown>
+                </div>
+              ) : (
+                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+              )}
               <p
                 className={`text-xs mt-1 ${
                   message.role === 'user' ? 'text-indigo-100' : 'text-gray-400'

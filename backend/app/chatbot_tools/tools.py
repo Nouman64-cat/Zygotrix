@@ -312,11 +312,500 @@ def list_traits_by_inheritance(inheritance: str) -> dict:
     }
 
 
+# =============================================================================
+# PUNNETT SQUARE CALCULATOR (Using existing MendelianCalculator service)
+# =============================================================================
+
+def _get_mendelian_calculator():
+    """Get the MendelianCalculator from existing services."""
+    try:
+        from app.models import MendelianCalculator
+        return MendelianCalculator()
+    except ImportError:
+        return None
+
+
+def _get_trait_registry():
+    """Get the trait registry from existing services."""
+    try:
+        from app.services.service_factory import get_service_factory
+        factory = get_service_factory()
+        trait_service = factory.get_trait_service()
+        return trait_service.get_trait_registry()
+    except Exception:
+        return {}
+
+
+def _find_trait_for_genotype(genotype: str, trait_name: str = None):
+    """
+    Find a trait that matches the given genotype.
+    
+    If trait_name is provided, look for that specific trait.
+    Otherwise, try to find any trait that supports these alleles.
+    """
+    registry = _get_trait_registry()
+    
+    if not registry:
+        return None
+    
+    # If trait name specified, look for it
+    if trait_name:
+        trait_name_lower = trait_name.lower()
+        for key, trait in registry.items():
+            if trait_name_lower in trait.name.lower() or trait_name_lower in key.lower():
+                return trait
+    
+    # Try to find a trait whose alleles match the genotype
+    alleles_in_genotype = set(genotype)
+    
+    for key, trait in registry.items():
+        trait_alleles = set(trait.alleles)
+        if alleles_in_genotype.issubset(trait_alleles):
+            return trait
+    
+    return None
+
+
+def calculate_punnett_square(parent1: str, parent2: str, trait_name: str = None) -> dict:
+    """
+    Calculate a Punnett Square for a genetic cross using the existing MendelianCalculator.
+    
+    This uses the same calculation engine as the Simulation Studio for consistency.
+    
+    Args:
+        parent1: Genotype of first parent (e.g., "Aa", "BB", "AO")
+        parent2: Genotype of second parent
+        trait_name: Optional trait name to look up phenotypes
+    
+    Returns:
+        dict: Punnett square results with offspring genotypes and ratios
+    """
+    # Clean up inputs
+    p1 = parent1.strip().replace(" ", "")
+    p2 = parent2.strip().replace(" ", "")
+    
+    # Validate genotypes
+    if not _is_valid_genotype(p1) or not _is_valid_genotype(p2):
+        return {
+            "error": True,
+            "message": f"Invalid genotype format. Please use formats like 'Aa', 'BB', 'AO'. Got: '{parent1}' and '{parent2}'"
+        }
+    
+    # Only support monohybrid (single gene) crosses for now
+    if len(p1) != 2 or len(p2) != 2:
+        return {
+            "error": True,
+            "message": f"Currently only monohybrid (single gene) crosses are supported. Both genotypes should have 2 alleles."
+        }
+    
+    # Try to find a matching trait for accurate phenotypes
+    trait = _find_trait_for_genotype(p1, trait_name)
+    
+    if trait:
+        # Use the real MendelianCalculator with trait data
+        return _calculate_with_real_trait(p1, p2, trait)
+    else:
+        # Fall back to generic calculation
+        return _calculate_generic_cross(p1, p2)
+
+
+def _calculate_with_real_trait(p1: str, p2: str, trait) -> dict:
+    """
+    Calculate cross using the real MendelianCalculator with actual trait data.
+    """
+    try:
+        calculator = _get_mendelian_calculator()
+        if not calculator:
+            return _calculate_generic_cross(p1, p2)
+        
+        # Canonicalize genotypes for the trait
+        try:
+            p1_canonical = trait.canonical_genotype(p1)
+            p2_canonical = trait.canonical_genotype(p2)
+        except ValueError as e:
+            return {
+                "error": True,
+                "message": f"Genotype error: {str(e)}. Available alleles for {trait.name}: {', '.join(trait.alleles)}"
+            }
+        
+        # Calculate using the real calculator
+        result = calculator.calculate_cross(
+            trait=trait,
+            parent1_genotype=p1_canonical,
+            parent2_genotype=p2_canonical,
+            as_percentages=True
+        )
+        
+        # Format results nicely
+        genotype_info = []
+        for genotype, percentage in result["genotypic_ratios"].items():
+            phenotype = trait.phenotype_map.get(genotype, "Unknown")
+            genotype_info.append({
+                "genotype": genotype,
+                "percentage": f"{percentage:.1f}%",
+                "phenotype": phenotype
+            })
+        
+        phenotype_info = []
+        for phenotype, percentage in result["phenotypic_ratios"].items():
+            phenotype_info.append({
+                "phenotype": phenotype,
+                "percentage": f"{percentage:.1f}%"
+            })
+        
+        # Build Punnett square grid
+        grid = _build_punnett_grid_from_steps(result.get("punnett_square_steps", []))
+        
+        # Calculate ratios
+        genotype_ratio = _calculate_ratio_string(result["genotypic_ratios"])
+        phenotype_ratio = _calculate_ratio_string(result["phenotypic_ratios"])
+        
+        summary = _generate_cross_summary_with_trait(p1, p2, trait.name, genotype_info, phenotype_info)
+        
+        return {
+            "success": True,
+            "cross_type": "monohybrid",
+            "trait_name": trait.name,
+            "parent1": p1,
+            "parent2": p2,
+            "punnett_square": grid,
+            "offspring_genotypes": genotype_info,
+            "offspring_phenotypes": phenotype_info,
+            "genotype_ratio": genotype_ratio,
+            "phenotype_ratio": phenotype_ratio,
+            "using_real_trait_data": True,
+            "summary": summary
+        }
+        
+    except Exception as e:
+        # Fall back to generic if anything fails
+        return _calculate_generic_cross(p1, p2)
+
+
+def _calculate_generic_cross(p1: str, p2: str) -> dict:
+    """
+    Calculate cross using generic dominant/recessive logic when no trait is found.
+    """
+    p1_alleles = [p1[0], p1[1]]
+    p2_alleles = [p2[0], p2[1]]
+    
+    # Generate all possible offspring
+    offspring = []
+    for a1 in p1_alleles:
+        for a2 in p2_alleles:
+            # Normalize genotype (capital letter first)
+            if a1.isupper() and a2.islower():
+                genotype = a1 + a2
+            elif a2.isupper() and a1.islower():
+                genotype = a2 + a1
+            elif a1 <= a2:
+                genotype = a1 + a2
+            else:
+                genotype = a2 + a1
+            offspring.append(genotype)
+    
+    # Count genotype frequencies
+    genotype_counts = {}
+    for g in offspring:
+        genotype_counts[g] = genotype_counts.get(g, 0) + 1
+    
+    # Calculate ratios and percentages
+    total = len(offspring)
+    genotype_results = []
+    for genotype, count in sorted(genotype_counts.items()):
+        percentage = (count / total) * 100
+        phenotype = _predict_generic_phenotype(genotype)
+        genotype_results.append({
+            "genotype": genotype,
+            "count": count,
+            "ratio": f"{count}/{total}",
+            "percentage": f"{percentage:.1f}%",
+            "phenotype": phenotype
+        })
+    
+    # Determine phenotype ratios
+    phenotype_counts = {}
+    for g in offspring:
+        p = _predict_generic_phenotype(g)
+        phenotype_counts[p] = phenotype_counts.get(p, 0) + 1
+    
+    phenotype_results = []
+    for phenotype, count in phenotype_counts.items():
+        percentage = (count / total) * 100
+        phenotype_results.append({
+            "phenotype": phenotype,
+            "count": count,
+            "ratio": f"{count}/{total}",
+            "percentage": f"{percentage:.1f}%"
+        })
+    
+    grid = _build_punnett_grid(p1_alleles, p2_alleles)
+    summary = _generate_generic_summary(p1, p2, genotype_results, phenotype_results)
+    
+    return {
+        "success": True,
+        "cross_type": "monohybrid",
+        "trait_name": None,
+        "parent1": p1,
+        "parent2": p2,
+        "punnett_square": grid,
+        "offspring_genotypes": genotype_results,
+        "offspring_phenotypes": phenotype_results,
+        "genotype_ratio": _simplify_ratio(genotype_counts),
+        "phenotype_ratio": _simplify_ratio(phenotype_counts),
+        "using_real_trait_data": False,
+        "summary": summary
+    }
+
+
+def _is_valid_genotype(genotype: str) -> bool:
+    """Check if a genotype string is valid."""
+    if not genotype:
+        return False
+    
+    # Must be even length (pairs of alleles)
+    if len(genotype) % 2 != 0:
+        return False
+    
+    # Must contain only letters and common symbols
+    if not genotype.replace("+", "").replace("-", "").isalpha():
+        return False
+    
+    return True
+
+
+def _predict_generic_phenotype(genotype: str) -> str:
+    """Predict phenotype from genotype using generic dominant/recessive logic."""
+    if not genotype or len(genotype) < 2:
+        return "Unknown"
+    
+    a1, a2 = genotype[0], genotype[1]
+    
+    if a1.isupper() and a2.isupper():
+        return "Homozygous Dominant"
+    elif (a1.isupper() and a2.islower()) or (a1.islower() and a2.isupper()):
+        return "Heterozygous (dominant phenotype)"
+    else:
+        return "Homozygous Recessive"
+
+
+def _build_punnett_grid(p1_alleles: list, p2_alleles: list) -> dict:
+    """Build a visual Punnett square grid."""
+    grid = {
+        "header": [""] + p1_alleles,
+        "rows": []
+    }
+    
+    for a2 in p2_alleles:
+        row = [a2]
+        for a1 in p1_alleles:
+            genotype = _normalize_allele_pair(a1, a2)
+            row.append(genotype)
+        grid["rows"].append(row)
+    
+    return grid
+
+
+def _build_punnett_grid_from_steps(steps: list) -> dict:
+    """Build grid from MendelianCalculator steps."""
+    if not steps:
+        return {}
+    
+    # Extract alleles and offspring from steps
+    p1_gametes = set()
+    p2_gametes = set()
+    cells = {}
+    
+    for step in steps:
+        if isinstance(step, dict):
+            p1_gametes.add(step.get("parent1_gamete", ""))
+            p2_gametes.add(step.get("parent2_gamete", ""))
+            key = (step.get("parent1_gamete", ""), step.get("parent2_gamete", ""))
+            cells[key] = step.get("offspring_genotype", "")
+    
+    p1_list = sorted(list(p1_gametes))
+    p2_list = sorted(list(p2_gametes))
+    
+    grid = {
+        "header": [""] + p1_list,
+        "rows": []
+    }
+    
+    for a2 in p2_list:
+        row = [a2]
+        for a1 in p1_list:
+            row.append(cells.get((a1, a2), ""))
+        grid["rows"].append(row)
+    
+    return grid
+
+
+def _normalize_allele_pair(a1: str, a2: str) -> str:
+    """Normalize an allele pair (uppercase first)."""
+    if a1.isupper() and a2.islower():
+        return a1 + a2
+    elif a2.isupper() and a1.islower():
+        return a2 + a1
+    elif a1 <= a2:
+        return a1 + a2
+    else:
+        return a2 + a1
+
+
+def _simplify_ratio(counts: dict) -> str:
+    """Convert counts to a simplified ratio string."""
+    if not counts:
+        return ""
+    
+    values = list(counts.values())
+    
+    from math import gcd
+    from functools import reduce
+    
+    common_divisor = reduce(gcd, values)
+    simplified = [v // common_divisor for v in values]
+    
+    return ":".join(str(s) for s in simplified)
+
+
+def _calculate_ratio_string(percentages: dict) -> str:
+    """Convert percentage dict to ratio string."""
+    if not percentages:
+        return ""
+    
+    # Convert percentages to approximate counts (out of 4)
+    counts = []
+    for pct in percentages.values():
+        count = round(pct / 25)  # 25% = 1/4
+        counts.append(max(1, count))
+    
+    return ":".join(str(c) for c in counts)
+
+
+def _generate_cross_summary_with_trait(p1: str, p2: str, trait_name: str, genotypes: list, phenotypes: list) -> str:
+    """Generate summary with actual trait information."""
+    summary_parts = [f"Crossing `{p1} × {p2}` for **{trait_name}**:"]
+    
+    # Add genotype distribution
+    geno_str = ", ".join([f"`{g['genotype']}` ({g['percentage']})" for g in genotypes])
+    summary_parts.append(f"Offspring genotypes: {geno_str}")
+    
+    # Add phenotype distribution
+    pheno_str = ", ".join([f"**{p['phenotype']}** ({p['percentage']})" for p in phenotypes])
+    summary_parts.append(f"Phenotypes: {pheno_str}")
+    
+    return " ".join(summary_parts)
+
+
+def _generate_generic_summary(p1: str, p2: str, genotypes: list, phenotypes: list) -> str:
+    """Generate summary for generic cross."""
+    summary_parts = [f"Crossing `{p1} × {p2}`:"]
+    
+    p1_type = _get_genotype_type(p1)
+    p2_type = _get_genotype_type(p2)
+    
+    if p1_type == "homozygous_dominant" and p2_type == "homozygous_dominant":
+        summary_parts.append("Both parents are homozygous dominant. All offspring will be homozygous dominant (**100%**).")
+    elif p1_type == "homozygous_recessive" and p2_type == "homozygous_recessive":
+        summary_parts.append("Both parents are homozygous recessive. All offspring will be homozygous recessive (**100%**).")
+    elif p1_type == "heterozygous" and p2_type == "heterozygous":
+        summary_parts.append("Both parents are heterozygous (carriers). Offspring follow a **1:2:1** genotype ratio (25% homozygous dominant, 50% heterozygous, 25% homozygous recessive).")
+        summary_parts.append("The phenotype ratio is **3:1** (75% dominant phenotype, 25% recessive phenotype).")
+    elif (p1_type == "heterozygous" and p2_type == "homozygous_recessive") or \
+         (p1_type == "homozygous_recessive" and p2_type == "heterozygous"):
+        summary_parts.append("This is a **test cross**! Offspring will be 50% heterozygous (dominant phenotype) and 50% homozygous recessive.")
+    elif (p1_type == "heterozygous" and p2_type == "homozygous_dominant") or \
+         (p1_type == "homozygous_dominant" and p2_type == "heterozygous"):
+        summary_parts.append("Offspring will be 50% homozygous dominant and 50% heterozygous. All will show the **dominant phenotype** (100%).")
+    else:
+        summary_parts.append(f"This cross produces {len(genotypes)} different genotype(s).")
+    
+    return " ".join(summary_parts)
+
+
+def _get_genotype_type(genotype: str) -> str:
+    """Determine the type of genotype."""
+    if len(genotype) != 2:
+        return "unknown"
+    
+    a1, a2 = genotype[0], genotype[1]
+    
+    if a1.isupper() and a2.isupper():
+        return "homozygous_dominant"
+    elif a1.islower() and a2.islower():
+        return "homozygous_recessive"
+    else:
+        return "heterozygous"
+
+
+def parse_cross_from_message(message: str) -> dict:
+    """
+    Parse a user's message to extract cross information.
+    
+    Examples:
+        "cross Aa with Aa" -> {"parent1": "Aa", "parent2": "Aa"}
+        "Aa × Bb" -> {"parent1": "Aa", "parent2": "Bb"}
+        "what if I cross BB and bb" -> {"parent1": "BB", "parent2": "bb"}
+    """
+    import re
+    
+    # Patterns to match genetic crosses
+    patterns = [
+        # "cross Aa with Bb"
+        r"cross\s+([A-Za-z]{2,4})\s+(?:with|and|×|x)\s+([A-Za-z]{2,4})",
+        # "Aa × Bb" or "Aa x Bb"
+        r"([A-Za-z]{2,4})\s*[×xX]\s*([A-Za-z]{2,4})",
+        # "Aa and Bb cross"
+        r"([A-Za-z]{2,4})\s+(?:and|with)\s+([A-Za-z]{2,4})\s+cross",
+        # "if I cross Aa and Bb"
+        r"if\s+(?:i\s+)?cross\s+([A-Za-z]{2,4})\s+(?:and|with)\s+([A-Za-z]{2,4})",
+        # "crossing Aa with Bb"
+        r"crossing\s+([A-Za-z]{2,4})\s+(?:with|and)\s+([A-Za-z]{2,4})",
+        # "punnett square for Aa and Bb"
+        r"punnett.*?([A-Za-z]{2,4})\s+(?:and|with|×|x)\s+([A-Za-z]{2,4})",
+        # Look for two genotypes in the message
+        r"([A-Za-z]{2,4})\s+(?:and|with|×|x|crossed with)\s+([A-Za-z]{2,4})",
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, message, re.IGNORECASE)
+        if match:
+            p1 = match.group(1)
+            p2 = match.group(2)
+            # Also try to extract trait name from message
+            trait_name = _extract_trait_name_from_message(message)
+            if _is_valid_genotype(p1) and _is_valid_genotype(p2):
+                return {"found": True, "parent1": p1, "parent2": p2, "trait_name": trait_name}
+    
+    return {"found": False}
+
+
+def _extract_trait_name_from_message(message: str) -> str:
+    """Try to extract trait name from message."""
+    import re
+    
+    # Common patterns for trait mentions
+    patterns = [
+        r"for\s+(\w+(?:\s+\w+)?)\s+trait",
+        r"(\w+(?:\s+\w+)?)\s+trait",
+        r"for\s+(\w+(?:\s+\w+)?)\s+(?:gene|inheritance)",
+    ]
+    
+    for pattern in patterns:
+        match = re.search(pattern, message, re.IGNORECASE)
+        if match:
+            return match.group(1)
+    
+    return None
+
+
 # Export the main functions for use by the chatbot
 __all__ = [
     "get_traits_count",
     "search_traits", 
     "get_trait_details",
     "list_traits_by_type",
-    "list_traits_by_inheritance"
+    "list_traits_by_inheritance",
+    "calculate_punnett_square",
+    "parse_cross_from_message"
 ]

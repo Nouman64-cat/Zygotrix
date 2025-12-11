@@ -12,7 +12,13 @@ from dotenv import load_dotenv, find_dotenv
 load_dotenv(find_dotenv())
 
 from ..prompt_engineering.prompts import ZIGI_SYSTEM_PROMPT
-from ..chatbot_tools import get_traits_count, search_traits, get_trait_details
+from ..chatbot_tools import (
+    get_traits_count, 
+    search_traits, 
+    get_trait_details,
+    calculate_punnett_square,
+    parse_cross_from_message
+)
 
 logger = logging.getLogger(__name__)
 
@@ -156,7 +162,51 @@ def get_traits_context(message: str) -> str:
     message_lower = message.lower()
     context_parts = []
     
-    # Check for count queries
+    # ==== CHECK FOR PUNNETT SQUARE / CROSS QUERIES ====
+    cross_keywords = ["cross", "punnett", "×", "offspring", "genotype", "phenotype"]
+    if any(keyword in message_lower for keyword in cross_keywords):
+        cross_data = parse_cross_from_message(message)
+        if cross_data.get("found"):
+            p1 = cross_data["parent1"]
+            p2 = cross_data["parent2"]
+            result = calculate_punnett_square(p1, p2)
+            
+            if result.get("success"):
+                # Format the Punnett square results nicely
+                genotype_info = []
+                for g in result["offspring_genotypes"]:
+                    genotype_info.append(f"  - {g['genotype']}: {g['percentage']} ({g['phenotype']})")
+                
+                phenotype_info = []
+                for p in result["offspring_phenotypes"]:
+                    phenotype_info.append(f"  - {p['phenotype']}: {p['percentage']}")
+                
+                # Build the Punnett square grid as text
+                grid = result.get("punnett_square", {})
+                grid_text = ""
+                if grid:
+                    header = grid.get("header", [])
+                    rows = grid.get("rows", [])
+                    grid_text = f"\nPunnett Square:\n"
+                    grid_text += "    " + "  ".join(header[1:]) + "\n"
+                    for row in rows:
+                        grid_text += f" {row[0]}  " + "  ".join(row[1:]) + "\n"
+                
+                context_parts.append(f"""
+PUNNETT SQUARE CALCULATION RESULTS:
+Cross: {p1} × {p2}
+Cross Type: {result['cross_type']}
+{grid_text}
+Offspring Genotypes:
+{chr(10).join(genotype_info)}
+
+Genotype Ratio: {result['genotype_ratio']}
+Phenotype Ratio: {result['phenotype_ratio']}
+
+Summary: {result['summary']}
+""")
+    
+    # ==== CHECK FOR COUNT QUERIES ====
     count_patterns = [
         r"how many traits",
         r"number of traits",
@@ -179,7 +229,7 @@ TRAITS DATABASE INFO:
 - Polygenic traits (multiple genes): {count_data['polygenic_traits']}
 """)
     
-    # Check for trait explanation queries
+    # ==== CHECK FOR TRAIT EXPLANATION QUERIES ====
     explain_patterns = [
         r"explain\s+(.+?)(?:\s+trait)?$",
         r"tell me about\s+(.+?)(?:\s+trait)?$",
@@ -212,7 +262,7 @@ Description: {trait_details['description']}
 """)
                 break
     
-    # Check for trait search queries 
+    # ==== SEARCH FOR RELATED TRAITS ====
     search_patterns = [
         r"search.*trait.*(.+)",
         r"find.*trait.*(.+)",

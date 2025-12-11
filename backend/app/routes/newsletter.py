@@ -1,7 +1,12 @@
 from fastapi import APIRouter, Depends
 from datetime import datetime
 
-from ..schema.newsletter import NewsletterSubscribeRequest, NewsletterSubscribeResponse
+from ..schema.newsletter import (
+    NewsletterSubscribeRequest,
+    NewsletterSubscribeResponse,
+    SendNewsletterRequest,
+    SendNewsletterResponse,
+)
 from ..services import newsletter as newsletter_service
 from ..dependencies import get_current_admin
 from ..schema.auth import UserProfile
@@ -54,3 +59,24 @@ def unsubscribe_from_newsletter(
     """
     newsletter_service.unsubscribe_from_newsletter(email=email)
     return {"message": f"Successfully unsubscribed {email} from the newsletter."}
+
+
+@router.post("/send", response_model=SendNewsletterResponse)
+def send_newsletter(
+    payload: SendNewsletterRequest,
+    current_user: UserProfile = Depends(get_current_admin)
+) -> SendNewsletterResponse:
+    """
+    Send newsletter to selected subscribers (Admin only).
+
+    This endpoint allows admins to send customized newsletter emails
+    using predefined templates (changelog, release, news, update).
+    """
+    result = newsletter_service.send_newsletter_email(
+        recipient_emails=payload.recipient_emails,
+        template_type=payload.template_type,
+        subject=payload.subject,
+        content=payload.content
+    )
+
+    return SendNewsletterResponse(**result)

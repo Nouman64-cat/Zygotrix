@@ -32,6 +32,9 @@ import AskQuestionPage from "./pages/AskQuestionPage";
 import SimulationStudioPage from "./pages/SimulationStudioPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
+import AdminNewsletterPage from "./pages/AdminNewsletterPage";
+import PrivacyPage from "./pages/PrivacyPage";
+import TermsPage from "./pages/TermsPage";
 
 const App: React.FC = () => {
   return (
@@ -44,6 +47,8 @@ const App: React.FC = () => {
         <Route path="contact" element={<ContactPage />} />
         <Route path="blogs" element={<BlogsPage />} />
         <Route path="blogs/:slug" element={<BlogDetailPage />} />
+        <Route path="privacy" element={<PrivacyPage />} />
+        <Route path="terms" element={<TermsPage />} />
       </Route>
 
       {/* Community Routes - Separate Layout */}
@@ -171,6 +176,14 @@ const App: React.FC = () => {
         element={
           <RequireAuth>
             <AdminUsersPage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="studio/admin/newsletter"
+        element={
+          <RequireAuth>
+            <AdminNewsletterPage />
           </RequireAuth>
         }
       />

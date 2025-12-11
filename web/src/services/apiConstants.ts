@@ -91,6 +91,7 @@ export const API_ROUTES = {
     subscriptions: "/api/newsletter/subscriptions",
     unsubscribe: (email: string) =>
       "/api/newsletter/unsubscribe/" + encodeURIComponent(email),
+    send: "/api/newsletter/send",
   },
 } as const;
 

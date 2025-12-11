@@ -147,7 +147,7 @@ const SignInPage: React.FC = () => {
                   </div>
 
                   <div className="space-y-2">
-                    <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-600 dark:text-blue-400">
+                    <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/20 px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400">
                       <span className="h-1.5 w-1.5 rounded-full bg-emerald-400 animate-pulse" />
                       Sign In
                     </span>
@@ -239,7 +239,7 @@ const SignInPage: React.FC = () => {
                   <button
                     type="submit"
                     disabled={isAuthenticating}
-                    className="group relative w-full overflow-hidden rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-6 py-3 text-sm text-white shadow-lg shadow-[#1E3A8A]/30 transition-all duration-300 hover:shadow-[#1E3A8A]/50 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70 disabled:scale-100"
+                    className="group relative w-full overflow-hidden rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-6 py-3 text-sm text-white shadow-lg shadow-[#1E3A8A]/30 transition-all duration-300 hover:shadow-[#1E3A8A]/50 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70 disabled:scale-100 cursor-pointer"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-[#162b63] to-[#2563EB] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                     <span className="relative flex items-center justify-center gap-2">
@@ -249,7 +249,7 @@ const SignInPage: React.FC = () => {
                           Authenticating...
                         </>
                       ) : (
-                        "Access Studio"
+                        "Login"
                       )}
                     </span>
                   </button>

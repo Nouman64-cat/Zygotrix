@@ -315,7 +315,7 @@ const SignUpPage: React.FC = () => {
                 {step === "form" && (
                   <div className="space-y-6">
                     <div className="text-center space-y-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-600 dark:text-blue-400">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/20 px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                         Create Account
                       </span>
@@ -413,7 +413,7 @@ const SignUpPage: React.FC = () => {
                       <button
                         type="submit"
                         disabled={isSubmitting}
-                        className="group relative w-full overflow-hidden rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-6 py-3 text-sm text-white shadow-lg shadow-[#1E3A8A]/30 transition-all duration-300 hover:shadow-[#1E3A8A]/50 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70 disabled:scale-100"
+                        className="group relative w-full overflow-hidden rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-6 py-3 text-sm text-white shadow-lg shadow-[#1E3A8A]/30 transition-all duration-300 hover:shadow-[#1E3A8A]/50 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70 disabled:scale-100 cursor-pointer"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-[#162b63] to-[#2563EB] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                         <span className="relative flex items-center justify-center gap-2">
@@ -448,7 +448,7 @@ const SignUpPage: React.FC = () => {
                 {step === "otp" && (
                   <div className="space-y-6">
                     <div className="text-center space-y-2">
-                      <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-blue-600 dark:text-blue-400">
+                      <span className="inline-flex items-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/20 px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-400">
                         <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                         Verify Code
                       </span>
@@ -519,7 +519,7 @@ const SignUpPage: React.FC = () => {
                           isSubmitting ||
                           otpDigits.join("").length !== OTP_LENGTH
                         }
-                        className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-lg shadow-[#1E3A8A]/30 transition-all duration-300 hover:shadow-[#1E3A8A]/50 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70 disabled:scale-100"
+                        className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#1E3A8A]/30 transition-all duration-300 hover:shadow-[#1E3A8A]/50 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70 disabled:scale-100 cursor-pointer"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-[#162b63] to-[#2563EB] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                         <span className="relative flex items-center justify-center gap-2">
@@ -540,7 +540,7 @@ const SignUpPage: React.FC = () => {
                         type="button"
                         onClick={handleResend}
                         disabled={isSubmitting}
-                        className="w-full rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-all duration-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        className="w-full rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800/50 px-4 py-3 text-sm font-semibold text-slate-700 dark:text-slate-300 transition-all duration-300 hover:border-blue-500 hover:text-blue-600 dark:hover:text-blue-400 hover:bg-blue-50 dark:hover:bg-slate-800 disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
                       >
                         {isSubmitting ? "Sending..." : "Resend Code"}
                       </button>
@@ -553,7 +553,7 @@ const SignUpPage: React.FC = () => {
                             onClick={handleStartOver}
                             className="font-semibold cursor-pointer text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-300"
                           >
-                            Start over
+                            Change email
                           </button>
                         </p>
                       </div>
@@ -582,7 +582,7 @@ const SignUpPage: React.FC = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-900/20 px-4 py-2 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-400">
+                        <span className="inline-flex items-center gap-2 rounded-full bg-emerald-100 dark:bg-emerald-900/20 px-4 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
                           <span className="h-1.5 w-1.5 rounded-full bg-emerald-500 dark:bg-emerald-400 animate-pulse" />
                           Success
                         </span>
@@ -607,7 +607,7 @@ const SignUpPage: React.FC = () => {
                           },
                         })
                       }
-                      className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-[#10B981] to-[#059669] px-6 py-3 text-sm font-semibold uppercase tracking-[0.2em] text-white shadow-lg shadow-[#10B981]/30 transition-all duration-300 hover:shadow-[#10B981]/50 hover:scale-[1.02]"
+                      className="group relative w-full overflow-hidden rounded-2xl bg-gradient-to-r from-[#10B981] to-[#059669] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#10B981]/30 transition-all duration-300 hover:shadow-[#10B981]/50 hover:scale-[1.02]"
                     >
                       <div className="absolute inset-0 bg-gradient-to-r from-[#047857] to-[#065f46] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />
                       <span className="relative">Continue to Sign In</span>

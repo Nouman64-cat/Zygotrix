@@ -86,6 +86,12 @@ export const API_ROUTES = {
       "/api/admin/users/" + encodeURIComponent(userId) + "/role",
     stats: "/api/admin/stats",
   },
+  newsletter: {
+    subscribe: "/api/newsletter/subscribe",
+    subscriptions: "/api/newsletter/subscriptions",
+    unsubscribe: (email: string) =>
+      "/api/newsletter/unsubscribe/" + encodeURIComponent(email),
+  },
 } as const;
 
 export type ApiRoutes = typeof API_ROUTES;

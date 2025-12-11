@@ -66,11 +66,11 @@ const HeroSection: React.FC = () => {
 
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
-                to="/playground"
+                to="/studio"
                 className="group relative inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] px-8 py-4 text-base font-semibold text-white shadow-xl shadow-[#1E3A8A]/30 dark:shadow-[#3B82F6]/30 transition-all duration-300 hover:shadow-2xl hover:shadow-[#1E3A8A]/40 dark:hover:shadow-[#3B82F6]/40 hover:scale-105"
               >
                 <span className="relative z-10 flex items-center gap-2">
-                  Explore Genetic Playground
+                  Genetic Studio
                   <svg
                     className="w-4 h-4 transition-transform group-hover:translate-x-1"
                     fill="currentColor"

@@ -22,7 +22,9 @@ export const FloatingChatButton: React.FC = () => {
         onClose={() => setIsOpen(false)}
         currentPath={location.pathname}
         userName={user?.full_name || user?.email?.split('@')[0] || 'there'}
+        userId={user?.id}
       />
+
 
       {/* Hide button when chat is open on mobile (since chat is fullscreen) */}
       <button

@@ -148,6 +148,28 @@ def get_simulation_logs_collection(required: bool = False):
     return db["simulation_logs"]
 
 
+def get_token_usage_collection(required: bool = False):
+    """Get or create the token usage collection for tracking LLM API consumption."""
+    client = get_mongo_client()
+    if client is None:
+        if required:
+            raise HTTPException(status_code=503, detail="MongoDB client not available")
+        return None
+    settings = get_settings()
+    db = client[settings.mongodb_db_name]
+    collection = db["token_usage"]
+    try:
+        # Index for querying by user
+        collection.create_index("user_id")
+        # Index for querying by date range
+        collection.create_index("timestamp")
+        # Compound index for user + date queries
+        collection.create_index([("user_id", 1), ("timestamp", -1)])
+    except Exception:
+        pass
+    return collection
+
+
 from datetime import datetime, timezone
 from typing import Optional, Mapping, Dict
 from fastapi import HTTPException

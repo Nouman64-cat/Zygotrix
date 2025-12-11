@@ -9,9 +9,10 @@ interface ChatBotProps {
   onClose: () => void;
   currentPath: string;
   userName: string;
+  userId?: string;
 }
 
-export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName }) => {
+export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName, userId }) => {
   const pageContext = getPageContext(currentPath);
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
@@ -46,7 +47,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
     setIsLoading(true);
 
     try {
-      const response = await sendMessage(inputValue, pageContext, userName);
+      const response = await sendMessage(inputValue, pageContext, userName, userId);
+
 
       const assistantMessage: ChatMessage = {
         role: 'assistant',

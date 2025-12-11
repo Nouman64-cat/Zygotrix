@@ -6,6 +6,11 @@ import httpx
 import logging
 import os
 import re
+import hashlib
+import time
+from typing import Optional
+from collections import OrderedDict
+from datetime import datetime, timezone
 from dotenv import load_dotenv, find_dotenv
 
 
@@ -41,6 +46,101 @@ logger.info(f"LLAMA_CLOUD_API_KEY loaded: {'Yes' if LLAMA_CLOUD_API_KEY else 'No
 # Cache the pipeline ID to avoid repeated lookups
 _cached_pipeline_id: str | None = None
 
+
+# =============================================================================
+# LLM RESPONSE CACHE
+# =============================================================================
+
+class LLMResponseCache:
+    """
+    Simple in-memory TTL cache for LLM responses.
+    
+    Features:
+    - TTL-based expiration (default 1 hour)
+    - LRU eviction when max size reached
+    - Hash-based cache keys for consistent lookups
+    """
+    
+    def __init__(self, max_size: int = 1000, ttl_seconds: int = 3600):
+        self.max_size = max_size
+        self.ttl_seconds = ttl_seconds
+        self.cache: OrderedDict[str, dict] = OrderedDict()
+        self.hits = 0
+        self.misses = 0
+    
+    def _generate_key(self, message: str, context: str = "", page_name: str = "") -> str:
+        """Generate a unique cache key from the inputs."""
+        # Normalize message (lowercase, strip whitespace)
+        normalized_msg = message.lower().strip()
+        
+        # Create a hash of the key components
+        key_data = f"{normalized_msg}|{page_name}"
+        return hashlib.md5(key_data.encode()).hexdigest()
+    
+    def get(self, message: str, context: str = "", page_name: str = "") -> Optional[str]:
+        """Get a cached response if it exists and hasn't expired."""
+        key = self._generate_key(message, context, page_name)
+        
+        if key in self.cache:
+            entry = self.cache[key]
+            
+            # Check if expired
+            if time.time() - entry["timestamp"] < self.ttl_seconds:
+                self.hits += 1
+                # Move to end (most recently used)
+                self.cache.move_to_end(key)
+                logger.info(f"Cache HIT for message: '{message[:50]}...' (hits: {self.hits})")
+                return entry["response"]
+            else:
+                # Expired, remove it
+                del self.cache[key]
+        
+        self.misses += 1
+        return None
+    
+    def set(self, message: str, response: str, context: str = "", page_name: str = ""):
+        """Store a response in the cache."""
+        key = self._generate_key(message, context, page_name)
+        
+        # Evict oldest entries if cache is full
+        while len(self.cache) >= self.max_size:
+            self.cache.popitem(last=False)
+        
+        self.cache[key] = {
+            "response": response,
+            "timestamp": time.time(),
+            "message": message[:100]  # Store first 100 chars for debugging
+        }
+        logger.info(f"Cached response for: '{message[:50]}...' (cache size: {len(self.cache)})")
+    
+    def clear(self):
+        """Clear all cached entries."""
+        self.cache.clear()
+        self.hits = 0
+        self.misses = 0
+    
+    def get_stats(self) -> dict:
+        """Get cache statistics."""
+        total = self.hits + self.misses
+        hit_rate = (self.hits / total * 100) if total > 0 else 0
+        return {
+            "size": len(self.cache),
+            "max_size": self.max_size,
+            "hits": self.hits,
+            "misses": self.misses,
+            "hit_rate": f"{hit_rate:.1f}%",
+            "ttl_seconds": self.ttl_seconds
+        }
+
+
+# Global cache instance
+_response_cache = LLMResponseCache(
+    max_size=1000,      # Max 1000 cached responses
+    ttl_seconds=3600    # Cache for 1 hour
+)
+
+
+
 class PageContext(BaseModel):
     pageName: str
     description: str
@@ -51,6 +151,7 @@ class ChatRequest(BaseModel):
     message: str
     pageContext: PageContext | None = None
     userName: str | None = None
+    userId: str | None = None  # For token usage tracking
 
 
 class ChatResponse(BaseModel):
@@ -292,8 +393,14 @@ Found {len(results)} matching trait(s):
     
     return "\n".join(context_parts)
 
-async def generate_response(user_message: str, context: str, page_context: PageContext | None = None, user_name: str = "there") -> str:
-    """Generate response using Claude AI."""
+async def generate_response(user_message: str, context: str, page_context: PageContext | None = None, user_name: str = "there") -> tuple[str, dict]:
+    """
+    Generate response using Claude AI.
+    
+    Returns:
+        tuple: (response_text, token_usage_dict)
+               token_usage_dict contains: input_tokens, output_tokens
+    """
     try:
         # Format system prompt with user's name
         system_prompt = ZIGI_SYSTEM_PROMPT.format(user_name=user_name)
@@ -308,16 +415,14 @@ The user is currently on: {page_context.pageName}
 Page Description: {page_context.description}
 Available Features on this page:
 {features_list}
-
-If the user asks about "this page", "here", "what can I do", or similar questions, they are asking about the {page_context.pageName}.
 """
 
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 "https://api.anthropic.com/v1/messages",
                 headers={
-                    "Content-Type": "application/json",
                     "x-api-key": CLAUDE_API_KEY,
+                    "content-type": "application/json",
                     "anthropic-version": "2023-06-01",
                 },
                 json={
@@ -349,11 +454,18 @@ Remember: Answer in 2-4 simple, friendly sentences. No technical jargon. No bull
                 )
 
             data = response.json()
+            
+            # Extract token usage from response
+            token_usage = {
+                "input_tokens": data.get("usage", {}).get("input_tokens", 0),
+                "output_tokens": data.get("usage", {}).get("output_tokens", 0),
+                "model": CLAUDE_MODEL,
+            }
 
             if data.get("content") and len(data["content"]) > 0:
-                return data["content"][0].get("text", "I'm sorry, I couldn't generate a response.")
+                return data["content"][0].get("text", "I'm sorry, I couldn't generate a response."), token_usage
 
-            return "I'm sorry, I couldn't generate a response. Please try again!"
+            return "I'm sorry, I couldn't generate a response. Please try again!", token_usage
     except httpx.HTTPError as e:
         logger.error(f"HTTP error generating response: {e}")
         raise HTTPException(
@@ -373,8 +485,33 @@ async def chat(request: ChatRequest) -> ChatResponse:
     """
     Chat endpoint that retrieves context from LlamaCloud and generates
     a response using Claude AI with page context awareness.
+    
+    Features caching to reduce API token consumption.
+    Tracks token usage per user for admin monitoring.
     """
     try:
+        # Get page name for cache key
+        page_name = request.pageContext.pageName if request.pageContext else ""
+        
+        # Step 0: Check cache first (no tokens used for cache hits!)
+        cached_response = _response_cache.get(
+            message=request.message,
+            page_name=page_name
+        )
+        
+        if cached_response:
+            logger.info(f"Returning cached response for: '{request.message[:50]}...'")
+            # Log cache hit (0 tokens used)
+            _log_token_usage(
+                user_id=request.userId,
+                user_name=request.userName,
+                input_tokens=0,
+                output_tokens=0,
+                cached=True,
+                message_preview=request.message[:100]
+            )
+            return ChatResponse(response=cached_response)
+        
         # Step 1: Retrieve relevant context from LlamaCloud
         llama_context = await retrieve_context(request.message)
         
@@ -389,7 +526,25 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
         # Step 4: Generate response using Claude with context, page context, and user name
         user_name = request.userName or "there"
-        response = await generate_response(request.message, combined_context, request.pageContext, user_name)
+        response, token_usage = await generate_response(request.message, combined_context, request.pageContext, user_name)
+        
+        # Step 5: Log token usage for this request
+        _log_token_usage(
+            user_id=request.userId,
+            user_name=request.userName,
+            input_tokens=token_usage.get("input_tokens", 0),
+            output_tokens=token_usage.get("output_tokens", 0),
+            cached=False,
+            message_preview=request.message[:100],
+            model=token_usage.get("model")
+        )
+        
+        # Step 6: Cache the response for future requests
+        _response_cache.set(
+            message=request.message,
+            response=response,
+            page_name=page_name
+        )
 
         return ChatResponse(response=response)
     except HTTPException:
@@ -400,3 +555,201 @@ async def chat(request: ChatRequest) -> ChatResponse:
             status_code=500,
             detail="Sorry, I encountered an error. Please try again!",
         )
+
+
+def _log_token_usage(
+    user_id: str | None,
+    user_name: str | None,
+    input_tokens: int,
+    output_tokens: int,
+    cached: bool,
+    message_preview: str,
+    model: str | None = None
+):
+    """Log token usage to MongoDB for admin tracking."""
+    try:
+        from ..services.common import get_token_usage_collection
+        
+        collection = get_token_usage_collection()
+        if collection is None:
+            return  # MongoDB not available
+        
+        doc = {
+            "user_id": user_id or "anonymous",
+            "user_name": user_name or "Unknown",
+            "input_tokens": input_tokens,
+            "output_tokens": output_tokens,
+            "total_tokens": input_tokens + output_tokens,
+            "cached": cached,
+            "message_preview": message_preview,
+            "model": model or CLAUDE_MODEL,
+            "timestamp": datetime.now(timezone.utc),
+        }
+        
+        collection.insert_one(doc)
+        logger.debug(f"Logged token usage: {input_tokens + output_tokens} tokens for user {user_id or 'anonymous'}")
+    except Exception as e:
+        logger.warning(f"Failed to log token usage: {e}")
+
+
+
+
+
+@router.get("/cache/stats")
+async def get_cache_stats():
+    """
+    Get cache statistics for monitoring.
+    
+    Returns:
+        - size: Current number of cached responses
+        - max_size: Maximum cache capacity
+        - hits: Number of cache hits
+        - misses: Number of cache misses
+        - hit_rate: Cache hit rate percentage
+        - ttl_seconds: Time-to-live for cache entries
+    """
+    return _response_cache.get_stats()
+
+
+@router.post("/cache/clear")
+async def clear_cache():
+    """
+    Clear all cached responses.
+    
+    Use this when prompts or responses change and you want to invalidate old cache.
+    """
+    _response_cache.clear()
+    return {"message": "Cache cleared successfully", "stats": _response_cache.get_stats()}
+
+
+# =============================================================================
+# ADMIN TOKEN USAGE ENDPOINTS
+# =============================================================================
+
+@router.get("/admin/token-usage")
+async def get_token_usage_stats():
+    """
+    Get aggregate token usage statistics for all users.
+    
+    Returns:
+        - total_tokens: Total tokens consumed across all users
+        - total_requests: Total number of API requests
+        - cached_requests: Number of requests served from cache
+        - users: List of users with their token consumption
+    """
+    try:
+        from ..services.common import get_token_usage_collection
+        
+        collection = get_token_usage_collection()
+        if collection is None:
+            return {"error": "MongoDB not available", "users": []}
+        
+        # Aggregate token usage by user
+        pipeline = [
+            {
+                "$group": {
+                    "_id": "$user_id",
+                    "user_name": {"$last": "$user_name"},
+                    "total_input_tokens": {"$sum": "$input_tokens"},
+                    "total_output_tokens": {"$sum": "$output_tokens"},
+                    "total_tokens": {"$sum": "$total_tokens"},
+                    "request_count": {"$sum": 1},
+                    "cached_count": {
+                        "$sum": {"$cond": [{"$eq": ["$cached", True]}, 1, 0]}
+                    },
+                    "last_request": {"$max": "$timestamp"},
+                }
+            },
+            {"$sort": {"total_tokens": -1}}
+        ]
+        
+        results = list(collection.aggregate(pipeline))
+        
+        # Calculate totals
+        total_tokens = sum(r.get("total_tokens", 0) for r in results)
+        total_requests = sum(r.get("request_count", 0) for r in results)
+        cached_requests = sum(r.get("cached_count", 0) for r in results)
+        
+        # Format user data
+        users = []
+        for r in results:
+            users.append({
+                "user_id": r["_id"],
+                "user_name": r.get("user_name", "Unknown"),
+                "total_tokens": r.get("total_tokens", 0),
+                "input_tokens": r.get("total_input_tokens", 0),
+                "output_tokens": r.get("total_output_tokens", 0),
+                "request_count": r.get("request_count", 0),
+                "cached_count": r.get("cached_count", 0),
+                "cache_hit_rate": f"{(r.get('cached_count', 0) / r.get('request_count', 1)) * 100:.1f}%",
+                "last_request": r.get("last_request").isoformat() if r.get("last_request") else None,
+            })
+        
+        return {
+            "total_tokens": total_tokens,
+            "total_input_tokens": sum(r.get("total_input_tokens", 0) for r in results),
+            "total_output_tokens": sum(r.get("total_output_tokens", 0) for r in results),
+            "total_requests": total_requests,
+            "cached_requests": cached_requests,
+            "cache_hit_rate": f"{(cached_requests / total_requests * 100) if total_requests > 0 else 0:.1f}%",
+            "user_count": len(users),
+            "users": users,
+        }
+    except Exception as e:
+        logger.error(f"Error fetching token usage stats: {e}")
+        return {"error": str(e), "users": []}
+
+
+@router.get("/admin/token-usage/{user_id}")
+async def get_user_token_usage(user_id: str, limit: int = 50):
+    """
+    Get detailed token usage history for a specific user.
+    
+    Args:
+        user_id: The user ID to fetch history for
+        limit: Maximum number of records to return (default 50)
+    
+    Returns:
+        - user_id: The requested user ID
+        - total_tokens: Total tokens consumed by this user
+        - history: List of recent token usage records
+    """
+    try:
+        from ..services.common import get_token_usage_collection
+        
+        collection = get_token_usage_collection()
+        if collection is None:
+            return {"error": "MongoDB not available", "history": []}
+        
+        # Get recent history for user
+        history = list(
+            collection.find({"user_id": user_id})
+            .sort("timestamp", -1)
+            .limit(limit)
+        )
+        
+        # Calculate totals for this user
+        total_tokens = sum(h.get("total_tokens", 0) for h in history)
+        
+        # Format history
+        formatted_history = []
+        for h in history:
+            formatted_history.append({
+                "timestamp": h.get("timestamp").isoformat() if h.get("timestamp") else None,
+                "input_tokens": h.get("input_tokens", 0),
+                "output_tokens": h.get("output_tokens", 0),
+                "total_tokens": h.get("total_tokens", 0),
+                "cached": h.get("cached", False),
+                "message_preview": h.get("message_preview", ""),
+                "model": h.get("model", "unknown"),
+            })
+        
+        return {
+            "user_id": user_id,
+            "total_tokens": total_tokens,
+            "request_count": len(history),
+            "history": formatted_history,
+        }
+    except Exception as e:
+        logger.error(f"Error fetching user token usage: {e}")
+        return {"error": str(e), "history": []}

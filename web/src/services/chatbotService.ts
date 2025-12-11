@@ -16,7 +16,12 @@ export interface PageContext {
 }
 
 // Main chatbot function - calls backend API
-export async function sendMessage(message: string, pageContext?: PageContext, userName?: string): Promise<string> {
+export async function sendMessage(
+  message: string, 
+  pageContext?: PageContext, 
+  userName?: string,
+  userId?: string
+): Promise<string> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/chatbot/chat`, {
       method: 'POST',
@@ -27,6 +32,7 @@ export async function sendMessage(message: string, pageContext?: PageContext, us
         message: message,
         pageContext: pageContext,
         userName: userName,
+        userId: userId,
       }),
     });
 
@@ -46,5 +52,35 @@ export async function sendMessage(message: string, pageContext?: PageContext, us
   } catch (error) {
     console.error('Chatbot error:', error);
     return "Sorry, I encountered an error. Please try again!";
+  }
+}
+
+// Fetch token usage stats for admin dashboard
+export async function getTokenUsageStats(): Promise<{
+  total_tokens: number;
+  total_requests: number;
+  cached_requests: number;
+  cache_hit_rate: string;
+  user_count: number;
+  users: Array<{
+    user_id: string;
+    user_name: string;
+    total_tokens: number;
+    request_count: number;
+    cached_count: number;
+    cache_hit_rate: string;
+    last_request: string | null;
+  }>;
+} | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/chatbot/admin/token-usage`);
+    if (!response.ok) {
+      console.error('Failed to fetch token usage stats');
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching token usage stats:', error);
+    return null;
   }
 }

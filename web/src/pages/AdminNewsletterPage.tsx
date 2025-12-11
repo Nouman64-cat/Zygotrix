@@ -6,40 +6,76 @@ import type {
   NewsletterSubscription,
   SendNewsletterRequest,
 } from "../services/newsletter.api";
+import {
+  MdEmail,
+  MdSend,
+  MdCheckCircle,
+  MdError,
+  MdPeople,
+  MdClose,
+  MdRefresh,
+  MdFormatBold,
+  MdFormatItalic,
+  MdFormatUnderlined,
+  MdFormatListBulleted,
+  MdFormatListNumbered,
+  MdLink,
+  MdCode,
+} from "react-icons/md";
+import {
+  FaRocket,
+  FaNewspaper,
+  FaBell,
+  FaClipboardList,
+} from "react-icons/fa";
+import { BiLoaderAlt } from "react-icons/bi";
+import { HiSparkles } from "react-icons/hi";
 
 const TEMPLATE_TYPES = [
   {
     value: "changelog" as const,
     label: "Changelog",
-    icon: "📝",
-    color: "from-green-500 to-emerald-600",
-    description: "Share product updates and feature improvements",
+    icon: FaClipboardList,
+    color: "bg-emerald-500",
+    hoverColor: "hover:bg-emerald-600",
+    borderColor: "border-emerald-500",
+    textColor: "text-emerald-500",
+    description: "Product updates & improvements",
   },
   {
     value: "release" as const,
     label: "Release",
-    icon: "🚀",
-    color: "from-blue-500 to-blue-600",
-    description: "Announce new versions and major releases",
+    icon: FaRocket,
+    color: "bg-blue-500",
+    hoverColor: "hover:bg-blue-600",
+    borderColor: "border-blue-500",
+    textColor: "text-blue-500",
+    description: "New versions & features",
   },
   {
     value: "news" as const,
     label: "News",
-    icon: "📰",
-    color: "from-purple-500 to-purple-600",
-    description: "Share company news and announcements",
+    icon: FaNewspaper,
+    color: "bg-purple-500",
+    hoverColor: "hover:bg-purple-600",
+    borderColor: "border-purple-500",
+    textColor: "text-purple-500",
+    description: "Company announcements",
   },
   {
     value: "update" as const,
     label: "Update",
-    icon: "🔔",
-    color: "from-amber-500 to-orange-600",
-    description: "General updates and notifications",
+    icon: FaBell,
+    color: "bg-amber-500",
+    hoverColor: "hover:bg-amber-600",
+    borderColor: "border-amber-500",
+    textColor: "text-amber-500",
+    description: "General notifications",
   },
 ];
 
 const EXAMPLE_CONTENT = {
-  changelog: `<h2>What's New</h2>
+  changelog: `<h2>What's New in This Update</h2>
 <ul>
   <li><strong>New Feature:</strong> Advanced genetic analysis tools</li>
   <li><strong>Improvement:</strong> Faster simulation processing</li>
@@ -54,7 +90,7 @@ const EXAMPLE_CONTENT = {
   <li>New trait registry management</li>
 </ul>
 <p>Try it out today and let us know what you think!</p>`,
-  news: `<h2>Exciting News!</h2>
+  news: `<h2>Exciting News from Zygotrix!</h2>
 <p>We're thrilled to share some important updates from the Zygotrix team.</p>
 <p>Stay tuned for more announcements coming soon!</p>`,
   update: `<h2>Important Update</h2>
@@ -74,7 +110,7 @@ const AdminNewsletterPage: React.FC = () => {
 
   // Selection state
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
-  const [selectAll, setSelectAll] = useState(false);
+  const [searchTerm, setSearchTerm] = useState("");
 
   // Email composition state
   const [templateType, setTemplateType] =
@@ -82,6 +118,68 @@ const AdminNewsletterPage: React.FC = () => {
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
   const [showPreview, setShowPreview] = useState(false);
+  const [editMode, setEditMode] = useState<"code" | "visual">("visual");
+  const editorRef = React.useRef<HTMLDivElement>(null);
+  const isInitialMount = React.useRef(true);
+
+  // Initialize editor content on mount and template change
+  React.useEffect(() => {
+    if (editorRef.current && editMode === "visual") {
+      // Only update if editor is empty or content is different
+      if (editorRef.current.innerHTML !== content) {
+        const selection = window.getSelection();
+        const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
+
+        editorRef.current.innerHTML = content;
+
+        // Restore cursor position if there was one
+        if (range && editorRef.current.contains(range.startContainer)) {
+          try {
+            selection?.removeAllRanges();
+            selection?.addRange(range);
+          } catch (e) {
+            // Ignore errors when restoring selection
+          }
+        }
+      }
+    }
+  }, [templateType, editMode]); // Only when template or mode changes
+
+  const executeCommand = (command: string, value?: string) => {
+    document.execCommand(command, false, value);
+    if (editorRef.current) {
+      setContent(editorRef.current.innerHTML);
+    }
+  };
+
+  const insertHeading = (level: number) => {
+    const selection = window.getSelection();
+    if (selection && selection.rangeCount > 0) {
+      const range = selection.getRangeAt(0);
+      const heading = document.createElement(`h${level}`);
+
+      // If there's selected text, use it
+      if (!selection.isCollapsed) {
+        heading.textContent = selection.toString();
+        range.deleteContents();
+        range.insertNode(heading);
+      } else {
+        // Otherwise create an empty heading
+        heading.textContent = `Heading ${level}`;
+        range.insertNode(heading);
+
+        // Move cursor to end of heading
+        range.setStartAfter(heading);
+        range.collapse(true);
+        selection.removeAllRanges();
+        selection.addRange(range);
+      }
+
+      if (editorRef.current) {
+        setContent(editorRef.current.innerHTML);
+      }
+    }
+  };
 
   const isAdmin =
     currentUser?.user_role === "admin" ||
@@ -94,7 +192,6 @@ const AdminNewsletterPage: React.FC = () => {
   }, [isAdmin]);
 
   useEffect(() => {
-    // Set example content when template type changes
     setContent(EXAMPLE_CONTENT[templateType]);
   }, [templateType]);
 
@@ -121,16 +218,15 @@ const AdminNewsletterPage: React.FC = () => {
       newSelected.add(email);
     }
     setSelectedEmails(newSelected);
-    setSelectAll(newSelected.size === subscriptions.length);
   };
 
   const toggleSelectAll = () => {
-    if (selectAll) {
+    const filtered = filteredSubscriptions;
+    if (selectedEmails.size === filtered.length && filtered.length > 0) {
       setSelectedEmails(new Set());
     } else {
-      setSelectedEmails(new Set(subscriptions.map((sub) => sub.email)));
+      setSelectedEmails(new Set(filtered.map((sub) => sub.email)));
     }
-    setSelectAll(!selectAll);
   };
 
   const handleSendNewsletter = async () => {
@@ -167,13 +263,10 @@ const AdminNewsletterPage: React.FC = () => {
         }`
       );
 
-      // Clear form after successful send
       setSelectedEmails(new Set());
-      setSelectAll(false);
       setSubject("");
       setContent(EXAMPLE_CONTENT[templateType]);
 
-      // Clear success message after 5 seconds
       setTimeout(() => setSuccessMessage(null), 5000);
     } catch (err: unknown) {
       const errorMessage =
@@ -184,11 +277,20 @@ const AdminNewsletterPage: React.FC = () => {
     }
   };
 
+  const filteredSubscriptions = subscriptions.filter((sub) =>
+    sub.email.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const selectAllChecked =
+    filteredSubscriptions.length > 0 &&
+    selectedEmails.size === filteredSubscriptions.length;
+
   if (!isAdmin) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
+            <MdError className="w-16 h-16 text-red-500 mx-auto mb-4" />
             <h2 className="text-2xl font-bold text-white mb-2">
               Access Denied
             </h2>
@@ -201,246 +303,412 @@ const AdminNewsletterPage: React.FC = () => {
     );
   }
 
+  const selectedTemplate = TEMPLATE_TYPES.find((t) => t.value === templateType);
+
   return (
     <DashboardLayout>
-      <div className="max-w-7xl mx-auto p-6 space-y-6">
+      <div className="max-w-[1600px] mx-auto p-4 lg:p-6 space-y-4">
         {/* Header */}
         <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-white">
-              Newsletter Management
-            </h1>
-            <p className="text-slate-400 mt-1">
-              Send emails to your newsletter subscribers
-            </p>
+          <div className="flex items-center gap-3">
+            <div className={`p-3 rounded-xl ${selectedTemplate?.color}`}>
+              <MdEmail className="w-6 h-6 text-white" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-white">
+                Newsletter Manager
+              </h1>
+              <p className="text-sm text-slate-400">
+                Compose and send emails to subscribers
+              </p>
+            </div>
           </div>
-          <div className="text-sm text-slate-400">
-            {subscriptions.length} subscriber{subscriptions.length !== 1 && "s"}
+          <div className="flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-lg border border-slate-700">
+            <MdPeople className="w-5 h-5 text-slate-400" />
+            <span className="text-sm font-medium text-white">
+              {subscriptions.length}
+            </span>
+            <span className="text-sm text-slate-400">subscribers</span>
           </div>
         </div>
 
         {/* Success/Error Messages */}
         {successMessage && (
-          <div className="bg-green-500/10 border border-green-500/20 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-green-400">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M5 13l4 4L19 7"
-                />
-              </svg>
-              {successMessage}
+          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <MdCheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
+              <span className="text-emerald-400 text-sm">{successMessage}</span>
             </div>
+            <button
+              onClick={() => setSuccessMessage(null)}
+              className="text-emerald-500 hover:text-emerald-400"
+            >
+              <MdClose className="w-5 h-5" />
+            </button>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/20 rounded-lg p-4">
-            <div className="flex items-center gap-2 text-red-400">
-              <svg
-                className="w-5 h-5"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-              {error}
+          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <MdError className="w-5 h-5 text-red-500 flex-shrink-0" />
+              <span className="text-red-400 text-sm">{error}</span>
             </div>
+            <button
+              onClick={() => setError(null)}
+              className="text-red-500 hover:text-red-400"
+            >
+              <MdClose className="w-5 h-5" />
+            </button>
           </div>
         )}
 
-        <div className="grid lg:grid-cols-3 gap-6">
-          {/* Left Column - Subscribers */}
-          <div className="lg:col-span-1">
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h2 className="text-lg font-semibold text-white">
-                  Select Recipients
-                </h2>
-                <span className="text-sm text-slate-400">
-                  {selectedEmails.size} selected
-                </span>
+        {/* Main Content Grid */}
+        <div className="grid lg:grid-cols-12 gap-4">
+          {/* Left Sidebar - Recipients */}
+          <div className="lg:col-span-3">
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+              {/* Header */}
+              <div className="p-4 border-b border-slate-700 bg-slate-800">
+                <div className="flex items-center justify-between mb-3">
+                  <h2 className="text-sm font-semibold text-white">
+                    Recipients
+                  </h2>
+                  <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium">
+                    {selectedEmails.size} selected
+                  </span>
+                </div>
+
+                {/* Search */}
+                <div className="relative">
+                  <MdEmail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Search emails..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-9 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                  />
+                </div>
+
+                {/* Select All */}
+                <label className="flex items-center gap-2 mt-3 cursor-pointer group">
+                  <input
+                    type="checkbox"
+                    checked={selectAllChecked}
+                    onChange={toggleSelectAll}
+                    className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500"
+                  />
+                  <span className="text-xs text-slate-400 group-hover:text-slate-300">
+                    Select all ({filteredSubscriptions.length})
+                  </span>
+                </label>
               </div>
 
-              {loading ? (
-                <div className="text-center py-8">
-                  <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-green-500"></div>
-                </div>
-              ) : (
-                <>
-                  <div className="mb-4">
-                    <label className="flex items-center gap-2 cursor-pointer">
+              {/* Subscriber List */}
+              <div className="max-h-[500px] overflow-y-auto">
+                {loading ? (
+                  <div className="flex items-center justify-center py-12">
+                    <BiLoaderAlt className="w-6 h-6 text-emerald-500 animate-spin" />
+                  </div>
+                ) : filteredSubscriptions.length === 0 ? (
+                  <div className="text-center py-12 px-4">
+                    <MdPeople className="w-12 h-12 text-slate-600 mx-auto mb-3" />
+                    <p className="text-sm text-slate-500">
+                      {searchTerm ? "No matches found" : "No subscribers yet"}
+                    </p>
+                  </div>
+                ) : (
+                  filteredSubscriptions.map((sub) => (
+                    <label
+                      key={sub._id}
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-700/50 cursor-pointer border-b border-slate-700/50 last:border-0 group"
+                    >
                       <input
                         type="checkbox"
-                        checked={selectAll}
-                        onChange={toggleSelectAll}
-                        className="rounded border-slate-600 bg-slate-700 text-green-500 focus:ring-green-500"
+                        checked={selectedEmails.has(sub.email)}
+                        onChange={() => toggleEmailSelection(sub.email)}
+                        className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500"
                       />
-                      <span className="text-sm text-slate-300">
-                        Select All
-                      </span>
-                    </label>
-                  </div>
-
-                  <div className="space-y-2 max-h-[500px] overflow-y-auto">
-                    {subscriptions.map((sub) => (
-                      <label
-                        key={sub._id}
-                        className="flex items-center gap-2 p-2 hover:bg-slate-700/50 rounded cursor-pointer"
-                      >
-                        <input
-                          type="checkbox"
-                          checked={selectedEmails.has(sub.email)}
-                          onChange={() => toggleEmailSelection(sub.email)}
-                          className="rounded border-slate-600 bg-slate-700 text-green-500 focus:ring-green-500"
-                        />
-                        <span className="text-sm text-slate-300 truncate">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm text-slate-300 truncate group-hover:text-white">
                           {sub.email}
-                        </span>
-                      </label>
-                    ))}
-                  </div>
-                </>
-              )}
+                        </p>
+                      </div>
+                    </label>
+                  ))
+                )}
+              </div>
             </div>
           </div>
 
-          {/* Right Column - Email Composer */}
-          <div className="lg:col-span-2 space-y-6">
+          {/* Main Content - Email Composer */}
+          <div className="lg:col-span-9 space-y-4">
             {/* Template Selection */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">
-                Choose Template
-              </h2>
-              <div className="grid grid-cols-2 gap-3">
-                {TEMPLATE_TYPES.map((template) => (
-                  <button
-                    key={template.value}
-                    onClick={() => setTemplateType(template.value)}
-                    className={`relative overflow-hidden rounded-lg border-2 p-4 text-left transition-all ${
-                      templateType === template.value
-                        ? "border-white bg-gradient-to-br " + template.color
-                        : "border-slate-600 bg-slate-700/50 hover:border-slate-500"
-                    }`}
-                  >
-                    <div className="flex items-start gap-3">
-                      <span className="text-2xl">{template.icon}</span>
-                      <div className="flex-1">
-                        <h3 className="font-semibold text-white">
-                          {template.label}
-                        </h3>
-                        <p
-                          className={`text-xs mt-1 ${
-                            templateType === template.value
-                              ? "text-white/80"
-                              : "text-slate-400"
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+              <div className="flex items-center gap-2 mb-4">
+                <HiSparkles className="w-5 h-5 text-amber-500" />
+                <h2 className="text-sm font-semibold text-white">
+                  Email Template
+                </h2>
+              </div>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {TEMPLATE_TYPES.map((template) => {
+                  const Icon = template.icon;
+                  const isSelected = templateType === template.value;
+                  return (
+                    <button
+                      key={template.value}
+                      onClick={() => setTemplateType(template.value)}
+                      className={`relative p-4 rounded-xl border-2 transition-all text-left ${
+                        isSelected
+                          ? `${template.borderColor} bg-gradient-to-br from-slate-800 to-slate-900 shadow-lg`
+                          : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-2">
+                        <div
+                          className={`p-2 rounded-lg ${
+                            isSelected
+                              ? template.color
+                              : "bg-slate-700"
                           }`}
                         >
-                          {template.description}
-                        </p>
+                          <Icon
+                            className={`w-4 h-4 ${
+                              isSelected ? "text-white" : "text-slate-400"
+                            }`}
+                          />
+                        </div>
+                        <h3
+                          className={`text-sm font-semibold ${
+                            isSelected ? "text-white" : "text-slate-300"
+                          }`}
+                        >
+                          {template.label}
+                        </h3>
                       </div>
-                    </div>
-                  </button>
-                ))}
+                      <p className="text-xs text-slate-500">
+                        {template.description}
+                      </p>
+                      {isSelected && (
+                        <div className="absolute top-2 right-2">
+                          <div
+                            className={`w-2 h-2 rounded-full ${template.color}`}
+                          />
+                        </div>
+                      )}
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
             {/* Email Content */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
-              <h2 className="text-lg font-semibold text-white mb-4">
-                Email Content
+            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+              <h2 className="text-sm font-semibold text-white mb-4">
+                Compose Email
               </h2>
 
               <div className="space-y-4">
+                {/* Subject */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
+                  <label className="block text-xs font-medium text-slate-400 mb-2">
                     Subject Line
                   </label>
                   <input
                     type="text"
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
-                    placeholder="Enter email subject..."
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500"
+                    placeholder="Enter a compelling subject line..."
+                    className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
+                {/* Content */}
                 <div>
-                  <label className="block text-sm font-medium text-slate-300 mb-2">
-                    Message Content (HTML supported)
-                  </label>
-                  <textarea
-                    value={content}
-                    onChange={(e) => setContent(e.target.value)}
-                    placeholder="Enter email content..."
-                    rows={12}
-                    className="w-full px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-green-500 font-mono text-sm"
-                  />
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block text-xs font-medium text-slate-400">
+                      Email Content
+                    </label>
+                    <div className="flex items-center gap-1 bg-slate-700 rounded-lg p-1">
+                      <button
+                        type="button"
+                        onClick={() => setEditMode("visual")}
+                        className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                          editMode === "visual"
+                            ? "bg-emerald-500 text-white"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        Visual
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setEditMode("code")}
+                        className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
+                          editMode === "code"
+                            ? "bg-emerald-500 text-white"
+                            : "text-slate-400 hover:text-white"
+                        }`}
+                      >
+                        HTML
+                      </button>
+                    </div>
+                  </div>
+
+                  {editMode === "code" ? (
+                    <textarea
+                      value={content}
+                      onChange={(e) => setContent(e.target.value)}
+                      placeholder="Enter HTML content..."
+                      rows={10}
+                      className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                    />
+                  ) : (
+                    <div className="border-2 border-slate-600 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
+                      {/* Formatting Toolbar */}
+                      <div className="flex items-center gap-1 p-2 bg-slate-700 border-b border-slate-600 flex-wrap">
+                        {/* Headings */}
+                        <div className="flex items-center gap-1 pr-2 border-r border-slate-600">
+                          <button
+                            type="button"
+                            onClick={() => insertHeading(1)}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            title="Heading 1"
+                          >
+                            <span className="text-xs font-bold">H1</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertHeading(2)}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            title="Heading 2"
+                          >
+                            <span className="text-xs font-bold">H2</span>
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => insertHeading(3)}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            title="Heading 3"
+                          >
+                            <span className="text-xs font-bold">H3</span>
+                          </button>
+                        </div>
+
+                        {/* Text Formatting */}
+                        <div className="flex items-center gap-1 pr-2 border-r border-slate-600">
+                          <button
+                            type="button"
+                            onClick={() => executeCommand("bold")}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            title="Bold"
+                          >
+                            <MdFormatBold className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => executeCommand("italic")}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            title="Italic"
+                          >
+                            <MdFormatItalic className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => executeCommand("underline")}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            title="Underline"
+                          >
+                            <MdFormatUnderlined className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {/* Lists */}
+                        <div className="flex items-center gap-1 pr-2 border-r border-slate-600">
+                          <button
+                            type="button"
+                            onClick={() => executeCommand("insertUnorderedList")}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            title="Bullet List"
+                          >
+                            <MdFormatListBulleted className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => executeCommand("insertOrderedList")}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            title="Numbered List"
+                          >
+                            <MdFormatListNumbered className="w-4 h-4" />
+                          </button>
+                        </div>
+
+                        {/* Other */}
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const url = prompt("Enter URL:");
+                              if (url) executeCommand("createLink", url);
+                            }}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            title="Insert Link"
+                          >
+                            <MdLink className="w-4 h-4" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => executeCommand("formatBlock", "<p>")}
+                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors text-xs font-medium"
+                            title="Paragraph"
+                          >
+                            P
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Editor */}
+                      <div
+                        ref={editorRef}
+                        contentEditable
+                        suppressContentEditableWarning
+                        onInput={(e) => {
+                          const target = e.target as HTMLDivElement;
+                          setContent(target.innerHTML);
+                        }}
+                        className="w-full min-h-[250px] max-h-[400px] px-4 py-3 bg-white text-sm text-slate-800 focus:outline-none prose prose-sm max-w-none overflow-auto"
+                      />
+                    </div>
+                  )}
+                  <p className="mt-1 text-xs text-slate-500">
+                    {editMode === "visual"
+                      ? "Use the toolbar to format your email. Click to edit, select text to format."
+                      : "Write or paste HTML code. Switch to Visual mode to see the preview."}
+                  </p>
                 </div>
 
+                {/* Actions */}
                 <div className="flex gap-3">
                   <button
-                    onClick={() => setShowPreview(!showPreview)}
-                    className="flex-1 px-4 py-2 bg-slate-700 border border-slate-600 rounded-lg text-white hover:bg-slate-600 transition-colors"
-                  >
-                    {showPreview ? "Hide Preview" : "Show Preview"}
-                  </button>
-                  <button
+                    type="button"
                     onClick={handleSendNewsletter}
                     disabled={sending || selectedEmails.size === 0}
-                    className="flex-1 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg text-white font-semibold hover:from-green-600 hover:to-emerald-700 transition-all disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
+                      selectedTemplate?.color
+                    } ${
+                      selectedTemplate?.hoverColor
+                    } text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {sending ? (
                       <>
-                        <svg
-                          className="animate-spin h-5 w-5"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                        >
-                          <circle
-                            className="opacity-25"
-                            cx="12"
-                            cy="12"
-                            r="10"
-                            stroke="currentColor"
-                            strokeWidth="4"
-                          />
-                          <path
-                            className="opacity-75"
-                            fill="currentColor"
-                            d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                          />
-                        </svg>
+                        <BiLoaderAlt className="w-5 h-5 animate-spin" />
                         Sending...
                       </>
                     ) : (
                       <>
-                        <svg
-                          className="w-5 h-5"
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-                          />
-                        </svg>
+                        <MdSend className="w-5 h-5" />
                         Send to {selectedEmails.size} Recipient
                         {selectedEmails.size !== 1 && "s"}
                       </>
@@ -448,22 +716,6 @@ const AdminNewsletterPage: React.FC = () => {
                   </button>
                 </div>
               </div>
-
-              {/* Preview */}
-              {showPreview && (
-                <div className="mt-6 border border-slate-600 rounded-lg p-4 bg-slate-900">
-                  <h3 className="text-sm font-semibold text-slate-400 mb-3">
-                    Preview
-                  </h3>
-                  <div className="bg-white rounded p-6 text-slate-800">
-                    <h2 className="text-2xl font-bold mb-4">{subject}</h2>
-                    <div
-                      className="prose prose-sm max-w-none"
-                      dangerouslySetInnerHTML={{ __html: content }}
-                    />
-                  </div>
-                </div>
-              )}
             </div>
           </div>
         </div>

@@ -66,6 +66,7 @@ const SignUpPage: React.FC = () => {
   const [expiresAt, setExpiresAt] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [agreedToTerms, setAgreedToTerms] = useState<boolean>(false);
 
   const updateExpiryState = (response: SignupInitiateResponse) => {
     setMessage(response.message);
@@ -410,9 +411,43 @@ const SignUpPage: React.FC = () => {
                         </div>
                       </div>
 
+                      {/* Terms and Privacy Agreement */}
+                      <div className="flex items-start gap-3">
+                        <div className="flex items-center h-5 mt-0.5">
+                          <input
+                            id="agree-terms"
+                            type="checkbox"
+                            checked={agreedToTerms}
+                            onChange={(e) => setAgreedToTerms(e.target.checked)}
+                            className="h-4 w-4 rounded border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 text-blue-600 focus:ring-blue-500 focus:ring-2 focus:ring-offset-0 cursor-pointer transition-colors"
+                          />
+                        </div>
+                        <label
+                          htmlFor="agree-terms"
+                          className="text-sm text-slate-600 dark:text-slate-400 cursor-pointer"
+                        >
+                          I agree to the{" "}
+                          <Link
+                            to="/terms"
+                            className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors underline"
+                            target="_blank"
+                          >
+                            Terms of Service
+                          </Link>{" "}
+                          and{" "}
+                          <Link
+                            to="/privacy"
+                            className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors underline"
+                            target="_blank"
+                          >
+                            Privacy Policy
+                          </Link>
+                        </label>
+                      </div>
+
                       <button
                         type="submit"
-                        disabled={isSubmitting}
+                        disabled={isSubmitting || !agreedToTerms}
                         className="group relative w-full overflow-hidden rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] px-6 py-3 text-sm text-white shadow-lg shadow-[#1E3A8A]/30 transition-all duration-300 hover:shadow-[#1E3A8A]/50 hover:scale-[1.02] disabled:cursor-not-allowed disabled:opacity-70 disabled:scale-100 cursor-pointer"
                       >
                         <div className="absolute inset-0 bg-gradient-to-r from-[#162b63] to-[#2563EB] opacity-0 transition-opacity duration-300 group-hover:opacity-100" />

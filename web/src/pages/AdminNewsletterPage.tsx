@@ -14,14 +14,12 @@ import {
   MdError,
   MdPeople,
   MdClose,
-  MdRefresh,
   MdFormatBold,
   MdFormatItalic,
   MdFormatUnderlined,
   MdFormatListBulleted,
   MdFormatListNumbered,
   MdLink,
-  MdCode,
   MdDelete,
 } from "react-icons/md";
 import {
@@ -126,10 +124,8 @@ const AdminNewsletterPage: React.FC = () => {
     useState<SendNewsletterRequest["template_type"]>("changelog");
   const [subject, setSubject] = useState("");
   const [content, setContent] = useState("");
-  const [showPreview, setShowPreview] = useState(false);
   const [editMode, setEditMode] = useState<"code" | "visual">("visual");
   const editorRef = React.useRef<HTMLDivElement>(null);
-  const isInitialMount = React.useRef(true);
 
   // Initialize editor content on mount and template change
   React.useEffect(() => {

@@ -20,6 +20,7 @@ from .routes.auth import router as auth_router
 from .routes.admin import router as admin_router
 from .routes.newsletter import router as newsletter_router
 from .routes.contact import router as contact_router
+from .routes.chatbot import router as chatbot_router
 from .schema.auth import UserProfile
 from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.common import HealthResponse
@@ -85,6 +86,7 @@ app.include_router(auth_router)
 app.include_router(admin_router)
 app.include_router(newsletter_router)
 app.include_router(contact_router)
+app.include_router(chatbot_router)
 app.include_router(mendelian_router)
 app.include_router(preview_router)
 app.include_router(data_import_router)

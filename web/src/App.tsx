@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes } from "react-router-dom";
+import { Route, Routes, useLocation } from "react-router-dom";
 
 import RequireAuth from "./components/dashboard/RequireAuth";
 import OnboardingCheck from "./components/dashboard/OnboardingCheck";
@@ -36,10 +36,17 @@ import AdminNewsletterPage from "./pages/AdminNewsletterPage";
 import AdminContactPage from "./pages/AdminContactPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
+import { FloatingChatButton } from "./components/chatbot/FloatingChatButton";
 
-const App: React.FC = () => {
+const AppContent: React.FC = () => {
+  const location = useLocation();
+
+  // Show chatbot only on studio pages
+  const isStudioPage = location.pathname.startsWith('/studio');
+
   return (
-    <Routes>
+    <>
+      <Routes>
       <Route element={<MainLayout />}>
         <Route index element={<HomePage />} />
         <Route path="about" element={<AboutPage />} />
@@ -217,7 +224,15 @@ const App: React.FC = () => {
         }
       />
     </Routes>
+
+    {/* Floating Chat Button - Only available on studio pages */}
+    {isStudioPage && <FloatingChatButton />}
+    </>
   );
+};
+
+const App: React.FC = () => {
+  return <AppContent />;
 };
 
 export default App;

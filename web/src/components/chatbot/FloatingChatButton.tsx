@@ -1,0 +1,72 @@
+import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import { ChatBot } from './ChatBot';
+import { LuBiohazard } from "react-icons/lu";
+import { useAuth } from '../../context/AuthContext';
+
+export const FloatingChatButton: React.FC = () => {
+  const [isOpen, setIsOpen] = useState(false);
+  const [showPulse, setShowPulse] = useState(true);
+  const location = useLocation();
+  const { user } = useAuth();
+
+  const handleToggle = () => {
+    setIsOpen(!isOpen);
+    setShowPulse(false);
+  };
+
+  return (
+    <>
+      <ChatBot
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        currentPath={location.pathname}
+        userName={user?.full_name || user?.email?.split('@')[0] || 'there'}
+      />
+
+      <button
+        onClick={handleToggle}
+        className={`fixed bottom-6 right-6 w-16 h-16 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full shadow-2xl hover:shadow-indigo-500/50 transition-all duration-300 z-50 flex items-center justify-center group cursor-pointer ${
+          isOpen ? 'rotate-180 scale-90' : 'hover:scale-110'
+        }`}
+        aria-label="Toggle chat"
+      >
+        {/* Pulse animation */}
+        {showPulse && !isOpen && (
+          <span className="absolute inline-flex h-full w-full rounded-full bg-indigo-400 opacity-75 animate-ping"></span>
+        )}
+
+        {/* Icon */}
+        <div className="relative">
+          {isOpen ? (
+            <svg
+              className="w-7 h-7 transition-transform"
+              fill="none"
+              stroke="currentColor"
+              viewBox="0 0 24 24"
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                strokeWidth={2}
+                d="M19 9l-7 7-7-7"
+              />
+            </svg>
+          ) : (
+            <LuBiohazard className="w-7 h-7 transition-transform" />
+          )}
+        </div>
+
+        {/* Tooltip */}
+        <div
+          className={`absolute right-20 bg-gray-900 text-white px-3 py-2 rounded-lg text-sm whitespace-nowrap transition-opacity ${
+            isOpen ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'
+          }`}
+        >
+          Chat with Zigi!
+          <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[6px] border-l-gray-900"></div>
+        </div>
+      </button>
+    </>
+  );
+};

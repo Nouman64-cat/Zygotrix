@@ -5,10 +5,10 @@ from pydantic import BaseModel
 import httpx
 import logging
 import os
-from dotenv import load_dotenv
+from dotenv import load_dotenv, find_dotenv
 
-# Load environment variables from .env file
-load_dotenv()
+
+load_dotenv(find_dotenv())
 
 from ..prompt_engineering.prompts import ZIGI_SYSTEM_PROMPT
 
@@ -25,6 +25,10 @@ LLAMA_CLOUD_PROJECT_NAME = "Default"
 
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
 CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-3-haiku-20240307")
+
+# Debug logging - show if keys are loaded (masked for security)
+logger.info(f"CLAUDE_API_KEY loaded: {'Yes' if CLAUDE_API_KEY else 'No'} (first 10 chars: {CLAUDE_API_KEY[:10] if CLAUDE_API_KEY else 'None'}...)")
+logger.info(f"LLAMA_CLOUD_API_KEY loaded: {'Yes' if LLAMA_CLOUD_API_KEY else 'No'}")
 
 # Cache the pipeline ID to avoid repeated lookups
 _cached_pipeline_id: str | None = None

@@ -37,6 +37,39 @@ This license does not include:
 We reserve the right to disable any user account at any time if we believe you have violated these Terms.`,
   },
   {
+    title: "Data Collection, Recording, and Privacy",
+    content: `By using Zygotrix, you explicitly acknowledge and agree that:
+
+What We Record:
+• Your complete account information including name, email, and registration details
+• All contact form submissions, messages, and support communications
+• Newsletter subscriptions and communication preferences
+• Detailed activity logs including timestamps and geographic location
+• All content you create (projects, simulations, research data, configurations)
+• User interactions, session data, and platform usage statistics
+
+Administrative Access and Monitoring:
+• Platform administrators have full access to view and manage all user data
+• Super administrators can view, modify, and delete user accounts and content
+• Admin access is used for legitimate purposes including support, security, and platform maintenance
+• All administrative actions are logged for security and audit purposes
+
+Data Security Commitment:
+• All user data is stored in encrypted, secure databases
+• We implement industry-standard security measures (SSL/TLS encryption, secure authentication)
+• Access to user data is restricted to authorized personnel only
+• We conduct regular security audits and vulnerability assessments
+• We maintain strict confidentiality protocols for all team members
+
+Your Privacy Rights:
+• You have the right to access, correct, or delete your personal data
+• You may request a copy of all data we have collected about you
+• You can unsubscribe from newsletters at any time
+• You may deactivate your account and request data deletion
+
+By continuing to use the Platform, you consent to our data collection practices as described in our Privacy Policy. If you do not agree to these data collection practices, you must immediately cease using the Platform.`,
+  },
+  {
     title: "Intellectual Property",
     content: `The Platform and its original content, features, and functionality are owned by Zygotrix and are protected by international copyright, trademark, patent, trade secret, and other intellectual property laws.
 

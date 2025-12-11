@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
+import ConfirmationModal from "../components/universal/ConfirmationModal";
 import * as newsletterApi from "../services/newsletter.api";
 import type {
   NewsletterSubscription,
@@ -21,6 +22,7 @@ import {
   MdFormatListNumbered,
   MdLink,
   MdCode,
+  MdDelete,
 } from "react-icons/md";
 import {
   FaRocket,
@@ -107,6 +109,13 @@ const AdminNewsletterPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [deletingEmail, setDeletingEmail] = useState<string | null>(null);
+
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    email: string;
+  }>({ isOpen: false, email: "" });
 
   // Selection state
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
@@ -277,6 +286,40 @@ const AdminNewsletterPage: React.FC = () => {
     }
   };
 
+  const handleDeleteClick = (email: string) => {
+    setConfirmModal({ isOpen: true, email });
+  };
+
+  const handleConfirmDelete = async () => {
+    const email = confirmModal.email;
+
+    try {
+      setDeletingEmail(email);
+      setError(null);
+
+      await newsletterApi.unsubscribeFromNewsletter(email);
+
+      // Remove from list
+      setSubscriptions((prev) => prev.filter((sub) => sub.email !== email));
+
+      // Remove from selection if selected
+      if (selectedEmails.has(email)) {
+        const newSelected = new Set(selectedEmails);
+        newSelected.delete(email);
+        setSelectedEmails(newSelected);
+      }
+
+      setSuccessMessage(`Successfully unsubscribed ${email}`);
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to unsubscribe email";
+      setError(errorMessage);
+    } finally {
+      setDeletingEmail(null);
+    }
+  };
+
   const filteredSubscriptions = subscriptions.filter((sub) =>
     sub.email.toLowerCase().includes(searchTerm.toLowerCase())
   );
@@ -420,22 +463,39 @@ const AdminNewsletterPage: React.FC = () => {
                   </div>
                 ) : (
                   filteredSubscriptions.map((sub) => (
-                    <label
+                    <div
                       key={sub._id}
-                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-700/50 cursor-pointer border-b border-slate-700/50 last:border-0 group"
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-700/50 border-b border-slate-700/50 last:border-0 group"
                     >
-                      <input
-                        type="checkbox"
-                        checked={selectedEmails.has(sub.email)}
-                        onChange={() => toggleEmailSelection(sub.email)}
-                        className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500"
-                      />
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm text-slate-300 truncate group-hover:text-white">
-                          {sub.email}
-                        </p>
-                      </div>
-                    </label>
+                      <label className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={selectedEmails.has(sub.email)}
+                          onChange={() => toggleEmailSelection(sub.email)}
+                          className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500"
+                        />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm text-slate-300 truncate group-hover:text-white">
+                            {sub.email}
+                          </p>
+                        </div>
+                      </label>
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteClick(sub.email);
+                        }}
+                        disabled={deletingEmail === sub.email}
+                        className="flex-shrink-0 p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        title="Unsubscribe this email"
+                      >
+                        {deletingEmail === sub.email ? (
+                          <BiLoaderAlt className="w-4 h-4 animate-spin" />
+                        ) : (
+                          <MdDelete className="w-4 h-4" />
+                        )}
+                      </button>
+                    </div>
                   ))
                 )}
               </div>
@@ -720,6 +780,19 @@ const AdminNewsletterPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, email: "" })}
+        onConfirm={handleConfirmDelete}
+        title="Unsubscribe Email"
+        message={`Are you sure you want to unsubscribe ${confirmModal.email} from the newsletter? This action cannot be undone.`}
+        confirmText="Unsubscribe"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={deletingEmail === confirmModal.email}
+      />
     </DashboardLayout>
   );
 };

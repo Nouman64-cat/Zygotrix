@@ -14,6 +14,37 @@ const sections = [
 We also automatically collect certain information when you use our platform, including device information, log data, and cookies.`,
   },
   {
+    title: "Data Recording and Administrative Access",
+    content: `IMPORTANT: We want to be transparent about our data collection and access practices:
+
+Data We Record:
+• All user account information (name, email, phone number, registration details)
+• Contact form submissions (name, email, phone, messages, submission timestamps)
+• Newsletter subscription data and preferences
+• User activity logs, timestamps, and geographic location data
+• All projects, simulations, and research data you create on our platform
+• Communication history with our support team
+
+Administrative Access:
+Our super administrators have access to view, manage, and moderate all user data for the following legitimate purposes:
+• Platform maintenance and technical support
+• User account management and assistance
+• Responding to contact form inquiries
+• Security monitoring and fraud prevention
+• Compliance with legal obligations
+• Quality assurance and service improvement
+
+Data Security Measures:
+• All data is stored in secure, encrypted databases
+• Administrative access is strictly limited to authorized personnel only
+• All admin actions are logged and audited for security purposes
+• We implement industry-standard security protocols (SSL/TLS encryption)
+• Regular security audits and penetration testing
+• Employee confidentiality agreements and data protection training
+
+We take your privacy seriously and only access your data when necessary for the purposes stated above. We never sell, rent, or share your personal information with third parties for marketing purposes.`,
+  },
+  {
     title: "How We Use Your Information",
     content: `We use the information we collect to:
 

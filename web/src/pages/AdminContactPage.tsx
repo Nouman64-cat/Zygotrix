@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
+import ConfirmationModal from "../components/universal/ConfirmationModal";
 import * as contactApi from "../services/contact.api";
 import type { ContactSubmission } from "../services/contact.api";
 import {
@@ -28,6 +29,12 @@ const AdminContactPage: React.FC = () => {
   const [selectedSubmission, setSelectedSubmission] =
     useState<ContactSubmission | null>(null);
 
+  // Confirmation modal state
+  const [confirmModal, setConfirmModal] = useState<{
+    isOpen: boolean;
+    submissionId: string;
+  }>({ isOpen: false, submissionId: "" });
+
   const isSuperAdmin = currentUser?.user_role === "super_admin";
 
   useEffect(() => {
@@ -51,10 +58,12 @@ const AdminContactPage: React.FC = () => {
     }
   };
 
-  const handleDelete = async (submissionId: string) => {
-    if (!confirm("Are you sure you want to delete this submission?")) {
-      return;
-    }
+  const handleDeleteClick = (submissionId: string) => {
+    setConfirmModal({ isOpen: true, submissionId });
+  };
+
+  const handleConfirmDelete = async () => {
+    const submissionId = confirmModal.submissionId;
 
     try {
       setDeletingId(submissionId);
@@ -234,7 +243,7 @@ const AdminContactPage: React.FC = () => {
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
-                            handleDelete(sub.id);
+                            handleDeleteClick(sub.id);
                           }}
                           disabled={deletingId === sub.id}
                           className="text-slate-500 hover:text-red-500 transition-colors"
@@ -359,6 +368,19 @@ const AdminContactPage: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal */}
+      <ConfirmationModal
+        isOpen={confirmModal.isOpen}
+        onClose={() => setConfirmModal({ isOpen: false, submissionId: "" })}
+        onConfirm={handleConfirmDelete}
+        title="Delete Contact Submission"
+        message="Are you sure you want to delete this contact submission? This action cannot be undone and all information will be permanently removed."
+        confirmText="Delete"
+        cancelText="Cancel"
+        type="danger"
+        isLoading={deletingId === confirmModal.submissionId}
+      />
     </DashboardLayout>
   );
 };

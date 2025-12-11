@@ -5,6 +5,10 @@ from pydantic import BaseModel
 import httpx
 import logging
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 from ..prompt_engineering.prompts import ZIGI_SYSTEM_PROMPT
 

@@ -1,5 +1,5 @@
 export const API_BASE_URL =
-  import.meta.env.VITE_ZYGOTRIX_API ?? "http://127.0.0.1:8000";
+  import.meta.env.VITE_ZYGOTRIX_API;
 
 export const API_ROUTES = {
   auth: {

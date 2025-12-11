@@ -1,7 +1,7 @@
 // Chatbot service - calls backend API to avoid CORS issues
 
 // Backend API URL - defaults to localhost for development
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://127.0.0.1:8000';
+const API_BASE_URL = import.meta.env.VITE_ZYGOTRIX_API;
 
 export interface ChatMessage {
   role: 'user' | 'assistant';

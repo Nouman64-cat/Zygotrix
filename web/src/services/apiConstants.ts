@@ -85,6 +85,8 @@ export const API_ROUTES = {
     updateUserRole: (userId: string) =>
       "/api/admin/users/" + encodeURIComponent(userId) + "/role",
     stats: "/api/admin/stats",
+    chatbotSettings: "/api/admin/chatbot/settings",
+    updateChatbotSettings: "/api/admin/chatbot/settings",
   },
   newsletter: {
     subscribe: "/api/newsletter/subscribe",

@@ -7,6 +7,8 @@ import type {
   AdminUserStats,
   UserRole,
   MessageResponse,
+  ChatbotSettings,
+  ChatbotSettingsResponse,
 } from "../types/auth";
 
 export type AdminUserFilters = {
@@ -86,5 +88,23 @@ export const updateUserRole = async (
 
 export const fetchAdminStats = async (): Promise<AdminUserStats> => {
   const response = await API.get<AdminUserStats>(API_ROUTES.admin.stats);
+  return response.data;
+};
+
+// Chatbot settings functions
+export const fetchChatbotSettings = async (): Promise<ChatbotSettings> => {
+  const response = await API.get<ChatbotSettings>(
+    API_ROUTES.admin.chatbotSettings
+  );
+  return response.data;
+};
+
+export const updateChatbotSettings = async (
+  settings: Partial<ChatbotSettings>
+): Promise<ChatbotSettingsResponse> => {
+  const response = await API.put<ChatbotSettingsResponse>(
+    API_ROUTES.admin.updateChatbotSettings,
+    settings
+  );
   return response.data;
 };

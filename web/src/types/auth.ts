@@ -174,3 +174,22 @@ export type AdminUserStats = {
     university_completed: number;
   };
 };
+
+// Chatbot settings types
+export type ChatbotSettings = {
+  id?: string;
+  token_limit_per_session: number;
+  max_tokens: number;
+  temperature: number;
+  reset_limit_hours: number;
+  model: string;
+  enabled: boolean;
+  created_at?: string;
+  updated_at?: string;
+  updated_by?: string;
+};
+
+export type ChatbotSettingsResponse = {
+  message: string;
+  settings: ChatbotSettings;
+};

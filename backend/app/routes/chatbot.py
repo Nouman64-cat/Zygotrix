@@ -24,6 +24,7 @@ from ..chatbot_tools import (
     calculate_punnett_square,
     parse_cross_from_message
 )
+from ..services.chatbot_settings import get_chatbot_settings
 
 logger = logging.getLogger(__name__)
 
@@ -37,7 +38,6 @@ LLAMA_CLOUD_ORG_ID = "7e4d6187-f46d-4435-a999-768d5c727cf1"
 LLAMA_CLOUD_PROJECT_NAME = "Default"
 
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-3-haiku-20240307")
 
 # Debug logging - show if keys are loaded (masked for security)
 logger.info(f"CLAUDE_API_KEY loaded: {'Yes' if CLAUDE_API_KEY else 'No'} (first 10 chars: {CLAUDE_API_KEY[:10] if CLAUDE_API_KEY else 'None'}...)")
@@ -720,6 +720,19 @@ Question: {user_message}"""
             "content": current_message_content
         })
 
+        # Fetch dynamic settings from database
+        try:
+            settings = get_chatbot_settings()
+            model = settings.model
+            max_tokens = settings.max_tokens
+            temperature = settings.temperature
+            logger.info(f"Using settings: model={model}, max_tokens={max_tokens}, temperature={temperature}")
+        except Exception as e:
+            logger.warning(f"Failed to fetch chatbot settings, using defaults: {e}")
+            model = "claude-3-haiku-20240307"
+            max_tokens = 1024
+            temperature = 0.7
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 "https://api.anthropic.com/v1/messages",
@@ -729,9 +742,9 @@ Question: {user_message}"""
                     "anthropic-version": "2023-06-01",
                 },
                 json={
-                    "model": CLAUDE_MODEL,
-                    "max_tokens": 400,  # Increased for Punnett square calculations
-                    "temperature": 0.7,
+                    "model": model,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
                     "system": system_prompt,
                     "messages": messages,
                 },
@@ -750,7 +763,7 @@ Question: {user_message}"""
             token_usage = {
                 "input_tokens": data.get("usage", {}).get("input_tokens", 0),
                 "output_tokens": data.get("usage", {}).get("output_tokens", 0),
-                "model": CLAUDE_MODEL,
+                "model": model,
             }
 
             if data.get("content") and len(data["content"]) > 0:
@@ -771,6 +784,21 @@ Question: {user_message}"""
         )
 
 
+@router.get("/status")
+async def get_chatbot_status():
+    """
+    Public endpoint to check if chatbot is enabled.
+    Used by frontend to show/hide the chat button.
+    """
+    try:
+        settings = get_chatbot_settings()
+        return {"enabled": settings.enabled}
+    except Exception as e:
+        logger.warning(f"Failed to check chatbot status: {e}")
+        # Default to enabled if we can't check
+        return {"enabled": True}
+
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     """
@@ -784,6 +812,18 @@ async def chat(request: ChatRequest) -> ChatResponse:
     - Rate limiting (25,000 tokens per 5 hours)
     """
     try:
+        # Step 0: Check if chatbot is enabled
+        try:
+            settings = get_chatbot_settings()
+            if not settings.enabled:
+                return ChatResponse(
+                    response="🔧 The chatbot is currently disabled for maintenance. Please check back later!",
+                    usage=None
+                )
+        except Exception as e:
+            logger.warning(f"Failed to check chatbot enabled status: {e}")
+            # Continue if we can't check - fail open for availability
+        
         # Get user ID for rate limiting
         user_id = request.userId or "anonymous"
         

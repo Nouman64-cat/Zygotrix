@@ -1,15 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ChatBot } from './ChatBot';
 import { LuBiohazard } from "react-icons/lu";
 import { useAuth } from '../../context/AuthContext';
+import { getChatbotStatus } from '../../services/chatbotService';
 
 export const FloatingChatButton: React.FC = () => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || 'Zigi';
   const [isOpen, setIsOpen] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
+  const [isEnabled, setIsEnabled] = useState(true); // Default to true, check on mount
   const location = useLocation();
   const { user } = useAuth();
+
+  // Check if chatbot is enabled on mount
+  useEffect(() => {
+    const checkStatus = async () => {
+      const status = await getChatbotStatus();
+      setIsEnabled(status.enabled);
+    };
+    checkStatus();
+  }, []);
 
   const handleToggle = () => {
     setIsOpen(!isOpen);
@@ -24,6 +35,7 @@ export const FloatingChatButton: React.FC = () => {
         currentPath={location.pathname}
         userName={user?.full_name || user?.email?.split('@')[0] || 'there'}
         userId={user?.id}
+        isEnabled={isEnabled}
       />
 
 

@@ -15,7 +15,13 @@ from ..schema.auth import (
     UserRole,
     MessageResponse,
 )
+from ..schema.chatbot_settings import (
+    ChatbotSettings,
+    ChatbotSettingsUpdate,
+    ChatbotSettingsResponse,
+)
 from ..services import admin as admin_services
+from ..services import chatbot_settings as chatbot_settings_service
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -157,3 +163,35 @@ def get_user_stats(
 ):
     """Get statistics about users."""
     return admin_services.get_user_stats()
+
+
+# Chatbot Settings Endpoints
+@router.get("/chatbot/settings", response_model=ChatbotSettings)
+def get_chatbot_settings(
+    current_admin: UserProfile = Depends(get_current_admin),
+) -> ChatbotSettings:
+    """
+    Get current chatbot configuration settings.
+    Returns default settings if none exist in database.
+    """
+    return chatbot_settings_service.get_chatbot_settings()
+
+
+@router.put("/chatbot/settings", response_model=ChatbotSettingsResponse)
+def update_chatbot_settings(
+    settings_update: ChatbotSettingsUpdate,
+    current_admin: UserProfile = Depends(get_current_admin),
+) -> ChatbotSettingsResponse:
+    """
+    Update chatbot configuration settings.
+    Only provided fields will be updated.
+    """
+    updated_settings = chatbot_settings_service.update_chatbot_settings(
+        updates=settings_update,
+        admin_user_id=current_admin.id
+    )
+
+    return ChatbotSettingsResponse(
+        message="Chatbot settings updated successfully",
+        settings=updated_settings
+    )

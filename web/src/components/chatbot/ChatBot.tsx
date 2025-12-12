@@ -12,13 +12,14 @@ interface ChatBotProps {
   currentPath: string;
   userName: string;
   userId?: string;
+  isEnabled?: boolean;
 }
 
 // Storage keys are now user-specific to prevent cross-user data leakage
 const getChatMessagesKey = (userId?: string) => `zygotrix_chat_messages_${userId || 'anonymous'}`;
 const getChatUsageKey = (userId?: string) => `zygotrix_chat_usage_${userId || 'anonymous'}`;
 
-export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName, userId }) => {
+export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName, userId, isEnabled = true }) => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || 'Zigi';
   const pageContext = getPageContext(currentPath);
   
@@ -245,7 +246,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             <MdInfoOutline className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" />
             <div className="text-gray-700 dark:text-gray-300">
               <p><strong>Memory:</strong> I remember our entire conversation until your limit resets.</p>
-              <p className="mt-1"><strong>Limit:</strong> 25,000 tokens per 5 hours. Resets automatically!</p>
+              <p className="mt-1"><strong>Limit:</strong> Usage resets automatically every 5 hours.</p>
               <p className="mt-1"><strong>Tip:</strong> Ask follow-up questions like "how?" or "why?" for more details!</p>
             </div>
           </div>
@@ -256,8 +257,8 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
       {usage && (
         <div className="bg-gray-50 dark:bg-[#0a0a0b] border-b border-gray-200 dark:border-gray-800 px-4 py-2">
           <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-400 mb-1">
-            <span>Usage: {usage.tokens_used.toLocaleString()} / 25,000 tokens</span>
-            <span>{usage.tokens_remaining.toLocaleString()} remaining</span>
+            <span>{usagePercentage}% used</span>
+            <span>{100 - usagePercentage}% remaining</span>
           </div>
           <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
             <div 
@@ -280,6 +281,28 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Maintenance Mode Banner */}
+      {!isEnabled && (
+        <div className="bg-amber-50 dark:bg-amber-900/30 border-b border-amber-200 dark:border-amber-700 px-4 py-3">
+          <div className="flex items-start gap-3">
+            <div className="flex-shrink-0 mt-0.5">
+              <svg className="w-5 h-5 text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </div>
+            <div>
+              <h4 className="text-sm font-semibold text-amber-800 dark:text-amber-200">
+                AI Services Temporarily Unavailable
+              </h4>
+              <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
+                Due to scheduled maintenance, the AI assistant is currently offline. 
+                Please check back later. We apologize for any inconvenience!
+              </p>
+            </div>
+          </div>
         </div>
       )}
 
@@ -341,13 +364,13 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             value={inputValue}
             onChange={(e) => setInputValue(e.target.value)}
             onKeyPress={handleKeyPress}
-            placeholder={usage?.is_limited ? "Chat limit reached. Try again later..." : "Ask me anything..."}
-            disabled={isLoading || usage?.is_limited}
+            placeholder={!isEnabled ? "AI services are currently unavailable..." : usage?.is_limited ? "Chat limit reached. Try again later..." : "Ask me anything..."}
+            disabled={isLoading || usage?.is_limited || !isEnabled}
             className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-full bg-gray-100 dark:bg-[#03050f] border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 text-gray-800 dark:text-gray-100 placeholder-gray-400 disabled:opacity-50 text-sm sm:text-base"
           />
           <button
             onClick={handleSend}
-            disabled={!inputValue.trim() || isLoading || usage?.is_limited}
+            disabled={!inputValue.trim() || isLoading || usage?.is_limited || !isEnabled}
             className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full p-2.5 sm:p-3 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
           >
             <svg

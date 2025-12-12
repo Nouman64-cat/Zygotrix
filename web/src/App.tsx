@@ -35,6 +35,7 @@ import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminNewsletterPage from "./pages/AdminNewsletterPage";
 import AdminContactPage from "./pages/AdminContactPage";
 import AdminTokenUsagePage from "./pages/AdminTokenUsagePage";
+import AdminChatbotSettingsPage from "./pages/AdminChatbotSettingsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import { FloatingChatButton } from "./components/chatbot/FloatingChatButton";
@@ -209,6 +210,14 @@ const AppContent: React.FC = () => {
         element={
           <RequireAuth>
             <AdminTokenUsagePage />
+          </RequireAuth>
+        }
+      />
+      <Route
+        path="studio/admin/chatbot-settings"
+        element={
+          <RequireAuth>
+            <AdminChatbotSettingsPage />
           </RequireAuth>
         }
       />

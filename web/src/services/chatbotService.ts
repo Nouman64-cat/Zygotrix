@@ -172,3 +172,18 @@ export async function getDailyTokenUsage(days: number = 30): Promise<DailyUsageR
     return null;
   }
 }
+
+// Check if chatbot is enabled (public endpoint)
+export async function getChatbotStatus(): Promise<{ enabled: boolean }> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/chatbot/status`);
+    if (!response.ok) {
+      console.error('Failed to fetch chatbot status');
+      return { enabled: true }; // Default to enabled
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching chatbot status:', error);
+    return { enabled: true }; // Default to enabled
+  }
+}

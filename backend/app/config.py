@@ -103,6 +103,8 @@ class Settings:
     twilio_auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")
     twilio_whatsapp_from: str = os.getenv("TWILIO_WHATSAPP_FROM", "")
     admin_whatsapp_to: str = os.getenv("ADMIN_WHATSAPP_TO", "")
+    # Frontend URL for chatbot links
+    frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
     @property
     def is_development(self) -> bool:

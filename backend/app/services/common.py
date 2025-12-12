@@ -217,3 +217,12 @@ def get_mongo_client() -> Optional[MongoClient]:
             status_code=503, detail=f"Unable to connect to MongoDB: {exc}"
         ) from exc
     return _mongo_client
+
+
+def get_database():
+    """Get the MongoDB database object."""
+    client = get_mongo_client()
+    if client is None:
+        return None
+    settings = get_settings()
+    return client[settings.mongodb_db_name]

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { sendMessage, getLatestUsage, type ChatMessage, type UsageInfo } from '../../services/chatbotService';
 import { getPageContext } from '../../utils/pageContext';
 import { LuBiohazard } from "react-icons/lu";
@@ -14,37 +14,110 @@ interface ChatBotProps {
   userId?: string;
 }
 
+// Storage keys are now user-specific to prevent cross-user data leakage
+const getChatMessagesKey = (userId?: string) => `zygotrix_chat_messages_${userId || 'anonymous'}`;
+const getChatUsageKey = (userId?: string) => `zygotrix_chat_usage_${userId || 'anonymous'}`;
+
 export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName, userId }) => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || 'Zigi';
   const pageContext = getPageContext(currentPath);
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      role: 'assistant',
-      content: `Hi ${userName}! I'm **${botName}**, your Zygotrix assistant! 🧬 I see you're on the **${pageContext.pageName}**. Ask me anything about this page, genetics, or how to get started!`,
-      timestamp: new Date(),
-    },
-  ]);
+  
+  // User-specific storage keys
+  const CHAT_MESSAGES_KEY = getChatMessagesKey(userId);
+  const CHAT_USAGE_KEY = getChatUsageKey(userId);
+  
+  // Track if we've initialized from localStorage
+  const isInitialized = useRef(false);
+  
+  // Default welcome message
+  const getWelcomeMessage = useCallback((): ChatMessage => ({
+    role: 'assistant',
+    content: `Hi ${userName}! I'm **${botName}**, your Zygotrix assistant! 🧬 I see you're on the **${pageContext.pageName}**. Ask me anything about this page, genetics, or how to get started!`,
+    timestamp: new Date(),
+  }), [userName, botName, pageContext.pageName]);
+
+  const [messages, setMessages] = useState<ChatMessage[]>([getWelcomeMessage()]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const [showInfo, setShowInfo] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
+  // Load messages from localStorage on mount or when userId changes
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem(CHAT_MESSAGES_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        // Convert timestamp strings back to Date objects
+        const loadedMessages = parsed.map((msg: ChatMessage & { timestamp: string }) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        if (loadedMessages.length > 0) {
+          setMessages(loadedMessages);
+        }
+      }
+    } catch (e) {
+      console.error('Error loading chat messages:', e);
+    }
+    
+    // Load usage
+    try {
+      const savedUsage = localStorage.getItem(CHAT_USAGE_KEY);
+      if (savedUsage) {
+        setUsage(JSON.parse(savedUsage));
+      }
+    } catch (e) {
+      console.error('Error loading chat usage:', e);
+    }
+    
+    // Mark as initialized after loading
+    isInitialized.current = true;
+  }, [CHAT_MESSAGES_KEY, CHAT_USAGE_KEY]);
+
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   };
 
+  // Scroll to bottom when messages change
   useEffect(() => {
     scrollToBottom();
   }, [messages]);
 
-  // Update usage after each message
+  // Scroll to bottom when chatbot opens
   useEffect(() => {
-    const latestUsage = getLatestUsage();
-    if (latestUsage) {
-      setUsage(latestUsage);
+    if (isOpen) {
+      // Use setTimeout to ensure DOM is ready
+      setTimeout(() => {
+        scrollToBottom();
+      }, 100);
     }
-  }, [messages]);
+  }, [isOpen]);
+
+  // Save messages to localStorage whenever they change (but only after initialization)
+  useEffect(() => {
+    if (!isInitialized.current) return;
+    
+    try {
+      localStorage.setItem(CHAT_MESSAGES_KEY, JSON.stringify(messages));
+    } catch (e) {
+      console.error('Error saving chat messages:', e);
+    }
+  }, [messages, CHAT_MESSAGES_KEY]);
+
+  // Save usage to localStorage whenever it changes (but only after initialization)
+  useEffect(() => {
+    if (!isInitialized.current) return;
+    
+    if (usage) {
+      try {
+        localStorage.setItem(CHAT_USAGE_KEY, JSON.stringify(usage));
+      } catch (e) {
+        console.error('Error saving chat usage:', e);
+      }
+    }
+  }, [usage, CHAT_USAGE_KEY]);
 
   const handleSend = async () => {
     if (!inputValue.trim() || isLoading) return;
@@ -70,7 +143,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
 
       setMessages((prev) => [...prev, assistantMessage]);
       
-      // Update usage info
+      // Update usage info from the response
       const latestUsage = getLatestUsage();
       if (latestUsage) {
         setUsage(latestUsage);
@@ -95,6 +168,17 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
     }
   };
 
+  // Clear chat history
+  const handleClearChat = () => {
+    const welcomeMessage: ChatMessage = {
+      role: 'assistant',
+      content: `Hi ${userName}! I'm **${botName}**, your Zygotrix assistant! 🧬 Ask me anything about genetics or how to use Zygotrix!`,
+      timestamp: new Date(),
+    };
+    setMessages([welcomeMessage]);
+    localStorage.removeItem(CHAT_MESSAGES_KEY);
+  };
+
   // Calculate usage percentage
   const usagePercentage = usage ? Math.round((usage.tokens_used / 25000) * 100) : 0;
   const usageColor = usagePercentage > 80 ? 'bg-red-500' : usagePercentage > 50 ? 'bg-amber-500' : 'bg-emerald-500';
@@ -114,7 +198,17 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             <p className="text-indigo-100 text-xs">Your AI genetics assistant</p>
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1">
+          {/* Clear Chat Button */}
+          <button
+            onClick={handleClearChat}
+            className="text-white hover:bg-white/20 rounded-full p-2 transition-colors cursor-pointer"
+            title="Clear Chat"
+          >
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
           {/* Info Button */}
           <button
             onClick={() => setShowInfo(!showInfo)}
@@ -171,6 +265,21 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
               style={{ width: `${Math.min(usagePercentage, 100)}%` }}
             />
           </div>
+          {/* Rate Limit Warning */}
+          {usage.is_limited && usage.reset_time && (
+            <div className="mt-2 p-2 bg-amber-100 dark:bg-amber-900/30 border border-amber-300 dark:border-amber-700 rounded-lg">
+              <div className="flex items-center gap-2 text-amber-800 dark:text-amber-200 text-xs">
+                <svg className="w-4 h-4 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+                <span>
+                  <strong>Limit reached!</strong> Resets at{' '}
+                  {new Date(usage.reset_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                  {' '}({new Date(usage.reset_time).toLocaleDateString([], { month: 'short', day: 'numeric' })})
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       )}
 

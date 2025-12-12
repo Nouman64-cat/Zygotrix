@@ -16,7 +16,7 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-from ..prompt_engineering.prompts import ZIGI_SYSTEM_PROMPT
+from ..prompt_engineering.prompts import get_zigi_system_prompt
 from ..chatbot_tools import (
     get_traits_count, 
     search_traits, 
@@ -239,117 +239,169 @@ class UserRateLimiter:
     """
     Rate limiter to prevent excessive token usage per user.
     
-    Features:
-    - Token-based limiting (not request-based)
-    - 5-hour rolling window
-    - Per-user tracking
+    Logic:
+    - Users can use tokens freely until they hit the limit (25,000)
+    - When limit is reached, 5-hour cooldown starts
+    - After cooldown expires, user gets a fresh 25,000 tokens
+    - Data is persisted to MongoDB to survive server restarts
     """
     
-    def __init__(self, max_tokens: int = 25000, window_seconds: int = 18000):
+    def __init__(self, max_tokens: int = 25000, cooldown_seconds: int = 18000):
         """
         Args:
-            max_tokens: Maximum tokens allowed per window (default 25,000)
-            window_seconds: Window duration in seconds (default 5 hours = 18,000 seconds)
+            max_tokens: Maximum tokens before cooldown (default 25,000)
+            cooldown_seconds: Cooldown duration when limit reached (default 5 hours)
         """
         self.max_tokens = max_tokens
-        self.window_seconds = window_seconds
-        self.user_usage: dict[str, dict] = {}
+        self.cooldown_seconds = cooldown_seconds
+        self._collection = None
+    
+    def _get_collection(self):
+        """Get MongoDB collection for rate limit data."""
+        if self._collection is None:
+            try:
+                from ..services.common import get_database
+                db = get_database()
+                if db is not None:
+                    self._collection = db["rate_limits"]
+            except Exception as e:
+                logger.warning(f"MongoDB not available for rate limiting: {e}")
+        return self._collection
+    
+    def _get_user_data(self, user_id: str) -> dict | None:
+        """Get user data from MongoDB or return None."""
+        collection = self._get_collection()
+        if collection is None:
+            return None
+        try:
+            return collection.find_one({"user_id": user_id})
+        except Exception as e:
+            logger.error(f"Error getting rate limit data: {e}")
+            return None
+    
+    def _save_user_data(self, user_id: str, data: dict):
+        """Save user data to MongoDB."""
+        collection = self._get_collection()
+        if collection is None:
+            return
+        try:
+            collection.update_one(
+                {"user_id": user_id},
+                {"$set": data},
+                upsert=True
+            )
+        except Exception as e:
+            logger.error(f"Error saving rate limit data: {e}")
     
     def get_usage(self, user_id: str) -> dict:
         """Get current usage for a user."""
-        if user_id not in self.user_usage:
-            return {
-                "tokens_used": 0,
-                "tokens_remaining": self.max_tokens,
-                "reset_time": None,
-                "is_limited": False
-            }
-        
-        usage = self.user_usage[user_id]
+        user_data = self._get_user_data(user_id)
         current_time = time.time()
         
-        # Check if window has expired
-        if current_time - usage["window_start"] >= self.window_seconds:
-            # Reset the window
-            del self.user_usage[user_id]
+        if user_data is None:
+            # No data - user has full quota
             return {
                 "tokens_used": 0,
                 "tokens_remaining": self.max_tokens,
                 "reset_time": None,
-                "is_limited": False
+                "is_limited": False,
+                "cooldown_active": False
             }
         
-        tokens_remaining = max(0, self.max_tokens - usage["tokens_used"])
-        reset_time = usage["window_start"] + self.window_seconds
+        # Check if user is in cooldown
+        if user_data.get("cooldown_start"):
+            cooldown_start = user_data["cooldown_start"]
+            elapsed = current_time - cooldown_start
+            
+            if elapsed < self.cooldown_seconds:
+                # Still in cooldown
+                reset_time = cooldown_start + self.cooldown_seconds
+                return {
+                    "tokens_used": user_data.get("tokens_used", 0),
+                    "tokens_remaining": 0,
+                    "reset_time": datetime.fromtimestamp(reset_time, tz=timezone.utc).isoformat(),
+                    "is_limited": True,
+                    "cooldown_active": True
+                }
+            else:
+                # Cooldown expired - reset user
+                self._save_user_data(user_id, {
+                    "user_id": user_id,
+                    "tokens_used": 0,
+                    "cooldown_start": None
+                })
+                return {
+                    "tokens_used": 0,
+                    "tokens_remaining": self.max_tokens,
+                    "reset_time": None,
+                    "is_limited": False,
+                    "cooldown_active": False
+                }
+        
+        # No cooldown - just return usage
+        tokens_used = user_data.get("tokens_used", 0)
+        tokens_remaining = max(0, self.max_tokens - tokens_used)
         
         return {
-            "tokens_used": usage["tokens_used"],
+            "tokens_used": tokens_used,
             "tokens_remaining": tokens_remaining,
-            "reset_time": datetime.fromtimestamp(reset_time, tz=timezone.utc).isoformat(),
-            "is_limited": tokens_remaining <= 0
+            "reset_time": None,
+            "is_limited": tokens_remaining <= 0,
+            "cooldown_active": False
         }
     
     def check_limit(self, user_id: str) -> tuple[bool, dict]:
-        """
-        Check if user is within rate limit.
-        
-        Returns:
-            tuple: (is_allowed, usage_info)
-        """
+        """Check if user is within rate limit."""
         usage = self.get_usage(user_id)
         return (not usage["is_limited"], usage)
     
     def record_usage(self, user_id: str, tokens: int):
         """Record token usage for a user."""
-        current_time = time.time()
+        user_data = self._get_user_data(user_id) or {"user_id": user_id, "tokens_used": 0}
         
-        if user_id not in self.user_usage:
-            self.user_usage[user_id] = {
-                "tokens_used": 0,
-                "window_start": current_time
-            }
+        # Skip if in cooldown
+        if user_data.get("cooldown_start"):
+            return
         
-        usage = self.user_usage[user_id]
+        new_total = user_data.get("tokens_used", 0) + tokens
         
-        # Check if window has expired and reset
-        if current_time - usage["window_start"] >= self.window_seconds:
-            usage["tokens_used"] = 0
-            usage["window_start"] = current_time
-        
-        usage["tokens_used"] += tokens
-        logger.info(f"User {user_id[:8]}... used {tokens} tokens, total: {usage['tokens_used']}/{self.max_tokens}")
+        # Check if limit reached
+        if new_total >= self.max_tokens:
+            # Start cooldown
+            self._save_user_data(user_id, {
+                "user_id": user_id,
+                "tokens_used": new_total,
+                "cooldown_start": time.time()
+            })
+            logger.info(f"User {user_id[:8]}... reached limit ({new_total}/{self.max_tokens}). Cooldown started.")
+        else:
+            # Just update usage
+            self._save_user_data(user_id, {
+                "user_id": user_id,
+                "tokens_used": new_total,
+                "cooldown_start": None
+            })
+            logger.info(f"User {user_id[:8]}... used {tokens} tokens, total: {new_total}/{self.max_tokens}")
     
     def get_reset_time_remaining(self, user_id: str) -> int | None:
-        """Get seconds until rate limit resets for a user."""
-        if user_id not in self.user_usage:
+        """Get seconds until cooldown ends for a user."""
+        user_data = self._get_user_data(user_id)
+        if user_data is None or not user_data.get("cooldown_start"):
             return None
         
-        usage = self.user_usage[user_id]
         current_time = time.time()
-        elapsed = current_time - usage["window_start"]
+        elapsed = current_time - user_data["cooldown_start"]
         
-        if elapsed >= self.window_seconds:
+        if elapsed >= self.cooldown_seconds:
             return 0
         
-        return int(self.window_seconds - elapsed)
-    
-    def cleanup_expired(self):
-        """Remove expired user entries."""
-        current_time = time.time()
-        expired = [
-            uid for uid, usage in self.user_usage.items()
-            if current_time - usage["window_start"] >= self.window_seconds
-        ]
-        for uid in expired:
-            del self.user_usage[uid]
-        if expired:
-            logger.info(f"Cleaned up {len(expired)} expired rate limit entries")
+        return int(self.cooldown_seconds - elapsed)
 
 
 # Global rate limiter instance
 _rate_limiter = UserRateLimiter(
-    max_tokens=25000,      # 25,000 tokens per window
-    window_seconds=18000   # 5 hours = 18,000 seconds
+    max_tokens=25000,        # 25,000 tokens before cooldown
+    cooldown_seconds=18000   # 5 hours cooldown when limit reached
 )
 
 
@@ -629,8 +681,8 @@ async def generate_response(
                token_usage_dict contains: input_tokens, output_tokens
     """
     try:
-        # Format system prompt with user's name
-        system_prompt = ZIGI_SYSTEM_PROMPT.format(user_name=user_name)
+        # Get system prompt (with environment-aware links)
+        system_prompt = get_zigi_system_prompt()
         
         # Build page context information
         page_info = ""

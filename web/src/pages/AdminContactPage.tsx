@@ -114,10 +114,10 @@ const AdminContactPage: React.FC = () => {
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <MdError className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Access Denied
             </h2>
-            <p className="text-slate-400">
+            <p className="text-gray-500 dark:text-slate-400">
               You need super admin privileges to access this page.
             </p>
           </div>
@@ -136,41 +136,41 @@ const AdminContactPage: React.FC = () => {
               <FiInbox className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Contact Submissions
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 Manage messages from contact form
               </p>
             </div>
           </div>
           <div className="flex items-center gap-4">
             {unreadCount > 0 && (
-              <div className="px-4 py-2 bg-blue-500/20 text-blue-400 rounded-lg border border-blue-500/30">
+              <div className="px-4 py-2 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded-lg border border-blue-200 dark:border-blue-500/30">
                 <span className="text-sm font-medium">
                   {unreadCount} unread
                 </span>
               </div>
             )}
-            <div className="px-4 py-2 bg-slate-800 rounded-lg border border-slate-700">
-              <span className="text-sm font-medium text-white">
+            <div className="px-4 py-2 bg-gray-100 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+              <span className="text-sm font-medium text-gray-900 dark:text-white">
                 {submissions.length}
               </span>
-              <span className="text-sm text-slate-400 ml-2">total</span>
+              <span className="text-sm text-gray-500 dark:text-slate-400 ml-2">total</span>
             </div>
           </div>
         </div>
 
         {/* Success/Error Messages */}
         {successMessage && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center justify-between">
+          <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MdCheckCircle className="w-5 h-5 text-emerald-500" />
-              <span className="text-emerald-400 text-sm">{successMessage}</span>
+              <span className="text-emerald-600 dark:text-emerald-400 text-sm">{successMessage}</span>
             </div>
             <button
               onClick={() => setSuccessMessage(null)}
-              className="text-emerald-500 hover:text-emerald-400"
+              className="text-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400"
             >
               <MdClose className="w-5 h-5" />
             </button>
@@ -178,14 +178,14 @@ const AdminContactPage: React.FC = () => {
         )}
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center justify-between">
+          <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MdError className="w-5 h-5 text-red-500" />
-              <span className="text-red-400 text-sm">{error}</span>
+              <span className="text-red-600 dark:text-red-400 text-sm">{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-red-500 hover:text-red-400"
+              className="text-red-500 hover:text-red-600 dark:hover:text-red-400"
             >
               <MdClose className="w-5 h-5" />
             </button>
@@ -196,9 +196,9 @@ const AdminContactPage: React.FC = () => {
         <div className="grid lg:grid-cols-12 gap-4">
           {/* Left: List of Submissions */}
           <div className="lg:col-span-5">
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-              <div className="p-4 border-b border-slate-700 bg-slate-800">
-                <h2 className="text-sm font-semibold text-white">
+            <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+              <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
                   All Messages
                 </h2>
               </div>
@@ -210,8 +210,8 @@ const AdminContactPage: React.FC = () => {
                   </div>
                 ) : submissions.length === 0 ? (
                   <div className="text-center py-12 px-4">
-                    <FiInbox className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                    <p className="text-sm text-slate-500">
+                    <FiInbox className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
+                    <p className="text-sm text-gray-400 dark:text-slate-500">
                       No submissions yet
                     </p>
                   </div>
@@ -225,18 +225,18 @@ const AdminContactPage: React.FC = () => {
                           handleMarkAsRead(sub.id);
                         }
                       }}
-                      className={`p-4 border-b border-slate-700/50 cursor-pointer transition-colors ${
+                      className={`p-4 border-b border-gray-100 dark:border-slate-700/50 cursor-pointer transition-colors ${
                         selectedSubmission?.id === sub.id
-                          ? "bg-blue-500/10 border-l-4 border-l-blue-500"
-                          : "hover:bg-slate-700/50"
-                      } ${!sub.is_read ? "bg-blue-500/5" : ""}`}
+                          ? "bg-blue-50 dark:bg-blue-500/10 border-l-4 border-l-blue-500"
+                          : "hover:bg-gray-50 dark:hover:bg-slate-700/50"
+                      } ${!sub.is_read ? "bg-blue-50/50 dark:bg-blue-500/5" : ""}`}
                     >
                       <div className="flex items-start justify-between gap-2 mb-2">
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           {!sub.is_read && (
                             <div className="w-2 h-2 bg-blue-500 rounded-full flex-shrink-0" />
                           )}
-                          <h3 className="text-sm font-semibold text-white truncate">
+                          <h3 className="text-sm font-semibold text-gray-900 dark:text-white truncate">
                             {sub.name || "Anonymous"}
                           </h3>
                         </div>
@@ -246,7 +246,7 @@ const AdminContactPage: React.FC = () => {
                             handleDeleteClick(sub.id);
                           }}
                           disabled={deletingId === sub.id}
-                          className="text-slate-500 hover:text-red-500 transition-colors"
+                          className="text-gray-400 dark:text-slate-500 hover:text-red-500 transition-colors"
                         >
                           {deletingId === sub.id ? (
                             <BiLoaderAlt className="w-4 h-4 animate-spin" />
@@ -255,11 +255,11 @@ const AdminContactPage: React.FC = () => {
                           )}
                         </button>
                       </div>
-                      <p className="text-xs text-slate-400 mb-2">{sub.email}</p>
-                      <p className="text-sm text-slate-300 line-clamp-2">
+                      <p className="text-xs text-gray-500 dark:text-slate-400 mb-2">{sub.email}</p>
+                      <p className="text-sm text-gray-600 dark:text-slate-300 line-clamp-2">
                         {sub.message}
                       </p>
-                      <p className="text-xs text-slate-500 mt-2">
+                      <p className="text-xs text-gray-400 dark:text-slate-500 mt-2">
                         {new Date(sub.submitted_at).toLocaleString()}
                       </p>
                     </div>
@@ -272,21 +272,21 @@ const AdminContactPage: React.FC = () => {
           {/* Right: Selected Submission Detail */}
           <div className="lg:col-span-7">
             {selectedSubmission ? (
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-6">
+              <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-6 shadow-sm">
                 <div className="flex items-start justify-between mb-6">
                   <div className="flex items-center gap-2">
                     {selectedSubmission.is_read ? (
-                      <MdMarkEmailRead className="w-5 h-5 text-slate-500" />
+                      <MdMarkEmailRead className="w-5 h-5 text-gray-400 dark:text-slate-500" />
                     ) : (
                       <MdMarkunread className="w-5 h-5 text-blue-500" />
                     )}
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                       Message Details
                     </h2>
                   </div>
                   <button
                     onClick={() => setSelectedSubmission(null)}
-                    className="text-slate-500 hover:text-slate-300"
+                    className="text-gray-400 dark:text-slate-500 hover:text-gray-600 dark:hover:text-slate-300"
                   >
                     <MdClose className="w-5 h-5" />
                   </button>
@@ -295,11 +295,11 @@ const AdminContactPage: React.FC = () => {
                 <div className="space-y-4">
                   {/* Name */}
                   {selectedSubmission.name && (
-                    <div className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg">
-                      <MdPerson className="w-5 h-5 text-slate-400" />
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                      <MdPerson className="w-5 h-5 text-gray-400 dark:text-slate-400" />
                       <div>
-                        <p className="text-xs text-slate-500">Name</p>
-                        <p className="text-sm text-white">
+                        <p className="text-xs text-gray-400 dark:text-slate-500">Name</p>
+                        <p className="text-sm text-gray-900 dark:text-white">
                           {selectedSubmission.name}
                         </p>
                       </div>
@@ -307,13 +307,13 @@ const AdminContactPage: React.FC = () => {
                   )}
 
                   {/* Email */}
-                  <div className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg">
-                    <MdEmail className="w-5 h-5 text-slate-400" />
+                  <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                    <MdEmail className="w-5 h-5 text-gray-400 dark:text-slate-400" />
                     <div>
-                      <p className="text-xs text-slate-500">Email</p>
+                      <p className="text-xs text-gray-400 dark:text-slate-500">Email</p>
                       <a
                         href={`mailto:${selectedSubmission.email}`}
-                        className="text-sm text-blue-400 hover:text-blue-300"
+                        className="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
                       >
                         {selectedSubmission.email}
                       </a>
@@ -322,13 +322,13 @@ const AdminContactPage: React.FC = () => {
 
                   {/* Phone */}
                   {selectedSubmission.phone && (
-                    <div className="flex items-center gap-3 p-3 bg-slate-700/50 rounded-lg">
-                      <MdPhone className="w-5 h-5 text-slate-400" />
+                    <div className="flex items-center gap-3 p-3 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
+                      <MdPhone className="w-5 h-5 text-gray-400 dark:text-slate-400" />
                       <div>
-                        <p className="text-xs text-slate-500">Phone</p>
+                        <p className="text-xs text-gray-400 dark:text-slate-500">Phone</p>
                         <a
                           href={`tel:${selectedSubmission.phone}`}
-                          className="text-sm text-blue-400 hover:text-blue-300"
+                          className="text-sm text-blue-500 dark:text-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
                         >
                           {selectedSubmission.phone}
                         </a>
@@ -337,30 +337,30 @@ const AdminContactPage: React.FC = () => {
                   )}
 
                   {/* Message */}
-                  <div className="p-4 bg-slate-700/50 rounded-lg">
+                  <div className="p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg">
                     <div className="flex items-center gap-2 mb-3">
-                      <MdMessage className="w-5 h-5 text-slate-400" />
-                      <p className="text-xs text-slate-500">Message</p>
+                      <MdMessage className="w-5 h-5 text-gray-400 dark:text-slate-400" />
+                      <p className="text-xs text-gray-400 dark:text-slate-500">Message</p>
                     </div>
-                    <p className="text-sm text-white whitespace-pre-wrap">
+                    <p className="text-sm text-gray-900 dark:text-white whitespace-pre-wrap">
                       {selectedSubmission.message}
                     </p>
                   </div>
 
                   {/* Timestamp */}
-                  <div className="text-xs text-slate-500 text-center pt-4 border-t border-slate-700">
+                  <div className="text-xs text-gray-400 dark:text-slate-500 text-center pt-4 border-t border-gray-200 dark:border-slate-700">
                     Submitted on{" "}
                     {new Date(selectedSubmission.submitted_at).toLocaleString()}
                   </div>
                 </div>
               </div>
             ) : (
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-12 flex flex-col items-center justify-center text-center h-full">
-                <FiInbox className="w-16 h-16 text-slate-600 mb-4" />
-                <h3 className="text-lg font-semibold text-white mb-2">
+              <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-12 flex flex-col items-center justify-center text-center h-full shadow-sm">
+                <FiInbox className="w-16 h-16 text-gray-300 dark:text-slate-600 mb-4" />
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-white mb-2">
                   No Message Selected
                 </h3>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-gray-500 dark:text-slate-400">
                   Select a message from the list to view details
                 </p>
               </div>

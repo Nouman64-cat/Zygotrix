@@ -330,10 +330,10 @@ const AdminNewsletterPage: React.FC = () => {
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <MdError className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Access Denied
             </h2>
-            <p className="text-slate-400">
+            <p className="text-gray-500 dark:text-slate-400">
               You need admin privileges to access this page.
             </p>
           </div>
@@ -354,33 +354,33 @@ const AdminNewsletterPage: React.FC = () => {
               <MdEmail className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 Newsletter Manager
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 Compose and send emails to subscribers
               </p>
             </div>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-slate-800 rounded-lg border border-slate-700">
-            <MdPeople className="w-5 h-5 text-slate-400" />
-            <span className="text-sm font-medium text-white">
+          <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
+            <MdPeople className="w-5 h-5 text-gray-400 dark:text-slate-400" />
+            <span className="text-sm font-medium text-gray-900 dark:text-white">
               {subscriptions.length}
             </span>
-            <span className="text-sm text-slate-400">subscribers</span>
+            <span className="text-sm text-gray-500 dark:text-slate-400">subscribers</span>
           </div>
         </div>
 
         {/* Success/Error Messages */}
         {successMessage && (
-          <div className="bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-4 flex items-center justify-between">
+          <div className="bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MdCheckCircle className="w-5 h-5 text-emerald-500 flex-shrink-0" />
-              <span className="text-emerald-400 text-sm">{successMessage}</span>
+              <span className="text-emerald-600 dark:text-emerald-400 text-sm">{successMessage}</span>
             </div>
             <button
               onClick={() => setSuccessMessage(null)}
-              className="text-emerald-500 hover:text-emerald-400"
+              className="text-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400"
             >
               <MdClose className="w-5 h-5" />
             </button>
@@ -388,14 +388,14 @@ const AdminNewsletterPage: React.FC = () => {
         )}
 
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center justify-between">
+          <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
               <MdError className="w-5 h-5 text-red-500 flex-shrink-0" />
-              <span className="text-red-400 text-sm">{error}</span>
+              <span className="text-red-600 dark:text-red-400 text-sm">{error}</span>
             </div>
             <button
               onClick={() => setError(null)}
-              className="text-red-500 hover:text-red-400"
+              className="text-red-500 hover:text-red-600 dark:hover:text-red-400"
             >
               <MdClose className="w-5 h-5" />
             </button>
@@ -406,27 +406,27 @@ const AdminNewsletterPage: React.FC = () => {
         <div className="grid lg:grid-cols-12 gap-4">
           {/* Left Sidebar - Recipients */}
           <div className="lg:col-span-3">
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
+            <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
               {/* Header */}
-              <div className="p-4 border-b border-slate-700 bg-slate-800">
+              <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
                 <div className="flex items-center justify-between mb-3">
-                  <h2 className="text-sm font-semibold text-white">
+                  <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
                     Recipients
                   </h2>
-                  <span className="px-2 py-1 bg-emerald-500/20 text-emerald-400 rounded-lg text-xs font-medium">
+                  <span className="px-2 py-1 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded-lg text-xs font-medium">
                     {selectedEmails.size} selected
                   </span>
                 </div>
 
                 {/* Search */}
                 <div className="relative">
-                  <MdEmail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-500" />
+                  <MdEmail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
                   <input
                     type="text"
                     placeholder="Search emails..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="w-full pl-9 pr-3 py-2 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full pl-9 pr-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
@@ -436,9 +436,9 @@ const AdminNewsletterPage: React.FC = () => {
                     type="checkbox"
                     checked={selectAllChecked}
                     onChange={toggleSelectAll}
-                    className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500"
+                    className="w-4 h-4 rounded border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-emerald-500 focus:ring-emerald-500"
                   />
-                  <span className="text-xs text-slate-400 group-hover:text-slate-300">
+                  <span className="text-xs text-gray-500 dark:text-slate-400 group-hover:text-gray-700 dark:group-hover:text-slate-300">
                     Select all ({filteredSubscriptions.length})
                   </span>
                 </label>
@@ -452,8 +452,8 @@ const AdminNewsletterPage: React.FC = () => {
                   </div>
                 ) : filteredSubscriptions.length === 0 ? (
                   <div className="text-center py-12 px-4">
-                    <MdPeople className="w-12 h-12 text-slate-600 mx-auto mb-3" />
-                    <p className="text-sm text-slate-500">
+                    <MdPeople className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
+                    <p className="text-sm text-gray-400 dark:text-slate-500">
                       {searchTerm ? "No matches found" : "No subscribers yet"}
                     </p>
                   </div>
@@ -461,17 +461,17 @@ const AdminNewsletterPage: React.FC = () => {
                   filteredSubscriptions.map((sub) => (
                     <div
                       key={sub._id}
-                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-slate-700/50 border-b border-slate-700/50 last:border-0 group"
+                      className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700/50 last:border-0 group"
                     >
                       <label className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
                         <input
                           type="checkbox"
                           checked={selectedEmails.has(sub.email)}
                           onChange={() => toggleEmailSelection(sub.email)}
-                          className="w-4 h-4 rounded border-slate-600 bg-slate-700 text-emerald-500 focus:ring-emerald-500"
+                          className="w-4 h-4 rounded border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-emerald-500 focus:ring-emerald-500"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-slate-300 truncate group-hover:text-white">
+                          <p className="text-sm text-gray-600 dark:text-slate-300 truncate group-hover:text-gray-900 dark:group-hover:text-white">
                             {sub.email}
                           </p>
                         </div>
@@ -482,7 +482,7 @@ const AdminNewsletterPage: React.FC = () => {
                           handleDeleteClick(sub.email);
                         }}
                         disabled={deletingEmail === sub.email}
-                        className="flex-shrink-0 p-1.5 text-slate-500 hover:text-red-500 hover:bg-red-500/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="flex-shrink-0 p-1.5 text-gray-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         title="Unsubscribe this email"
                       >
                         {deletingEmail === sub.email ? (
@@ -501,10 +501,10 @@ const AdminNewsletterPage: React.FC = () => {
           {/* Main Content - Email Composer */}
           <div className="lg:col-span-9 space-y-4">
             {/* Template Selection */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+            <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
               <div className="flex items-center gap-2 mb-4">
                 <HiSparkles className="w-5 h-5 text-amber-500" />
-                <h2 className="text-sm font-semibold text-white">
+                <h2 className="text-sm font-semibold text-gray-900 dark:text-white">
                   Email Template
                 </h2>
               </div>
@@ -518,8 +518,8 @@ const AdminNewsletterPage: React.FC = () => {
                       onClick={() => setTemplateType(template.value)}
                       className={`relative p-4 rounded-xl border-2 transition-all text-left ${
                         isSelected
-                          ? `${template.borderColor} bg-gradient-to-br from-slate-800 to-slate-900 shadow-lg`
-                          : "border-slate-700 bg-slate-800/50 hover:border-slate-600"
+                          ? `${template.borderColor} bg-gray-50 dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 shadow-lg`
+                          : "border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-gray-300 dark:hover:border-slate-600"
                       }`}
                     >
                       <div className="flex items-center gap-3 mb-2">
@@ -527,24 +527,24 @@ const AdminNewsletterPage: React.FC = () => {
                           className={`p-2 rounded-lg ${
                             isSelected
                               ? template.color
-                              : "bg-slate-700"
+                              : "bg-gray-100 dark:bg-slate-700"
                           }`}
                         >
                           <Icon
                             className={`w-4 h-4 ${
-                              isSelected ? "text-white" : "text-slate-400"
+                              isSelected ? "text-white" : "text-gray-500 dark:text-slate-400"
                             }`}
                           />
                         </div>
                         <h3
                           className={`text-sm font-semibold ${
-                            isSelected ? "text-white" : "text-slate-300"
+                            isSelected ? "text-gray-900 dark:text-white" : "text-gray-600 dark:text-slate-300"
                           }`}
                         >
                           {template.label}
                         </h3>
                       </div>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-gray-400 dark:text-slate-500">
                         {template.description}
                       </p>
                       {isSelected && (
@@ -561,15 +561,15 @@ const AdminNewsletterPage: React.FC = () => {
             </div>
 
             {/* Email Content */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
-              <h2 className="text-sm font-semibold text-white mb-4">
+            <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+              <h2 className="text-sm font-semibold text-gray-900 dark:text-white mb-4">
                 Compose Email
               </h2>
 
               <div className="space-y-4">
                 {/* Subject */}
                 <div>
-                  <label className="block text-xs font-medium text-slate-400 mb-2">
+                  <label className="block text-xs font-medium text-gray-500 dark:text-slate-400 mb-2">
                     Subject Line
                   </label>
                   <input
@@ -577,24 +577,24 @@ const AdminNewsletterPage: React.FC = () => {
                     value={subject}
                     onChange={(e) => setSubject(e.target.value)}
                     placeholder="Enter a compelling subject line..."
-                    className="w-full px-4 py-2.5 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                    className="w-full px-4 py-2.5 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                   />
                 </div>
 
                 {/* Content */}
                 <div>
                   <div className="flex items-center justify-between mb-2">
-                    <label className="block text-xs font-medium text-slate-400">
+                    <label className="block text-xs font-medium text-gray-500 dark:text-slate-400">
                       Email Content
                     </label>
-                    <div className="flex items-center gap-1 bg-slate-700 rounded-lg p-1">
+                    <div className="flex items-center gap-1 bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
                       <button
                         type="button"
                         onClick={() => setEditMode("visual")}
                         className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                           editMode === "visual"
                             ? "bg-emerald-500 text-white"
-                            : "text-slate-400 hover:text-white"
+                            : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
                         }`}
                       >
                         Visual
@@ -605,7 +605,7 @@ const AdminNewsletterPage: React.FC = () => {
                         className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
                           editMode === "code"
                             ? "bg-emerald-500 text-white"
-                            : "text-slate-400 hover:text-white"
+                            : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
                         }`}
                       >
                         HTML
@@ -619,18 +619,18 @@ const AdminNewsletterPage: React.FC = () => {
                       onChange={(e) => setContent(e.target.value)}
                       placeholder="Enter HTML content..."
                       rows={10}
-                      className="w-full px-4 py-3 bg-slate-700 border border-slate-600 rounded-lg text-sm text-white placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
+                      className="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 font-mono"
                     />
                   ) : (
-                    <div className="border-2 border-slate-600 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
+                    <div className="border-2 border-gray-300 dark:border-slate-600 rounded-lg overflow-hidden focus-within:ring-2 focus-within:ring-emerald-500">
                       {/* Formatting Toolbar */}
-                      <div className="flex items-center gap-1 p-2 bg-slate-700 border-b border-slate-600 flex-wrap">
+                      <div className="flex items-center gap-1 p-2 bg-gray-50 dark:bg-slate-700 border-b border-gray-200 dark:border-slate-600 flex-wrap">
                         {/* Headings */}
-                        <div className="flex items-center gap-1 pr-2 border-r border-slate-600">
+                        <div className="flex items-center gap-1 pr-2 border-r border-gray-200 dark:border-slate-600">
                           <button
                             type="button"
                             onClick={() => insertHeading(1)}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                             title="Heading 1"
                           >
                             <span className="text-xs font-bold">H1</span>
@@ -638,7 +638,7 @@ const AdminNewsletterPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => insertHeading(2)}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                             title="Heading 2"
                           >
                             <span className="text-xs font-bold">H2</span>
@@ -646,7 +646,7 @@ const AdminNewsletterPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => insertHeading(3)}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                             title="Heading 3"
                           >
                             <span className="text-xs font-bold">H3</span>
@@ -654,11 +654,11 @@ const AdminNewsletterPage: React.FC = () => {
                         </div>
 
                         {/* Text Formatting */}
-                        <div className="flex items-center gap-1 pr-2 border-r border-slate-600">
+                        <div className="flex items-center gap-1 pr-2 border-r border-gray-200 dark:border-slate-600">
                           <button
                             type="button"
                             onClick={() => executeCommand("bold")}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                             title="Bold"
                           >
                             <MdFormatBold className="w-4 h-4" />
@@ -666,7 +666,7 @@ const AdminNewsletterPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => executeCommand("italic")}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                             title="Italic"
                           >
                             <MdFormatItalic className="w-4 h-4" />
@@ -674,7 +674,7 @@ const AdminNewsletterPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => executeCommand("underline")}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                             title="Underline"
                           >
                             <MdFormatUnderlined className="w-4 h-4" />
@@ -682,11 +682,11 @@ const AdminNewsletterPage: React.FC = () => {
                         </div>
 
                         {/* Lists */}
-                        <div className="flex items-center gap-1 pr-2 border-r border-slate-600">
+                        <div className="flex items-center gap-1 pr-2 border-r border-gray-200 dark:border-slate-600">
                           <button
                             type="button"
                             onClick={() => executeCommand("insertUnorderedList")}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                             title="Bullet List"
                           >
                             <MdFormatListBulleted className="w-4 h-4" />
@@ -694,7 +694,7 @@ const AdminNewsletterPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => executeCommand("insertOrderedList")}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                             title="Numbered List"
                           >
                             <MdFormatListNumbered className="w-4 h-4" />
@@ -709,7 +709,7 @@ const AdminNewsletterPage: React.FC = () => {
                               const url = prompt("Enter URL:");
                               if (url) executeCommand("createLink", url);
                             }}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors"
                             title="Insert Link"
                           >
                             <MdLink className="w-4 h-4" />
@@ -717,7 +717,7 @@ const AdminNewsletterPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => executeCommand("formatBlock", "<p>")}
-                            className="p-2 text-slate-400 hover:text-white hover:bg-slate-600 rounded transition-colors text-xs font-medium"
+                            className="p-2 text-gray-500 dark:text-slate-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-200 dark:hover:bg-slate-600 rounded transition-colors text-xs font-medium"
                             title="Paragraph"
                           >
                             P
@@ -734,11 +734,11 @@ const AdminNewsletterPage: React.FC = () => {
                           const target = e.target as HTMLDivElement;
                           setContent(target.innerHTML);
                         }}
-                        className="w-full min-h-[250px] max-h-[400px] px-4 py-3 bg-white text-sm text-slate-800 focus:outline-none prose prose-sm max-w-none overflow-auto"
+                        className="w-full min-h-[250px] max-h-[400px] px-4 py-3 bg-white text-sm text-gray-800 focus:outline-none prose prose-sm max-w-none overflow-auto"
                       />
                     </div>
                   )}
-                  <p className="mt-1 text-xs text-slate-500">
+                  <p className="mt-1 text-xs text-gray-400 dark:text-slate-500">
                     {editMode === "visual"
                       ? "Use the toolbar to format your email. Click to edit, select text to format."
                       : "Write or paste HTML code. Switch to Visual mode to see the preview."}

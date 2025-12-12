@@ -16,13 +16,52 @@ export interface PageContext {
 }
 
 // Main chatbot function - calls backend API
+// Session ID for conversation memory - persists across messages in the same browser session
+let _sessionId: string | null = null;
+
+function getSessionId(): string {
+  if (!_sessionId) {
+    // Generate a unique session ID
+    _sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+  }
+  return _sessionId;
+}
+
+// Call this to start a new conversation (clears memory on backend)
+export function resetSession(): void {
+  _sessionId = null;
+}
+
+// Usage info returned from the API
+export interface UsageInfo {
+  tokens_used: number;
+  tokens_remaining: number;
+  reset_time: string | null;
+  is_limited: boolean;
+}
+
+// Response with usage info
+export interface ChatResponseWithUsage {
+  response: string;
+  usage: UsageInfo | null;
+}
+
+// Store latest usage info for UI display
+let _latestUsage: UsageInfo | null = null;
+
+export function getLatestUsage(): UsageInfo | null {
+  return _latestUsage;
+}
+
 export async function sendMessage(
-  message: string, 
-  pageContext?: PageContext, 
+  message: string,
+  pageContext?: PageContext,
   userName?: string,
   userId?: string
 ): Promise<string> {
   try {
+    const sessionId = getSessionId();
+
     const response = await fetch(`${API_BASE_URL}/api/chatbot/chat`, {
       method: 'POST',
       headers: {
@@ -33,6 +72,7 @@ export async function sendMessage(
         pageContext: pageContext,
         userName: userName,
         userId: userId,
+        sessionId: sessionId,
       }),
     });
 
@@ -43,6 +83,11 @@ export async function sendMessage(
     }
 
     const data = await response.json();
+
+    // Store usage info for UI display
+    if (data.usage) {
+      _latestUsage = data.usage;
+    }
 
     if (data.response) {
       return data.response;
@@ -81,6 +126,49 @@ export async function getTokenUsageStats(): Promise<{
     return await response.json();
   } catch (error) {
     console.error('Error fetching token usage stats:', error);
+    return null;
+  }
+}
+
+// Interface for daily usage data
+export interface DailyUsage {
+  date: string;
+  total_tokens: number;
+  input_tokens: number;
+  output_tokens: number;
+  request_count: number;
+  cached_count: number;
+  unique_users: number;
+  cost: number;
+}
+
+export interface DailyUsageSummary {
+  total_tokens: number;
+  total_cost: number;
+  avg_daily_tokens: number;
+  avg_daily_cost: number;
+  projected_monthly_tokens: number;
+  projected_monthly_cost: number;
+  days_with_data: number;
+}
+
+export interface DailyUsageResponse {
+  daily_usage: DailyUsage[];
+  summary: DailyUsageSummary;
+  error?: string;
+}
+
+// Fetch daily token usage for line chart
+export async function getDailyTokenUsage(days: number = 30): Promise<DailyUsageResponse | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/chatbot/admin/token-usage-daily?days=${days}`);
+    if (!response.ok) {
+      console.error('Failed to fetch daily token usage');
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error('Error fetching daily token usage:', error);
     return null;
   }
 }

@@ -5,6 +5,7 @@ import { LuBiohazard } from "react-icons/lu";
 import { useAuth } from '../../context/AuthContext';
 
 export const FloatingChatButton: React.FC = () => {
+  const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || 'Zigi';
   const [isOpen, setIsOpen] = useState(false);
   const [showPulse, setShowPulse] = useState(true);
   const location = useLocation();
@@ -66,7 +67,7 @@ export const FloatingChatButton: React.FC = () => {
             isOpen ? 'opacity-0 pointer-events-none' : 'opacity-0 group-hover:opacity-100'
           }`}
         >
-          Chat with Zigi!
+          {`Chat with ${botName}!`}
           <div className="absolute right-[-6px] top-1/2 -translate-y-1/2 w-0 h-0 border-t-[6px] border-t-transparent border-b-[6px] border-b-transparent border-l-[6px] border-l-gray-900"></div>
         </div>
       </button>

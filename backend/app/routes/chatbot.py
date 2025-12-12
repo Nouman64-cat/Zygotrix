@@ -140,6 +140,218 @@ _response_cache = LLMResponseCache(
 )
 
 
+# =============================================================================
+# CONVERSATION MEMORY
+# =============================================================================
+
+class ConversationMemory:
+    """
+    Stores conversation history per session for context-aware responses.
+    
+    Features:
+    - Session-based storage keyed by sessionId
+    - TTL-based expiration (default 30 minutes)
+    - Max messages per session to control token usage
+    """
+    
+    def __init__(self, max_messages: int = 10, ttl_seconds: int = 1800):
+        """
+        Args:
+            max_messages: Maximum number of message pairs (user+assistant) to keep per session
+            ttl_seconds: Session expiration time (default 30 minutes)
+        """
+        self.max_messages = max_messages
+        self.ttl_seconds = ttl_seconds
+        self.sessions: dict[str, dict] = {}
+    
+    def get_history(self, session_id: str) -> list[dict]:
+        """Get conversation history for a session."""
+        if session_id not in self.sessions:
+            return []
+        
+        session = self.sessions[session_id]
+        
+        # Check if expired
+        if time.time() - session["last_activity"] > self.ttl_seconds:
+            del self.sessions[session_id]
+            return []
+        
+        return session["messages"]
+    
+    def add_message(self, session_id: str, role: str, content: str):
+        """Add a message to the session history."""
+        if session_id not in self.sessions:
+            self.sessions[session_id] = {
+                "messages": [],
+                "last_activity": time.time()
+            }
+        
+        session = self.sessions[session_id]
+        session["messages"].append({"role": role, "content": content})
+        session["last_activity"] = time.time()
+        
+        # Keep only the last N message pairs (2 messages per pair: user + assistant)
+        max_total = self.max_messages * 2
+        if len(session["messages"]) > max_total:
+            session["messages"] = session["messages"][-max_total:]
+        
+        logger.info(f"Session {session_id[:8]}... now has {len(session['messages'])} messages")
+    
+    def clear_session(self, session_id: str):
+        """Clear a specific session."""
+        if session_id in self.sessions:
+            del self.sessions[session_id]
+    
+    def cleanup_expired(self):
+        """Remove expired sessions."""
+        current_time = time.time()
+        expired = [
+            sid for sid, session in self.sessions.items()
+            if current_time - session["last_activity"] > self.ttl_seconds
+        ]
+        for sid in expired:
+            del self.sessions[sid]
+        if expired:
+            logger.info(f"Cleaned up {len(expired)} expired conversation sessions")
+    
+    def get_stats(self) -> dict:
+        """Get memory statistics."""
+        return {
+            "active_sessions": len(self.sessions),
+            "max_messages_per_session": self.max_messages,
+            "ttl_seconds": self.ttl_seconds
+        }
+
+
+# Global conversation memory instance
+# Memory persists for 5 hours (same as rate limit window) - no message count limit
+_conversation_memory = ConversationMemory(
+    max_messages=1000,    # Effectively unlimited - limited by tokens instead
+    ttl_seconds=18000     # 5 hours - matches rate limit window
+)
+
+
+# =============================================================================
+# USER RATE LIMITING
+# =============================================================================
+
+class UserRateLimiter:
+    """
+    Rate limiter to prevent excessive token usage per user.
+    
+    Features:
+    - Token-based limiting (not request-based)
+    - 5-hour rolling window
+    - Per-user tracking
+    """
+    
+    def __init__(self, max_tokens: int = 25000, window_seconds: int = 18000):
+        """
+        Args:
+            max_tokens: Maximum tokens allowed per window (default 25,000)
+            window_seconds: Window duration in seconds (default 5 hours = 18,000 seconds)
+        """
+        self.max_tokens = max_tokens
+        self.window_seconds = window_seconds
+        self.user_usage: dict[str, dict] = {}
+    
+    def get_usage(self, user_id: str) -> dict:
+        """Get current usage for a user."""
+        if user_id not in self.user_usage:
+            return {
+                "tokens_used": 0,
+                "tokens_remaining": self.max_tokens,
+                "reset_time": None,
+                "is_limited": False
+            }
+        
+        usage = self.user_usage[user_id]
+        current_time = time.time()
+        
+        # Check if window has expired
+        if current_time - usage["window_start"] >= self.window_seconds:
+            # Reset the window
+            del self.user_usage[user_id]
+            return {
+                "tokens_used": 0,
+                "tokens_remaining": self.max_tokens,
+                "reset_time": None,
+                "is_limited": False
+            }
+        
+        tokens_remaining = max(0, self.max_tokens - usage["tokens_used"])
+        reset_time = usage["window_start"] + self.window_seconds
+        
+        return {
+            "tokens_used": usage["tokens_used"],
+            "tokens_remaining": tokens_remaining,
+            "reset_time": datetime.fromtimestamp(reset_time, tz=timezone.utc).isoformat(),
+            "is_limited": tokens_remaining <= 0
+        }
+    
+    def check_limit(self, user_id: str) -> tuple[bool, dict]:
+        """
+        Check if user is within rate limit.
+        
+        Returns:
+            tuple: (is_allowed, usage_info)
+        """
+        usage = self.get_usage(user_id)
+        return (not usage["is_limited"], usage)
+    
+    def record_usage(self, user_id: str, tokens: int):
+        """Record token usage for a user."""
+        current_time = time.time()
+        
+        if user_id not in self.user_usage:
+            self.user_usage[user_id] = {
+                "tokens_used": 0,
+                "window_start": current_time
+            }
+        
+        usage = self.user_usage[user_id]
+        
+        # Check if window has expired and reset
+        if current_time - usage["window_start"] >= self.window_seconds:
+            usage["tokens_used"] = 0
+            usage["window_start"] = current_time
+        
+        usage["tokens_used"] += tokens
+        logger.info(f"User {user_id[:8]}... used {tokens} tokens, total: {usage['tokens_used']}/{self.max_tokens}")
+    
+    def get_reset_time_remaining(self, user_id: str) -> int | None:
+        """Get seconds until rate limit resets for a user."""
+        if user_id not in self.user_usage:
+            return None
+        
+        usage = self.user_usage[user_id]
+        current_time = time.time()
+        elapsed = current_time - usage["window_start"]
+        
+        if elapsed >= self.window_seconds:
+            return 0
+        
+        return int(self.window_seconds - elapsed)
+    
+    def cleanup_expired(self):
+        """Remove expired user entries."""
+        current_time = time.time()
+        expired = [
+            uid for uid, usage in self.user_usage.items()
+            if current_time - usage["window_start"] >= self.window_seconds
+        ]
+        for uid in expired:
+            del self.user_usage[uid]
+        if expired:
+            logger.info(f"Cleaned up {len(expired)} expired rate limit entries")
+
+
+# Global rate limiter instance
+_rate_limiter = UserRateLimiter(
+    max_tokens=25000,      # 25,000 tokens per window
+    window_seconds=18000   # 5 hours = 18,000 seconds
+)
+
 
 class PageContext(BaseModel):
     pageName: str
@@ -152,10 +364,12 @@ class ChatRequest(BaseModel):
     pageContext: PageContext | None = None
     userName: str | None = None
     userId: str | None = None  # For token usage tracking
+    sessionId: str | None = None  # For conversation memory
 
 
 class ChatResponse(BaseModel):
     response: str
+    usage: dict | None = None  # Token usage info for rate limiting
 
 
 async def get_pipeline_id() -> str | None:
@@ -393,9 +607,22 @@ Found {len(results)} matching trait(s):
     
     return "\n".join(context_parts)
 
-async def generate_response(user_message: str, context: str, page_context: PageContext | None = None, user_name: str = "there") -> tuple[str, dict]:
+async def generate_response(
+    user_message: str, 
+    context: str, 
+    page_context: PageContext | None = None, 
+    user_name: str = "there",
+    conversation_history: list[dict] | None = None
+) -> tuple[str, dict]:
     """
     Generate response using Claude AI.
+    
+    Args:
+        user_message: The user's current message
+        context: RAG context from LlamaCloud
+        page_context: Current page information
+        user_name: User's display name
+        conversation_history: Previous messages in the conversation
     
     Returns:
         tuple: (response_text, token_usage_dict)
@@ -417,6 +644,30 @@ Available Features on this page:
 {features_list}
 """
 
+        # Build messages array with conversation history
+        messages = []
+        
+        # Add conversation history if available (for context)
+        if conversation_history:
+            for msg in conversation_history:
+                messages.append({
+                    "role": msg["role"],
+                    "content": msg["content"]
+                })
+        
+        # Add current user message with context
+        current_message_content = f"""{page_info}
+
+Background information (use this to answer, but don't copy it directly):
+{context}
+
+Question: {user_message}"""
+        
+        messages.append({
+            "role": "user",
+            "content": current_message_content
+        })
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 "https://api.anthropic.com/v1/messages",
@@ -427,22 +678,10 @@ Available Features on this page:
                 },
                 json={
                     "model": CLAUDE_MODEL,
-                    "max_tokens": 200,
+                    "max_tokens": 400,  # Increased for Punnett square calculations
                     "temperature": 0.7,
                     "system": system_prompt,
-                    "messages": [
-                        {
-                            "role": "user",
-                            "content": f"""{page_info}
-
-Background information (use this to answer, but don't copy it directly):
-{context}
-
-Question: {user_message}
-
-Remember: Answer in 2-4 simple, friendly sentences. No technical jargon. No bullet points. Just talk naturally like you're explaining to a friend.""",
-                        }
-                    ],
+                    "messages": messages,
                 },
             )
 
@@ -486,49 +725,104 @@ async def chat(request: ChatRequest) -> ChatResponse:
     Chat endpoint that retrieves context from LlamaCloud and generates
     a response using Claude AI with page context awareness.
     
-    Features caching to reduce API token consumption.
-    Tracks token usage per user for admin monitoring.
+    Features:
+    - Caching to reduce API token consumption
+    - Conversation memory for context-aware follow-ups
+    - Token usage tracking per user
+    - Rate limiting (25,000 tokens per 5 hours)
     """
     try:
+        # Get user ID for rate limiting
+        user_id = request.userId or "anonymous"
+        
+        # Step 0: Check rate limit FIRST
+        is_allowed, usage_info = _rate_limiter.check_limit(user_id)
+        
+        if not is_allowed:
+            # User has exceeded their token limit
+            reset_seconds = _rate_limiter.get_reset_time_remaining(user_id)
+            reset_minutes = reset_seconds // 60 if reset_seconds else 0
+            reset_hours = reset_minutes // 60
+            reset_mins_remaining = reset_minutes % 60
+            
+            time_str = f"{reset_hours}h {reset_mins_remaining}m" if reset_hours > 0 else f"{reset_minutes}m"
+            
+            return ChatResponse(
+                response=f"⏳ You've reached your chat limit for now. Your limit will reset in **{time_str}**. This helps us keep the service free for everyone!",
+                usage=usage_info
+            )
+        
         # Get page name for cache key
         page_name = request.pageContext.pageName if request.pageContext else ""
         
-        # Step 0: Check cache first (no tokens used for cache hits!)
-        cached_response = _response_cache.get(
-            message=request.message,
-            page_name=page_name
-        )
+        # Get or generate a session ID for conversation memory
+        session_id = request.sessionId or user_id
         
-        if cached_response:
-            logger.info(f"Returning cached response for: '{request.message[:50]}...'")
-            # Log cache hit (0 tokens used)
-            _log_token_usage(
-                user_id=request.userId,
-                user_name=request.userName,
-                input_tokens=0,
-                output_tokens=0,
-                cached=True,
-                message_preview=request.message[:100]
+        # Get conversation history for this session
+        conversation_history = _conversation_memory.get_history(session_id)
+        
+        # For short follow-up questions (like "how?", "why?"), skip cache
+        is_followup = len(request.message.strip()) < 20 and conversation_history
+        
+        # Step 1: Check cache first (but not for follow-up questions that need context)
+        if not is_followup:
+            cached_response = _response_cache.get(
+                message=request.message,
+                page_name=page_name
             )
-            return ChatResponse(response=cached_response)
+            
+            if cached_response:
+                logger.info(f"Returning cached response for: '{request.message[:50]}...'")
+                # Log cache hit (0 tokens used - doesn't count against rate limit)
+                _log_token_usage(
+                    user_id=request.userId,
+                    user_name=request.userName,
+                    input_tokens=0,
+                    output_tokens=0,
+                    cached=True,
+                    message_preview=request.message[:100]
+                )
+                # Still add to conversation memory for context
+                _conversation_memory.add_message(session_id, "user", request.message)
+                _conversation_memory.add_message(session_id, "assistant", cached_response)
+                
+                # Return with current usage info
+                return ChatResponse(response=cached_response, usage=usage_info)
         
-        # Step 1: Retrieve relevant context from LlamaCloud
+        # Step 2: Retrieve relevant context from LlamaCloud
         llama_context = await retrieve_context(request.message)
         
-        # Step 2: Get traits-specific context from the traits database
+        # Step 3: Get traits-specific context from the traits database
         traits_context = get_traits_context(request.message)
         
-        # Step 3: Combine contexts
+        # Step 4: Combine contexts
         combined_context = llama_context
         if traits_context:
             combined_context = f"{traits_context}\n\n{llama_context}" if llama_context else traits_context
             logger.info(f"Added traits context: {len(traits_context)} chars")
 
-        # Step 4: Generate response using Claude with context, page context, and user name
+        # Step 5: Generate response using Claude with context, page context, user name, and conversation history
         user_name = request.userName or "there"
-        response, token_usage = await generate_response(request.message, combined_context, request.pageContext, user_name)
+        response, token_usage = await generate_response(
+            user_message=request.message, 
+            context=combined_context, 
+            page_context=request.pageContext, 
+            user_name=user_name,
+            conversation_history=conversation_history
+        )
         
-        # Step 5: Log token usage for this request
+        # Step 6: Store in conversation memory
+        _conversation_memory.add_message(session_id, "user", request.message)
+        _conversation_memory.add_message(session_id, "assistant", response)
+        
+        # Step 7: Calculate and record token usage for rate limiting
+        total_tokens = token_usage.get("input_tokens", 0) + token_usage.get("output_tokens", 0)
+        _rate_limiter.record_usage(user_id, total_tokens)
+        
+        # Get updated usage info after recording
+        _, updated_usage = _rate_limiter.check_limit(user_id)
+        
+        # Step 8: Log token usage for admin tracking
         _log_token_usage(
             user_id=request.userId,
             user_name=request.userName,
@@ -539,14 +833,15 @@ async def chat(request: ChatRequest) -> ChatResponse:
             model=token_usage.get("model")
         )
         
-        # Step 6: Cache the response for future requests
-        _response_cache.set(
-            message=request.message,
-            response=response,
-            page_name=page_name
-        )
+        # Step 9: Cache the response for future requests (but not short follow-ups)
+        if not is_followup:
+            _response_cache.set(
+                message=request.message,
+                response=response,
+                page_name=page_name
+            )
 
-        return ChatResponse(response=response)
+        return ChatResponse(response=response, usage=updated_usage)
     except HTTPException:
         raise
     except Exception as e:
@@ -753,3 +1048,98 @@ async def get_user_token_usage(user_id: str, limit: int = 50):
     except Exception as e:
         logger.error(f"Error fetching user token usage: {e}")
         return {"error": str(e), "history": []}
+
+
+@router.get("/admin/token-usage-daily")
+async def get_daily_token_usage(days: int = 30):
+    """
+    Get daily aggregated token usage for the last N days.
+    
+    Args:
+        days: Number of days to fetch (default 30)
+    
+    Returns:
+        - daily_usage: List of daily token usage with date, tokens, requests, and cost
+    """
+    try:
+        from ..services.common import get_token_usage_collection
+        from datetime import timedelta
+        
+        collection = get_token_usage_collection()
+        if collection is None:
+            return {"error": "MongoDB not available", "daily_usage": []}
+        
+        # Calculate date range
+        end_date = datetime.now(timezone.utc)
+        start_date = end_date - timedelta(days=days)
+        
+        # Aggregate by day
+        pipeline = [
+            {
+                "$match": {
+                    "timestamp": {"$gte": start_date, "$lte": end_date}
+                }
+            },
+            {
+                "$group": {
+                    "_id": {
+                        "year": {"$year": "$timestamp"},
+                        "month": {"$month": "$timestamp"},
+                        "day": {"$dayOfMonth": "$timestamp"}
+                    },
+                    "total_tokens": {"$sum": "$total_tokens"},
+                    "input_tokens": {"$sum": "$input_tokens"},
+                    "output_tokens": {"$sum": "$output_tokens"},
+                    "request_count": {"$sum": 1},
+                    "cached_count": {
+                        "$sum": {"$cond": [{"$eq": ["$cached", True]}, 1, 0]}
+                    },
+                    "unique_users": {"$addToSet": "$user_id"}
+                }
+            },
+            {"$sort": {"_id.year": 1, "_id.month": 1, "_id.day": 1}}
+        ]
+        
+        results = list(collection.aggregate(pipeline))
+        
+        # Format results
+        daily_usage = []
+        for r in results:
+            date_str = f"{r['_id']['year']}-{r['_id']['month']:02d}-{r['_id']['day']:02d}"
+            input_tokens = r.get("input_tokens", 0)
+            output_tokens = r.get("output_tokens", 0)
+            # Calculate cost (Claude 3 Haiku pricing)
+            cost = (input_tokens / 1000000) * 0.25 + (output_tokens / 1000000) * 1.25
+            
+            daily_usage.append({
+                "date": date_str,
+                "total_tokens": r.get("total_tokens", 0),
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "request_count": r.get("request_count", 0),
+                "cached_count": r.get("cached_count", 0),
+                "unique_users": len(r.get("unique_users", [])),
+                "cost": round(cost, 4)
+            })
+        
+        # Calculate totals and projections
+        total_tokens = sum(d["total_tokens"] for d in daily_usage)
+        total_cost = sum(d["cost"] for d in daily_usage)
+        avg_daily_tokens = total_tokens / len(daily_usage) if daily_usage else 0
+        avg_daily_cost = total_cost / len(daily_usage) if daily_usage else 0
+        
+        return {
+            "daily_usage": daily_usage,
+            "summary": {
+                "total_tokens": total_tokens,
+                "total_cost": round(total_cost, 4),
+                "avg_daily_tokens": round(avg_daily_tokens, 0),
+                "avg_daily_cost": round(avg_daily_cost, 4),
+                "projected_monthly_tokens": round(avg_daily_tokens * 30, 0),
+                "projected_monthly_cost": round(avg_daily_cost * 30, 4),
+                "days_with_data": len(daily_usage)
+            }
+        }
+    except Exception as e:
+        logger.error(f"Error fetching daily token usage: {e}")
+        return {"error": str(e), "daily_usage": []}

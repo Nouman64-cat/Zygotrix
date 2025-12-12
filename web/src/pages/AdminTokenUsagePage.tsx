@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
-import { getTokenUsageStats } from "../services/chatbotService";
+import { getTokenUsageStats, getDailyTokenUsage, type DailyUsageResponse } from "../services/chatbotService";
 import {
   MdError,
   MdRefresh,
   MdPerson,
   MdAutorenew,
+  MdTrendingUp,
 } from "react-icons/md";
 import {
   FaRobot,
@@ -16,6 +17,30 @@ import {
 } from "react-icons/fa";
 import { BiLoaderAlt } from "react-icons/bi";
 import { HiSparkles } from "react-icons/hi";
+import {
+  Chart as ChartJS,
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler,
+} from 'chart.js';
+import { Line } from 'react-chartjs-2';
+
+// Register Chart.js components
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  PointElement,
+  LineElement,
+  Title,
+  Tooltip,
+  Legend,
+  Filler
+);
 
 interface TokenUsageUser {
   user_id: string;
@@ -42,10 +67,13 @@ interface TokenUsageStats {
 }
 
 const AdminTokenUsagePage: React.FC = () => {
+  const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || 'Zigi';
   const { user: currentUser } = useAuth();
   const [stats, setStats] = useState<TokenUsageStats | null>(null);
+  const [dailyData, setDailyData] = useState<DailyUsageResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [chartDays, setChartDays] = useState(30);
 
   const isSuperAdmin = currentUser?.user_role === "super_admin";
 
@@ -54,6 +82,12 @@ const AdminTokenUsagePage: React.FC = () => {
       fetchStats();
     }
   }, [isSuperAdmin]);
+
+  useEffect(() => {
+    if (isSuperAdmin) {
+      fetchDailyData();
+    }
+  }, [isSuperAdmin, chartDays]);
 
   const fetchStats = async () => {
     try {
@@ -72,6 +106,22 @@ const AdminTokenUsagePage: React.FC = () => {
     } finally {
       setLoading(false);
     }
+  };
+
+  const fetchDailyData = async () => {
+    try {
+      const data = await getDailyTokenUsage(chartDays);
+      if (data) {
+        setDailyData(data);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to fetch daily data:", err);
+    }
+  };
+
+  const handleRefresh = () => {
+    fetchStats();
+    fetchDailyData();
   };
 
   const formatNumber = (num: number) => {
@@ -94,11 +144,115 @@ const AdminTokenUsagePage: React.FC = () => {
     });
   };
 
-  // Estimate cost (Claude Haiku: ~$0.25 per 1M input tokens, ~$1.25 per 1M output tokens)
+  // Claude 3 Haiku Pricing (as of Dec 2024):
+  // Input: $0.25 / MTok, Output: $1.25 / MTok
+  // Prompt Caching - Write: $0.30 / MTok, Read: $0.03 / MTok
   const estimateCost = (inputTokens: number, outputTokens: number) => {
     const inputCost = (inputTokens / 1000000) * 0.25;
     const outputCost = (outputTokens / 1000000) * 1.25;
     return (inputCost + outputCost).toFixed(4);
+  };
+
+  // Prepare chart data
+  const chartData = {
+    labels: dailyData?.daily_usage.map(d => {
+      const date = new Date(d.date);
+      return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    }) || [],
+    datasets: [
+      {
+        label: 'Total Tokens',
+        data: dailyData?.daily_usage.map(d => d.total_tokens) || [],
+        borderColor: 'rgb(99, 102, 241)',
+        backgroundColor: 'rgba(99, 102, 241, 0.1)',
+        fill: true,
+        tension: 0.4,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+      },
+      {
+        label: 'Requests',
+        data: dailyData?.daily_usage.map(d => d.request_count * 100) || [], // Scale up for visibility
+        borderColor: 'rgb(16, 185, 129)',
+        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+        fill: false,
+        tension: 0.4,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        yAxisID: 'y1',
+      },
+    ],
+  };
+
+  const chartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: 'index' as const,
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        position: 'top' as const,
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+        },
+      },
+      tooltip: {
+        backgroundColor: 'rgba(15, 23, 42, 0.9)',
+        titleColor: '#fff',
+        bodyColor: '#e2e8f0',
+        borderColor: 'rgba(99, 102, 241, 0.3)',
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: function(context: { dataset: { label: string }; parsed: { y: number } }) {
+            const label = context.dataset.label || '';
+            const value = context.parsed.y;
+            if (label === 'Requests') {
+              return `${label}: ${value / 100}`; // Scale back down
+            }
+            return `${label}: ${formatNumber(value)}`;
+          }
+        }
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          maxRotation: 45,
+          minRotation: 45,
+        },
+      },
+      y: {
+        type: 'linear' as const,
+        display: true,
+        position: 'left' as const,
+        title: {
+          display: true,
+          text: 'Tokens',
+        },
+        grid: {
+          color: 'rgba(148, 163, 184, 0.1)',
+        },
+      },
+      y1: {
+        type: 'linear' as const,
+        display: true,
+        position: 'right' as const,
+        title: {
+          display: true,
+          text: 'Requests (×100)',
+        },
+        grid: {
+          drawOnChartArea: false,
+        },
+      },
+    },
   };
 
   if (!isSuperAdmin) {
@@ -107,10 +261,10 @@ const AdminTokenUsagePage: React.FC = () => {
         <div className="flex items-center justify-center h-full">
           <div className="text-center">
             <MdError className="w-16 h-16 text-red-500 mx-auto mb-4" />
-            <h2 className="text-2xl font-bold text-white mb-2">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
               Access Denied
             </h2>
-            <p className="text-slate-400">
+            <p className="text-gray-500 dark:text-slate-400">
               Only super admins can access token usage statistics.
             </p>
           </div>
@@ -129,18 +283,18 @@ const AdminTokenUsagePage: React.FC = () => {
               <FaRobot className="w-6 h-6 text-white" />
             </div>
             <div>
-              <h1 className="text-2xl font-bold text-white">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
                 AI Token Usage
               </h1>
-              <p className="text-sm text-slate-400">
+              <p className="text-sm text-gray-500 dark:text-slate-400">
                 Monitor Claude API token consumption per user
               </p>
             </div>
           </div>
           <button
-            onClick={fetchStats}
+            onClick={handleRefresh}
             disabled={loading}
-            className="flex items-center gap-2 px-4 py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded-lg text-white text-sm transition-colors disabled:opacity-50"
+            className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 dark:bg-slate-800 dark:hover:bg-slate-700 border border-gray-300 dark:border-slate-700 rounded-lg text-gray-700 dark:text-white text-sm transition-colors disabled:opacity-50"
           >
             {loading ? (
               <BiLoaderAlt className="w-4 h-4 animate-spin" />
@@ -153,9 +307,9 @@ const AdminTokenUsagePage: React.FC = () => {
 
         {/* Error Message */}
         {error && (
-          <div className="bg-red-500/10 border border-red-500/30 rounded-xl p-4 flex items-center gap-3">
+          <div className="bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-xl p-4 flex items-center gap-3">
             <MdError className="w-5 h-5 text-red-500 flex-shrink-0" />
-            <span className="text-red-400 text-sm">{error}</span>
+            <span className="text-red-600 dark:text-red-400 text-sm">{error}</span>
           </div>
         )}
 
@@ -168,119 +322,186 @@ const AdminTokenUsagePage: React.FC = () => {
             {/* Stats Cards */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {/* Total Tokens */}
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-5">
+              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-indigo-500/20">
-                    <HiSparkles className="w-5 h-5 text-indigo-400" />
+                  <div className="p-2 rounded-lg bg-indigo-100 dark:bg-indigo-500/20">
+                    <HiSparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400" />
                   </div>
-                  <span className="text-sm text-slate-400">Total Tokens</span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">Total Tokens</span>
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">
+                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                   {formatNumber(stats.total_tokens)}
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-gray-400 dark:text-slate-500">
                   ~${estimateCost(stats.total_input_tokens, stats.total_output_tokens)} estimated cost
                 </div>
               </div>
 
               {/* Total Requests */}
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-5">
+              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-emerald-500/20">
-                    <FaChartLine className="w-5 h-5 text-emerald-400" />
+                  <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-500/20">
+                    <FaChartLine className="w-5 h-5 text-emerald-500 dark:text-emerald-400" />
                   </div>
-                  <span className="text-sm text-slate-400">Total Requests</span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">Total Requests</span>
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">
+                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                   {formatNumber(stats.total_requests)}
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-gray-400 dark:text-slate-500">
                   API calls to Claude
                 </div>
               </div>
 
               {/* Cache Hit Rate */}
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-5">
+              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-amber-500/20">
-                    <MdAutorenew className="w-5 h-5 text-amber-400" />
+                  <div className="p-2 rounded-lg bg-amber-100 dark:bg-amber-500/20">
+                    <MdAutorenew className="w-5 h-5 text-amber-500 dark:text-amber-400" />
                   </div>
-                  <span className="text-sm text-slate-400">Cache Hit Rate</span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">Cache Hit Rate</span>
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">
+                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                   {stats.cache_hit_rate}
                 </div>
-                <div className="text-xs text-slate-500">
+                <div className="text-xs text-gray-400 dark:text-slate-500">
                   {stats.cached_requests} cached / {stats.total_requests} total
                 </div>
               </div>
 
               {/* Active Users */}
-              <div className="bg-gradient-to-br from-slate-800 to-slate-900 border border-slate-700 rounded-xl p-5">
+              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-5 shadow-sm">
                 <div className="flex items-center gap-3 mb-4">
-                  <div className="p-2 rounded-lg bg-purple-500/20">
-                    <FaUsers className="w-5 h-5 text-purple-400" />
+                  <div className="p-2 rounded-lg bg-purple-100 dark:bg-purple-500/20">
+                    <FaUsers className="w-5 h-5 text-purple-500 dark:text-purple-400" />
                   </div>
-                  <span className="text-sm text-slate-400">Active Users</span>
+                  <span className="text-sm text-gray-500 dark:text-slate-400">Active Users</span>
                 </div>
-                <div className="text-3xl font-bold text-white mb-1">
+                <div className="text-3xl font-bold text-gray-900 dark:text-white mb-1">
                   {stats.user_count}
                 </div>
-                <div className="text-xs text-slate-500">
-                  Users who chatted with Zigi
+                <div className="text-xs text-gray-400 dark:text-slate-500">
+                  Users who chatted with {botName}
                 </div>
               </div>
             </div>
 
+            {/* Usage Chart */}
+            <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <MdTrendingUp className="w-5 h-5 text-indigo-500" />
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
+                    Usage Trends
+                  </h2>
+                </div>
+                <div className="flex items-center gap-2">
+                  <select
+                    value={chartDays}
+                    onChange={(e) => setChartDays(Number(e.target.value))}
+                    className="px-3 py-1.5 bg-gray-100 dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                  >
+                    <option value={7}>Last 7 days</option>
+                    <option value={14}>Last 14 days</option>
+                    <option value={30}>Last 30 days</option>
+                    <option value={60}>Last 60 days</option>
+                    <option value={90}>Last 90 days</option>
+                  </select>
+                </div>
+              </div>
+              
+              {dailyData && dailyData.daily_usage.length > 0 ? (
+                <>
+                  <div className="h-[300px]">
+                    <Line data={chartData} options={chartOptions} />
+                  </div>
+                  
+                  {/* Projections */}
+                  {dailyData.summary && (
+                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-4 pt-4 border-t border-gray-200 dark:border-slate-700">
+                      <div className="text-center">
+                        <p className="text-xs text-gray-500 dark:text-slate-400">Avg Daily Tokens</p>
+                        <p className="text-lg font-semibold text-gray-900 dark:text-white">
+                          {formatNumber(dailyData.summary.avg_daily_tokens)}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-gray-500 dark:text-slate-400">Avg Daily Cost</p>
+                        <p className="text-lg font-semibold text-emerald-500">
+                          ${dailyData.summary.avg_daily_cost.toFixed(4)}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-gray-500 dark:text-slate-400">Projected Monthly Tokens</p>
+                        <p className="text-lg font-semibold text-indigo-500">
+                          {formatNumber(dailyData.summary.projected_monthly_tokens)}
+                        </p>
+                      </div>
+                      <div className="text-center">
+                        <p className="text-xs text-gray-500 dark:text-slate-400">Projected Monthly Cost</p>
+                        <p className="text-lg font-semibold text-amber-500">
+                          ${dailyData.summary.projected_monthly_cost.toFixed(4)}
+                        </p>
+                      </div>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="h-[300px] flex items-center justify-center">
+                  <p className="text-gray-400 dark:text-slate-500">No usage data available for the selected period</p>
+                </div>
+              )}
+            </div>
+
             {/* Token Breakdown */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+              <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <FaDatabase className="w-4 h-4 text-blue-400" />
-                  <span className="text-sm font-medium text-white">Input Tokens</span>
+                  <FaDatabase className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Input Tokens</span>
                 </div>
-                <div className="text-2xl font-bold text-blue-400">
+                <div className="text-2xl font-bold text-blue-500 dark:text-blue-400">
                   {formatNumber(stats.total_input_tokens)}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
                   Tokens sent to Claude (prompts + context)
                 </div>
               </div>
 
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+              <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <FaDatabase className="w-4 h-4 text-green-400" />
-                  <span className="text-sm font-medium text-white">Output Tokens</span>
+                  <FaDatabase className="w-4 h-4 text-green-500 dark:text-green-400" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Output Tokens</span>
                 </div>
-                <div className="text-2xl font-bold text-green-400">
+                <div className="text-2xl font-bold text-green-500 dark:text-green-400">
                   {formatNumber(stats.total_output_tokens)}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
                   Tokens generated by Claude (responses)
                 </div>
               </div>
 
-              <div className="bg-slate-800/50 border border-slate-700 rounded-xl p-4">
+              <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
                 <div className="flex items-center gap-2 mb-3">
-                  <FaDatabase className="w-4 h-4 text-purple-400" />
-                  <span className="text-sm font-medium text-white">Tokens Saved</span>
+                  <FaDatabase className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">Tokens Saved</span>
                 </div>
-                <div className="text-2xl font-bold text-purple-400">
+                <div className="text-2xl font-bold text-purple-500 dark:text-purple-400">
                   ~{formatNumber(stats.cached_requests * 150)}
                 </div>
-                <div className="text-xs text-slate-500 mt-1">
+                <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
                   Estimated tokens saved by caching
                 </div>
               </div>
             </div>
 
             {/* User Table */}
-            <div className="bg-slate-800/50 border border-slate-700 rounded-xl overflow-hidden">
-              <div className="p-4 border-b border-slate-700 bg-slate-800">
-                <h2 className="text-lg font-semibold text-white">
+            <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+              <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-gray-50 dark:bg-slate-800">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                   Usage by User
                 </h2>
-                <p className="text-sm text-slate-400">
+                <p className="text-sm text-gray-500 dark:text-slate-400">
                   Token consumption breakdown per user
                 </p>
               </div>
@@ -288,45 +509,45 @@ const AdminTokenUsagePage: React.FC = () => {
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-slate-800/50">
-                      <th className="text-left px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                    <tr className="bg-gray-50 dark:bg-slate-800/50">
+                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                         User
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                         Total Tokens
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider hidden sm:table-cell">
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
                         Input
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider hidden sm:table-cell">
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
                         Output
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                         Requests
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider hidden md:table-cell">
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">
                         Cache Rate
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider hidden lg:table-cell">
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">
                         Last Active
                       </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-slate-400 uppercase tracking-wider">
+                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
                         Est. Cost
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-700/50">
+                  <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
                     {stats.users.length === 0 ? (
                       <tr>
-                        <td colSpan={8} className="px-4 py-12 text-center text-slate-500">
-                          No usage data yet. Users will appear here after chatting with Zigi.
+                        <td colSpan={8} className="px-4 py-12 text-center text-gray-400 dark:text-slate-500">
+                          No usage data yet. Users will appear here after chatting with {botName}.
                         </td>
                       </tr>
                     ) : (
                       stats.users.map((user) => (
                         <tr
                           key={user.user_id}
-                          className="hover:bg-slate-700/30 transition-colors"
+                          className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
                         >
                           <td className="px-4 py-3">
                             <div className="flex items-center gap-3">
@@ -334,53 +555,53 @@ const AdminTokenUsagePage: React.FC = () => {
                                 <MdPerson className="w-4 h-4 text-white" />
                               </div>
                               <div>
-                                <p className="text-sm font-medium text-white truncate max-w-[150px]">
+                                <p className="text-sm font-medium text-gray-900 dark:text-white truncate max-w-[150px]">
                                   {user.user_name}
                                 </p>
-                                <p className="text-xs text-slate-500 truncate max-w-[150px]">
+                                <p className="text-xs text-gray-400 dark:text-slate-500 truncate max-w-[150px]">
                                   {user.user_id === "anonymous" ? "Guest" : user.user_id.slice(0, 8) + "..."}
                                 </p>
                               </div>
                             </div>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <span className="text-sm font-medium text-white">
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
                               {formatNumber(user.total_tokens)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right hidden sm:table-cell">
-                            <span className="text-sm text-blue-400">
+                            <span className="text-sm text-blue-500 dark:text-blue-400">
                               {formatNumber(user.input_tokens)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right hidden sm:table-cell">
-                            <span className="text-sm text-green-400">
+                            <span className="text-sm text-green-500 dark:text-green-400">
                               {formatNumber(user.output_tokens)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <span className="text-sm text-slate-300">
+                            <span className="text-sm text-gray-600 dark:text-slate-300">
                               {user.request_count}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right hidden md:table-cell">
                             <span className={`text-sm ${
                               parseFloat(user.cache_hit_rate) > 50 
-                                ? 'text-emerald-400' 
+                                ? 'text-emerald-500 dark:text-emerald-400' 
                                 : parseFloat(user.cache_hit_rate) > 20 
-                                  ? 'text-amber-400' 
-                                  : 'text-slate-400'
+                                  ? 'text-amber-500 dark:text-amber-400' 
+                                  : 'text-gray-400 dark:text-slate-400'
                             }`}>
                               {user.cache_hit_rate}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right hidden lg:table-cell">
-                            <span className="text-sm text-slate-400">
+                            <span className="text-sm text-gray-500 dark:text-slate-400">
                               {formatDate(user.last_request)}
                             </span>
                           </td>
                           <td className="px-4 py-3 text-right">
-                            <span className="text-sm text-amber-400">
+                            <span className="text-sm text-amber-500 dark:text-amber-400">
                               ${estimateCost(user.input_tokens, user.output_tokens)}
                             </span>
                           </td>
@@ -393,18 +614,18 @@ const AdminTokenUsagePage: React.FC = () => {
             </div>
 
             {/* Info Card */}
-            <div className="bg-indigo-500/10 border border-indigo-500/30 rounded-xl p-4">
+            <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 rounded-xl p-4">
               <div className="flex items-start gap-3">
-                <HiSparkles className="w-5 h-5 text-indigo-400 flex-shrink-0 mt-0.5" />
+                <HiSparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
                 <div>
-                  <h3 className="text-sm font-medium text-indigo-300 mb-1">
+                  <h3 className="text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-1">
                     Token Usage Insights
                   </h3>
-                  <p className="text-xs text-slate-400">
+                  <p className="text-xs text-gray-600 dark:text-slate-400">
                     Tokens are the building blocks of AI text processing. Input tokens include your prompts and context, 
                     while output tokens are the AI's responses. The cache system helps reduce costs by serving repeated 
-                    questions from memory instead of calling the API again. Claude Haiku pricing: ~$0.25/1M input tokens, 
-                    ~$1.25/1M output tokens.
+                    questions from memory instead of calling the API. <strong className="text-indigo-600 dark:text-indigo-300">Claude 3 Haiku pricing:</strong> Input $0.25/MTok, 
+                    Output $1.25/MTok. Prompt caching: Write $0.30/MTok, Read $0.03/MTok.
                   </p>
                 </div>
               </div>

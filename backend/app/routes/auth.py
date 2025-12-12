@@ -73,6 +73,12 @@ def login(payload: UserLoginRequest, request: Request) -> AuthResponse:
         password=payload.password.get_secret_value(),
     )
 
+    if not user.get("is_active", True):
+        raise HTTPException(
+            status_code=401,
+            detail="Your account has been deactivated. Please contact support."
+        )
+
     # Update user activity with IP and browser info
     ip_address = _get_client_ip(request)
     user_agent = request.headers.get("User-Agent")

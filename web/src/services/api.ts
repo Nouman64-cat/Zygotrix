@@ -26,7 +26,7 @@ API.interceptors.response.use(
   (response) => response,
   (error) => {
     // Handle 401 Unauthorized responses
-    if (error.response?.status === 401 || error.response?.status === 403) {
+    if (error.response?.status === 403) {
       // Clear token and redirect to signin page
       handleAuthFailure();
 

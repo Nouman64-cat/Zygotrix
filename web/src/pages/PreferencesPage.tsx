@@ -41,10 +41,9 @@ const PreferencesPage: React.FC = () => {
 
   // Load preferences from user
   useEffect(() => {
-    console.log("[PreferencesPage] Loading preferences from user");
-    console.log("[PreferencesPage] user?.preferences:", user?.preferences);
+ 
     if (user?.preferences) {
-      console.log("[PreferencesPage] Setting preferences:", user.preferences);
+
       setPreferences((prev) => ({
         ...prev,
         ...user.preferences,
@@ -60,7 +59,7 @@ const PreferencesPage: React.FC = () => {
   };
 
   const handleSelect = async (key: keyof UserPreferences, value: string) => {
-    console.log("[PreferencesPage] handleSelect called:", { key, value });
+    
     const updatedPreferences = {
       ...preferences,
       [key]: value,
@@ -73,37 +72,31 @@ const PreferencesPage: React.FC = () => {
       key === "theme" &&
       (value === "light" || value === "dark" || value === "auto")
     ) {
-      console.log("[PreferencesPage] Updating theme to:", value);
+ 
       setTheme(value);
-      console.log("[PreferencesPage] Theme updated via setTheme");
+      
 
-      // Immediately save theme preference to database to prevent override
-      console.log("[PreferencesPage] Saving theme to database immediately...");
+  
       try {
         await authApi.updateProfile({ preferences: updatedPreferences });
         await refreshUser();
-        console.log(
-          "[PreferencesPage] Theme saved to database and user refreshed"
-        );
+ 
       } catch (error) {
-        console.error(
-          "[PreferencesPage] Failed to save theme to database:",
-          error
-        );
+ 
       }
     }
   };
 
   const handleSave = async () => {
-    console.log("[PreferencesPage] Saving preferences:", preferences);
+    
     setIsSaving(true);
     setSaveMessage(null);
 
     try {
       await authApi.updateProfile({ preferences });
-      console.log("[PreferencesPage] Profile updated successfully");
+     
       await refreshUser();
-      console.log("[PreferencesPage] User refreshed");
+       
 
       setSaveMessage({
         type: "success",
@@ -112,7 +105,7 @@ const PreferencesPage: React.FC = () => {
 
       setTimeout(() => setSaveMessage(null), 3000);
     } catch (error) {
-      console.error("[PreferencesPage] Failed to save preferences:", error);
+      
       setSaveMessage({
         type: "error",
         text: "Failed to save preferences. Please try again.",

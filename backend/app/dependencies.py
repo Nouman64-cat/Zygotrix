@@ -15,7 +15,7 @@ def get_current_user(
     # Check if user is active
     if not user.get("is_active", True):
         raise HTTPException(
-            status_code=403,
+            status_code=401,
             detail="Your account has been deactivated. Please contact support."
         )
 

@@ -27,6 +27,7 @@ import {
   Tooltip,
   Legend,
   Filler,
+  type TooltipItem,
 } from 'chart.js';
 import { Line } from 'react-chartjs-2';
 
@@ -207,7 +208,7 @@ const AdminTokenUsagePage: React.FC = () => {
         borderWidth: 1,
         padding: 12,
         callbacks: {
-          label: function(context: { dataset: { label: string }; parsed: { y: number } }) {
+          label: function(context: TooltipItem<'line'>) {
             const label = context.dataset.label || '';
             const value = context.parsed.y;
             if (label === 'Requests') {

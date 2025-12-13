@@ -1,10 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { sendMessage, getLatestUsage, type ChatMessage, type UsageInfo } from '../../services/chatbotService';
+import { sendMessage, getLatestUsage, type ChatMessage, type UsageInfo, type ChatMessageAction } from '../../services/chatbotService';
 import { getPageContext } from '../../utils/pageContext';
 import { LuBiohazard } from "react-icons/lu";
 import { MdInfoOutline } from "react-icons/md";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
+import { parseSimulationCommands, executeSimulationCommands } from '../../services/simulationCommands';
+import { InlineActions } from './InlineActions';
 
 interface ChatBotProps {
   isOpen: boolean;
@@ -13,23 +15,25 @@ interface ChatBotProps {
   userName: string;
   userId?: string;
   isEnabled?: boolean;
+  variant?: 'floating' | 'sidebar';
+  simulationToolContext?: any; // Optional simulation tool context for command execution
 }
 
 // Storage keys are now user-specific to prevent cross-user data leakage
 const getChatMessagesKey = (userId?: string) => `zygotrix_chat_messages_${userId || 'anonymous'}`;
 const getChatUsageKey = (userId?: string) => `zygotrix_chat_usage_${userId || 'anonymous'}`;
 
-export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName, userId, isEnabled = true }) => {
+export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName, userId, isEnabled = true, variant = 'floating', simulationToolContext }) => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || 'Zigi';
   const pageContext = getPageContext(currentPath);
-  
+
   // User-specific storage keys
   const CHAT_MESSAGES_KEY = getChatMessagesKey(userId);
   const CHAT_USAGE_KEY = getChatUsageKey(userId);
-  
+
   // Track if we've initialized from localStorage
   const isInitialized = useRef(false);
-  
+
   // Default welcome message
   const getWelcomeMessage = useCallback((): ChatMessage => ({
     role: 'assistant',
@@ -62,7 +66,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
     } catch (e) {
       console.error('Error loading chat messages:', e);
     }
-    
+
     // Load usage
     try {
       const savedUsage = localStorage.getItem(CHAT_USAGE_KEY);
@@ -72,13 +76,13 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
     } catch (e) {
       console.error('Error loading chat usage:', e);
     }
-    
+
     // Mark as initialized after loading
     isInitialized.current = true;
   }, [CHAT_MESSAGES_KEY, CHAT_USAGE_KEY]);
 
   const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
   };
 
   // Scroll to bottom when messages change
@@ -99,7 +103,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
   // Save messages to localStorage whenever they change (but only after initialization)
   useEffect(() => {
     if (!isInitialized.current) return;
-    
+
     try {
       localStorage.setItem(CHAT_MESSAGES_KEY, JSON.stringify(messages));
     } catch (e) {
@@ -110,7 +114,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
   // Save usage to localStorage whenever it changes (but only after initialization)
   useEffect(() => {
     if (!isInitialized.current) return;
-    
+
     if (usage) {
       try {
         localStorage.setItem(CHAT_USAGE_KEY, JSON.stringify(usage));
@@ -136,14 +140,47 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
     try {
       const response = await sendMessage(inputValue, pageContext, userName, userId);
 
-      const assistantMessage: ChatMessage = {
-        role: 'assistant',
-        content: response,
-        timestamp: new Date(),
-      };
+      // Parse and execute simulation commands if tool context is available
+      if (simulationToolContext) {
+        const { commands, summary } = parseSimulationCommands(response);
 
-      setMessages((prev) => [...prev, assistantMessage]);
-      
+        if (commands.length > 0) {
+          // Execute commands and get action results
+          const { actions } = await executeSimulationCommands(commands, simulationToolContext);
+
+          // Convert actions to ChatMessageAction format
+          const messageActions: ChatMessageAction[] = actions.map(a => ({
+            description: a.description,
+            status: a.status
+          }));
+
+          // Show the summary (response without command blocks) with actions
+          const assistantMessage: ChatMessage = {
+            role: 'assistant',
+            content: summary || response,
+            timestamp: new Date(),
+            actions: messageActions,
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+        } else {
+          // No commands, show response as-is
+          const assistantMessage: ChatMessage = {
+            role: 'assistant',
+            content: summary || response,
+            timestamp: new Date(),
+          };
+          setMessages((prev) => [...prev, assistantMessage]);
+        }
+      } else {
+        // No tool context, show full response as-is
+        const assistantMessage: ChatMessage = {
+          role: 'assistant',
+          content: response,
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, assistantMessage]);
+      }
+
       // Update usage info from the response
       const latestUsage = getLatestUsage();
       if (latestUsage) {
@@ -184,10 +221,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
   const usagePercentage = usage ? Math.round((usage.tokens_used / 25000) * 100) : 0;
   const usageColor = usagePercentage > 80 ? 'bg-red-500' : usagePercentage > 50 ? 'bg-amber-500' : 'bg-emerald-500';
 
-  if (!isOpen) return null;
+  if (variant === 'floating' && !isOpen) return null;
+
+  const containerClasses = variant === 'floating'
+    ? "fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 w-full sm:w-[400px] md:w-[450px] lg:w-[500px] h-full sm:h-[500px] md:h-[550px] lg:h-[600px] bg-white dark:bg-[#060914] sm:rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border-0 sm:border border-gray-200 dark:border-gray-800 z-50 animate-slide-up"
+    : "h-full flex flex-col bg-white dark:bg-[#060914] overflow-hidden";
 
   return (
-    <div className="fixed inset-0 sm:inset-auto sm:bottom-24 sm:right-6 w-full sm:w-[400px] md:w-[450px] lg:w-[500px] h-full sm:h-[500px] md:h-[550px] lg:h-[600px] bg-white dark:bg-[#060914] sm:rounded-[2rem] shadow-2xl flex flex-col overflow-hidden border-0 sm:border border-gray-200 dark:border-gray-800 z-50 animate-slide-up">
+    <div className={containerClasses}>
       {/* Header */}
       <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -218,23 +259,31 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
           >
             <MdInfoOutline className="w-5 h-5" />
           </button>
+          {/* Close/Collapse Button */}
           <button
             onClick={onClose}
             className="text-white hover:bg-white/20 rounded-full p-2 transition-colors cursor-pointer"
+            title={variant === 'sidebar' ? 'Collapse sidebar' : 'Close chat'}
           >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
+            {variant === 'sidebar' ? (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+              </svg>
+            ) : (
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            )}
           </button>
         </div>
       </div>
@@ -261,7 +310,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             <span>{100 - usagePercentage}% remaining</span>
           </div>
           <div className="h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
-            <div 
+            <div
               className={`h-full ${usageColor} transition-all duration-300`}
               style={{ width: `${Math.min(usagePercentage, 100)}%` }}
             />
@@ -298,7 +347,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
                 AI Services Temporarily Unavailable
               </h4>
               <p className="text-xs text-amber-700 dark:text-amber-300 mt-1">
-                Due to scheduled maintenance, the AI assistant is currently offline. 
+                Due to scheduled maintenance, the AI assistant is currently offline.
                 Please check back later. We apologize for any inconvenience!
               </p>
             </div>
@@ -307,30 +356,33 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
       )}
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto p-3 sm:p-4 space-y-4 bg-gray-50 dark:bg-[#101111]">
+      <div className="flex-1 min-h-0 overflow-y-auto p-3 sm:p-4 space-y-4 bg-gray-50 dark:bg-[#101111]">
         {messages.map((message, index) => (
           <div
             key={index}
             className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             <div
-              className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 sm:px-4 py-2 sm:py-3 ${
-                message.role === 'user'
-                  ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
-                  : 'bg-white dark:bg-[#060914] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-800'
-              }`}
+              className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 sm:px-4 py-2 sm:py-3 ${message.role === 'user'
+                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                : 'bg-white dark:bg-[#060914] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-800'
+                }`}
             >
               {message.role === 'assistant' ? (
-                <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-indigo-600 dark:prose-strong:text-indigo-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-table:text-xs prose-th:bg-indigo-100 dark:prose-th:bg-indigo-900 prose-th:p-1 prose-td:p-1 prose-table:border prose-table:border-gray-300 dark:prose-table:border-gray-700 max-w-none">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                <div>
+                  <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-indigo-600 dark:prose-strong:text-indigo-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-table:text-xs prose-th:bg-indigo-100 dark:prose-th:bg-indigo-900 prose-th:p-1 prose-td:p-1 prose-table:border prose-table:border-gray-300 dark:prose-table:border-gray-700 max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
+                  </div>
+                  {message.actions && message.actions.length > 0 && (
+                    <InlineActions actions={message.actions} />
+                  )}
                 </div>
               ) : (
                 <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
               )}
               <p
-                className={`text-xs mt-1 ${
-                  message.role === 'user' ? 'text-indigo-100' : 'text-gray-400'
-                }`}
+                className={`text-xs mt-1 ${message.role === 'user' ? 'text-indigo-100' : 'text-gray-400'
+                  }`}
               >
                 {message.timestamp.toLocaleTimeString([], {
                   hour: '2-digit',

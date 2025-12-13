@@ -3,10 +3,16 @@
 // Backend API URL - defaults to localhost for development
 const API_BASE_URL = import.meta.env.VITE_ZYGOTRIX_API;
 
+export interface ChatMessageAction {
+  description: string;
+  status: "pending" | "in_progress" | "completed" | "failed";
+}
+
 export interface ChatMessage {
-  role: 'user' | 'assistant';
+  role: "user" | "assistant";
   content: string;
   timestamp: Date;
+  actions?: ChatMessageAction[];
 }
 
 export interface PageContext {
@@ -22,7 +28,9 @@ let _sessionId: string | null = null;
 function getSessionId(): string {
   if (!_sessionId) {
     // Generate a unique session ID
-    _sessionId = `session_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
+    _sessionId = `session_${Date.now()}_${Math.random()
+      .toString(36)
+      .substring(2, 11)}`;
   }
   return _sessionId;
 }
@@ -63,9 +71,9 @@ export async function sendMessage(
     const sessionId = getSessionId();
 
     const response = await fetch(`${API_BASE_URL}/api/chatbot/chat`, {
-      method: 'POST',
+      method: "POST",
       headers: {
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       body: JSON.stringify({
         message: message,
@@ -78,7 +86,7 @@ export async function sendMessage(
 
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({}));
-      console.error('Chatbot API error:', errorData);
+      console.error("Chatbot API error:", errorData);
       return "I'm having trouble connecting right now. Please try again in a moment!";
     }
 
@@ -95,7 +103,7 @@ export async function sendMessage(
 
     return "I'm sorry, I couldn't generate a response. Please try again!";
   } catch (error) {
-    console.error('Chatbot error:', error);
+    console.error("Chatbot error:", error);
     return "Sorry, I encountered an error. Please try again!";
   }
 }
@@ -118,14 +126,16 @@ export async function getTokenUsageStats(): Promise<{
   }>;
 } | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/chatbot/admin/token-usage`);
+    const response = await fetch(
+      `${API_BASE_URL}/api/chatbot/admin/token-usage`
+    );
     if (!response.ok) {
-      console.error('Failed to fetch token usage stats');
+      console.error("Failed to fetch token usage stats");
       return null;
     }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching token usage stats:', error);
+    console.error("Error fetching token usage stats:", error);
     return null;
   }
 }
@@ -159,16 +169,20 @@ export interface DailyUsageResponse {
 }
 
 // Fetch daily token usage for line chart
-export async function getDailyTokenUsage(days: number = 30): Promise<DailyUsageResponse | null> {
+export async function getDailyTokenUsage(
+  days: number = 30
+): Promise<DailyUsageResponse | null> {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/chatbot/admin/token-usage-daily?days=${days}`);
+    const response = await fetch(
+      `${API_BASE_URL}/api/chatbot/admin/token-usage-daily?days=${days}`
+    );
     if (!response.ok) {
-      console.error('Failed to fetch daily token usage');
+      console.error("Failed to fetch daily token usage");
       return null;
     }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching daily token usage:', error);
+    console.error("Error fetching daily token usage:", error);
     return null;
   }
 }
@@ -178,12 +192,12 @@ export async function getChatbotStatus(): Promise<{ enabled: boolean }> {
   try {
     const response = await fetch(`${API_BASE_URL}/api/chatbot/status`);
     if (!response.ok) {
-      console.error('Failed to fetch chatbot status');
+      console.error("Failed to fetch chatbot status");
       return { enabled: true }; // Default to enabled
     }
     return await response.json();
   } catch (error) {
-    console.error('Error fetching chatbot status:', error);
+    console.error("Error fetching chatbot status:", error);
     return { enabled: true }; // Default to enabled
   }
 }

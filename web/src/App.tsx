@@ -1,5 +1,5 @@
 import React from "react";
-import { Route, Routes, useLocation } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
 
 import RequireAuth from "./components/dashboard/RequireAuth";
 import OnboardingCheck from "./components/dashboard/OnboardingCheck";
@@ -38,214 +38,209 @@ import AdminTokenUsagePage from "./pages/AdminTokenUsagePage";
 import AdminChatbotSettingsPage from "./pages/AdminChatbotSettingsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
-import { FloatingChatButton } from "./components/chatbot/FloatingChatButton";
+import { SimulationToolProvider } from "./context/SimulationToolContext";
 
 const AppContent: React.FC = () => {
-  const location = useLocation();
-
-  // Show chatbot only on studio pages
-  const isStudioPage = location.pathname.startsWith('/studio');
 
   return (
     <>
       <Routes>
-      <Route element={<MainLayout />}>
-        <Route index element={<HomePage />} />
-        <Route path="about" element={<AboutPage />} />
-        <Route path="team/:slug" element={<TeamMemberPage />} />
-        <Route path="joint-phenotype" element={<JointPhenotypePage />} />
-        <Route path="contact" element={<ContactPage />} />
-        <Route path="blogs" element={<BlogsPage />} />
-        <Route path="blogs/:slug" element={<BlogDetailPage />} />
-        <Route path="privacy" element={<PrivacyPage />} />
-        <Route path="terms" element={<TermsPage />} />
-      </Route>
+        <Route element={<MainLayout />}>
+          <Route index element={<HomePage />} />
+          <Route path="about" element={<AboutPage />} />
+          <Route path="team/:slug" element={<TeamMemberPage />} />
+          <Route path="joint-phenotype" element={<JointPhenotypePage />} />
+          <Route path="contact" element={<ContactPage />} />
+          <Route path="blogs" element={<BlogsPage />} />
+          <Route path="blogs/:slug" element={<BlogDetailPage />} />
+          <Route path="privacy" element={<PrivacyPage />} />
+          <Route path="terms" element={<TermsPage />} />
+        </Route>
 
-      {/* Community Routes - Separate Layout */}
-      <Route path="community" element={<CommunityLayout />}>
-        <Route index element={<CommunityPage />} />
-        <Route path="questions/:id" element={<QuestionDetailPage />} />
-        <Route path="ask" element={<AskQuestionPage />} />
-      </Route>
-      <Route
-        path="studio"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <PortalPage />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/projects"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <ProjectsPage />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/browse-traits"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <BrowseTraitsPage />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/simulation-studio"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <SimulationStudioPage />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/analytics"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <AnalyticsPage />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/data"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <DataManagementPage />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/data/import"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <DataImportPage />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/profile"
-        element={
-          <RequireAuth>
-            <ProfilePage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/preferences"
-        element={
-          <RequireAuth>
-            <PreferencesPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/settings"
-        element={
-          <RequireAuth>
-            <SettingsPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/population"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <PopulationSimPage />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/pgs-demo"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <PGSDemoPage />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/admin/users"
-        element={
-          <RequireAuth>
-            <AdminUsersPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/admin/newsletter"
-        element={
-          <RequireAuth>
-            <AdminNewsletterPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/admin/contact"
-        element={
-          <RequireAuth>
-            <AdminContactPage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/admin/token-usage"
-        element={
-          <RequireAuth>
-            <AdminTokenUsagePage />
-          </RequireAuth>
-        }
-      />
-      <Route
-        path="studio/admin/chatbot-settings"
-        element={
-          <RequireAuth>
-            <AdminChatbotSettingsPage />
-          </RequireAuth>
-        }
-      />
+        {/* Community Routes - Separate Layout */}
+        <Route path="community" element={<CommunityLayout />}>
+          <Route index element={<CommunityPage />} />
+          <Route path="questions/:id" element={<QuestionDetailPage />} />
+          <Route path="ask" element={<AskQuestionPage />} />
+        </Route>
+        <Route
+          path="studio"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <PortalPage />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/projects"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <ProjectsPage />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/browse-traits"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <BrowseTraitsPage />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/simulation-studio"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <SimulationToolProvider>
+                  <SimulationStudioPage />
+                </SimulationToolProvider>
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/analytics"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <AnalyticsPage />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/data"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <DataManagementPage />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/data/import"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <DataImportPage />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/profile"
+          element={
+            <RequireAuth>
+              <ProfilePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/preferences"
+          element={
+            <RequireAuth>
+              <PreferencesPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/settings"
+          element={
+            <RequireAuth>
+              <SettingsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/population"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <PopulationSimPage />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/pgs-demo"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <PGSDemoPage />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/admin/users"
+          element={
+            <RequireAuth>
+              <AdminUsersPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/admin/newsletter"
+          element={
+            <RequireAuth>
+              <AdminNewsletterPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/admin/contact"
+          element={
+            <RequireAuth>
+              <AdminContactPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/admin/token-usage"
+          element={
+            <RequireAuth>
+              <AdminTokenUsagePage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/admin/chatbot-settings"
+          element={
+            <RequireAuth>
+              <AdminChatbotSettingsPage />
+            </RequireAuth>
+          }
+        />
 
-      <Route
-        path="studio/workspace/:projectId"
-        element={
-          <RequireAuth>
-            <OnboardingCheck>
-              <ProjectWorkspace />
-            </OnboardingCheck>
-          </RequireAuth>
-        }
-      />
-      <Route path="signin" element={<SignInPage />} />
-      <Route path="signup" element={<SignUpPage />} />
-      <Route
-        path="onboarding"
-        element={
-          <RequireAuth>
-            <OnboardingPage />
-          </RequireAuth>
-        }
-      />
-    </Routes>
-
-    {/* Floating Chat Button - Only available on studio pages */}
-    {isStudioPage && <FloatingChatButton />}
+        <Route
+          path="studio/workspace/:projectId"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <ProjectWorkspace />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route path="signin" element={<SignInPage />} />
+        <Route path="signup" element={<SignUpPage />} />
+        <Route
+          path="onboarding"
+          element={
+            <RequireAuth>
+              <OnboardingPage />
+            </RequireAuth>
+          }
+        />
+      </Routes>
     </>
   );
 };

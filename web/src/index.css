@@ -52,6 +52,13 @@ body {
   @apply text-slate-700 dark:text-slate-200 antialiased leading-snug bg-white dark:bg-slate-900 transition-colors duration-200;
 }
 
+html,
+body,
+#root {
+  height: 100%;
+  overflow: hidden;
+}
+
 * {
   @apply box-border;
 }

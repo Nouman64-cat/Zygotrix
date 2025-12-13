@@ -16,7 +16,7 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-from ..prompt_engineering.prompts import get_zigi_system_prompt
+from ..prompt_engineering.prompts import get_zigi_system_prompt, get_simulation_tool_prompt
 from ..chatbot_tools import (
     get_traits_count, 
     search_traits, 
@@ -681,9 +681,18 @@ async def generate_response(
                token_usage_dict contains: input_tokens, output_tokens
     """
     try:
-        # Get system prompt (with environment-aware links)
-        system_prompt = get_zigi_system_prompt()
-        
+        # Check if user is on Simulation Studio page
+        is_simulation_studio = page_context and "Simulation Studio" in page_context.pageName
+
+        # Get appropriate system prompt
+        if is_simulation_studio:
+            # Use simulation tool prompt with current simulation context
+            simulation_context = context if context else ""
+            system_prompt = get_simulation_tool_prompt(user_name, simulation_context)
+        else:
+            # Use default prompt
+            system_prompt = get_zigi_system_prompt()
+
         # Build page context information
         page_info = ""
         if page_context:

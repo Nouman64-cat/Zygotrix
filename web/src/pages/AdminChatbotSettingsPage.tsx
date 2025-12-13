@@ -9,6 +9,7 @@ import type { ChatbotSettings } from "../types/auth";
 import { MdError, MdCheckCircle, MdSettings } from "react-icons/md";
 import { BiLoaderAlt } from "react-icons/bi";
 import { FaRobot } from "react-icons/fa";
+import Button from "../components/common/Button";
 
 const AdminChatbotSettingsPage: React.FC = () => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || "Zigi";
@@ -25,7 +26,7 @@ const AdminChatbotSettingsPage: React.FC = () => {
     max_tokens: 1024,
     temperature: 0.7,
     reset_limit_hours: 5,
-    model: "claude-3-haiku-20240307",
+    model: "claude-3-5-haiku-20241022",
     enabled: true,
   });
 
@@ -56,7 +57,7 @@ const AdminChatbotSettingsPage: React.FC = () => {
         max_tokens: 1024,
         temperature: 0.7,
         reset_limit_hours: 5,
-        model: "claude-3-haiku-20240307",
+        model: "claude-3-5-haiku-20241022",
         enabled: true,
       });
     } finally {
@@ -75,8 +76,8 @@ const AdminChatbotSettingsPage: React.FC = () => {
         type === "checkbox"
           ? (e.target as HTMLInputElement).checked
           : type === "number"
-          ? parseFloat(value)
-          : value,
+            ? parseFloat(value)
+            : value,
     }));
   };
 
@@ -186,20 +187,36 @@ const AdminChatbotSettingsPage: React.FC = () => {
                     name="model"
                     value={formData.model}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent cursor-pointer"
                   >
-                    <option value="claude-3-haiku-20240307">
-                      Claude 3 Haiku (Fastest, Most Cost-Effective)
-                    </option>
-                    <option value="claude-3-5-haiku-20241022">
-                      Claude 3.5 Haiku (Fast, Smart)
-                    </option>
-                    <option value="claude-3-5-sonnet-20241022">
-                      Claude 3.5 Sonnet (Balanced)
-                    </option>
-                    <option value="claude-3-opus-20240229">
-                      Claude 3 Opus (Most Capable)
-                    </option>
+                    <optgroup label="Latest Models">
+                      <option value="claude-opus-4-1-20250805">
+                        Claude Opus 4.1 (Latest, Most Advanced)
+                      </option>
+                      <option value="claude-opus-4-20250514">
+                        Claude Opus 4 (Most Capable)
+                      </option>
+                      <option value="claude-sonnet-4-20250514">
+                        Claude Sonnet 4 (Smart, Fast)
+                      </option>
+                      <option value="claude-3-7-sonnet-20250219">
+                        Claude 3.7 Sonnet (Balanced)
+                      </option>
+                      <option value="claude-3-5-haiku-20241022">
+                        Claude 3.5 Haiku (Fast, Cost-Effective)
+                      </option>
+                    </optgroup>
+                    <optgroup label="Legacy Models">
+                      <option value="claude-3-opus-20240229">
+                        Claude 3 Opus
+                      </option>
+                      <option value="claude-3-5-sonnet-20241022">
+                        Claude 3.5 Sonnet
+                      </option>
+                      <option value="claude-3-haiku-20240307">
+                        Claude 3 Haiku
+                      </option>
+                    </optgroup>
                   </select>
                   <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                     Select the Claude model to power {botName}
@@ -289,7 +306,7 @@ const AdminChatbotSettingsPage: React.FC = () => {
                       htmlFor="temperature"
                       className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2"
                     >
-                      Temperature: {formData.temperature.toFixed(1)}
+                      Temperature: {formData.temperature}
                     </label>
                     <input
                       type="range"
@@ -339,57 +356,26 @@ const AdminChatbotSettingsPage: React.FC = () => {
 
               {/* Form Actions */}
               <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4">
-                <button
+                <Button
                   type="button"
                   onClick={handleReset}
                   disabled={saving}
-                  className="px-4 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                >
-                  Reset Changes
-                </button>
-                <button
+                  text="Reset Changes"
+                  classNames="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 cursor-pointer"
+                />
+                <Button
                   type="submit"
                   disabled={saving}
-                  className="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2"
-                >
-                  {saving ? (
-                    <>
-                      <BiLoaderAlt className="w-4 h-4 animate-spin" />
-                      Saving...
-                    </>
-                  ) : (
-                    <>
-                      <MdSettings className="w-4 h-4" />
-                      Save Settings
-                    </>
-                  )}
-                </button>
+                  text="Save Settings"
+                  classNames="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 cursor-pointer"
+                  icon={<MdSettings />}
+                  isLoading={saving}
+                  loadingIcon={<BiLoaderAlt />}
+                />
               </div>
             </form>
           </div>
         )}
-
-        {/* Info Box */}
-        <div className="mt-6 p-4 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
-          <h3 className="text-sm font-semibold text-blue-900 dark:text-blue-200 mb-2">
-            Configuration Notes
-          </h3>
-          <ul className="text-sm text-blue-800 dark:text-blue-300 space-y-1 list-disc list-inside">
-            <li>
-              Changes take effect immediately for all new chatbot sessions
-            </li>
-            <li>
-              Existing active sessions will continue with their current settings
-            </li>
-            <li>Token limits help manage API costs and prevent abuse</li>
-            <li>
-              Temperature controls response creativity (0.7 is a good default)
-            </li>
-            <li>
-              Claude 3 Haiku is recommended for cost-effective operation
-            </li>
-          </ul>
-        </div>
       </div>
     </DashboardLayout>
   );

@@ -40,7 +40,7 @@ export const AgentSidebar: React.FC<AgentSidebarProps> = ({
   return (
     <div
       className={`
-        ${isCollapsed ? 'w-12' : 'w-[400px] md:w-[450px] lg:w-[500px]'}
+        ${isCollapsed ? 'w-12' : 'w-[320px] md:w-[350px] lg:w-[380px]'}
         bg-white dark:bg-slate-900
         border-l border-gray-200 dark:border-slate-700
         flex-shrink-0

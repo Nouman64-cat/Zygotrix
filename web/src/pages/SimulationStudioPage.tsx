@@ -1063,7 +1063,7 @@ const SimulationStudioPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="-m-4 flex overflow-hidden bg-slate-50 dark:bg-slate-950 lg:-m-6" style={{ height: 'calc(100vh - 4rem)' }}>
+      <div className="absolute inset-0 flex overflow-hidden bg-slate-50 dark:bg-slate-950">
         {/* Left Sidebar - Controls */}
         <aside className="flex w-80 flex-shrink-0 flex-col border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900">
           {/* Header */}

@@ -122,8 +122,8 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
         />
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
-          <div className="p-4 lg:p-6">{children}</div>
+        <main className="flex-1 flex flex-col overflow-hidden bg-slate-50 dark:bg-slate-900 transition-colors duration-200">
+          <div className="flex-1 overflow-auto p-4 lg:p-6 relative">{children}</div>
         </main>
 
         {/* Agent Sidebar */}

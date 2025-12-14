@@ -184,6 +184,7 @@ export type ChatbotSettings = {
   reset_limit_hours: number;
   model: string;
   enabled: boolean;
+  response_caching: boolean;
   created_at?: string;
   updated_at?: string;
   updated_by?: string;

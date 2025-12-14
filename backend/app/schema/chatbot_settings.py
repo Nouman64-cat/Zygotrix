@@ -39,6 +39,10 @@ class ChatbotSettings(BaseModel):
         default=True,
         description="Whether chatbot is enabled for all users"
     )
+    response_caching: bool = Field(
+        default=True,
+        description="Whether LLM response caching is enabled"
+    )
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None
@@ -69,6 +73,7 @@ class ChatbotSettingsUpdate(BaseModel):
     )
     model: Optional[str] = None
     enabled: Optional[bool] = None
+    response_caching: Optional[bool] = None
 
 
 class ChatbotSettingsResponse(BaseModel):

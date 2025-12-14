@@ -821,7 +821,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
     - Rate limiting (25,000 tokens per 5 hours)
     """
     try:
-        # Step 0: Check if chatbot is enabled
+        # Step 0: Check if chatbot is enabled and get settings
+        response_caching_enabled = True  # Default to enabled if settings fetch fails
         try:
             settings = get_chatbot_settings()
             if not settings.enabled:
@@ -829,10 +830,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
                     response="🔧 The chatbot is currently disabled for maintenance. Please check back later!",
                     usage=None
                 )
+            # Get response caching setting
+            response_caching_enabled = settings.response_caching
+            logger.info(f"Response caching is {'enabled' if response_caching_enabled else 'disabled'}")
         except Exception as e:
             logger.warning(f"Failed to check chatbot enabled status: {e}")
             # Continue if we can't check - fail open for availability
-        
+
         # Get user ID for rate limiting
         user_id = request.userId or "anonymous"
         
@@ -864,14 +868,15 @@ async def chat(request: ChatRequest) -> ChatResponse:
         
         # For short follow-up questions (like "how?", "why?"), skip cache
         is_followup = len(request.message.strip()) < 20 and conversation_history
-        
+
         # Step 1: Check cache first (but not for follow-up questions that need context)
-        if not is_followup:
+        # Only use cache if response_caching_enabled is True
+        if not is_followup and response_caching_enabled:
             cached_response = _response_cache.get(
                 message=request.message,
                 page_name=page_name
             )
-            
+
             if cached_response:
                 logger.info(f"Returning cached response for: '{request.message[:50]}...'")
                 # Log cache hit (0 tokens used - doesn't count against rate limit)
@@ -886,7 +891,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 # Still add to conversation memory for context
                 _conversation_memory.add_message(session_id, "user", request.message)
                 _conversation_memory.add_message(session_id, "assistant", cached_response)
-                
+
                 # Return with current usage info
                 return ChatResponse(response=cached_response, usage=usage_info)
         
@@ -935,7 +940,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
         )
         
         # Step 9: Cache the response for future requests (but not short follow-ups)
-        if not is_followup:
+        # Only cache if response_caching_enabled is True
+        if not is_followup and response_caching_enabled:
             _response_cache.set(
                 message=request.message,
                 response=response,

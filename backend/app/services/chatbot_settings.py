@@ -43,6 +43,7 @@ def get_default_settings() -> ChatbotSettings:
         reset_limit_hours=5,
         model="claude-3-haiku-20240307",
         enabled=True,
+        response_caching=True,
         created_at=datetime.utcnow().isoformat(),
         updated_at=datetime.utcnow().isoformat(),
         updated_by=None

@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { sendMessage, getLatestUsage, type ChatMessage, type UsageInfo, type ChatMessageAction } from '../../services/chatbotService';
+import { sendMessage, getLatestUsage, resetSession, type ChatMessage, type UsageInfo, type ChatMessageAction } from '../../services/chatbotService';
 import { getPageContext } from '../../utils/pageContext';
 import { LuBiohazard } from "react-icons/lu";
 import { MdInfoOutline } from "react-icons/md";
@@ -41,45 +41,83 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
     timestamp: new Date(),
   }), [userName, botName, pageContext.pageName]);
 
-  const [messages, setMessages] = useState<ChatMessage[]>([getWelcomeMessage()]);
-  const [inputValue, setInputValue] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [usage, setUsage] = useState<UsageInfo | null>(null);
-  const [showInfo, setShowInfo] = useState(false);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-
-  // Load messages from localStorage on mount or when userId changes
-  useEffect(() => {
+  // Initialize messages from localStorage if available
+  const getInitialMessages = (): ChatMessage[] => {
     try {
       const saved = localStorage.getItem(CHAT_MESSAGES_KEY);
       if (saved) {
         const parsed = JSON.parse(saved);
-        // Convert timestamp strings back to Date objects
+        const loadedMessages = parsed.map((msg: ChatMessage & { timestamp: string }) => ({
+          ...msg,
+          timestamp: new Date(msg.timestamp)
+        }));
+        if (loadedMessages.length > 0) {
+          return loadedMessages;
+        }
+      }
+    } catch (e) {
+      console.error('Error loading chat messages:', e);
+    }
+    return [getWelcomeMessage()];
+  };
+
+  // Initialize usage from localStorage if available
+  const getInitialUsage = (): UsageInfo | null => {
+    try {
+      const savedUsage = localStorage.getItem(CHAT_USAGE_KEY);
+      if (savedUsage) {
+        return JSON.parse(savedUsage);
+      }
+    } catch (e) {
+      console.error('Error loading chat usage:', e);
+    }
+    return null;
+  };
+
+  const [messages, setMessages] = useState<ChatMessage[]>(getInitialMessages);
+  const [inputValue, setInputValue] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+  const [usage, setUsage] = useState<UsageInfo | null>(getInitialUsage);
+  const [showInfo, setShowInfo] = useState(false);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Reload messages when userId changes (user switching)
+  useEffect(() => {
+    // Skip initial mount since we load in useState initializer
+    if (!isInitialized.current) {
+      isInitialized.current = true;
+      return;
+    }
+
+    // Reload from localStorage when storage keys change (user switched)
+    try {
+      const saved = localStorage.getItem(CHAT_MESSAGES_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
         const loadedMessages = parsed.map((msg: ChatMessage & { timestamp: string }) => ({
           ...msg,
           timestamp: new Date(msg.timestamp)
         }));
         if (loadedMessages.length > 0) {
           setMessages(loadedMessages);
+        } else {
+          setMessages([getWelcomeMessage()]);
         }
+      } else {
+        setMessages([getWelcomeMessage()]);
       }
-    } catch (e) {
-      console.error('Error loading chat messages:', e);
-    }
 
-    // Load usage
-    try {
+      // Reload usage
       const savedUsage = localStorage.getItem(CHAT_USAGE_KEY);
       if (savedUsage) {
         setUsage(JSON.parse(savedUsage));
+      } else {
+        setUsage(null);
       }
     } catch (e) {
-      console.error('Error loading chat usage:', e);
+      console.error('Error reloading chat state:', e);
     }
-
-    // Mark as initialized after loading
-    isInitialized.current = true;
-  }, [CHAT_MESSAGES_KEY, CHAT_USAGE_KEY]);
+  }, [CHAT_MESSAGES_KEY, CHAT_USAGE_KEY, getWelcomeMessage]);
 
   const scrollToBottom = () => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -215,6 +253,10 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
     };
     setMessages([welcomeMessage]);
     localStorage.removeItem(CHAT_MESSAGES_KEY);
+    localStorage.removeItem(CHAT_USAGE_KEY);
+
+    // Reset backend session so conversation memory is cleared
+    resetSession();
   };
 
   // Calculate usage percentage

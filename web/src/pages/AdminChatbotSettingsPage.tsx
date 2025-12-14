@@ -28,6 +28,7 @@ const AdminChatbotSettingsPage: React.FC = () => {
     reset_limit_hours: 5,
     model: "claude-3-5-haiku-20241022",
     enabled: true,
+    response_caching: true,
   });
 
   const isAdmin =
@@ -59,6 +60,7 @@ const AdminChatbotSettingsPage: React.FC = () => {
         reset_limit_hours: 5,
         model: "claude-3-5-haiku-20241022",
         enabled: true,
+        response_caching: true,
       });
     } finally {
       setLoading(false);
@@ -328,16 +330,31 @@ const AdminChatbotSettingsPage: React.FC = () => {
                 </div>
 
                 {/* Enabled Toggle - Full Width */}
-                <div className="flex items-center justify-between p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
+                <div className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                  formData.enabled
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                    : 'bg-red-50 dark:bg-red-900/20 border-red-200 dark:border-red-800'
+                }`}>
                   <div>
-                    <label
-                      htmlFor="enabled"
-                      className="text-sm font-medium text-gray-700 dark:text-gray-300 block"
-                    >
-                      Chatbot Enabled
-                    </label>
-                    <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
-                      Enable or disable {botName} for all users
+                    <div className="flex items-center gap-2 mb-1">
+                      <label
+                        htmlFor="enabled"
+                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Chatbot Status
+                      </label>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        formData.enabled
+                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                          : 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200'
+                      }`}>
+                        {formData.enabled ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {formData.enabled
+                        ? `${botName} is currently active for all users`
+                        : `${botName} is currently disabled for all users`}
                     </p>
                   </div>
                   <label className="relative inline-flex items-center cursor-pointer">
@@ -346,6 +363,47 @@ const AdminChatbotSettingsPage: React.FC = () => {
                       id="enabled"
                       name="enabled"
                       checked={formData.enabled}
+                      onChange={handleInputChange}
+                      className="sr-only peer"
+                    />
+                    <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                  </label>
+                </div>
+
+                {/* Response Caching Toggle - Full Width */}
+                <div className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${
+                  formData.response_caching
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                    : 'bg-orange-50 dark:bg-orange-900/20 border-orange-200 dark:border-orange-800'
+                }`}>
+                  <div>
+                    <div className="flex items-center gap-2 mb-1">
+                      <label
+                        htmlFor="response_caching"
+                        className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                      >
+                        Response Caching
+                      </label>
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        formData.response_caching
+                          ? 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200'
+                          : 'bg-orange-100 dark:bg-orange-900 text-orange-800 dark:text-orange-200'
+                      }`}>
+                        {formData.response_caching ? 'Enabled' : 'Disabled'}
+                      </span>
+                    </div>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">
+                      {formData.response_caching
+                        ? 'LLM responses are being cached for faster delivery and reduced costs'
+                        : 'LLM responses are not cached - may result in higher latency and costs'}
+                    </p>
+                  </div>
+                  <label className="relative inline-flex items-center cursor-pointer">
+                    <input
+                      type="checkbox"
+                      id="response_caching"
+                      name="response_caching"
+                      checked={formData.response_caching}
                       onChange={handleInputChange}
                       className="sr-only peer"
                     />

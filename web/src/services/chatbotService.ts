@@ -22,22 +22,29 @@ export interface PageContext {
 }
 
 // Main chatbot function - calls backend API
-// Session ID for conversation memory - persists across messages in the same browser session
-let _sessionId: string | null = null;
+// Session ID for conversation memory - persists across messages and page navigation
+const SESSION_STORAGE_KEY = 'zygotrix_chat_session_id';
 
 function getSessionId(): string {
-  if (!_sessionId) {
-    // Generate a unique session ID
-    _sessionId = `session_${Date.now()}_${Math.random()
+  // Try to get existing session ID from sessionStorage
+  let sessionId = sessionStorage.getItem(SESSION_STORAGE_KEY);
+
+  if (!sessionId) {
+    // Generate a new unique session ID
+    sessionId = `session_${Date.now()}_${Math.random()
       .toString(36)
       .substring(2, 11)}`;
+
+    // Store it in sessionStorage so it persists across page navigation
+    sessionStorage.setItem(SESSION_STORAGE_KEY, sessionId);
   }
-  return _sessionId;
+
+  return sessionId;
 }
 
-// Call this to start a new conversation (clears memory on backend)
+// Call this to start a new conversation (clears memory on backend and frontend)
 export function resetSession(): void {
-  _sessionId = null;
+  sessionStorage.removeItem(SESSION_STORAGE_KEY);
 }
 
 // Usage info returned from the API

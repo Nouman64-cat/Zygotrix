@@ -14,10 +14,9 @@ const ZYGOTRIX_UNIVERSITY_URL = import.meta.env.VITE_ZYGOTRIX_UNIVERSITY_APP;
 const baseNavItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
+  { label: "Zygotrix AI", to: "/zygoai" },
   { label: "Blogs", to: "/blogs" },
   { label: "Community", to: "/community" },
-  // { label: "Playground", to: "/playground" },
-  // { label: "Joint Analysis", to: "/joint-phenotype" },
 ];
 
 const Navbar: React.FC = () => {
@@ -39,10 +38,9 @@ const Navbar: React.FC = () => {
   }, [user]);
 
   const linkClasses = ({ isActive }: { isActive: boolean }) =>
-    `rounded-full px-4 py-2 text-sm font-semibold transition ${
-      isActive
-        ? "bg-white dark:bg-slate-700 text-[#1E3A8A] dark:text-white shadow"
-        : "text-slate-600 dark:text-slate-300 hover:opacity-80"
+    `relative px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${isActive
+      ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10"
+      : "text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
     }`;
 
   const handleSignOut = () => {
@@ -50,70 +48,93 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50 bg-white/95 dark:bg-slate-950/95 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800">
-      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        <Link to="/" className="group flex items-center gap-2">
-          <div>
-            <img src={logo} alt="Zygotrix" className="w-[3rem]" />
+    <header className="sticky top-0 z-50">
+      {/* Glassmorphism background */}
+      <div className="absolute inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl" />
+
+      {/* Subtle gradient border at bottom */}
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
+
+      <div className="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
+        {/* Logo */}
+        <Link to="/" className="group flex items-center gap-3">
+          <div className="relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
+            <img src={logo} alt="Zygotrix" className="relative w-10 h-10 object-contain" />
           </div>
-          <div className="leading-tight">
-            <p className="text-sm font-semibold uppercase tracking-[0.35em] text-slate-900 dark:text-slate-200">
+          <div className="hidden sm:block">
+            <p className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
               Zygotrix
             </p>
-            <p className="text-xs font-medium text-slate-500 dark:text-slate-400">
-              Genetics intelligence engine
+            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
+              Genetics Intelligence
             </p>
           </div>
         </Link>
 
-        <div className="hidden items-center gap-2 rounded-full border border-slate-200 dark:border-slate-700 bg-slate-100/50 dark:bg-slate-800/50 px-2 py-1 backdrop-blur-lg lg:flex">
+        {/* Desktop Navigation */}
+        <nav className="hidden items-center gap-1 lg:flex">
           {navItems.map((item) => (
             <NavLink key={item.to} to={item.to} className={linkClasses}>
               {item.label}
             </NavLink>
           ))}
-        </div>
+        </nav>
 
-        <div className="hidden items-center gap-3 lg:flex">
+        {/* Desktop Actions */}
+        <div className="hidden items-center gap-2 lg:flex">
+          {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="p-2 rounded-full text-gray-600 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-slate-800 transition-colors"
+            className="relative p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
             aria-label="Toggle theme"
           >
-            {theme === "dark" ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+            {theme === "dark" ? (
+              <FiSun className="w-5 h-5" />
+            ) : (
+              <FiMoon className="w-5 h-5" />
+            )}
           </button>
+
+          {/* University Link */}
           <a
             href={ZYGOTRIX_UNIVERSITY_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-full bg-blue-100 dark:bg-blue-900/40 px-5 py-2 text-sm font-semibold text-[#1E3A8A] dark:text-blue-300 shadow-lg shadow-black/10 dark:shadow-black/30 transition hover:shadow-black/30 dark:hover:shadow-black/50 hover:bg-blue-200 dark:hover:bg-blue-900/60"
+            className="p-2.5 rounded-xl text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all duration-200"
+            title="Zygotrix University"
           >
             <IoSchoolOutline className="h-5 w-5" />
           </a>
+
           {user ? (
             <>
+              {/* Studio Button */}
               <Link
                 to="/studio"
-                className="inline-flex items-center justify-center gap-2 rounded-full bg-white dark:bg-slate-700 px-5 py-2 text-sm font-semibold text-[#1E3A8A] dark:text-white shadow-lg shadow-black/20 dark:shadow-black/40 transition hover:shadow-black/40 dark:hover:shadow-black/60"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium text-sm shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] transition-all duration-200"
               >
-                <PiDna className="h-5 w-5" />
-
+                <PiDna className="h-4 w-4" />
+                <span>Studio</span>
               </Link>
+
+              {/* Sign Out */}
               <button
                 type="button"
                 onClick={handleSignOut}
-                className="inline-flex items-center cursor-pointer bg-white dark:bg-slate-700 rounded-full justify-center gap-2 px-5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:text-red-500 dark:hover:text-red-400"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
               >
-                <FiLogOut className="h-5 w-5" />
-                Sign out
+                <FiLogOut className="h-4 w-4" />
+                <span className="text-sm font-medium">Sign out</span>
               </button>
             </>
           ) : (
             <>
+              {/* Sign In */}
               <Link
                 to="/signin"
                 state={{ from: { pathname: location.pathname } }}
-                className="inline-flex items-center justify-center rounded-full border border-slate-200 dark:border-slate-600 px-5 py-2 text-sm font-semibold text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700 hover:border-slate-300 dark:hover:border-slate-600 hover:text-[#1E3A8A] dark:hover:text-white"
+                className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
               >
                 Sign in
               </Link>
@@ -121,19 +142,19 @@ const Navbar: React.FC = () => {
           )}
         </div>
 
+        {/* Mobile Menu Button */}
         <button
           type="button"
-          className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 lg:hidden"
+          className="relative p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 lg:hidden"
           onClick={() => setMobileOpen((value) => !value)}
           aria-label="Toggle navigation"
         >
-          <span className="sr-only">Toggle navigation</span>
           <svg
             className="h-5 w-5"
             viewBox="0 0 24 24"
             fill="none"
             stroke="currentColor"
-            strokeWidth="1.8"
+            strokeWidth="2"
             strokeLinecap="round"
           >
             {mobileOpen ? (
@@ -145,25 +166,34 @@ const Navbar: React.FC = () => {
         </button>
       </div>
 
+      {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="lg:hidden">
-          <div className="mx-4 mb-4 space-y-2 rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/95 dark:bg-slate-800/95 p-4 shadow-2xl backdrop-blur">
-            <div className="flex justify-end px-2">
+        <div className="relative lg:hidden">
+          <div className="absolute inset-x-0 top-0 mx-4 mt-1 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 p-4 space-y-2">
+            {/* Theme Toggle Row */}
+            <div className="flex justify-end mb-2">
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-full text-slate-400 hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-white/10 transition-colors"
+                className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                 aria-label="Toggle theme"
               >
-                {theme === "dark" ? <FiSun className="w-5 h-5" /> : <FiMoon className="w-5 h-5" />}
+                {theme === "dark" ? (
+                  <FiSun className="w-5 h-5" />
+                ) : (
+                  <FiMoon className="w-5 h-5" />
+                )}
               </button>
             </div>
+
+            {/* Nav Links */}
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `block rounded-2xl px-4 py-3 text-base font-semibold transition ${
-                    isActive ? "bg-slate-100 dark:bg-slate-700 text-[#1E3A8A] dark:text-white" : "text-slate-600 dark:text-slate-300 hover:bg-blue-50 dark:hover:bg-slate-700"
+                  `block rounded-xl px-4 py-3 text-base font-medium transition-all ${isActive
+                    ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`
                 }
               >
@@ -171,31 +201,35 @@ const Navbar: React.FC = () => {
               </NavLink>
             ))}
 
+            {/* Divider */}
+            <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent my-3" />
+
+            {/* Auth Actions */}
             {user ? (
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="block w-full rounded-2xl border border-slate-200 dark:border-slate-600 px-4 py-3 text-center text-base font-semibold text-slate-600 dark:text-slate-300"
-              >
-                Sign out
-              </button>
-            ) : (
               <div className="space-y-2">
                 <Link
-                  to="/signin"
-                  state={{ from: { pathname: location.pathname } }}
-                  className="block rounded-2xl border border-slate-200 dark:border-slate-600 px-4 py-3 text-center text-base font-semibold text-slate-600 dark:text-slate-300"
+                  to="/studio"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium shadow-lg shadow-indigo-500/25"
                 >
-                  Sign in
+                  <PiDna className="h-5 w-5" />
+                  <span>Open Studio</span>
                 </Link>
-                <Link
-                  to="/signup"
-                  state={{ from: { pathname: location.pathname } }}
-                  className="block rounded-2xl bg-white dark:bg-slate-700 px-4 py-3 text-center text-base font-semibold text-[#1E3A8A] dark:text-white shadow-lg shadow-black/30 dark:shadow-black/50"
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-500/30 transition-all"
                 >
-                  Get started
-                </Link>
+                  Sign out
+                </button>
               </div>
+            ) : (
+              <Link
+                to="/signin"
+                state={{ from: { pathname: location.pathname } }}
+                className="block rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+              >
+                Sign in
+              </Link>
             )}
           </div>
         </div>

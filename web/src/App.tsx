@@ -8,6 +8,7 @@ import CommunityLayout from "./layouts/CommunityLayout";
 import AboutPage from "./pages/AboutPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import ContactPage from "./pages/ContactPage";
+import ZygoAIPage from "./pages/ZygoAIPage";
 import DataManagementPage from "./pages/DataManagementPage";
 import HomePage from "./pages/HomePage";
 import JointPhenotypePage from "./pages/JointPhenotypePage";
@@ -48,6 +49,7 @@ const AppContent: React.FC = () => {
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
+          <Route path="zygoai" element={<ZygoAIPage />} />
           <Route path="team/:slug" element={<TeamMemberPage />} />
           <Route path="joint-phenotype" element={<JointPhenotypePage />} />
           <Route path="contact" element={<ContactPage />} />

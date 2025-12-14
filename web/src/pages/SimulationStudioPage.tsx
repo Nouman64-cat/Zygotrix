@@ -12,356 +12,22 @@ import { RiLoader5Line } from "react-icons/ri";
 import DashboardLayout from "../layouts/DashboardLayout";
 import {
   computeGeneticCross,
-  type AlleleDefinitionPayload,
-  type AlleleEffectPayload,
-  type ChromosomeType,
   type DominancePattern,
   type GeneticCrossResponsePayload,
 } from "../services/cppEngine.api";
 import { fetchTraits } from "../services/traits.api";
 import type { TraitInfo } from "../types/api";
 import { useSimulationTool } from "../context/SimulationToolContext";
+import SimulationStudioUtils from "../utils/SimulationStudioUtils";
+import type {
+  GeneForm,
+  ParentGenotypeState,
+} from "../types/simulationStudio.types";
+import DominanceIndicator, { dominancePalette } from "../components/simulation/DominanceIndicator";
 
-type NumericField = number | "";
+const utils = new SimulationStudioUtils();
 
-interface AlleleEffectForm extends AlleleEffectPayload {
-  id: string;
-  intermediate_descriptor?: string;
-}
 
-interface AlleleForm extends Omit<AlleleDefinitionPayload, "effects"> {
-  id: string;
-  dominance_rank: number;
-  effects: AlleleEffectForm[];
-}
-
-interface GeneForm {
-  uid: string;
-  id: string;
-  displayName: string;
-  traitKey?: string;
-  chromosome: ChromosomeType;
-  dominance: DominancePattern;
-  defaultAlleleId: string;
-  alleles: AlleleForm[];
-  linkageGroup: NumericField;
-  recombinationProbability: NumericField;
-  incompleteBlendWeight: NumericField;
-}
-
-type ParentGenotypeState = Record<string, string[]>;
-
-const generateUid = () => Math.random().toString(36).slice(2);
-
-const sanitizeGeneId = (value: string): string => {
-  const sanitized = value
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "_")
-    .replace(/^_|_$/g, "");
-  return sanitized || `gene_${generateUid()}`;
-};
-
-const inferDominancePattern = (trait: TraitInfo): DominancePattern => {
-  const pattern = (trait.inheritance_pattern || "").toLowerCase();
-  if (pattern.includes("codominant")) {
-    return "codominant";
-  }
-  if (pattern.includes("incomplete")) {
-    return "incomplete";
-  }
-  return "complete";
-};
-
-const inferChromosomeType = (trait: TraitInfo): ChromosomeType => {
-  const pattern = (trait.inheritance_pattern || "").toLowerCase();
-  if (pattern.includes("x-linked")) {
-    return "x";
-  }
-  if (pattern.includes("y-linked")) {
-    return "y";
-  }
-
-  const chromosomeValues =
-    trait.chromosomes ?? trait.gene_info?.chromosomes ?? [];
-  if (
-    chromosomeValues.some((value) => String(value).trim().toLowerCase() === "x")
-  ) {
-    return "x";
-  }
-  if (
-    chromosomeValues.some((value) => String(value).trim().toLowerCase() === "y")
-  ) {
-    return "y";
-  }
-  return "autosomal";
-};
-
-const candidateGenotypeKeys = (alleleA: string, alleleB: string): string[] => {
-  const permutations = [
-    `${alleleA}${alleleB}`,
-    `${alleleB}${alleleA}`,
-    `${alleleA}/${alleleB}`,
-    `${alleleB}/${alleleA}`,
-    `${alleleA}-${alleleB}`,
-    `${alleleB}-${alleleA}`,
-    `${alleleA} ${alleleB}`,
-    `${alleleB} ${alleleA}`,
-  ];
-  if (alleleA !== alleleB) {
-    permutations.push(`${alleleA}|${alleleB}`, `${alleleB}|${alleleA}`);
-  }
-  return permutations;
-};
-
-const findPhenotypeLabel = (
-  phenotypeMap: Record<string, string>,
-  alleleA: string,
-  alleleB: string
-): string | undefined => {
-  const possibleKeys = candidateGenotypeKeys(alleleA, alleleB);
-  for (const key of possibleKeys) {
-    if (phenotypeMap[key] !== undefined) {
-      return phenotypeMap[key];
-    }
-  }
-  return undefined;
-};
-
-const determineDominanceRank = (
-  trait: TraitInfo,
-  dominance: DominancePattern,
-  alleleIndex: number
-): number => {
-  if (dominance === "codominant") {
-    if (trait.alleles.length > 2) {
-      return alleleIndex <= 1 ? 2 : 1;
-    }
-    return 2;
-  }
-  return alleleIndex === 0 ? 2 : 1;
-};
-
-const determineMagnitude = (dominanceRank: number): number =>
-  dominanceRank > 1 ? 1 : 0;
-
-const extractIntermediateDescriptor = (
-  trait: TraitInfo,
-  dominance: DominancePattern,
-  phenotypeMap: Record<string, string>
-): string | undefined => {
-  if (dominance !== "incomplete" || trait.alleles.length < 2) {
-    return undefined;
-  }
-  const [first, second] = trait.alleles;
-  return findPhenotypeLabel(phenotypeMap, first, second);
-};
-
-const buildGeneFromTrait = (trait: TraitInfo): GeneForm => {
-  const uid = `gene-${generateUid()}`;
-  const baseId = sanitizeGeneId(trait.key || trait.name || uid);
-  const dominance = inferDominancePattern(trait);
-  const chromosome = inferChromosomeType(trait);
-  const phenotypeMap = trait.phenotype_map || {};
-  const intermediateDescriptor = extractIntermediateDescriptor(
-    trait,
-    dominance,
-    phenotypeMap
-  );
-  const traitId = sanitizeGeneId(trait.key || trait.name || uid);
-  const alleles: AlleleForm[] = (trait.alleles || []).map((allele, index) => {
-    const dominanceRank = determineDominanceRank(trait, dominance, index);
-    const homozygousPhenotype =
-      findPhenotypeLabel(phenotypeMap, allele, allele) || allele;
-    return {
-      id: allele,
-      dominance_rank: dominanceRank,
-      effects: [
-        {
-          id: `${baseId}-${allele}-effect-${index}`,
-          trait_id: traitId,
-          magnitude: determineMagnitude(dominanceRank),
-          description: homozygousPhenotype,
-          intermediate_descriptor: intermediateDescriptor,
-        },
-      ],
-    };
-  });
-
-  return {
-    uid,
-    id: baseId,
-    displayName: trait.name || baseId,
-    traitKey: trait.key,
-    chromosome,
-    dominance,
-    defaultAlleleId: alleles[0]?.id || "",
-    alleles,
-    linkageGroup: "",
-    recombinationProbability: "",
-    incompleteBlendWeight: dominance === "incomplete" ? 0.5 : "",
-  };
-};
-
-const dominancePalette: Record<
-  DominancePattern,
-  {
-    label: string;
-    badge: string;
-    dot: string;
-    text: string;
-  }
-> = {
-  complete: {
-    label: "Complete",
-    badge: "border border-emerald-300 dark:border-emerald-700 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-800 dark:text-emerald-300",
-    dot: "bg-emerald-500 dark:bg-emerald-400",
-    text: "text-emerald-600 dark:text-emerald-400",
-  },
-  codominant: {
-    label: "Codominant",
-    badge: "border border-amber-300 dark:border-amber-700 bg-amber-100 dark:bg-amber-900/30 text-amber-800 dark:text-amber-300",
-    dot: "bg-amber-500 dark:bg-amber-400",
-    text: "text-amber-600 dark:text-amber-400",
-  },
-  incomplete: {
-    label: "Incomplete",
-    badge: "border border-violet-300 dark:border-violet-700 bg-violet-100 dark:bg-violet-900/30 text-violet-800 dark:text-violet-300",
-    dot: "bg-violet-500 dark:bg-violet-400",
-    text: "text-violet-600 dark:text-violet-400",
-  },
-};
-
-interface DominanceIndicatorProps {
-  pattern: DominancePattern;
-  variant?: "pill" | "dot";
-  showLabel?: boolean;
-  className?: string;
-}
-
-const DominanceIndicator: React.FC<DominanceIndicatorProps> = ({
-  pattern,
-  variant = "pill",
-  showLabel = false,
-  className = "",
-}) => {
-  const palette = dominancePalette[pattern];
-  if (!palette) {
-    return null;
-  }
-
-  if (variant === "dot") {
-    return (
-      <span
-        className={`inline-flex items-center gap-1 ${palette.text} ${className}`}
-        title={`${pattern.charAt(0).toUpperCase() + pattern.slice(1)} Dominance`}
-      >
-        <span
-          className={`h-2 w-2 rounded-full ${palette.dot}`}
-          aria-hidden="true"
-        />
-        {showLabel ? (
-          <span className="text-[9px] font-medium">{palette.label}</span>
-        ) : (
-          <span className="sr-only">{palette.label}</span>
-        )}
-      </span>
-    );
-  }
-
-  return (
-    <span
-      className={`inline-flex items-center gap-1 rounded-md px-1.5 py-0.5 text-[9px] font-bold ${palette.badge} ${className}`}
-      title={`${pattern.charAt(0).toUpperCase() + pattern.slice(1)} Dominance`}
-    >
-      <span
-        className={`h-1.5 w-1.5 rounded-full ${palette.dot}`}
-        aria-hidden="true"
-      />
-      {showLabel ? (
-        <span>{palette.label}</span>
-      ) : (
-        <span className="sr-only">{palette.label}</span>
-      )}
-    </span>
-  );
-};
-
-const getDefaultAllelesForGene = (
-  gene: GeneForm,
-  sex: "female" | "male"
-): string[] => {
-  const primary = gene.defaultAlleleId || gene.alleles[0]?.id || "";
-  const safeAllele = primary || (gene.alleles[0]?.id ?? "");
-  if (!safeAllele) {
-    return [];
-  }
-
-  if (gene.chromosome === "autosomal") {
-    return [safeAllele, safeAllele];
-  }
-  if (gene.chromosome === "x") {
-    return sex === "male" ? [safeAllele] : [safeAllele, safeAllele];
-  }
-  if (gene.chromosome === "y") {
-    return sex === "male" ? [safeAllele] : [];
-  }
-  return [safeAllele, safeAllele];
-};
-
-const normaliseAlleles = (
-  gene: GeneForm,
-  current: string[] | undefined,
-  sex: "female" | "male"
-) => {
-  const allowed = new Set(gene.alleles.map((allele) => allele.id));
-  const defaults = getDefaultAllelesForGene(gene, sex);
-
-  const sanitize = (value: string | undefined) => {
-    if (!value || !allowed.has(value)) {
-      return defaults[0] ?? "";
-    }
-    return value;
-  };
-
-  if (gene.chromosome === "autosomal") {
-    return [
-      sanitize(current?.[0] ?? defaults[0]),
-      sanitize(current?.[1] ?? current?.[0] ?? defaults[1]),
-    ];
-  }
-
-  if (gene.chromosome === "x") {
-    if (sex === "male") {
-      return [sanitize(current?.[0] ?? defaults[0])];
-    }
-    return [
-      sanitize(current?.[0] ?? defaults[0]),
-      sanitize(current?.[1] ?? current?.[0] ?? defaults[0]),
-    ];
-  }
-
-  if (gene.chromosome === "y") {
-    return sex === "male" ? [sanitize(current?.[0] ?? defaults[0])] : [];
-  }
-
-  return defaults;
-};
-
-const syncGenotype = (
-  genes: GeneForm[],
-  sex: "female" | "male",
-  previous: ParentGenotypeState
-): ParentGenotypeState => {
-  const next: ParentGenotypeState = {};
-  genes.forEach((gene) => {
-    next[gene.id || gene.uid] = normaliseAlleles(
-      gene,
-      previous[gene.id] ?? previous[gene.uid],
-      sex
-    );
-  });
-  return next;
-};
 
 const SimulationStudioPage: React.FC = () => {
   // Get simulation tool context for agent integration
@@ -394,11 +60,21 @@ const SimulationStudioPage: React.FC = () => {
   const availableTraitsRef = useRef(availableTraits);
 
   // Keep refs in sync with state
-  useEffect(() => { genesRef.current = genes; }, [genes]);
-  useEffect(() => { motherGenotypeRef.current = motherGenotype; }, [motherGenotype]);
-  useEffect(() => { fatherGenotypeRef.current = fatherGenotype; }, [fatherGenotype]);
-  useEffect(() => { simulationsRef.current = simulations; }, [simulations]);
-  useEffect(() => { availableTraitsRef.current = availableTraits; }, [availableTraits]);
+  useEffect(() => {
+    genesRef.current = genes;
+  }, [genes]);
+  useEffect(() => {
+    motherGenotypeRef.current = motherGenotype;
+  }, [motherGenotype]);
+  useEffect(() => {
+    fatherGenotypeRef.current = fatherGenotype;
+  }, [fatherGenotype]);
+  useEffect(() => {
+    simulationsRef.current = simulations;
+  }, [simulations]);
+  useEffect(() => {
+    availableTraitsRef.current = availableTraits;
+  }, [availableTraits]);
 
   const traitOptions = useMemo(() => {
     const options = availableTraits.filter(
@@ -462,7 +138,9 @@ const SimulationStudioPage: React.FC = () => {
   // Sync state with tool context for agent control
   useEffect(() => {
     const activeTraits = genes
-      .map((gene) => availableTraits.find((trait) => trait.key === gene.traitKey))
+      .map((gene) =>
+        availableTraits.find((trait) => trait.key === gene.traitKey)
+      )
       .filter((trait): trait is TraitInfo => trait !== undefined);
     toolContext.setActiveTraits(activeTraits);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -502,36 +180,47 @@ const SimulationStudioPage: React.FC = () => {
         const currentGenes = genesRef.current;
 
         // Smart trait matching: try exact, case-insensitive, partial match
-        const normalizedKey = traitKey.toLowerCase().replace(/[_-]/g, '');
+        const normalizedKey = traitKey.toLowerCase().replace(/[_-]/g, "");
 
         let trait = currentTraits.find((item) => item.key === traitKey);
 
         // Try case-insensitive exact match
         if (!trait) {
-          trait = currentTraits.find((item) =>
-            item.key.toLowerCase() === traitKey.toLowerCase()
+          trait = currentTraits.find(
+            (item) => item.key.toLowerCase() === traitKey.toLowerCase()
           );
         }
 
         // Try partial match on key
         if (!trait) {
-          trait = currentTraits.find((item) =>
-            item.key.toLowerCase().includes(normalizedKey) ||
-            normalizedKey.includes(item.key.toLowerCase().replace(/[_-]/g, ''))
+          trait = currentTraits.find(
+            (item) =>
+              item.key.toLowerCase().includes(normalizedKey) ||
+              normalizedKey.includes(
+                item.key.toLowerCase().replace(/[_-]/g, "")
+              )
           );
         }
 
         // Try partial match on name
         if (!trait) {
-          trait = currentTraits.find((item) =>
-            item.name.toLowerCase().includes(normalizedKey) ||
-            normalizedKey.includes(item.name.toLowerCase().replace(/\s+/g, ''))
+          trait = currentTraits.find(
+            (item) =>
+              item.name.toLowerCase().includes(normalizedKey) ||
+              normalizedKey.includes(
+                item.name.toLowerCase().replace(/\s+/g, "")
+              )
           );
         }
 
         if (!trait) {
-          const availableKeys = currentTraits.slice(0, 10).map(t => t.key).join(', ');
-          throw new Error(`Trait "${traitKey}" not found. Available traits include: ${availableKeys}...`);
+          const availableKeys = currentTraits
+            .slice(0, 10)
+            .map((t) => t.key)
+            .join(", ");
+          throw new Error(
+            `Trait "${traitKey}" not found. Available traits include: ${availableKeys}...`
+          );
         }
 
         // Check if trait is already added
@@ -540,7 +229,7 @@ const SimulationStudioPage: React.FC = () => {
           return;
         }
 
-        const newGene = buildGeneFromTrait(trait);
+        const newGene = utils.buildGeneFromTrait(trait);
         let uniqueId = newGene.id;
         let counter = 1;
         while (currentGenes.some((existing) => existing.id === uniqueId)) {
@@ -575,7 +264,7 @@ const SimulationStudioPage: React.FC = () => {
             continue;
           }
 
-          const newGene = buildGeneFromTrait(trait);
+          const newGene = utils.buildGeneFromTrait(trait);
           let uniqueId = newGene.id;
           let counter = 1;
           while (updatedGenes.some((existing) => existing.id === uniqueId)) {
@@ -603,9 +292,13 @@ const SimulationStudioPage: React.FC = () => {
       },
       onRemoveTrait: async (traitKey: string) => {
         const currentGenes = genesRef.current;
-        const geneToRemove = currentGenes.find((gene) => gene.traitKey === traitKey);
+        const geneToRemove = currentGenes.find(
+          (gene) => gene.traitKey === traitKey
+        );
         if (geneToRemove) {
-          const updated = currentGenes.filter((gene) => gene.uid !== geneToRemove.uid);
+          const updated = currentGenes.filter(
+            (gene) => gene.uid !== geneToRemove.uid
+          );
           setGenes(updated);
           genesRef.current = updated; // Update ref immediately
           setActiveGene(updated[0]?.uid ?? "");
@@ -622,34 +315,41 @@ const SimulationStudioPage: React.FC = () => {
         setFatherGenotype(newGenotype);
         fatherGenotypeRef.current = newGenotype; // Update ref immediately
       },
-      onRandomizeAlleles: async (parent: 'mother' | 'father' | 'both') => {
+      onRandomizeAlleles: async (parent: "mother" | "father" | "both") => {
         const currentGenes = genesRef.current;
-        const randomizeForParent = (sex: 'female' | 'male') => {
+        const randomizeForParent = (sex: "female" | "male") => {
           const newGenotype: ParentGenotypeState = {};
           currentGenes.forEach((gene) => {
             const alleleOptions = gene.alleles.map((a) => a.id);
             if (alleleOptions.length === 0) return;
 
-            const slots = gene.chromosome === 'autosomal' ? 2 :
-              gene.chromosome === 'x' && sex === 'male' ? 1 :
-                gene.chromosome === 'y' && sex === 'female' ? 0 : 2;
+            const slots =
+              gene.chromosome === "autosomal"
+                ? 2
+                : gene.chromosome === "x" && sex === "male"
+                  ? 1
+                  : gene.chromosome === "y" && sex === "female"
+                    ? 0
+                    : 2;
 
             const randomAlleles: string[] = [];
             for (let i = 0; i < slots; i++) {
-              randomAlleles.push(alleleOptions[Math.floor(Math.random() * alleleOptions.length)]);
+              randomAlleles.push(
+                alleleOptions[Math.floor(Math.random() * alleleOptions.length)]
+              );
             }
             newGenotype[gene.id] = randomAlleles;
           });
           return newGenotype;
         };
 
-        if (parent === 'mother' || parent === 'both') {
-          const motherGeno = randomizeForParent('female');
+        if (parent === "mother" || parent === "both") {
+          const motherGeno = randomizeForParent("female");
           setMotherGenotype(motherGeno);
           motherGenotypeRef.current = motherGeno; // Update ref immediately
         }
-        if (parent === 'father' || parent === 'both') {
-          const fatherGeno = randomizeForParent('male');
+        if (parent === "father" || parent === "both") {
+          const fatherGeno = randomizeForParent("male");
           setFatherGenotype(fatherGeno);
           fatherGenotypeRef.current = fatherGeno; // Update ref immediately
         }
@@ -679,7 +379,9 @@ const SimulationStudioPage: React.FC = () => {
             throw new Error("Every gene requires an identifier.");
           }
           if (!gene.alleles.length) {
-            throw new Error(`Gene "${gene.displayName || gene.id}" needs at least one allele.`);
+            throw new Error(
+              `Gene "${gene.displayName || gene.id}" needs at least one allele.`
+            );
           }
         }
 
@@ -691,7 +393,8 @@ const SimulationStudioPage: React.FC = () => {
               id: gene.id.trim() || gene.uid,
               chromosome: gene.chromosome,
               dominance: gene.dominance,
-              default_allele_id: gene.defaultAlleleId.trim() || gene.alleles[0]?.id || "",
+              default_allele_id:
+                gene.defaultAlleleId.trim() || gene.alleles[0]?.id || "",
               alleles: gene.alleles.map((allele) => ({
                 id: allele.id.trim(),
                 dominance_rank: allele.dominance_rank,
@@ -699,12 +402,22 @@ const SimulationStudioPage: React.FC = () => {
                   trait_id: effect.trait_id.trim(),
                   magnitude: Number(effect.magnitude),
                   description: effect.description?.trim() || undefined,
-                  intermediate_descriptor: effect.intermediate_descriptor?.trim() || undefined,
+                  intermediate_descriptor:
+                    effect.intermediate_descriptor?.trim() || undefined,
                 })),
               })),
-              linkage_group: gene.linkageGroup === "" ? undefined : Number(gene.linkageGroup),
-              recombination_probability: gene.recombinationProbability === "" ? undefined : Number(gene.recombinationProbability),
-              incomplete_blend_weight: gene.incompleteBlendWeight === "" ? undefined : Number(gene.incompleteBlendWeight),
+              linkage_group:
+                gene.linkageGroup === ""
+                  ? undefined
+                  : Number(gene.linkageGroup),
+              recombination_probability:
+                gene.recombinationProbability === ""
+                  ? undefined
+                  : Number(gene.recombinationProbability),
+              incomplete_blend_weight:
+                gene.incompleteBlendWeight === ""
+                  ? undefined
+                  : Number(gene.incompleteBlendWeight),
             })),
             mother: {
               sex: motherSex,
@@ -722,7 +435,10 @@ const SimulationStudioPage: React.FC = () => {
           setResult(data);
           setShowSuccessToast(true);
         } catch (err) {
-          const message = err instanceof Error ? err.message : "Unable to compute genetic cross.";
+          const message =
+            err instanceof Error
+              ? err.message
+              : "Unable to compute genetic cross.";
           setError(message);
           setShowErrorToast(true);
           throw err;
@@ -740,10 +456,10 @@ const SimulationStudioPage: React.FC = () => {
     currentFatherSex: "female" | "male"
   ) => {
     setMotherGenotype((prev) =>
-      syncGenotype(updatedGenes, currentMotherSex, prev)
+      utils.syncGenotype(updatedGenes, currentMotherSex, prev)
     );
     setFatherGenotype((prev) =>
-      syncGenotype(updatedGenes, currentFatherSex, prev)
+      utils.syncGenotype(updatedGenes, currentFatherSex, prev)
     );
   };
 
@@ -770,7 +486,7 @@ const SimulationStudioPage: React.FC = () => {
     if (!trait) {
       return;
     }
-    const newGene = buildGeneFromTrait(trait);
+    const newGene = utils.buildGeneFromTrait(trait);
     let uniqueId = newGene.id;
     let counter = 1;
     while (genes.some((existing) => existing.id === uniqueId)) {
@@ -800,8 +516,8 @@ const SimulationStudioPage: React.FC = () => {
       return;
     }
     setGenes(updated);
-    setMotherGenotype((prev) => syncGenotype(updated, motherSex, prev));
-    setFatherGenotype((prev) => syncGenotype(updated, fatherSex, prev));
+    setMotherGenotype((prev) => utils.syncGenotype(updated, motherSex, prev));
+    setFatherGenotype((prev) => utils.syncGenotype(updated, fatherSex, prev));
     if (activeGene === uid) {
       setActiveGene(updated[0]?.uid ?? "");
     }
@@ -1001,7 +717,10 @@ const SimulationStudioPage: React.FC = () => {
       gene.chromosome === "autosomal" || sex === "female" ? 2 : 1;
 
     return (
-      <div className={`grid gap-2 ${slotCount === 2 ? "grid-cols-2" : "grid-cols-1"}`}>
+      <div
+        className={`grid gap-2 ${slotCount === 2 ? "grid-cols-2" : "grid-cols-1"
+          }`}
+      >
         {Array.from({ length: slotCount }).map((_, index) => (
           <select
             key={index}
@@ -1093,7 +812,9 @@ const SimulationStudioPage: React.FC = () => {
                 <div className="space-y-2">
                   <select
                     value={selectedTraitKey}
-                    onChange={(event) => setSelectedTraitKey(event.target.value)}
+                    onChange={(event) =>
+                      setSelectedTraitKey(event.target.value)
+                    }
                     disabled={isLoadingTraits || !traitOptions.length}
                     className="w-full rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-800 px-3 py-2 text-xs font-medium text-slate-800 dark:text-slate-200 outline-none transition-all focus:border-blue-500 dark:focus:border-blue-400 focus:ring-2 focus:ring-blue-100 dark:focus:ring-blue-900/30 disabled:cursor-not-allowed disabled:bg-slate-100 dark:disabled:bg-slate-700"
                   >
@@ -1111,7 +832,9 @@ const SimulationStudioPage: React.FC = () => {
                   <button
                     type="button"
                     onClick={handleAddTrait}
-                    disabled={isLoadingTraits || !selectedTrait || !traitOptions.length}
+                    disabled={
+                      isLoadingTraits || !selectedTrait || !traitOptions.length
+                    }
                     className="w-full rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50"
                   >
                     <FaPlusCircle className="mr-2 inline h-3 w-3" />
@@ -1119,7 +842,9 @@ const SimulationStudioPage: React.FC = () => {
                   </button>
                 </div>
                 {traitsError && (
-                  <p className="mt-2 text-[10px] text-rose-600 dark:text-rose-400">{traitsError}</p>
+                  <p className="mt-2 text-[10px] text-rose-600 dark:text-rose-400">
+                    {traitsError}
+                  </p>
                 )}
               </div>
 
@@ -1178,15 +903,21 @@ const SimulationStudioPage: React.FC = () => {
                   </span>
                 </div>
                 <div className="space-y-1.5">
-                  {(Object.keys(dominancePalette) as DominancePattern[]).map((pattern) => {
-                    const palette = dominancePalette[pattern];
-                    return (
-                      <div key={pattern} className="flex items-center gap-2">
-                        <span className={`h-2 w-2 rounded-full ${palette.dot}`} />
-                        <span className="text-[10px] text-slate-600 dark:text-slate-400">{palette.label}</span>
-                      </div>
-                    );
-                  })}
+                  {(Object.keys(dominancePalette) as DominancePattern[]).map(
+                    (pattern) => {
+                      const palette = dominancePalette[pattern];
+                      return (
+                        <div key={pattern} className="flex items-center gap-2">
+                          <span
+                            className={`h-2 w-2 rounded-full ${palette.dot}`}
+                          />
+                          <span className="text-[10px] text-slate-600 dark:text-slate-400">
+                            {palette.label}
+                          </span>
+                        </div>
+                      );
+                    }
+                  )}
                 </div>
               </div>
             </div>
@@ -1196,7 +927,10 @@ const SimulationStudioPage: React.FC = () => {
           <div className="flex-shrink-0 border-t border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 p-4">
             <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <label htmlFor="simSlider" className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                <label
+                  htmlFor="simSlider"
+                  className="text-xs font-bold text-slate-700 dark:text-slate-300"
+                >
                   Simulations
                 </label>
                 <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 text-xs font-bold text-emerald-700 dark:text-emerald-300">
@@ -1247,8 +981,12 @@ const SimulationStudioPage: React.FC = () => {
                     <FaFemale className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Parent A</h3>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-400">Female genotype</p>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Parent A
+                    </h3>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400">
+                      Female genotype
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1307,8 +1045,12 @@ const SimulationStudioPage: React.FC = () => {
                     <FaMale className="h-4 w-4 text-white" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">Parent B</h3>
-                    <p className="text-[10px] text-slate-600 dark:text-slate-400">Male genotype</p>
+                    <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                      Parent B
+                    </h3>
+                    <p className="text-[10px] text-slate-600 dark:text-slate-400">
+                      Male genotype
+                    </p>
                   </div>
                 </div>
               </div>
@@ -1368,7 +1110,9 @@ const SimulationStudioPage: React.FC = () => {
                   <HiOutlineSparkles className="h-4 w-4 text-white" />
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">Results</h3>
+                  <h3 className="text-sm font-bold text-slate-900 dark:text-white">
+                    Results
+                  </h3>
                   {result && (
                     <p className="text-[10px] text-slate-600 dark:text-slate-400">
                       {result.simulations.toLocaleString()} runs
@@ -1389,10 +1133,15 @@ const SimulationStudioPage: React.FC = () => {
                 <div className="space-y-4">
                   {/* Sex Distribution */}
                   <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-sm">
-                    <h4 className="mb-3 text-xs font-bold text-slate-800 dark:text-white">Sex Distribution</h4>
+                    <h4 className="mb-3 text-xs font-bold text-slate-800 dark:text-white">
+                      Sex Distribution
+                    </h4>
                     <div className="space-y-2">
                       {sexBreakdown.map((entry) => (
-                        <div key={entry.sex} className="flex items-center gap-2">
+                        <div
+                          key={entry.sex}
+                          className="flex items-center gap-2"
+                        >
                           <span className="w-12 text-[10px] font-semibold uppercase text-slate-700 dark:text-slate-300">
                             {entry.sex}
                           </span>
@@ -1419,7 +1168,9 @@ const SimulationStudioPage: React.FC = () => {
                       className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-sm"
                     >
                       <div className="mb-2 flex items-center justify-between">
-                        <h4 className="text-xs font-bold text-slate-800 dark:text-white">{summary.label}</h4>
+                        <h4 className="text-xs font-bold text-slate-800 dark:text-white">
+                          {summary.label}
+                        </h4>
                         <span className="rounded-full bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 text-[9px] font-bold text-purple-700 dark:text-purple-300">
                           μ {summary.mean.toFixed(2)}
                         </span>

@@ -27,42 +27,42 @@ const ZygoAIPage: React.FC = () => {
       title: "Natural Conversation",
       description:
         "Chat naturally about genetics concepts, ask questions, and get instant, accurate answers powered by advanced AI models.",
-      color: "from-indigo-500 to-purple-600",
+      color: "from-[#1E3A8A] to-[#3B82F6]",
     },
     {
       icon: BiAnalyse,
       title: "Result Analysis",
       description:
         "Automatically interprets simulation results, identifies inheritance patterns, and explains phenotype distributions.",
-      color: "from-purple-500 to-pink-600",
+      color: "from-[#3B82F6] to-[#10B981]",
     },
     {
       icon: HiLightningBolt,
       title: "Context Awareness",
       description:
         "Understands which page you're on and tailors responses to your current workflow, whether in simulation studio or trait library.",
-      color: "from-blue-500 to-cyan-600",
+      color: "from-[#10B981] to-[#059669]",
     },
     {
       icon: HiBeaker,
       title: "Experiment Control",
       description:
         "Use natural language to add traits, set alleles, randomize genotypes, and run simulations without clicking buttons.",
-      color: "from-emerald-500 to-teal-600",
+      color: "from-[#059669] to-[#047857]",
     },
     {
       icon: BiBrain,
       title: "Intelligent Suggestions",
       description:
         "Get smart recommendations for experimental design, trait combinations, and analysis approaches based on your goals.",
-      color: "from-orange-500 to-red-600",
+      color: "from-[#1E3A8A] to-[#10B981]",
     },
     {
       icon: HiClock,
       title: "24/7 Availability",
       description:
         "Always available to help, no matter when inspiration strikes or when you need guidance with your research.",
-      color: "from-pink-500 to-rose-600",
+      color: "from-[#3B82F6] to-[#059669]",
     },
   ];
 
@@ -160,28 +160,28 @@ const ZygoAIPage: React.FC = () => {
 
       {/* Floating Gradient Orbs */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-indigo-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-2000" />
+        <div className="absolute top-20 left-10 w-96 h-96 bg-gradient-to-br from-[#1E3A8A]/10 to-[#3B82F6]/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-gradient-to-br from-[#3B82F6]/10 to-[#10B981]/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-gradient-to-br from-[#10B981]/10 to-[#059669]/10 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
       {/* Main Content */}
       <div className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-24">
         {/* Hero Section */}
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-indigo-500/10 to-purple-500/10 dark:from-indigo-500/20 dark:to-purple-500/20 px-6 py-3 backdrop-blur-sm border border-indigo-500/20 dark:border-indigo-500/30 mb-8">
-            <RiRobot2Fill className="w-5 h-5 text-indigo-600 dark:text-indigo-400 animate-pulse" />
-            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-300">
+          <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#1E3A8A]/10 to-[#10B981]/10 dark:from-[#1E3A8A]/20 dark:to-[#10B981]/20 px-6 py-3 backdrop-blur-sm border border-[#1E3A8A]/20 dark:border-[#3B82F6]/30 mb-8">
+            <RiRobot2Fill className="w-5 h-5 text-[#1E3A8A] dark:text-[#3B82F6] animate-pulse" />
+            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#1E3A8A] dark:text-[#3B82F6]">
               AI-Powered Intelligence
             </span>
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">
-            <span className="bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] dark:from-[#3B82F6] dark:via-[#10B981] dark:to-[#059669] bg-clip-text text-transparent">
               {botName}
             </span>
             <br />
-            <span className="bg-gradient-to-r from-slate-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-slate-900 via-[#1E3A8A] to-[#3B82F6] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent">
               Your AI Genetics Assistant
             </span>
           </h1>
@@ -195,7 +195,7 @@ const ZygoAIPage: React.FC = () => {
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
               to="/signup"
-              className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full font-semibold text-lg shadow-2xl hover:shadow-indigo-500/50 hover:scale-105 transition-all duration-300"
+              className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] text-white rounded-full font-semibold text-lg shadow-2xl hover:shadow-[#1E3A8A]/50 dark:hover:shadow-[#3B82F6]/50 hover:scale-105 transition-all duration-300"
             >
               <span>Get Started Free</span>
               <FaRocket className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
@@ -203,7 +203,7 @@ const ZygoAIPage: React.FC = () => {
 
             <Link
               to="/studio"
-              className="inline-flex items-center gap-3 px-8 py-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-full font-semibold text-lg border-2 border-slate-200 dark:border-slate-700 hover:border-indigo-600 dark:hover:border-indigo-400 hover:shadow-xl transition-all duration-300"
+              className="inline-flex items-center gap-3 px-8 py-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-full font-semibold text-lg border-2 border-slate-200 dark:border-slate-700 hover:border-[#1E3A8A] dark:hover:border-[#3B82F6] hover:shadow-xl transition-all duration-300"
             >
               <span>Try {botName} Now</span>
               <HiOutlineSparkles className="w-5 h-5" />
@@ -214,10 +214,10 @@ const ZygoAIPage: React.FC = () => {
         {/* Capabilities Section */}
         <div className="mb-24">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-block rounded-full bg-indigo-100 dark:bg-indigo-900/50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-indigo-600 dark:text-indigo-400 mb-6">
+            <span className="inline-block rounded-full bg-[#1E3A8A]/10 dark:bg-[#3B82F6]/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#1E3A8A] dark:text-[#3B82F6] mb-6">
               Capabilities
             </span>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-indigo-900 dark:from-white dark:to-indigo-200 bg-clip-text text-transparent mb-6">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-[#1E3A8A] dark:from-white dark:to-[#3B82F6] bg-clip-text text-transparent mb-6">
               What {botName} Can Do
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
@@ -257,10 +257,10 @@ const ZygoAIPage: React.FC = () => {
         {/* Use Cases Section */}
         <div className="mb-24">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-block rounded-full bg-purple-100 dark:bg-purple-900/50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-purple-600 dark:text-purple-400 mb-6">
+            <span className="inline-block rounded-full bg-[#10B981]/10 dark:bg-[#10B981]/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#10B981] dark:text-emerald-400 mb-6">
               Use Cases
             </span>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-purple-900 dark:from-white dark:to-purple-200 bg-clip-text text-transparent mb-6">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-[#10B981] dark:from-white dark:to-emerald-300 bg-clip-text text-transparent mb-6">
               Who Benefits from {botName}?
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
@@ -276,7 +276,7 @@ const ZygoAIPage: React.FC = () => {
                 className="bg-white dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-8 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-2xl transition-all duration-300"
               >
                 <div className="flex items-center gap-4 mb-6">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] text-white">
                     <useCase.icon className="w-6 h-6" />
                   </div>
                   <h3 className="text-2xl font-semibold text-slate-900 dark:text-white">
@@ -297,7 +297,7 @@ const ZygoAIPage: React.FC = () => {
                       key={example}
                       className="flex items-start gap-2 text-sm text-slate-600 dark:text-slate-400"
                     >
-                      <span className="text-indigo-600 dark:text-indigo-400 mt-1">
+                      <span className="text-[#10B981] dark:text-emerald-400 mt-1">
                         •
                       </span>
                       <span className="italic">"{example}"</span>
@@ -312,10 +312,10 @@ const ZygoAIPage: React.FC = () => {
         {/* Technical Features Section */}
         <div className="mb-24">
           <div className="text-center max-w-3xl mx-auto mb-16">
-            <span className="inline-block rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-400 mb-6">
+            <span className="inline-block rounded-full bg-[#3B82F6]/10 dark:bg-[#3B82F6]/20 px-4 py-1 text-xs font-semibold uppercase tracking-[0.3em] text-[#3B82F6] dark:text-blue-400 mb-6">
               Technology
             </span>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-emerald-900 dark:from-white dark:to-emerald-200 bg-clip-text text-transparent mb-6">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 to-[#3B82F6] dark:from-white dark:to-blue-300 bg-clip-text text-transparent mb-6">
               Powered by Advanced AI
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-400">
@@ -331,7 +331,7 @@ const ZygoAIPage: React.FC = () => {
                 className="flex gap-6 p-8 bg-white dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl border border-slate-200 dark:border-slate-700 hover:shadow-xl transition-all duration-300"
               >
                 <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white">
+                  <div className="flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br from-[#1E3A8A] to-[#10B981] text-white">
                     <feature.icon className="w-6 h-6" />
                   </div>
                 </div>
@@ -351,7 +351,7 @@ const ZygoAIPage: React.FC = () => {
 
         {/* Final CTA Section */}
         <div className="relative">
-          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 p-12 shadow-2xl">
+          <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] p-12 shadow-2xl">
             {/* Sparkles */}
             <RiSparklingFill className="absolute top-4 right-8 w-8 h-8 text-white/30 animate-pulse" />
             <RiSparklingFill className="absolute bottom-8 left-12 w-6 h-6 text-white/30 animate-pulse delay-500" />
@@ -362,7 +362,7 @@ const ZygoAIPage: React.FC = () => {
                 Ready to Experience the Future of Genetics Research?
               </h2>
 
-              <p className="text-xl text-indigo-100 mb-10 max-w-2xl mx-auto">
+              <p className="text-xl text-blue-100 mb-10 max-w-2xl mx-auto">
                 Join thousands of students, educators, and researchers using{" "}
                 {botName} to accelerate their work.
               </p>
@@ -370,7 +370,7 @@ const ZygoAIPage: React.FC = () => {
               <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
                 <Link
                   to="/signup"
-                  className="group inline-flex items-center gap-3 px-8 py-4 bg-white text-indigo-600 rounded-full font-semibold text-lg shadow-2xl hover:shadow-white/50 hover:scale-105 transition-all duration-300"
+                  className="group inline-flex items-center gap-3 px-8 py-4 bg-white text-[#1E3A8A] rounded-full font-semibold text-lg shadow-2xl hover:shadow-white/50 hover:scale-105 transition-all duration-300"
                 >
                   <span>Start Using {botName}</span>
                   <FaMagic className="w-5 h-5 group-hover:rotate-12 transition-transform" />

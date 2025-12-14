@@ -181,15 +181,15 @@ const CommunityPage: React.FC = () => {
     {
       label: "Active Tags",
       value: popularTags.length,
-      color: "purple",
-      gradient: "from-purple-900/40 via-purple-800/40 to-violet-900/40",
-      border: "border-purple-500/30",
-      hoverBorder: "hover:border-purple-400/50",
-      iconBg: "bg-purple-500/20",
-      iconHoverBg: "group-hover:bg-purple-500/30",
-      textColor: "text-purple-100",
-      labelColor: "text-purple-300",
-      icon: <FiTag className="h-5 w-5 text-purple-400" />,
+      color: "emerald",
+      gradient: "from-emerald-900/40 via-emerald-800/40 to-teal-900/40",
+      border: "border-emerald-500/30",
+      hoverBorder: "hover:border-emerald-400/50",
+      iconBg: "bg-emerald-500/20",
+      iconHoverBg: "group-hover:bg-emerald-500/30",
+      textColor: "text-emerald-100",
+      labelColor: "text-emerald-300",
+      icon: <FiTag className="h-5 w-5 text-emerald-400" />,
     },
     {
       label: "Total Votes",
@@ -276,11 +276,10 @@ const CommunityPage: React.FC = () => {
                       <button
                         key={tag.tag}
                         onClick={() => handleTagClick(tag.tag)}
-                        className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-medium transition-all truncate max-w-xs cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-blue-400 ${
-                          selectedTag === tag.tag
-                            ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white border-transparent shadow-md"
-                            : "bg-slate-700 text-slate-300 border-slate-600 hover:bg-blue-900/30 hover:border-blue-400"
-                        }`}
+                        className={`inline-flex items-center px-3 py-1 rounded-full border text-sm font-medium transition-all truncate max-w-xs cursor-pointer select-none focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${selectedTag === tag.tag
+                            ? "bg-gradient-to-r from-[#1E3A8A] to-[#10B981] text-white border-transparent shadow-md"
+                            : "bg-slate-700 text-slate-300 border-slate-600 hover:bg-[#1E3A8A]/30 hover:border-[#3B82F6]"
+                          }`}
                         title={tag.tag}
                       >
                         <span className="truncate font-semibold">
@@ -289,11 +288,10 @@ const CommunityPage: React.FC = () => {
                             : tag.tag}
                         </span>
                         <span
-                          className={`ml-2 text-xs font-normal ${
-                            selectedTag === tag.tag
+                          className={`ml-2 text-xs font-normal ${selectedTag === tag.tag
                               ? "text-white/80"
                               : "text-blue-700/70"
-                          }`}
+                            }`}
                         >
                           {tag.count}
                         </span>
@@ -332,11 +330,11 @@ const CommunityPage: React.FC = () => {
                     </div>
                   </div>
                   {/* Tags Stat - Mobile */}
-                  <div className="bg-gradient-to-br from-purple-900/40 to-purple-800/40 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-purple-500/30 text-center">
-                    <div className="text-base sm:text-lg font-bold text-purple-100">
+                  <div className="bg-gradient-to-br from-emerald-900/40 to-emerald-800/40 rounded-lg sm:rounded-xl p-2 sm:p-3 border border-emerald-500/30 text-center">
+                    <div className="text-base sm:text-lg font-bold text-emerald-100">
                       {popularTags.length}
                     </div>
-                    <div className="text-[10px] sm:text-xs text-purple-300">
+                    <div className="text-[10px] sm:text-xs text-emerald-300">
                       Tags
                     </div>
                   </div>
@@ -364,11 +362,10 @@ const CommunityPage: React.FC = () => {
                         <button
                           key={tag.tag}
                           onClick={() => handleTagClick(tag.tag)}
-                          className={`px-2 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-medium transition-all ${
-                            selectedTag === tag.tag
-                              ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
+                          className={`px-2 py-0.5 sm:py-1 rounded-lg text-[11px] sm:text-xs font-medium transition-all ${selectedTag === tag.tag
+                              ? "bg-gradient-to-r from-[#1E3A8A] to-[#10B981] text-white shadow-md"
                               : "bg-slate-700 text-slate-300 hover:bg-slate-600"
-                          }`}
+                            }`}
                         >
                           {tag.tag} ({tag.count})
                         </button>
@@ -486,11 +483,10 @@ const CommunityPage: React.FC = () => {
                               <button
                                 key={pageNum}
                                 onClick={() => handlePageChange(pageNum)}
-                                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs sm:text-sm font-medium transition ${
-                                  page === pageNum
-                                    ? "bg-gradient-to-r from-blue-600 to-purple-600 text-white shadow-md"
+                                className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg text-xs sm:text-sm font-medium transition ${page === pageNum
+                                    ? "bg-gradient-to-r from-[#1E3A8A] to-[#10B981] text-white shadow-md"
                                     : "bg-slate-800 border border-slate-600 text-slate-300 hover:bg-slate-700"
-                                }`}
+                                  }`}
                               >
                                 {pageNum}
                               </button>
@@ -528,9 +524,9 @@ const CommunityPage: React.FC = () => {
         {user && (
           <button
             onClick={() => setIsModalOpen(true)}
-            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 flex items-center justify-center z-50"
+            className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 w-14 h-14 sm:w-16 sm:h-16 bg-gradient-to-r from-[#1E3A8A] to-[#10B981] text-white rounded-full shadow-lg hover:shadow-xl active:scale-95 transition-all duration-200 flex items-center justify-center z-50"
             style={{
-              boxShadow: "0 8px 32px rgba(59, 130, 246, 0.4)",
+              boxShadow: "0 8px 32px rgba(30, 58, 138, 0.4)",
             }}
           >
             <FiPlus className="h-6 w-6 sm:h-8 sm:w-8" />

@@ -39,8 +39,8 @@ const Navbar: React.FC = () => {
 
   const linkClasses = ({ isActive }: { isActive: boolean }) =>
     `relative px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${isActive
-      ? "text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-500/10"
-      : "text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+      ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
+      : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
     }`;
 
   const handleSignOut = () => {
@@ -53,13 +53,13 @@ const Navbar: React.FC = () => {
       <div className="absolute inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl" />
 
       {/* Subtle gradient border at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1E3A8A]/20 dark:via-[#3B82F6]/30 to-transparent" />
 
       <div className="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
         {/* Logo */}
         <Link to="/" className="group flex items-center gap-3">
           <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
+            <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A] to-[#10B981] rounded-xl blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
             <img src={logo} alt="Zygotrix" className="relative w-10 h-10 object-contain" />
           </div>
           <div className="hidden sm:block">
@@ -86,7 +86,7 @@ const Navbar: React.FC = () => {
           {/* Theme Toggle */}
           <button
             onClick={toggleTheme}
-            className="relative p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+            className="relative p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
             aria-label="Toggle theme"
           >
             {theme === "dark" ? (
@@ -101,7 +101,7 @@ const Navbar: React.FC = () => {
             href={ZYGOTRIX_UNIVERSITY_URL}
             target="_blank"
             rel="noopener noreferrer"
-            className="p-2.5 rounded-xl text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all duration-200"
+            className="p-2.5 rounded-xl text-[#10B981] dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all duration-200"
             title="Zygotrix University"
           >
             <IoSchoolOutline className="h-5 w-5" />
@@ -112,7 +112,7 @@ const Navbar: React.FC = () => {
               {/* Studio Button */}
               <Link
                 to="/studio"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium text-sm shadow-lg shadow-indigo-500/25 hover:shadow-indigo-500/40 hover:scale-[1.02] transition-all duration-200"
+                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] text-white font-medium text-sm shadow-lg shadow-[#1E3A8A]/25 dark:shadow-[#3B82F6]/25 hover:shadow-[#1E3A8A]/40 dark:hover:shadow-[#3B82F6]/40 hover:scale-[1.02] transition-all duration-200"
               >
                 <PiDna className="h-4 w-4" />
                 <span>Studio</span>
@@ -134,7 +134,7 @@ const Navbar: React.FC = () => {
               <Link
                 to="/signin"
                 state={{ from: { pathname: location.pathname } }}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
+                className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
               >
                 Sign in
               </Link>
@@ -174,7 +174,7 @@ const Navbar: React.FC = () => {
             <div className="flex justify-end mb-2">
               <button
                 onClick={toggleTheme}
-                className="p-2 rounded-lg text-slate-400 hover:text-indigo-600 dark:hover:text-indigo-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
+                className="p-2 rounded-lg text-slate-400 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
                 aria-label="Toggle theme"
               >
                 {theme === "dark" ? (
@@ -192,7 +192,7 @@ const Navbar: React.FC = () => {
                 to={item.to}
                 className={({ isActive }) =>
                   `block rounded-xl px-4 py-3 text-base font-medium transition-all ${isActive
-                    ? "bg-indigo-50 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400"
+                    ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
                     : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                   }`
                 }
@@ -202,14 +202,14 @@ const Navbar: React.FC = () => {
             ))}
 
             {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-slate-200 dark:via-slate-700 to-transparent my-3" />
+            <div className="h-px bg-gradient-to-r from-transparent via-[#1E3A8A]/20 dark:via-[#3B82F6]/30 to-transparent my-3" />
 
             {/* Auth Actions */}
             {user ? (
               <div className="space-y-2">
                 <Link
                   to="/studio"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium shadow-lg shadow-indigo-500/25"
+                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] text-white font-medium shadow-lg shadow-[#1E3A8A]/25 dark:shadow-[#3B82F6]/25"
                 >
                   <PiDna className="h-5 w-5" />
                   <span>Open Studio</span>
@@ -226,7 +226,7 @@ const Navbar: React.FC = () => {
               <Link
                 to="/signin"
                 state={{ from: { pathname: location.pathname } }}
-                className="block rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-300 hover:border-indigo-300 dark:hover:border-indigo-500/50 hover:text-indigo-600 dark:hover:text-indigo-400 transition-all"
+                className="block rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-300 hover:border-[#1E3A8A]/30 dark:hover:border-[#3B82F6]/50 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] transition-all"
               >
                 Sign in
               </Link>

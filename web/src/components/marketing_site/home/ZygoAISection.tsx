@@ -12,47 +12,47 @@ const ZygoAISection: React.FC = () => {
       icon: HiChatAlt2,
       title: "Conversational Assistant",
       description: "Ask questions about genetics concepts, get instant explanations, and receive step-by-step guidance through complex analyses.",
-      gradient: "from-indigo-500 to-purple-600",
+      gradient: "from-[#1E3A8A] to-[#3B82F6]",
     },
     {
       icon: BiAnalyse,
       title: "Smart Analysis",
       description: "Automatically interprets your simulation results, identifies patterns, and provides insights about genetic inheritance.",
-      gradient: "from-purple-500 to-pink-600",
+      gradient: "from-[#3B82F6] to-[#10B981]",
     },
     {
       icon: HiLightningBolt,
       title: "Context-Aware Help",
       description: "Understands what page you're on and provides relevant assistance tailored to your current task or workflow.",
-      gradient: "from-blue-500 to-cyan-600",
+      gradient: "from-[#10B981] to-[#059669]",
     },
     {
       icon: HiOutlineSparkles,
       title: "Agentic Automation",
       description: "Control simulations with natural language commands - add traits, randomize alleles, and run experiments hands-free.",
-      gradient: "from-emerald-500 to-teal-600",
+      gradient: "from-[#1E3A8A] to-[#10B981]",
     },
   ];
 
   return (
-    <section className="relative bg-gradient-to-br from-slate-50 via-indigo-50/30 to-purple-50/30 dark:from-slate-900 dark:via-indigo-950/30 dark:to-purple-950/30 py-24 overflow-hidden">
+    <section className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 py-24 overflow-hidden">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-20 left-10 w-72 h-72 bg-indigo-400/10 dark:bg-indigo-600/10 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute bottom-20 right-10 w-96 h-96 bg-purple-400/10 dark:bg-purple-600/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+        <div className="absolute top-20 left-10 w-72 h-72 bg-[#1E3A8A]/10 dark:bg-[#3B82F6]/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#10B981]/10 dark:bg-[#10B981]/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
       </div>
 
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-600 to-purple-600 px-5 py-2 mb-6">
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] px-5 py-2 mb-6">
             <RiRobot2Fill className="w-5 h-5 text-white animate-pulse" />
             <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white">
               AI-Powered Assistant
             </span>
           </div>
 
-          <h2 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 mb-6">
+          <h2 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] dark:from-[#3B82F6] dark:via-[#10B981] dark:to-[#059669] mb-6">
             Meet {botName}
           </h2>
 
@@ -93,7 +93,7 @@ const ZygoAISection: React.FC = () => {
 
         {/* CTA Card */}
         <div className="relative max-w-4xl mx-auto">
-          <div className="relative bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 rounded-3xl p-8 md:p-12 shadow-2xl shadow-indigo-500/20 dark:shadow-indigo-900/40 overflow-hidden">
+          <div className="relative bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] rounded-3xl p-8 md:p-12 shadow-2xl shadow-[#1E3A8A]/20 dark:shadow-[#3B82F6]/20 overflow-hidden">
             {/* Animated sparkles background */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
               <RiSparklingFill className="absolute top-4 right-8 w-8 h-8 text-white/20 animate-pulse" />
@@ -106,7 +106,7 @@ const ZygoAISection: React.FC = () => {
                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
                   Experience {botName} in Action
                 </h3>
-                <p className="text-indigo-100 text-base md:text-lg">
+                <p className="text-blue-100 text-base md:text-lg">
                   Discover how AI can transform your genetics research workflow.
                   Explore all the features and capabilities of our intelligent assistant.
                 </p>
@@ -114,7 +114,7 @@ const ZygoAISection: React.FC = () => {
 
               <Link
                 to="/zygoai"
-                className="flex-shrink-0 group inline-flex items-center gap-3 px-8 py-4 bg-white text-indigo-600 rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                className="flex-shrink-0 group inline-flex items-center gap-3 px-8 py-4 bg-white text-[#1E3A8A] rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
               >
                 <span>Explore {botName}</span>
                 <HiOutlineSparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />

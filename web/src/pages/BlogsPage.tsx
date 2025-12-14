@@ -132,26 +132,26 @@ const BlogsPage: React.FC = () => {
 
       {/* Floating molecule decorations */}
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-40 left-1/4 w-36 h-36 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-2000" />
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-[#1E3A8A]/10 to-[#3B82F6]/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-[#3B82F6]/10 to-[#10B981]/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute bottom-40 left-1/4 w-36 h-36 bg-gradient-to-br from-[#10B981]/10 to-[#059669]/10 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
       <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 sm:px-6 lg:px-8">
         <header className="space-y-4 text-center">
-          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 px-4 py-2 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1E3A8A]/10 to-[#10B981]/10 dark:from-[#1E3A8A]/20 dark:to-[#10B981]/20 px-4 py-2 mb-2">
             <svg
-              className="w-4 h-4 text-blue-400"
+              className="w-4 h-4 text-[#3B82F6]"
               fill="currentColor"
               viewBox="0 0 20 20"
             >
               <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V5h2v4z" />
             </svg>
-            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-blue-600 dark:text-blue-300">
+            <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#1E3A8A] dark:text-[#3B82F6]">
               Insights & Research
             </p>
           </div>
-          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent sm:text-5xl">
+          <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-[#1E3A8A] to-[#3B82F6] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent sm:text-5xl">
             Genetic Engineering Chronicles
           </h1>
           <p className="mx-auto max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
@@ -163,7 +163,7 @@ const BlogsPage: React.FC = () => {
             {categories.slice(0, 6).map((category) => (
               <span
                 key={category.slug}
-                className="rounded-full border-2 border-blue-200 dark:border-blue-400/50 bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 px-4 py-2 font-semibold text-blue-600 dark:text-blue-300 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer"
+                className="rounded-full border-2 border-[#1E3A8A]/30 dark:border-[#3B82F6]/50 bg-gradient-to-r from-[#1E3A8A]/10 to-[#10B981]/10 dark:from-[#1E3A8A]/20 dark:to-[#10B981]/20 px-4 py-2 font-semibold text-[#1E3A8A] dark:text-[#3B82F6] hover:border-[#1E3A8A] dark:hover:border-[#3B82F6] hover:shadow-md transition-all cursor-pointer"
               >
                 {category.title}
               </span>
@@ -188,11 +188,10 @@ const BlogsPage: React.FC = () => {
                       )
                     }
                     aria-pressed={isActive}
-                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-semibold transition-all ${
-                      isActive
-                        ? "border-purple-400 bg-purple-500 text-white shadow-md shadow-purple-500/60"
-                        : "border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:from-blue-500/10 hover:to-purple-500/10 dark:hover:from-blue-500/20 dark:hover:to-purple-500/20 hover:bg-gradient-to-r hover:text-blue-600 dark:hover:text-blue-300"
-                    }`}
+                    className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-semibold transition-all ${isActive
+                        ? "border-[#10B981] bg-gradient-to-r from-[#1E3A8A] to-[#10B981] text-white shadow-md shadow-[#10B981]/60"
+                        : "border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:border-[#3B82F6] hover:from-[#1E3A8A]/10 hover:to-[#10B981]/10 dark:hover:from-[#1E3A8A]/20 dark:hover:to-[#10B981]/20 hover:bg-gradient-to-r hover:text-[#1E3A8A] dark:hover:text-[#3B82F6]"
+                      }`}
                   >
                     <span>{author.name}</span>
                     {isActive && (
@@ -276,10 +275,10 @@ const BlogsPage: React.FC = () => {
 
                     {/* Author skeleton */}
                     <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
-                        <div className="h-9 w-9 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
-                        <div className="space-y-1">
-                          <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-                          <div className="h-3 w-16 bg-slate-100 dark:bg-slate-700/50 rounded animate-pulse" />
+                      <div className="h-9 w-9 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+                      <div className="space-y-1">
+                        <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                        <div className="h-3 w-16 bg-slate-100 dark:bg-slate-700/50 rounded animate-pulse" />
                       </div>
                     </div>
                   </div>

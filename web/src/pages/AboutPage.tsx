@@ -252,29 +252,29 @@ const AboutPage: React.FC = () => {
       </div>
 
       <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
-        <div className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-purple-400/10 to-pink-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
-        <div className="absolute bottom-40 left-1/4 w-36 h-36 bg-gradient-to-br from-cyan-400/10 to-blue-400/10 rounded-full blur-3xl animate-pulse delay-2000" />
+        <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-[#1E3A8A]/10 to-[#3B82F6]/10 rounded-full blur-3xl animate-pulse" />
+        <div className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-[#3B82F6]/10 to-[#10B981]/10 rounded-full blur-3xl animate-pulse delay-1000" />
+        <div className="absolute bottom-40 left-1/4 w-36 h-36 bg-gradient-to-br from-[#10B981]/10 to-[#059669]/10 rounded-full blur-3xl animate-pulse delay-2000" />
       </div>
 
       <div className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-24">
         <div className="grid gap-16 lg:grid-cols-[1.2fr,1fr] lg:items-center">
           <div className="space-y-8">
-            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 px-6 py-3 backdrop-blur-sm border border-blue-500/20 dark:border-blue-500/30">
-              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 animate-pulse" />
-              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-blue-600 dark:text-blue-300">
+            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#1E3A8A]/10 to-[#10B981]/10 dark:from-[#1E3A8A]/20 dark:to-[#10B981]/20 px-6 py-3 backdrop-blur-sm border border-[#1E3A8A]/20 dark:border-[#3B82F6]/30">
+              <div className="h-2 w-2 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] animate-pulse" />
+              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#1E3A8A] dark:text-[#3B82F6]">
                 Our Story
               </span>
             </div>
 
-            <h1 className="text-5xl font-bold leading-tight bg-gradient-to-r from-slate-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent sm:text-6xl">
+            <h1 className="text-5xl font-bold leading-tight bg-gradient-to-r from-slate-900 via-[#1E3A8A] to-[#3B82F6] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent sm:text-6xl">
               Zygotrix is crafted for teams who translate
               <span className="relative">
-                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                <span className="bg-gradient-to-r from-[#3B82F6] to-[#10B981] bg-clip-text text-transparent">
                   {" "}
                   genetics{" "}
                 </span>
-                <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-blue-600 to-purple-600 rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-[#1E3A8A] to-[#10B981] rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
               </span>
               into action.
             </h1>
@@ -290,7 +290,7 @@ const AboutPage: React.FC = () => {
             <div className="flex flex-wrap gap-4 pt-4">
               <a
                 href="mailto:hello@zygotrix.io"
-                className="group inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-blue-500 to-purple-500 px-8 py-4 text-sm font-semibold text-white shadow-xl shadow-blue-500/25 transition-all hover:shadow-2xl hover:shadow-blue-500/40 hover:scale-105"
+                className="group inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] px-8 py-4 text-sm font-semibold text-white shadow-xl shadow-[#1E3A8A]/25 dark:shadow-[#3B82F6]/25 transition-all hover:shadow-2xl hover:shadow-[#1E3A8A]/40 dark:hover:shadow-[#3B82F6]/40 hover:scale-105"
               >
                 <span>Contact us</span>
                 <svg
@@ -309,7 +309,7 @@ const AboutPage: React.FC = () => {
               </a>
               <a
                 href="#team"
-                className="inline-flex items-center justify-center rounded-2xl border-2 border-blue-200 dark:border-blue-400/50 bg-white/50 dark:bg-slate-800/80 backdrop-blur-sm px-8 py-4 text-sm font-semibold text-blue-600 dark:text-blue-300 transition-all hover:border-blue-400 hover:bg-white dark:hover:bg-slate-700 hover:scale-105"
+                className="inline-flex items-center justify-center rounded-2xl border-2 border-[#1E3A8A]/30 dark:border-[#3B82F6]/50 bg-white/50 dark:bg-slate-800/80 backdrop-blur-sm px-8 py-4 text-sm font-semibold text-[#1E3A8A] dark:text-[#3B82F6] transition-all hover:border-[#1E3A8A] dark:hover:border-[#3B82F6] hover:bg-white dark:hover:bg-slate-700 hover:scale-105"
               >
                 Meet the team
               </a>
@@ -318,10 +318,10 @@ const AboutPage: React.FC = () => {
 
           <div className="relative flex justify-center lg:justify-end">
             <div className="relative w-full max-w-sm">
-              <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-blue-400/20 via-purple-400/20 to-emerald-400/20 blur-2xl animate-pulse" />
-              <div className="relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg p-10 shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/20">
-                <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full animate-pulse" />
-                <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-r from-emerald-400 to-cyan-400 rounded-full animate-pulse delay-1000" />
+              <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-[#1E3A8A]/20 via-[#3B82F6]/20 to-[#10B981]/20 blur-2xl animate-pulse" />
+              <div className="relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg p-10 shadow-2xl shadow-[#1E3A8A]/10 dark:shadow-[#3B82F6]/20">
+                <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] rounded-full animate-pulse" />
+                <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-r from-[#10B981] to-[#059669] rounded-full animate-pulse delay-1000" />
 
                 <img src={logo} alt="Zygotrix" className="mx-auto w-36 mb-6" />
                 <p className="text-center text-sm leading-relaxed text-slate-600 dark:text-slate-300">
@@ -330,9 +330,9 @@ const AboutPage: React.FC = () => {
                 </p>
 
                 <div className="mt-6 flex justify-center gap-2">
-                  <div className="w-2 h-2 bg-blue-400 rounded-full animate-bounce" />
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-bounce delay-100" />
-                  <div className="w-2 h-2 bg-emerald-400 rounded-full animate-bounce delay-200" />
+                  <div className="w-2 h-2 bg-[#1E3A8A] rounded-full animate-bounce" />
+                  <div className="w-2 h-2 bg-[#3B82F6] rounded-full animate-bounce delay-100" />
+                  <div className="w-2 h-2 bg-[#10B981] rounded-full animate-bounce delay-200" />
                 </div>
               </div>
             </div>
@@ -341,13 +341,13 @@ const AboutPage: React.FC = () => {
 
         <div id="team" className="mt-20">
           <div className="text-center mb-16">
-            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-purple-500/10 to-pink-500/10 dark:from-purple-500/20 dark:to-pink-500/20 px-6 py-3 backdrop-blur-sm border border-purple-500/20 dark:border-purple-500/30 mb-6">
-              <FaUsers className="w-4 h-4 text-purple-600" />
-              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-purple-600 dark:text-purple-300">
+            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#3B82F6]/10 to-[#10B981]/10 dark:from-[#3B82F6]/20 dark:to-[#10B981]/20 px-6 py-3 backdrop-blur-sm border border-[#3B82F6]/20 dark:border-[#3B82F6]/30 mb-6">
+              <FaUsers className="w-4 h-4 text-[#3B82F6]" />
+              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#3B82F6] dark:text-[#3B82F6]">
                 Our Team
               </span>
             </div>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-purple-800 to-pink-800 dark:from-white dark:via-purple-200 dark:to-pink-200 bg-clip-text text-transparent mb-4">
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-[#1E3A8A] to-[#3B82F6] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent mb-4">
               Meet the minds behind Zygotrix
             </h2>
             <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
@@ -467,9 +467,8 @@ const AboutPage: React.FC = () => {
                                 className={`rounded-full bg-white p-3 shadow-md hover:shadow-lg transition-all hover:scale-110 ${getSocialButtonClasses(
                                   platform
                                 )}`}
-                                aria-label={`${
-                                  member.name
-                                }'s ${getPlatformLabel(platform)} profile`}
+                                aria-label={`${member.name
+                                  }'s ${getPlatformLabel(platform)} profile`}
                                 onClick={(event) => event.stopPropagation()}
                               >
                                 {getSocialIcon(platform)}

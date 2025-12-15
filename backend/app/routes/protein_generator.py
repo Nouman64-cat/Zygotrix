@@ -10,7 +10,7 @@ from ..schema.protein_generator import (
 )
 from ..services.protein_generator import (
     generate_dna_rna,
-    extract_amino_acids,
+    extract_amino_acids_from_rna,
     generate_protein_sequence,
 )
 
@@ -41,7 +41,7 @@ def generate_dna_and_rna(request: ProteinGenerateRequest) -> ProteinGenerateResp
 
 
 @router.post("/extract-amino-acids", response_model=AminoAcidExtractResponse)
-def extract_amino_acids_from_rna(request: AminoAcidExtractRequest) -> AminoAcidExtractResponse:
+def extract_amino_acids_endpoint(request: AminoAcidExtractRequest) -> AminoAcidExtractResponse:
     """
     Extract amino acids from RNA sequence.
 
@@ -58,7 +58,7 @@ def extract_amino_acids_from_rna(request: AminoAcidExtractRequest) -> AminoAcidE
         }
         ```
     """
-    return extract_amino_acids(request)
+    return extract_amino_acids_from_rna(request)
 
 
 @router.post("/generate-protein", response_model=ProteinSequenceResponse)

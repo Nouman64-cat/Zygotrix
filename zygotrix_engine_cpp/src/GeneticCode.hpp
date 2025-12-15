@@ -63,32 +63,63 @@ const std::unordered_map<std::string, AminoAcid> codon_table = {
     {"GGU", AminoAcid::GLY}, {"GGC", AminoAcid::GLY}, {"GGA", AminoAcid::GLY}, {"GGG", AminoAcid::GLY}
 };
 
-// 3. Helper: Convert Enum back to String (For UI/Debugging)
-// You call this only when you need to print something to the screen.
+// 3. Helper: Convert Enum back to Standard 3-Letter Code
+// FIXED: Now returns standard abbreviations (e.g., "Asn") instead of full names
 inline std::string get_amino_name(AminoAcid aa) {
     switch (aa) {
-        case AminoAcid::PHE: return "Phenylalanine";
-        case AminoAcid::LEU: return "Leucine";
-        case AminoAcid::ILE: return "Isoleucine";
-        case AminoAcid::MET: return "Methionine (Start)";
-        case AminoAcid::VAL: return "Valine";
-        case AminoAcid::SER: return "Serine";
-        case AminoAcid::PRO: return "Proline";
-        case AminoAcid::THR: return "Threonine";
-        case AminoAcid::ALA: return "Alanine";
-        case AminoAcid::TYR: return "Tyrosine";
-        case AminoAcid::HIS: return "Histidine";
-        case AminoAcid::GLN: return "Glutamine";
-        case AminoAcid::ASN: return "Asparagine";
-        case AminoAcid::LYS: return "Lysine";
-        case AminoAcid::ASP: return "Aspartic Acid";
-        case AminoAcid::GLU: return "Glutamic Acid";
-        case AminoAcid::CYS: return "Cysteine";
-        case AminoAcid::TRP: return "Tryptophan";
-        case AminoAcid::ARG: return "Arginine";
-        case AminoAcid::GLY: return "Glycine";
+        case AminoAcid::PHE: return "Phe";
+        case AminoAcid::LEU: return "Leu";
+        case AminoAcid::ILE: return "Ile";
+        case AminoAcid::MET: return "Met";
+        case AminoAcid::VAL: return "Val";
+        case AminoAcid::SER: return "Ser";
+        case AminoAcid::PRO: return "Pro";
+        case AminoAcid::THR: return "Thr";
+        case AminoAcid::ALA: return "Ala";
+        case AminoAcid::TYR: return "Tyr";
+        case AminoAcid::HIS: return "His";
+        
+        // These were the problem cases in the old version
+        case AminoAcid::GLN: return "Gln"; 
+        case AminoAcid::ASN: return "Asn"; 
+        case AminoAcid::LYS: return "Lys";
+        case AminoAcid::ASP: return "Asp";
+        case AminoAcid::GLU: return "Glu";
+        
+        case AminoAcid::CYS: return "Cys";
+        case AminoAcid::TRP: return "Trp";
+        case AminoAcid::ARG: return "Arg";
+        case AminoAcid::GLY: return "Gly";
         case AminoAcid::STOP: return "STOP";
-        default: return "Unknown";
+        default: return "UNK";
+    }
+}
+
+// 4. Helper: Convert Enum to Standard 1-Letter Code
+inline char get_amino_char(AminoAcid aa) {
+    switch (aa) {
+        case AminoAcid::ALA: return 'A';
+        case AminoAcid::ARG: return 'R'; 
+        case AminoAcid::ASN: return 'N'; 
+        case AminoAcid::ASP: return 'D'; 
+        case AminoAcid::CYS: return 'C';
+        case AminoAcid::GLN: return 'Q'; 
+        case AminoAcid::GLU: return 'E'; 
+        case AminoAcid::GLY: return 'G';
+        case AminoAcid::HIS: return 'H';
+        case AminoAcid::ILE: return 'I';
+        case AminoAcid::LEU: return 'L';
+        case AminoAcid::LYS: return 'K'; 
+        case AminoAcid::MET: return 'M';
+        case AminoAcid::PHE: return 'F'; 
+        case AminoAcid::PRO: return 'P';
+        case AminoAcid::SER: return 'S';
+        case AminoAcid::THR: return 'T';
+        case AminoAcid::TRP: return 'W'; 
+        case AminoAcid::TYR: return 'Y'; 
+        case AminoAcid::VAL: return 'V';
+        case AminoAcid::STOP: return '*'; 
+        default: return '?';
     }
 }
 

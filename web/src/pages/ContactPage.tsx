@@ -2,8 +2,11 @@ import React, { useState } from "react";
 import { MdEmail, MdPhone, MdPerson, MdCheckCircle, MdError } from "react-icons/md";
 import { BiLoaderAlt } from "react-icons/bi";
 import * as contactApi from "../services/contact.api";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const ContactPage: React.FC = () => {
+  useDocumentTitle("Contact");
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",

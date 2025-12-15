@@ -30,6 +30,7 @@ import {
 } from "chart.js";
 import { Line } from "react-chartjs-2";
 import Button from "../components/common/Button";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 // Register Chart.js components
 ChartJS.register(
@@ -68,6 +69,8 @@ interface TokenUsageStats {
 }
 
 const AdminTokenUsagePage: React.FC = () => {
+  useDocumentTitle("AI Token Usage");
+
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || "Zigi";
   const { user: currentUser } = useAuth();
   const [stats, setStats] = useState<TokenUsageStats | null>(null);

@@ -7,8 +7,11 @@ import type { Project, ProjectTemplate } from "../types/api";
 import { MagnifyingGlassIcon, TrashIcon } from "@heroicons/react/24/outline";
 import { PlusIcon, BeakerIcon, ChartBarIcon } from "@heroicons/react/24/solid";
 import { formatDate } from "../components/workspace/helpers/formatHelpers";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const ProjectsPage: React.FC = () => {
+  useDocumentTitle("Projects");
+
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [showTemplates, setShowTemplates] = useState(false);

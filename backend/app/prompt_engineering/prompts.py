@@ -19,6 +19,7 @@ PAGE_ROUTES = {
     "Settings": "/studio/settings",
     "Projects": "/studio/projects",
     "Simulation Studio": "/studio/simulation-studio",
+    "Protein Fold Generation": "/studio/protein-fold-generation",
 }
 
 def get_page_links_section() -> str:

@@ -4,8 +4,11 @@ import { Link } from "react-router-dom";
 import BlogCard from "../components/marketing_site/blog/BlogCard";
 import { fetchBlogs } from "../services/hygraphApi";
 import type { BlogListEntry, CategorySummary, TagSummary } from "../types/blog";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const BlogsPage: React.FC = () => {
+  useDocumentTitle("Blogs");
+
   const [blogs, setBlogs] = useState<BlogListEntry[]>([]);
   const [categories, setCategories] = useState<CategorySummary[]>([]);
   const [tags, setTags] = useState<TagSummary[]>([]);

@@ -4,8 +4,11 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import GenomePreview from "../components/data/GenomePreview";
 import { uploadGenomeFile } from "../services/data.api";
 import type { DataImportResponse } from "../types/api";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const DataImportPage: React.FC = () => {
+  useDocumentTitle("Data Import");
+
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [persist, setPersist] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);

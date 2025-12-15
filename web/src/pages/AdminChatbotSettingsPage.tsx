@@ -10,8 +10,11 @@ import { MdError, MdCheckCircle, MdSettings } from "react-icons/md";
 import { BiLoaderAlt } from "react-icons/bi";
 import { FaRobot } from "react-icons/fa";
 import Button from "../components/common/Button";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const AdminChatbotSettingsPage: React.FC = () => {
+  useDocumentTitle("Chatbot Settings");
+
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || "Zigi";
   const { user: currentUser } = useAuth();
   const [settings, setSettings] = useState<ChatbotSettings | null>(null);

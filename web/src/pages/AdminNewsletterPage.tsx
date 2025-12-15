@@ -30,6 +30,7 @@ import {
 } from "react-icons/fa";
 import { BiLoaderAlt } from "react-icons/bi";
 import { HiSparkles } from "react-icons/hi";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const TEMPLATE_TYPES = [
   {
@@ -99,6 +100,8 @@ const EXAMPLE_CONTENT = {
 };
 
 const AdminNewsletterPage: React.FC = () => {
+  useDocumentTitle("Newsletter Manager");
+
   const { user: currentUser } = useAuth();
   const [subscriptions, setSubscriptions] = useState<NewsletterSubscription[]>(
     []

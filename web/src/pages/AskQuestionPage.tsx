@@ -4,8 +4,11 @@ import { FiTag, FiX } from "react-icons/fi";
 import * as communityApi from "../services/communityApi";
 import { useAuth } from "../context/AuthContext";
 import AuthPrompt from "../components/community/AuthPrompt";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const AskQuestionPage: React.FC = () => {
+  useDocumentTitle("Ask a Question");
+
   const navigate = useNavigate();
   const { user } = useAuth();
 

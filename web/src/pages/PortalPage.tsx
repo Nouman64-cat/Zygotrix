@@ -12,9 +12,12 @@ import { useAuth } from "../context/AuthContext";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useUserStats } from "../hooks/useUserStats";
 import StatsCard from "../components/universal/StatsCard";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 
 const PortalPage: React.FC = () => {
+  useDocumentTitle("Studio");
+
   const { user } = useAuth();
   const navigate = useNavigate();
   const { projectsCount, publicTraitsCount, loading, error } = useUserStats();

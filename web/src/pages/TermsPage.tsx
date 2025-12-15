@@ -1,5 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const sections = [
   {
@@ -152,6 +153,8 @@ We aim to respond to all inquiries within 5 business days.`,
 ];
 
 const TermsPage: React.FC = () => {
+  useDocumentTitle("Terms of Service");
+
   return (
     <div className="bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 min-h-screen transition-colors duration-300">
       {/* Background Pattern */}

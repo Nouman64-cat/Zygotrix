@@ -11,6 +11,7 @@ import {
 import type { SignupInitiateResponse } from "../types/auth";
 import DNAStrand from "../components/marketing_site/home/DNAStrand";
 import GeneticCode from "../components/marketing_site/home/GeneticCode";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const formatExpiry = (value: string | null): string | null => {
   if (!value) {
@@ -43,6 +44,8 @@ type LocationState = {
 };
 
 const SignUpPage: React.FC = () => {
+  useDocumentTitle("Sign Up");
+
   const OTP_LENGTH = 6;
   const navigate = useNavigate();
   const location = useLocation();

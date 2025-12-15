@@ -18,8 +18,11 @@ import {
 } from "react-icons/md";
 import { BiLoaderAlt } from "react-icons/bi";
 import { FiInbox } from "react-icons/fi";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const AdminContactPage: React.FC = () => {
+  useDocumentTitle("Contact Submissions");
+
   const { user: currentUser } = useAuth();
   const [submissions, setSubmissions] = useState<ContactSubmission[]>([]);
   const [loading, setLoading] = useState(true);

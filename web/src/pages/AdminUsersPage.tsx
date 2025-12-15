@@ -8,8 +8,11 @@ import type {
   UserRole,
 } from "../types/auth";
 import type { AdminUserFilters } from "../services/admin.api";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const AdminUsersPage: React.FC = () => {
+  useDocumentTitle("User Management");
+
   const { user: currentUser } = useAuth();
   const [users, setUsers] = useState<AdminUserListItem[]>([]);
   const [stats, setStats] = useState<AdminUserStats | null>(null);

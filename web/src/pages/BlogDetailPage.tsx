@@ -7,6 +7,7 @@ import { fetchBlogBySlug, fetchBlogs } from "../services/hygraphApi";
 import type { BlogDetail, BlogListEntry } from "../types/blog";
 import RelatedBlogs from "../components/marketing_site/blog/RelatedBlogs";
 import { FiCalendar, FiClock, FiShare2, FiArrowLeft } from "react-icons/fi";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const formatDate = (value: string): string => {
   const date = new Date(value);
@@ -25,6 +26,9 @@ const BlogDetailPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [allBlogs, setAllBlogs] = useState<BlogListEntry[]>([]);
+
+  // Set dynamic page title based on blog
+  useDocumentTitle(blog?.title || "Blog");
 
   const estimateReadingTime = (content: string | undefined | null) => {
     if (!content) return 1;

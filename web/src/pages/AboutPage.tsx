@@ -13,6 +13,7 @@ import { HiBeaker, HiCog } from "react-icons/hi";
 import { fetchTeamMembers } from "../services/teamMember";
 import type { TeamMemberSummary } from "../types/teamMember";
 import logo from "../../public/zygotrix-logo.png";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const cardPalettes = [
   {
@@ -182,6 +183,8 @@ const values = [
 ];
 
 const AboutPage: React.FC = () => {
+  useDocumentTitle("About");
+
   const [teamMembers, setTeamMembers] = useState<TeamMemberSummary[]>([]);
   const [teamLoading, setTeamLoading] = useState(true);
   const [teamError, setTeamError] = useState<string | null>(null);

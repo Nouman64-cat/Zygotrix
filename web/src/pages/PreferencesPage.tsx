@@ -6,8 +6,11 @@ import * as authApi from "../services/auth.api";
 import type { UserPreferences } from "../types/auth";
 import { FiSun, FiMoon } from "react-icons/fi";
 import { HiOutlineComputerDesktop } from "react-icons/hi2";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const PreferencesPage: React.FC = () => {
+  useDocumentTitle("Preferences");
+
   const { user, refreshUser } = useAuth();
   const { setTheme } = useTheme();
   const [isSaving, setIsSaving] = useState(false);

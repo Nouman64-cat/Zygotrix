@@ -23,13 +23,16 @@ import type {
   GeneForm,
   ParentGenotypeState,
 } from "../types/simulationStudio.types";
-import DominanceIndicator, { dominancePalette } from "../components/simulation/DominanceIndicator";
+import DominanceIndicator, {
+  dominancePalette,
+} from "../components/simulation/DominanceIndicator";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const utils = new SimulationStudioUtils();
 
-
-
 const SimulationStudioPage: React.FC = () => {
+  useDocumentTitle("Simulation Studio");
+
   // Get simulation tool context for agent integration
   const toolContext = useSimulationTool();
 
@@ -256,7 +259,7 @@ const SimulationStudioPage: React.FC = () => {
         const currentTraits = availableTraitsRef.current;
         const currentGenes = genesRef.current;
 
-        let updatedGenes = [...currentGenes];
+        const updatedGenes = [...currentGenes];
 
         for (const trait of currentTraits) {
           // Skip if trait already added
@@ -327,10 +330,10 @@ const SimulationStudioPage: React.FC = () => {
               gene.chromosome === "autosomal"
                 ? 2
                 : gene.chromosome === "x" && sex === "male"
-                  ? 1
-                  : gene.chromosome === "y" && sex === "female"
-                    ? 0
-                    : 2;
+                ? 1
+                : gene.chromosome === "y" && sex === "female"
+                ? 0
+                : 2;
 
             const randomAlleles: string[] = [];
             for (let i = 0; i < slots; i++) {
@@ -718,8 +721,9 @@ const SimulationStudioPage: React.FC = () => {
 
     return (
       <div
-        className={`grid gap-2 ${slotCount === 2 ? "grid-cols-2" : "grid-cols-1"
-          }`}
+        className={`grid gap-2 ${
+          slotCount === 2 ? "grid-cols-2" : "grid-cols-1"
+        }`}
       >
         {Array.from({ length: slotCount }).map((_, index) => (
           <select
@@ -860,10 +864,11 @@ const SimulationStudioPage: React.FC = () => {
                       return (
                         <div
                           key={gene.uid}
-                          className={`group flex items-center justify-between rounded-lg border p-2 transition-all ${isActive
-                            ? "border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30"
-                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
-                            }`}
+                          className={`group flex items-center justify-between rounded-lg border p-2 transition-all ${
+                            isActive
+                              ? "border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30"
+                              : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
+                          }`}
                         >
                           <button
                             type="button"
@@ -1013,10 +1018,11 @@ const SimulationStudioPage: React.FC = () => {
                               setActiveGene(gene.uid);
                             }
                           }}
-                          className={`cursor-pointer rounded-lg border-2 bg-white dark:bg-slate-800 p-3 shadow-sm transition-all ${isActive
-                            ? "border-pink-400 dark:border-pink-500 ring-2 ring-pink-200 dark:ring-pink-900/50"
-                            : "border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-600"
-                            }`}
+                          className={`cursor-pointer rounded-lg border-2 bg-white dark:bg-slate-800 p-3 shadow-sm transition-all ${
+                            isActive
+                              ? "border-pink-400 dark:border-pink-500 ring-2 ring-pink-200 dark:ring-pink-900/50"
+                              : "border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-600"
+                          }`}
                         >
                           <div className="mb-2 flex items-center justify-between">
                             <span className="text-xs font-bold text-slate-800 dark:text-white">
@@ -1077,10 +1083,11 @@ const SimulationStudioPage: React.FC = () => {
                               setActiveGene(gene.uid);
                             }
                           }}
-                          className={`cursor-pointer rounded-lg border-2 bg-white dark:bg-slate-800 p-3 shadow-sm transition-all ${isActive
-                            ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/50"
-                            : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600"
-                            }`}
+                          className={`cursor-pointer rounded-lg border-2 bg-white dark:bg-slate-800 p-3 shadow-sm transition-all ${
+                            isActive
+                              ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/50"
+                              : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600"
+                          }`}
                         >
                           <div className="mb-2 flex items-center justify-between">
                             <span className="text-xs font-bold text-slate-800 dark:text-white">

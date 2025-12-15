@@ -6,6 +6,7 @@ import logo from "../../public/zygotrix-logo.png";
 import { useAuth } from "../context/AuthContext";
 import DNAStrand from "../components/marketing_site/home/DNAStrand";
 import GeneticCode from "../components/marketing_site/home/GeneticCode";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 type LocationState = {
   from?: { pathname: string };
@@ -13,6 +14,8 @@ type LocationState = {
 };
 
 const SignInPage: React.FC = () => {
+  useDocumentTitle("Sign In");
+
   const { signIn, isAuthenticating } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();

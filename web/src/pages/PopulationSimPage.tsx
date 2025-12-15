@@ -9,10 +9,13 @@ import type {
   PopulationSimResponse,
   TraitInfo,
 } from "../types/api";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const POPULATIONS = ["AFR", "EUR", "EAS", "SAS", "AMR"];
 
 const PopulationSimPage: React.FC = () => {
+  useDocumentTitle("Population Simulation");
+
   const [population, setPopulation] = useState("EUR");
   const [sampleSize, setSampleSize] = useState(10000);
   const [selectedTraits, setSelectedTraits] = useState<string[]>([

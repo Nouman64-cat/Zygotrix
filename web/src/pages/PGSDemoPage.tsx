@@ -4,6 +4,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import PGSPanel from "../components/data/PGSPanel";
 import { runPGSDemo } from "../services/data.api";
 import type { PGSDemoRequest, PGSDemoResponse } from "../types/api";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 type WeightRow = { rsid: string; effect_allele: string; weight: number };
 
@@ -61,6 +62,8 @@ const parseGenotypeTable = (text: string): Record<string, number> => {
 };
 
 const PGSDemoPage: React.FC = () => {
+  useDocumentTitle("PGS Demo");
+
   const [weightsText, setWeightsText] = useState("");
   const [genotypeText, setGenotypeText] = useState("");
   const [referenceMean, setReferenceMean] = useState("0");

@@ -23,6 +23,7 @@ import SubmitAnswerModal from "../components/community/SubmitAnswerModal";
 import ConfirmationModal from "../components/community/ConfirmationModal";
 import EditQuestionModal from "../components/community/EditQuestionModal";
 import EditAnswerModal from "../components/community/EditAnswerModal";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const QuestionDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -49,6 +50,9 @@ const QuestionDetailPage: React.FC = () => {
   });
   const [isDeleting, setIsDeleting] = useState(false);
   const [editingAnswer, setEditingAnswer] = useState<Answer | null>(null);
+
+  // Set dynamic page title based on question
+  useDocumentTitle(question?.title || "Question");
 
   const loadQuestion = async () => {
     if (!id) return;

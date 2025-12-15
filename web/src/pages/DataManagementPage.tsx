@@ -1,7 +1,10 @@
 import React from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const DataManagementPage: React.FC = () => {
+  useDocumentTitle("Data Management");
+
   const datasets = [
     {
       id: 1,

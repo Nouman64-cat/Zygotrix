@@ -15,8 +15,11 @@ import AuthPrompt from "../components/community/AuthPrompt";
 import AskQuestionModal from "../components/community/AskQuestionModal";
 import { useAuth } from "../context/AuthContext";
 import { useToast } from "../context/ToastContext";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const CommunityPage: React.FC = () => {
+  useDocumentTitle("Community");
+
   const [searchParams, setSearchParams] = useSearchParams();
   const { user } = useAuth();
   const { showToast } = useToast();

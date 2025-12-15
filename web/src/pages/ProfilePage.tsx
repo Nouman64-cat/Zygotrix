@@ -4,8 +4,11 @@ import ProfilePictureUpload from "../components/common/ProfilePictureUpload";
 import { useAuth } from "../context/AuthContext";
 import * as authApi from "../services/auth.api";
 import type { UpdateProfilePayload } from "../types/auth";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const ProfilePage: React.FC = () => {
+  useDocumentTitle("Profile");
+
   const { user, refreshUser } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [isSaving, setIsSaving] = useState(false);

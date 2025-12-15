@@ -4,8 +4,11 @@ import { useAnalytics, useFormattedMetrics } from "../hooks/useAnalytics";
 import { TimeRange } from "../services/analytics.api";
 import SimulationTrendsChart from "../components/charts/SimulationTrendsChart";
 import PopularTraitsChart from "../components/charts/PopularTraitsChart";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const AnalyticsPage: React.FC = () => {
+  useDocumentTitle("Analytics");
+
   const [timeRange, setTimeRange] = useState<TimeRange>(TimeRange.LAST_7_DAYS);
   const { analytics, loading, error, refetch } = useAnalytics({
     time_range: timeRange,

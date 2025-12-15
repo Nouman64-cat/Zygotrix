@@ -2,8 +2,11 @@ import React from "react";
 
 import AdvancedJointPhenotypeTest from "../components/marketing_site/joint_analysis/AdvancedJointPhenotypeTest";
 import JointPhenotypeTest from "../components/marketing_site/joint_analysis/JointPhenotypeTest";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const JointPhenotypePage: React.FC = () => {
+  useDocumentTitle("Joint Phenotype Analysis");
+
   return (
     <main className="min-h-screen bg-gradient-to-br from-slate-50 to-white">
       {/* Header */}

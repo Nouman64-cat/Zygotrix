@@ -21,6 +21,7 @@ import {
 import { fetchTraits } from "../services/traits.api";
 import type { TraitInfo } from "../types/api";
 import { useSimulationTool } from "../context/SimulationToolContext";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 type NumericField = number | "";
 
@@ -364,6 +365,8 @@ const syncGenotype = (
 };
 
 const SimulationStudioPage: React.FC = () => {
+  useDocumentTitle("Simulation Studio");
+
   // Get simulation tool context for agent integration
   const toolContext = useSimulationTool();
 

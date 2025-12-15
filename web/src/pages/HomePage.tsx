@@ -5,8 +5,11 @@ import FeatureHighlights from "../components/marketing_site/home/FeatureHighligh
 import HeroSection from "../components/marketing_site/home/HeroSection";
 import WorkflowSection from "../components/marketing_site/home/WorkflowSection";
 import { featureCards, workflow } from "../data/content";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const HomePage: React.FC = () => {
+  useDocumentTitle("Home");
+
   return (
     <>
       <HeroSection />
@@ -18,3 +21,4 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
+

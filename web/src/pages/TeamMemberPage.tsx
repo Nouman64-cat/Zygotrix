@@ -14,6 +14,7 @@ import { useTeamMember } from "../hooks/useTeamMember";
 import { fetchBlogsByAuthor } from "../services/hygraphApi";
 import type { BlogListEntry } from "../types/blog";
 import { FiCalendar, FiArrowRight } from "react-icons/fi";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const markdownComponents = {
   h1: ({ children }: any) => (
@@ -71,6 +72,9 @@ const TeamMemberPage: React.FC = () => {
   const { teamMember, loading, error } = useTeamMember(slug || "");
   const [authoredBlogs, setAuthoredBlogs] = useState<BlogListEntry[]>([]);
   const [blogsLoading, setBlogsLoading] = useState(false);
+
+  // Set dynamic page title based on team member name
+  useDocumentTitle(teamMember?.name || "Team Member");
 
   useEffect(() => {
     if (!teamMember?.name) return;

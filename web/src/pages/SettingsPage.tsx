@@ -3,8 +3,11 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
 import * as authApi from "../services/auth.api";
 import { FiUser, FiLock, FiDatabase } from "react-icons/fi";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const SettingsPage: React.FC = () => {
+  useDocumentTitle("Settings");
+
   const { user, refreshUser } = useAuth();
   const [activeTab, setActiveTab] = useState("account");
   const [isSaving, setIsSaving] = useState(false);

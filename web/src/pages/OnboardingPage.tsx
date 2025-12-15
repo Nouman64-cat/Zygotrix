@@ -27,8 +27,11 @@ import {
 import { GiMouse, GiFly } from "react-icons/gi";
 import { LuWorm } from "react-icons/lu";
 import { FiCheckCircle } from "react-icons/fi";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const OnboardingPage: React.FC = () => {
+  useDocumentTitle("Onboarding");
+
   const navigate = useNavigate();
   const { refreshUser } = useAuth();
   const [currentStep, setCurrentStep] = useState(0);

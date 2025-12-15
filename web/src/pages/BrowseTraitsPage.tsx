@@ -4,8 +4,11 @@ import TraitsTable from "../components/traits/TraitsTable";
 import TraitDetailModal from "../components/modals/TraitDetailModal";
 import { fetchTraits } from "../services/traits.api";
 import type { TraitInfo } from "../types/api";
+import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const BrowseTraitsPage: React.FC = () => {
+  useDocumentTitle("Browse Traits");
+
   const [traits, setTraits] = useState<TraitInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);

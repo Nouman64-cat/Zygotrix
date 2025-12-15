@@ -171,23 +171,47 @@ const AdminTokenUsagePage: React.FC = () => {
       {
         label: "Total Tokens",
         data: dailyData?.daily_usage.map((d) => d.total_tokens) || [],
-        borderColor: "rgb(99, 102, 241)",
-        backgroundColor: "rgba(99, 102, 241, 0.1)",
+        borderColor: "rgb(139, 92, 246)",
+        backgroundColor: "rgba(139, 92, 246, 0.1)",
         fill: true,
         tension: 0.4,
         pointRadius: 3,
         pointHoverRadius: 6,
+        borderWidth: 2,
+      },
+      {
+        label: "Input Tokens",
+        data: dailyData?.daily_usage.map((d) => d.input_tokens) || [],
+        borderColor: "rgb(6, 182, 212)",
+        backgroundColor: "rgba(6, 182, 212, 0.05)",
+        fill: false,
+        tension: 0.4,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        borderWidth: 2,
+      },
+      {
+        label: "Output Tokens",
+        data: dailyData?.daily_usage.map((d) => d.output_tokens) || [],
+        borderColor: "rgb(16, 185, 129)",
+        backgroundColor: "rgba(16, 185, 129, 0.05)",
+        fill: false,
+        tension: 0.4,
+        pointRadius: 3,
+        pointHoverRadius: 6,
+        borderWidth: 2,
       },
       {
         label: "Requests",
         data: dailyData?.daily_usage.map((d) => d.request_count * 100) || [], // Scale up for visibility
-        borderColor: "rgb(16, 185, 129)",
-        backgroundColor: "rgba(16, 185, 129, 0.1)",
+        borderColor: "rgb(245, 158, 11)",
+        backgroundColor: "rgba(245, 158, 11, 0.1)",
         fill: false,
         tension: 0.4,
         pointRadius: 3,
         pointHoverRadius: 6,
         yAxisID: "y1",
+        borderWidth: 2,
       },
     ],
   };
@@ -247,6 +271,17 @@ const AdminTokenUsagePage: React.FC = () => {
         grid: {
           color: "rgba(148, 163, 184, 0.1)",
         },
+        ticks: {
+          callback: function (value: number | string) {
+            const num = typeof value === "string" ? parseFloat(value) : value;
+            if (num >= 1000000) {
+              return `${(num / 1000000).toFixed(1)}M`;
+            } else if (num >= 1000) {
+              return `${(num / 1000).toFixed(0)}K`;
+            }
+            return num.toString();
+          },
+        },
       },
       y1: {
         type: "linear" as const,
@@ -254,10 +289,23 @@ const AdminTokenUsagePage: React.FC = () => {
         position: "right" as const,
         title: {
           display: true,
-          text: "Requests (×100)",
+          text: "Requests",
         },
         grid: {
           drawOnChartArea: false,
+        },
+        ticks: {
+          callback: function (value: number | string) {
+            // Scale back down from ×100 and format
+            const num = typeof value === "string" ? parseFloat(value) : value;
+            const actual = num / 100;
+            if (actual >= 1000000) {
+              return `${(actual / 1000000).toFixed(1)}M`;
+            } else if (actual >= 1000) {
+              return `${(actual / 1000).toFixed(0)}K`;
+            }
+            return actual.toString();
+          },
         },
       },
     },

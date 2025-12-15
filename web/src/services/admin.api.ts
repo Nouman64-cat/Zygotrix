@@ -9,6 +9,9 @@ import type {
   MessageResponse,
   ChatbotSettings,
   ChatbotSettingsResponse,
+  PromptTemplate,
+  PromptTemplateUpdate,
+  PromptType,
 } from "../types/auth";
 
 export type AdminUserFilters = {
@@ -105,6 +108,39 @@ export const updateChatbotSettings = async (
   const response = await API.put<ChatbotSettingsResponse>(
     API_ROUTES.admin.updateChatbotSettings,
     settings
+  );
+  return response.data;
+};
+
+// Prompt template management functions
+export const fetchAllPrompts = async (): Promise<PromptTemplate[]> => {
+  const response = await API.get<PromptTemplate[]>(API_ROUTES.admin.prompts);
+  return response.data;
+};
+
+export const fetchPrompt = async (promptType: PromptType): Promise<PromptTemplate> => {
+  const response = await API.get<PromptTemplate>(
+    API_ROUTES.admin.promptDetail(promptType)
+  );
+  return response.data;
+};
+
+export const updatePrompt = async (
+  promptType: PromptType,
+  data: PromptTemplateUpdate
+): Promise<PromptTemplate> => {
+  const response = await API.put<PromptTemplate>(
+    API_ROUTES.admin.updatePrompt(promptType),
+    data
+  );
+  return response.data;
+};
+
+export const resetPromptToDefault = async (
+  promptType: PromptType
+): Promise<MessageResponse> => {
+  const response = await API.post<MessageResponse>(
+    API_ROUTES.admin.resetPrompt(promptType)
   );
   return response.data;
 };

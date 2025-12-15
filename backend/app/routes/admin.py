@@ -1,5 +1,5 @@
 """Admin routes for user management."""
-from typing import Optional
+from typing import Optional, List
 from math import ceil
 
 from fastapi import APIRouter, Depends, HTTPException, Query
@@ -20,8 +20,13 @@ from ..schema.chatbot_settings import (
     ChatbotSettingsUpdate,
     ChatbotSettingsResponse,
 )
+from ..models.prompt_template import (
+    PromptTemplateUpdate,
+    PromptTemplateResponse,
+)
 from ..services import admin as admin_services
 from ..services import chatbot_settings as chatbot_settings_service
+from ..services import prompt_service
 
 router = APIRouter(prefix="/api/admin", tags=["Admin"])
 
@@ -195,3 +200,65 @@ def update_chatbot_settings(
         message="Chatbot settings updated successfully",
         settings=updated_settings
     )
+
+
+# Prompt Template Management Endpoints
+@router.get("/prompts", response_model=List[PromptTemplateResponse])
+def get_all_prompts(
+    current_admin: UserProfile = Depends(get_current_super_admin),
+) -> List[PromptTemplateResponse]:
+    """
+    Get all prompt templates.
+    Requires super admin privileges.
+    """
+    return prompt_service.get_all_prompts()
+
+
+@router.get("/prompts/{prompt_type}", response_model=PromptTemplateResponse)
+def get_prompt(
+    prompt_type: str,
+    current_admin: UserProfile = Depends(get_current_super_admin),
+) -> PromptTemplateResponse:
+    """
+    Get a specific prompt template by type.
+    Requires super admin privileges.
+    """
+    prompt = prompt_service.get_prompt_by_type(prompt_type)
+    if not prompt:
+        raise HTTPException(status_code=404, detail="Prompt template not found")
+    return prompt
+
+
+@router.put("/prompts/{prompt_type}", response_model=PromptTemplateResponse)
+def update_prompt(
+    prompt_type: str,
+    prompt_update: PromptTemplateUpdate,
+    current_admin: UserProfile = Depends(get_current_super_admin),
+) -> PromptTemplateResponse:
+    """
+    Update a prompt template.
+    Requires super admin privileges.
+    """
+    updated_prompt = prompt_service.update_prompt(
+        prompt_type=prompt_type,
+        prompt_update=prompt_update,
+        admin_user_id=current_admin.id
+    )
+    if not updated_prompt:
+        raise HTTPException(status_code=404, detail="Prompt template not found")
+    return updated_prompt
+
+
+@router.post("/prompts/{prompt_type}/reset", response_model=MessageResponse)
+def reset_prompt_to_default(
+    prompt_type: str,
+    current_admin: UserProfile = Depends(get_current_super_admin),
+) -> MessageResponse:
+    """
+    Reset a prompt template to its default value.
+    Requires super admin privileges.
+    """
+    success = prompt_service.reset_to_default(prompt_type, current_admin.id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Prompt template not found")
+    return MessageResponse(message=f"Prompt template '{prompt_type}' reset to default successfully")

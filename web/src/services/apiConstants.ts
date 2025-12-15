@@ -87,6 +87,13 @@ export const API_ROUTES = {
     stats: "/api/admin/stats",
     chatbotSettings: "/api/admin/chatbot/settings",
     updateChatbotSettings: "/api/admin/chatbot/settings",
+    prompts: "/api/admin/prompts",
+    promptDetail: (promptType: string) =>
+      "/api/admin/prompts/" + encodeURIComponent(promptType),
+    updatePrompt: (promptType: string) =>
+      "/api/admin/prompts/" + encodeURIComponent(promptType),
+    resetPrompt: (promptType: string) =>
+      "/api/admin/prompts/" + encodeURIComponent(promptType) + "/reset",
   },
   newsletter: {
     subscribe: "/api/newsletter/subscribe",

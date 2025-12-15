@@ -194,3 +194,23 @@ export type ChatbotSettingsResponse = {
   message: string;
   settings: ChatbotSettings;
 };
+
+// Prompt template types
+export type PromptType = "system" | "system_verbose" | "simulation";
+
+export type PromptTemplate = {
+  id: string;
+  prompt_type: PromptType;
+  prompt_content: string;
+  description?: string | null;
+  is_active: boolean;
+  created_at: string;
+  updated_at: string;
+  updated_by?: string | null;
+};
+
+export type PromptTemplateUpdate = {
+  prompt_content: string;
+  description?: string | null;
+  is_active?: boolean;
+};

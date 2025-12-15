@@ -9,6 +9,13 @@ load_dotenv(find_dotenv())
 BOT_NAME = os.getenv("ZYGOTRIX_BOT_NAME", "Zigi")
 FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
+# Import prompt service for database access
+try:
+    from app.services import prompt_service
+    PROMPTS_FROM_DB = True
+except ImportError:
+    PROMPTS_FROM_DB = False
+
 # Page routes mapping for link generation
 PAGE_ROUTES = {
     "Browse Traits": "/studio/browse-traits",
@@ -34,7 +41,23 @@ def get_system_prompt(user_name: str) -> str:
     """
     Generate the system prompt with configurable bot name.
     Optimized for MINIMAL token usage in responses.
+    Fetches from database if available, otherwise uses default.
     """
+    # Try to get from database first
+    if PROMPTS_FROM_DB:
+        try:
+            db_prompt = prompt_service.get_prompt_content("system")
+            if db_prompt:
+                # Replace placeholders
+                return db_prompt.format(
+                    BOT_NAME=BOT_NAME,
+                    user_name=user_name,
+                    FRONTEND_URL=FRONTEND_URL
+                )
+        except Exception as e:
+            print(f"Warning: Could not fetch prompt from database: {e}")
+
+    # Fallback to default
     return f"""bot:{BOT_NAME}|user:{user_name}|url:{FRONTEND_URL}
 
 CRITICAL: USE MINIMUM TOKENS BY DEFAULT
@@ -60,7 +83,23 @@ Format: **bold** for genotypes"""
 def get_system_prompt_verbose(user_name: str) -> str:
     """
     Legacy verbose prompt - kept for fallback.
+    Fetches from database if available, otherwise uses default.
     """
+    # Try to get from database first
+    if PROMPTS_FROM_DB:
+        try:
+            db_prompt = prompt_service.get_prompt_content("system_verbose")
+            if db_prompt:
+                # Replace placeholders
+                return db_prompt.format(
+                    BOT_NAME=BOT_NAME,
+                    user_name=user_name,
+                    FRONTEND_URL=FRONTEND_URL
+                )
+        except Exception as e:
+            print(f"Warning: Could not fetch verbose prompt from database: {e}")
+
+    # Fallback to default
     return f"""You are {BOT_NAME}, a friendly AI assistant for Zygotrix, an interactive genetics learning platform.
 
 RULES:
@@ -100,7 +139,24 @@ def get_simulation_tool_prompt(user_name: str, simulation_context: str = "") -> 
     """
     Generate system prompt with simulation tool capabilities.
     This prompt enables the chatbot to control simulations through structured commands.
+    Fetches from database if available, otherwise uses default.
     """
+    # Try to get from database first
+    if PROMPTS_FROM_DB:
+        try:
+            db_prompt = prompt_service.get_prompt_content("simulation")
+            if db_prompt:
+                # Replace placeholders
+                return db_prompt.format(
+                    BOT_NAME=BOT_NAME,
+                    user_name=user_name,
+                    FRONTEND_URL=FRONTEND_URL,
+                    simulation_context=simulation_context
+                )
+        except Exception as e:
+            print(f"Warning: Could not fetch simulation prompt from database: {e}")
+
+    # Fallback to default
     return f"""bot:{BOT_NAME}|user:{user_name}|url:{FRONTEND_URL}
 
 You are a genetics simulation assistant helping {user_name} set up and run genetic crosses in the Simulation Studio.

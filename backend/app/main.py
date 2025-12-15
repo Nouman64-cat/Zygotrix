@@ -7,6 +7,7 @@ from .routes.university import router as university_router
 from .routes.community import router as community_router
 from .routes.gwas import router as gwas_router
 from .routes.cpp_engine import router as cpp_engine_router
+from .routes.dna_generator import router as dna_generator_router
 from .routes.analytics import router as analytics_router
 from .routes.project_templates import router as project_templates_router
 from .routes.portal import router as portal_router
@@ -99,6 +100,7 @@ app.include_router(analytics_router)
 app.include_router(gwas_router)
 app.include_router(community_router)
 app.include_router(cpp_engine_router)
+app.include_router(dna_generator_router)
 app.include_router(university_router)
 app.include_router(traits_router)
 

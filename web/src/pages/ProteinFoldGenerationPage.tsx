@@ -2,13 +2,220 @@ import React, { useState, useMemo, useCallback, useRef } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import {
   generateDnaAndRna,
-  extractAminoAcids,
   generateProteinSequence,
   type ProteinGenerateResponse,
-  type AminoAcidExtractResponse,
   type ProteinSequenceResponse,
 } from "../services/proteinGenerator.api";
 import useDocumentTitle from "../hooks/useDocumentTitle";
+
+// Amino acid classification types
+type AminoAcidClassification = "hydrophobic" | "polar" | "positive" | "negative" | "special";
+
+// Amino acid classification lookup
+const AMINO_ACID_CLASSIFICATION: Record<string, AminoAcidClassification> = {
+  // Hydrophobic (Nonpolar)
+  "A": "hydrophobic", // Alanine
+  "V": "hydrophobic", // Valine
+  "I": "hydrophobic", // Isoleucine
+  "L": "hydrophobic", // Leucine
+  "M": "hydrophobic", // Methionine
+  "F": "hydrophobic", // Phenylalanine
+  "W": "hydrophobic", // Tryptophan
+  "P": "hydrophobic", // Proline
+
+  // Polar (Uncharged)
+  "S": "polar", // Serine
+  "T": "polar", // Threonine
+  "C": "polar", // Cysteine
+  "Y": "polar", // Tyrosine
+  "N": "polar", // Asparagine
+  "Q": "polar", // Glutamine
+  "G": "polar", // Glycine
+
+  // Positive (Basic)
+  "K": "positive", // Lysine
+  "R": "positive", // Arginine
+  "H": "positive", // Histidine
+
+  // Negative (Acidic)
+  "D": "negative", // Aspartic Acid
+  "E": "negative", // Glutamic Acid
+
+  // Special
+  "*": "special", // Stop codon
+};
+
+// Color scheme for amino acid classifications
+const CLASSIFICATION_COLORS: Record<AminoAcidClassification, { bg: string; hover: string; text: string }> = {
+  hydrophobic: {
+    bg: "bg-yellow-500",
+    hover: "hover:bg-yellow-400",
+    text: "text-white"
+  },
+  polar: {
+    bg: "bg-blue-500",
+    hover: "hover:bg-blue-400",
+    text: "text-white"
+  },
+  positive: {
+    bg: "bg-green-600",
+    hover: "hover:bg-green-500",
+    text: "text-white"
+  },
+  negative: {
+    bg: "bg-red-600",
+    hover: "hover:bg-red-500",
+    text: "text-white"
+  },
+  special: {
+    bg: "bg-gray-700",
+    hover: "hover:bg-gray-600",
+    text: "text-white"
+  }
+};
+
+// Amino Acid Composition Bar Chart Component
+const AminoAcidBarChart: React.FC<{
+  rnaSequence: string;
+}> = ({ rnaSequence }) => {
+  // Count amino acids from RNA sequence
+  const aminoAcidCounts = useMemo(() => {
+    const counts: Record<string, number> = {};
+
+    for (let i = 0; i < rnaSequence.length - 2; i += 3) {
+      const codon = rnaSequence.substring(i, i + 3).toUpperCase();
+      const aa = CODON_TABLE[codon];
+      if (aa && aa.name !== "STOP") {
+        counts[aa.symbol] = (counts[aa.symbol] || 0) + 1;
+      }
+    }
+    return counts;
+  }, [rnaSequence]);
+
+  // Amino acid info with full names
+  const aminoAcids = [
+    { symbol: "A", name: "Ala", fullName: "Alanine" },
+    { symbol: "R", name: "Arg", fullName: "Arginine" },
+    { symbol: "N", name: "Asn", fullName: "Asparagine" },
+    { symbol: "D", name: "Asp", fullName: "Aspartic acid" },
+    { symbol: "C", name: "Cys", fullName: "Cysteine" },
+    { symbol: "E", name: "Glu", fullName: "Glutamic acid" },
+    { symbol: "Q", name: "Gln", fullName: "Glutamine" },
+    { symbol: "G", name: "Gly", fullName: "Glycine" },
+    { symbol: "H", name: "His", fullName: "Histidine" },
+    { symbol: "I", name: "Ile", fullName: "Isoleucine" },
+    { symbol: "L", name: "Leu", fullName: "Leucine" },
+    { symbol: "K", name: "Lys", fullName: "Lysine" },
+    { symbol: "M", name: "Met", fullName: "Methionine" },
+    { symbol: "F", name: "Phe", fullName: "Phenylalanine" },
+    { symbol: "P", name: "Pro", fullName: "Proline" },
+    { symbol: "S", name: "Ser", fullName: "Serine" },
+    { symbol: "T", name: "Thr", fullName: "Threonine" },
+    { symbol: "W", name: "Trp", fullName: "Tryptophan" },
+    { symbol: "Y", name: "Tyr", fullName: "Tyrosine" },
+    { symbol: "V", name: "Val", fullName: "Valine" },
+  ];
+
+  // Get classification color
+  const getBarColor = (symbol: string) => {
+    const classification = AMINO_ACID_CLASSIFICATION[symbol];
+    switch (classification) {
+      case "hydrophobic": return "bg-gradient-to-r from-yellow-400 to-yellow-500";
+      case "polar": return "bg-gradient-to-r from-blue-400 to-blue-500";
+      case "positive": return "bg-gradient-to-r from-green-400 to-green-500";
+      case "negative": return "bg-gradient-to-r from-red-400 to-red-500";
+      case "special": return "bg-gradient-to-r from-purple-400 to-purple-500";
+      default: return "bg-gradient-to-r from-gray-400 to-gray-500";
+    }
+  };
+
+  const totalAA = Object.values(aminoAcidCounts).reduce((a, b) => a + b, 0);
+  const maxCount = Math.max(...Object.values(aminoAcidCounts), 1);
+
+  // Sort by count descending
+  const sortedAAs = [...aminoAcids].sort((a, b) =>
+    (aminoAcidCounts[b.symbol] || 0) - (aminoAcidCounts[a.symbol] || 0)
+  );
+
+  return (
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 mt-4">
+      <div className="flex items-center justify-between mb-4">
+        <h3 className="text-sm font-semibold text-gray-900 dark:text-white">Amino Acid Composition</h3>
+        <span className="text-xs text-gray-500 dark:text-gray-400">{totalAA.toLocaleString()} total amino acids</span>
+      </div>
+
+      {/* Legend */}
+      <div className="flex flex-wrap gap-3 mb-4 text-xs">
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-yellow-500"></span>
+          <span className="text-gray-600 dark:text-gray-400">Hydrophobic</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-blue-500"></span>
+          <span className="text-gray-600 dark:text-gray-400">Polar</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-green-500"></span>
+          <span className="text-gray-600 dark:text-gray-400">Positive</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-red-500"></span>
+          <span className="text-gray-600 dark:text-gray-400">Negative</span>
+        </div>
+        <div className="flex items-center gap-1">
+          <span className="w-3 h-3 rounded bg-purple-500"></span>
+          <span className="text-gray-600 dark:text-gray-400">Special</span>
+        </div>
+      </div>
+
+      {/* Bars */}
+      <div className="space-y-1.5">
+        {sortedAAs.map(aa => {
+          const count = aminoAcidCounts[aa.symbol] || 0;
+          const percentage = totalAA > 0 ? (count / totalAA) * 100 : 0;
+          const barWidth = (count / maxCount) * 100;
+
+          return (
+            <div key={aa.symbol} className="flex items-center gap-2 group">
+              {/* Label */}
+              <div className="w-8 text-right">
+                <span className="text-xs font-bold text-gray-700 dark:text-gray-300">{aa.symbol}</span>
+              </div>
+              <div className="w-10 text-left">
+                <span className="text-[10px] text-gray-500 dark:text-gray-400">{aa.name}</span>
+              </div>
+
+              {/* Bar container */}
+              <div className="flex-1 h-5 bg-gray-100 dark:bg-gray-700 rounded-full overflow-hidden relative">
+                <div
+                  className={`h-full rounded-full transition-all duration-300 ${getBarColor(aa.symbol)}`}
+                  style={{ width: `${barWidth}%` }}
+                />
+                {/* Hover tooltip */}
+                <div className="absolute inset-0 flex items-center px-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                  <span className="text-[10px] font-medium text-white drop-shadow-md">
+                    {aa.fullName}
+                  </span>
+                </div>
+              </div>
+
+              {/* Count and percentage */}
+              <div className="w-20 text-right">
+                <span className="text-xs text-gray-600 dark:text-gray-400">
+                  {count.toLocaleString()}
+                </span>
+                <span className="text-[10px] text-gray-400 dark:text-gray-500 ml-1">
+                  ({percentage.toFixed(1)}%)
+                </span>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
 
 // Codon to amino acid lookup table
 const CODON_TABLE: Record<string, { name: string; symbol: string; fullName: string }> = {
@@ -84,6 +291,8 @@ interface HoveredCodonInfo {
   symbol: string;
   name: string;
   fullName: string;
+  classification: AminoAcidClassification;
+  classificationLabel: string;
 }
 
 // Constants for virtualization
@@ -116,23 +325,23 @@ const VirtualizedCodonSequence: React.FC<{
       <div className="flex flex-wrap gap-1 p-2">
         {codons.map((codon, index) => {
           const aminoAcid = CODON_TABLE[codon.toUpperCase()];
-          const isEven = index % 2 === 0;
 
           if (showHighlights && aminoAcid) {
+            const classification = AMINO_ACID_CLASSIFICATION[aminoAcid.symbol] || "special";
+            const colors = CLASSIFICATION_COLORS[classification];
+            const classificationLabel = classification.charAt(0).toUpperCase() + classification.slice(1);
+
             return (
               <span
                 key={index}
-                className={`cursor-pointer px-1 py-0.5 rounded inline-block font-medium text-xs ${aminoAcid.name === "STOP"
-                  ? "bg-red-600 text-white hover:bg-red-500"
-                  : isEven
-                    ? "bg-purple-600 text-white hover:bg-purple-500"
-                    : "bg-cyan-600 text-white hover:bg-cyan-500"
-                  } transition-colors shadow-sm`}
+                className={`cursor-pointer px-1 py-0.5 rounded inline-block font-medium text-xs ${colors.bg} ${colors.text} ${colors.hover} transition-colors shadow-sm`}
                 onMouseEnter={() => onHover?.({
                   codon,
                   symbol: aminoAcid.symbol,
                   name: aminoAcid.name,
-                  fullName: aminoAcid.fullName
+                  fullName: aminoAcid.fullName,
+                  classification,
+                  classificationLabel
                 })}
                 onMouseLeave={() => onHover?.(null)}
               >
@@ -201,23 +410,23 @@ const VirtualizedCodonSequence: React.FC<{
                   {rowCodons.map((codon, i) => {
                     const globalIndex = startIdx + i;
                     const aminoAcid = CODON_TABLE[codon.toUpperCase()];
-                    const isEven = globalIndex % 2 === 0;
 
                     if (showHighlights && aminoAcid) {
+                      const classification = AMINO_ACID_CLASSIFICATION[aminoAcid.symbol] || "special";
+                      const colors = CLASSIFICATION_COLORS[classification];
+                      const classificationLabel = classification.charAt(0).toUpperCase() + classification.slice(1);
+
                       return (
                         <span
                           key={globalIndex}
-                          className={`cursor-pointer px-1 py-0.5 rounded inline-block font-medium text-xs ${aminoAcid.name === "STOP"
-                            ? "bg-red-600 text-white hover:bg-red-500"
-                            : isEven
-                              ? "bg-purple-600 text-white hover:bg-purple-500"
-                              : "bg-cyan-600 text-white hover:bg-cyan-500"
-                            } transition-colors shadow-sm`}
+                          className={`cursor-pointer px-1 py-0.5 rounded inline-block font-medium text-xs ${colors.bg} ${colors.text} ${colors.hover} transition-colors shadow-sm`}
                           onMouseEnter={() => onHover?.({
                             codon,
                             symbol: aminoAcid.symbol,
                             name: aminoAcid.name,
-                            fullName: aminoAcid.fullName
+                            fullName: aminoAcid.fullName,
+                            classification,
+                            classificationLabel
                           })}
                           onMouseLeave={() => onHover?.(null)}
                         >
@@ -337,11 +546,9 @@ const ProteinFoldGenerationPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
 
   const [dnaRnaResult, setDnaRnaResult] = useState<ProteinGenerateResponse | null>(null);
-  const [aminoAcidsResult, setAminoAcidsResult] = useState<AminoAcidExtractResponse | null>(null);
   const [proteinResult, setProteinResult] = useState<ProteinSequenceResponse | null>(null);
 
   const [transcribing, setTranscribing] = useState<boolean>(false);
-  const [extractingAminoAcids, setExtractingAminoAcids] = useState<boolean>(false);
   const [generatingProtein, setGeneratingProtein] = useState<boolean>(false);
   const [hoveredCodon, setHoveredCodon] = useState<HoveredCodonInfo | null>(null);
 
@@ -349,7 +556,6 @@ const ProteinFoldGenerationPage: React.FC = () => {
     setError(null);
     setLoading(true);
     setDnaRnaResult(null);
-    setAminoAcidsResult(null);
     setProteinResult(null);
     setTranscribing(false);
 
@@ -370,22 +576,6 @@ const ProteinFoldGenerationPage: React.FC = () => {
       setTranscribing(false);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleExtractAminoAcids = async () => {
-    if (!dnaRnaResult) return;
-
-    setError(null);
-    setExtractingAminoAcids(true);
-
-    try {
-      const response = await extractAminoAcids({ rna_sequence: dnaRnaResult.rna_sequence });
-      setAminoAcidsResult(response);
-    } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Failed to extract amino acids");
-    } finally {
-      setExtractingAminoAcids(false);
     }
   };
 
@@ -419,7 +609,6 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
   const handleReset = () => {
     setDnaRnaResult(null);
-    setAminoAcidsResult(null);
     setProteinResult(null);
     setError(null);
   };
@@ -427,14 +616,6 @@ const ProteinFoldGenerationPage: React.FC = () => {
   return (
     <DashboardLayout>
       <div className="container mx-auto px-4 py-8 max-w-8xl">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
-            Protein Fold Generation
-          </h1>
-          <p className="text-gray-600 dark:text-gray-400">
-            Generate random DNA sequences, transcribe to RNA, extract amino acids, and synthesize protein sequences
-          </p>
-        </div>
 
         {/* Two Column Layout: Generate DNA (Left) & DNA/RNA Sequences (Right) */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
@@ -537,44 +718,6 @@ const ProteinFoldGenerationPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Amino Acids Section - Below Generate DNA */}
-            {aminoAcidsResult && (
-              <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 border border-transparent dark:border-gray-700">
-                <div className="flex items-center justify-between mb-4">
-                  <div className="flex items-center">
-                    <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold mr-3">
-                      ✓
-                    </div>
-                    <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                      Amino Acids Extracted
-                    </h2>
-                  </div>
-                  <button
-                    onClick={() => handleCopySequence(aminoAcidsResult.amino_acids)}
-                    className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm"
-                  >
-                    Copy
-                  </button>
-                </div>
-
-                <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 overflow-y-auto border border-gray-300 dark:border-gray-800 mb-4 max-h-48">
-                  <pre className="text-xs text-yellow-600 dark:text-yellow-400 font-mono leading-relaxed whitespace-pre-wrap break-all">
-                    {aminoAcidsResult.amino_acids}
-                  </pre>
-                </div>
-
-                {/* Generate Protein Button */}
-                {!proteinResult && (
-                  <button
-                    onClick={handleGenerateProtein}
-                    disabled={generatingProtein}
-                    className="w-full bg-pink-600 hover:bg-pink-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-                  >
-                    {generatingProtein ? "Generating..." : "Generate Protein Sequence"}
-                  </button>
-                )}
-              </div>
-            )}
           </div>
 
           {/* Right Column: Step 2 - DNA & RNA Sequences */}
@@ -588,6 +731,19 @@ const ProteinFoldGenerationPage: React.FC = () => {
                   DNA & RNA Sequences
                 </h2>
               </div>
+              {dnaRnaResult && !transcribing && (
+                <div className="flex flex-wrap gap-1">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">
+                    {dnaRnaResult.length.toLocaleString()} bp
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300">
+                    {Math.floor(dnaRnaResult.length / 3).toLocaleString()} codons
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">
+                    GC {(dnaRnaResult.actual_gc * 100).toFixed(1)}%
+                  </span>
+                </div>
+              )}
             </div>
 
             {/* Transcription Indicator */}
@@ -627,26 +783,6 @@ const ProteinFoldGenerationPage: React.FC = () => {
             {/* DNA & RNA Results */}
             {dnaRnaResult && !transcribing && (
               <>
-                <div className="grid grid-cols-3 gap-4 mb-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-gray-200 dark:border-gray-700">
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {dnaRnaResult.length.toLocaleString()} bp
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Codons</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {Math.floor(dnaRnaResult.length / 3).toLocaleString()}
-                    </p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-gray-600 dark:text-gray-400">Actual GC Content</p>
-                    <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                      {(dnaRnaResult.actual_gc * 100).toFixed(2)}%
-                    </p>
-                  </div>
-                </div>
 
                 <div className="space-y-4">
                   {/* DNA Sequence */}
@@ -675,7 +811,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                   <div>
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="text-md font-semibold text-gray-900 dark:text-white">
-                        RNA Sequence {aminoAcidsResult && <span className="text-xs text-purple-400 ml-2">(Hover codons for amino acids)</span>}
+                        RNA Sequence {proteinResult && <span className="text-xs text-purple-400 ml-2">(Hover codons for amino acids)</span>}
                       </h3>
                       <button
                         onClick={() => handleCopySequence(dnaRnaResult.rna_sequence)}
@@ -686,43 +822,77 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     </div>
 
                     {/* Fixed Tooltip Bar - Outside scrollable area */}
-                    {aminoAcidsResult && (
-                      <div className={`mb-2 px-4 py-3 rounded-lg border transition-all duration-300 ease-in-out ${hoveredCodon
-                        ? 'bg-purple-50 dark:bg-gray-900 border-purple-500 dark:border-purple-500 shadow-md'
-                        : 'bg-gray-100 dark:bg-gray-900/50 border-gray-300 dark:border-gray-700'
-                        }`}>
-                        <div className="relative h-7 overflow-hidden">
-                          {/* Hovered state content */}
-                          <div className={`absolute inset-0 flex items-center gap-3 text-sm transition-all duration-300 ease-in-out ${hoveredCodon
-                            ? 'opacity-100 translate-y-0'
-                            : 'opacity-0 -translate-y-4'
-                            }`}>
-                            {hoveredCodon && (
-                              <>
-                                <span className="font-mono text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded">{hoveredCodon.codon}</span>
-                                <span className="text-gray-500 dark:text-gray-400">→</span>
-                                <span className="font-bold text-yellow-600 dark:text-yellow-400 text-lg">{hoveredCodon.symbol}</span>
-                                <span className="text-green-600 dark:text-green-400 font-medium">{hoveredCodon.name}</span>
-                                <span className="text-gray-500 dark:text-gray-400">•</span>
-                                <span className="text-gray-700 dark:text-gray-300">{hoveredCodon.fullName}</span>
-                              </>
-                            )}
-                          </div>
-                          {/* Default state content */}
-                          <div className={`absolute inset-0 flex items-center text-sm text-gray-500 dark:text-gray-400 italic transition-all duration-300 ease-in-out ${hoveredCodon
-                            ? 'opacity-0 translate-y-4'
-                            : 'opacity-100 translate-y-0'
-                            }`}>
-                            Hover over a codon to see the amino acid
+                    {proteinResult && (
+                      <>
+                        <div className={`mb-2 px-4 py-3 rounded-lg border transition-all duration-300 ease-in-out ${hoveredCodon
+                          ? 'bg-purple-50 dark:bg-gray-900 border-purple-500 dark:border-purple-500 shadow-md'
+                          : 'bg-gray-100 dark:bg-gray-900/50 border-gray-300 dark:border-gray-700'
+                          }`}>
+                          <div className="relative h-7 overflow-hidden">
+                            {/* Hovered state content */}
+                            <div className={`absolute inset-0 flex items-center gap-3 text-sm transition-all duration-300 ease-in-out ${hoveredCodon
+                              ? 'opacity-100 translate-y-0'
+                              : 'opacity-0 -translate-y-4'
+                              }`}>
+                              {hoveredCodon && (
+                                <>
+                                  <span className="font-mono text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded">{hoveredCodon.codon}</span>
+                                  <span className="text-gray-500 dark:text-gray-400">→</span>
+                                  <span className="font-bold text-yellow-600 dark:text-yellow-400 text-lg">{hoveredCodon.symbol}</span>
+                                  <span className="text-green-600 dark:text-green-400 font-medium">{hoveredCodon.name}</span>
+                                  <span className="text-gray-500 dark:text-gray-400">•</span>
+                                  <span className="text-gray-700 dark:text-gray-300">{hoveredCodon.fullName}</span>
+                                  <span className="text-gray-500 dark:text-gray-400">•</span>
+                                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${CLASSIFICATION_COLORS[hoveredCodon.classification].bg
+                                    } ${CLASSIFICATION_COLORS[hoveredCodon.classification].text}`}>
+                                    {hoveredCodon.classificationLabel}
+                                  </span>
+                                </>
+                              )}
+                            </div>
+                            {/* Default state content */}
+                            <div className={`absolute inset-0 flex items-center text-sm text-gray-500 dark:text-gray-400 italic transition-all duration-300 ease-in-out ${hoveredCodon
+                              ? 'opacity-0 translate-y-4'
+                              : 'opacity-100 translate-y-0'
+                              }`}>
+                              Hover over a codon to see the amino acid
+                            </div>
                           </div>
                         </div>
-                      </div>
+
+                        {/* Color Legend */}
+                        <div className="mb-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/30 rounded-lg border border-gray-200 dark:border-gray-700">
+                          <div className="flex items-center gap-3 flex-wrap text-xs">
+                            <span className="text-gray-500 dark:text-gray-400">Legend:</span>
+                            <div className="flex items-center gap-1">
+                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.hydrophobic.bg}`}></span>
+                              <span className="text-gray-700 dark:text-gray-300">Hydrophobic</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.polar.bg}`}></span>
+                              <span className="text-gray-700 dark:text-gray-300">Polar</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.positive.bg}`}></span>
+                              <span className="text-gray-700 dark:text-gray-300">Positive</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.negative.bg}`}></span>
+                              <span className="text-gray-700 dark:text-gray-300">Negative</span>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.special.bg}`}></span>
+                              <span className="text-gray-700 dark:text-gray-300">Special</span>
+                            </div>
+                          </div>
+                        </div>
+                      </>
                     )}
 
-                    <div className={`bg-gray-100 dark:bg-gray-900 rounded-lg border overflow-hidden ${aminoAcidsResult ? 'border-purple-400 dark:border-purple-500/50' : 'border-gray-300 dark:border-gray-800'}`}>
+                    <div className={`bg-gray-100 dark:bg-gray-900 rounded-lg border overflow-hidden ${proteinResult ? 'border-purple-400 dark:border-purple-500/50' : 'border-gray-300 dark:border-gray-800'}`}>
                       <VirtualizedCodonSequence
                         sequence={dnaRnaResult.rna_sequence}
-                        showHighlights={!!aminoAcidsResult}
+                        showHighlights={!!proteinResult}
                         onHover={setHoveredCodon}
                         height={160}
                       />
@@ -730,14 +900,14 @@ const ProteinFoldGenerationPage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Extract Amino Acids Button */}
-                {!aminoAcidsResult && (
+                {/* Generate Protein Sequence Button */}
+                {!proteinResult && (
                   <button
-                    onClick={handleExtractAminoAcids}
-                    disabled={extractingAminoAcids}
+                    onClick={handleGenerateProtein}
+                    disabled={generatingProtein}
                     className="w-full mt-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
                   >
-                    {extractingAminoAcids ? "Extracting..." : "Extract Amino Acids"}
+                    {generatingProtein ? "Generating..." : "Generate Protein Sequence"}
                   </button>
                 )}
               </>
@@ -768,43 +938,38 @@ const ProteinFoldGenerationPage: React.FC = () => {
         )}
 
 
-
-
-
-        {/* Step 5: Protein Sequence */}
+        {/* Protein Sequence Analysis */}
         {proteinResult && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 border border-transparent dark:border-gray-700">
-            <div className="flex items-center mb-4">
-              <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold mr-3">
-                ✓
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 mb-6 border border-transparent dark:border-gray-700">
+            <div className="mb-6">
+              <div className="flex items-center justify-between mb-2">
+                <div className="flex items-center">
+                  <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold mr-3">
+                    ✓
+                  </div>
+                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                    Protein Sequence Analysis
+                  </h2>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-300">
+                    {proteinResult.protein_length} aa
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 dark:bg-cyan-900/50 text-cyan-800 dark:text-cyan-300">
+                    {proteinResult.protein_type}
+                  </span>
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300">
+                    Stability: {proteinResult.stability_score}
+                  </span>
+                </div>
               </div>
-              <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                Protein Sequence Generated
-              </h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 ml-11">
+                Complete amino acid sequence translated from RNA in both standard formats
+              </p>
             </div>
 
-            <div className="grid grid-cols-3 gap-4 mb-4 p-4 bg-gray-50 dark:bg-gray-900/50 rounded-lg border border-transparent dark:border-gray-700">
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Length</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {proteinResult.protein_length} amino acids
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Protein Type</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {proteinResult.protein_type}
-                </p>
-              </div>
-              <div>
-                <p className="text-sm text-gray-600 dark:text-gray-400">Stability Score</p>
-                <p className="text-lg font-semibold text-gray-900 dark:text-white">
-                  {proteinResult.stability_score}
-                </p>
-              </div>
-            </div>
 
-            <div className="space-y-4">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
               <div>
                 <div className="flex justify-between items-center mb-2">
                   <h3 className="text-md font-semibold text-gray-900 dark:text-white">
@@ -817,7 +982,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     Copy
                   </button>
                 </div>
-                <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 overflow-x-auto border border-gray-300 dark:border-gray-800">
+                <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 overflow-y-auto max-h-40 border border-gray-300 dark:border-gray-800">
                   <pre className="text-xs text-cyan-600 dark:text-cyan-400 font-mono leading-relaxed whitespace-pre-wrap break-all">
                     {proteinResult.protein_3letter}
                   </pre>
@@ -836,13 +1001,28 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     Copy
                   </button>
                 </div>
-                <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 overflow-x-auto border border-gray-300 dark:border-gray-800">
+                <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 overflow-y-auto max-h-40 border border-gray-300 dark:border-gray-800">
                   <pre className="text-xs text-pink-600 dark:text-pink-400 font-mono leading-relaxed whitespace-pre-wrap break-all">
                     {formatSequence(proteinResult.protein_1letter)}
                   </pre>
                 </div>
               </div>
             </div>
+          </div>
+        )}
+
+        {/* Codon Visualization Section */}
+        {dnaRnaResult && proteinResult && (
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 mb-6 border border-transparent dark:border-gray-700">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  Amino Acid Composition
+                </h2>
+              </div>
+            </div>
+
+            <AminoAcidBarChart rnaSequence={dnaRnaResult.rna_sequence} />
           </div>
         )}
       </div>

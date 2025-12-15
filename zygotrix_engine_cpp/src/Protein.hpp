@@ -131,6 +131,26 @@ public:
         }
         std::cout << std::endl;
     }
+
+    void synthesize_from_rna(const std::string& rna_sequence) {
+        chain.clear();
+
+        // Iterate 3 bases at a time (Codons)
+        for (size_t i = 0; i + 2 < rna_sequence.length(); i += 3) {
+            std::string codon = rna_sequence.substr(i, 3);
+
+            // Note: We no longer need the T->U loop here, 
+            // because the Transcriber class already did it!
+            
+            auto it = codon_table.find(codon);
+            if (it != codon_table.end()) {
+                AminoAcid aa = it->second;
+                if (aa == AminoAcid::STOP) break;
+                chain.push_back(aa);
+            }
+        }
+        fold();
+    }
 };
 
 #endif // PROTEIN_HPP

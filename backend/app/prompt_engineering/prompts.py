@@ -19,7 +19,7 @@ PAGE_ROUTES = {
     "Settings": "/studio/settings",
     "Projects": "/studio/projects",
     "Simulation Studio": "/studio/simulation-studio",
-    "Stochastic DNA Tool": "/studio/stochastic-dna",
+    "Protein Fold Generation": "/studio/protein-fold-generation",
 }
 
 def get_page_links_section() -> str:

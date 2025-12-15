@@ -30,7 +30,7 @@ import CommunityPage from "./pages/CommunityPage";
 import QuestionDetailPage from "./pages/QuestionDetailPage";
 import AskQuestionPage from "./pages/AskQuestionPage";
 import SimulationStudioPage from "./pages/SimulationStudioPage";
-import StochasticDnaToolPage from "./pages/StochasticDnaToolPage";
+import ProteinFoldGenerationPage from "./pages/ProteinFoldGenerationPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminNewsletterPage from "./pages/AdminNewsletterPage";
@@ -107,11 +107,11 @@ const AppContent: React.FC = () => {
           }
         />
         <Route
-          path="studio/stochastic-dna"
+          path="studio/protein-fold-generation"
           element={
             <RequireAuth>
               <OnboardingCheck>
-                <StochasticDnaToolPage />
+                <ProteinFoldGenerationPage />
               </OnboardingCheck>
             </RequireAuth>
           }

@@ -59,4 +59,15 @@ target_include_directories(zyg_dna_cli PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
 )
 
+add_executable(zyg_protein_cli
+    src/ProteinGeneratorCli.cpp
+)
+target_link_libraries(zyg_protein_cli PRIVATE zygotrix_engine)
+target_include_directories(zyg_protein_cli PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
+)
+
 enable_testing()

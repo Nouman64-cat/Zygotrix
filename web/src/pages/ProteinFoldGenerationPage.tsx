@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useMemo, useCallback, useRef } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import {
   generateDnaAndRna,
@@ -86,47 +86,243 @@ interface HoveredCodonInfo {
   fullName: string;
 }
 
-// Component to render RNA sequence with highlighted codons
-const CodonHighlightedSequence: React.FC<{
+// Constants for virtualization
+const CODONS_PER_ROW = 10; // Number of codons per row (reduced to prevent wrapping)
+const ROW_HEIGHT = 32; // Height of each row in pixels
+
+// Virtualized Component to render RNA sequence with highlighted codons
+const VirtualizedCodonSequence: React.FC<{
   sequence: string;
   showHighlights: boolean;
   onHover?: (info: HoveredCodonInfo | null) => void;
-}> = ({ sequence, showHighlights, onHover }) => {
-  const codons: React.ReactNode[] = [];
-
-  for (let i = 0; i < sequence.length; i += 3) {
-    const codon = sequence.substring(i, i + 3);
-    const aminoAcid = CODON_TABLE[codon.toUpperCase()];
-    const codonIndex = Math.floor(i / 3);
-    const isEven = codonIndex % 2 === 0;
-
-    if (showHighlights && aminoAcid) {
-      codons.push(
-        <span
-          key={i}
-          className={`cursor-pointer px-1 py-0.5 rounded inline-block font-medium ${aminoAcid.name === "STOP"
-            ? "bg-red-600 text-white hover:bg-red-500"
-            : isEven
-              ? "bg-purple-600 text-white hover:bg-purple-500"
-              : "bg-cyan-600 text-white hover:bg-cyan-500"
-            } transition-colors shadow-sm`}
-          onMouseEnter={() => onHover?.({
-            codon,
-            symbol: aminoAcid.symbol,
-            name: aminoAcid.name,
-            fullName: aminoAcid.fullName
-          })}
-          onMouseLeave={() => onHover?.(null)}
-        >
-          {codon}
-        </span>
-      );
-    } else {
-      codons.push(<span key={i} className="inline-block text-green-700 dark:text-green-400 font-medium">{codon}</span>);
+  height?: number;
+}> = ({ sequence, showHighlights, onHover, height = 160 }) => {
+  // Memoize codon extraction to avoid recalculating on every render
+  const codons = useMemo(() => {
+    const result: string[] = [];
+    for (let i = 0; i < sequence.length; i += 3) {
+      result.push(sequence.substring(i, i + 3));
     }
+    return result;
+  }, [sequence]);
+
+  // Calculate number of rows
+  const rowCount = Math.ceil(codons.length / CODONS_PER_ROW);
+
+
+  // For very small sequences, render without virtualization
+  if (codons.length <= CODONS_PER_ROW * 5) {
+    return (
+      <div className="flex flex-wrap gap-1 p-2">
+        {codons.map((codon, index) => {
+          const aminoAcid = CODON_TABLE[codon.toUpperCase()];
+          const isEven = index % 2 === 0;
+
+          if (showHighlights && aminoAcid) {
+            return (
+              <span
+                key={index}
+                className={`cursor-pointer px-1 py-0.5 rounded inline-block font-medium text-xs ${aminoAcid.name === "STOP"
+                  ? "bg-red-600 text-white hover:bg-red-500"
+                  : isEven
+                    ? "bg-purple-600 text-white hover:bg-purple-500"
+                    : "bg-cyan-600 text-white hover:bg-cyan-500"
+                  } transition-colors shadow-sm`}
+                onMouseEnter={() => onHover?.({
+                  codon,
+                  symbol: aminoAcid.symbol,
+                  name: aminoAcid.name,
+                  fullName: aminoAcid.fullName
+                })}
+                onMouseLeave={() => onHover?.(null)}
+              >
+                {codon}
+              </span>
+            );
+          } else {
+            return (
+              <span
+                key={index}
+                className="inline-block text-green-700 dark:text-green-400 font-medium text-xs font-mono"
+              >
+                {codon}
+              </span>
+            );
+          }
+        })}
+      </div>
+    );
   }
 
-  return <div className="flex flex-wrap gap-1">{codons}</div>;
+  // Custom scroll-based virtualization
+  const containerRef = useRef<HTMLDivElement>(null);
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  }, []);
+
+  // Calculate visible range
+  const visibleStartRow = Math.floor(scrollTop / ROW_HEIGHT);
+  const visibleRows = Math.ceil(height / ROW_HEIGHT) + 2; // Buffer rows
+  const startRow = Math.max(0, visibleStartRow - 1);
+  const endRow = Math.min(rowCount, startRow + visibleRows + 2);
+
+  const totalHeight = rowCount * ROW_HEIGHT;
+
+  return (
+    <div className="relative">
+      <div className="absolute top-0 right-0 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-bl z-10">
+        {codons.length.toLocaleString()} codons ({rowCount.toLocaleString()} rows)
+      </div>
+      <div
+        ref={containerRef}
+        onScroll={handleScroll}
+        className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600"
+        style={{ height }}
+      >
+        <div style={{ height: totalHeight, position: 'relative' }}>
+          {Array.from({ length: endRow - startRow }, (_, i) => {
+            const rowIndex = startRow + i;
+            const startIdx = rowIndex * CODONS_PER_ROW;
+            const endIdx = Math.min(startIdx + CODONS_PER_ROW, codons.length);
+            const rowCodons = codons.slice(startIdx, endIdx);
+
+            return (
+              <div
+                key={rowIndex}
+                className="flex gap-1 items-center px-2 absolute w-full"
+                style={{ top: rowIndex * ROW_HEIGHT, height: ROW_HEIGHT }}
+              >
+                <span className="text-xs text-gray-400 dark:text-gray-500 w-16 flex-shrink-0 font-mono">
+                  {(startIdx + 1).toLocaleString()}
+                </span>
+                <div className="flex gap-1 flex-wrap">
+                  {rowCodons.map((codon, i) => {
+                    const globalIndex = startIdx + i;
+                    const aminoAcid = CODON_TABLE[codon.toUpperCase()];
+                    const isEven = globalIndex % 2 === 0;
+
+                    if (showHighlights && aminoAcid) {
+                      return (
+                        <span
+                          key={globalIndex}
+                          className={`cursor-pointer px-1 py-0.5 rounded inline-block font-medium text-xs ${aminoAcid.name === "STOP"
+                            ? "bg-red-600 text-white hover:bg-red-500"
+                            : isEven
+                              ? "bg-purple-600 text-white hover:bg-purple-500"
+                              : "bg-cyan-600 text-white hover:bg-cyan-500"
+                            } transition-colors shadow-sm`}
+                          onMouseEnter={() => onHover?.({
+                            codon,
+                            symbol: aminoAcid.symbol,
+                            name: aminoAcid.name,
+                            fullName: aminoAcid.fullName
+                          })}
+                          onMouseLeave={() => onHover?.(null)}
+                        >
+                          {codon}
+                        </span>
+                      );
+                    } else {
+                      return (
+                        <span
+                          key={globalIndex}
+                          className="inline-block text-green-700 dark:text-green-400 font-medium text-xs font-mono"
+                        >
+                          {codon}
+                        </span>
+                      );
+                    }
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// Virtualized plain sequence display (for DNA)
+const VirtualizedPlainSequence: React.FC<{
+  sequence: string;
+  height?: number;
+  colorClass?: string;
+  charsPerLine?: number;
+}> = ({ sequence, height = 160, colorClass = "text-blue-600 dark:text-blue-400", charsPerLine = 60 }) => {
+  // Memoize line breaking
+  const lines = useMemo(() => {
+    const result: string[] = [];
+    for (let i = 0; i < sequence.length; i += charsPerLine) {
+      result.push(sequence.substring(i, i + charsPerLine));
+    }
+    return result;
+  }, [sequence, charsPerLine]);
+
+  const ROW_HEIGHT = 24;
+
+  // For small sequences, render normally
+  if (lines.length <= 10) {
+    return (
+      <div className="p-4">
+        <pre className={`text-sm ${colorClass} font-mono leading-relaxed whitespace-pre-wrap break-all`}>
+          {lines.join("\n")}
+        </pre>
+      </div>
+    );
+  }
+
+  // Custom scroll-based virtualization
+  const [scrollTop, setScrollTop] = useState(0);
+
+  const handleScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    setScrollTop(e.currentTarget.scrollTop);
+  }, []);
+
+  // Calculate visible range
+  const visibleStartRow = Math.floor(scrollTop / ROW_HEIGHT);
+  const visibleRows = Math.ceil(height / ROW_HEIGHT) + 2;
+  const startRow = Math.max(0, visibleStartRow - 1);
+  const endRow = Math.min(lines.length, startRow + visibleRows + 2);
+
+  const totalHeight = lines.length * ROW_HEIGHT;
+
+  return (
+    <div className="relative">
+      <div className="absolute top-0 right-0 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 rounded-bl z-10">
+        {sequence.length.toLocaleString()} bp ({lines.length.toLocaleString()} rows)
+      </div>
+      <div
+        onScroll={handleScroll}
+        className="overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 dark:scrollbar-thumb-gray-600"
+        style={{ height }}
+      >
+        <div style={{ height: totalHeight, position: 'relative' }}>
+          {Array.from({ length: endRow - startRow }, (_, i) => {
+            const rowIndex = startRow + i;
+            const lineNum = (rowIndex * charsPerLine) + 1;
+
+            return (
+              <div
+                key={rowIndex}
+                className="flex items-center px-2 font-mono absolute w-full"
+                style={{ top: rowIndex * ROW_HEIGHT, height: ROW_HEIGHT }}
+              >
+                <span className="text-xs text-gray-400 dark:text-gray-500 w-16 flex-shrink-0">
+                  {lineNum.toLocaleString()}
+                </span>
+                <span className={`text-sm ${colorClass}`}>
+                  {lines[rowIndex]}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    </div>
+  );
 };
 
 const ProteinFoldGenerationPage: React.FC = () => {
@@ -466,10 +662,12 @@ const ProteinFoldGenerationPage: React.FC = () => {
                         Copy
                       </button>
                     </div>
-                    <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 border border-gray-300 dark:border-gray-800 h-40 overflow-y-auto">
-                      <pre className="text-sm text-blue-600 dark:text-blue-400 font-mono leading-relaxed whitespace-pre-wrap break-all">
-                        {formatSequence(dnaRnaResult.dna_sequence, 60)}
-                      </pre>
+                    <div className="bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-800 overflow-hidden">
+                      <VirtualizedPlainSequence
+                        sequence={dnaRnaResult.dna_sequence}
+                        height={160}
+                        colorClass="text-blue-600 dark:text-blue-400"
+                      />
                     </div>
                   </div>
 
@@ -521,14 +719,13 @@ const ProteinFoldGenerationPage: React.FC = () => {
                       </div>
                     )}
 
-                    <div className={`bg-gray-100 dark:bg-gray-900 rounded-lg p-4 border h-40 overflow-y-auto ${aminoAcidsResult ? 'border-purple-400 dark:border-purple-500/50' : 'border-gray-300 dark:border-gray-800'}`}>
-                      <div className="text-sm font-mono leading-relaxed">
-                        <CodonHighlightedSequence
-                          sequence={dnaRnaResult.rna_sequence}
-                          showHighlights={!!aminoAcidsResult}
-                          onHover={setHoveredCodon}
-                        />
-                      </div>
+                    <div className={`bg-gray-100 dark:bg-gray-900 rounded-lg border overflow-hidden ${aminoAcidsResult ? 'border-purple-400 dark:border-purple-500/50' : 'border-gray-300 dark:border-gray-800'}`}>
+                      <VirtualizedCodonSequence
+                        sequence={dnaRnaResult.rna_sequence}
+                        showHighlights={!!aminoAcidsResult}
+                        onHover={setHoveredCodon}
+                        height={160}
+                      />
                     </div>
                   </div>
                 </div>

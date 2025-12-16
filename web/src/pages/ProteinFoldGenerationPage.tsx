@@ -537,10 +537,19 @@ const VirtualizedPlainSequence: React.FC<{
 const ProteinFoldGenerationPage: React.FC = () => {
   useDocumentTitle("Protein Fold Generation");
 
+  // Tab state
+  const [activeTab, setActiveTab] = useState<"generate" | "input-dna" | "input-rna">("generate");
+
+  // Generate Random DNA tab states
   const [length, setLength] = useState<number>(99);
   const [gcContent, setGcContent] = useState<number>(0.5);
   const [seed, setSeed] = useState<string>("");
   const [useRandomSeed, setUseRandomSeed] = useState<boolean>(true);
+
+  // Input DNA/RNA tab states
+  const [inputDnaSequence, setInputDnaSequence] = useState<string>("");
+  const [inputRnaSequence, setInputRnaSequence] = useState<string>("");
+  const [validationError, setValidationError] = useState<string | null>(null);
 
   const [loading, setLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
@@ -555,6 +564,101 @@ const ProteinFoldGenerationPage: React.FC = () => {
   // Pagination state for ORFs
   const [currentPage, setCurrentPage] = useState<number>(1);
   const orfsPerPage = 10;
+
+  // Validation functions
+  const validateDnaSequence = (sequence: string): { valid: boolean; error?: string } => {
+    const cleanSeq = sequence.replace(/\s/g, "").toUpperCase();
+    if (cleanSeq.length === 0) {
+      return { valid: false, error: "DNA sequence cannot be empty" };
+    }
+    if (cleanSeq.length % 3 !== 0) {
+      return { valid: false, error: "DNA sequence length must be divisible by 3 for complete codons" };
+    }
+    if (!/^[ATGC]+$/.test(cleanSeq)) {
+      return { valid: false, error: "DNA sequence can only contain A, T, G, C characters" };
+    }
+    return { valid: true };
+  };
+
+  const validateRnaSequence = (sequence: string): { valid: boolean; error?: string } => {
+    const cleanSeq = sequence.replace(/\s/g, "").toUpperCase();
+    if (cleanSeq.length === 0) {
+      return { valid: false, error: "RNA sequence cannot be empty" };
+    }
+    if (cleanSeq.length % 3 !== 0) {
+      return { valid: false, error: "RNA sequence length must be divisible by 3 for complete codons" };
+    }
+    if (!/^[AUGC]+$/.test(cleanSeq)) {
+      return { valid: false, error: "RNA sequence can only contain A, U, G, C characters" };
+    }
+    return { valid: true };
+  };
+
+  // DNA to RNA transcription
+  const transcribeDnaToRna = (dna: string): string => {
+    return dna.replace(/T/g, "U");
+  };
+
+  // Calculate GC content
+  const calculateGcContent = (sequence: string): number => {
+    const cleanSeq = sequence.replace(/\s/g, "").toUpperCase();
+    const gcCount = (cleanSeq.match(/[GC]/g) || []).length;
+    return cleanSeq.length > 0 ? gcCount / cleanSeq.length : 0;
+  };
+
+  // Handle input DNA sequence
+  const handleInputDna = () => {
+    setError(null);
+    setValidationError(null);
+    setProteinResult(null);
+
+    const cleanDna = inputDnaSequence.replace(/\s/g, "").toUpperCase();
+    const validation = validateDnaSequence(cleanDna);
+
+    if (!validation.valid) {
+      setValidationError(validation.error || "Invalid DNA sequence");
+      return;
+    }
+
+    setTranscribing(true);
+    const rnaSeq = transcribeDnaToRna(cleanDna);
+    const gcContent = calculateGcContent(cleanDna);
+
+    setDnaRnaResult({
+      dna_sequence: cleanDna,
+      rna_sequence: rnaSeq,
+      length: cleanDna.length,
+      actual_gc: gcContent,
+    });
+
+    setTimeout(() => setTranscribing(false), 1000);
+  };
+
+  // Handle input RNA sequence
+  const handleInputRna = () => {
+    setError(null);
+    setValidationError(null);
+    setProteinResult(null);
+
+    const cleanRna = inputRnaSequence.replace(/\s/g, "").toUpperCase();
+    const validation = validateRnaSequence(cleanRna);
+
+    if (!validation.valid) {
+      setValidationError(validation.error || "Invalid RNA sequence");
+      return;
+    }
+
+    // Convert RNA back to DNA for display (U -> T)
+    const dnaSeq = cleanRna.replace(/U/g, "T");
+    const gcContent = calculateGcContent(dnaSeq);
+
+    setDnaRnaResult({
+      dna_sequence: dnaSeq,
+      rna_sequence: cleanRna,
+      length: cleanRna.length,
+      actual_gc: gcContent,
+    });
+  };
 
   const handleGenerate = async () => {
     setError(null);
@@ -616,6 +720,9 @@ const ProteinFoldGenerationPage: React.FC = () => {
     setDnaRnaResult(null);
     setProteinResult(null);
     setError(null);
+    setValidationError(null);
+    setInputDnaSequence("");
+    setInputRnaSequence("");
   };
 
   const handleExportCSV = () => {
@@ -657,99 +764,234 @@ const ProteinFoldGenerationPage: React.FC = () => {
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
           {/* Left Column: DNA Generation + Amino Acids */}
           <div className="flex flex-col gap-6">
-            {/* Step 1 - DNA Generation Parameters */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 border border-transparent dark:border-gray-700">
-              <div className="flex items-center mb-4">
+            {/* Step 1 - DNA Generation with Tabs */}
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 border border-transparent dark:border-gray-700">
+              <div className="flex items-center px-6 pt-6 pb-4">
                 <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold mr-3">
                   1
                 </div>
                 <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Generate DNA Sequence
+                  DNA/RNA Sequence Input
                 </h2>
               </div>
 
-              <div className="space-y-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    Sequence Length (bp) - must be divisible by 3
-                  </label>
-                  <input
-                    type="number"
-                    min="3"
-                    max="1000000"
-                    step="3"
-                    value={length}
-                    onChange={(e) => setLength(parseInt(e.target.value) || 3)}
-                    className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                    disabled={loading || !!dnaRnaResult}
-                  />
-                  <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    Range: 3 - 1,000,000 base pairs (for complete codons)
-                  </p>
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                    GC Content: {(gcContent * 100).toFixed(1)}%
-                  </label>
-                  <input
-                    type="range"
-                    min="0"
-                    max="1"
-                    step="0.01"
-                    value={gcContent}
-                    onChange={(e) => setGcContent(parseFloat(e.target.value))}
-                    className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-600"
-                    disabled={loading || !!dnaRnaResult}
-                  />
-                  <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-1">
-                    <span>0% (AT-rich)</span>
-                    <span>50% (Balanced)</span>
-                    <span>100% (GC-rich)</span>
-                  </div>
-                </div>
-
-                <div>
-                  <div className="flex items-center mb-2">
-                    <input
-                      type="checkbox"
-                      id="useRandomSeed"
-                      checked={useRandomSeed}
-                      onChange={(e) => setUseRandomSeed(e.target.checked)}
-                      className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
-                      disabled={loading || !!dnaRnaResult}
-                    />
-                    <label htmlFor="useRandomSeed" className="text-sm font-medium text-gray-700 dark:text-gray-300">
-                      Use random seed
-                    </label>
-                  </div>
-                  {!useRandomSeed && (
-                    <input
-                      type="number"
-                      value={seed}
-                      onChange={(e) => setSeed(e.target.value)}
-                      className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
-                      placeholder="Enter seed for reproducible results"
-                      disabled={loading || !!dnaRnaResult}
-                    />
-                  )}
-                </div>
-
-                {!dnaRnaResult ? (
+              {/* Tab Navigation */}
+              <div className="border-b border-gray-200 dark:border-gray-700">
+                <nav className="flex px-6 -mb-px space-x-4">
                   <button
-                    onClick={handleGenerate}
-                    disabled={loading || length < 3 || gcContent < 0 || gcContent > 1}
-                    className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                    onClick={() => setActiveTab("generate")}
+                    disabled={!!dnaRnaResult}
+                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === "generate"
+                        ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
+                    } ${!!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    {loading ? "Generating..." : "Generate DNA & Transcribe to RNA"}
+                    Generate Random
                   </button>
-                ) : (
                   <button
-                    onClick={handleReset}
-                    className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                    onClick={() => setActiveTab("input-dna")}
+                    disabled={!!dnaRnaResult}
+                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === "input-dna"
+                        ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
+                    } ${!!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
-                    Reset & Start Over
+                    Input DNA
                   </button>
+                  <button
+                    onClick={() => setActiveTab("input-rna")}
+                    disabled={!!dnaRnaResult}
+                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
+                      activeTab === "input-rna"
+                        ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
+                    } ${!!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                  >
+                    Input RNA
+                  </button>
+                </nav>
+              </div>
+
+              {/* Tab Content */}
+              <div className="p-6">
+                {/* Generate Random DNA Tab */}
+                {activeTab === "generate" && (
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        Sequence Length (bp) - must be divisible by 3
+                      </label>
+                      <input
+                        type="number"
+                        min="3"
+                        max="1000000"
+                        step="3"
+                        value={length}
+                        onChange={(e) => setLength(parseInt(e.target.value) || 3)}
+                        className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                        disabled={loading || !!dnaRnaResult}
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Range: 3 - 1,000,000 base pairs (for complete codons)
+                      </p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        GC Content: {(gcContent * 100).toFixed(1)}%
+                      </label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.01"
+                        value={gcContent}
+                        onChange={(e) => setGcContent(parseFloat(e.target.value))}
+                        className="w-full h-2 bg-gray-200 dark:bg-gray-600 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                        disabled={loading || !!dnaRnaResult}
+                      />
+                      <div className="flex justify-between text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        <span>0% (AT-rich)</span>
+                        <span>50% (Balanced)</span>
+                        <span>100% (GC-rich)</span>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center mb-2">
+                        <input
+                          type="checkbox"
+                          id="useRandomSeed"
+                          checked={useRandomSeed}
+                          onChange={(e) => setUseRandomSeed(e.target.checked)}
+                          className="mr-2 h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 dark:border-gray-600 rounded"
+                          disabled={loading || !!dnaRnaResult}
+                        />
+                        <label htmlFor="useRandomSeed" className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                          Use random seed
+                        </label>
+                      </div>
+                      {!useRandomSeed && (
+                        <input
+                          type="number"
+                          value={seed}
+                          onChange={(e) => setSeed(e.target.value)}
+                          className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                          placeholder="Enter seed for reproducible results"
+                          disabled={loading || !!dnaRnaResult}
+                        />
+                      )}
+                    </div>
+
+                    {!dnaRnaResult ? (
+                      <button
+                        onClick={handleGenerate}
+                        disabled={loading || length < 3 || gcContent < 0 || gcContent > 1}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                      >
+                        {loading ? "Generating..." : "Generate DNA & Transcribe to RNA"}
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleReset}
+                        className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                      >
+                        Reset & Start Over
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Input DNA Tab */}
+                {activeTab === "input-dna" && (
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        DNA Sequence
+                      </label>
+                      <textarea
+                        value={inputDnaSequence}
+                        onChange={(e) => setInputDnaSequence(e.target.value)}
+                        disabled={!!dnaRnaResult}
+                        placeholder="Enter DNA sequence (A, T, G, C). Length must be divisible by 3.&#10;Example: ATGGCTAGCTAGCTAGCTAGCTAG"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm resize-none"
+                        rows={8}
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Only A, T, G, C characters allowed. Whitespace will be removed automatically.
+                      </p>
+                    </div>
+
+                    {validationError && (
+                      <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                        <p className="text-sm text-red-700 dark:text-red-300">{validationError}</p>
+                      </div>
+                    )}
+
+                    {!dnaRnaResult ? (
+                      <button
+                        onClick={handleInputDna}
+                        disabled={!inputDnaSequence.trim()}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                      >
+                        Transcribe DNA to RNA
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleReset}
+                        className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                      >
+                        Reset & Start Over
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {/* Input RNA Tab */}
+                {activeTab === "input-rna" && (
+                  <div className="space-y-6">
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                        RNA Sequence
+                      </label>
+                      <textarea
+                        value={inputRnaSequence}
+                        onChange={(e) => setInputRnaSequence(e.target.value)}
+                        disabled={!!dnaRnaResult}
+                        placeholder="Enter RNA sequence (A, U, G, C). Length must be divisible by 3.&#10;Example: AUGGCUAGCUAGCUAGCUAGCUAG"
+                        className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent bg-white dark:bg-gray-700 text-gray-900 dark:text-white font-mono text-sm resize-none"
+                        rows={8}
+                      />
+                      <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                        Only A, U, G, C characters allowed. Whitespace will be removed automatically.
+                      </p>
+                    </div>
+
+                    {validationError && (
+                      <div className="bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-lg p-3">
+                        <p className="text-sm text-red-700 dark:text-red-300">{validationError}</p>
+                      </div>
+                    )}
+
+                    {!dnaRnaResult ? (
+                      <button
+                        onClick={handleInputRna}
+                        disabled={!inputRnaSequence.trim()}
+                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                      >
+                        Use RNA Sequence
+                      </button>
+                    ) : (
+                      <button
+                        onClick={handleReset}
+                        className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                      >
+                        Reset & Start Over
+                      </button>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

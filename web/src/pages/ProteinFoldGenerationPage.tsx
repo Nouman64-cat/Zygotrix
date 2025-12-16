@@ -766,7 +766,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
       // FastAPI validation errors return detail as an array of objects
       const detail = err.response?.data?.detail;
       let errorMessage = "Failed to generate DNA/RNA sequences";
-      
+
       if (typeof detail === "string") {
         errorMessage = detail;
       } else if (Array.isArray(detail) && detail.length > 0) {
@@ -775,7 +775,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
       setTranscribing(false);
     } finally {
@@ -797,7 +797,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
       // FastAPI validation errors return detail as an array of objects
       const detail = err.response?.data?.detail;
       let errorMessage = "Failed to generate protein sequence";
-      
+
       if (typeof detail === "string") {
         errorMessage = detail;
       } else if (Array.isArray(detail) && detail.length > 0) {
@@ -805,7 +805,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
       } else if (err.message) {
         errorMessage = err.message;
       }
-      
+
       setError(errorMessage);
     } finally {
       setGeneratingProtein(false);
@@ -899,33 +899,30 @@ const ProteinFoldGenerationPage: React.FC = () => {
                   <button
                     onClick={() => setActiveTab("generate")}
                     disabled={!!dnaRnaResult}
-                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                      activeTab === "generate"
+                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "generate"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
                         : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
-                    } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                      } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Generate Random
                   </button>
                   <button
                     onClick={() => setActiveTab("input-dna")}
                     disabled={!!dnaRnaResult}
-                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                      activeTab === "input-dna"
+                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "input-dna"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
                         : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
-                    } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                      } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Input DNA
                   </button>
                   <button
                     onClick={() => setActiveTab("input-rna")}
                     disabled={!!dnaRnaResult}
-                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
-                      activeTab === "input-rna"
+                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "input-rna"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
                         : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
-                    } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                      } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Input RNA
                   </button>
@@ -944,7 +941,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                       <input
                         type="number"
                         min="3"
-                        max="100000000"
+                        max="10000000"
                         step="3"
                         value={length}
                         onChange={(e) => setLength(parseInt(e.target.value) || 3)}
@@ -952,7 +949,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                         disabled={loading || !!dnaRnaResult}
                       />
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Range: 3 - 100,000,000 base pairs (for complete codons)
+                        Range: 3 - 10,000,000 base pairs (for complete codons)
                       </p>
                       {length > 10000000 && (
                         <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
@@ -1280,7 +1277,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                             Large Sequence Mode ({(dnaRnaResult.length / 1000000).toFixed(1)}M bp)
                           </h3>
                           <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
-                            Sequences over 10 million base pairs cannot be displayed in the browser. 
+                            Sequences over 10 million base pairs cannot be displayed in the browser.
                             Use the download buttons below to save them as .txt files.
                           </p>
                         </div>
@@ -1492,7 +1489,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     </div>
                   )
                 )}
-                
+
                 {/* Message for large sequences */}
                 {!proteinResult && isLargeSequence && (
                   <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
@@ -1616,7 +1613,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                                   {orf.length.toLocaleString()} aa
                                 </span>
                               </td>
-                                                            <td className="px-3 py-3 text-sm text-pink-600 dark:text-pink-400 font-mono">
+                              <td className="px-3 py-3 text-sm text-pink-600 dark:text-pink-400 font-mono">
                                 <div className="overflow-x-auto  whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent pb-1">
                                   {orf.protein_1letter}
                                 </div>
@@ -1684,11 +1681,10 @@ const ProteinFoldGenerationPage: React.FC = () => {
                             <button
                               key={page}
                               onClick={() => setCurrentPage(page)}
-                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
-                                currentPage === page
+                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === page
                                   ? 'bg-purple-600 text-white'
                                   : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
-                              }`}
+                                }`}
                             >
                               {page}
                             </button>
@@ -1719,7 +1715,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
         {/* Codon Visualization Section */}
         {dnaRnaResult && proteinResult && (
 
-            <AminoAcidBarChart rnaSequence={dnaRnaResult.rna_sequence} />
+          <AminoAcidBarChart rnaSequence={dnaRnaResult.rna_sequence} />
         )}
       </div>
     </DashboardLayout>

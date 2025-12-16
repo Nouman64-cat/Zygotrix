@@ -89,14 +89,14 @@ const DnaGeneratorSection: React.FC = () => {
 
           <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
             Create random DNA sequences with customizable GC content. Our high-performance C++ engine
-            can generate sequences up to 100 million base pairs in seconds.
+            can generate sequences up to 10 million base pairs in seconds.
           </p>
         </div>
 
         {/* Generator Card */}
         <div className="max-w-4xl mx-auto">
           <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-purple-200/40 dark:shadow-purple-950/40">
-            
+
             {!result ? (
               <>
                 {/* Input Controls */}
@@ -109,7 +109,7 @@ const DnaGeneratorSection: React.FC = () => {
                     <input
                       type="number"
                       min={3}
-                      max={100000000}
+                      max={10000000}
                       step={3}
                       value={length}
                       onChange={(e) => setLength(Math.max(3, parseInt(e.target.value) || 3))}
@@ -117,7 +117,7 @@ const DnaGeneratorSection: React.FC = () => {
                       disabled={loading}
                     />
                     <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                      Range: 3 - 100,000,000 bp
+                      Range: 3 - 10,000,000 bp
                     </p>
                     {isLargeSequence && (
                       <p className="text-xs text-amber-600 dark:text-amber-400 mt-1">

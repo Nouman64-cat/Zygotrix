@@ -11,7 +11,7 @@ const DnaGeneratorPage: React.FC = () => {
   // SEO Meta Tags for Google ranking
   useSEO({
     title: "Free DNA Sequence Generator - Create Random DNA & RNA Online",
-    description: "Generate random DNA sequences up to 100 million base pairs with customizable GC content. Free online DNA generator tool powered by high-performance C++ engine. Download DNA and RNA sequences instantly.",
+    description: "Generate random DNA sequences up to 10 million base pairs with customizable GC content. Free online DNA generator tool powered by high-performance C++ engine. Download DNA and RNA sequences instantly.",
     keywords: "DNA generator, random DNA sequence, DNA sequence generator, RNA transcription, GC content, base pairs, genetics tool, bioinformatics, molecular biology, DNA synthesizer, free DNA tool, online DNA generator",
     ogType: "website",
   });
@@ -223,14 +223,14 @@ const DnaGeneratorPage: React.FC = () => {
               "price": "0",
               "priceCurrency": "USD"
             },
-            "description": "Generate random DNA sequences up to 100 million base pairs with customizable GC content. Free online DNA generator tool powered by high-performance C++ engine.",
+            "description": "Generate random DNA sequences up to 10 million base pairs with customizable GC content. Free online DNA generator tool powered by high-performance C++ engine.",
             "aggregateRating": {
               "@type": "AggregateRating",
               "ratingValue": "4.8",
               "ratingCount": "150"
             },
             "featureList": [
-              "Generate DNA sequences up to 100 million base pairs",
+              "Generate DNA sequences up to 10 million base pairs",
               "Customize GC content from 0% to 100%",
               "Automatic RNA transcription",
               "Download sequences as text files",
@@ -265,16 +265,16 @@ const DnaGeneratorPage: React.FC = () => {
             </h1>
 
             <p className="text-xl text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
-              Create random DNA sequences with customizable GC content. Our high-performance 
+              Create random DNA sequences with customizable GC content. Our high-performance
               <span className="font-semibold text-purple-600 dark:text-purple-400"> C++ engine </span>
-              can generate sequences up to <span className="font-bold">100 million base pairs</span> in seconds.
+              can generate sequences up to <span className="font-bold">10 million base pairs</span> in seconds.
             </p>
           </div>
 
           {/* Stats */}
           <div className="flex flex-wrap justify-center gap-8 mb-16">
             <div className="text-center px-6">
-              <p className="text-4xl font-bold text-purple-600 dark:text-purple-400">100M+</p>
+              <p className="text-4xl font-bold text-purple-600 dark:text-purple-400">10M</p>
               <p className="text-sm text-slate-600 dark:text-slate-400">Max Base Pairs</p>
             </div>
             <div className="text-center px-6 border-l border-slate-200 dark:border-slate-700">
@@ -293,7 +293,7 @@ const DnaGeneratorPage: React.FC = () => {
       <section className="relative py-12">
         <div className="mx-auto max-w-4xl px-6">
           <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 md:p-10 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-purple-200/40 dark:shadow-purple-950/40">
-            
+
             {!result ? (
               <>
                 {/* Input Controls */}
@@ -306,7 +306,7 @@ const DnaGeneratorPage: React.FC = () => {
                     <input
                       type="number"
                       min={3}
-                      max={100000000}
+                      max={10000000}
                       step={3}
                       value={length}
                       onChange={(e) => setLength(Math.max(3, parseInt(e.target.value) || 3))}
@@ -314,7 +314,7 @@ const DnaGeneratorPage: React.FC = () => {
                       disabled={loading}
                     />
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
-                      Range: 3 - 100,000,000 bp (must be divisible by 3)
+                      Range: 3 - 10,000,000 bp (must be divisible by 3)
                     </p>
                     {isLargeSequence && (
                       <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
@@ -590,7 +590,7 @@ const DnaGeneratorPage: React.FC = () => {
             </h2>
 
             <p className="text-lg text-slate-600 dark:text-slate-400">
-              Create a free account to access our comprehensive genetics research platform with advanced simulations, 
+              Create a free account to access our comprehensive genetics research platform with advanced simulations,
               visualizations, and analysis tools.
             </p>
           </div>
@@ -660,8 +660,8 @@ const DnaGeneratorPage: React.FC = () => {
             Why Zygotrix?
           </h3>
           <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
-            Zygotrix is a comprehensive genetics research platform designed for researchers, educators, and students. 
-            Our tools are built with performance in mind, using C++ engines for computationally intensive tasks. 
+            Zygotrix is a comprehensive genetics research platform designed for researchers, educators, and students.
+            Our tools are built with performance in mind, using C++ engines for computationally intensive tasks.
             Start with our free DNA generator, and explore our full suite of tools when you're ready to dive deeper into genetics research.
           </p>
         </div>

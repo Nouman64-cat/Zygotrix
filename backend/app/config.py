@@ -98,6 +98,12 @@ class Settings:
         "CPP_ENGINE_CLI_PATH",
         os.path.join("..", "zygotrix_engine_cpp", "build", _default_cli),
     )
+    # C++ Protein Generator CLI path
+    _default_protein_cli = "zyg_protein_cli.exe" if os.name == "nt" else "zyg_protein_cli"
+    cpp_protein_cli_path: str = os.getenv(
+        "CPP_PROTEIN_CLI_PATH",
+        os.path.join("..", "zygotrix_engine_cpp", "build", _default_protein_cli),
+    )
     # Twilio WhatsApp notification settings
     twilio_account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")
     twilio_auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")

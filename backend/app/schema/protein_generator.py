@@ -8,7 +8,7 @@ class ProteinGenerateRequest(BaseModel):
     length: int = Field(
         ...,
         ge=3,
-        le=1000000,
+        le=100000000,
         description="Length of DNA sequence to generate (must be divisible by 3 for complete codons)"
     )
     gc_content: float = Field(

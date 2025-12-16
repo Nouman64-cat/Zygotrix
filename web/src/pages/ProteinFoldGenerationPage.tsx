@@ -682,7 +682,20 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
       setTimeout(() => setTranscribing(false), 1000);
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Failed to generate DNA/RNA sequences");
+      // FastAPI validation errors return detail as an array of objects
+      const detail = err.response?.data?.detail;
+      let errorMessage = "Failed to generate DNA/RNA sequences";
+      
+      if (typeof detail === "string") {
+        errorMessage = detail;
+      } else if (Array.isArray(detail) && detail.length > 0) {
+        // Extract message from first validation error
+        errorMessage = detail[0]?.msg || detail[0]?.message || JSON.stringify(detail[0]);
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
       setTranscribing(false);
     } finally {
       setLoading(false);
@@ -700,7 +713,19 @@ const ProteinFoldGenerationPage: React.FC = () => {
       setProteinResult(response);
       setCurrentPage(1); // Reset to first page when new results come in
     } catch (err: any) {
-      setError(err.response?.data?.detail || err.message || "Failed to generate protein sequence");
+      // FastAPI validation errors return detail as an array of objects
+      const detail = err.response?.data?.detail;
+      let errorMessage = "Failed to generate protein sequence";
+      
+      if (typeof detail === "string") {
+        errorMessage = detail;
+      } else if (Array.isArray(detail) && detail.length > 0) {
+        errorMessage = detail[0]?.msg || detail[0]?.message || JSON.stringify(detail[0]);
+      } else if (err.message) {
+        errorMessage = err.message;
+      }
+      
+      setError(errorMessage);
     } finally {
       setGeneratingProtein(false);
     }
@@ -718,6 +743,23 @@ const ProteinFoldGenerationPage: React.FC = () => {
     setValidationError(null);
     setInputDnaSequence("");
     setInputRnaSequence("");
+  };
+
+  // Check if sequence is large (> 10M bp) - only show download, no display
+  const isLargeSequence = dnaRnaResult && dnaRnaResult.length > 10000000;
+
+  // Download sequence as .txt file
+  const handleDownloadSequence = (sequence: string, filename: string) => {
+    const blob = new Blob([sequence], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const handleExportCSV = () => {
@@ -779,8 +821,8 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === "generate"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
-                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-                    } ${!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
+                    } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Generate Random
                   </button>
@@ -790,8 +832,8 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === "input-dna"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
-                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-                    } ${!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
+                    } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Input DNA
                   </button>
@@ -801,8 +843,8 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${
                       activeTab === "input-rna"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
-                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-                    } ${!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
+                    } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Input RNA
                   </button>
@@ -821,7 +863,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                       <input
                         type="number"
                         min="3"
-                        max="1000000"
+                        max="100000000"
                         step="3"
                         value={length}
                         onChange={(e) => setLength(parseInt(e.target.value) || 3)}
@@ -829,8 +871,13 @@ const ProteinFoldGenerationPage: React.FC = () => {
                         disabled={loading || !!dnaRnaResult}
                       />
                       <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                        Range: 3 - 1,000,000 base pairs (for complete codons)
+                        Range: 3 - 100,000,000 base pairs (for complete codons)
                       </p>
+                      {length > 10000000 && (
+                        <p className="text-sm text-amber-600 dark:text-amber-400 mt-2">
+                          ⚠️ Sequences over 10M bp will be available for download only (not displayed in browser)
+                        </p>
+                      )}
                     </div>
 
                     <div>
@@ -1058,123 +1105,193 @@ const ProteinFoldGenerationPage: React.FC = () => {
               <>
 
                 <div className="space-y-4">
+                  {/* Large Sequence Warning */}
+                  {isLargeSequence && (
+                    <div className="bg-amber-50 dark:bg-amber-900/30 border border-amber-200 dark:border-amber-800 rounded-lg p-4">
+                      <div className="flex items-start gap-3">
+                        <span className="text-2xl">⚠️</span>
+                        <div>
+                          <h3 className="text-sm font-semibold text-amber-800 dark:text-amber-400">
+                            Large Sequence Mode ({(dnaRnaResult.length / 1000000).toFixed(1)}M bp)
+                          </h3>
+                          <p className="text-sm text-amber-700 dark:text-amber-300 mt-1">
+                            Sequences over 10 million base pairs cannot be displayed in the browser. 
+                            Use the download buttons below to save them as .txt files.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
                   {/* DNA Sequence */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="text-md font-semibold text-gray-900 dark:text-white">
-                        DNA Sequence
+                        DNA Sequence ({dnaRnaResult.length.toLocaleString()} bp)
                       </h3>
-                      <button
-                        onClick={() => handleCopySequence(dnaRnaResult.dna_sequence)}
-                        className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm"
-                      >
-                        Copy
-                      </button>
+                      <div className="flex gap-2">
+                        {!isLargeSequence && (
+                          <button
+                            onClick={() => handleCopySequence(dnaRnaResult.dna_sequence)}
+                            className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm"
+                          >
+                            Copy
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDownloadSequence(dnaRnaResult.dna_sequence, `dna_sequence_${dnaRnaResult.length}bp.txt`)}
+                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex items-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          Download
+                        </button>
+                      </div>
                     </div>
-                    <div className="bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-800 overflow-hidden">
-                      <VirtualizedPlainSequence
-                        sequence={dnaRnaResult.dna_sequence}
-                        height={160}
-                        colorClass="text-blue-600 dark:text-blue-400"
-                      />
-                    </div>
+                    {isLargeSequence ? (
+                      <div className="bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-800 p-8 text-center">
+                        <div className="text-6xl mb-4">🧬</div>
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">
+                          DNA sequence too large to display
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500">
+                          Click "Download" to save the {(dnaRnaResult.length / 1000000).toFixed(1)} MB file
+                        </p>
+                      </div>
+                    ) : (
+                      <div className="bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-800 overflow-hidden">
+                        <VirtualizedPlainSequence
+                          sequence={dnaRnaResult.dna_sequence}
+                          height={160}
+                          colorClass="text-blue-600 dark:text-blue-400"
+                        />
+                      </div>
+                    )}
                   </div>
 
                   {/* RNA Sequence */}
                   <div>
                     <div className="flex justify-between items-center mb-2">
                       <h3 className="text-md font-semibold text-gray-900 dark:text-white">
-                        RNA Sequence {proteinResult && <span className="text-xs text-purple-400 ml-2">(Hover codons for amino acids)</span>}
+                        RNA Sequence ({dnaRnaResult.length.toLocaleString()} bp) {proteinResult && !isLargeSequence && <span className="text-xs text-purple-400 ml-2">(Hover codons for amino acids)</span>}
                       </h3>
-                      <button
-                        onClick={() => handleCopySequence(dnaRnaResult.rna_sequence)}
-                        className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm"
-                      >
-                        Copy
-                      </button>
+                      <div className="flex gap-2">
+                        {!isLargeSequence && (
+                          <button
+                            onClick={() => handleCopySequence(dnaRnaResult.rna_sequence)}
+                            className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm"
+                          >
+                            Copy
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDownloadSequence(dnaRnaResult.rna_sequence, `rna_sequence_${dnaRnaResult.length}bp.txt`)}
+                          className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm flex items-center gap-1"
+                        >
+                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
+                          </svg>
+                          Download
+                        </button>
+                      </div>
                     </div>
 
-                    {/* Fixed Tooltip Bar - Outside scrollable area */}
-                    {proteinResult && (
+                    {isLargeSequence ? (
+                      <div className="bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-300 dark:border-gray-800 p-8 text-center">
+                        <div className="text-6xl mb-4">🧬</div>
+                        <p className="text-gray-600 dark:text-gray-400 mb-2">
+                          RNA sequence too large to display
+                        </p>
+                        <p className="text-sm text-gray-500 dark:text-gray-500">
+                          Click "Download" to save the {(dnaRnaResult.length / 1000000).toFixed(1)} MB file
+                        </p>
+                      </div>
+                    ) : (
                       <>
-                        <div className={`mb-2 px-4 py-3 rounded-lg border transition-all duration-300 ease-in-out ${hoveredCodon
-                          ? 'bg-purple-50 dark:bg-gray-900 border-purple-500 dark:border-purple-500 shadow-md'
-                          : 'bg-gray-100 dark:bg-gray-900/50 border-gray-300 dark:border-gray-700'
-                          }`}>
-                          <div className="relative h-7 overflow-hidden">
-                            {/* Hovered state content */}
-                            <div className={`absolute inset-0 flex items-center gap-3 text-sm transition-all duration-300 ease-in-out ${hoveredCodon
-                              ? 'opacity-100 translate-y-0'
-                              : 'opacity-0 -translate-y-4'
+                        {/* Fixed Tooltip Bar - Outside scrollable area */}
+                        {proteinResult && (
+                          <>
+                            <div className={`mb-2 px-4 py-3 rounded-lg border transition-all duration-300 ease-in-out ${hoveredCodon
+                              ? 'bg-purple-50 dark:bg-gray-900 border-purple-500 dark:border-purple-500 shadow-md'
+                              : 'bg-gray-100 dark:bg-gray-900/50 border-gray-300 dark:border-gray-700'
                               }`}>
-                              {hoveredCodon && (
-                                <>
-                                  <span className="font-mono text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded">{hoveredCodon.codon}</span>
-                                  <span className="text-gray-500 dark:text-gray-400">→</span>
-                                  <span className="font-bold text-yellow-600 dark:text-yellow-400 text-lg">{hoveredCodon.symbol}</span>
-                                  <span className="text-green-600 dark:text-green-400 font-medium">{hoveredCodon.name}</span>
-                                  <span className="text-gray-500 dark:text-gray-400">•</span>
-                                  <span className="text-gray-700 dark:text-gray-300">{hoveredCodon.fullName}</span>
-                                  <span className="text-gray-500 dark:text-gray-400">•</span>
-                                  <span className={`px-2 py-0.5 rounded text-xs font-semibold ${CLASSIFICATION_COLORS[hoveredCodon.classification].bg
-                                    } ${CLASSIFICATION_COLORS[hoveredCodon.classification].text}`}>
-                                    {hoveredCodon.classificationLabel}
-                                  </span>
-                                </>
-                              )}
+                              <div className="relative h-7 overflow-hidden">
+                                {/* Hovered state content */}
+                                <div className={`absolute inset-0 flex items-center gap-3 text-sm transition-all duration-300 ease-in-out ${hoveredCodon
+                                  ? 'opacity-100 translate-y-0'
+                                  : 'opacity-0 -translate-y-4'
+                                  }`}>
+                                  {hoveredCodon && (
+                                    <>
+                                      <span className="font-mono text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded">{hoveredCodon.codon}</span>
+                                      <span className="text-gray-500 dark:text-gray-400">→</span>
+                                      <span className="font-bold text-yellow-600 dark:text-yellow-400 text-lg">{hoveredCodon.symbol}</span>
+                                      <span className="text-green-600 dark:text-green-400 font-medium">{hoveredCodon.name}</span>
+                                      <span className="text-gray-500 dark:text-gray-400">•</span>
+                                      <span className="text-gray-700 dark:text-gray-300">{hoveredCodon.fullName}</span>
+                                      <span className="text-gray-500 dark:text-gray-400">•</span>
+                                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${CLASSIFICATION_COLORS[hoveredCodon.classification].bg
+                                        } ${CLASSIFICATION_COLORS[hoveredCodon.classification].text}`}>
+                                        {hoveredCodon.classificationLabel}
+                                      </span>
+                                    </>
+                                  )}
+                                </div>
+                                {/* Default state content */}
+                                <div className={`absolute inset-0 flex items-center text-sm text-gray-500 dark:text-gray-400 italic transition-all duration-300 ease-in-out ${hoveredCodon
+                                  ? 'opacity-0 translate-y-4'
+                                  : 'opacity-100 translate-y-0'
+                                  }`}>
+                                  Hover over a codon to see the amino acid
+                                </div>
+                              </div>
                             </div>
-                            {/* Default state content */}
-                            <div className={`absolute inset-0 flex items-center text-sm text-gray-500 dark:text-gray-400 italic transition-all duration-300 ease-in-out ${hoveredCodon
-                              ? 'opacity-0 translate-y-4'
-                              : 'opacity-100 translate-y-0'
-                              }`}>
-                              Hover over a codon to see the amino acid
-                            </div>
-                          </div>
-                        </div>
 
-                        {/* Color Legend */}
-                        <div className="mb-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/30 rounded-lg border border-gray-200 dark:border-gray-700">
-                          <div className="flex items-center gap-3 flex-wrap text-xs">
-                            <span className="text-gray-500 dark:text-gray-400">Legend:</span>
-                            <div className="flex items-center gap-1">
-                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.hydrophobic.bg}`}></span>
-                              <span className="text-gray-700 dark:text-gray-300">Hydrophobic</span>
+                            {/* Color Legend */}
+                            <div className="mb-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/30 rounded-lg border border-gray-200 dark:border-gray-700">
+                              <div className="flex items-center gap-3 flex-wrap text-xs">
+                                <span className="text-gray-500 dark:text-gray-400">Legend:</span>
+                                <div className="flex items-center gap-1">
+                                  <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.hydrophobic.bg}`}></span>
+                                  <span className="text-gray-700 dark:text-gray-300">Hydrophobic</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.polar.bg}`}></span>
+                                  <span className="text-gray-700 dark:text-gray-300">Polar</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.positive.bg}`}></span>
+                                  <span className="text-gray-700 dark:text-gray-300">Positive</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.negative.bg}`}></span>
+                                  <span className="text-gray-700 dark:text-gray-300">Negative</span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.special.bg}`}></span>
+                                  <span className="text-gray-700 dark:text-gray-300">Special</span>
+                                </div>
+                              </div>
                             </div>
-                            <div className="flex items-center gap-1">
-                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.polar.bg}`}></span>
-                              <span className="text-gray-700 dark:text-gray-300">Polar</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.positive.bg}`}></span>
-                              <span className="text-gray-700 dark:text-gray-300">Positive</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.negative.bg}`}></span>
-                              <span className="text-gray-700 dark:text-gray-300">Negative</span>
-                            </div>
-                            <div className="flex items-center gap-1">
-                              <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.special.bg}`}></span>
-                              <span className="text-gray-700 dark:text-gray-300">Special</span>
-                            </div>
-                          </div>
+                          </>
+                        )}
+
+                        <div className={`bg-gray-100 dark:bg-gray-900 rounded-lg border overflow-hidden ${proteinResult ? 'border-purple-400 dark:border-purple-500/50' : 'border-gray-300 dark:border-gray-800'}`}>
+                          <VirtualizedCodonSequence
+                            sequence={dnaRnaResult.rna_sequence}
+                            showHighlights={!!proteinResult}
+                            onHover={setHoveredCodon}
+                            height={160}
+                          />
                         </div>
                       </>
                     )}
-
-                    <div className={`bg-gray-100 dark:bg-gray-900 rounded-lg border overflow-hidden ${proteinResult ? 'border-purple-400 dark:border-purple-500/50' : 'border-gray-300 dark:border-gray-800'}`}>
-                      <VirtualizedCodonSequence
-                        sequence={dnaRnaResult.rna_sequence}
-                        showHighlights={!!proteinResult}
-                        onHover={setHoveredCodon}
-                        height={160}
-                      />
-                    </div>
                   </div>
                 </div>
 
                 {/* Generate Protein Sequence Button */}
-                {!proteinResult && (
+                {!proteinResult && !isLargeSequence && (
                   <button
                     onClick={handleGenerateProtein}
                     disabled={generatingProtein}
@@ -1182,6 +1299,18 @@ const ProteinFoldGenerationPage: React.FC = () => {
                   >
                     {generatingProtein ? "Generating..." : "Generate Protein Sequence"}
                   </button>
+                )}
+                
+                {/* Message for large sequences */}
+                {!proteinResult && isLargeSequence && (
+                  <div className="mt-4 p-4 bg-gray-100 dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 text-center">
+                    <p className="text-gray-600 dark:text-gray-400">
+                      ⚠️ Protein sequence generation is not available for sequences over 10 million base pairs.
+                    </p>
+                    <p className="text-sm text-gray-500 dark:text-gray-500 mt-1">
+                      Download the sequences above for offline analysis.
+                    </p>
+                  </div>
                 )}
               </>
             )}

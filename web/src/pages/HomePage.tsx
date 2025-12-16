@@ -1,6 +1,7 @@
 import React from "react";
 
 import CTASection from "../components/marketing_site/home/CTASection";
+import DnaGeneratorSection from "../components/marketing_site/home/DnaGeneratorSection";
 import FeatureHighlights from "../components/marketing_site/home/FeatureHighlights";
 import HeroSection from "../components/marketing_site/home/HeroSection";
 import WorkflowSection from "../components/marketing_site/home/WorkflowSection";
@@ -16,6 +17,7 @@ const HomePage: React.FC = () => {
       <HeroSection />
       <FeatureHighlights cards={featureCards} />
       <WorkflowSection steps={workflow} />
+      <DnaGeneratorSection />
       <ZygoAISection />
       <CTASection />
     </>
@@ -23,4 +25,3 @@ const HomePage: React.FC = () => {
 };
 
 export default HomePage;
-

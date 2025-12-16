@@ -1,0 +1,483 @@
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { GiDna2, GiDna1 } from "react-icons/gi";
+import { HiDownload, HiClipboardCopy, HiRefresh, HiArrowRight, HiLockClosed, HiSparkles } from "react-icons/hi";
+import { FaDna, FaChartLine, FaProjectDiagram, FaDatabase, FaUsers, FaBrain } from "react-icons/fa";
+import { BiTestTube } from "react-icons/bi";
+import { generateDnaAndRna, type ProteinGenerateResponse } from "../services/proteinGenerator.api";
+import useDocumentTitle from "../hooks/useDocumentTitle";
+
+const DnaGeneratorPage: React.FC = () => {
+  useDocumentTitle("DNA Generator - Free Tool");
+
+  const [length, setLength] = useState<number>(999);
+  const [gcContent, setGcContent] = useState<number>(0.5);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<ProteinGenerateResponse | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [copied, setCopied] = useState<"dna" | "rna" | null>(null);
+
+  const isLargeSequence = length > 10000000;
+  const displayResult = result && result.length <= 10000000;
+
+  const handleGenerate = async () => {
+    setLoading(true);
+    setError(null);
+    setResult(null);
+
+    try {
+      const response = await generateDnaAndRna({
+        length,
+        gc_content: gcContent,
+      });
+      setResult(response);
+    } catch (err: unknown) {
+      const axiosError = err as { response?: { data?: { detail?: unknown } }; message?: string };
+      const detail = axiosError.response?.data?.detail;
+      if (typeof detail === "string") {
+        setError(detail);
+      } else if (Array.isArray(detail) && detail.length > 0) {
+        const firstError = detail[0] as { msg?: string };
+        setError(firstError?.msg || "Failed to generate sequence");
+      } else {
+        setError(axiosError.message || "Failed to generate sequence");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = (sequence: string, type: "dna" | "rna") => {
+    const blob = new Blob([sequence], { type: "text/plain;charset=utf-8" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${type}_sequence_${result?.length || length}bp.txt`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
+  const handleCopy = (sequence: string, type: "dna" | "rna") => {
+    navigator.clipboard.writeText(sequence);
+    setCopied(type);
+    setTimeout(() => setCopied(null), 2000);
+  };
+
+  const handleReset = () => {
+    setResult(null);
+    setError(null);
+  };
+
+  const studioFeatures = [
+    {
+      icon: FaDna,
+      title: "Protein Fold Generation",
+      description: "Convert DNA to RNA and identify all Open Reading Frames (ORFs) with our C++ engine.",
+      path: "/studio/protein-fold-generation",
+      gradient: "from-purple-500 to-indigo-600",
+      color: "purple",
+    },
+    {
+      icon: BiTestTube,
+      title: "Simulation Studio",
+      description: "Run Mendelian genetics simulations with visual Punnett squares and inheritance patterns.",
+      path: "/studio/simulation-studio",
+      gradient: "from-blue-500 to-cyan-600",
+      color: "blue",
+    },
+    {
+      icon: FaUsers,
+      title: "Population Genetics",
+      description: "Simulate population dynamics with Hardy-Weinberg equilibrium and genetic drift.",
+      path: "/studio/population",
+      gradient: "from-green-500 to-emerald-600",
+      color: "green",
+    },
+    {
+      icon: FaChartLine,
+      title: "PGS Demo",
+      description: "Explore Polygenic Score calculations and understand complex trait inheritance.",
+      path: "/studio/pgs-demo",
+      gradient: "from-orange-500 to-red-600",
+      color: "orange",
+    },
+    {
+      icon: FaDatabase,
+      title: "Browse Traits",
+      description: "Explore our comprehensive database of genetic traits with detailed information.",
+      path: "/studio/browse-traits",
+      gradient: "from-teal-500 to-blue-600",
+      color: "teal",
+    },
+    {
+      icon: FaProjectDiagram,
+      title: "Project Management",
+      description: "Create and manage your genetics projects with collaborative features.",
+      path: "/studio/projects",
+      gradient: "from-pink-500 to-rose-600",
+      color: "pink",
+    },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/20 dark:from-slate-900 dark:via-purple-950/20 dark:to-slate-950">
+      {/* Hero Section */}
+      <section className="relative pt-20 pb-16 overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 overflow-hidden pointer-events-none">
+          <div className="absolute top-20 left-10 w-72 h-72 bg-purple-500/10 rounded-full blur-3xl animate-pulse"></div>
+          <div className="absolute top-40 right-20 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+          <div className="absolute bottom-20 left-1/3 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
+        </div>
+
+        <div className="relative mx-auto max-w-7xl px-6">
+          {/* Header */}
+          <div className="text-center max-w-4xl mx-auto mb-12">
+            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-purple-600 to-blue-600 px-6 py-2.5 mb-8 shadow-lg shadow-purple-500/25">
+              <GiDna2 className="w-5 h-5 text-white animate-spin" style={{ animationDuration: "3s" }} />
+              <span className="text-sm font-semibold uppercase tracking-[0.2em] text-white">
+                Free DNA Generator Tool
+              </span>
+            </div>
+
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 dark:from-purple-400 dark:via-indigo-400 dark:to-blue-400 mb-6 leading-tight">
+              Generate DNA Sequences
+            </h1>
+
+            <p className="text-xl text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
+              Create random DNA sequences with customizable GC content. Our high-performance 
+              <span className="font-semibold text-purple-600 dark:text-purple-400"> C++ engine </span>
+              can generate sequences up to <span className="font-bold">100 million base pairs</span> in seconds.
+            </p>
+          </div>
+
+          {/* Stats */}
+          <div className="flex flex-wrap justify-center gap-8 mb-16">
+            <div className="text-center px-6">
+              <p className="text-4xl font-bold text-purple-600 dark:text-purple-400">100M+</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Max Base Pairs</p>
+            </div>
+            <div className="text-center px-6 border-l border-slate-200 dark:border-slate-700">
+              <p className="text-4xl font-bold text-blue-600 dark:text-blue-400">&lt; 10s</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Generation Time</p>
+            </div>
+            <div className="text-center px-6 border-l border-slate-200 dark:border-slate-700">
+              <p className="text-4xl font-bold text-green-600 dark:text-green-400">100%</p>
+              <p className="text-sm text-slate-600 dark:text-slate-400">Free to Use</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Generator Section */}
+      <section className="relative py-12">
+        <div className="mx-auto max-w-4xl px-6">
+          <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 md:p-10 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-purple-200/40 dark:shadow-purple-950/40">
+            
+            {!result ? (
+              <>
+                {/* Input Controls */}
+                <div className="grid md:grid-cols-2 gap-8 mb-8">
+                  {/* Length Input */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                      Sequence Length (base pairs)
+                    </label>
+                    <input
+                      type="number"
+                      min={3}
+                      max={100000000}
+                      step={3}
+                      value={length}
+                      onChange={(e) => setLength(Math.max(3, parseInt(e.target.value) || 3))}
+                      className="w-full px-5 py-4 border-2 border-slate-200 dark:border-slate-600 rounded-xl focus:ring-4 focus:ring-purple-500/20 focus:border-purple-500 bg-white dark:bg-slate-900 text-slate-900 dark:text-white text-xl font-mono transition-all"
+                      disabled={loading}
+                    />
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-2">
+                      Range: 3 - 100,000,000 bp (must be divisible by 3)
+                    </p>
+                    {isLargeSequence && (
+                      <div className="mt-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                        <p className="text-sm text-amber-700 dark:text-amber-400 flex items-center gap-2">
+                          <span>⚠️</span>
+                          <span>Sequences over 10M bp will be download-only</span>
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* GC Content */}
+                  <div>
+                    <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-3">
+                      GC Content: <span className="text-purple-600 dark:text-purple-400">{(gcContent * 100).toFixed(0)}%</span>
+                    </label>
+                    <input
+                      type="range"
+                      min={0}
+                      max={1}
+                      step={0.01}
+                      value={gcContent}
+                      onChange={(e) => setGcContent(parseFloat(e.target.value))}
+                      className="w-full h-4 bg-gradient-to-r from-blue-400 via-purple-500 to-red-400 rounded-lg appearance-none cursor-pointer"
+                      disabled={loading}
+                    />
+                    <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-2">
+                      <span>0% (AT-rich)</span>
+                      <span>50% (Balanced)</span>
+                      <span>100% (GC-rich)</span>
+                    </div>
+                    <p className="text-sm text-slate-500 dark:text-slate-400 mt-4">
+                      <strong>GC Content</strong> affects DNA stability. Higher GC = more stable double helix.
+                    </p>
+                  </div>
+                </div>
+
+                {/* Generate Button */}
+                <button
+                  onClick={handleGenerate}
+                  disabled={loading}
+                  className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-700 hover:via-indigo-700 hover:to-blue-700 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-3 text-lg"
+                >
+                  {loading ? (
+                    <>
+                      <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
+                      <span>Generating {length >= 1000000 ? `${(length / 1000000).toFixed(1)}M` : length.toLocaleString()} bp...</span>
+                    </>
+                  ) : (
+                    <>
+                      <GiDna1 className="w-7 h-7" />
+                      <span>Generate DNA Sequence</span>
+                    </>
+                  )}
+                </button>
+              </>
+            ) : (
+              <>
+                {/* Results */}
+                <div className="space-y-6">
+                  {/* Stats Bar */}
+                  <div className="flex flex-wrap items-center justify-between gap-4 p-5 bg-gradient-to-r from-slate-100 to-slate-50 dark:from-slate-900/80 dark:to-slate-900/40 rounded-xl border border-slate-200 dark:border-slate-700">
+                    <div className="flex items-center gap-8">
+                      <div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Length</span>
+                        <p className="text-2xl font-bold text-slate-900 dark:text-white">{result.length.toLocaleString()} <span className="text-sm font-normal text-slate-500">bp</span></p>
+                      </div>
+                      <div>
+                        <span className="text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider">Actual GC</span>
+                        <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{(result.actual_gc * 100).toFixed(2)}%</p>
+                      </div>
+                    </div>
+                    <button
+                      onClick={handleReset}
+                      className="flex items-center gap-2 px-5 py-2.5 bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 text-slate-700 dark:text-slate-300 rounded-lg transition-colors font-medium"
+                    >
+                      <HiRefresh className="w-5 h-5" />
+                      <span>Generate New</span>
+                    </button>
+                  </div>
+
+                  {/* DNA Sequence */}
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between px-5 py-4 bg-blue-50 dark:bg-blue-900/20 border-b border-slate-200 dark:border-slate-700">
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-3">
+                        <span className="w-4 h-4 rounded-full bg-blue-500"></span>
+                        DNA Sequence
+                      </h3>
+                      <div className="flex gap-2">
+                        {displayResult && (
+                          <button
+                            onClick={() => handleCopy(result.dna_sequence, "dna")}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm transition-colors border border-slate-200 dark:border-slate-600"
+                          >
+                            <HiClipboardCopy className="w-4 h-4" />
+                            {copied === "dna" ? "Copied!" : "Copy"}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDownload(result.dna_sequence, "dna")}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-sm transition-colors font-medium"
+                        >
+                          <HiDownload className="w-4 h-4" />
+                          Download .txt
+                        </button>
+                      </div>
+                    </div>
+                    {displayResult ? (
+                      <div className="bg-slate-50 dark:bg-slate-900 p-5 max-h-48 overflow-auto">
+                        <code className="text-sm text-blue-600 dark:text-blue-400 font-mono break-all leading-relaxed">
+                          {result.dna_sequence}
+                        </code>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 dark:bg-slate-900 p-10 text-center">
+                        <div className="text-5xl mb-3">🧬</div>
+                        <p className="text-slate-600 dark:text-slate-400 font-medium">Sequence too large to display in browser</p>
+                        <p className="text-sm text-slate-500 mt-1">Click "Download .txt" to save the file ({(result.length / 1000000).toFixed(1)} MB)</p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* RNA Sequence */}
+                  <div className="border border-slate-200 dark:border-slate-700 rounded-xl overflow-hidden">
+                    <div className="flex items-center justify-between px-5 py-4 bg-green-50 dark:bg-green-900/20 border-b border-slate-200 dark:border-slate-700">
+                      <h3 className="text-lg font-semibold text-slate-900 dark:text-white flex items-center gap-3">
+                        <span className="w-4 h-4 rounded-full bg-green-500"></span>
+                        RNA Sequence (Transcribed)
+                      </h3>
+                      <div className="flex gap-2">
+                        {displayResult && (
+                          <button
+                            onClick={() => handleCopy(result.rna_sequence, "rna")}
+                            className="flex items-center gap-1.5 px-4 py-2 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-lg text-sm transition-colors border border-slate-200 dark:border-slate-600"
+                          >
+                            <HiClipboardCopy className="w-4 h-4" />
+                            {copied === "rna" ? "Copied!" : "Copy"}
+                          </button>
+                        )}
+                        <button
+                          onClick={() => handleDownload(result.rna_sequence, "rna")}
+                          className="flex items-center gap-1.5 px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm transition-colors font-medium"
+                        >
+                          <HiDownload className="w-4 h-4" />
+                          Download .txt
+                        </button>
+                      </div>
+                    </div>
+                    {displayResult ? (
+                      <div className="bg-slate-50 dark:bg-slate-900 p-5 max-h-48 overflow-auto">
+                        <code className="text-sm text-green-600 dark:text-green-400 font-mono break-all leading-relaxed">
+                          {result.rna_sequence}
+                        </code>
+                      </div>
+                    ) : (
+                      <div className="bg-slate-50 dark:bg-slate-900 p-10 text-center">
+                        <div className="text-5xl mb-3">🧬</div>
+                        <p className="text-slate-600 dark:text-slate-400 font-medium">Sequence too large to display in browser</p>
+                        <p className="text-sm text-slate-500 mt-1">Click "Download .txt" to save the file ({(result.length / 1000000).toFixed(1)} MB)</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Error Display */}
+            {error && (
+              <div className="mt-6 p-5 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded-xl">
+                <p className="text-red-700 dark:text-red-400">{error}</p>
+              </div>
+            )}
+          </div>
+
+          {/* Info Badge */}
+          <div className="flex justify-center mt-8">
+            <div className="inline-flex items-center gap-2 px-5 py-2.5 bg-white dark:bg-slate-800 rounded-full border border-slate-200 dark:border-slate-700 shadow-lg">
+              <HiSparkles className="w-5 h-5 text-purple-500" />
+              <span className="text-sm text-slate-600 dark:text-slate-400">
+                Powered by our <span className="font-semibold text-purple-600 dark:text-purple-400">C++ engine</span> • No signup required
+              </span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Studio Features Section */}
+      <section className="py-20 bg-gradient-to-b from-transparent via-slate-100/50 to-white dark:via-slate-900/50 dark:to-slate-900">
+        <div className="mx-auto max-w-7xl px-6">
+          <div className="text-center max-w-3xl mx-auto mb-16">
+            <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-100 to-purple-100 dark:from-indigo-900/50 dark:to-purple-900/50 px-5 py-2 mb-6 border border-indigo-200 dark:border-indigo-800">
+              <HiLockClosed className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="text-xs font-semibold uppercase tracking-wider text-indigo-700 dark:text-indigo-300">
+                Pro Features
+              </span>
+            </div>
+
+            <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-6">
+              Unlock Powerful <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 to-blue-600">Studio Tools</span>
+            </h2>
+
+            <p className="text-lg text-slate-600 dark:text-slate-400">
+              Create a free account to access our comprehensive genetics research platform with advanced simulations, 
+              visualizations, and analysis tools.
+            </p>
+          </div>
+
+          {/* Feature Cards */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-12">
+            {studioFeatures.map((feature) => (
+              <Link
+                key={feature.title}
+                to={feature.path}
+                className="group relative bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+              >
+                {/* Icon */}
+                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} text-white shadow-lg mb-5 group-hover:scale-110 transition-transform duration-300`}>
+                  <feature.icon className="w-7 h-7" />
+                </div>
+
+                {/* Title */}
+                <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors">
+                  {feature.title}
+                </h3>
+
+                {/* Description */}
+                <p className="text-slate-600 dark:text-slate-400 mb-4">
+                  {feature.description}
+                </p>
+
+                {/* Link Arrow */}
+                <div className="flex items-center gap-2 text-purple-600 dark:text-purple-400 font-medium">
+                  <span>Try Now</span>
+                  <HiArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+                </div>
+
+                {/* Hover Glow */}
+                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none`}></div>
+              </Link>
+            ))}
+          </div>
+
+          {/* CTA */}
+          <div className="text-center">
+            <div className="inline-flex flex-col sm:flex-row items-center gap-4">
+              <Link
+                to="/signup"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-purple-600 to-blue-600 hover:from-purple-700 hover:to-blue-700 text-white rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+              >
+                <FaBrain className="w-5 h-5" />
+                <span>Create Free Account</span>
+                <HiArrowRight className="w-5 h-5" />
+              </Link>
+              <span className="text-slate-500 dark:text-slate-400">or</span>
+              <Link
+                to="/signin"
+                className="inline-flex items-center gap-2 px-6 py-3 bg-white dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 rounded-full font-medium border border-slate-200 dark:border-slate-700 transition-colors"
+              >
+                <span>Sign In</span>
+              </Link>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer Info */}
+      <section className="py-12 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800">
+        <div className="mx-auto max-w-4xl px-6 text-center">
+          <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+            Why Zygotrix?
+          </h3>
+          <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+            Zygotrix is a comprehensive genetics research platform designed for researchers, educators, and students. 
+            Our tools are built with performance in mind, using C++ engines for computationally intensive tasks. 
+            Start with our free DNA generator, and explore our full suite of tools when you're ready to dive deeper into genetics research.
+          </p>
+        </div>
+      </section>
+    </div>
+  );
+};
+
+export default DnaGeneratorPage;

@@ -14,6 +14,7 @@ const ZYGOTRIX_UNIVERSITY_URL = import.meta.env.VITE_ZYGOTRIX_UNIVERSITY_APP;
 const baseNavItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
+  { label: "DNA Generator", to: "/dna-generator" },
   { label: "Zygotrix AI", to: "/zygoai" },
   { label: "Blogs", to: "/blogs" },
   { label: "Community", to: "/community" },

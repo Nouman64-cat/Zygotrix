@@ -6,6 +6,9 @@ set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
+# Find threading library (required for parallel generation)
+find_package(Threads REQUIRED)
+
 add_library(zygotrix_engine STATIC
     src/Engine.cpp
     src/GenotypeUtils.cpp
@@ -18,6 +21,7 @@ add_library(zygotrix_engine STATIC
     src/ExactCalculatorStrategy.cpp
     src/SimulationCalculatorStrategy.cpp
     src/DnaGenerator.cpp
+    src/ParallelDnaGenerator.cpp
     third_party/json11/json11.cpp
 )
 
@@ -29,6 +33,9 @@ target_include_directories(zygotrix_engine
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
 )
+
+# Link threading library to the engine
+target_link_libraries(zygotrix_engine PUBLIC Threads::Threads)
 
 add_executable(zyg_demo examples/demo.cpp)
 target_link_libraries(zyg_demo PRIVATE zygotrix_engine)
@@ -59,6 +66,18 @@ target_include_directories(zyg_dna_cli PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
 )
 
+# Parallel DNA generator CLI (multi-threaded, supports large sequences)
+add_executable(zyg_parallel_dna_cli
+    src/ParallelDnaGeneratorCli.cpp
+)
+target_link_libraries(zyg_parallel_dna_cli PRIVATE zygotrix_engine)
+target_include_directories(zyg_parallel_dna_cli PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/src
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
+)
+
 add_executable(zyg_protein_cli
     src/ProteinGeneratorCli.cpp
 )
@@ -71,3 +90,4 @@ target_include_directories(zyg_protein_cli PRIVATE
 )
 
 enable_testing()
+

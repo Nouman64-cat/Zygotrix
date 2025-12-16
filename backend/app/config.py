@@ -104,6 +104,14 @@ class Settings:
         "CPP_PROTEIN_CLI_PATH",
         os.path.join("..", "zygotrix_engine_cpp", "build", _default_protein_cli),
     )
+    # C++ Parallel DNA Generator CLI path (for large sequences)
+    _default_parallel_dna_cli = "zyg_parallel_dna_cli.exe" if os.name == "nt" else "zyg_parallel_dna_cli"
+    cpp_parallel_dna_cli_path: str = os.getenv(
+        "CPP_PARALLEL_DNA_CLI_PATH",
+        os.path.join("..", "zygotrix_engine_cpp", "build", _default_parallel_dna_cli),
+    )
+    # Threshold for using parallel generation (in base pairs)
+    parallel_dna_threshold: int = _get_int("PARALLEL_DNA_THRESHOLD", 1_000_000)  # 1M bp
     # Twilio WhatsApp notification settings
     twilio_account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")
     twilio_auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")

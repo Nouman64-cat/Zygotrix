@@ -20,7 +20,9 @@ logger = logging.getLogger(__name__)
 
 # Queue configuration
 LARGE_SEQUENCE_THRESHOLD = 10_000_000  # 10M bp - sequences above this use queue
-MAX_CONCURRENT_LARGE_JOBS = 1  # Only 1 large job at a time (2GB RAM constraint)
+# With parallel C++ generation, we can handle 2 concurrent jobs
+# Each job uses multi-threaded generation, more memory efficient
+MAX_CONCURRENT_LARGE_JOBS = 2
 JOB_TTL_SECONDS = 3600  # Job data expires after 1 hour
 JOB_HISTORY_TTL_SECONDS = 86400 * 7  # Job history expires after 7 days
 QUEUE_KEY = "seq:queue"

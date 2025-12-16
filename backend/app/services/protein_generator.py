@@ -45,6 +45,22 @@ def _get_cpp_cli_path() -> Optional[Path]:
     return None
 
 
+def _get_parallel_dna_cli_path() -> Optional[Path]:
+    """Get the path to the parallel DNA generator CLI, if available."""
+    settings = get_settings()
+    cli_path = Path(settings.cpp_parallel_dna_cli_path).resolve()
+    
+    # Try relative to the backend directory
+    if not cli_path.exists():
+        backend_dir = Path(__file__).parent.parent.parent
+        cli_path = (backend_dir / settings.cpp_parallel_dna_cli_path).resolve()
+    
+    if cli_path.exists() and os.access(cli_path, os.X_OK):
+        return cli_path
+    
+    return None
+
+
 def _call_cpp_cli(request_data: dict, timeout: int = 120) -> dict:
     """
     Call the C++ CLI with the given request data.
@@ -88,17 +104,110 @@ def _call_cpp_cli(request_data: dict, timeout: int = 120) -> dict:
     return response
 
 
+def _call_parallel_dna_cli(request_data: dict, timeout: int = 600) -> dict:
+    """
+    Call the parallel DNA generator CLI for large sequences.
+    
+    Args:
+        request_data: Dictionary with length, gc_content, optional seed and threads
+        timeout: Maximum seconds to wait (default 10 minutes for very large sequences)
+        
+    Returns:
+        Parsed JSON response from the CLI
+        
+    Raises:
+        RuntimeError: If CLI fails or returns an error
+    """
+    cli_path = _get_parallel_dna_cli_path()
+    if not cli_path:
+        raise RuntimeError("Parallel DNA CLI not available")
+    
+    result = subprocess.run(
+        [str(cli_path)],
+        input=json.dumps(request_data),
+        capture_output=True,
+        text=True,
+        timeout=timeout
+    )
+    
+    if result.returncode != 0:
+        try:
+            error_response = json.loads(result.stdout)
+            if "error" in error_response:
+                raise RuntimeError(f"Parallel DNA CLI error: {error_response['error']}")
+        except json.JSONDecodeError:
+            pass
+        raise RuntimeError(f"Parallel DNA CLI failed: {result.stderr or result.stdout}")
+    
+    response = json.loads(result.stdout)
+    
+    if "error" in response:
+        raise RuntimeError(f"Parallel DNA CLI error: {response['error']}")
+    
+    return response
+
+
 def _use_cpp_engine() -> bool:
     """Check if C++ engine should be used."""
     settings = get_settings()
     return settings.use_cpp_engine and _get_cpp_cli_path() is not None
 
 
+def _use_parallel_engine(length: int) -> bool:
+    """Check if parallel DNA engine should be used for this sequence length."""
+    settings = get_settings()
+    return (
+        settings.use_cpp_engine 
+        and length >= settings.parallel_dna_threshold
+        and _get_parallel_dna_cli_path() is not None
+    )
+
+
 def generate_dna_rna(request: ProteinGenerateRequest) -> ProteinGenerateResponse:
     """
     Generate DNA and RNA sequences.
-    Uses C++ engine if available, falls back to Python.
+    Uses parallel C++ engine for large sequences, regular C++ engine otherwise.
+    Falls back to Python if needed.
     """
+    # For large sequences, use the parallel DNA generator
+    if _use_parallel_engine(request.length):
+        try:
+            parallel_request = {
+                "length": request.length,
+                "gc_content": request.gc_content,
+            }
+            if request.seed is not None:
+                parallel_request["seed"] = request.seed
+            
+            # Use more threads for very large sequences
+            import multiprocessing
+            num_threads = multiprocessing.cpu_count()
+            parallel_request["threads"] = num_threads
+            
+            print(f"⚡ [PARALLEL C++] Generating DNA sequence ({request.length:,} bp) with {num_threads} threads...")
+            start_time = time.time()
+            result = _call_parallel_dna_cli(parallel_request)
+            elapsed = time.time() - start_time
+            
+            threads_used = result.get("threads_used", num_threads)
+            gen_time_ms = result.get("generation_time_ms", int(elapsed * 1000))
+            print(f"✅ [PARALLEL C++] DNA generation complete! 🧵 {threads_used} threads, ⏱️ {gen_time_ms}ms")
+            
+            # Transcribe to RNA (simple complement)
+            dna_sequence = result["sequence"]
+            rna_sequence = py_transcribe_to_rna(dna_sequence)
+            
+            return ProteinGenerateResponse(
+                dna_sequence=dna_sequence,
+                rna_sequence=rna_sequence,
+                length=result["length"],
+                gc_content=result["gc_content"],
+                actual_gc=result["actual_gc"]
+            )
+        except Exception as e:
+            print(f"⚠️ [PARALLEL C++] Failed, trying regular C++ engine: {e}")
+    
+    # Regular C++ engine for smaller sequences
     if _use_cpp_engine():
         try:
             cpp_request = {

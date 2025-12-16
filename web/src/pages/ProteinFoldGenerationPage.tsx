@@ -625,6 +625,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
     const gcContent = calculateGcContent(cleanDna);
 
     setDnaRnaResult({
+      gc_content: gcContent,
       dna_sequence: cleanDna,
       rna_sequence: rnaSeq,
       length: cleanDna.length,
@@ -653,6 +654,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
     const gcContent = calculateGcContent(dnaSeq);
 
     setDnaRnaResult({
+      gc_content: gcContent,
       dna_sequence: dnaSeq,
       rna_sequence: cleanRna,
       length: cleanRna.length,
@@ -704,13 +706,6 @@ const ProteinFoldGenerationPage: React.FC = () => {
     }
   };
 
-  const formatSequence = (sequence: string, lineLength: number = 80) => {
-    const lines = [];
-    for (let i = 0; i < sequence.length; i += lineLength) {
-      lines.push(sequence.substring(i, i + lineLength));
-    }
-    return lines.join("\n");
-  };
 
   const handleCopySequence = (text: string) => {
     navigator.clipboard.writeText(text);
@@ -785,7 +780,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                       activeTab === "generate"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
                         : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-                    } ${!!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                    } ${!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Generate Random
                   </button>
@@ -796,7 +791,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                       activeTab === "input-dna"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
                         : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-                    } ${!!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                    } ${!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Input DNA
                   </button>
@@ -807,7 +802,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                       activeTab === "input-rna"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
                         : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600"
-                    } ${!!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
+                    } ${!dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Input RNA
                   </button>

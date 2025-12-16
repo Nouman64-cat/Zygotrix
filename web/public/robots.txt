@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+# Main pages
+Allow: /dna-generator
+Allow: /about
+Allow: /zygoai
+Allow: /blogs
+Allow: /community
+Allow: /contact
+Allow: /privacy
+Allow: /terms
+
+# Sitemap
+Sitemap: https://zygotrix.com/sitemap.xml

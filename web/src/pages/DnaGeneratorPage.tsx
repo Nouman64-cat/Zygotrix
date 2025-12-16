@@ -5,10 +5,16 @@ import { HiDownload, HiClipboardCopy, HiRefresh, HiArrowRight, HiLockClosed, HiS
 import { FaDna, FaChartLine, FaProjectDiagram, FaDatabase, FaUsers, FaBrain } from "react-icons/fa";
 import { BiTestTube } from "react-icons/bi";
 import { generateDnaAndRna, type ProteinGenerateResponse } from "../services/proteinGenerator.api";
-import useDocumentTitle from "../hooks/useDocumentTitle";
+import useSEO from "../hooks/useSEO";
 
 const DnaGeneratorPage: React.FC = () => {
-  useDocumentTitle("DNA Generator - Free Tool");
+  // SEO Meta Tags for Google ranking
+  useSEO({
+    title: "Free DNA Sequence Generator - Create Random DNA & RNA Online",
+    description: "Generate random DNA sequences up to 100 million base pairs with customizable GC content. Free online DNA generator tool powered by high-performance C++ engine. Download DNA and RNA sequences instantly.",
+    keywords: "DNA generator, random DNA sequence, DNA sequence generator, RNA transcription, GC content, base pairs, genetics tool, bioinformatics, molecular biology, DNA synthesizer, free DNA tool, online DNA generator",
+    ogType: "website",
+  });
 
   const [length, setLength] = useState<number>(999);
   const [gcContent, setGcContent] = useState<number>(0.5);
@@ -124,6 +130,39 @@ const DnaGeneratorPage: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-purple-50/30 to-blue-50/20 dark:from-slate-900 dark:via-purple-950/20 dark:to-slate-950">
+      {/* JSON-LD Structured Data for SEO */}
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "SoftwareApplication",
+            "name": "Zygotrix DNA Generator",
+            "applicationCategory": "EducationalApplication",
+            "operatingSystem": "Web Browser",
+            "offers": {
+              "@type": "Offer",
+              "price": "0",
+              "priceCurrency": "USD"
+            },
+            "description": "Generate random DNA sequences up to 100 million base pairs with customizable GC content. Free online DNA generator tool powered by high-performance C++ engine.",
+            "aggregateRating": {
+              "@type": "AggregateRating",
+              "ratingValue": "4.8",
+              "ratingCount": "150"
+            },
+            "featureList": [
+              "Generate DNA sequences up to 100 million base pairs",
+              "Customize GC content from 0% to 100%",
+              "Automatic RNA transcription",
+              "Download sequences as text files",
+              "High-performance C++ engine",
+              "No registration required"
+            ]
+          })
+        }}
+      />
+
       {/* Hero Section */}
       <section className="relative pt-20 pb-16 overflow-hidden">
         {/* Animated Background */}

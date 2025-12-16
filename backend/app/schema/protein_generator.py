@@ -1,5 +1,80 @@
 from pydantic import BaseModel, Field
-from typing import Optional
+from typing import Optional, Any
+from enum import Enum
+
+
+class JobStatus(str, Enum):
+    """Status of a sequence generation job."""
+    QUEUED = "queued"
+    PROCESSING = "processing"
+    COMPLETED = "completed"
+    FAILED = "failed"
+
+
+class QueuedJobInfo(BaseModel):
+    """Brief info about a queued/processing job."""
+    job_id: str = Field(..., description="Unique job identifier")
+    sequence_length: int = Field(..., description="Sequence length in base pairs")
+    created_at: Optional[str] = Field(None, description="When job was created")
+
+
+class QueueStatusResponse(BaseModel):
+    """Response schema for queue status."""
+    queue_enabled: bool = Field(..., description="Whether queue system is active")
+    active_jobs: int = Field(..., description="Number of currently processing large jobs")
+    queue_length: int = Field(..., description="Number of jobs waiting in queue")
+    estimated_wait_seconds: int = Field(..., description="Estimated wait time in seconds")
+    queued_jobs: list[QueuedJobInfo] = Field(default_factory=list, description="Jobs waiting in queue")
+    processing_jobs: list[QueuedJobInfo] = Field(default_factory=list, description="Jobs currently processing")
+
+
+class JobStatusResponse(BaseModel):
+    """Response schema for job status check."""
+    job_id: str = Field(..., description="Unique job identifier")
+    status: JobStatus = Field(..., description="Current job status")
+    queue_position: Optional[int] = Field(None, description="Position in queue (if queued)")
+    estimated_wait_seconds: Optional[int] = Field(None, description="Estimated wait time")
+    result: Optional[Any] = Field(None, description="Job result (if completed)")
+    error: Optional[str] = Field(None, description="Error message (if failed)")
+    created_at: Optional[str] = Field(None, description="When job was created")
+    started_at: Optional[str] = Field(None, description="When processing started")
+    completed_at: Optional[str] = Field(None, description="When job completed")
+
+
+class JobHistoryItem(BaseModel):
+    """Schema for a single job in history."""
+    job_id: str = Field(..., description="Unique job identifier")
+    status: JobStatus = Field(..., description="Job status")
+    sequence_length: int = Field(..., description="Sequence length in base pairs")
+    created_at: Optional[str] = Field(None, description="When job was created")
+    started_at: Optional[str] = Field(None, description="When processing started")
+    completed_at: Optional[str] = Field(None, description="When job completed")
+    duration_seconds: Optional[float] = Field(None, description="Processing duration in seconds")
+    error: Optional[str] = Field(None, description="Error message if failed")
+
+
+class JobHistoryResponse(BaseModel):
+    """Response schema for job history."""
+    jobs: list[JobHistoryItem] = Field(default_factory=list, description="List of job history items")
+    total_jobs: int = Field(0, description="Total number of jobs processed")
+    completed_jobs: int = Field(0, description="Number of completed jobs")
+    failed_jobs: int = Field(0, description="Number of failed jobs")
+    queued_jobs: int = Field(0, description="Number of currently queued jobs")
+    processing_jobs: int = Field(0, description="Number of currently processing jobs")
+    avg_duration_seconds: Optional[float] = Field(None, description="Average processing duration")
+    total_bp_processed: int = Field(0, description="Total base pairs processed")
+
+
+class GenerateResponse(BaseModel):
+    """
+    Unified response for generate endpoint.
+    Either returns result directly OR job info if queued.
+    """
+    queued: bool = Field(..., description="Whether the request was queued")
+    job_id: Optional[str] = Field(None, description="Job ID (if queued)")
+    queue_position: Optional[int] = Field(None, description="Position in queue (if queued)")
+    estimated_wait_seconds: Optional[int] = Field(None, description="Estimated wait time (if queued)")
+    result: Optional["ProteinGenerateResponse"] = Field(None, description="Result (if not queued)")
 
 
 class ProteinGenerateRequest(BaseModel):

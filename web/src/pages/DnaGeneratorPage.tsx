@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Link } from "react-router-dom";
 import { GiDna2, GiDna1 } from "react-icons/gi";
 import { HiDownload, HiClipboardCopy, HiRefresh, HiArrowRight, HiLockClosed, HiSparkles } from "react-icons/hi";
@@ -22,8 +22,86 @@ const DnaGeneratorPage: React.FC = () => {
   const [result, setResult] = useState<ProteinGenerateResponse | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [copied, setCopied] = useState<"dna" | "rna" | null>(null);
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [tipIndex, setTipIndex] = useState<number>(0);
+  const startTimeRef = useRef<number | null>(null);
 
   const isLargeSequence = length > 10000000;
+
+  // End-to-end rate: ~303,030 bp/second based on benchmarks (100M bp in ~330 seconds)
+  // Note: C++ generation is fast (~19s for 100M), but total time includes JSON serialization & transfer
+  const GENERATION_RATE = 303030;
+
+  // Estimate generation time in seconds based on sequence length
+  const estimateGenerationTime = (bp: number): number => {
+    // Add a small base overhead for short sequences
+    const baseOverhead = 2;
+    return baseOverhead + (bp / GENERATION_RATE);
+  };
+
+  // Format seconds to human-readable time
+  const formatTime = (seconds: number): string => {
+    if (seconds < 60) {
+      return `${Math.round(seconds)}s`;
+    } else if (seconds < 3600) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.round(seconds % 60);
+      return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+    } else {
+      const hours = Math.floor(seconds / 3600);
+      const mins = Math.round((seconds % 3600) / 60);
+      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    }
+  };
+
+  // Tips to show during generation
+  const generationTips = [
+    "DNA sequences are generated using a high-performance C++ engine for speed.",
+    "GC content affects DNA stability - higher GC means stronger hydrogen bonding.",
+    "The generated RNA is transcribed from the template strand (3' to 5').",
+    "100 million base pairs is roughly the size of a small chromosome!",
+    "Our C++ engine can process millions of base pairs per second.",
+    "Each codon (3 nucleotides) in the RNA will code for one amino acid.",
+    "Did you know? Human DNA has about 3 billion base pairs.",
+    "The GC content of most organisms ranges from 25% to 75%.",
+    "Large sequences take time to transfer — the server is packaging ~100MB of data!",
+    "The C++ engine generates quickly, but transferring the data takes most of the time.",
+  ];
+
+  // Timer effect for elapsed time and tip rotation
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+    let tipIntervalId: ReturnType<typeof setInterval>;
+
+    if (loading) {
+      startTimeRef.current = Date.now();
+      setElapsedTime(0);
+      setTipIndex(Math.floor(Math.random() * generationTips.length));
+
+      intervalId = setInterval(() => {
+        if (startTimeRef.current) {
+          setElapsedTime((Date.now() - startTimeRef.current) / 1000);
+        }
+      }, 100);
+
+      // Rotate tips every 8 seconds
+      tipIntervalId = setInterval(() => {
+        setTipIndex((prev) => (prev + 1) % generationTips.length);
+      }, 8000);
+    } else {
+      startTimeRef.current = null;
+      setElapsedTime(0);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (tipIntervalId) clearInterval(tipIntervalId);
+    };
+  }, [loading]);
+
+  const estimatedTime = estimateGenerationTime(length);
+  const progress = loading ? Math.min((elapsedTime / estimatedTime) * 100, 95) : 0;
+  const remainingTime = Math.max(0, estimatedTime - elapsedTime);
   const displayResult = result && result.length <= 10000000;
 
   const handleGenerate = async () => {
@@ -246,6 +324,18 @@ const DnaGeneratorPage: React.FC = () => {
                         </p>
                       </div>
                     )}
+                    {/* Time estimate warning for long generations */}
+                    {estimatedTime > 30 && (
+                      <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+                        <p className="text-sm text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                          <span>⏱️</span>
+                          <span>
+                            Estimated generation time: <strong>{formatTime(estimatedTime)}</strong>
+                            {estimatedTime > 120 && " — You can leave this tab open while processing"}
+                          </span>
+                        </p>
+                      </div>
+                    )}
                   </div>
 
                   {/* GC Content */}
@@ -275,23 +365,84 @@ const DnaGeneratorPage: React.FC = () => {
                 </div>
 
                 {/* Generate Button */}
-                <button
-                  onClick={handleGenerate}
-                  disabled={loading}
-                  className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-700 hover:via-indigo-700 hover:to-blue-700 disabled:from-slate-400 disabled:to-slate-500 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 disabled:translate-y-0 disabled:shadow-none flex items-center justify-center gap-3 text-lg"
-                >
-                  {loading ? (
-                    <>
-                      <div className="w-6 h-6 border-3 border-white border-t-transparent rounded-full animate-spin"></div>
-                      <span>Generating {length >= 1000000 ? `${(length / 1000000).toFixed(1)}M` : length.toLocaleString()} bp...</span>
-                    </>
-                  ) : (
-                    <>
-                      <GiDna1 className="w-7 h-7" />
-                      <span>Generate DNA Sequence</span>
-                    </>
-                  )}
-                </button>
+                {!loading ? (
+                  <button
+                    onClick={handleGenerate}
+                    className="w-full bg-gradient-to-r from-purple-600 via-indigo-600 to-blue-600 hover:from-purple-700 hover:via-indigo-700 hover:to-blue-700 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-3 text-lg"
+                  >
+                    <GiDna1 className="w-7 h-7" />
+                    <span>Generate DNA Sequence</span>
+                  </button>
+                ) : (
+                  /* Enhanced Loading Progress UI */
+                  <div className="w-full bg-gradient-to-br from-slate-50 to-slate-100 dark:from-slate-900 dark:to-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden">
+                    {/* Header with spinner and sequence info */}
+                    <div className="px-6 py-5 border-b border-slate-200 dark:border-slate-700">
+                      <div className="flex items-center justify-between mb-3">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 border-3 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                          <div>
+                            <h4 className="font-semibold text-slate-900 dark:text-white">
+                              {length >= 10000000 ? "Generating & Transferring" : "Generating"} {length >= 1000000 ? `${(length / 1000000).toFixed(1)}M` : length.toLocaleString()} bp
+                            </h4>
+                            <p className="text-sm text-slate-500 dark:text-slate-400">
+                              {length >= 10000000
+                                ? `DNA & RNA sequences (~${(length / 1000000).toFixed(0)}MB payload)`
+                                : "DNA & RNA sequences"}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-slate-500 dark:text-slate-400">Elapsed</p>
+                          <p className="text-lg font-mono font-semibold text-purple-600 dark:text-purple-400">
+                            {formatTime(elapsedTime)}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Progress Bar */}
+                      <div className="relative h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+                        <div
+                          className="absolute inset-y-0 left-0 bg-gradient-to-r from-purple-500 via-indigo-500 to-blue-500 rounded-full transition-all duration-300 ease-out"
+                          style={{ width: `${progress}%` }}
+                        >
+                          <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                        </div>
+                      </div>
+
+                      {/* Time Estimates */}
+                      <div className="flex items-center justify-between mt-3 text-sm">
+                        <span className="text-slate-500 dark:text-slate-400">
+                          {progress < 95 ? (
+                            <>Est. remaining: <span className="font-semibold text-slate-700 dark:text-slate-300">{formatTime(remainingTime)}</span></>
+                          ) : (
+                            <span className="text-purple-600 dark:text-purple-400">Almost done...</span>
+                          )}
+                        </span>
+                        <span className="text-slate-500 dark:text-slate-400">
+                          Est. total: <span className="font-semibold text-slate-700 dark:text-slate-300">{formatTime(estimatedTime)}</span>
+                        </span>
+                      </div>
+                    </div>
+
+                    {/* Tips Section - only show for longer generations */}
+                    {estimatedTime > 5 && (
+                      <div className="px-6 py-4 bg-purple-50/50 dark:bg-purple-950/20">
+                        <div className="flex items-start gap-3">
+                          <HiSparkles className="w-5 h-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="text-xs font-semibold text-purple-700 dark:text-purple-400 uppercase tracking-wider mb-1">
+                              Did you know?
+                            </p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed">
+                              {generationTips[tipIndex]}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                )}
               </>
             ) : (
               <>

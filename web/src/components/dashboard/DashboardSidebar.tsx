@@ -38,133 +38,133 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   const userSidebarItems: SidebarItem[] = isAdmin
     ? []
     : [
-        {
-          id: "dashboard",
-          label: "Dashboard",
-          href: "/studio",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"
-              />
-            </svg>
-          ),
-        },
-        {
-          id: "projects",
-          label: "Projects",
-          href: "/studio/projects",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012 2v2M7 7h10"
-              />
-            </svg>
-          ),
-        },
-        {
-          id: "simulation-studio",
-          label: "Simulation Studio",
-          href: "/studio/simulation-studio",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z"
-              />
-            </svg>
-          ),
-        },
-        {
-          id: "protein-fold-generation",
-          label: "Protein Fold",
-          href: "/studio/protein-fold-generation",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-              />
-            </svg>
-          ),
-        },
-        {
-          id: "browse-traits",
-          label: "Browse Traits",
-          href: "/studio/browse-traits",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-              />
-            </svg>
-          ),
-        },
-        {
-          id: "analytics",
-          label: "Analytics & Reports",
-          href: "/studio/analytics",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
-              />
-            </svg>
-          ),
-        },
-      ];
+      {
+        id: "dashboard",
+        label: "Dashboard",
+        href: "/studio",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: "projects",
+        label: "Projects",
+        href: "/studio/projects",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012 2v2M7 7h10"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: "simulation-studio",
+        label: "Simulation Studio",
+        href: "/studio/simulation-studio",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: "protein-fold-generation",
+        label: "Protein Fold",
+        href: "/studio/protein-fold-generation",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: "browse-traits",
+        label: "Browse Traits",
+        href: "/studio/browse-traits",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: "analytics",
+        label: "Analytics & Reports",
+        href: "/studio/analytics",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"
+            />
+          </svg>
+        ),
+      },
+    ];
 
   // These items are always shown (Profile, Preferences, Settings)
   const sidebarItems: SidebarItem[] = [
@@ -328,118 +328,138 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
   // Admin items - only shown to admins and super admins
   const adminItems: SidebarItem[] = isAdmin
     ? [
-        {
-          id: "admin-users",
-          label: "User Management",
-          href: "/studio/admin/users",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
-              />
-            </svg>
-          ),
-        },
-        {
-          id: "admin-newsletter",
-          label: "Newsletter",
-          href: "/studio/admin/newsletter",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
-              />
-            </svg>
-          ),
-        },
-        {
-          id: "admin-contact",
-          label: "Contact Messages",
-          href: "/studio/admin/contact",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
-              />
-            </svg>
-          ),
-        },
-        {
-          id: "admin-chatbot-settings",
-          label: "Chatbot Settings",
-          href: "/studio/admin/chatbot-settings",
-          icon: (
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
-              />
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth={2}
-                d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-              />
-            </svg>
-          ),
-        },
-        // Token Usage - Only for super admins
-        ...(user?.user_role === "super_admin"
-          ? [
-              {
-                id: "admin-token-usage",
-                label: "AI Token Usage",
-                href: "/studio/admin/token-usage",
-                icon: (
-                  <svg
-                    className="w-5 h-5"
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth={2}
-                      d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-                    />
-                  </svg>
-                ),
-              },
-            ]
-          : []),
-      ]
+      {
+        id: "admin-users",
+        label: "User Management",
+        href: "/studio/admin/users",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: "admin-newsletter",
+        label: "Newsletter",
+        href: "/studio/admin/newsletter",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: "admin-contact",
+        label: "Contact Messages",
+        href: "/studio/admin/contact",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M8 10h.01M12 10h.01M16 10h.01M9 16H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-5l-5 5v-5z"
+            />
+          </svg>
+        ),
+      },
+      {
+        id: "admin-chatbot-settings",
+        label: "Chatbot Settings",
+        href: "/studio/admin/chatbot-settings",
+        icon: (
+          <svg
+            className="w-5 h-5"
+            fill="none"
+            stroke="currentColor"
+            viewBox="0 0 24 24"
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"
+            />
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              strokeWidth={2}
+              d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+            />
+          </svg>
+        ),
+      },
+      // Token Usage - Only for super admins
+      ...(user?.user_role === "super_admin"
+        ? [
+          {
+            id: "admin-token-usage",
+            label: "AI Token Usage",
+            href: "/studio/admin/token-usage",
+            icon: (
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
+                />
+              </svg>
+            ),
+          },
+          {
+            id: "admin-job-queue",
+            label: "Job Queue Monitor",
+            href: "/studio/admin/job-queue",
+            icon: (
+              <svg
+                className="w-5 h-5"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M5 12h14M5 12a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v4a2 2 0 01-2 2M5 12a2 2 0 00-2 2v4a2 2 0 002 2h14a2 2 0 002-2v-4a2 2 0 00-2-2m-2-4h.01M17 16h.01"
+                />
+              </svg>
+            ),
+          },
+        ]
+        : []),
+    ]
     : [];
 
 
@@ -470,9 +490,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
       {/* Sidebar */}
       <aside
-        className={`fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:top-0 lg:h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col ${
-          isOpen ? "translate-x-0" : "-translate-x-full"
-        } ${isCollapsed ? "w-16" : "w-64"}`}
+        className={`fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:top-0 lg:h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"
+          } ${isCollapsed ? "w-16" : "w-64"}`}
       >
         {/* Sidebar header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
@@ -490,9 +509,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 aria-label="Toggle sidebar"
               >
                 <svg
-                  className={`w-5 h-5 text-slate-500 dark:text-slate-400 transition-transform ${
-                    isCollapsed ? "rotate-180" : ""
-                  }`}
+                  className={`w-5 h-5 text-slate-500 dark:text-slate-400 transition-transform ${isCollapsed ? "rotate-180" : ""
+                    }`}
                   fill="none"
                   stroke="currentColor"
                   viewBox="0 0 24 24"
@@ -542,20 +560,17 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               <Link
                 to={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
-                  isActivePath(item.href)
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
                     ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
                     : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
-                } ${isCollapsed ? "justify-center" : ""} ${
-                  item.isChild && !isCollapsed ? "ml-6" : ""
-                }`}
+                  } ${isCollapsed ? "justify-center" : ""} ${item.isChild && !isCollapsed ? "ml-6" : ""
+                  }`}
               >
                 <span
-                  className={`${
-                    isActivePath(item.href)
+                  className={`${isActivePath(item.href)
                       ? "text-blue-600 dark:text-blue-400"
                       : "text-slate-500 dark:text-slate-400"
-                  }`}
+                    }`}
                 >
                   {item.icon}
                 </span>
@@ -596,20 +611,17 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               <Link
                 to={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
-                  isActivePath(item.href)
+                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
                     ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
                     : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
-                } ${isCollapsed ? "justify-center" : ""} ${
-                  item.isChild && !isCollapsed ? "ml-6" : ""
-                }`}
+                  } ${isCollapsed ? "justify-center" : ""} ${item.isChild && !isCollapsed ? "ml-6" : ""
+                  }`}
               >
                 <span
-                  className={`${
-                    isActivePath(item.href)
+                  className={`${isActivePath(item.href)
                       ? "text-blue-600 dark:text-blue-400"
                       : "text-slate-500 dark:text-slate-400"
-                  }`}
+                    }`}
                 >
                   {item.icon}
                 </span>
@@ -663,18 +675,16 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   <Link
                     to={item.href}
                     onClick={onClose}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${
-                      isActivePath(item.href)
+                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
                         ? "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700"
                         : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
-                    } ${isCollapsed ? "justify-center" : ""}`}
+                      } ${isCollapsed ? "justify-center" : ""}`}
                   >
                     <span
-                      className={`${
-                        isActivePath(item.href)
+                      className={`${isActivePath(item.href)
                           ? "text-purple-600 dark:text-purple-400"
                           : "text-slate-500 dark:text-slate-400"
-                      }`}
+                        }`}
                     >
                       {item.icon}
                     </span>
@@ -701,9 +711,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           {/* System Status */}
           <div className="relative group">
             <div
-              className={`flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 ${
-                isCollapsed ? "justify-center" : ""
-              }`}
+              className={`flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 ${isCollapsed ? "justify-center" : ""
+                }`}
             >
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
               {!isCollapsed && <span>System Status: Online</span>}
@@ -722,9 +731,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <div className="relative group">
             <button
               onClick={handleSignOut}
-              className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ${
-                isCollapsed ? "justify-center" : ""
-              }`}
+              className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ${isCollapsed ? "justify-center" : ""
+                }`}
             >
               <svg
                 className="w-5 h-5"

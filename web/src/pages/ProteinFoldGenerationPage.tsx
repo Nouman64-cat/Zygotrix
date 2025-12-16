@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useCallback, useRef } from "react";
+import React, { useState, useMemo, useCallback, useRef, useEffect } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import {
   generateDnaAndRna,
@@ -565,6 +565,87 @@ const ProteinFoldGenerationPage: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<number>(1);
   const orfsPerPage = 10;
 
+  // Progress tracking state
+  const [elapsedTime, setElapsedTime] = useState<number>(0);
+  const [tipIndex, setTipIndex] = useState<number>(0);
+  const startTimeRef = useRef<number | null>(null);
+
+  // End-to-end rate: ~303,030 bp/second based on benchmarks (100M bp in ~330 seconds)
+  // Note: C++ generation is fast (~19s for 100M), but total time includes JSON serialization & transfer
+  const GENERATION_RATE = 303030;
+
+  // Estimate generation time in seconds based on sequence length
+  const estimateGenerationTime = (bp: number): number => {
+    const baseOverhead = 2;
+    return baseOverhead + (bp / GENERATION_RATE);
+  };
+
+  // Format seconds to human-readable time
+  const formatTime = (seconds: number): string => {
+    if (seconds < 60) {
+      return `${Math.round(seconds)}s`;
+    } else if (seconds < 3600) {
+      const mins = Math.floor(seconds / 60);
+      const secs = Math.round(seconds % 60);
+      return secs > 0 ? `${mins}m ${secs}s` : `${mins}m`;
+    } else {
+      const hours = Math.floor(seconds / 3600);
+      const mins = Math.round((seconds % 3600) / 60);
+      return mins > 0 ? `${hours}h ${mins}m` : `${hours}h`;
+    }
+  };
+
+  // Tips to show during generation
+  const generationTips = [
+    "DNA sequences are generated using a high-performance C++ engine for speed.",
+    "GC content affects DNA stability - higher GC means stronger hydrogen bonding.",
+    "The generated RNA is transcribed from the template strand (3' to 5').",
+    "100 million base pairs is roughly the size of a small chromosome!",
+    "Our C++ engine can process millions of base pairs per second.",
+    "Each codon (3 nucleotides) in the RNA will code for one amino acid.",
+    "Did you know? Human DNA has about 3 billion base pairs.",
+    "The GC content of most organisms ranges from 25% to 75%.",
+    "ORFs (Open Reading Frames) are regions that could potentially code for proteins.",
+    "Start codons (AUG) mark where protein translation begins.",
+    "Large sequences take time to transfer — the server is packaging the data!",
+    "The C++ engine generates quickly, but transferring the data takes most of the time.",
+  ];
+
+  // Timer effect for elapsed time and tip rotation
+  useEffect(() => {
+    let intervalId: ReturnType<typeof setInterval>;
+    let tipIntervalId: ReturnType<typeof setInterval>;
+
+    if (loading) {
+      startTimeRef.current = Date.now();
+      setElapsedTime(0);
+      setTipIndex(Math.floor(Math.random() * generationTips.length));
+
+      intervalId = setInterval(() => {
+        if (startTimeRef.current) {
+          setElapsedTime((Date.now() - startTimeRef.current) / 1000);
+        }
+      }, 100);
+
+      // Rotate tips every 8 seconds
+      tipIntervalId = setInterval(() => {
+        setTipIndex((prev) => (prev + 1) % generationTips.length);
+      }, 8000);
+    } else {
+      startTimeRef.current = null;
+      setElapsedTime(0);
+    }
+
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+      if (tipIntervalId) clearInterval(tipIntervalId);
+    };
+  }, [loading]);
+
+  const estimatedTime = estimateGenerationTime(length);
+  const progress = loading ? Math.min((elapsedTime / estimatedTime) * 100, 95) : 0;
+  const remainingTime = Math.max(0, estimatedTime - elapsedTime);
+
   // Validation functions
   const validateDnaSequence = (sequence: string): { valid: boolean; error?: string } => {
     const cleanSeq = sequence.replace(/\s/g, "").toUpperCase();
@@ -927,14 +1008,98 @@ const ProteinFoldGenerationPage: React.FC = () => {
                       )}
                     </div>
 
+                    {/* Time estimate warning for long generations */}
+                    {estimatedTime > 30 && !dnaRnaResult && (
+                      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg mb-4">
+                        <p className="text-sm text-blue-700 dark:text-blue-400 flex items-center gap-2">
+                          <span>⏱️</span>
+                          <span>
+                            Estimated generation time: <strong>{formatTime(estimatedTime)}</strong>
+                            {estimatedTime > 120 && " — You can leave this tab open while processing"}
+                          </span>
+                        </p>
+                      </div>
+                    )}
+
                     {!dnaRnaResult ? (
-                      <button
-                        onClick={handleGenerate}
-                        disabled={loading || length < 3 || gcContent < 0 || gcContent > 1}
-                        className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-                      >
-                        {loading ? "Generating..." : "Generate DNA & Transcribe to RNA"}
-                      </button>
+                      !loading ? (
+                        <button
+                          onClick={handleGenerate}
+                          disabled={length < 3 || gcContent < 0 || gcContent > 1}
+                          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                        >
+                          Generate DNA & Transcribe to RNA
+                        </button>
+                      ) : (
+                        /* Enhanced Loading Progress UI */
+                        <div className="w-full bg-gradient-to-br from-gray-50 to-gray-100 dark:from-gray-900 dark:to-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                          {/* Header with spinner and sequence info */}
+                          <div className="px-5 py-4 border-b border-gray-200 dark:border-gray-700">
+                            <div className="flex items-center justify-between mb-3">
+                              <div className="flex items-center gap-3">
+                                <div className="w-6 h-6 border-2 border-blue-600 border-t-transparent rounded-full animate-spin"></div>
+                                <div>
+                                  <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                                    {length >= 10000000 ? "Generating & Transferring" : "Generating"} {length >= 1000000 ? `${(length / 1000000).toFixed(1)}M` : length.toLocaleString()} bp
+                                  </h4>
+                                  <p className="text-xs text-gray-500 dark:text-gray-400">
+                                    {length >= 10000000
+                                      ? `DNA & RNA sequences (~${(length / 1000000).toFixed(0)}MB payload)`
+                                      : "DNA & RNA sequences"}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="text-right">
+                                <p className="text-xs text-gray-500 dark:text-gray-400">Elapsed</p>
+                                <p className="text-sm font-mono font-semibold text-blue-600 dark:text-blue-400">
+                                  {formatTime(elapsedTime)}
+                                </p>
+                              </div>
+                            </div>
+
+                            {/* Progress Bar */}
+                            <div className="relative h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                              <div
+                                className="absolute inset-y-0 left-0 bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-500 rounded-full transition-all duration-300 ease-out"
+                                style={{ width: `${progress}%` }}
+                              >
+                                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                              </div>
+                            </div>
+
+                            {/* Time Estimates */}
+                            <div className="flex items-center justify-between mt-2 text-xs">
+                              <span className="text-gray-500 dark:text-gray-400">
+                                {progress < 95 ? (
+                                  <>Est. remaining: <span className="font-semibold text-gray-700 dark:text-gray-300">{formatTime(remainingTime)}</span></>
+                                ) : (
+                                  <span className="text-blue-600 dark:text-blue-400">Almost done...</span>
+                                )}
+                              </span>
+                              <span className="text-gray-500 dark:text-gray-400">
+                                Est. total: <span className="font-semibold text-gray-700 dark:text-gray-300">{formatTime(estimatedTime)}</span>
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Tips Section - only show for longer generations */}
+                          {estimatedTime > 5 && (
+                            <div className="px-5 py-3 bg-blue-50/50 dark:bg-blue-950/20">
+                              <div className="flex items-start gap-2">
+                                <span className="text-blue-500 mt-0.5 flex-shrink-0">💡</span>
+                                <div>
+                                  <p className="text-[10px] font-semibold text-blue-700 dark:text-blue-400 uppercase tracking-wider mb-0.5">
+                                    Did you know?
+                                  </p>
+                                  <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">
+                                    {generationTips[tipIndex]}
+                                  </p>
+                                </div>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )
                     ) : (
                       <button
                         onClick={handleReset}
@@ -1292,13 +1457,40 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
                 {/* Generate Protein Sequence Button */}
                 {!proteinResult && !isLargeSequence && (
-                  <button
-                    onClick={handleGenerateProtein}
-                    disabled={generatingProtein}
-                    className="w-full mt-4 bg-purple-600 hover:bg-purple-700 disabled:bg-gray-400 dark:disabled:bg-gray-600 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
-                  >
-                    {generatingProtein ? "Generating..." : "Generate Protein Sequence"}
-                  </button>
+                  !generatingProtein ? (
+                    <button
+                      onClick={handleGenerateProtein}
+                      className="w-full mt-4 bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                    >
+                      Generate Protein Sequence & Find ORFs
+                    </button>
+                  ) : (
+                    /* Enhanced Loading UI for Protein Generation */
+                    <div className="w-full mt-4 bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950/30 dark:to-gray-800 rounded-xl border border-purple-200 dark:border-purple-800 overflow-hidden">
+                      <div className="px-5 py-4">
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="w-6 h-6 border-2 border-purple-600 border-t-transparent rounded-full animate-spin"></div>
+                          <div>
+                            <h4 className="font-semibold text-gray-900 dark:text-white text-sm">
+                              Finding Open Reading Frames
+                            </h4>
+                            <p className="text-xs text-gray-500 dark:text-gray-400">
+                              Scanning {dnaRnaResult ? Math.floor(dnaRnaResult.length / 3).toLocaleString() : 0} codons for ORFs...
+                            </p>
+                          </div>
+                        </div>
+
+                        {/* Animated Progress Bar (indeterminate) */}
+                        <div className="relative h-2 bg-purple-200 dark:bg-purple-900/50 rounded-full overflow-hidden">
+                          <div className="absolute inset-y-0 w-1/3 bg-gradient-to-r from-purple-500 via-indigo-500 to-purple-500 rounded-full animate-pulse" style={{ animation: 'slideRight 1.5s ease-in-out infinite' }}></div>
+                        </div>
+
+                        <p className="text-xs text-purple-600 dark:text-purple-400 mt-2 text-center">
+                          This may take a moment for longer sequences...
+                        </p>
+                      </div>
+                    </div>
+                  )
                 )}
                 
                 {/* Message for large sequences */}

@@ -38,6 +38,7 @@ import AdminUsersPage from "./pages/AdminUsersPage";
 import AdminNewsletterPage from "./pages/AdminNewsletterPage";
 import AdminContactPage from "./pages/AdminContactPage";
 import AdminTokenUsagePage from "./pages/AdminTokenUsagePage";
+import AdminJobQueuePage from "./pages/AdminJobQueuePage";
 import AdminChatbotSettingsPage from "./pages/AdminChatbotSettingsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
@@ -231,6 +232,14 @@ const AppContent: React.FC = () => {
           element={
             <RequireAuth>
               <AdminChatbotSettingsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/admin/job-queue"
+          element={
+            <RequireAuth>
+              <AdminJobQueuePage />
             </RequireAuth>
           }
         />

@@ -6,3 +6,11 @@ dist/
 *.pyc
 .venv
 zygotrix_engine.egg-info
+
+# Electron
+dist-electron/
+release/
+*.dmg
+*.pkg
+*.app
+build/icon.iconset/

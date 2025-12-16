@@ -70,6 +70,8 @@ def generate_protein_sequence(request: ProteinSequenceRequest) -> ProteinSequenc
     Returns:
         ProteinSequenceResponse with protein sequences in 3-letter and 1-letter formats
     """
+    from ..schema.protein_generator import ORFData
+
     protein_data = generate_protein_sequences(request.rna_sequence)
     amino_acids_list = protein_data["amino_acids"]
 
@@ -101,10 +103,24 @@ def generate_protein_sequence(request: ProteinSequenceRequest) -> ProteinSequenc
             protein_type = "Enzyme (Globular)"
             stability_score = 35 + (protein_length // 5)
 
+    # Convert ORFs to ORFData schema
+    orfs_data = [
+        ORFData(
+            start_position=orf["start_position"],
+            end_position=orf["end_position"],
+            protein_3letter=orf["protein_3letter"],
+            protein_1letter=orf["protein_1letter"],
+            length=orf["length"]
+        )
+        for orf in protein_data.get("orfs", [])
+    ]
+
     return ProteinSequenceResponse(
         protein_3letter=protein_data["sequence_3letter"],
         protein_1letter=protein_data["sequence_1letter"],
         protein_length=protein_length,
         protein_type=protein_type,
-        stability_score=stability_score
+        stability_score=stability_score,
+        orfs=orfs_data,
+        total_orfs=protein_data.get("total_orfs", 0)
     )

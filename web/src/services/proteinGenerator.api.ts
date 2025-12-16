@@ -26,12 +26,22 @@ export interface ProteinSequenceRequest {
   rna_sequence: string;
 }
 
+export interface ORFData {
+  start_position: number;
+  end_position: number;
+  protein_3letter: string;
+  protein_1letter: string;
+  length: number;
+}
+
 export interface ProteinSequenceResponse {
   protein_3letter: string;
   protein_1letter: string;
   protein_length: number;
   protein_type: string;
   stability_score: number;
+  orfs: ORFData[];
+  total_orfs: number;
 }
 
 export async function generateDnaAndRna(

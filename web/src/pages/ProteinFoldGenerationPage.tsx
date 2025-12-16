@@ -552,6 +552,10 @@ const ProteinFoldGenerationPage: React.FC = () => {
   const [generatingProtein, setGeneratingProtein] = useState<boolean>(false);
   const [hoveredCodon, setHoveredCodon] = useState<HoveredCodonInfo | null>(null);
 
+  // Pagination state for ORFs
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const orfsPerPage = 10;
+
   const handleGenerate = async () => {
     setError(null);
     setLoading(true);
@@ -588,6 +592,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
     try {
       const response = await generateProteinSequence({ rna_sequence: dnaRnaResult.rna_sequence });
       setProteinResult(response);
+      setCurrentPage(1); // Reset to first page when new results come in
     } catch (err: any) {
       setError(err.response?.data?.detail || err.message || "Failed to generate protein sequence");
     } finally {
@@ -611,6 +616,37 @@ const ProteinFoldGenerationPage: React.FC = () => {
     setDnaRnaResult(null);
     setProteinResult(null);
     setError(null);
+  };
+
+  const handleExportCSV = () => {
+    if (!proteinResult?.orfs || proteinResult.orfs.length === 0) return;
+
+    // Create CSV content
+    const headers = ["ORF #", "Start Position", "End Position", "Length (amino acids)", "Protein (3-letter)", "Protein (1-letter)"];
+    const rows = proteinResult.orfs.map((orf, index) => [
+      index + 1,
+      orf.start_position,
+      orf.end_position,
+      orf.length,
+      `"${orf.protein_3letter}"`, // Wrap in quotes to handle commas
+      `"${orf.protein_1letter}"`
+    ]);
+
+    const csvContent = [
+      headers.join(","),
+      ...rows.map(row => row.join(","))
+    ].join("\n");
+
+    // Create and download file
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `orfs_export_${Date.now()}.csv`);
+    link.style.visibility = "hidden";
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (
@@ -938,10 +974,10 @@ const ProteinFoldGenerationPage: React.FC = () => {
         )}
 
 
-        {/* Protein Sequence Analysis */}
+        {/* Protein Sequence Analysis - Data Table */}
         {proteinResult && (
           <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 mb-6 border border-transparent dark:border-gray-700">
-            <div className="mb-6">
+            <div className="mb-4">
               <div className="flex items-center justify-between mb-2">
                 <div className="flex items-center">
                   <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold mr-3">
@@ -951,79 +987,181 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     Protein Sequence Analysis
                   </h2>
                 </div>
-                <div className="flex flex-wrap gap-1">
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-pink-100 dark:bg-pink-900/50 text-pink-800 dark:text-pink-300">
-                    {proteinResult.protein_length} aa
+                <div className="flex flex-wrap gap-2">
+                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300">
+                    {proteinResult.total_orfs.toLocaleString()} ORFs found
                   </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-cyan-100 dark:bg-cyan-900/50 text-cyan-800 dark:text-cyan-300">
-                    {proteinResult.protein_type}
-                  </span>
-                  <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-amber-100 dark:bg-amber-900/50 text-amber-800 dark:text-amber-300">
-                    Stability: {proteinResult.stability_score}
-                  </span>
-                </div>
-              </div>
-              <p className="text-sm text-gray-600 dark:text-gray-400 ml-11">
-                Complete amino acid sequence translated from RNA in both standard formats
-              </p>
-            </div>
-
-
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-md font-semibold text-gray-900 dark:text-white">
-                    3-Letter Format
-                  </h3>
                   <button
-                    onClick={() => handleCopySequence(proteinResult.protein_3letter)}
-                    className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm"
+                    onClick={handleExportCSV}
+                    className="inline-flex items-center gap-1 px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white text-xs font-medium rounded-lg transition-colors"
                   >
-                    Copy
+                    <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Export CSV
                   </button>
-                </div>
-                <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 overflow-y-auto max-h-40 border border-gray-300 dark:border-gray-800">
-                  <pre className="text-xs text-cyan-600 dark:text-cyan-400 font-mono leading-relaxed whitespace-pre-wrap break-all">
-                    {proteinResult.protein_3letter}
-                  </pre>
-                </div>
-              </div>
-
-              <div>
-                <div className="flex justify-between items-center mb-2">
-                  <h3 className="text-md font-semibold text-gray-900 dark:text-white">
-                    1-Letter Format
-                  </h3>
-                  <button
-                    onClick={() => handleCopySequence(proteinResult.protein_1letter)}
-                    className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm"
-                  >
-                    Copy
-                  </button>
-                </div>
-                <div className="bg-gray-100 dark:bg-gray-900 rounded-lg p-4 overflow-y-auto max-h-40 border border-gray-300 dark:border-gray-800">
-                  <pre className="text-xs text-pink-600 dark:text-pink-400 font-mono leading-relaxed whitespace-pre-wrap break-all">
-                    {formatSequence(proteinResult.protein_1letter)}
-                  </pre>
                 </div>
               </div>
             </div>
+
+            {/* Display ORFs as Data Table */}
+            {proteinResult.orfs && proteinResult.orfs.length > 0 ? (
+              <>
+                {/* Pagination Info */}
+                <div className="flex items-center justify-between mb-3 text-sm text-gray-600 dark:text-gray-400">
+                  <div>
+                    Showing {((currentPage - 1) * orfsPerPage) + 1}-{Math.min(currentPage * orfsPerPage, proteinResult.orfs.length)} of {proteinResult.orfs.length.toLocaleString()} ORFs
+                  </div>
+                  <div className="text-gray-500 dark:text-gray-500">
+                    Page {currentPage} of {Math.ceil(proteinResult.orfs.length / orfsPerPage)}
+                  </div>
+                </div>
+
+                {/* Data Table */}
+                <div className="overflow-x-auto border border-gray-200 dark:border-gray-700 rounded-lg">
+                  <table className="min-w-full divide-y divide-gray-200 dark:divide-gray-700">
+                    <thead className="bg-gray-50 dark:bg-gray-900">
+                      <tr>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          ORF #
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Position
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          Length
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          1-Letter Format
+                        </th>
+                        <th scope="col" className="px-3 py-3 text-left text-xs font-semibold text-gray-700 dark:text-gray-300 uppercase tracking-wider">
+                          3-Letter Format
+                        </th>
+
+                      </tr>
+                    </thead>
+                    <tbody className="bg-white dark:bg-gray-800 divide-y divide-gray-200 dark:divide-gray-700">
+                      {proteinResult.orfs
+                        .slice((currentPage - 1) * orfsPerPage, currentPage * orfsPerPage)
+                        .map((orf, index) => {
+                          const globalIndex = (currentPage - 1) * orfsPerPage + index;
+                          return (
+                            <tr key={globalIndex} className="hover:bg-gray-50 dark:hover:bg-gray-700/50 transition-colors">
+                              <td className="px-3 py-3 whitespace-nowrap text-sm font-medium text-gray-900 dark:text-white">
+                                {globalIndex + 1}
+                              </td>
+                              <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400 font-mono">
+                                {orf.start_position.toLocaleString()}-{orf.end_position.toLocaleString()}
+                              </td>
+                              <td className="px-3 py-3 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-green-100 dark:bg-green-900/50 text-green-800 dark:text-green-300">
+                                  {orf.length.toLocaleString()} aa
+                                </span>
+                              </td>
+                                                            <td className="px-3 py-3 text-sm text-pink-600 dark:text-pink-400 font-mono">
+                                <div className="overflow-x-auto  whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent pb-1">
+                                  {orf.protein_1letter}
+                                </div>
+                              </td>
+                              <td className="px-3 py-3 text-sm text-cyan-600 dark:text-cyan-400 font-mono">
+                                <div className="overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent pb-1">
+                                  {orf.protein_3letter}
+                                </div>
+                              </td>
+
+
+                            </tr>
+                          );
+                        })}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Controls */}
+                {proteinResult.orfs.length > orfsPerPage && (
+                  <div className="flex items-center justify-center gap-2 mt-4">
+                    {/* Previous Button */}
+                    <button
+                      onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                      disabled={currentPage === 1}
+                      className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
+                    >
+                      Previous
+                    </button>
+
+                    {/* Page Numbers */}
+                    <div className="flex items-center gap-1">
+                      {(() => {
+                        const totalPages = Math.ceil(proteinResult.orfs.length / orfsPerPage);
+                        const pages = [];
+                        const maxVisiblePages = 7;
+
+                        if (totalPages <= maxVisiblePages) {
+                          for (let i = 1; i <= totalPages; i++) {
+                            pages.push(i);
+                          }
+                        } else {
+                          if (currentPage <= 4) {
+                            for (let i = 1; i <= 5; i++) pages.push(i);
+                            pages.push(-1);
+                            pages.push(totalPages);
+                          } else if (currentPage >= totalPages - 3) {
+                            pages.push(1);
+                            pages.push(-1);
+                            for (let i = totalPages - 4; i <= totalPages; i++) pages.push(i);
+                          } else {
+                            pages.push(1);
+                            pages.push(-1);
+                            for (let i = currentPage - 1; i <= currentPage + 1; i++) pages.push(i);
+                            pages.push(-2);
+                            pages.push(totalPages);
+                          }
+                        }
+
+                        return pages.map((page, idx) => {
+                          if (page === -1 || page === -2) {
+                            return <span key={`ellipsis-${idx}`} className="px-2 text-gray-400 dark:text-gray-600">...</span>;
+                          }
+                          return (
+                            <button
+                              key={page}
+                              onClick={() => setCurrentPage(page)}
+                              className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+                                currentPage === page
+                                  ? 'bg-purple-600 text-white'
+                                  : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+                              }`}
+                            >
+                              {page}
+                            </button>
+                          );
+                        });
+                      })()}
+                    </div>
+
+                    {/* Next Button */}
+                    <button
+                      onClick={() => setCurrentPage(p => Math.min(Math.ceil(proteinResult.orfs.length / orfsPerPage), p + 1))}
+                      disabled={currentPage === Math.ceil(proteinResult.orfs.length / orfsPerPage)}
+                      className="px-4 py-2 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 disabled:bg-gray-50 dark:disabled:bg-gray-800 disabled:text-gray-400 dark:disabled:text-gray-600 text-gray-700 dark:text-gray-300 rounded-lg text-sm font-medium transition-colors disabled:cursor-not-allowed"
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="text-center py-8 text-gray-500 dark:text-gray-400">
+                No ORFs found in the sequence. An ORF requires a start codon (AUG) followed by a stop codon (UAA, UAG, or UGA).
+              </div>
+            )}
           </div>
         )}
 
         {/* Codon Visualization Section */}
         {dnaRnaResult && proteinResult && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 mb-6 border border-transparent dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  Amino Acid Composition
-                </h2>
-              </div>
-            </div>
 
             <AminoAcidBarChart rnaSequence={dnaRnaResult.rna_sequence} />
-          </div>
         )}
       </div>
     </DashboardLayout>

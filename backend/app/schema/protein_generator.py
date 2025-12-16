@@ -51,6 +51,16 @@ class ProteinSequenceRequest(BaseModel):
     rna_sequence: str = Field(..., description="RNA sequence to generate protein from")
 
 
+class ORFData(BaseModel):
+    """Data for a single Open Reading Frame."""
+
+    start_position: int = Field(..., description="Position where the ORF starts in the RNA sequence")
+    end_position: int = Field(..., description="Position where the ORF ends (inclusive of stop codon)")
+    protein_3letter: str = Field(..., description="Protein sequence in 3-letter format")
+    protein_1letter: str = Field(..., description="Protein sequence in 1-letter format")
+    length: int = Field(..., description="Number of amino acids (excluding stop codon)")
+
+
 class ProteinSequenceResponse(BaseModel):
     """Response schema for protein sequence generation."""
 
@@ -59,3 +69,5 @@ class ProteinSequenceResponse(BaseModel):
     protein_length: int = Field(..., description="Number of amino acids in the protein")
     protein_type: str = Field(..., description="Protein type classification")
     stability_score: int = Field(..., description="Protein stability score")
+    orfs: list[ORFData] = Field(default_factory=list, description="All Open Reading Frames found in the sequence")
+    total_orfs: int = Field(0, description="Total number of ORFs found")

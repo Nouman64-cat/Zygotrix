@@ -117,22 +117,24 @@ def calculate_actual_gc(sequence: str) -> float:
 def extract_amino_acids(rna_sequence: str) -> list[dict]:
     """
     Extract amino acids from RNA sequence by reading codons.
-    
+    LEGACY: This function reads from position 0 until first stop codon.
+    Use find_all_orfs() to find all protein sequences.
+
     Args:
         rna_sequence: Input RNA string
-        
+
     Returns:
         List of amino acid dictionaries with codon, name_3letter, name_1letter
     """
     amino_acids = []
     rna = rna_sequence.upper()
-    
+
     for i in range(0, len(rna) - 2, 3):
         codon = rna[i:i+3]
-        
+
         if codon in CODON_TABLE:
             name_3, name_1 = CODON_TABLE[codon]
-            
+
             # Stop translation at stop codons
             if name_3 == "STOP":
                 amino_acids.append({
@@ -141,7 +143,7 @@ def extract_amino_acids(rna_sequence: str) -> list[dict]:
                     "name_1letter": name_1
                 })
                 break
-                
+
             amino_acids.append({
                 "codon": codon,
                 "name_3letter": name_3,
@@ -154,31 +156,121 @@ def extract_amino_acids(rna_sequence: str) -> list[dict]:
                 "name_3letter": "UNK",
                 "name_1letter": "?"
             })
-    
+
     return amino_acids
+
+
+def find_all_orfs(rna_sequence: str) -> list[dict]:
+    """
+    Find all Open Reading Frames (ORFs) in an RNA sequence.
+    An ORF starts with AUG (start codon) and ends with a stop codon (UAA, UAG, UGA).
+
+    Args:
+        rna_sequence: Input RNA string
+
+    Returns:
+        List of ORF dictionaries, each containing:
+        - start_position: Position where the ORF starts
+        - end_position: Position where the ORF ends (inclusive of stop codon)
+        - amino_acids: List of amino acid dictionaries
+        - protein_3letter: Protein sequence in 3-letter format
+        - protein_1letter: Protein sequence in 1-letter format
+        - length: Number of amino acids (excluding stop codon)
+    """
+    orfs = []
+    rna = rna_sequence.upper()
+
+    # Scan through the entire sequence looking for start codons (AUG)
+    i = 0
+    while i <= len(rna) - 3:
+        codon = rna[i:i+3]
+
+        # Found a start codon
+        if codon == "AUG":
+            amino_acids = []
+            start_position = i
+            j = i
+
+            # Read codons from this start position until a stop codon
+            while j <= len(rna) - 3:
+                current_codon = rna[j:j+3]
+
+                if current_codon in CODON_TABLE:
+                    name_3, name_1 = CODON_TABLE[current_codon]
+
+                    amino_acids.append({
+                        "codon": current_codon,
+                        "name_3letter": name_3,
+                        "name_1letter": name_1
+                    })
+
+                    # Stop at stop codon
+                    if name_3 == "STOP":
+                        # Filter out STOP codon for protein sequences
+                        coding_amino_acids = [aa for aa in amino_acids if aa["name_3letter"] != "STOP"]
+
+                        # Only add ORFs that have at least one amino acid
+                        if len(coding_amino_acids) > 0:
+                            protein_3letter = "-".join(aa["name_3letter"] for aa in coding_amino_acids)
+                            protein_1letter = "".join(aa["name_1letter"] for aa in coding_amino_acids)
+
+                            orfs.append({
+                                "start_position": start_position,
+                                "end_position": j + 3,
+                                "amino_acids": amino_acids,
+                                "protein_3letter": protein_3letter,
+                                "protein_1letter": protein_1letter,
+                                "length": len(coding_amino_acids)
+                            })
+                        break
+                else:
+                    # Unknown codon - skip this ORF
+                    break
+
+                j += 3
+
+        # Move to next position (scanning by single nucleotide to catch overlapping ORFs)
+        i += 1
+
+    return orfs
 
 
 def generate_protein_sequences(rna_sequence: str) -> dict:
     """
-    Generate protein sequences from RNA in both 3-letter and 1-letter formats.
-    
+    Generate protein sequences from RNA by finding all ORFs.
+    Returns all proteins found in the sequence.
+
     Args:
         rna_sequence: Input RNA string
-        
+
     Returns:
-        Dictionary with sequence_3letter, sequence_1letter, amino_acid_count
+        Dictionary with:
+        - orfs: List of all ORFs found
+        - total_orfs: Total number of ORFs found
+        - sequence_3letter: Combined 3-letter format (for backwards compatibility)
+        - sequence_1letter: Combined 1-letter format (for backwards compatibility)
+        - amino_acids: Combined amino acids (for backwards compatibility)
     """
-    amino_acids = extract_amino_acids(rna_sequence)
-    
-    # Filter out STOP codons for display
-    coding_amino_acids = [aa for aa in amino_acids if aa["name_3letter"] != "STOP"]
-    
-    sequence_3letter = "-".join(aa["name_3letter"] for aa in coding_amino_acids)
-    sequence_1letter = "".join(aa["name_1letter"] for aa in coding_amino_acids)
-    
+    orfs = find_all_orfs(rna_sequence)
+
+    # For backwards compatibility, also include the combined first ORF (if exists)
+    if orfs:
+        # Use the first (or longest) ORF for backwards compatibility
+        first_orf = orfs[0]
+        sequence_3letter = first_orf["protein_3letter"]
+        sequence_1letter = first_orf["protein_1letter"]
+        amino_acids = first_orf["amino_acids"]
+    else:
+        # No ORFs found
+        sequence_3letter = ""
+        sequence_1letter = ""
+        amino_acids = []
+
     return {
+        "orfs": orfs,
+        "total_orfs": len(orfs),
         "sequence_3letter": sequence_3letter,
         "sequence_1letter": sequence_1letter,
-        "amino_acid_count": len(coding_amino_acids),
+        "amino_acid_count": len(amino_acids) - 1 if amino_acids and amino_acids[-1]["name_3letter"] == "STOP" else len(amino_acids),
         "amino_acids": amino_acids
     }

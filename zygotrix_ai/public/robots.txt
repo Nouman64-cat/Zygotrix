@@ -1,0 +1,21 @@
+# Robots.txt for Zygotrix AI
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+Allow: /login
+
+# Protected routes - search engines can index the URL but will be redirected to login
+Allow: /chat
+
+# Sitemap location
+Sitemap: https://ai.zygotrix.com/sitemap.xml
+
+# Disallow common non-content paths
+Disallow: /api/
+Disallow: /*.json$
+Disallow: /*.js$
+Disallow: /*.css$
+
+# Crawl delay (optional - helps reduce server load)
+Crawl-delay: 1

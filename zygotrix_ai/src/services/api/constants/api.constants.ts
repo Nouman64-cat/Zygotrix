@@ -8,6 +8,7 @@ export const API_ENDPOINTS = {
       `/api/zygotrix-ai/conversations/${conversationId}/messages`,
     FOLDERS: "/api/zygotrix-ai/folders",
     ANALYTICS: "/api/zygotrix-ai/analytics",
+    RATE_LIMIT: "/api/zygotrix-ai/rate-limit",
   },
   // Legacy chatbot endpoints (in-memory only - for backwards compatibility)
   CHATBOT: {

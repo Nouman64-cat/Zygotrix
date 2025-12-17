@@ -136,6 +136,18 @@ class ChatService {
   async clearCache(): Promise<void> {
     await axiosInstance.delete(API_ENDPOINTS.CHATBOT.CACHE_CLEAR);
   }
+
+  // ============= RATE LIMITING =============
+
+  /**
+   * Get current rate limit status for the authenticated user
+   */
+  async getRateLimitStatus(): Promise<import("../../types").RateLimitStatus> {
+    const response = await axiosInstance.get<
+      import("../../types").RateLimitStatus
+    >(API_ENDPOINTS.ZYGOTRIX_AI.RATE_LIMIT);
+    return response.data;
+  }
 }
 
 export default new ChatService();

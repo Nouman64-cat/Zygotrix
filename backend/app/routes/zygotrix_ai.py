@@ -53,6 +53,7 @@ from ..chatbot_tools import (
     get_traits_count, search_traits, get_trait_details,
     calculate_punnett_square, parse_cross_from_message
 )
+from .chatbot import _rate_limiter  # Import the rate limiter instance
 
 logger = logging.getLogger(__name__)
 
@@ -349,6 +350,20 @@ async def chat(
     except Exception as e:
         logger.warning(f"Failed to check chatbot status: {e}")
 
+    # Check rate limit
+    allowed, usage = _rate_limiter.check_limit(user_id)
+    if not allowed:
+        raise HTTPException(
+            status_code=429,
+            detail={
+                "message": "Rate limit exceeded. Please wait for the cooldown period.",
+                "tokens_used": usage.get("tokens_used", 0),
+                "tokens_remaining": 0,
+                "reset_time": usage.get("reset_time"),
+                "cooldown_active": True
+            }
+        )
+
     # Get or create conversation
     conversation = None
     if request.conversation_id:
@@ -500,12 +515,34 @@ Question: {request.message}"""
                 ConversationUpdate(title=request.message[:50] + ("..." if len(request.message) > 50 else ""))
             )
 
+        # Record token usage for rate limiting
+        total_tokens = metadata.get("total_tokens", 0)
+        if total_tokens > 0:
+            _rate_limiter.record_usage(user_id, total_tokens)
+
         return ChatResponse(
             conversation_id=conversation.id,
             message=assistant_message,
             conversation_title=conversation.title,
             usage=msg_metadata,
         )
+
+
+@router.get("/rate-limit")
+async def get_rate_limit_status(
+    user_id: str = Depends(get_user_id_from_profile)
+):
+    """Get the current rate limit status for the authenticated user."""
+    usage = _rate_limiter.get_usage(user_id)
+    return {
+        "tokens_used": usage.get("tokens_used", 0),
+        "tokens_remaining": usage.get("tokens_remaining", 25000),
+        "max_tokens": _rate_limiter.max_tokens,
+        "reset_time": usage.get("reset_time"),
+        "is_limited": usage.get("is_limited", False),
+        "cooldown_active": usage.get("cooldown_active", False),
+        "cooldown_hours": _rate_limiter.cooldown_seconds / 3600,
+    }
 
 
 @router.post("/chat/{conversation_id}/regenerate/{message_id}")

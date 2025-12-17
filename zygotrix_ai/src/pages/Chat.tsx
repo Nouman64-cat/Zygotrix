@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../components/layout';
-import { MessageList, ChatInput } from '../components/chat';
+import { MessageList, ChatInput, RateLimitIndicator } from '../components/chat';
 import { useChat } from '../hooks';
 import { chatService } from '../services';
 import type { LocalConversation } from '../types';
@@ -8,6 +8,7 @@ import type { LocalConversation } from '../types';
 export const Chat: React.FC = () => {
   const [conversationsList, setConversationsList] = useState<LocalConversation[]>([]);
   const [_isLoadingConversations, setIsLoadingConversations] = useState(false);
+  const [rateLimitRefresh, setRateLimitRefresh] = useState(0);
 
   const {
     messages,
@@ -78,6 +79,8 @@ export const Chat: React.FC = () => {
 
   const handleSendMessage = async (content: string) => {
     await sendMessage(content);
+    // Trigger rate limit refresh after sending
+    setRateLimitRefresh(prev => prev + 1);
   };
 
   return (
@@ -98,6 +101,11 @@ export const Chat: React.FC = () => {
         )}
 
         <MessageList messages={messages} isLoading={isLoading} />
+
+        {/* Rate limit indicator */}
+        <div className="border-t border-gray-100 px-4 py-2 bg-gray-50">
+          <RateLimitIndicator refreshTrigger={rateLimitRefresh} />
+        </div>
 
         <ChatInput
           onSend={handleSendMessage}

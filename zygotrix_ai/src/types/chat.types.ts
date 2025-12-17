@@ -168,5 +168,16 @@ export interface LocalConversation {
   updatedAt: number;
 }
 
+// Rate limit status from the API
+export interface RateLimitStatus {
+  tokens_used: number;
+  tokens_remaining: number;
+  max_tokens: number;
+  reset_time: string | null;
+  is_limited: boolean;
+  cooldown_active: boolean;
+  cooldown_hours: number;
+}
+
 // Legacy type alias for backwards compatibility
 export type { TokenUsage };

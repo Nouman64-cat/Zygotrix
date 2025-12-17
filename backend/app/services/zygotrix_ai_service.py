@@ -50,8 +50,14 @@ def get_conversations_collection(required: bool = False):
         collection.create_index("status")
         collection.create_index([("user_id", 1), ("updated_at", -1)])
         collection.create_index([("user_id", 1), ("is_pinned", -1), ("updated_at", -1)])
-        collection.create_index("share_id", unique=True, sparse=True)
-    except Exception:
+        # Use partial index to only enforce uniqueness on non-null share_id
+        collection.create_index(
+            "share_id", 
+            unique=True, 
+            partialFilterExpression={"share_id": {"$type": "string"}}
+        )
+    except Exception as e:
+        logger.warning(f"Error creating indexes for conversations: {e}")
         pass
     return collection
 
@@ -157,7 +163,9 @@ class ConversationService:
             tags=data.tags,
         )
 
-        doc = conversation.model_dump()
+        # Use exclude_none=True to avoid inserting null values for fields like share_id
+        # highlighting the unique index constraint on share_id
+        doc = conversation.model_dump(exclude_none=True)
         collection.insert_one(doc)
 
         logger.info(f"Created conversation {conversation.id} for user {user_id}")
@@ -412,7 +420,7 @@ class MessageService:
             attachments=attachments or [],
         )
 
-        doc = message.model_dump()
+        doc = message.model_dump(exclude_none=True)
         collection.insert_one(doc)
 
         # Update conversation stats
@@ -613,7 +621,7 @@ class FolderService:
             sort_order=next_order,
         )
 
-        doc = folder.model_dump()
+        doc = folder.model_dump(exclude_none=True)
         collection.insert_one(doc)
 
         return folder

@@ -1,5 +1,11 @@
-import axios from 'axios';
-import type { AxiosInstance, AxiosError, InternalAxiosRequestConfig, AxiosResponse } from 'axios';
+import axios from "axios";
+import type {
+  AxiosInstance,
+  AxiosError,
+  InternalAxiosRequestConfig,
+  AxiosResponse,
+} from "axios";
+import { storage, STORAGE_KEYS } from "../../../utils";
 
 const BASE_URL = import.meta.env.VITE_BASE_URL;
 
@@ -7,13 +13,13 @@ const axiosInstance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
   timeout: 30000,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
 axiosInstance.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    const token = localStorage.getItem('auth_token');
+    const token = storage.get<string>(STORAGE_KEYS.AUTH_TOKEN);
     if (token && config.headers) {
       config.headers.Authorization = `Bearer ${token}`;
     }
@@ -30,8 +36,8 @@ axiosInstance.interceptors.response.use(
   },
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      localStorage.removeItem('auth_token');
-      window.location.href = '/login';
+      storage.remove(STORAGE_KEYS.AUTH_TOKEN);
+      window.location.href = "/login";
     }
     return Promise.reject(error);
   }

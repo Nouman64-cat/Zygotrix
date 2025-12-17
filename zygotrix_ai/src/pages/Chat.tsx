@@ -1,90 +1,89 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { MainLayout } from '../components/layout';
 import { MessageList, ChatInput } from '../components/chat';
-import { useChat, useLocalStorage } from '../hooks';
-import { generateConversationId, generateConversationTitle } from '../utils';
-import type { Conversation, Message } from '../types';
+import { useChat } from '../hooks';
+import { chatService } from '../services';
+import type { LocalConversation } from '../types';
 
 export const Chat: React.FC = () => {
-  const [conversations, setConversations] = useLocalStorage<Conversation[]>('conversations', []);
-  const [currentConversationId, setCurrentConversationId] = useState<string | undefined>();
-  const prevConversationIdRef = useRef<string | undefined>(undefined);
-  const lastSavedMessagesRef = useRef<Message[]>([]);
+  const [conversationsList, setConversationsList] = useState<LocalConversation[]>([]);
+  const [_isLoadingConversations, setIsLoadingConversations] = useState(false);
 
-  const sessionId = currentConversationId || 'default-session';
-  const { messages, isLoading, error, sendMessage, setMessages } = useChat(sessionId);
+  const {
+    messages,
+    isLoading,
+    error,
+    conversationId,
+    sendMessage,
+    loadConversation,
+    startNewConversation
+  } = useChat();
 
+  // Load conversations list from API
+  const loadConversations = useCallback(async () => {
+    setIsLoadingConversations(true);
+    try {
+      const response = await chatService.getConversations({ page_size: 50 });
+      // Convert API conversations to LocalConversation format for sidebar
+      const localConversations: LocalConversation[] = response.conversations.map(conv => ({
+        id: conv.id,
+        title: conv.title,
+        messages: [], // Messages loaded on demand
+        createdAt: new Date(conv.created_at).getTime(),
+        updatedAt: new Date(conv.updated_at).getTime(),
+      }));
+      setConversationsList(localConversations);
+    } catch (err) {
+      console.error('Failed to load conversations:', err);
+    } finally {
+      setIsLoadingConversations(false);
+    }
+  }, []);
+
+  // Load conversations on mount
   useEffect(() => {
-    if (currentConversationId !== prevConversationIdRef.current) {
-      prevConversationIdRef.current = currentConversationId;
-      const conversation = conversations.find((c) => c.id === currentConversationId);
-      if (conversation) {
-        setMessages(conversation.messages);
-        lastSavedMessagesRef.current = conversation.messages;
+    loadConversations();
+  }, [loadConversations]);
+
+  // Refresh conversations list when a new message is sent (conversation might be new)
+  useEffect(() => {
+    if (messages.length > 0 && conversationId) {
+      // Check if this conversation is in the list
+      const exists = conversationsList.some(c => c.id === conversationId);
+      if (!exists) {
+        loadConversations();
       }
     }
-  }, [currentConversationId]);
-
-  useEffect(() => {
-    if (currentConversationId && messages.length > 0 && messages.length !== lastSavedMessagesRef.current.length) {
-      lastSavedMessagesRef.current = messages;
-
-      setConversations((prev) => {
-        const existingIndex = prev.findIndex((c) => c.id === currentConversationId);
-        const existing = prev[existingIndex];
-
-        const updatedConversation: Conversation = {
-          id: currentConversationId,
-          title: existing?.title || generateConversationTitle(messages[0].content),
-          messages,
-          createdAt: existing?.createdAt || Date.now(),
-          updatedAt: Date.now(),
-        };
-
-        if (existingIndex >= 0) {
-          const updated = [...prev];
-          updated[existingIndex] = updatedConversation;
-          return updated;
-        }
-
-        return [updatedConversation, ...prev];
-      });
-    }
-  }, [messages, currentConversationId, setConversations]);
+  }, [messages.length, conversationId, conversationsList, loadConversations]);
 
   const handleNewConversation = () => {
-    setMessages([]);
-    const newId = generateConversationId();
-    setCurrentConversationId(newId);
+    startNewConversation();
   };
 
-  const handleSelectConversation = (id: string) => {
-    setCurrentConversationId(id);
+  const handleSelectConversation = async (id: string) => {
+    await loadConversation(id);
   };
 
-  const handleDeleteConversation = (id: string) => {
-    setConversations((prev) => prev.filter((c) => c.id !== id));
-    if (currentConversationId === id) {
-      setCurrentConversationId(undefined);
-      setMessages([]);
+  const handleDeleteConversation = async (id: string) => {
+    try {
+      await chatService.deleteConversation(id);
+      setConversationsList(prev => prev.filter(c => c.id !== id));
+      if (conversationId === id) {
+        startNewConversation();
+      }
+    } catch (err) {
+      console.error('Failed to delete conversation:', err);
     }
   };
 
   const handleSendMessage = async (content: string) => {
-    let conversationId = currentConversationId;
-
-    if (!conversationId) {
-      conversationId = generateConversationId();
-      setCurrentConversationId(conversationId);
-    }
-
     await sendMessage(content);
   };
 
   return (
     <MainLayout
-      conversations={conversations}
-      currentConversationId={currentConversationId}
+      conversations={conversationsList}
+      currentConversationId={conversationId || undefined}
       onSelectConversation={handleSelectConversation}
       onNewConversation={handleNewConversation}
       onDeleteConversation={handleDeleteConversation}

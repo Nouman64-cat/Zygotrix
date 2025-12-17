@@ -234,7 +234,7 @@ class ConversationService:
         else:
             # Hard delete - remove conversation and all messages
             collection.delete_one({"id": conversation_id, "user_id": user_id})
-            if messages_collection:
+            if messages_collection is not None:
                 messages_collection.delete_many({"conversation_id": conversation_id})
             return True
 
@@ -285,7 +285,7 @@ class ConversationService:
 
             # Get last message preview
             last_message_preview = None
-            if messages_collection:
+            if messages_collection is not None:
                 last_msg = messages_collection.find_one(
                     {"conversation_id": doc["id"]},
                     sort=[("created_at", -1)]
@@ -363,7 +363,7 @@ class ConversationService:
     ):
         """Update conversation statistics."""
         collection = get_conversations_collection()
-        if not collection:
+        if collection is None:
             return
 
         update = {
@@ -562,7 +562,7 @@ class MessageService:
     ) -> List[Dict[str, str]]:
         """Get conversation context formatted for LLM."""
         collection = get_messages_collection()
-        if not collection:
+        if collection is None:
             return []
 
         docs = list(
@@ -657,7 +657,7 @@ class FolderService:
         conversations_collection = get_conversations_collection()
 
         # Move conversations to root (folder_id = None)
-        if conversations_collection:
+        if conversations_collection is not None:
             conversations_collection.update_many(
                 {"folder_id": folder_id, "user_id": user_id},
                 {"$set": {"folder_id": None}}
@@ -682,7 +682,7 @@ class FolderService:
             doc.pop("_id", None)
 
             # Count conversations in folder
-            if conversations_collection:
+            if conversations_collection is not None:
                 count = conversations_collection.count_documents({
                     "folder_id": doc["id"],
                     "user_id": user_id,
@@ -1140,7 +1140,7 @@ class AnalyticsService:
         total_tokens = 0
         model_usage: Dict[str, int] = {}
 
-        if conversations_collection:
+        if conversations_collection is not None:
             total_conversations = conversations_collection.count_documents({
                 "user_id": user_id,
                 "status": {"$ne": ConversationStatus.DELETED.value}
@@ -1158,10 +1158,10 @@ class AnalyticsService:
             if result:
                 total_tokens = result[0].get("total_tokens", 0)
 
-        if messages_collection:
+        if messages_collection is not None:
             # Count messages
             conv_ids = []
-            if conversations_collection:
+            if conversations_collection is not None:
                 convs = conversations_collection.find(
                     {"user_id": user_id},
                     {"id": 1}
@@ -1292,7 +1292,7 @@ class PromptTemplateService:
     def use_template(template_id: str) -> bool:
         """Increment use count for a template."""
         collection = get_prompt_templates_collection()
-        if not collection:
+        if collection is None:
             return False
 
         result = collection.update_one(

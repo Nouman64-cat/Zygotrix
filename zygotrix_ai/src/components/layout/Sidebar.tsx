@@ -2,10 +2,10 @@ import React from 'react';
 import { FiMessageSquare, FiPlus, FiTrash2, FiX } from 'react-icons/fi';
 import { cn, formatTimestamp, truncateText } from '../../utils';
 import { IconButton, Button } from '../common';
-import type { Conversation } from '../../types';
+import type { LocalConversation } from '../../types';
 
 interface SidebarProps {
-  conversations: Conversation[];
+  conversations: LocalConversation[];
   currentConversationId?: string;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;

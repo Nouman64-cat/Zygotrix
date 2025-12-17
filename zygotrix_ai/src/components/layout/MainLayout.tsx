@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { Header } from './Header';
 import { Sidebar } from './Sidebar';
-import type { Conversation } from '../../types';
+import type { LocalConversation } from '../../types';
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  conversations: Conversation[];
+  conversations: LocalConversation[];
   currentConversationId?: string;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;

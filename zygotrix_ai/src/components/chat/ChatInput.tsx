@@ -47,9 +47,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   return (
-    <div className="border-t border-gray-200 bg-white p-4 md:p-6">
+    <div className="border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 md:p-6">
       <div className="max-w-4xl mx-auto">
-        <div className="relative flex items-end gap-2 bg-gray-50 rounded-2xl border border-gray-200 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200">
+        <div className="relative flex items-end gap-2 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 focus-within:border-blue-500 focus-within:ring-2 focus-within:ring-blue-500/20 transition-all duration-200">
           <textarea
             ref={textareaRef}
             value={value}
@@ -59,7 +59,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             disabled={disabled}
             rows={1}
             className={cn(
-              'flex-1 resize-none bg-transparent px-4 py-3 text-gray-900 placeholder-gray-400',
+              'flex-1 resize-none bg-transparent px-4 py-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500',
               'focus:outline-none disabled:cursor-not-allowed min-h-[48px] max-h-[200px]'
             )}
           />
@@ -72,13 +72,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               size="md"
               className={cn(
                 'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-                'disabled:bg-gray-300 disabled:text-gray-500'
+                'dark:bg-blue-500 dark:hover:bg-blue-600 dark:active:bg-blue-700',
+                'disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-600 dark:disabled:text-gray-400'
               )}
               tooltip="Send message (Enter)"
             />
           </div>
         </div>
-        <p className="mt-2 text-xs text-gray-500 text-center">
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
           Press Enter to send, Shift + Enter for new line
         </p>
       </div>

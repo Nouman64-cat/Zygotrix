@@ -93,8 +93,8 @@ export const Chat: React.FC = () => {
     >
       <div className="flex flex-col h-full">
         {error && (
-          <div className="bg-red-50 border-b border-red-200 px-4 py-3">
-            <p className="text-sm text-red-800 text-center">
+          <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
+            <p className="text-sm text-red-800 dark:text-red-400 text-center">
               {error}
             </p>
           </div>
@@ -103,7 +103,7 @@ export const Chat: React.FC = () => {
         <MessageList messages={messages} isLoading={isLoading} />
 
         {/* Rate limit indicator */}
-        <div className="border-t border-gray-100 px-4 py-2 bg-gray-50">
+        <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-900">
           <RateLimitIndicator refreshTrigger={rateLimitRefresh} />
         </div>
 

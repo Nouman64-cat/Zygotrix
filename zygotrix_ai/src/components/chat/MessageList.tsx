@@ -18,10 +18,10 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
           <div className="w-32 h-32 mx-auto mb-4 rounded-2xl flex items-center justify-center">
             <img src="/zygotrix-ai.png" alt="Zygotrix AI" className="w-32 h-32 object-cover" />
           </div>
-          <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+          <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
             Welcome to Zygotrix AI
           </h2>
-          <p className="text-gray-600">
+          <p className="text-gray-600 dark:text-gray-400">
             Start a conversation by typing a message below. I'm here to help you with anything you need.
           </p>
         </div>
@@ -36,7 +36,7 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
           <ChatMessage key={message.id} message={message} />
         ))}
         {isLoading && (
-          <div className="flex gap-3 px-4 py-6 md:px-6 bg-gray-50">
+          <div className="flex gap-3 px-4 py-6 md:px-6 bg-gray-50 dark:bg-gray-800/50">
             <div className="flex-shrink-0">
               <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center">
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
@@ -44,12 +44,12 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
             </div>
             <div className="flex-1">
               <div className="flex items-center gap-2 mb-2">
-                <span className="font-semibold text-gray-900 text-sm">Zygotrix AI</span>
+                <span className="font-semibold text-gray-900 dark:text-gray-100 text-sm">Zygotrix AI</span>
               </div>
               <div className="flex gap-1">
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
-                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                <div className="w-2 h-2 bg-gray-400 dark:bg-gray-500 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             </div>
           </div>

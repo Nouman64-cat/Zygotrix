@@ -23,7 +23,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white">
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-950">
       <Sidebar
         conversations={conversations}
         currentConversationId={currentConversationId}

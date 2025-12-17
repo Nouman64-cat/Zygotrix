@@ -23,8 +23,8 @@ export const IconButton: React.FC<IconButtonProps> = ({
   };
 
   const variantStyles = {
-    ghost: 'hover:bg-gray-100 active:bg-gray-200 text-gray-700',
-    filled: 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-900',
+    ghost: 'hover:bg-gray-100 active:bg-gray-200 text-gray-700 dark:text-gray-300 dark:hover:bg-gray-800 dark:active:bg-gray-700',
+    filled: 'bg-gray-200 hover:bg-gray-300 active:bg-gray-400 text-gray-900 dark:bg-gray-700 dark:hover:bg-gray-600 dark:active:bg-gray-500 dark:text-gray-100',
   };
 
   return (

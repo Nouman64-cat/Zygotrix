@@ -36,21 +36,21 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-950 dark:to-gray-900 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="bg-white rounded-2xl shadow-xl p-8 space-y-6">
+        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl dark:shadow-2xl dark:shadow-black/20 p-8 space-y-6 border border-transparent dark:border-gray-800">
           <div className="text-center space-y-2">
             <div className="flex justify-center mb-4">
               <Logo size="lg" showText={false} />
             </div>
-            <h1 className="text-3xl font-bold text-gray-900">Welcome Back</h1>
-            <p className="text-gray-600">Sign in to continue to Zygotrix AI</p>
+            <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-100">Welcome Back</h1>
+            <p className="text-gray-600 dark:text-gray-400">Sign in to continue to Zygotrix AI</p>
           </div>
 
           {error && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-start gap-3">
-              <FiAlertCircle className="text-red-600 flex-shrink-0 mt-0.5" size={20} />
-              <p className="text-sm text-red-800">{error}</p>
+            <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-start gap-3">
+              <FiAlertCircle className="text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" size={20} />
+              <p className="text-sm text-red-800 dark:text-red-400">{error}</p>
             </div>
           )}
 
@@ -91,12 +91,12 @@ export const Login: React.FC = () => {
             </Button>
           </form>
 
-          <div className="pt-4 border-t border-gray-200 text-center">
-            <p className="text-sm text-gray-600">
+          <div className="pt-4 border-t border-gray-200 dark:border-gray-700 text-center">
+            <p className="text-sm text-gray-600 dark:text-gray-400">
               Don't have an account?{' '}
               <button
                 type="button"
-                className="text-blue-600 hover:text-blue-700 font-medium"
+                className="text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300 font-medium"
                 onClick={() => navigate('/register')}
               >
                 Sign Up
@@ -105,7 +105,7 @@ export const Login: React.FC = () => {
           </div>
         </div>
 
-        <p className="text-center text-sm text-gray-500 mt-6">
+        <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
           By signing in, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>

@@ -28,7 +28,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', className, showText = t
         className={cn(sizeMap[size], 'object-cover')}
       />
       {showText && (
-        <span className={cn('font-semibold text-gray-900', textSizeMap[size])}>
+        <span className={cn('font-semibold text-gray-900 dark:text-gray-100', textSizeMap[size])}>
           Zygotrix AI
         </span>
       )}

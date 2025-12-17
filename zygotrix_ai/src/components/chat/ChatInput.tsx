@@ -68,19 +68,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               icon={<FiSend />}
               onClick={handleSend}
               disabled={disabled || !value.trim()}
-              variant="filled"
+              variant="primary"
               size="md"
-              className={cn(
-                'bg-blue-600 text-white hover:bg-blue-700 active:bg-blue-800',
-                'dark:bg-blue-500 dark:hover:bg-blue-600 dark:active:bg-blue-700',
-                'disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-600 dark:disabled:text-gray-400'
-              )}
               tooltip="Send message (Enter)"
             />
           </div>
         </div>
         <p className="mt-2 text-xs text-gray-500 dark:text-gray-400 text-center">
-          Press Enter to send, Shift + Enter for new line
+          Zygotrix AI can make mistakes. Please verify important information.
         </p>
       </div>
     </div>

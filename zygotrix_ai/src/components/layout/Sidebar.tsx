@@ -62,7 +62,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         <div className="p-3">
           <Button
             variant="primary"
-            className="w-full"
+            className="w-full !bg-emerald-600 hover:!bg-emerald-700 active:!bg-emerald-800 dark:!bg-emerald-500 dark:hover:!bg-emerald-600 dark:active:!bg-emerald-700"
             leftIcon={<FiPlus />}
             onClick={() => {
               onNewConversation();

@@ -24,10 +24,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
         if (saved === 'light' || saved === 'dark' || saved === 'system') {
             return saved;
         }
-        return 'system';
+        return 'dark'; // Default to dark theme
     });
 
-    const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light');
+    const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('dark');
 
     // Resolve the actual theme based on system preference
     useEffect(() => {

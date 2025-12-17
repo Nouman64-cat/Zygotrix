@@ -462,7 +462,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
           >
             <div
               className={`max-w-[85%] sm:max-w-[80%] rounded-2xl px-3 sm:px-4 py-2 sm:py-3 ${message.role === 'user'
-                ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white'
+                ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white'
                 : 'bg-white dark:bg-[#060914] text-gray-800 dark:text-gray-100 border border-gray-200 dark:border-gray-800'
                 }`}
             >
@@ -479,7 +479,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
                 <p className="text-xs leading-relaxed whitespace-pre-wrap">{message.content}</p>
               )}
               <p
-                className={`text-xs mt-1 ${message.role === 'user' ? 'text-indigo-100' : 'text-gray-400'
+                className={`text-xs mt-1 ${message.role === 'user' ? 'text-emerald-100' : 'text-gray-400'
                   }`}
               >
                 {message.timestamp.toLocaleTimeString([], {
@@ -516,12 +516,12 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             onKeyPress={handleKeyPress}
             placeholder={!isEnabled ? "AI services are currently unavailable..." : usage?.is_limited ? "Chat limit reached. Try again later..." : "Ask me anything..."}
             disabled={isLoading || usage?.is_limited || !isEnabled}
-            className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-gray-100 dark:bg-[#03050f] border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 text-gray-800 dark:text-gray-100 placeholder-gray-400 disabled:opacity-50 text-xs sm:text-sm"
+            className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-gray-100 dark:bg-[#03050f] border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-emerald-600 text-gray-800 dark:text-gray-100 placeholder-gray-400 disabled:opacity-50 text-xs sm:text-sm"
           />
           <button
             onClick={handleSend}
             disabled={!inputValue.trim() || isLoading || usage?.is_limited || !isEnabled}
-            className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white rounded-full p-2.5 sm:p-3 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
+            className="bg-gradient-to-r from-emerald-600 to-teal-600 text-white rounded-full p-2.5 sm:p-3 hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer flex-shrink-0"
           >
             <svg
               className="w-5 h-5"

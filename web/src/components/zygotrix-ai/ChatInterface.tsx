@@ -152,7 +152,7 @@ export default function ChatInterface({
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className="absolute right-2 bottom-2 p-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+                className="absolute right-2 bottom-2 p-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
               >
                 <HiPaperAirplane className="w-5 h-5 rotate-90" />
               </button>
@@ -292,7 +292,7 @@ export default function ChatInterface({
               <button
                 type="submit"
                 disabled={!input.trim()}
-                className="p-2 bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
+                className="p-2 bg-emerald-600 hover:bg-emerald-700 disabled:bg-gray-300 dark:disabled:bg-gray-700 text-white rounded-lg transition-colors disabled:cursor-not-allowed"
               >
                 <HiPaperAirplane className="w-5 h-5 rotate-90" />
               </button>
@@ -300,12 +300,17 @@ export default function ChatInterface({
           </div>
         </form>
 
-        {/* Model Info */}
-        <div className="max-w-3xl mx-auto mt-2 flex items-center justify-center gap-2 text-xs text-gray-400">
-          <HiOutlineSparkles className="w-3 h-3" />
-          <span>
-            {state.currentConversation?.settings?.model?.split("-").slice(-2).join(" ") || "Claude 3 Haiku"}
-          </span>
+        {/* Model Info & Disclaimer */}
+        <div className="max-w-3xl mx-auto mt-2 flex flex-col items-center gap-1 text-xs text-gray-400">
+          <div className="flex items-center gap-2">
+            <HiOutlineSparkles className="w-3 h-3" />
+            <span>
+              {state.currentConversation?.settings?.model?.split("-").slice(-2).join(" ") || "Claude 3 Haiku"}
+            </span>
+          </div>
+          <p className="text-gray-400 dark:text-gray-500">
+            Zygotrix AI can make mistakes. Please verify important information.
+          </p>
         </div>
       </div>
     </div>

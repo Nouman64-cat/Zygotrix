@@ -1,11 +1,7 @@
-
+import { Chat } from './pages';
 
 const App = () => {
-  return (
-    <div>
-      <h1 className="text-8xl">App</h1>
-    </div>
-  );
+  return <Chat />;
 };
 
 export default App;

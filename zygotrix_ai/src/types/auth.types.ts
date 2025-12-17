@@ -66,3 +66,33 @@ export interface TokenUsage {
   is_limited: boolean;
   cooldown_active: boolean;
 }
+
+// Signup types
+export interface SignupRequest {
+  email: string;
+  password: string;
+  full_name?: string;
+}
+
+export interface SignupResponse {
+  message: string;
+  expires_at: string;
+}
+
+export interface VerifyOtpRequest {
+  email: string;
+  otp: string;
+}
+
+export interface VerifyOtpResponse {
+  message: string;
+}
+
+export interface ResendOtpRequest {
+  email: string;
+}
+
+export interface ResendOtpResponse {
+  message: string;
+  expires_at: string;
+}

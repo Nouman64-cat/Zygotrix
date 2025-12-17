@@ -7,7 +7,8 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "lint": "eslint .",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "deploy": "scp -i ~/.ssh/id_ed25519_do -r dist/* root@164.92.190.232:/var/www/site_zyg_ai/"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",

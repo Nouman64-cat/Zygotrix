@@ -1,3 +1,5 @@
+import type { TokenUsage } from './auth.types';
+
 export interface Message {
   id: string;
   role: 'user' | 'assistant';
@@ -14,18 +16,23 @@ export interface Conversation {
   updatedAt: number;
 }
 
-export interface SendMessageRequest {
+export interface PageContext {
+  pageName?: string;
+  description?: string;
+  features?: string[];
+}
+
+export interface ChatRequest {
   message: string;
-  conversationId?: string;
+  pageContext?: PageContext;
+  userName?: string;
+  userId?: string;
+  sessionId?: string;
 }
 
-export interface SendMessageResponse {
-  message: Message;
-  conversationId: string;
-}
-
-export interface ConversationsResponse {
-  conversations: Conversation[];
+export interface ChatResponse {
+  response: string;
+  usage: TokenUsage;
 }
 
 export interface ApiError {

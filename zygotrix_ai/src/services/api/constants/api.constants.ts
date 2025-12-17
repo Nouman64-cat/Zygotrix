@@ -1,12 +1,14 @@
 export const API_ENDPOINTS = {
-  CHAT: {
-    SEND_MESSAGE: '/api/chat/message',
-    GET_CONVERSATIONS: '/api/chat/conversations',
-    GET_CONVERSATION: (id: string) => `/api/chat/conversations/${id}`,
-    CREATE_CONVERSATION: '/api/chat/conversations',
-    DELETE_CONVERSATION: (id: string) => `/api/chat/conversations/${id}`,
-    CLEAR_HISTORY: '/api/chat/clear',
-    STREAM_MESSAGE: '/api/chat/stream',
+  CHATBOT: {
+    CHAT: '/api/chatbot/chat',
+    STATUS: '/api/chatbot/status',
+    CACHE_STATS: '/api/chatbot/cache/stats',
+    CACHE_CLEAR: '/api/chatbot/cache/clear',
+    ADMIN: {
+      TOKEN_USAGE: '/api/chatbot/admin/token-usage',
+      TOKEN_USAGE_BY_USER: (userId: string) => `/api/chatbot/admin/token-usage/${userId}`,
+      TOKEN_USAGE_DAILY: '/api/chatbot/admin/token-usage-daily',
+    },
   },
   AUTH: {
     LOGIN: '/api/auth/login',

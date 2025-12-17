@@ -36,6 +36,7 @@ export const storage = {
 
 export const STORAGE_KEYS = {
   AUTH_TOKEN: 'auth_token',
+  USER_PROFILE: 'user_profile',
   CONVERSATIONS: 'conversations',
   CURRENT_CONVERSATION: 'current_conversation',
   THEME: 'theme',

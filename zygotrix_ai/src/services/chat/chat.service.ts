@@ -1,48 +1,30 @@
 import axiosInstance from '../api/config/axios.config';
 import { API_ENDPOINTS } from '../api/constants/api.constants';
-import type {
-  SendMessageRequest,
-  SendMessageResponse,
-  Conversation,
-  ConversationsResponse,
-} from '../../types';
+import type { ChatRequest, ChatResponse } from '../../types';
 
 class ChatService {
-  async sendMessage(data: SendMessageRequest): Promise<SendMessageResponse> {
-    const response = await axiosInstance.post<SendMessageResponse>(
-      API_ENDPOINTS.CHAT.SEND_MESSAGE,
-      data
+  async sendMessage(request: ChatRequest): Promise<ChatResponse> {
+    const response = await axiosInstance.post<ChatResponse>(
+      API_ENDPOINTS.CHATBOT.CHAT,
+      request
     );
     return response.data;
   }
 
-  async getConversations(): Promise<Conversation[]> {
-    const response = await axiosInstance.get<ConversationsResponse>(
-      API_ENDPOINTS.CHAT.GET_CONVERSATIONS
-    );
-    return response.data.conversations;
-  }
-
-  async getConversation(id: string): Promise<Conversation> {
-    const response = await axiosInstance.get<Conversation>(
-      API_ENDPOINTS.CHAT.GET_CONVERSATION(id)
+  async getChatbotStatus(): Promise<{ enabled: boolean }> {
+    const response = await axiosInstance.get<{ enabled: boolean }>(
+      API_ENDPOINTS.CHATBOT.STATUS
     );
     return response.data;
   }
 
-  async createConversation(): Promise<Conversation> {
-    const response = await axiosInstance.post<Conversation>(
-      API_ENDPOINTS.CHAT.CREATE_CONVERSATION
-    );
+  async getCacheStats(): Promise<unknown> {
+    const response = await axiosInstance.get(API_ENDPOINTS.CHATBOT.CACHE_STATS);
     return response.data;
   }
 
-  async deleteConversation(id: string): Promise<void> {
-    await axiosInstance.delete(API_ENDPOINTS.CHAT.DELETE_CONVERSATION(id));
-  }
-
-  async clearHistory(): Promise<void> {
-    await axiosInstance.post(API_ENDPOINTS.CHAT.CLEAR_HISTORY);
+  async clearCache(): Promise<void> {
+    await axiosInstance.delete(API_ENDPOINTS.CHATBOT.CACHE_CLEAR);
   }
 }
 

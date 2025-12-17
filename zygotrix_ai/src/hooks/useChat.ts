@@ -1,7 +1,7 @@
 import { useState, useCallback } from 'react';
-import { chatService } from '../services';
+import { chatService, authService } from '../services';
 import { generateMessageId } from '../utils';
-import type { Message, Conversation } from '../types';
+import type { Message, ChatRequest } from '../types';
 
 interface UseChatReturn {
   messages: Message[];
@@ -12,7 +12,7 @@ interface UseChatReturn {
   setMessages: (messages: Message[]) => void;
 }
 
-export const useChat = (conversationId?: string): UseChatReturn => {
+export const useChat = (sessionId?: string): UseChatReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -33,16 +33,31 @@ export const useChat = (conversationId?: string): UseChatReturn => {
       setError(null);
 
       try {
-        const response = await chatService.sendMessage({
+        const user = authService.getStoredUser();
+
+        const chatRequest: ChatRequest = {
           message: content.trim(),
-          conversationId,
-        });
+          userName: user?.full_name || undefined,
+          userId: user?.id,
+          sessionId,
+          pageContext: {
+            pageName: 'Chat Interface',
+            description: 'Main chat interface for Zygotrix AI',
+            features: [
+              'Real-time AI Chat',
+              'Conversation History',
+              'Context-Aware Responses',
+            ],
+          },
+        };
+
+        const response = await chatService.sendMessage(chatRequest);
 
         const assistantMessage: Message = {
-          id: response.message.id || generateMessageId(),
+          id: generateMessageId(),
           role: 'assistant',
-          content: response.message.content,
-          timestamp: response.message.timestamp || Date.now(),
+          content: response.response,
+          timestamp: Date.now(),
         };
 
         setMessages((prev) => [...prev, assistantMessage]);
@@ -55,7 +70,7 @@ export const useChat = (conversationId?: string): UseChatReturn => {
         setIsLoading(false);
       }
     },
-    [conversationId]
+    [sessionId]
   );
 
   const clearMessages = useCallback(() => {

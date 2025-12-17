@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { MainLayout } from '../components/layout';
 import { MessageList, ChatInput } from '../components/chat';
 import { useChat, useLocalStorage } from '../hooks';
@@ -8,26 +8,38 @@ import type { Conversation } from '../types';
 export const Chat: React.FC = () => {
   const [conversations, setConversations] = useLocalStorage<Conversation[]>('conversations', []);
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>();
+  const prevConversationIdRef = useRef<string | undefined>();
+  const lastSavedMessagesRef = useRef<Message[]>([]);
 
-  const { messages, isLoading, error, sendMessage, setMessages } = useChat(currentConversationId);
+  const sessionId = currentConversationId || 'default-session';
+  const { messages, isLoading, error, sendMessage, setMessages } = useChat(sessionId);
 
   const currentConversation = conversations.find((c) => c.id === currentConversationId);
 
   useEffect(() => {
-    if (currentConversation) {
-      setMessages(currentConversation.messages);
+    if (currentConversationId !== prevConversationIdRef.current) {
+      prevConversationIdRef.current = currentConversationId;
+      const conversation = conversations.find((c) => c.id === currentConversationId);
+      if (conversation) {
+        setMessages(conversation.messages);
+        lastSavedMessagesRef.current = conversation.messages;
+      }
     }
-  }, [currentConversationId, currentConversation, setMessages]);
+  }, [currentConversationId]);
 
   useEffect(() => {
-    if (currentConversationId && messages.length > 0) {
+    if (currentConversationId && messages.length > 0 && messages.length !== lastSavedMessagesRef.current.length) {
+      lastSavedMessagesRef.current = messages;
+
       setConversations((prev) => {
         const existingIndex = prev.findIndex((c) => c.id === currentConversationId);
+        const existing = prev[existingIndex];
+
         const updatedConversation: Conversation = {
           id: currentConversationId,
-          title: currentConversation?.title || generateConversationTitle(messages[0].content),
+          title: existing?.title || generateConversationTitle(messages[0].content),
           messages,
-          createdAt: currentConversation?.createdAt || Date.now(),
+          createdAt: existing?.createdAt || Date.now(),
           updatedAt: Date.now(),
         };
 
@@ -40,12 +52,12 @@ export const Chat: React.FC = () => {
         return [updatedConversation, ...prev];
       });
     }
-  }, [messages, currentConversationId, currentConversation, setConversations]);
+  }, [messages, currentConversationId, setConversations]);
 
   const handleNewConversation = () => {
+    setMessages([]);
     const newId = generateConversationId();
     setCurrentConversationId(newId);
-    setMessages([]);
   };
 
   const handleSelectConversation = (id: string) => {
@@ -61,10 +73,13 @@ export const Chat: React.FC = () => {
   };
 
   const handleSendMessage = async (content: string) => {
-    if (!currentConversationId) {
-      const newId = generateConversationId();
-      setCurrentConversationId(newId);
+    let conversationId = currentConversationId;
+
+    if (!conversationId) {
+      conversationId = generateConversationId();
+      setCurrentConversationId(conversationId);
     }
+
     await sendMessage(content);
   };
 

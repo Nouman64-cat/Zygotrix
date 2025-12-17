@@ -876,30 +876,32 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
   return (
     <DashboardLayout>
-      <div className="container mx-auto px-4 py-8 max-w-8xl">
+      <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-8xl">
 
         {/* Two Column Layout: Generate DNA (Left) & DNA/RNA Sequences (Right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           {/* Left Column: DNA Generation + Amino Acids */}
           <div className="flex flex-col gap-6">
             {/* Step 1 - DNA Generation with Tabs */}
             <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 border border-transparent dark:border-gray-700">
-              <div className="flex items-center px-6 pt-6 pb-4">
-                <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold mr-3">
-                  1
+              <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
+                <div className="flex items-center">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold mr-2 sm:mr-3 text-sm sm:text-base">
+                    1
+                  </div>
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
+                    DNA/RNA Sequence Input
+                  </h2>
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  DNA/RNA Sequence Input
-                </h2>
               </div>
 
               {/* Tab Navigation */}
-              <div className="border-b border-gray-200 dark:border-gray-700">
-                <nav className="flex px-6 -mb-px space-x-4">
+              <div className="border-b border-gray-200 dark:border-gray-700 overflow-x-auto">
+                <nav className="flex px-4 sm:px-6 -mb-px space-x-2 sm:space-x-4 min-w-max">
                   <button
                     onClick={() => setActiveTab("generate")}
                     disabled={!!dnaRnaResult}
-                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "generate"
+                    className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === "generate"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
                         : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
                       } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -909,7 +911,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                   <button
                     onClick={() => setActiveTab("input-dna")}
                     disabled={!!dnaRnaResult}
-                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "input-dna"
+                    className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === "input-dna"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
                         : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
                       } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -919,7 +921,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                   <button
                     onClick={() => setActiveTab("input-rna")}
                     disabled={!!dnaRnaResult}
-                    className={`py-2 px-4 text-sm font-medium border-b-2 transition-colors ${activeTab === "input-rna"
+                    className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === "input-rna"
                         ? "border-blue-600 text-blue-600 dark:text-blue-400"
                         : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
                       } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
@@ -930,7 +932,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
               </div>
 
               {/* Tab Content */}
-              <div className="p-6">
+              <div className="p-4 sm:p-6">
                 {/* Generate Random DNA Tab */}
                 {activeTab === "generate" && (
                   <div className="space-y-6">
@@ -1203,18 +1205,18 @@ const ProteinFoldGenerationPage: React.FC = () => {
           </div>
 
           {/* Right Column: Step 2 - DNA & RNA Sequences */}
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 border border-transparent dark:border-gray-700">
-            <div className="flex items-center justify-between mb-4">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 border border-transparent dark:border-gray-700">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
               <div className="flex items-center">
-                <div className={`w-8 h-8 rounded-full ${dnaRnaResult && !transcribing ? 'bg-green-600' : 'bg-gray-400 dark:bg-gray-600'} text-white flex items-center justify-center font-bold mr-3`}>
+                <div className={`w-7 h-7 sm:w-8 sm:h-8 rounded-full ${dnaRnaResult && !transcribing ? 'bg-green-600' : 'bg-gray-400 dark:bg-gray-600'} text-white flex items-center justify-center font-bold mr-2 sm:mr-3 text-sm sm:text-base`}>
                   {dnaRnaResult && !transcribing ? '✓' : '2'}
                 </div>
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                   DNA & RNA Sequences
                 </h2>
               </div>
               {dnaRnaResult && !transcribing && (
-                <div className="flex flex-wrap gap-1">
+                <div className="flex flex-wrap gap-1 ml-9 sm:ml-0">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-blue-100 dark:bg-blue-900/50 text-blue-800 dark:text-blue-300">
                     {dnaRnaResult.length.toLocaleString()} bp
                   </span>
@@ -1287,27 +1289,28 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
                   {/* DNA Sequence */}
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-md font-semibold text-gray-900 dark:text-white">
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
+                      <h3 className="text-sm sm:text-md font-semibold text-gray-900 dark:text-white">
                         DNA Sequence ({dnaRnaResult.length.toLocaleString()} bp)
                       </h3>
                       <div className="flex gap-2">
                         {!isLargeSequence && (
                           <button
                             onClick={() => handleCopySequence(dnaRnaResult.dna_sequence)}
-                            className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm"
+                            className="px-2 sm:px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-xs sm:text-sm"
                           >
                             Copy
                           </button>
                         )}
                         <button
                           onClick={() => handleDownloadSequence(dnaRnaResult.dna_sequence, `dna_sequence_${dnaRnaResult.length}bp.txt`)}
-                          className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm flex items-center gap-1"
+                          className="px-2 sm:px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-xs sm:text-sm flex items-center gap-1"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                           </svg>
-                          Download
+                          <span className="hidden sm:inline">Download</span>
+                          <span className="sm:hidden">DL</span>
                         </button>
                       </div>
                     </div>
@@ -1334,27 +1337,28 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
                   {/* RNA Sequence */}
                   <div>
-                    <div className="flex justify-between items-center mb-2">
-                      <h3 className="text-md font-semibold text-gray-900 dark:text-white">
-                        RNA Sequence ({dnaRnaResult.length.toLocaleString()} bp) {proteinResult && !isLargeSequence && <span className="text-xs text-purple-400 ml-2">(Hover codons for amino acids)</span>}
+                    <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-2">
+                      <h3 className="text-sm sm:text-md font-semibold text-gray-900 dark:text-white">
+                        RNA Sequence ({dnaRnaResult.length.toLocaleString()} bp) {proteinResult && !isLargeSequence && <span className="text-xs text-purple-400 ml-1 sm:ml-2 block sm:inline">(Hover for amino acids)</span>}
                       </h3>
                       <div className="flex gap-2">
                         {!isLargeSequence && (
                           <button
                             onClick={() => handleCopySequence(dnaRnaResult.rna_sequence)}
-                            className="px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-sm"
+                            className="px-2 sm:px-3 py-1 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 rounded text-xs sm:text-sm"
                           >
                             Copy
                           </button>
                         )}
                         <button
                           onClick={() => handleDownloadSequence(dnaRnaResult.rna_sequence, `rna_sequence_${dnaRnaResult.length}bp.txt`)}
-                          className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-sm flex items-center gap-1"
+                          className="px-2 sm:px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded text-xs sm:text-sm flex items-center gap-1"
                         >
-                          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <svg className="w-3 h-3 sm:w-4 sm:h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
                           </svg>
-                          Download
+                          <span className="hidden sm:inline">Download</span>
+                          <span className="sm:hidden">DL</span>
                         </button>
                       </div>
                     </div>
@@ -1531,18 +1535,18 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
         {/* Protein Sequence Analysis - Data Table */}
         {proteinResult && (
-          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-6 mb-6 border border-transparent dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 p-4 sm:p-6 mb-4 sm:mb-6 border border-transparent dark:border-gray-700">
             <div className="mb-4">
-              <div className="flex items-center justify-between mb-2">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
                 <div className="flex items-center">
-                  <div className="w-8 h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold mr-3">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-green-600 text-white flex items-center justify-center font-bold mr-2 sm:mr-3 text-sm sm:text-base">
                     ✓
                   </div>
-                  <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
+                  <h2 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white">
                     Protein Sequence Analysis
                   </h2>
                 </div>
-                <div className="flex flex-wrap gap-2">
+                <div className="flex flex-wrap gap-2 ml-9 sm:ml-0">
                   <span className="inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium bg-purple-100 dark:bg-purple-900/50 text-purple-800 dark:text-purple-300">
                     {proteinResult.total_orfs.toLocaleString()} ORFs found
                   </span>
@@ -1553,7 +1557,8 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
-                    Export CSV
+                    <span className="hidden sm:inline">Export CSV</span>
+                    <span className="sm:hidden">CSV</span>
                   </button>
                 </div>
               </div>
@@ -1563,7 +1568,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
             {proteinResult.orfs && proteinResult.orfs.length > 0 ? (
               <>
                 {/* Pagination Info */}
-                <div className="flex items-center justify-between mb-3 text-sm text-gray-600 dark:text-gray-400">
+                <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-1 mb-3 text-xs sm:text-sm text-gray-600 dark:text-gray-400">
                   <div>
                     Showing {((currentPage - 1) * orfsPerPage) + 1}-{Math.min(currentPage * orfsPerPage, proteinResult.orfs.length)} of {proteinResult.orfs.length.toLocaleString()} ORFs
                   </div>

@@ -475,7 +475,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 bg-black  bg-opacity-50 z-40 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden"
           onClick={onClose}
           onKeyDown={(e) => {
             if (e.key === "Escape") {
@@ -491,13 +491,18 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* Sidebar */}
       <aside
         className={`fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:top-0 lg:h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } ${isCollapsed ? "w-16" : "w-64"}`}
+          } w-64 ${isCollapsed ? "lg:w-16" : "lg:w-64"}`}
       >
         {/* Sidebar header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
+          {/* Show navigation title on mobile (always expanded) */}
+          <h2 className="text-lg font-semibold text-slate-900 dark:text-white lg:hidden">
+            Navigation
+          </h2>
+          {/* Show nothing on desktop when collapsed */}
           {!isCollapsed && (
-            <h2 className="text-lg font-semibold text-slate-900 dark:text-white lg:hidden">
-              Navigation
+            <h2 className="text-lg font-semibold text-slate-900 dark:text-white hidden lg:block">
+              
             </h2>
           )}
           <div className="flex items-center gap-2">
@@ -563,8 +568,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
                     ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
                     : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
-                  } ${isCollapsed ? "justify-center" : ""} ${item.isChild && !isCollapsed ? "ml-6" : ""
-                  }`}
+                  } ${isCollapsed ? "lg:justify-center" : ""} ${item.isChild && !isCollapsed ? "lg:ml-6" : ""
+                  } ${item.isChild ? "ml-6 lg:ml-0" : ""}`}
               >
                 <span
                   className={`${isActivePath(item.href)
@@ -574,24 +579,22 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 >
                   {item.icon}
                 </span>
-                {!isCollapsed && (
-                  <>
-                    <span className="flex-1">{item.label}</span>
-                    {item.badge && (
-                      <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
+                {/* Labels: Always show on mobile, hide on lg when collapsed */}
+                <span className={`flex-1 ${isCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
+                {item.badge && (
+                  <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-full ${isCollapsed ? "lg:hidden" : ""}`}>
+                    {item.badge}
+                  </span>
                 )}
+                {/* Badge dot for collapsed state - only on desktop */}
                 {isCollapsed && item.badge && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full hidden lg:block"></span>
                 )}
               </Link>
 
-              {/* Enhanced Tooltip for collapsed state */}
+              {/* Enhanced Tooltip for collapsed state - only on desktop */}
               {isCollapsed && (
-                <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none hidden lg:block">
                   {item.label}
                   {item.badge && (
                     <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-full">
@@ -614,8 +617,8 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
                     ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
                     : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
-                  } ${isCollapsed ? "justify-center" : ""} ${item.isChild && !isCollapsed ? "ml-6" : ""
-                  }`}
+                  } ${isCollapsed ? "lg:justify-center" : ""} ${item.isChild && !isCollapsed ? "lg:ml-6" : ""
+                  } ${item.isChild ? "ml-6 lg:ml-0" : ""}`}
               >
                 <span
                   className={`${isActivePath(item.href)
@@ -625,24 +628,22 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 >
                   {item.icon}
                 </span>
-                {!isCollapsed && (
-                  <>
-                    <span className="flex-1">{item.label}</span>
-                    {item.badge && (
-                      <span className="inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-full">
-                        {item.badge}
-                      </span>
-                    )}
-                  </>
+                {/* Labels: Always show on mobile, hide on lg when collapsed */}
+                <span className={`flex-1 ${isCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
+                {item.badge && (
+                  <span className={`inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-full ${isCollapsed ? "lg:hidden" : ""}`}>
+                    {item.badge}
+                  </span>
                 )}
+                {/* Badge dot for collapsed state - only on desktop */}
                 {isCollapsed && item.badge && (
-                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                  <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full hidden lg:block"></span>
                 )}
               </Link>
 
-              {/* Enhanced Tooltip for collapsed state */}
+              {/* Enhanced Tooltip for collapsed state - only on desktop */}
               {isCollapsed && (
-                <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none hidden lg:block">
                   {item.label}
                   {item.badge && (
                     <span className="ml-2 inline-flex items-center justify-center px-2 py-1 text-xs font-medium text-white bg-red-500 rounded-full">
@@ -660,13 +661,12 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           {adminItems.length > 0 && (
             <>
               {/* Admin Separator */}
-              <div className={`my-4 ${isCollapsed ? "mx-2" : "mx-0"}`}>
+              <div className={`my-4 mx-0 ${isCollapsed ? "lg:mx-2" : ""}`}>
                 <div className="border-t border-slate-200 dark:border-slate-600"></div>
-                {!isCollapsed && (
-                  <p className="mt-2 px-3 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider">
-                    Admin
-                  </p>
-                )}
+                {/* Admin label: Always show on mobile, hide on lg when collapsed */}
+                <p className={`mt-2 px-3 text-xs font-semibold text-slate-400 dark:text-slate-500 uppercase tracking-wider ${isCollapsed ? "lg:hidden" : ""}`}>
+                  Admin
+                </p>
               </div>
 
               {/* Admin Navigation Items */}
@@ -678,7 +678,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
                         ? "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700"
                         : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
-                      } ${isCollapsed ? "justify-center" : ""}`}
+                      } ${isCollapsed ? "lg:justify-center" : ""}`}
                   >
                     <span
                       className={`${isActivePath(item.href)
@@ -688,14 +688,13 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     >
                       {item.icon}
                     </span>
-                    {!isCollapsed && (
-                      <span className="flex-1">{item.label}</span>
-                    )}
+                    {/* Label: Always show on mobile, hide on lg when collapsed */}
+                    <span className={`flex-1 ${isCollapsed ? "lg:hidden" : ""}`}>{item.label}</span>
                   </Link>
 
-                  {/* Tooltip for collapsed state */}
+                  {/* Tooltip for collapsed state - only on desktop */}
                   {isCollapsed && (
-                    <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+                    <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none hidden lg:block">
                       {item.label}
                       <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
                     </div>
@@ -711,16 +710,17 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           {/* System Status */}
           <div className="relative group">
             <div
-              className={`flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 ${isCollapsed ? "justify-center" : ""
+              className={`flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 ${isCollapsed ? "lg:justify-center" : ""
                 }`}
             >
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-              {!isCollapsed && <span>System Status: Online</span>}
+              {/* Status text: Always show on mobile, hide on lg when collapsed */}
+              <span className={isCollapsed ? "lg:hidden" : ""}>System Status: Online</span>
             </div>
 
-            {/* System Status Tooltip */}
+            {/* System Status Tooltip - only on desktop */}
             {isCollapsed && (
-              <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+              <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none hidden lg:block">
                 System Status: Online
                 <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
               </div>
@@ -731,7 +731,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <div className="relative group">
             <button
               onClick={handleSignOut}
-              className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ${isCollapsed ? "justify-center" : ""
+              className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ${isCollapsed ? "lg:justify-center" : ""
                 }`}
             >
               <svg
@@ -747,12 +747,13 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
                 />
               </svg>
-              {!isCollapsed && <span>Sign Out</span>}
+              {/* Sign out text: Always show on mobile, hide on lg when collapsed */}
+              <span className={isCollapsed ? "lg:hidden" : ""}>Sign Out</span>
             </button>
 
-            {/* Sign Out Tooltip */}
+            {/* Sign Out Tooltip - only on desktop */}
             {isCollapsed && (
-              <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none">
+              <div className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2 px-3 py-2 bg-gray-900 text-white text-sm rounded-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50 pointer-events-none hidden lg:block">
                 Sign Out
                 <div className="absolute right-full top-1/2 transform -translate-y-1/2 border-4 border-transparent border-r-gray-900"></div>
               </div>

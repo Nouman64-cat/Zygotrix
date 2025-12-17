@@ -278,7 +278,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             <img src={zygoAILogo} alt="Zygotrix AI" className="w-20 h-20 object-contain" />
           </div>
           <div>
-            <h3 className="font-semibold text-lg">{botName}</h3>
+            <h3 className="font-semibold text-base">{botName}</h3>
           </div>
         </div>
         <div className="flex items-center gap-1">
@@ -411,7 +411,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             >
               {message.role === 'assistant' ? (
                 <div>
-                  <div className="text-sm leading-relaxed prose prose-sm dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-indigo-600 dark:prose-strong:text-indigo-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-xs prose-table:text-xs prose-th:bg-indigo-100 dark:prose-th:bg-indigo-900 prose-th:p-1 prose-td:p-1 prose-table:border prose-table:border-gray-300 dark:prose-table:border-gray-700 max-w-none">
+                  <div className="text-xs leading-relaxed prose prose-xs dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-indigo-600 dark:prose-strong:text-indigo-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-table:text-[10px] prose-th:bg-indigo-100 dark:prose-th:bg-indigo-900 prose-th:p-1 prose-td:p-1 prose-table:border prose-table:border-gray-300 dark:prose-table:border-gray-700 max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
                   </div>
                   {message.actions && message.actions.length > 0 && (
@@ -419,7 +419,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
                   )}
                 </div>
               ) : (
-                <p className="text-sm leading-relaxed whitespace-pre-wrap">{message.content}</p>
+                <p className="text-xs leading-relaxed whitespace-pre-wrap">{message.content}</p>
               )}
               <p
                 className={`text-xs mt-1 ${message.role === 'user' ? 'text-indigo-100' : 'text-gray-400'
@@ -459,7 +459,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             onKeyPress={handleKeyPress}
             placeholder={!isEnabled ? "AI services are currently unavailable..." : usage?.is_limited ? "Chat limit reached. Try again later..." : "Ask me anything..."}
             disabled={isLoading || usage?.is_limited || !isEnabled}
-            className="flex-1 px-3 sm:px-4 py-2.5 sm:py-3 rounded-full bg-gray-100 dark:bg-[#03050f] border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 text-gray-800 dark:text-gray-100 placeholder-gray-400 disabled:opacity-50 text-sm sm:text-base"
+            className="flex-1 px-3 sm:px-4 py-2 sm:py-2.5 rounded-full bg-gray-100 dark:bg-[#03050f] border border-gray-200 dark:border-gray-800 focus:outline-none focus:ring-2 focus:ring-indigo-600 text-gray-800 dark:text-gray-100 placeholder-gray-400 disabled:opacity-50 text-xs sm:text-sm"
           />
           <button
             onClick={handleSend}

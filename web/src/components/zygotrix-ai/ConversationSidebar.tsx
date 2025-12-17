@@ -47,7 +47,6 @@ export default function ConversationSidebar({ className = "" }: ConversationSide
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editingTitle, setEditingTitle] = useState("");
   const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
-  const [expandedFolders, setExpandedFolders] = useState<Set<string>>(new Set());
   const menuRef = useRef<HTMLDivElement>(null);
 
   // Load data on mount
@@ -91,16 +90,6 @@ export default function ConversationSidebar({ className = "" }: ConversationSide
   const handleTogglePin = async (id: string, currentlyPinned: boolean) => {
     await updateConversation(id, { is_pinned: !currentlyPinned });
     setMenuOpenId(null);
-  };
-
-  const toggleFolder = (folderId: string) => {
-    const newExpanded = new Set(expandedFolders);
-    if (newExpanded.has(folderId)) {
-      newExpanded.delete(folderId);
-    } else {
-      newExpanded.add(folderId);
-    }
-    setExpandedFolders(newExpanded);
   };
 
   // Group conversations by date
@@ -168,11 +157,10 @@ export default function ConversationSidebar({ className = "" }: ConversationSide
             <button
               key={conv.id}
               onClick={() => selectConversation(conv.id)}
-              className={`w-full p-2 rounded-lg flex items-center justify-center ${
-                state.currentConversation?.id === conv.id
-                  ? "bg-indigo-100 dark:bg-indigo-900/30"
-                  : "hover:bg-gray-200 dark:hover:bg-gray-800"
-              }`}
+              className={`w-full p-2 rounded-lg flex items-center justify-center ${state.currentConversation?.id === conv.id
+                ? "bg-indigo-100 dark:bg-indigo-900/30"
+                : "hover:bg-gray-200 dark:hover:bg-gray-800"
+                }`}
               title={conv.title}
             >
               <HiOutlineChat className="w-5 h-5 text-gray-600 dark:text-gray-400" />
@@ -241,11 +229,10 @@ export default function ConversationSidebar({ className = "" }: ConversationSide
                   selectFolder(folder.id);
                 }
               }}
-              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm ${
-                state.currentFolderId === folder.id
-                  ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
-                  : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
-              }`}
+              className={`w-full flex items-center gap-2 px-2 py-1.5 rounded-lg text-sm ${state.currentFolderId === folder.id
+                ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300"
+                : "text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                }`}
             >
               {state.currentFolderId === folder.id ? (
                 <HiFolderOpen className="w-4 h-4" style={{ color: folder.color || undefined }} />
@@ -442,7 +429,7 @@ interface ConversationGroupProps {
   onSaveRename: (id: string) => void;
   menuOpenId: string | null;
   setMenuOpenId: (id: string | null) => void;
-  menuRef: React.RefObject<HTMLDivElement>;
+  menuRef: React.RefObject<HTMLDivElement | null>;
   onToggleStar: (id: string, current: boolean) => void;
   onTogglePin: (id: string, current: boolean) => void;
   onArchive: (id: string) => void;
@@ -476,11 +463,10 @@ function ConversationGroup({
         {conversations.map((conv) => (
           <div
             key={conv.id}
-            className={`group relative flex items-center rounded-lg ${
-              currentId === conv.id
-                ? "bg-indigo-100 dark:bg-indigo-900/30"
-                : "hover:bg-gray-100 dark:hover:bg-gray-800"
-            }`}
+            className={`group relative flex items-center rounded-lg ${currentId === conv.id
+              ? "bg-indigo-100 dark:bg-indigo-900/30"
+              : "hover:bg-gray-100 dark:hover:bg-gray-800"
+              }`}
           >
             {editingId === conv.id ? (
               <input

@@ -19,7 +19,6 @@ import type {
   ConversationSummary,
   Message,
   Folder,
-  ConversationSettings,
   StreamChunk,
   StatusResponse,
 } from "../services/zygotrixAI.api";

@@ -5,8 +5,8 @@
  * Features conversations, folders, sharing, and export.
  */
 
-import React, { useState, useEffect, useRef } from "react";
-import { useNavigate, useParams, useSearchParams } from "react-router-dom";
+import { useState, useEffect, useRef } from "react";
+import { useNavigate, useParams } from "react-router-dom";
 import { ZygotrixAIProvider, useZygotrixAI } from "../context/ZygotrixAIContext";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -23,7 +23,7 @@ import { LuBiohazard } from "react-icons/lu";
 function ZygotrixAIChatContent() {
   const navigate = useNavigate();
   const { conversationId } = useParams<{ conversationId?: string }>();
-  const [searchParams] = useSearchParams();
+  // searchParams can be used for future features like ?model=xyz
 
   const { user } = useAuth();
   const {
@@ -80,7 +80,7 @@ function ZygotrixAIChatContent() {
   }, [conversationId]);
 
   // Handle settings save
-  const handleSaveSettings = async (settings: Partial<ConversationSettings>) => {
+  const handleSaveSettings = async (settings: ConversationSettings) => {
     if (state.currentConversation) {
       await updateConversation(state.currentConversation.id, { settings });
     }

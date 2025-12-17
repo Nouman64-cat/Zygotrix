@@ -5,7 +5,7 @@
  * code highlighting, feedback, and regeneration.
  */
 
-import React, { useState } from "react";
+import { useState } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
@@ -73,11 +73,10 @@ export default function ChatMessage({
 
   return (
     <div
-      className={`group flex gap-4 px-4 py-6 ${
-        isUser
-          ? "bg-transparent"
-          : "bg-gray-50 dark:bg-gray-900/50"
-      }`}
+      className={`group flex gap-4 px-4 py-6 ${isUser
+        ? "bg-transparent"
+        : "bg-gray-50 dark:bg-gray-900/50"
+        }`}
     >
       {/* Avatar */}
       <div className="flex-shrink-0">
@@ -129,11 +128,13 @@ export default function ChatMessage({
             <ReactMarkdown
               remarkPlugins={[remarkGfm]}
               components={{
-                code({ node, inline, className, children, ...props }) {
+                code({ className, children, ...props }) {
                   const match = /language-(\w+)/.exec(className || "");
                   const codeString = String(children).replace(/\n$/, "");
 
-                  if (!inline && match) {
+                  // In react-markdown v9+, inline is determined by checking if there's a language match
+                  // Code blocks have language classes, inline code doesn't
+                  if (match) {
                     return (
                       <div className="relative group/code">
                         <div className="absolute right-2 top-2 opacity-0 group-hover/code:opacity-100 transition-opacity">
@@ -146,11 +147,10 @@ export default function ChatMessage({
                           </button>
                         </div>
                         <SyntaxHighlighter
-                          style={resolvedTheme === "dark" ? oneDark : oneLight}
+                          style={(resolvedTheme === "dark" ? oneDark : oneLight) as { [key: string]: React.CSSProperties }}
                           language={match[1]}
                           PreTag="div"
                           className="rounded-lg !mt-0"
-                          {...props}
                         >
                           {codeString}
                         </SyntaxHighlighter>
@@ -258,11 +258,10 @@ export default function ChatMessage({
               <>
                 <button
                   onClick={() => onFeedback("like")}
-                  className={`p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg ${
-                    message.feedback?.type === "like"
-                      ? "text-green-500"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
+                  className={`p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg ${message.feedback?.type === "like"
+                    ? "text-green-500"
+                    : "text-gray-500 dark:text-gray-400"
+                    }`}
                   title="Good response"
                 >
                   {message.feedback?.type === "like" ? (
@@ -273,11 +272,10 @@ export default function ChatMessage({
                 </button>
                 <button
                   onClick={() => onFeedback("dislike")}
-                  className={`p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg ${
-                    message.feedback?.type === "dislike"
-                      ? "text-red-500"
-                      : "text-gray-500 dark:text-gray-400"
-                  }`}
+                  className={`p-1.5 hover:bg-gray-200 dark:hover:bg-gray-700 rounded-lg ${message.feedback?.type === "dislike"
+                    ? "text-red-500"
+                    : "text-gray-500 dark:text-gray-400"
+                    }`}
                   title="Bad response"
                 >
                   {message.feedback?.type === "dislike" ? (

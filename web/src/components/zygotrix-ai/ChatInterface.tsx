@@ -14,7 +14,6 @@ import {
   HiShare,
   HiDownload,
   HiDotsVertical,
-  HiOutlineLightningBolt,
   HiOutlineSparkles,
 } from "react-icons/hi";
 import { LuBiohazard } from "react-icons/lu";

@@ -4,7 +4,7 @@
  * Settings, Share, and Export modals for conversations.
  */
 
-import React, { useState, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { HiX, HiLink, HiCheck, HiDownload, HiCog } from "react-icons/hi";
 import type { ConversationSettings, ExportFormat } from "../../services/zygotrixAI.api";
 import * as api from "../../services/zygotrixAI.api";
@@ -17,7 +17,7 @@ interface SettingsModalProps {
   isOpen: boolean;
   onClose: () => void;
   settings: ConversationSettings;
-  onSave: (settings: Partial<ConversationSettings>) => void;
+  onSave: (settings: ConversationSettings) => void;
 }
 
 export function SettingsModal({ isOpen, onClose, settings, onSave }: SettingsModalProps) {
@@ -213,7 +213,7 @@ interface ShareModalProps {
 export function ShareModal({
   isOpen,
   onClose,
-  conversationId,
+  conversationId: _conversationId,
   isShared,
   shareId,
   onShare,
@@ -356,7 +356,7 @@ interface ExportModalProps {
 export function ExportModal({
   isOpen,
   onClose,
-  conversationId,
+  conversationId: _conversationId,
   conversationTitle,
   onExport,
 }: ExportModalProps) {
@@ -414,11 +414,10 @@ export function ExportModal({
               <button
                 key={format.id}
                 onClick={() => setSelectedFormat(format.id)}
-                className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors ${
-                  selectedFormat === format.id
-                    ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
-                    : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
-                }`}
+                className={`w-full flex items-center gap-3 p-3 rounded-lg border transition-colors ${selectedFormat === format.id
+                  ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
+                  : "border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800"
+                  }`}
               >
                 <span className="text-xl">{format.icon}</span>
                 <div className="text-left">
@@ -539,9 +538,8 @@ export function NewFolderModal({ isOpen, onClose, onCreate }: NewFolderModalProp
                 <button
                   key={c}
                   onClick={() => setColor(c)}
-                  className={`w-8 h-8 rounded-full border-2 transition-transform ${
-                    color === c ? "border-gray-900 dark:border-white scale-110" : "border-transparent"
-                  }`}
+                  className={`w-8 h-8 rounded-full border-2 transition-transform ${color === c ? "border-gray-900 dark:border-white scale-110" : "border-transparent"
+                    }`}
                   style={{ backgroundColor: c }}
                 />
               ))}

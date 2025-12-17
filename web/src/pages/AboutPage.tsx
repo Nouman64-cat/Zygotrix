@@ -292,7 +292,7 @@ const AboutPage: React.FC = () => {
 
             <div className="flex flex-wrap gap-4 pt-4">
               <a
-                href="mailto:hello@zygotrix.io"
+                href={`mailto:${import.meta.env.VITE_CONTACT_EMAIL}`}
                 className="group inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] px-8 py-4 text-sm font-semibold text-white shadow-xl shadow-[#1E3A8A]/25 dark:shadow-[#3B82F6]/25 transition-all hover:shadow-2xl hover:shadow-[#1E3A8A]/40 dark:hover:shadow-[#3B82F6]/40 hover:scale-105"
               >
                 <span>Contact us</span>

@@ -111,8 +111,27 @@ RULES:
 6. When referring to pages, include markdown links using base URL: {FRONTEND_URL}"""
 
 
-# For backwards compatibility - dynamic prompt
+# For backwards compatibility - dynamic prompt (now fetches from DB)
 def get_zigi_system_prompt() -> str:
+    """
+    Get the main system prompt.
+    Fetches from database if available, otherwise uses default.
+    """
+    # Try to get from database first
+    if PROMPTS_FROM_DB:
+        try:
+            db_prompt = prompt_service.get_prompt_content("system")
+            if db_prompt:
+                # Replace placeholders
+                return db_prompt.format(
+                    BOT_NAME=BOT_NAME,
+                    user_name="user",  # Generic fallback
+                    FRONTEND_URL=FRONTEND_URL
+                )
+        except Exception as e:
+            print(f"Warning: Could not fetch system prompt from database: {e}")
+
+    # Fallback to default
     return f"""bot:{BOT_NAME}|url:{FRONTEND_URL}
 
 CRITICAL: MINIMAL OUTPUT BY DEFAULT

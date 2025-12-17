@@ -66,7 +66,22 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
     try {
       const savedUsage = localStorage.getItem(CHAT_USAGE_KEY);
       if (savedUsage) {
-        return JSON.parse(savedUsage);
+        const usage = JSON.parse(savedUsage);
+
+        // Check if reset time has passed - if so, clear the stale limit
+        if (usage.reset_time && usage.is_limited) {
+          const resetTime = new Date(usage.reset_time);
+          const now = new Date();
+
+          if (now >= resetTime) {
+            // Reset time has passed - clear the stale usage data
+            console.log('Reset time has passed, clearing stale usage data');
+            localStorage.removeItem(CHAT_USAGE_KEY);
+            return null;
+          }
+        }
+
+        return usage;
       }
     } catch (e) {
       console.error('Error loading chat usage:', e);
@@ -110,7 +125,23 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
       // Reload usage
       const savedUsage = localStorage.getItem(CHAT_USAGE_KEY);
       if (savedUsage) {
-        setUsage(JSON.parse(savedUsage));
+        const usage = JSON.parse(savedUsage);
+
+        // Check if reset time has passed
+        if (usage.reset_time && usage.is_limited) {
+          const resetTime = new Date(usage.reset_time);
+          const now = new Date();
+
+          if (now >= resetTime) {
+            // Reset time has passed - clear the stale usage data
+            console.log('Reset time has passed on user switch, clearing usage');
+            localStorage.removeItem(CHAT_USAGE_KEY);
+            setUsage(null);
+            return;
+          }
+        }
+
+        setUsage(usage);
       } else {
         setUsage(null);
       }
@@ -137,6 +168,32 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
       }, 100);
     }
   }, [isOpen]);
+
+  // Check if reset time has passed and clear the limit automatically
+  useEffect(() => {
+    if (!usage || !usage.is_limited || !usage.reset_time) {
+      return;
+    }
+
+    const checkResetTime = () => {
+      const resetTime = new Date(usage.reset_time!);
+      const now = new Date();
+
+      if (now >= resetTime) {
+        console.log('Reset time has passed, clearing limit');
+        setUsage(null);
+        localStorage.removeItem(CHAT_USAGE_KEY);
+      }
+    };
+
+    // Check immediately
+    checkResetTime();
+
+    // Then check every 30 seconds
+    const interval = setInterval(checkResetTime, 30000);
+
+    return () => clearInterval(interval);
+  }, [usage, CHAT_USAGE_KEY]);
 
   // Save messages to localStorage whenever they change (but only after initialization)
   useEffect(() => {

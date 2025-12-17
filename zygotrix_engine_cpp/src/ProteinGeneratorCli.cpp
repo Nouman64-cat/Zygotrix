@@ -2,6 +2,8 @@
 #include "DnaTranscription.hpp"
 #include "Protein.hpp"
 #include "GeneticCode.hpp"
+#include "ParallelOrfFinder.hpp"
+#include "ThreadPool.hpp"
 #include "json11/json11.hpp"
 
 #include <iostream>
@@ -119,80 +121,6 @@ namespace
         }
 
         return result;
-    }
-
-    // Structure to hold ORF data
-    struct ORFData {
-        size_t start_position;
-        size_t end_position;
-        std::string protein_3letter;
-        std::string protein_1letter;
-        size_t length;
-    };
-
-    // Find all Open Reading Frames in an RNA sequence
-    std::vector<ORFData> find_all_orfs(const std::string& rna_sequence)
-    {
-        std::vector<ORFData> orfs;
-        const size_t seq_len = rna_sequence.length();
-
-        // Scan through the entire sequence looking for start codons (AUG)
-        for (size_t i = 0; i + 2 < seq_len; ++i) {
-            std::string codon = rna_sequence.substr(i, 3);
-
-            // Found a start codon
-            if (codon == "AUG") {
-                std::vector<std::string> amino_acids_3letter;
-                std::string amino_acids_1letter;
-                size_t start_position = i;
-                size_t j = i;
-
-                // Read codons from this start position until a stop codon
-                while (j + 2 < seq_len) {
-                    std::string current_codon = rna_sequence.substr(j, 3);
-
-                    auto it = codon_table.find(current_codon);
-                    if (it != codon_table.end()) {
-                        AminoAcid aa = it->second;
-
-                        // Stop at stop codon
-                        if (aa == AminoAcid::STOP) {
-                            // Only add ORFs that have at least one amino acid
-                            if (!amino_acids_3letter.empty()) {
-                                ORFData orf;
-                                orf.start_position = start_position;
-                                orf.end_position = j + 3;
-                                
-                                // Build 3-letter format
-                                std::string protein_3letter;
-                                for (size_t k = 0; k < amino_acids_3letter.size(); ++k) {
-                                    protein_3letter += amino_acids_3letter[k];
-                                    if (k < amino_acids_3letter.size() - 1) {
-                                        protein_3letter += "-";
-                                    }
-                                }
-                                orf.protein_3letter = protein_3letter;
-                                orf.protein_1letter = amino_acids_1letter;
-                                orf.length = amino_acids_3letter.size();
-                                
-                                orfs.push_back(orf);
-                            }
-                            break;
-                        }
-                        
-                        amino_acids_3letter.push_back(get_amino_name(aa));
-                        amino_acids_1letter += get_amino_char(aa);
-                    } else {
-                        // Unknown codon - skip this ORF
-                        break;
-                    }
-
-                    j += 3;
-                }
-            }
-        }
-
-        return orfs;
     }
 
 }
@@ -322,10 +250,35 @@ int main()
             }
 
             std::string rna_sequence = request["rna_sequence"].string_value();
-            
-            // Find all ORFs
-            std::vector<ORFData> orfs = find_all_orfs(rna_sequence);
-            
+
+            // Check if we should use the thread pool (default: true for server environments)
+            bool use_pool = true;
+            if (has_field(request, "use_pool") && !request["use_pool"].is_null())
+            {
+                use_pool = request["use_pool"].bool_value();
+            }
+
+            // Get optional thread count for the pool
+            // Default to 2 threads for single-core servers (provides concurrency)
+            unsigned int pool_threads = 2;
+            if (has_field(request, "threads") && !request["threads"].is_null())
+            {
+                pool_threads = static_cast<unsigned int>(request["threads"].number_value());
+            }
+
+            // Find all ORFs using parallel finder
+            ParallelOrfFinder orf_finder;
+            std::vector<ORFResult> orfs;
+
+            if (use_pool) {
+                // Use thread pool for concurrent processing
+                ThreadPool& pool = ThreadPool::getInstance(pool_threads);
+                orfs = orf_finder.findOrfsWithPool(rna_sequence, pool);
+            } else {
+                // Single-threaded processing
+                orfs = orf_finder.findOrfs(rna_sequence);
+            }
+
             // Convert to JSON array
             std::vector<Json> orfs_json;
             for (const auto& orf : orfs) {
@@ -337,7 +290,7 @@ int main()
                     {"length", Json(static_cast<int>(orf.length))}
                 }));
             }
-            
+
             // Get first ORF for backwards compatibility
             std::string sequence_3letter = "";
             std::string sequence_1letter = "";
@@ -350,7 +303,8 @@ int main()
                 {"orfs", Json(orfs_json)},
                 {"total_orfs", Json(static_cast<int>(orfs.size()))},
                 {"sequence_3letter", Json(sequence_3letter)},
-                {"sequence_1letter", Json(sequence_1letter)}
+                {"sequence_1letter", Json(sequence_1letter)},
+                {"used_thread_pool", Json(use_pool)}
             });
 
             std::cout << response.dump() << std::endl;

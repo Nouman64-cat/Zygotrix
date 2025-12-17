@@ -1,4 +1,5 @@
 #include "ParallelDnaGenerator.hpp"
+#include "ThreadPool.hpp"
 #include "../third_party/json11/json11.hpp"
 
 #include <iostream>
@@ -86,15 +87,23 @@ int main()
             throw std::runtime_error("GC content must be between 0.0 and 1.0");
         }
 
-        // Get optional thread count (default: hardware concurrency)
-        unsigned int threads = std::thread::hardware_concurrency();
+        // Get optional thread count for the pool
+        // Default to 2 threads for single-core servers (provides concurrency)
+        unsigned int pool_threads = 2;
         if (has_field(request, "threads") && !request["threads"].is_null())
         {
-            threads = static_cast<unsigned int>(request["threads"].number_value());
+            pool_threads = static_cast<unsigned int>(request["threads"].number_value());
         }
 
-        // Create parallel generator
-        ParallelDnaGenerator generator(threads);
+        // Check if we should use the thread pool (default: true for server environments)
+        bool use_pool = true;
+        if (has_field(request, "use_pool") && !request["use_pool"].is_null())
+        {
+            use_pool = request["use_pool"].bool_value();
+        }
+
+        // Create generator
+        ParallelDnaGenerator generator(pool_threads);
 
         // Optional seed for reproducibility
         if (has_field(request, "seed") && !request["seed"].is_null())
@@ -105,9 +114,19 @@ int main()
 
         // Time the generation
         auto start = std::chrono::high_resolution_clock::now();
-        
-        std::string sequence = generator.generate(static_cast<size_t>(length), gc_content);
-        
+
+        std::string sequence;
+
+        if (use_pool) {
+            // Use the global thread pool (recommended for servers)
+            // This reuses threads instead of creating new ones per request
+            ThreadPool& pool = ThreadPool::getInstance(pool_threads);
+            sequence = generator.generateWithPool(static_cast<size_t>(length), gc_content, pool);
+        } else {
+            // Use std::async (legacy behavior - creates new threads per request)
+            sequence = generator.generate(static_cast<size_t>(length), gc_content);
+        }
+
         auto end = std::chrono::high_resolution_clock::now();
         auto duration_ms = std::chrono::duration_cast<std::chrono::milliseconds>(end - start).count();
 
@@ -118,8 +137,9 @@ int main()
             {"length", Json(static_cast<int>(sequence.length()))},
             {"gc_content", Json(gc_content)},
             {"actual_gc", Json(actual_gc)},
-            {"threads_used", Json(static_cast<int>(generator.getThreadCount()))},
-            {"generation_time_ms", Json(static_cast<int>(duration_ms))}
+            {"threads_used", Json(static_cast<int>(pool_threads))},
+            {"generation_time_ms", Json(static_cast<int>(duration_ms))},
+            {"used_thread_pool", Json(use_pool)}
         });
 
         std::cout << response.dump() << std::endl;

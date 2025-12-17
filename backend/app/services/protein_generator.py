@@ -61,24 +61,25 @@ def _get_parallel_dna_cli_path() -> Optional[Path]:
     return None
 
 
-def _call_cpp_cli(request_data: dict, timeout: int = 120) -> dict:
+def _call_cpp_cli(request_data: dict, timeout: int = 120, show_logs: bool = True) -> dict:
     """
     Call the C++ CLI with the given request data.
-    
+
     Args:
         request_data: Dictionary to send as JSON to the CLI
         timeout: Maximum seconds to wait for response
-        
+        show_logs: Whether to print thread pool logs from stderr
+
     Returns:
         Parsed JSON response from the CLI
-        
+
     Raises:
         RuntimeError: If CLI fails or returns an error
     """
     cli_path = _get_cpp_cli_path()
     if not cli_path:
         raise RuntimeError("C++ CLI not available")
-    
+
     result = subprocess.run(
         [str(cli_path)],
         input=json.dumps(request_data),
@@ -86,7 +87,13 @@ def _call_cpp_cli(request_data: dict, timeout: int = 120) -> dict:
         text=True,
         timeout=timeout
     )
-    
+
+    # Print thread pool logs from stderr if enabled
+    if show_logs and result.stderr:
+        for line in result.stderr.strip().split('\n'):
+            if line.startswith('['):  # Only print log lines (start with [ThreadPool], [OrfFinder], etc.)
+                print(f"   {line}")
+
     if result.returncode != 0:
         try:
             error_response = json.loads(result.stdout)
@@ -95,33 +102,34 @@ def _call_cpp_cli(request_data: dict, timeout: int = 120) -> dict:
         except json.JSONDecodeError:
             pass
         raise RuntimeError(f"C++ CLI failed: {result.stderr or result.stdout}")
-    
+
     response = json.loads(result.stdout)
-    
+
     if "error" in response:
         raise RuntimeError(f"C++ CLI error: {response['error']}")
-    
+
     return response
 
 
-def _call_parallel_dna_cli(request_data: dict, timeout: int = 600) -> dict:
+def _call_parallel_dna_cli(request_data: dict, timeout: int = 600, show_logs: bool = True) -> dict:
     """
     Call the parallel DNA generator CLI for large sequences.
-    
+
     Args:
         request_data: Dictionary with length, gc_content, optional seed and threads
         timeout: Maximum seconds to wait (default 10 minutes for very large sequences)
-        
+        show_logs: Whether to print thread pool logs from stderr
+
     Returns:
         Parsed JSON response from the CLI
-        
+
     Raises:
         RuntimeError: If CLI fails or returns an error
     """
     cli_path = _get_parallel_dna_cli_path()
     if not cli_path:
         raise RuntimeError("Parallel DNA CLI not available")
-    
+
     result = subprocess.run(
         [str(cli_path)],
         input=json.dumps(request_data),
@@ -129,7 +137,13 @@ def _call_parallel_dna_cli(request_data: dict, timeout: int = 600) -> dict:
         text=True,
         timeout=timeout
     )
-    
+
+    # Print thread pool logs from stderr if enabled
+    if show_logs and result.stderr:
+        for line in result.stderr.strip().split('\n'):
+            if line.startswith('['):  # Only print log lines (start with [ThreadPool], [DnaGenerator], etc.)
+                print(f"   {line}")
+
     if result.returncode != 0:
         try:
             error_response = json.loads(result.stdout)
@@ -138,12 +152,12 @@ def _call_parallel_dna_cli(request_data: dict, timeout: int = 600) -> dict:
         except json.JSONDecodeError:
             pass
         raise RuntimeError(f"Parallel DNA CLI failed: {result.stderr or result.stdout}")
-    
+
     response = json.loads(result.stdout)
-    
+
     if "error" in response:
         raise RuntimeError(f"Parallel DNA CLI error: {response['error']}")
-    
+
     return response
 
 
@@ -179,9 +193,9 @@ def generate_dna_rna(request: ProteinGenerateRequest) -> ProteinGenerateResponse
             if request.seed is not None:
                 parallel_request["seed"] = request.seed
             
-            # Use more threads for very large sequences
+            # Use threads based on CPU cores, but minimum 2 for concurrency on single-core servers
             import multiprocessing
-            num_threads = multiprocessing.cpu_count()
+            num_threads = max(2, multiprocessing.cpu_count())
             parallel_request["threads"] = num_threads
             
             print(f"⚡ [PARALLEL C++] Generating DNA sequence ({request.length:,} bp) with {num_threads} threads...")

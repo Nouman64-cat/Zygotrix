@@ -22,6 +22,8 @@ add_library(zygotrix_engine STATIC
     src/SimulationCalculatorStrategy.cpp
     src/DnaGenerator.cpp
     src/ParallelDnaGenerator.cpp
+    src/ThreadPool.cpp
+    src/ParallelOrfFinder.cpp
     third_party/json11/json11.cpp
 )
 

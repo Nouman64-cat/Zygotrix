@@ -7,6 +7,8 @@
 #include <vector>
 #include <future>
 
+class ThreadPool;
+
 class ParallelDnaGenerator {
 public:
     /**
@@ -36,6 +38,17 @@ public:
      * @return A string containing the DNA sequence.
      */
     std::string generate(size_t length, double gc_content);
+
+    /**
+     * @brief Generates a random DNA sequence using the global ThreadPool.
+     * This is the preferred method for server environments as it reuses threads
+     * instead of creating new ones for each request.
+     * @param length The number of base pairs (A, T, C, G).
+     * @param gc_content Probability of G or C (0.0 to 1.0).
+     * @param pool Reference to the thread pool to use.
+     * @return A string containing the DNA sequence.
+     */
+    std::string generateWithPool(size_t length, double gc_content, ThreadPool& pool);
 
     /**
      * @brief Sets the base seed for reproducible generation.

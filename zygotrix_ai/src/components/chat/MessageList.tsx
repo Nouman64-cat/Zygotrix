@@ -15,8 +15,8 @@ export const MessageList: React.FC<MessageListProps> = ({ messages, isLoading = 
     return (
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
-          <div className="w-16 h-16 mx-auto mb-4 bg-gradient-to-br from-blue-500 to-purple-600 rounded-2xl flex items-center justify-center">
-            <img src="/zygotrix-ai.png" alt="Zygotrix AI" className="w-10 h-10 object-contain" />
+          <div className="w-32 h-32 mx-auto mb-4 rounded-2xl flex items-center justify-center">
+            <img src="/zygotrix-ai.png" alt="Zygotrix AI" className="w-32 h-32 object-cover" />
           </div>
           <h2 className="text-2xl font-semibold text-gray-900 mb-2">
             Welcome to Zygotrix AI

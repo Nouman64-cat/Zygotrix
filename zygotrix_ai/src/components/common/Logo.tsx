@@ -9,8 +9,8 @@ interface LogoProps {
 
 export const Logo: React.FC<LogoProps> = ({ size = 'md', className, showText = true }) => {
   const sizeMap = {
-    sm: 'h-16 w-16',
-    md: 'h-20 w-20',
+    sm: 'h-8 w-8',
+    md: 'h-12 w-12',
     lg: 'h-24 w-24',
   };
 
@@ -25,7 +25,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', className, showText = t
       <img
         src="/zygotrix-ai.png"
         alt="Zygotrix AI"
-        className={cn(sizeMap[size], 'object-contain')}
+        className={cn(sizeMap[size], 'object-cover')}
       />
       {showText && (
         <span className={cn('font-semibold text-gray-900', textSizeMap[size])}>

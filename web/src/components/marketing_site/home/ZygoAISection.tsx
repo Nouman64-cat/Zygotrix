@@ -1,8 +1,9 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { RiRobot2Fill, RiSparklingFill } from "react-icons/ri";
+import { RiSparklingFill } from "react-icons/ri";
 import { HiOutlineSparkles, HiLightningBolt, HiChatAlt2 } from "react-icons/hi";
 import { BiAnalyse } from "react-icons/bi";
+import zygoAILogo from "../../../../public/zygotrix-ai.png";
 
 const ZygoAISection: React.FC = () => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || "ZygoAI";
@@ -42,15 +43,14 @@ const ZygoAISection: React.FC = () => {
         <div className="absolute bottom-20 right-10 w-96 h-96 bg-[#10B981]/10 dark:bg-[#10B981]/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
       </div>
 
+        <div className="flex justify-center items-center">
+
+         <img src={zygoAILogo} alt="Zygotrix AI" className="w-64 h-64 object-contain" />
+        </div>
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] px-5 py-2 mb-6">
-            <RiRobot2Fill className="w-5 h-5 text-white animate-pulse" />
-            <span className="text-xs font-semibold uppercase tracking-[0.3em] text-white">
-              AI-Powered Assistant
-            </span>
-          </div>
+
 
           <h2 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] dark:from-[#3B82F6] dark:via-[#10B981] dark:to-[#059669] mb-6">
             Meet {botName}

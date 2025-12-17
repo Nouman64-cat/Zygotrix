@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { RiRobot2Fill, RiSparklingFill } from "react-icons/ri";
+import { RiSparklingFill } from "react-icons/ri";
 import {
   HiOutlineSparkles,
   HiLightningBolt,
@@ -17,6 +17,7 @@ import {
   FaUserGraduate,
   FaChartLine,
 } from "react-icons/fa";
+import zygoAILogo from "../../public/zygotrix-ai.png";
 
 const ZygoAIPage: React.FC = () => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || "ZygoAI";
@@ -169,11 +170,14 @@ const ZygoAIPage: React.FC = () => {
       <div className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-24">
         {/* Hero Section */}
         <div className="text-center mb-20">
-          <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#1E3A8A]/10 to-[#10B981]/10 dark:from-[#1E3A8A]/20 dark:to-[#10B981]/20 px-6 py-3 backdrop-blur-sm border border-[#1E3A8A]/20 dark:border-[#3B82F6]/30 mb-8">
-            <RiRobot2Fill className="w-5 h-5 text-[#1E3A8A] dark:text-[#3B82F6] animate-pulse" />
-            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#1E3A8A] dark:text-[#3B82F6]">
-              AI-Powered Intelligence
-            </span>
+          {/* Logo Display */}
+          <div className="relative inline-block mb-8">
+            <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#1E3A8A]/30 to-[#10B981]/30 blur-2xl animate-pulse"></div>
+            <img 
+              src={zygoAILogo} 
+              alt="Zygotrix AI" 
+              className="relative w-64 h-64 object-contain drop-shadow-2xl" 
+            />
           </div>
 
           <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight">

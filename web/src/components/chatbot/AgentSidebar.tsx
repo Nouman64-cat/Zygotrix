@@ -1,8 +1,8 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { RiRobot2Fill } from "react-icons/ri";
 import { HiChevronLeft } from "react-icons/hi";
 import { ChatBot } from './ChatBot';
 import { SimulationToolContext } from '../../context/SimulationToolContext';
+import zygoAILogo from '../../../public/zygotrix-ai.png';
 
 interface AgentSidebarProps {
   isCollapsed: boolean;
@@ -54,15 +54,15 @@ export const AgentSidebar: React.FC<AgentSidebarProps> = ({
           {/* Expand Button with Pulsing Animation */}
           <div className="relative group">
             {/* Pulsing ring animation */}
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 animate-ping opacity-30"></div>
-            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 animate-pulse opacity-20"></div>
+            {/* <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 animate-ping opacity-30"></div>
+            <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-indigo-500 to-purple-500 animate-pulse opacity-20"></div> */}
 
             <button
               onClick={onToggleCollapse}
-              className="relative w-10 h-10 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 text-white flex items-center justify-center hover:shadow-lg hover:shadow-indigo-500/40 hover:scale-110 transition-all duration-300 cursor-pointer"
+              className="relative w-16 h-16 rounded-lg flex items-center justify-center hover:shadow-lg  transition-all duration-300 cursor-pointer overflow-hidden"
               aria-label="Expand AI Assistant"
             >
-              <RiRobot2Fill className="w-5 h-5" />
+              <img src={zygoAILogo} alt="Zygotrix AI" className="w-64 h-64 object-contain" />
             </button>
 
             {/* Tooltip */}

@@ -9,6 +9,8 @@ import AboutPage from "./pages/AboutPage";
 import AnalyticsPage from "./pages/AnalyticsPage";
 import ContactPage from "./pages/ContactPage";
 import DnaGeneratorPage from "./pages/DnaGeneratorPage";
+import PunnettSquarePage from "./pages/PunnettSquarePage";
+import DnaToProteinPage from "./pages/DnaToProteinPage";
 import ZygoAIPage from "./pages/ZygoAIPage";
 import DataManagementPage from "./pages/DataManagementPage";
 import HomePage from "./pages/HomePage";
@@ -53,6 +55,8 @@ const AppContent: React.FC = () => {
           <Route index element={<HomePage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="dna-generator" element={<DnaGeneratorPage />} />
+          <Route path="punnett-square" element={<PunnettSquarePage />} />
+          <Route path="dna-to-protein" element={<DnaToProteinPage />} />
           <Route path="zygoai" element={<ZygoAIPage />} />
           <Route path="team/:slug" element={<TeamMemberPage />} />
           <Route path="joint-phenotype" element={<JointPhenotypePage />} />

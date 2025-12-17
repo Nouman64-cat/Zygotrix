@@ -1,12 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { sendMessage, getLatestUsage, resetSession, type ChatMessage, type UsageInfo, type ChatMessageAction } from '../../services/chatbotService';
 import { getPageContext } from '../../utils/pageContext';
-import { LuBiohazard } from "react-icons/lu";
 import { MdInfoOutline } from "react-icons/md";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { parseSimulationCommands, executeSimulationCommands } from '../../services/simulationCommands';
 import { InlineActions } from './InlineActions';
+import zygoAILogo from '../../../public/zygotrix-ai.png';
 
 interface ChatBotProps {
   isOpen: boolean;
@@ -272,21 +272,20 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
   return (
     <div className={containerClasses}>
       {/* Header */}
-      <div className="bg-gradient-to-r from-indigo-600 to-purple-600 p-4 sm:p-6 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
-            <LuBiohazard className="text-2xl text-indigo-600" />
+      <div className=" flex items-center justify-between">
+        <div className="flex items-center">
+          <div className="w-20 h-14 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
+            <img src={zygoAILogo} alt="Zygotrix AI" className="w-20 h-20 object-contain" />
           </div>
           <div>
-            <h3 className="text-white font-semibold text-lg">{botName}</h3>
-            <p className="text-indigo-100 text-xs">Your AI genetics assistant</p>
+            <h3 className="font-semibold text-lg">{botName}</h3>
           </div>
         </div>
         <div className="flex items-center gap-1">
           {/* Clear Chat Button */}
           <button
             onClick={handleClearChat}
-            className="text-white hover:bg-white/20 rounded-full p-2 transition-colors cursor-pointer"
+            className="rounded-full p-2 transition-colors cursor-pointer"
             title="Clear Chat"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -296,7 +295,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
           {/* Info Button */}
           <button
             onClick={() => setShowInfo(!showInfo)}
-            className="text-white hover:bg-white/20 rounded-full p-2 transition-colors cursor-pointer relative"
+            className="rounded-full p-2 transition-colors cursor-pointer relative"
             title="Chat Info"
           >
             <MdInfoOutline className="w-5 h-5" />
@@ -304,7 +303,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
           {/* Close/Collapse Button */}
           <button
             onClick={onClose}
-            className="text-white hover:bg-white/20 rounded-full p-2 transition-colors cursor-pointer"
+            className="rounded-full p-2 transition-colors cursor-pointer"
             title={variant === 'sidebar' ? 'Collapse sidebar' : 'Close chat'}
           >
             {variant === 'sidebar' ? (

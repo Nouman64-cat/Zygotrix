@@ -7,6 +7,7 @@ import {
   FaTwitter,
   FaInstagram,
   FaExternalLinkAlt,
+  FaDiscord,
 } from "react-icons/fa";
 import { HiBeaker, HiCog } from "react-icons/hi";
 
@@ -560,6 +561,93 @@ const AboutPage: React.FC = () => {
                 </div>
               );
             })}
+          </div>
+        </div>
+
+        {/* Community Section */}
+        <div className="mt-20">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#3B82F6]/10 to-[#10B981]/10 dark:from-[#3B82F6]/20 dark:to-[#10B981]/20 px-6 py-3 backdrop-blur-sm border border-[#3B82F6]/20 dark:border-[#3B82F6]/30 mb-6">
+              <FaUsers className="w-4 h-4 text-[#3B82F6]" />
+              <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#3B82F6] dark:text-[#3B82F6]">
+                Our Community
+              </span>
+            </div>
+            <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-[#3B82F6] to-[#10B981] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent mb-4">
+              Join the Zygotrix Community
+            </h2>
+            <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+              Connect with genetics enthusiasts, researchers, and developers. Share ideas, get support, and be part of our growing community.
+            </p>
+          </div>
+
+          <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
+            {/* Discord Card */}
+            <div className="group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-indigo-500/20 hover:scale-[1.02]">
+              <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/5 via-purple-400/5 to-pink-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative flex items-start gap-4">
+                <div className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <FaDiscord className="w-7 h-7" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                    Discord Server
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">
+                    Join our Discord for real-time discussions, community events, and direct support from the team.
+                  </p>
+                  <a
+                    href="https://discord.gg/5qtEfusv"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 text-white text-sm font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  >
+                    <span>Join Discord</span>
+                    <FaDiscord className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
+
+            {/* GitHub Card */}
+            <div className="group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-slate-500/20 hover:scale-[1.02]">
+              <div className="absolute inset-0 bg-gradient-to-br from-slate-400/5 via-gray-400/5 to-slate-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+              
+              <div className="relative flex items-start gap-4">
+                <div className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                  <FaGithub className="w-7 h-7" />
+                </div>
+                <div className="flex-1">
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                    GitHub Repository
+                  </h3>
+                  <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">
+                    Contribute to Zygotrix, report issues, explore our codebase, and star us if you like what we're building.
+                  </p>
+                  <a
+                    href="https://github.com/Nouman64-cat/Zygotrix"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-2 px-5 py-2.5 rounded-full bg-gradient-to-r from-slate-700 to-slate-900 text-white text-sm font-semibold shadow-lg hover:shadow-xl hover:scale-105 transition-all duration-300"
+                  >
+                    <span>View GitHub</span>
+                    <FaGithub className="w-4 h-4" />
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Community CTA */}
+          <div className="mt-10 text-center">
+            <Link
+              to="/community"
+              className="inline-flex items-center gap-3 px-8 py-4 rounded-2xl bg-gradient-to-r from-[#3B82F6] to-[#10B981] text-white font-semibold shadow-xl shadow-[#3B82F6]/25 hover:shadow-2xl hover:shadow-[#3B82F6]/40 hover:scale-105 transition-all duration-300"
+            >
+              <FaUsers className="w-5 h-5" />
+              <span>Explore Full Community Page</span>
+            </Link>
           </div>
         </div>
       </div>

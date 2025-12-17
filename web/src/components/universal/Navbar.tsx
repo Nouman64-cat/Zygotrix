@@ -1,6 +1,6 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { FiLogOut, FiSun, FiMoon } from "react-icons/fi";
+import { FiLogOut, FiSun, FiMoon, FiChevronDown } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
@@ -8,20 +8,30 @@ import logo from "../../../public/zygotrix-logo.png";
 
 import { PiDna } from "react-icons/pi";
 import { IoSchoolOutline } from "react-icons/io5";
+import { HiOutlineBeaker } from "react-icons/hi";
+import { TbGrid4X4 } from "react-icons/tb";
+import { FaDna } from "react-icons/fa";
 
 const ZYGOTRIX_UNIVERSITY_URL = import.meta.env.VITE_ZYGOTRIX_UNIVERSITY_APP;
 
 const baseNavItems = [
   { label: "Home", to: "/" },
   { label: "About", to: "/about" },
-  { label: "DNA Generator", to: "/dna-generator" },
   { label: "Zygotrix AI", to: "/zygoai" },
   { label: "Blogs", to: "/blogs" },
-  { label: "Community", to: "/community" },
+];
+
+const toolsDropdownItems = [
+  { label: "DNA Generator", to: "/dna-generator", icon: PiDna },
+  { label: "Punnett Square", to: "/punnett-square", icon: TbGrid4X4 },
+  { label: "DNA to Protein", to: "/dna-to-protein", icon: FaDna },
 ];
 
 const Navbar: React.FC = () => {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
+  const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+  const toolsDropdownRef = useRef<HTMLDivElement>(null);
   const location = useLocation();
   const { user, signOut } = useAuth();
   const { theme, setTheme } = useTheme();
@@ -32,7 +42,21 @@ const Navbar: React.FC = () => {
 
   useEffect(() => {
     setMobileOpen(false);
+    setToolsDropdownOpen(false);
+    setMobileToolsOpen(false);
   }, [location]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (toolsDropdownRef.current && !toolsDropdownRef.current.contains(event.target as Node)) {
+        setToolsDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const navItems = useMemo(() => {
     return baseNavItems;
@@ -43,6 +67,8 @@ const Navbar: React.FC = () => {
       ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
       : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
     }`;
+
+  const isToolsActive = toolsDropdownItems.some(item => location.pathname === item.to);
 
   const handleSignOut = () => {
     signOut();
@@ -80,6 +106,49 @@ const Navbar: React.FC = () => {
               {item.label}
             </NavLink>
           ))}
+          
+          {/* Tools Dropdown */}
+          <div 
+            className="relative" 
+            ref={toolsDropdownRef}
+            onMouseEnter={() => setToolsDropdownOpen(true)}
+            onMouseLeave={() => setToolsDropdownOpen(false)}
+          >
+            <button
+              onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
+              className={`flex items-center gap-1 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg cursor-pointer ${
+                isToolsActive
+                  ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
+                  : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
+              }`}
+            >
+              <HiOutlineBeaker className="w-4 h-4" />
+              <span>Tools</span>
+              <FiChevronDown className={`w-4 h-4 transition-transform duration-200 ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {/* Dropdown Menu */}
+            {toolsDropdownOpen && (
+              <div className="absolute top-full left-0 pt-2 w-56 z-50">
+                <div className="rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 p-2">
+                  {toolsDropdownItems.map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
+                        location.pathname === item.to
+                          ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
+                          : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                      }`}
+                    >
+                      <item.icon className="w-5 h-5" />
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
         </nav>
 
         {/* Desktop Actions */}
@@ -202,6 +271,43 @@ const Navbar: React.FC = () => {
               </NavLink>
             ))}
 
+            {/* Mobile Tools Dropdown */}
+            <div>
+              <button
+                onClick={() => setMobileToolsOpen(!mobileToolsOpen)}
+                className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-base font-medium transition-all cursor-pointer ${
+                  isToolsActive
+                    ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
+                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                }`}
+              >
+                <div className="flex items-center gap-2">
+                  <HiOutlineBeaker className="w-5 h-5" />
+                  <span>Tools</span>
+                </div>
+                <FiChevronDown className={`w-5 h-5 transition-transform duration-200 ${mobileToolsOpen ? 'rotate-180' : ''}`} />
+              </button>
+              
+              {mobileToolsOpen && (
+                <div className="mt-1 ml-4 space-y-1">
+                  {toolsDropdownItems.map((item) => (
+                    <Link
+                      key={item.to}
+                      to={item.to}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
+                        location.pathname === item.to
+                          ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
+                          : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                      }`}
+                    >
+                      <item.icon className="w-4 h-4" />
+                      <span>{item.label}</span>
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
+
             {/* Divider */}
             <div className="h-px bg-gradient-to-r from-transparent via-[#1E3A8A]/20 dark:via-[#3B82F6]/30 to-transparent my-3" />
 
@@ -240,3 +346,4 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
+

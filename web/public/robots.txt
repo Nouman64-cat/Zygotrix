@@ -3,6 +3,8 @@ Allow: /
 
 # Main pages
 Allow: /dna-generator
+Allow: /punnett-square
+Allow: /dna-to-protein
 Allow: /about
 Allow: /zygoai
 Allow: /blogs

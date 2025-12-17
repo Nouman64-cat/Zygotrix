@@ -44,6 +44,7 @@ import AdminJobQueuePage from "./pages/AdminJobQueuePage";
 import AdminChatbotSettingsPage from "./pages/AdminChatbotSettingsPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
+import ZygotrixAIChatPage from "./pages/ZygotrixAIChatPage";
 import { SimulationToolProvider } from "./context/SimulationToolContext";
 
 const AppContent: React.FC = () => {
@@ -265,6 +266,24 @@ const AppContent: React.FC = () => {
           element={
             <RequireAuth>
               <OnboardingPage />
+            </RequireAuth>
+          }
+        />
+
+        {/* Zygotrix AI Chat Routes */}
+        <Route
+          path="ai"
+          element={
+            <RequireAuth>
+              <ZygotrixAIChatPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="ai/c/:conversationId"
+          element={
+            <RequireAuth>
+              <ZygotrixAIChatPage />
             </RequireAuth>
           }
         />

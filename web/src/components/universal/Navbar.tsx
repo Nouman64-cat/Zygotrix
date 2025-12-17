@@ -8,11 +8,12 @@ import logo from "../../../public/zygotrix-logo.png";
 
 import { PiDna } from "react-icons/pi";
 import { IoSchoolOutline } from "react-icons/io5";
-import { HiOutlineBeaker } from "react-icons/hi";
+import { HiOutlineBeaker, HiSparkles } from "react-icons/hi";
 import { TbGrid4X4 } from "react-icons/tb";
 import { FaDna } from "react-icons/fa";
 
 const ZYGOTRIX_UNIVERSITY_URL = import.meta.env.VITE_ZYGOTRIX_UNIVERSITY_APP;
+const ZYGOTRIX_AI_URL = import.meta.env.VITE_ZYGOTRIX_AI_URL || "https://ai.zygotrix.com";
 
 const baseNavItems = [
   { label: "Home", to: "/" },
@@ -106,21 +107,20 @@ const Navbar: React.FC = () => {
               {item.label}
             </NavLink>
           ))}
-          
+
           {/* Tools Dropdown */}
-          <div 
-            className="relative" 
+          <div
+            className="relative"
             ref={toolsDropdownRef}
             onMouseEnter={() => setToolsDropdownOpen(true)}
             onMouseLeave={() => setToolsDropdownOpen(false)}
           >
             <button
               onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
-              className={`flex items-center gap-1 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg cursor-pointer ${
-                isToolsActive
-                  ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
-                  : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
-              }`}
+              className={`flex items-center gap-1 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg cursor-pointer ${isToolsActive
+                ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
+                : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                }`}
             >
               <HiOutlineBeaker className="w-4 h-4" />
               <span>Tools</span>
@@ -135,11 +135,10 @@ const Navbar: React.FC = () => {
                     <Link
                       key={item.to}
                       to={item.to}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${
-                        location.pathname === item.to
-                          ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
-                          : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                      }`}
+                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${location.pathname === item.to
+                        ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
+                        : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
+                        }`}
                     >
                       <item.icon className="w-5 h-5" />
                       <span>{item.label}</span>
@@ -175,6 +174,18 @@ const Navbar: React.FC = () => {
             title="Zygotrix University"
           >
             <IoSchoolOutline className="h-5 w-5" />
+          </a>
+
+          {/* Zygotrix AI App Link */}
+          <a
+            href={ZYGOTRIX_AI_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[#3B82F6] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all duration-200 text-sm font-medium"
+            title="Zygotrix AI - Standalone Agent App"
+          >
+            <HiSparkles className="h-4 w-4" />
+            <span className="hidden xl:inline">AI App</span>
           </a>
 
           {user ? (
@@ -275,11 +286,10 @@ const Navbar: React.FC = () => {
             <div>
               <button
                 onClick={() => setMobileToolsOpen(!mobileToolsOpen)}
-                className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-base font-medium transition-all cursor-pointer ${
-                  isToolsActive
-                    ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                }`}
+                className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-base font-medium transition-all cursor-pointer ${isToolsActive
+                  ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
+                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                  }`}
               >
                 <div className="flex items-center gap-2">
                   <HiOutlineBeaker className="w-5 h-5" />
@@ -287,18 +297,17 @@ const Navbar: React.FC = () => {
                 </div>
                 <FiChevronDown className={`w-5 h-5 transition-transform duration-200 ${mobileToolsOpen ? 'rotate-180' : ''}`} />
               </button>
-              
+
               {mobileToolsOpen && (
                 <div className="mt-1 ml-4 space-y-1">
                   {toolsDropdownItems.map((item) => (
                     <Link
                       key={item.to}
                       to={item.to}
-                      className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${
-                        location.pathname === item.to
-                          ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
-                          : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                      }`}
+                      className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${location.pathname === item.to
+                        ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
+                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
+                        }`}
                     >
                       <item.icon className="w-4 h-4" />
                       <span>{item.label}</span>
@@ -306,6 +315,28 @@ const Navbar: React.FC = () => {
                   ))}
                 </div>
               )}
+            </div>
+
+            {/* External Apps */}
+            <div className="flex gap-2">
+              <a
+                href={ZYGOTRIX_AI_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-medium bg-blue-50 dark:bg-blue-500/10 text-[#3B82F6] dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all"
+              >
+                <HiSparkles className="w-5 h-5" />
+                <span>AI App</span>
+              </a>
+              <a
+                href={ZYGOTRIX_UNIVERSITY_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-medium bg-emerald-50 dark:bg-emerald-500/10 text-[#10B981] dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all"
+              >
+                <IoSchoolOutline className="w-5 h-5" />
+                <span>University</span>
+              </a>
             </div>
 
             {/* Divider */}

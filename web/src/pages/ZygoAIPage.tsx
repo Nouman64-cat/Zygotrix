@@ -8,6 +8,7 @@ import {
   HiBeaker,
   HiChip,
   HiClock,
+  HiExternalLink,
 } from "react-icons/hi";
 import { BiAnalyse, BiBrain, BiBot } from "react-icons/bi";
 import {
@@ -18,6 +19,8 @@ import {
   FaChartLine,
 } from "react-icons/fa";
 import zygoAILogo from "../../public/zygotrix-ai.png";
+
+const ZYGOTRIX_AI_URL = import.meta.env.VITE_ZYGOTRIX_AI_URL || "https://ai.zygotrix.com";
 
 const ZygoAIPage: React.FC = () => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || "ZygoAI";
@@ -173,10 +176,10 @@ const ZygoAIPage: React.FC = () => {
           {/* Logo Display */}
           <div className="relative inline-block mb-8">
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#1E3A8A]/30 to-[#10B981]/30 blur-2xl animate-pulse"></div>
-            <img 
-              src={zygoAILogo} 
-              alt="Zygotrix AI" 
-              className="relative w-64 h-64 object-contain drop-shadow-2xl" 
+            <img
+              src={zygoAILogo}
+              alt="Zygotrix AI"
+              className="relative w-64 h-64 object-contain drop-shadow-2xl"
             />
           </div>
 
@@ -190,11 +193,39 @@ const ZygoAIPage: React.FC = () => {
             </span>
           </h1>
 
-          <p className="mx-auto max-w-3xl text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-12">
+          <p className="mx-auto max-w-3xl text-xl text-slate-600 dark:text-slate-300 leading-relaxed mb-8">
             Harness the power of artificial intelligence to explore genetics,
             run simulations, and gain insights faster than ever before.
             Available right inside Zygotrix, whenever you need help.
           </p>
+
+          {/* Standalone App Banner */}
+          <div className="mx-auto max-w-3xl bg-gradient-to-r from-[#1E3A8A]/10 to-[#10B981]/10 dark:from-[#3B82F6]/20 dark:to-[#10B981]/20 border border-[#3B82F6]/30 dark:border-[#3B82F6]/40 rounded-2xl p-6 mb-12">
+            <div className="flex items-center justify-center gap-2 mb-3">
+              <RiSparklingFill className="w-5 h-5 text-[#3B82F6] dark:text-[#10B981]" />
+              <span className="text-sm font-semibold uppercase tracking-wider text-[#1E3A8A] dark:text-[#3B82F6]">
+                New: Standalone Application
+              </span>
+              <RiSparklingFill className="w-5 h-5 text-[#3B82F6] dark:text-[#10B981]" />
+            </div>
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
+              Complete Agent AI Experience
+            </h3>
+            <p className="text-slate-600 dark:text-slate-300 mb-5 max-w-2xl mx-auto">
+              {botName} is now available as a <strong>dedicated standalone application</strong> with
+              full conversation history, advanced context management, and persistent chat sessions.
+              Experience the complete AI agent platform designed specifically for genetics research.
+            </p>
+            <a
+              href={ZYGOTRIX_AI_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="group inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-[#1E3A8A] to-[#10B981] dark:from-[#3B82F6] dark:to-[#10B981] text-white rounded-full font-semibold text-lg shadow-2xl hover:shadow-[#1E3A8A]/50 dark:hover:shadow-[#3B82F6]/50 hover:scale-105 transition-all duration-300"
+            >
+              <span>Launch {botName} App</span>
+              <HiExternalLink className="w-5 h-5 group-hover:translate-x-1 group-hover:-translate-y-1 transition-transform" />
+            </a>
+          </div>
 
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link
@@ -209,7 +240,7 @@ const ZygoAIPage: React.FC = () => {
               to="/studio"
               className="inline-flex items-center gap-3 px-8 py-4 bg-white dark:bg-slate-800 text-slate-900 dark:text-white rounded-full font-semibold text-lg border-2 border-slate-200 dark:border-slate-700 hover:border-[#1E3A8A] dark:hover:border-[#3B82F6] hover:shadow-xl transition-all duration-300"
             >
-              <span>Try {botName} Now</span>
+              <span>Try in Studio</span>
               <HiOutlineSparkles className="w-5 h-5" />
             </Link>
           </div>

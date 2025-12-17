@@ -3,18 +3,16 @@ import { MainLayout } from '../components/layout';
 import { MessageList, ChatInput } from '../components/chat';
 import { useChat, useLocalStorage } from '../hooks';
 import { generateConversationId, generateConversationTitle } from '../utils';
-import type { Conversation } from '../types';
+import type { Conversation, Message } from '../types';
 
 export const Chat: React.FC = () => {
   const [conversations, setConversations] = useLocalStorage<Conversation[]>('conversations', []);
   const [currentConversationId, setCurrentConversationId] = useState<string | undefined>();
-  const prevConversationIdRef = useRef<string | undefined>();
+  const prevConversationIdRef = useRef<string | undefined>(undefined);
   const lastSavedMessagesRef = useRef<Message[]>([]);
 
   const sessionId = currentConversationId || 'default-session';
   const { messages, isLoading, error, sendMessage, setMessages } = useChat(sessionId);
-
-  const currentConversation = conversations.find((c) => c.id === currentConversationId);
 
   useEffect(() => {
     if (currentConversationId !== prevConversationIdRef.current) {

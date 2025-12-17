@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, KeyboardEvent } from 'react';
+import React, { useState, useRef, useEffect, type KeyboardEvent } from 'react';
 import { FiSend } from 'react-icons/fi';
 import { cn } from '../../utils';
 import { IconButton } from '../common';

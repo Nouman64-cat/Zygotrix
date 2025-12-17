@@ -1,7 +1,8 @@
 import React from 'react';
-import { FaUser, FaRobot } from 'react-icons/fa';
+import { FaUser } from 'react-icons/fa';
 import { cn, formatMessageTime } from '../../utils';
 import type { Message } from '../../types';
+import Logo from '../../../public/zygotrix-ai.png';
 
 interface ChatMessageProps {
   message: Message;
@@ -13,14 +14,15 @@ export const ChatMessage: React.FC<ChatMessageProps> = ({ message }) => {
   return (
     <div className={cn('flex gap-3 px-4 py-6 md:px-6', isUser ? 'bg-transparent' : 'bg-gray-50')}>
       <div className="flex-shrink-0">
-        <div
-          className={cn(
-            'w-8 h-8 rounded-full flex items-center justify-center text-white',
-            isUser ? 'bg-blue-600' : 'bg-gray-700'
-          )}
-        >
-          {isUser ? <FaUser className="text-sm" /> : <FaRobot className="text-sm" />}
-        </div>
+        {isUser ? (
+          <div className="w-10 h-10 rounded-full flex items-center justify-center bg-blue-600 text-white">
+            <FaUser className="w-5 h-5" />
+          </div>
+        ) : (
+          <div className="w-12 h-12 flex items-center justify-center">
+            <img src={Logo} alt="Zygotrix AI" className="w-12 h-12 object-cover rounded-full" />
+          </div>
+        )}
       </div>
       <div className="flex-1 min-w-0 space-y-2">
         <div className="flex items-center gap-2">

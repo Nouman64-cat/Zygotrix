@@ -9,9 +9,9 @@ interface LogoProps {
 
 export const Logo: React.FC<LogoProps> = ({ size = 'md', className, showText = true }) => {
   const sizeMap = {
-    sm: 'h-6 w-6',
-    md: 'h-8 w-8',
-    lg: 'h-10 w-10',
+    sm: 'h-16 w-16',
+    md: 'h-20 w-20',
+    lg: 'h-24 w-24',
   };
 
   const textSizeMap = {
@@ -21,7 +21,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', className, showText = t
   };
 
   return (
-    <div className={cn('flex items-center gap-2', className)}>
+    <div className={cn('flex items-center', className)}>
       <img
         src="/zygotrix-ai.png"
         alt="Zygotrix AI"

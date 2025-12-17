@@ -51,9 +51,11 @@ def get_conversations_collection(required: bool = False):
         collection.create_index([("user_id", 1), ("updated_at", -1)])
         collection.create_index([("user_id", 1), ("is_pinned", -1), ("updated_at", -1)])
         # Use partial index to only enforce uniqueness on non-null share_id
+        # We use a custom name 'share_id_unique' to avoid conflicts with auto-generated 'share_id_1'
         collection.create_index(
             "share_id", 
             unique=True, 
+            name="share_id_unique",
             partialFilterExpression={"share_id": {"$type": "string"}}
         )
     except Exception as e:

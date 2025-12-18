@@ -5,6 +5,9 @@ from pymongo.errors import DuplicateKeyError
 import jinja2
 from pathlib import Path
 import resend
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 
 from app.config import get_settings
 from .common import get_mongo_client
@@ -14,6 +17,57 @@ template_dir = Path(__file__).parent.parent / "templates" / "emails"
 jinja_env = jinja2.Environment(
     loader=jinja2.FileSystemLoader(template_dir), autoescape=True
 )
+
+
+
+def get_all_recipients() -> dict:
+    """
+    Get all potential email recipients (newsletter subscribers + system users).
+
+    Returns:
+        dict: Dictionary with newsletter_subscribers and system_users lists
+    """
+    from .auth import get_users_collection
+
+    # Get newsletter subscribers
+    newsletter_collection = get_newsletter_collection(required=True)
+    newsletter_subs = list(newsletter_collection.find({"is_active": True}))
+    newsletter_emails = set()
+
+    newsletter_subscribers = []
+    for sub in newsletter_subs:
+        email = sub["email"]
+        newsletter_emails.add(email)
+        newsletter_subscribers.append({
+            "_id": str(sub["_id"]),
+            "email": email,
+            "subscribed_at": sub.get("subscribed_at"),
+            "source": sub.get("source", "newsletter"),
+            "type": "newsletter_subscriber"
+        })
+
+    # Get system users
+    users_collection = get_users_collection(required=True)
+    users = list(users_collection.find({"is_active": {"$ne": False}}))
+
+    system_users = []
+    for user in users:
+        email = user.get("email")
+        if email and email not in newsletter_emails:
+            system_users.append({
+                "_id": str(user["_id"]),
+                "email": email,
+                "full_name": user.get("full_name"),
+                "user_role": user.get("user_role", "user"),
+                "created_at": user.get("created_at"),
+                "type": "system_user"
+            })
+
+    return {
+        "newsletter_subscribers": newsletter_subscribers,
+        "system_users": system_users
+    }
+
 
 
 def get_newsletter_collection(required: bool = False):
@@ -149,15 +203,11 @@ def send_newsletter_email(
     """
     settings = get_settings()
 
-    if not settings.resend_api_key:
+    if not settings.aws_ses_username or not settings.aws_ses_password:
         raise HTTPException(
             status_code=503,
-            detail="Email service is not configured. Please set RESEND_API_KEY."
+            detail="Email service is not configured. Please set AWS_SES_USERNAME and AWS_SES_PASSWORD."
         )
-
-    # Initialize Resend
-    resend.api_key = settings.resend_api_key
-
     # Validate template type
     valid_templates = ["changelog", "release", "news", "update"]
     if template_type not in valid_templates:
@@ -180,6 +230,9 @@ def send_newsletter_email(
     success_count = 0
     failed_emails = []
 
+    smtp_host = f"email-smtp.{settings.aws_ses_region}.amazonaws.com"
+    smtp_port = 465
+
     for email in recipient_emails:
         try:
             # Prepare personalized template context for each recipient
@@ -193,15 +246,24 @@ def send_newsletter_email(
 
             # Render template with personalized unsubscribe link
             html_body = template.render(context)
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = settings.aws_ses_from_email
+            msg['To'] = email
 
-            params = {
-                "from": settings.resend_from_email,
-                "to": [email],
-                "subject": subject,
-                "html": html_body,
-            }
-            resend.Emails.send(params)
+            # Attach HTML body
+            html_part = MIMEText(html_body, 'html', 'utf-8')
+            msg.attach(html_part)
+
+            # Send email using SMTP_SSL for port 465 (SSL from start)
+            import ssl
+            context = ssl.create_default_context()
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context, timeout=30) as server:
+                server.login(settings.aws_ses_username, settings.aws_ses_password)
+                server.send_message(msg)
             success_count += 1
+        except smtplib.SMTPException as e:
+            failed_emails.append({"email": email, "error": str(e)})
         except Exception as e:
             failed_emails.append({"email": email, "error": str(e)})
 

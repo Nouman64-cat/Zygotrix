@@ -5,12 +5,18 @@ from pymongo.collection import Collection
 import secrets
 import string
 import httpx
+import smtplib
+import logging
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import jwt
 from fastapi import HTTPException
 from passlib.context import CryptContext
 from pymongo.errors import DuplicateKeyError, PyMongoError
 from app.config import get_settings
 from app.services.notifications import send_new_user_whatsapp_notification
+
+logger = logging.getLogger(__name__)
 
 _password_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 _OTP_LENGTH = 6
@@ -241,45 +247,21 @@ def get_pending_signup(email: str) -> Optional[Dict[str, Any]]:
     return collection.find_one({"email": _normalize_email(email)})
 
 
-# Email sending
-
-
-def _send_resend_email(api_key: str, payload: Dict[str, Any]) -> httpx.Response:
-    return httpx.post(
-        "https://api.resend.com/emails",
-        headers={
-            "Authorization": f"Bearer {api_key}",
-            "Content-Type": "application/json",
-        },
-        json=payload,
-        timeout=10.0,
-    )
-
-
-def _extract_resend_error(response: httpx.Response) -> str:
-    try:
-        data = response.json()
-    except ValueError:
-        text = response.text.strip()
-        return text or response.reason_phrase or "unknown error"
-    if isinstance(data, dict):
-        return str(
-            data.get("message") or data.get(
-                "error") or data.get("detail") or data
-        )
-    return str(data)
-
-
 def send_signup_otp_email(
     recipient: str, otp_code: str, full_name: Optional[str]
 ) -> None:
     settings = get_settings()
-    api_key = settings.resend_api_key
-    if not api_key:
-        raise HTTPException(
-            status_code=503, detail="Email service is not configured.")
-    if api_key.startswith("test"):
-        return
+    if not settings.aws_ses_username or not settings.aws_ses_password:
+        raise HTTPException(status_code=503, detail="Email service is not configured. Please set AWS_SES_USERNAME and AWS_SES_PASSWORD.")
+
+    # Note: Removed development mode bypass to enable email sending in all environments
+    # if settings.is_development:
+    #     return
+
+    smtp_host = f"email-smtp.{settings.aws_ses_region}.amazonaws.com"
+    smtp_port = 465
+
+
     subject = "Your Zygotrix verification code"
     greeting = full_name or "there"
     minutes = get_settings().signup_otp_ttl_minutes
@@ -312,38 +294,38 @@ def send_signup_otp_email(
         f"This code expires in {minutes} minutes.\n\n"
         "If you didn't request this email, you can ignore it."
     )
-    from_email = settings.resend_from_email or "onboarding@resend.dev"
-    payload = {
-        "from": from_email,
-        "to": [recipient],
-        "subject": subject,
-        "html": html_content,
-        "text": text_content,
-    }
     try:
-        response = _send_resend_email(api_key, payload)
-    except httpx.HTTPError as exc:
+        msg = MIMEMultipart('alternative')
+        msg['Subject'] = subject
+        msg['From'] = settings.aws_ses_from_email
+        msg['To'] = recipient
+
+        # Attach text and HTML parts
+        text_part = MIMEText(text_content, 'plain', 'utf-8')
+        html_part = MIMEText(html_content, 'html', 'utf-8')
+        msg.attach(text_part)
+        msg.attach(html_part)
+
+        logger.info("Connecting to SMTP server...")
+        # Send email using SMTP_SSL for port 465 (SSL from start)
+        import ssl
+        context = ssl.create_default_context()
+        with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context, timeout=30) as server:
+            logger.info("Logging in to SMTP server...")
+            server.login(settings.aws_ses_username, settings.aws_ses_password)
+
+            logger.info(f"Sending email to {recipient}...")
+            server.send_message(msg)
+
+    except smtplib.SMTPException as exc:
+        logger.error(f"SMTP error while sending OTP email: {exc}", exc_info=True)
         raise HTTPException(
-            status_code=503, detail=f"Failed to send OTP email: {exc}"
+            status_code=503, detail=f"Failed to send OTP email: {str(exc)}"
         ) from exc
-    if response.status_code < 400:
-        return
-    if from_email != "onboarding@resend.dev":
-        fallback_payload = dict(payload, **{"from": "onboarding@resend.dev"})
-        try:
-            fallback_response = _send_resend_email(api_key, fallback_payload)
-        except httpx.HTTPError as exc:
-            raise HTTPException(
-                status_code=503, detail=f"Failed to send OTP email: {exc}"
-            ) from exc
-        if fallback_response.status_code < 400:
-            return
-        response = fallback_response
-    detail = _extract_resend_error(response)
-    raise HTTPException(
-        status_code=503,
-        detail=f"Email service error ({response.status_code}): {detail}",
-    )
+    except Exception as exc:
+        logger.error(f"Unexpected error while sending OTP email: {exc}", exc_info=True)
+        raise HTTPException(
+            status_code=503, detail=f"Failed to send OTP email: {str(exc)}") from exc
 
 
 # Signup and authentication

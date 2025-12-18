@@ -4,8 +4,9 @@ import { useAuth } from "../context/AuthContext";
 import ConfirmationModal from "../components/universal/ConfirmationModal";
 import * as newsletterApi from "../services/newsletter.api";
 import type {
-  NewsletterSubscription,
   SendNewsletterRequest,
+  NewsletterSubscriber,
+  SystemUser,
 } from "../services/newsletter.api";
 import {
   MdEmail,
@@ -103,14 +104,14 @@ const AdminNewsletterPage: React.FC = () => {
   useDocumentTitle("Newsletter Manager");
 
   const { user: currentUser } = useAuth();
-  const [subscriptions, setSubscriptions] = useState<NewsletterSubscription[]>(
-    []
-  );
+  const [newsletterSubscribers, setNewsletterSubscribers] = useState<NewsletterSubscriber[]>([]);
+  const [systemUsers, setSystemUsers] = useState<SystemUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [sending, setSending] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
   const [deletingEmail, setDeletingEmail] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<"all" | "newsletter" | "system">("all");
 
   // Confirmation modal state
   const [confirmModal, setConfirmModal] = useState<{
@@ -145,7 +146,8 @@ const AdminNewsletterPage: React.FC = () => {
           try {
             selection?.removeAllRanges();
             selection?.addRange(range);
-          } catch (e) {
+          } catch (error) {
+            console.log("Error restoring selection:", error);
             // Ignore errors when restoring selection
           }
         }
@@ -195,7 +197,7 @@ const AdminNewsletterPage: React.FC = () => {
 
   useEffect(() => {
     if (isAdmin) {
-      fetchSubscriptions();
+      fetchRecipients();
     }
   }, [isAdmin]);
 
@@ -203,15 +205,16 @@ const AdminNewsletterPage: React.FC = () => {
     setContent(EXAMPLE_CONTENT[templateType]);
   }, [templateType]);
 
-  const fetchSubscriptions = async () => {
+  const fetchRecipients = async () => {
     try {
       setLoading(true);
       setError(null);
-      const response = await newsletterApi.getAllSubscriptions();
-      setSubscriptions(response.subscriptions);
+      const response = await newsletterApi.getAllRecipients();
+      setNewsletterSubscribers(response.newsletter_subscribers);
+      setSystemUsers(response.system_users);
     } catch (err: unknown) {
       const errorMessage =
-        err instanceof Error ? err.message : "Failed to fetch subscriptions";
+        err instanceof Error ? err.message : "Failed to fetch recipients";
       setError(errorMessage);
     } finally {
       setLoading(false);
@@ -229,11 +232,11 @@ const AdminNewsletterPage: React.FC = () => {
   };
 
   const toggleSelectAll = () => {
-    const filtered = filteredSubscriptions;
+    const filtered = filteredRecipients;
     if (selectedEmails.size === filtered.length && filtered.length > 0) {
       setSelectedEmails(new Set());
     } else {
-      setSelectedEmails(new Set(filtered.map((sub) => sub.email)));
+      setSelectedEmails(new Set(filtered.map((recipient) => recipient.email)));
     }
   };
 
@@ -299,7 +302,7 @@ const AdminNewsletterPage: React.FC = () => {
       await newsletterApi.unsubscribeFromNewsletter(email);
 
       // Remove from list
-      setSubscriptions((prev) => prev.filter((sub) => sub.email !== email));
+      setNewsletterSubscribers((prev) => prev.filter((sub) => sub.email !== email));
 
       // Remove from selection if selected
       if (selectedEmails.has(email)) {
@@ -319,13 +322,43 @@ const AdminNewsletterPage: React.FC = () => {
     }
   };
 
-  const filteredSubscriptions = subscriptions.filter((sub) =>
-    sub.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+ type Recipient = (NewsletterSubscriber | SystemUser) & {
+    displayName?: string;
+  };
+
+  const allRecipients: Recipient[] = [
+    ...newsletterSubscribers.map(sub => ({ ...sub, displayName: sub.email })),
+    ...systemUsers.map(user => ({
+      ...user,
+      displayName: user.full_name ? `${user.full_name} (${user.email})` : user.email
+    }))
+  ];
+
+  const getFilteredRecipients = (): Recipient[] => {
+    let recipients: Recipient[] = [];
+
+    if (activeTab === "all") {
+      recipients = allRecipients;
+    } else if (activeTab === "newsletter") {
+      recipients = newsletterSubscribers.map(sub => ({ ...sub, displayName: sub.email }));
+    } else {
+      recipients = systemUsers.map(user => ({
+        ...user,
+        displayName: user.full_name ? `${user.full_name} (${user.email})` : user.email
+      }));
+    }
+
+    return recipients.filter((recipient) =>
+      recipient.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (recipient.displayName?.toLowerCase().includes(searchTerm.toLowerCase()))
+    );
+  };
+
+  const filteredRecipients = getFilteredRecipients();
 
   const selectAllChecked =
-    filteredSubscriptions.length > 0 &&
-    selectedEmails.size === filteredSubscriptions.length;
+    filteredRecipients.length > 0 &&
+    selectedEmails.size === filteredRecipients.length;
 
   if (!isAdmin) {
     return (
@@ -368,9 +401,9 @@ const AdminNewsletterPage: React.FC = () => {
           <div className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-800 rounded-lg border border-gray-200 dark:border-slate-700">
             <MdPeople className="w-5 h-5 text-gray-400 dark:text-slate-400" />
             <span className="text-sm font-medium text-gray-900 dark:text-white">
-              {subscriptions.length}
+              {newsletterSubscribers.length + systemUsers.length}
             </span>
-            <span className="text-sm text-gray-500 dark:text-slate-400">subscribers</span>
+            <span className="text-sm text-gray-500 dark:text-slate-400">total recipients</span>
           </div>
         </div>
 
@@ -422,6 +455,41 @@ const AdminNewsletterPage: React.FC = () => {
                 </div>
 
                 {/* Search */}
+
+                                {/* Tabs */}
+                <div className="flex gap-1 mb-3 bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
+                  <button
+                    onClick={() => setActiveTab("all")}
+                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      activeTab === "all"
+                        ? "bg-emerald-500 text-white"
+                        : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                  >
+                    All ({newsletterSubscribers.length + systemUsers.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("newsletter")}
+                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      activeTab === "newsletter"
+                        ? "bg-emerald-500 text-white"
+                        : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                  >
+                    Newsletter ({newsletterSubscribers.length})
+                  </button>
+                  <button
+                    onClick={() => setActiveTab("system")}
+                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
+                      activeTab === "system"
+                        ? "bg-emerald-500 text-white"
+                        : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white"
+                    }`}
+                  >
+                    Users ({systemUsers.length})
+                  </button>
+                </div>
+
                 <div className="relative">
                   <MdEmail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-slate-500" />
                   <input
@@ -442,58 +510,71 @@ const AdminNewsletterPage: React.FC = () => {
                     className="w-4 h-4 rounded border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-emerald-500 focus:ring-emerald-500"
                   />
                   <span className="text-xs text-gray-500 dark:text-slate-400 group-hover:text-gray-700 dark:group-hover:text-slate-300">
-                    Select all ({filteredSubscriptions.length})
+                    Select all ({filteredRecipients.length})
                   </span>
                 </label>
               </div>
 
-              {/* Subscriber List */}
+              {/* Recipient List */}
               <div className="max-h-[500px] overflow-y-auto">
                 {loading ? (
                   <div className="flex items-center justify-center py-12">
                     <BiLoaderAlt className="w-6 h-6 text-emerald-500 animate-spin" />
                   </div>
-                ) : filteredSubscriptions.length === 0 ? (
+                ) : filteredRecipients.length === 0 ? (
                   <div className="text-center py-12 px-4">
                     <MdPeople className="w-12 h-12 text-gray-300 dark:text-slate-600 mx-auto mb-3" />
                     <p className="text-sm text-gray-400 dark:text-slate-500">
-                      {searchTerm ? "No matches found" : "No subscribers yet"}
+                      {searchTerm ? "No matches found" : "No recipients yet"}
                     </p>
                   </div>
                 ) : (
-                  filteredSubscriptions.map((sub) => (
+                  filteredRecipients.map((recipient) => (
                     <div
-                      key={sub._id}
+                      key={recipient._id}
                       className="flex items-center gap-3 px-4 py-2.5 hover:bg-gray-50 dark:hover:bg-slate-700/50 border-b border-gray-100 dark:border-slate-700/50 last:border-0 group"
                     >
                       <label className="flex items-center gap-3 flex-1 min-w-0 cursor-pointer">
                         <input
                           type="checkbox"
-                          checked={selectedEmails.has(sub.email)}
-                          onChange={() => toggleEmailSelection(sub.email)}
+                          checked={selectedEmails.has(recipient.email)}
+                          onChange={() => toggleEmailSelection(recipient.email)}
                           className="w-4 h-4 rounded border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-700 text-emerald-500 focus:ring-emerald-500"
                         />
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm text-gray-600 dark:text-slate-300 truncate group-hover:text-gray-900 dark:group-hover:text-white">
-                            {sub.email}
-                          </p>
+                          <div className="flex items-center gap-2">
+                            <p className="text-sm text-gray-600 dark:text-slate-300 truncate group-hover:text-gray-900 dark:group-hover:text-white">
+                              {recipient.displayName || recipient.email}
+                            </p>
+                            {recipient.type === "newsletter_subscriber" ? (
+                              <span className="px-1.5 py-0.5 bg-emerald-100 dark:bg-emerald-500/20 text-emerald-600 dark:text-emerald-400 rounded text-xs font-medium flex-shrink-0">
+                                Newsletter
+                              </span>
+                            ) : (
+                              <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-500/20 text-blue-600 dark:text-blue-400 rounded text-xs font-medium flex-shrink-0">
+                                User
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </label>
-                      <button
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          handleDeleteClick(sub.email);
-                        }}
-                        disabled={deletingEmail === sub.email}
-                        className="flex-shrink-0 p-1.5 text-gray-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
-                        title="Unsubscribe this email"
-                      >
-                        {deletingEmail === sub.email ? (
-                          <BiLoaderAlt className="w-4 h-4 animate-spin" />
-                        ) : (
-                          <MdDelete className="w-4 h-4" />
-                        )}
-                      </button>
+                       {recipient.type === "newsletter_subscriber" && (
+                        <button
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteClick(recipient.email);
+                          }}
+                          disabled={deletingEmail === recipient.email}
+                          className="flex-shrink-0 p-1.5 text-gray-400 dark:text-slate-500 hover:text-red-500 hover:bg-red-50 dark:hover:bg-red-500/10 rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          title="Unsubscribe this email"
+                        >
+                          {deletingEmail === recipient.email ? (
+                            <BiLoaderAlt className="w-4 h-4 animate-spin" />
+                          ) : (
+                            <MdDelete className="w-4 h-4" />
+                          )}
+                        </button>
+                      )}
                     </div>
                   ))
                 )}

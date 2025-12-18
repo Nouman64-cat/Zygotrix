@@ -47,6 +47,27 @@ def get_all_subscriptions(
     }
 
 
+@router.get("/recipients")
+def get_all_recipients(
+    current_user: UserProfile = Depends(get_current_admin)
+):
+    """
+    Get all potential email recipients including newsletter subscribers and system users (Admin only).
+
+    This endpoint returns both newsletter subscribers and system users, classified separately.
+    """
+    recipients = newsletter_service.get_all_recipients()
+    return {
+        "newsletter_subscribers": recipients["newsletter_subscribers"],
+        "system_users": recipients["system_users"],
+        "total_newsletter_subscribers": len(recipients["newsletter_subscribers"]),
+        "total_system_users": len(recipients["system_users"]),
+        "total": len(recipients["newsletter_subscribers"]) + len(recipients["system_users"])
+    }
+
+
+
+
 @router.get("/unsubscribe/{email}")
 def unsubscribe_from_newsletter_public(email: str):
     """

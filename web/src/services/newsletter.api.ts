@@ -5,6 +5,32 @@ export interface NewsletterSubscribeRequest {
   email: string;
 }
 
+
+export interface NewsletterSubscriber {
+  _id: string;
+  email: string;
+  subscribed_at: string;
+  source: string;
+  type: "newsletter_subscriber";
+}
+
+export interface SystemUser {
+  _id: string;
+  email: string;
+  full_name?: string;
+  user_role: string;
+  created_at: string;
+  type: "system_user";
+}
+
+export interface AllRecipientsResponse {
+  newsletter_subscribers: NewsletterSubscriber[];
+  system_users: SystemUser[];
+  total_newsletter_subscribers: number;
+  total_system_users: number;
+  total: number;
+}
+
 export interface NewsletterSubscribeResponse {
   message: string;
   email: string;
@@ -53,6 +79,11 @@ export const getAllSubscriptions = async (): Promise<{
 
 export const unsubscribeFromNewsletter = async (email: string) => {
   const response = await API.delete(API_ROUTES.newsletter.unsubscribe(email));
+  return response.data;
+};
+
+export const getAllRecipients = async (): Promise<AllRecipientsResponse> => {
+  const response = await API.get(API_ROUTES.newsletter.recipients);
   return response.data;
 };
 

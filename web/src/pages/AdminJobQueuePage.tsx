@@ -29,6 +29,8 @@ interface QueueItemProps {
     isProcessing?: boolean;
 }
 
+
+
 const QueueItem: React.FC<QueueItemProps> = ({ job, position, isProcessing }) => {
     const formatNumber = (num: number) => {
         if (num >= 1_000_000_000) return `${(num / 1_000_000_000).toFixed(1)}B`;
@@ -224,6 +226,37 @@ const AdminJobQueuePage: React.FC = () => {
         const mins = Math.floor(seconds / 60);
         const secs = Math.round(seconds % 60);
         return `${mins}m ${secs}s`;
+    };
+
+    const formatTimestamp = (timestamp: string | undefined) => {
+        if (!timestamp) return "—";
+        try {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const diffMs = now.getTime() - date.getTime();
+            const diffMins = Math.floor(diffMs / 60000);
+            const diffHours = Math.floor(diffMs / 3600000);
+            const diffDays = Math.floor(diffMs / 86400000);
+
+            // If less than 1 minute ago
+            if (diffMins < 1) return "Just now";
+            // If less than 1 hour ago
+            if (diffMins < 60) return `${diffMins}m ago`;
+            // If less than 24 hours ago
+            if (diffHours < 24) return `${diffHours}h ago`;
+            // If less than 7 days ago
+            if (diffDays < 7) return `${diffDays}d ago`;
+
+            // Otherwise show full date
+            return date.toLocaleString("en-US", {
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit"
+            });
+        } catch {
+            return "—";
+        }
     };
 
     if (!isAdmin) {
@@ -490,6 +523,8 @@ const AdminJobQueuePage: React.FC = () => {
                                         <tr>
                                             <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Job ID</th>
                                             <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Status</th>
+                                            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Created</th>
+                                            <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Completed</th>
                                             <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Size</th>
                                             <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase">Duration</th>
                                         </tr>
@@ -518,6 +553,12 @@ const AdminJobQueuePage: React.FC = () => {
                                                             {job.status.charAt(0).toUpperCase() + job.status.slice(1)}
                                                         </span>
                                                     </td>
+                                                    <td className="px-4 py-3 text-left text-sm text-gray-600 dark:text-slate-400">
+                                                        {formatTimestamp(job.created_at)}
+                                                    </td>
+                                                    <td className="px-4 py-3 text-left text-sm text-gray-600 dark:text-slate-400">
+                                                        {formatTimestamp(job.completed_at)}
+                                                    </td>
                                                     <td className="px-4 py-3 text-right text-sm text-gray-700 dark:text-slate-300">
                                                         {formatNumber(job.sequence_length)} bp
                                                     </td>
@@ -528,7 +569,7 @@ const AdminJobQueuePage: React.FC = () => {
                                             ))
                                         ) : (
                                             <tr>
-                                                <td colSpan={4} className="px-4 py-12 text-center text-gray-400">
+                                               <td colSpan={6} className="px-4 py-12 text-center text-gray-400">
                                                     No jobs recorded yet
                                                 </td>
                                             </tr>

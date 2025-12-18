@@ -86,6 +86,11 @@ class Settings:
     resend_api_key: str = os.getenv("RESEND_API_KEY", "")
     resend_from_email: str = os.getenv(
         "RESEND_FROM_EMAIL", "onboarding@resend.dev")
+    # AWS SES configuration
+    aws_ses_username: str = os.getenv("AWS_SES_USERNAME", "")
+    aws_ses_password: str = os.getenv("AWS_SES_PASSWORD", "")
+    aws_ses_region: str = os.getenv("AWS_SES_REGION", "us-east-1")
+    aws_ses_from_email: str = os.getenv("AWS_SES_FROM_EMAIL", "no-reply@zygotrix.com")
     signup_otp_ttl_minutes: int = _get_int("SIGNUP_OTP_TTL_MINUTES", 10)
     # Super admin configuration
     super_admin_email: str = os.getenv("SUPER_ADMIN_EMAIL", "")

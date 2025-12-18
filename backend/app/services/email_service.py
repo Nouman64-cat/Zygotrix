@@ -3,7 +3,9 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 from typing import TYPE_CHECKING
-import resend
+import smtplib
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
 import jinja2
 from fastapi import Depends
 
@@ -35,13 +37,14 @@ class EmailService:
             settings, "university_url", "https://zygotrix.university.courtcierge.online"
         )
 
-        if not settings.resend_api_key:
+        if not settings.aws_ses_username or not settings.aws_ses_password:
             logger.warning(
-                "RESEND_API_KEY not set. Email service is disabled.")
+                "AWS_SES_USERNAME or AWS_SES_PASSWORD not set. Email service is disabled.")
             self.enabled = False
         else:
-            # resend v2.x uses direct API key setting
-            resend.api_key = settings.resend_api_key
+            # AWS SES SMTP configuration
+            self.smtp_host = f"email-smtp.{settings.aws_ses_region}.amazonaws.com"
+            self.smtp_port = 587
             self.enabled = True
 
     def _send_email(
@@ -54,19 +57,30 @@ class EmailService:
             )
             return False
 
-        params = {
-            "from": self.settings.resend_from_email,
-            "to": [to],
-            "subject": subject,
-            "html": html_body,
-            "text": text_body,
-        }
-
         try:
-            # resend v2.x API uses resend.Emails.send() directly
-            resend.Emails.send(params)
-            logger.info(f"Email '{subject}' sent successfully to {to}.")
+            # Create message
+            msg = MIMEMultipart('alternative')
+            msg['Subject'] = subject
+            msg['From'] = self.settings.aws_ses_from_email
+            msg['To'] = to
+
+            # Attach text and HTML parts
+            text_part = MIMEText(text_body, 'plain', 'utf-8')
+            html_part = MIMEText(html_body, 'html', 'utf-8')
+            msg.attach(text_part)
+            msg.attach(html_part)
+
+            # Send email using SMTP with timeout
+            with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30) as server:
+                server.starttls()
+                server.login(self.settings.aws_ses_username, self.settings.aws_ses_password)
+                server.send_message(msg)
+
+            logger.info(f"Email '{subject}' sent successfully to {to}")
             return True
+        except smtplib.SMTPException as e:
+            logger.error(f"Failed to send email to {to}: {e}", exc_info=True)
+            return False
         except Exception as e:
             logger.error(f"Failed to send email to {to}: {e}", exc_info=True)
             return False

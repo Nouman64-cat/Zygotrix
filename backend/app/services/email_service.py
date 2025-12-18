@@ -44,7 +44,7 @@ class EmailService:
             self.enabled = False
         else:
             self.smtp_host = f"email-smtp.{settings.aws_ses_region}.amazonaws.com"
-            self.smtp_port = 465
+            self.smtp_port = settings.aws_smtp_port
             self.enabled = True
 
     def _send_email(
@@ -69,12 +69,21 @@ class EmailService:
             msg.attach(text_part)
             msg.attach(html_part)
 
-            # Send email using SMTP_SSL for port 465 (SSL from start)
+            # Send email using appropriate method based on port
             import ssl
             context = ssl.create_default_context()
-            with smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, context=context, timeout=30) as server:
-                server.login(self.settings.aws_ses_username, self.settings.aws_ses_password)
-                server.send_message(msg)
+            
+            if self.smtp_port == 587:
+                # Use STARTTLS for port 587
+                with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30) as server:
+                    server.starttls(context=context)
+                    server.login(self.settings.aws_ses_username, self.settings.aws_ses_password)
+                    server.send_message(msg)
+            else:
+                # Use SMTP_SSL for port 465 (SSL from start)
+                with smtplib.SMTP_SSL(self.smtp_host, self.smtp_port, context=context, timeout=30) as server:
+                    server.login(self.settings.aws_ses_username, self.settings.aws_ses_password)
+                    server.send_message(msg)
 
             logger.info(f"Email '{subject}' sent successfully to {to}")
             return True

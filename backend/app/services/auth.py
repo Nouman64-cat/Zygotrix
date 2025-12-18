@@ -259,7 +259,7 @@ def send_signup_otp_email(
     #     return
 
     smtp_host = f"email-smtp.{settings.aws_ses_region}.amazonaws.com"
-    smtp_port = 465
+    smtp_port = settings.aws_smtp_port
 
 
     subject = "Your Zygotrix verification code"
@@ -306,16 +306,26 @@ def send_signup_otp_email(
         msg.attach(text_part)
         msg.attach(html_part)
 
-        logger.info("Connecting to SMTP server...")
-        # Send email using SMTP_SSL for port 465 (SSL from start)
+        logger.info(f"Connecting to SMTP server on port {smtp_port}...")
+        # Send email using appropriate method based on port
         import ssl
         context = ssl.create_default_context()
-        with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context, timeout=30) as server:
-            logger.info("Logging in to SMTP server...")
-            server.login(settings.aws_ses_username, settings.aws_ses_password)
-
-            logger.info(f"Sending email to {recipient}...")
-            server.send_message(msg)
+        
+        if smtp_port == 587:
+            # Use STARTTLS for port 587
+            with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+                server.starttls(context=context)
+                logger.info("Logging in to SMTP server...")
+                server.login(settings.aws_ses_username, settings.aws_ses_password)
+                logger.info(f"Sending email to {recipient}...")
+                server.send_message(msg)
+        else:
+            # Use SMTP_SSL for port 465 (SSL from start)
+            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context, timeout=30) as server:
+                logger.info("Logging in to SMTP server...")
+                server.login(settings.aws_ses_username, settings.aws_ses_password)
+                logger.info(f"Sending email to {recipient}...")
+                server.send_message(msg)
 
     except smtplib.SMTPException as exc:
         logger.error(f"SMTP error while sending OTP email: {exc}", exc_info=True)

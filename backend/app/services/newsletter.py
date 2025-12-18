@@ -231,7 +231,7 @@ def send_newsletter_email(
     failed_emails = []
 
     smtp_host = f"email-smtp.{settings.aws_ses_region}.amazonaws.com"
-    smtp_port = 465
+    smtp_port = settings.aws_smtp_port
 
     for email in recipient_emails:
         try:
@@ -255,12 +255,21 @@ def send_newsletter_email(
             html_part = MIMEText(html_body, 'html', 'utf-8')
             msg.attach(html_part)
 
-            # Send email using SMTP_SSL for port 465 (SSL from start)
+            # Send email using appropriate method based on port
             import ssl
-            context = ssl.create_default_context()
-            with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context, timeout=30) as server:
-                server.login(settings.aws_ses_username, settings.aws_ses_password)
-                server.send_message(msg)
+            ssl_context = ssl.create_default_context()
+            
+            if smtp_port == 587:
+                # Use STARTTLS for port 587
+                with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
+                    server.starttls(context=ssl_context)
+                    server.login(settings.aws_ses_username, settings.aws_ses_password)
+                    server.send_message(msg)
+            else:
+                # Use SMTP_SSL for port 465 (SSL from start)
+                with smtplib.SMTP_SSL(smtp_host, smtp_port, context=ssl_context, timeout=30) as server:
+                    server.login(settings.aws_ses_username, settings.aws_ses_password)
+                    server.send_message(msg)
             success_count += 1
         except smtplib.SMTPException as e:
             failed_emails.append({"email": email, "error": str(e)})

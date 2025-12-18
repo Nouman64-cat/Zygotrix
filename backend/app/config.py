@@ -91,6 +91,7 @@ class Settings:
     aws_ses_password: str = os.getenv("AWS_SES_PASSWORD", "")
     aws_ses_region: str = os.getenv("AWS_SES_REGION", "us-east-1")
     aws_ses_from_email: str = os.getenv("AWS_SES_FROM_EMAIL", "no-reply@zygotrix.com")
+    aws_smtp_port: int = _get_int("AWS_SMTP_PORT", 465)
     signup_otp_ttl_minutes: int = _get_int("SIGNUP_OTP_TTL_MINUTES", 10)
     # Super admin configuration
     super_admin_email: str = os.getenv("SUPER_ADMIN_EMAIL", "")

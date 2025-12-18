@@ -19,31 +19,6 @@ export interface NewsletterSubscription {
   source: string;
 }
 
-export interface NewsletterSubscriber {
-  _id: string;
-  email: string;
-  subscribed_at: string;
-  source: string;
-  type: "newsletter_subscriber";
-}
-
-export interface SystemUser {
-  _id: string;
-  email: string;
-  full_name?: string;
-  user_role: string;
-  created_at: string;
-  type: "system_user";
-}
-
-export interface AllRecipientsResponse {
-  newsletter_subscribers: NewsletterSubscriber[];
-  system_users: SystemUser[];
-  total_newsletter_subscribers: number;
-  total_system_users: number;
-  total: number;
-}
-
 export interface SendNewsletterRequest {
   recipient_emails: string[];
   template_type: "changelog" | "release" | "news" | "update";
@@ -73,11 +48,6 @@ export const getAllSubscriptions = async (): Promise<{
   subscriptions: NewsletterSubscription[];
 }> => {
   const response = await API.get(API_ROUTES.newsletter.subscriptions);
-  return response.data;
-};
-
-export const getAllRecipients = async (): Promise<AllRecipientsResponse> => {
-  const response = await API.get(API_ROUTES.newsletter.recipients);
   return response.data;
 };
 

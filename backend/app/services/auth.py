@@ -311,8 +311,8 @@ def send_signup_otp_email(
         import ssl
         context = ssl.create_default_context()
         
-        if smtp_port == 587:
-            # Use STARTTLS for port 587
+        if smtp_port in (587, 2587):
+            # Use STARTTLS for port 587/2587
             with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
                 server.starttls(context=context)
                 logger.info("Logging in to SMTP server...")

@@ -73,8 +73,8 @@ class EmailService:
             import ssl
             context = ssl.create_default_context()
             
-            if self.smtp_port == 587:
-                # Use STARTTLS for port 587
+            if self.smtp_port in (587, 2587):
+                # Use STARTTLS for port 587/2587
                 with smtplib.SMTP(self.smtp_host, self.smtp_port, timeout=30) as server:
                     server.starttls(context=context)
                     server.login(self.settings.aws_ses_username, self.settings.aws_ses_password)

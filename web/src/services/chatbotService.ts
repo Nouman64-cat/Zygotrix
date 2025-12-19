@@ -208,3 +208,39 @@ export async function getChatbotStatus(): Promise<{ enabled: boolean }> {
     return { enabled: true }; // Default to enabled
   }
 }
+
+// Get current user's rate limit status (public endpoint)
+export async function getUserRateLimit(
+  userId?: string
+): Promise<UsageInfo | null> {
+  try {
+    const url = new URL(`${API_BASE_URL}/api/chatbot/rate-limit`);
+    if (userId) {
+      url.searchParams.append("userId", userId);
+    }
+
+    const response = await fetch(url.toString());
+    if (!response.ok) {
+      console.error("Failed to fetch rate limit status");
+      return null;
+    }
+
+    const data = await response.json();
+
+    // Convert to UsageInfo format
+    const usageInfo: UsageInfo = {
+      tokens_used: data.tokens_used,
+      tokens_remaining: data.tokens_remaining,
+      reset_time: data.reset_time,
+      is_limited: data.is_limited,
+    };
+
+    // Update the cached usage info
+    _latestUsage = usageInfo;
+
+    return usageInfo;
+  } catch (error) {
+    console.error("Error fetching rate limit status:", error);
+    return null;
+  }
+}

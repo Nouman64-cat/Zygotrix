@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { sendMessage, getLatestUsage, resetSession, type ChatMessage, type UsageInfo, type ChatMessageAction } from '../../services/chatbotService';
+import { sendMessage, getLatestUsage, resetSession, getUserRateLimit, type ChatMessage, type UsageInfo, type ChatMessageAction } from '../../services/chatbotService';
 import { getPageContext } from '../../utils/pageContext';
 import { MdInfoOutline } from "react-icons/md";
 import ReactMarkdown from 'react-markdown';
@@ -194,6 +194,41 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
 
     return () => clearInterval(interval);
   }, [usage, CHAT_USAGE_KEY]);
+
+  // Poll for token usage updates from backend (to sync with zygotrix_ai)
+  useEffect(() => {
+    // Only poll when chatbot is open
+    if (!isOpen) {
+      return;
+    }
+
+    const pollUsage = async () => {
+      try {
+        const latestUsage = await getUserRateLimit(userId);
+        if (latestUsage) {
+          // Only update if there's a difference to avoid unnecessary re-renders
+          if (
+            !usage ||
+            usage.tokens_used !== latestUsage.tokens_used ||
+            usage.is_limited !== latestUsage.is_limited
+          ) {
+            console.log('Token usage updated from backend:', latestUsage);
+            setUsage(latestUsage);
+          }
+        }
+      } catch (error) {
+        console.error('Error polling usage:', error);
+      }
+    };
+
+    // Poll immediately on open
+    pollUsage();
+
+    // Then poll every 10 seconds while chatbot is open
+    const interval = setInterval(pollUsage, 10000);
+
+    return () => clearInterval(interval);
+  }, [isOpen, userId, usage]);
 
   // Save messages to localStorage whenever they change (but only after initialization)
   useEffect(() => {

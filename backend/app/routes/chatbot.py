@@ -808,6 +808,48 @@ async def get_chatbot_status():
         return {"enabled": True}
 
 
+@router.get("/rate-limit")
+async def get_rate_limit_status(userId: str | None = None):
+    """
+    Public endpoint to get the current user's rate limit status.
+    Used by frontend to display token usage bar in real-time.
+
+    Returns:
+        - tokens_used: Total tokens consumed in current cycle
+        - tokens_remaining: Tokens remaining before limit
+        - max_tokens: Maximum tokens allowed per cycle (25,000)
+        - reset_time: ISO timestamp when quota resets
+        - is_limited: Boolean indicating if user hit limit
+        - cooldown_active: Boolean indicating active cooldown
+        - cooldown_hours: Duration of cooldown in hours (5)
+    """
+    try:
+        user_id = userId or "anonymous"
+        usage = _rate_limiter.get_usage(user_id)
+
+        return {
+            "tokens_used": usage["tokens_used"],
+            "tokens_remaining": usage["tokens_remaining"],
+            "max_tokens": _rate_limiter.max_tokens,
+            "reset_time": usage["reset_time"],
+            "is_limited": usage["is_limited"],
+            "cooldown_active": usage["cooldown_active"],
+            "cooldown_hours": _rate_limiter.cooldown_seconds // 3600
+        }
+    except Exception as e:
+        logger.error(f"Error fetching rate limit status: {e}")
+        # Return default values on error
+        return {
+            "tokens_used": 0,
+            "tokens_remaining": 25000,
+            "max_tokens": 25000,
+            "reset_time": None,
+            "is_limited": False,
+            "cooldown_active": False,
+            "cooldown_hours": 5
+        }
+
+
 @router.post("/chat", response_model=ChatResponse)
 async def chat(request: ChatRequest) -> ChatResponse:
     """

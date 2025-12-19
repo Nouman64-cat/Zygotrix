@@ -27,7 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
   return (
     <header className="sticky top-0 z-10 bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800">
       <div className="flex items-center justify-between px-2 py-2">
-        <div className="flex items-center">
+        <div className="flex items-center gap-2">
           {showMenuButton && (
             <IconButton
               icon={<FiMenu />}
@@ -36,7 +36,23 @@ export const Header: React.FC<HeaderProps> = ({
               className="md:hidden"
             />
           )}
-          <Logo size="md" showText={true} />
+          
+          {/* Mobile-only logo and text */}
+          <div className="flex items-center gap-2 md:hidden">
+            <img 
+              src="/zygotrix-ai.png" 
+              alt="Zygotrix" 
+              className="w-6 h-6 object-cover rounded-full"
+            />
+            <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
+              Zygotrix AI
+            </span>
+          </div>
+          
+          {/* Desktop logo */}
+          <div className="hidden md:block">
+            <Logo size="md" showText={true} />
+          </div>
         </div>
 
         <div className="flex items-center gap-2">

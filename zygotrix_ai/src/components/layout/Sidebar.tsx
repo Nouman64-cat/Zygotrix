@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMessageSquare, FiPlus, FiTrash2, FiX, FiLogOut, FiMenu, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiMessageSquare, FiPlus, FiTrash2, FiX, FiLogOut, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
 import { cn, formatTimestamp, truncateText } from '../../utils';
 import { IconButton, Button, Logo } from '../common';
 import { useAuth } from '../../contexts';

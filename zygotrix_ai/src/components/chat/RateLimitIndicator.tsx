@@ -66,7 +66,6 @@ export const RateLimitIndicator: React.FC<RateLimitIndicatorProps> = ({
     }
 
     const percentUsed = (rateLimit.tokens_used / rateLimit.max_tokens) * 100;
-    const percentRemaining = 100 - percentUsed;
 
     // Determine color based on usage
     let colorClass = 'text-emerald-600 dark:text-emerald-400';

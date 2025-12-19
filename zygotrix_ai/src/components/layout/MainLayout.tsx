@@ -41,13 +41,23 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           <ThemeSwitcher variant="icon" />
         </div>
 
-        {/* Mobile: Header with menu button and theme switcher (horizontally aligned) */}
+        {/* Mobile: Header with menu button, logo, and theme switcher */}
         <div className="md:hidden flex items-center justify-between p-2 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
-          <IconButton
-            icon={<FiMenu />}
-            onClick={() => setIsSidebarOpen(true)}
-            tooltip="Open menu"
-          />
+          <div className="flex items-center gap-2">
+            <IconButton
+              icon={<FiMenu />}
+              onClick={() => setIsSidebarOpen(true)}
+              tooltip="Open menu"
+            />
+            <img 
+              src="/zygotrix-ai.png" 
+              alt="Zygotrix" 
+              className="w-8 h-8 object-cover rounded-full"
+            />
+            <span className="text-md font-semibold text-gray-900 dark:text-gray-100">
+              Zygotrix AI
+            </span>
+          </div>
           <ThemeSwitcher variant="icon" />
         </div>
 

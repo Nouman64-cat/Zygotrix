@@ -6,11 +6,15 @@ import type { RateLimitStatus } from '../../types';
 interface RateLimitIndicatorProps {
     className?: string;
     refreshTrigger?: number; // Increment to trigger refresh
+    vertical?: boolean; // Display vertically on the right side
+    onRateLimitChange?: (isLimited: boolean, resetTime: string | null) => void; // Callback when rate limit status changes
 }
 
 export const RateLimitIndicator: React.FC<RateLimitIndicatorProps> = ({
     className = '',
     refreshTrigger = 0,
+    vertical = false,
+    onRateLimitChange,
 }) => {
     const [rateLimit, setRateLimit] = useState<RateLimitStatus | null>(null);
     const [isLoading, setIsLoading] = useState(true);
@@ -22,6 +26,14 @@ export const RateLimitIndicator: React.FC<RateLimitIndicatorProps> = ({
             setError(null);
             const status = await chatService.getRateLimitStatus();
             setRateLimit(status);
+            
+            // Notify parent about rate limit status
+            if (onRateLimitChange) {
+                onRateLimitChange(
+                    status.cooldown_active || false,
+                    status.reset_time || null
+                );
+            }
         } catch (err) {
             setError('Failed to load rate limit');
             console.error('Failed to fetch rate limit:', err);
@@ -82,6 +94,46 @@ export const RateLimitIndicator: React.FC<RateLimitIndicatorProps> = ({
         return `${diffHours}h ${remainingMins}m`;
     };
 
+    // Vertical layout for right sidebar
+    if (vertical) {
+        return (
+            <div className={`flex flex-col items-center justify-center h-full w-full p-2 ${className}`}>
+                {/* Percentage text at top */}
+                <div className="mb-4 text-center">
+                    <span className={`text-xs font-semibold ${colorClass} whitespace-nowrap block`}>
+                        {percentUsed.toFixed(0)}%
+                    </span>
+                    <span className="text-[10px] text-gray-500 dark:text-gray-400">used</span>
+                </div>
+
+                {/* Vertical progress bar - fills from bottom showing USED percentage */}
+                <div className="flex-1 w-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden relative">
+                    <div
+                        className={`absolute bottom-0 w-full ${bgColorClass} transition-all duration-300 rounded-full`}
+                        style={{ height: `${percentUsed}%` }}
+                    />
+                </div>
+
+                {/* Icon at bottom */}
+                <div className="mt-4">
+                    {rateLimit.cooldown_active ? (
+                        <FiAlertTriangle className="text-red-500 w-5 h-5" />
+                    ) : (
+                        <FiZap className={`${colorClass} w-5 h-5`} />
+                    )}
+                </div>
+
+                {/* Cooldown indicator */}
+                {rateLimit.cooldown_active && rateLimit.reset_time && (
+                    <div className="mt-2">
+                        <FiClock className="w-4 h-4 text-red-600 dark:text-red-400 animate-pulse" />
+                    </div>
+                )}
+            </div>
+        );
+    }
+
+    // Horizontal layout (default)
     return (
         <div className={`flex flex-col gap-1 ${className}`}>
             {/* Rate limit bar */}
@@ -98,15 +150,15 @@ export const RateLimitIndicator: React.FC<RateLimitIndicatorProps> = ({
                             {rateLimit.cooldown_active ? 'Rate Limited' : 'Token Usage'}
                         </span>
                         <span className={`font-semibold ${colorClass}`}>
-                            Used {percentUsed.toFixed(0)}% • {percentRemaining.toFixed(0)}% remaining
+                            {percentUsed.toFixed(0)}% used
                         </span>
                     </div>
 
-                    {/* Progress bar */}
+                    {/* Progress bar - shows used percentage in color */}
                     <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                         <div
                             className={`h-full ${bgColorClass} transition-all duration-300 rounded-full`}
-                            style={{ width: `${percentRemaining}%` }}
+                            style={{ width: `${percentUsed}%` }}
                         />
                     </div>
                 </div>

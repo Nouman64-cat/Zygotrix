@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout';
-import { MessageList, ChatInput, RateLimitIndicator } from '../components/chat';
+import { MessageList, ChatInput, RateLimitIndicator, RateLimitModal, RateLimitBanner } from '../components/chat';
 import { useChat } from '../hooks';
 import { chatService } from '../services';
 import type { LocalConversation } from '../types';
@@ -13,6 +13,11 @@ export const Chat: React.FC = () => {
   const [conversationsList, setConversationsList] = useState<LocalConversation[]>([]);
   const [rateLimitRefresh, setRateLimitRefresh] = useState(0);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
+  const [showRateLimitModal, setShowRateLimitModal] = useState(false);
+  
+  // Rate limit state - can be set from API or from error messages
+  const [isRateLimitedFromAPI, setIsRateLimitedFromAPI] = useState(false);
+  const [resetTime, setResetTime] = useState<string | null>(null);
 
   const {
     messages,
@@ -25,15 +30,58 @@ export const Chat: React.FC = () => {
     startNewConversation
   } = useChat();
 
+  // Parse error to check for rate limit - check multiple patterns
+  const isRateLimitedFromError = error ? (
+    error.includes('429') || 
+    error.toLowerCase().includes('rate limit') ||
+    error.toLowerCase().includes('too many requests') ||
+    error.toLowerCase().includes('cooldown')
+  ) : false;
+
+  // Combined rate limit status (from API or from error)
+  const isRateLimited = isRateLimitedFromAPI || isRateLimitedFromError;
+
+  // Handle rate limit status change from RateLimitIndicator
+  const handleRateLimitChange = useCallback((limited: boolean, apiResetTime: string | null) => {
+    setIsRateLimitedFromAPI(limited);
+    if (apiResetTime) {
+      setResetTime(apiResetTime);
+    }
+    // Show modal automatically when first rate limited
+    if (limited && !isRateLimitedFromAPI) {
+      setShowRateLimitModal(true);
+    }
+  }, [isRateLimitedFromAPI]);
+
+  // Parse rate limit error details (when error comes from API response)
+  useEffect(() => {
+    if (isRateLimitedFromError && error) {
+      try {
+        // Try to extract JSON from error message
+        const jsonMatch = error.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const errorData = JSON.parse(jsonMatch[0]);
+          const detail = errorData.detail || errorData;
+          if (detail.reset_time) {
+            setResetTime(detail.reset_time);
+          }
+        }
+        setShowRateLimitModal(true);
+      } catch (e) {
+        console.error('[Chat] Failed to parse rate limit error:', e);
+        setShowRateLimitModal(true);
+      }
+    }
+  }, [error, isRateLimitedFromError]);
+
   // Load conversations list from API
   const loadConversations = useCallback(async () => {
     try {
       const response = await chatService.getConversations({ page_size: 50 });
-      // Convert API conversations to LocalConversation format for sidebar
       const localConversations: LocalConversation[] = response.conversations.map(conv => ({
         id: conv.id,
         title: conv.title,
-        messages: [], // Messages loaded on demand
+        messages: [],
         createdAt: new Date(conv.created_at).getTime(),
         updatedAt: new Date(conv.updated_at).getTime(),
       }));
@@ -67,10 +115,9 @@ export const Chat: React.FC = () => {
     }
   }, [conversationId, urlConversationId, navigate]);
 
-  // Refresh conversations list when a new message is sent (conversation might be new)
+  // Refresh conversations list when a new message is sent
   useEffect(() => {
     if (messages.length > 0 && conversationId) {
-      // Check if this conversation is in the list
       const exists = conversationsList.some(c => c.id === conversationId);
       if (!exists) {
         loadConversations();
@@ -102,7 +149,6 @@ export const Chat: React.FC = () => {
 
   const handleSendMessage = async (content: string) => {
     await sendMessage(content);
-    // Small delay to ensure backend has finished recording token usage
     setTimeout(() => {
       setRateLimitRefresh(prev => prev + 1);
     }, 1000);
@@ -116,27 +162,60 @@ export const Chat: React.FC = () => {
       onNewConversation={handleNewConversation}
       onDeleteConversation={handleDeleteConversation}
     >
-      <div className="flex flex-col h-full">
-        {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
-            <p className="text-sm text-red-800 dark:text-red-400 text-center">
-              {error}
-            </p>
-          </div>
-        )}
-
-        <MessageList messages={messages} isLoading={isLoading} isStreaming={isStreaming} />
-
-        {/* Rate limit indicator */}
-        <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-900">
-          <RateLimitIndicator refreshTrigger={rateLimitRefresh} />
-        </div>
-
-        <ChatInput
-          onSend={handleSendMessage}
-          disabled={isLoading}
+      <>
+        {/* Rate Limit Modal */}
+        <RateLimitModal
+          isOpen={showRateLimitModal}
+          resetTime={resetTime}
+          onClose={() => setShowRateLimitModal(false)}
         />
-      </div>
+
+        <div className="flex h-full">
+          {/* Main chat area */}
+          <div className="flex-1 flex flex-col overflow-hidden">
+            {/* Error banner - only show for non-rate-limit errors */}
+            {error && !isRateLimited && (
+              <div className="bg-red-50 dark:bg-red-900/20 border-b border-red-200 dark:border-red-800 px-4 py-3">
+                <p className="text-sm text-red-800 dark:text-red-400 text-center">
+                  {error}
+                </p>
+              </div>
+            )}
+
+            {/* Horizontal Rate Limit Indicator - Mobile/Tablet only */}
+            <div className="xl:hidden border-b border-gray-200 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-900">
+              <RateLimitIndicator 
+                refreshTrigger={rateLimitRefresh} 
+                onRateLimitChange={handleRateLimitChange}
+              />
+            </div>
+
+            <MessageList messages={messages} isLoading={isLoading} isStreaming={isStreaming} />
+
+            {/* Rate Limit Banner - shows persistently when rate limited */}
+            {isRateLimited && (
+              <RateLimitBanner
+                resetTime={resetTime}
+                onShowModal={() => setShowRateLimitModal(true)}
+              />
+            )}
+
+            <ChatInput
+              onSend={handleSendMessage}
+              disabled={isLoading || isRateLimited}
+            />
+          </div>
+
+          {/* Vertical Rate Limit Indicator - Right Side (desktop only) */}
+          <div className="hidden xl:flex w-16 border-l border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
+            <RateLimitIndicator 
+              refreshTrigger={rateLimitRefresh} 
+              vertical 
+              onRateLimitChange={handleRateLimitChange}
+            />
+          </div>
+        </div>
+      </>
     </MainLayout>
   );
 };

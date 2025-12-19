@@ -388,9 +388,9 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
 
       {/* Info Panel */}
       {showInfo && (
-        <div className="bg-indigo-50 dark:bg-indigo-900/30 border-b border-indigo-200 dark:border-indigo-800 p-3 text-xs space-y-2">
+        <div className="bg-emerald-50 dark:bg-emerald-900/30 border-b border-emerald-200 dark:border-emerald-800 p-3 text-xs space-y-2">
           <div className="flex items-start gap-2">
-            <MdInfoOutline className="w-4 h-4 text-indigo-500 flex-shrink-0 mt-0.5" />
+            <MdInfoOutline className="w-4 h-4 text-emerald-500 flex-shrink-0 mt-0.5" />
             <div className="text-gray-700 dark:text-gray-300">
               <p><strong>Memory:</strong> I remember our entire conversation until your limit resets.</p>
               <p className="mt-1"><strong>Limit:</strong> Usage resets automatically every 5 hours.</p>
@@ -468,7 +468,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
             >
               {message.role === 'assistant' ? (
                 <div>
-                  <div className="text-xs leading-relaxed prose prose-xs dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-indigo-600 dark:prose-strong:text-indigo-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-table:text-[10px] prose-th:bg-indigo-100 dark:prose-th:bg-indigo-900 prose-th:p-1 prose-td:p-1 prose-table:border prose-table:border-gray-300 dark:prose-table:border-gray-700 max-w-none">
+                  <div className="text-xs leading-relaxed prose prose-xs dark:prose-invert prose-p:my-1 prose-headings:my-2 prose-ul:my-1 prose-ol:my-1 prose-li:my-0.5 prose-strong:text-emerald-600 dark:prose-strong:text-emerald-400 prose-code:bg-gray-100 dark:prose-code:bg-gray-800 prose-code:px-1 prose-code:py-0.5 prose-code:rounded prose-code:text-[10px] prose-table:text-[10px] prose-th:bg-emerald-100 dark:prose-th:bg-emerald-900 prose-th:p-1 prose-td:p-1 prose-table:border prose-table:border-gray-300 dark:prose-table:border-gray-700 max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>{message.content}</ReactMarkdown>
                   </div>
                   {message.actions && message.actions.length > 0 && (
@@ -495,9 +495,9 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
           <div className="flex justify-start">
             <div className="bg-white dark:bg-[#101111] border border-gray-200 dark:border-gray-800 rounded-2xl px-4 py-3">
               <div className="flex space-x-2">
-                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce"></div>
-                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
-                <div className="w-2 h-2 bg-indigo-600 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce"></div>
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
               </div>
             </div>
           </div>

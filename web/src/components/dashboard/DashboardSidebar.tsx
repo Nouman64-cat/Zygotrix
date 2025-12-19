@@ -502,7 +502,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           {/* Show nothing on desktop when collapsed */}
           {!isCollapsed && (
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white hidden lg:block">
-              
+
             </h2>
           )}
           <div className="flex items-center gap-2">
@@ -566,15 +566,15 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 to={item.href}
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
-                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
-                    : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
+                  ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
+                  : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
                   } ${isCollapsed ? "lg:justify-center" : ""} ${item.isChild && !isCollapsed ? "lg:ml-6" : ""
                   } ${item.isChild ? "ml-6 lg:ml-0" : ""}`}
               >
                 <span
                   className={`${isActivePath(item.href)
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-slate-500 dark:text-slate-400"
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-slate-500 dark:text-slate-400"
                     }`}
                 >
                   {item.icon}
@@ -615,15 +615,15 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                 to={item.href}
                 onClick={onClose}
                 className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
-                    ? "bg-blue-50 dark:bg-blue-900/30 text-blue-700 dark:text-blue-300 border border-blue-200 dark:border-blue-700"
-                    : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
+                  ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
+                  : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
                   } ${isCollapsed ? "lg:justify-center" : ""} ${item.isChild && !isCollapsed ? "lg:ml-6" : ""
                   } ${item.isChild ? "ml-6 lg:ml-0" : ""}`}
               >
                 <span
                   className={`${isActivePath(item.href)
-                      ? "text-blue-600 dark:text-blue-400"
-                      : "text-slate-500 dark:text-slate-400"
+                    ? "text-emerald-600 dark:text-emerald-400"
+                    : "text-slate-500 dark:text-slate-400"
                     }`}
                 >
                   {item.icon}
@@ -676,14 +676,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                     to={item.href}
                     onClick={onClose}
                     className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
-                        ? "bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300 border border-purple-200 dark:border-purple-700"
-                        : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
+                      ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
+                      : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
                       } ${isCollapsed ? "lg:justify-center" : ""}`}
                   >
                     <span
                       className={`${isActivePath(item.href)
-                          ? "text-purple-600 dark:text-purple-400"
-                          : "text-slate-500 dark:text-slate-400"
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-slate-500 dark:text-slate-400"
                         }`}
                     >
                       {item.icon}

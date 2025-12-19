@@ -209,7 +209,7 @@ def send_newsletter_email(
             detail="Email service is not configured. Please set AWS_SES_USERNAME and AWS_SES_PASSWORD."
         )
     # Validate template type
-    valid_templates = ["changelog", "release", "news", "update"]
+    valid_templates = ["changelog", "release", "news", "update", "marketing"]
     if template_type not in valid_templates:
         raise HTTPException(
             status_code=400,

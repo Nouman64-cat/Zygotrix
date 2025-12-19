@@ -87,96 +87,883 @@ const TEMPLATE_TYPES = [
 ];
 
 const EXAMPLE_CONTENT: Record<string, string> = {
-  changelog: `<h2>What's New in This Update</h2>
-<ul>
-  <li><strong>New Feature:</strong> Advanced genetic analysis tools</li>
-  <li><strong>Improvement:</strong> Faster simulation processing</li>
-  <li><strong>Bug Fix:</strong> Resolved trait calculator issue</li>
-</ul>
-<p>Check out the full changelog for more details.</p>`,
-  release: `<h2>Version 2.0 is Here!</h2>
-<p>We're excited to announce the release of Zygotrix 2.0, packed with powerful new features:</p>
-<ul>
-  <li>Enhanced polygenic score calculations</li>
-  <li>Improved visualization tools</li>
-  <li>New trait registry management</li>
-</ul>
-<p>Try it out today and let us know what you think!</p>`,
-  news: `<h2>Exciting News from Zygotrix!</h2>
-<p>We're thrilled to share some important updates from the Zygotrix team.</p>
-<p>Stay tuned for more announcements coming soon!</p>`,
-  update: `<h2>Important Update</h2>
-<p>We wanted to keep you informed about the latest developments at Zygotrix.</p>
-<p>Thank you for being part of our community!</p>`,
-  marketing: `<div style="text-align: center; margin-bottom: 30px;">
-  <h1 style="color: #10b981; margin-bottom: 10px;">🧬 Unlock the Power of Genetics</h1>
-  <p style="font-size: 18px; color: #6b7280;">Join Zygotrix and Transform Your Understanding of DNA</p>
-</div>
+  changelog: `<!-- ZYGOTRIX CHANGELOG TEMPLATE -->
+<!-- Perfect for product updates, improvements, and bug fixes -->
 
-<p>Dear Future Geneticist,</p>
+<!-- HERO SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #064e3b 0%, #10b981 50%, #047857 100%); padding: 50px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <!-- Changelog Badge -->
+            <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 50px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3);">
+              <span style="color: white; font-size: 14px; font-weight: 600;">📝 CHANGELOG</span>
+            </div>
+            
+            <!-- Main Headline -->
+            <h1 style="color: #ffffff; font-size: 38px; font-weight: 800; line-height: 1.2; margin: 0 0 15px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+              What's New This Week
+            </h1>
+            
+            <!-- Version & Date -->
+            <p style="color: #a7f3d0; font-size: 16px; margin: 0;">
+              Version 2.1.0 • December 2024
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<p>Are you ready to dive into the fascinating world of genetics? <strong>Zygotrix</strong> is the ultimate interactive platform designed to make learning genetics intuitive, engaging, and fun!</p>
+<!-- CHANGES SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: #ffffff; padding: 50px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td>
+            <!-- NEW FEATURES -->
+            <div style="margin-bottom: 35px;">
+              <div style="display: inline-block; background: linear-gradient(135deg, #10b981, #059669); padding: 6px 14px; border-radius: 6px; margin-bottom: 20px;">
+                <span style="color: white; font-size: 13px; font-weight: 700;">✨ NEW FEATURES</span>
+              </div>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="30" valign="top">
+                          <span style="color: #10b981; font-size: 18px;">●</span>
+                        </td>
+                        <td valign="top">
+                          <p style="color: #0f172a; font-size: 16px; font-weight: 600; margin: 0 0 4px 0;">Advanced Genetic Analysis Tools</p>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">New suite of analysis tools for deeper genetic insights and visualization.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="30" valign="top">
+                          <span style="color: #10b981; font-size: 18px;">●</span>
+                        </td>
+                        <td valign="top">
+                          <p style="color: #0f172a; font-size: 16px; font-weight: 600; margin: 0 0 4px 0;">DNA Sequence Export</p>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Export your generated DNA sequences in FASTA and GenBank formats.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            
+            <!-- IMPROVEMENTS -->
+            <div style="margin-bottom: 35px;">
+              <div style="display: inline-block; background: linear-gradient(135deg, #3b82f6, #1d4ed8); padding: 6px 14px; border-radius: 6px; margin-bottom: 20px;">
+                <span style="color: white; font-size: 13px; font-weight: 700;">⚡ IMPROVEMENTS</span>
+              </div>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="30" valign="top">
+                          <span style="color: #3b82f6; font-size: 18px;">●</span>
+                        </td>
+                        <td valign="top">
+                          <p style="color: #0f172a; font-size: 16px; font-weight: 600; margin: 0 0 4px 0;">3x Faster Simulation Processing</p>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Optimized engine now processes genetic crosses significantly faster.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="30" valign="top">
+                          <span style="color: #3b82f6; font-size: 18px;">●</span>
+                        </td>
+                        <td valign="top">
+                          <p style="color: #0f172a; font-size: 16px; font-weight: 600; margin: 0 0 4px 0;">Enhanced UI/UX</p>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Refined interface with better accessibility and mobile responsiveness.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            
+            <!-- BUG FIXES -->
+            <div>
+              <div style="display: inline-block; background: linear-gradient(135deg, #f59e0b, #d97706); padding: 6px 14px; border-radius: 6px; margin-bottom: 20px;">
+                <span style="color: white; font-size: 13px; font-weight: 700;">🐛 BUG FIXES</span>
+              </div>
+              
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="30" valign="top">
+                          <span style="color: #f59e0b; font-size: 18px;">●</span>
+                        </td>
+                        <td valign="top">
+                          <p style="color: #0f172a; font-size: 16px; font-weight: 600; margin: 0 0 4px 0;">Trait Calculator Issue Resolved</p>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Fixed calculation errors for polygenic trait scoring.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+                <tr>
+                  <td style="padding: 12px 0;">
+                    <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                      <tr>
+                        <td width="30" valign="top">
+                          <span style="color: #f59e0b; font-size: 18px;">●</span>
+                        </td>
+                        <td valign="top">
+                          <p style="color: #0f172a; font-size: 16px; font-weight: 600; margin: 0 0 4px 0;">Session Timeout Fix</p>
+                          <p style="color: #64748b; font-size: 14px; margin: 0;">Users no longer experience unexpected logouts during long sessions.</p>
+                        </td>
+                      </tr>
+                    </table>
+                  </td>
+                </tr>
+              </table>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<h2 style="color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;">🚀 Why Choose Zygotrix?</h2>
+<!-- CTA SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 45px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <h2 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0 0 15px 0;">
+              Ready to Try These Updates?
+            </h2>
+            <p style="color: #d1fae5; font-size: 16px; margin: 0 0 25px 0;">
+              All changes are live now — no action needed on your part!
+            </p>
+            
+            <a href="https://zygotrix.com/studio" style="display: inline-block; background: #ffffff; color: #059669; padding: 16px 40px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);">
+              🧬 Open Zygotrix Studio
+            </a>
+            
+            <p style="color: #a7f3d0; font-size: 13px; margin-top: 20px;">
+              <a href="https://zygotrix.com/changelog" style="color: #a7f3d0; text-decoration: underline;">View full changelog →</a>
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`,
+  release: `<!-- ZYGOTRIX RELEASE ANNOUNCEMENT TEMPLATE -->
+<!-- Customize the version number, features, and details below -->
 
-<div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); padding: 20px; border-radius: 12px; margin: 20px 0;">
-  <h3 style="color: #059669; margin-top: 0;">✨ Interactive Simulations</h3>
-  <p>Run genetic crosses with our powerful simulation engine. Visualize inheritance patterns, Punnett squares, and phenotype distributions in real-time.</p>
-  
-  <h3 style="color: #059669;">📊 Advanced Analytics</h3>
-  <p>Get detailed insights with our polygenic score calculations, trait analysis tools, and comprehensive genetic breakdowns.</p>
-  
-  <h3 style="color: #059669;">🤖 AI-Powered Learning</h3>
-  <p>Meet <strong>Zigi</strong>, your personal genetics tutor! Ask questions, get explanations, and deepen your understanding with our intelligent chatbot.</p>
-  
-  <h3 style="color: #059669;">🔬 Extensive Trait Library</h3>
-  <p>Explore our comprehensive database of genetic traits, from eye color to complex polygenic conditions.</p>
-</div>
+<!-- HERO SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 50%, #1e40af 100%); padding: 50px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <!-- Version Badge -->
+            <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 50px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3);">
+              <span style="color: white; font-size: 14px; font-weight: 600;">🚀 NEW RELEASE</span>
+            </div>
+            
+            <!-- Version Number -->
+            <h1 style="color: #ffffff; font-size: 52px; font-weight: 800; line-height: 1.1; margin: 0 0 15px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+              Version 2.0
+            </h1>
+            
+            <!-- Release Title -->
+            <p style="color: #bfdbfe; font-size: 22px; font-weight: 600; margin: 0 0 15px 0;">
+              The Future of Genetics Simulation
+            </p>
+            
+            <!-- Release Date -->
+            <p style="color: #93c5fd; font-size: 14px; margin: 0;">
+              Released December 2024
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<h2 style="color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;">📈 What Our Users Are Saying</h2>
+<!-- KEY HIGHLIGHTS BAR -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: #0f172a; padding: 25px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding: 0 30px; text-align: center;">
+                  <p style="color: #3b82f6; font-size: 32px; font-weight: 800; margin: 0;">50+</p>
+                  <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0 0;">New Features</p>
+                </td>
+                <td style="padding: 0 30px; text-align: center; border-left: 1px solid #334155; border-right: 1px solid #334155;">
+                  <p style="color: #3b82f6; font-size: 32px; font-weight: 800; margin: 0;">3x</p>
+                  <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0 0;">Faster Performance</p>
+                </td>
+                <td style="padding: 0 30px; text-align: center;">
+                  <p style="color: #3b82f6; font-size: 32px; font-weight: 800; margin: 0;">100%</p>
+                  <p style="color: #94a3b8; font-size: 12px; margin: 5px 0 0 0;">Backward Compatible</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<blockquote style="background: #f3f4f6; padding: 20px; border-left: 4px solid #10b981; margin: 20px 0; font-style: italic;">
-  "Zygotrix completely changed how I understand genetics. The simulations are incredible and Zigi is always there to help!"
-  <br><strong>— Sarah M., Biology Student</strong>
-</blockquote>
+<!-- MAIN FEATURES SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: #ffffff; padding: 50px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td>
+            <h2 style="color: #0f172a; font-size: 28px; font-weight: 700; text-align: center; margin: 0 0 10px 0;">
+              What's New in This Release
+            </h2>
+            <p style="color: #64748b; font-size: 16px; text-align: center; margin: 0 0 40px 0;">
+              Major improvements across the platform
+            </p>
+          </td>
+        </tr>
+        
+        <!-- Feature 1 -->
+        <tr>
+          <td style="padding-bottom: 25px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="60" valign="top">
+                  <div style="background: linear-gradient(135deg, #3b82f6, #1d4ed8); width: 50px; height: 50px; border-radius: 12px; text-align: center; line-height: 50px;">
+                    <span style="font-size: 24px;">🧬</span>
+                  </div>
+                </td>
+                <td valign="top" style="padding-left: 15px;">
+                  <h3 style="color: #0f172a; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">Enhanced Polygenic Score Engine</h3>
+                  <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0;">Completely redesigned scoring algorithm with 10x improved accuracy for complex trait predictions.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        
+        <!-- Feature 2 -->
+        <tr>
+          <td style="padding-bottom: 25px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="60" valign="top">
+                  <div style="background: linear-gradient(135deg, #10b981, #059669); width: 50px; height: 50px; border-radius: 12px; text-align: center; line-height: 50px;">
+                    <span style="font-size: 24px;">📊</span>
+                  </div>
+                </td>
+                <td valign="top" style="padding-left: 15px;">
+                  <h3 style="color: #0f172a; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">Advanced Visualization Suite</h3>
+                  <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0;">Beautiful new charts, interactive Punnett squares, and export capabilities for presentations.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        
+        <!-- Feature 3 -->
+        <tr>
+          <td style="padding-bottom: 25px;">
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="60" valign="top">
+                  <div style="background: linear-gradient(135deg, #8b5cf6, #6d28d9); width: 50px; height: 50px; border-radius: 12px; text-align: center; line-height: 50px;">
+                    <span style="font-size: 24px;">🤖</span>
+                  </div>
+                </td>
+                <td valign="top" style="padding-left: 15px;">
+                  <h3 style="color: #0f172a; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">Smarter AI Assistant (Zigi 2.0)</h3>
+                  <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0;">Now powered by advanced language models with deeper genetics knowledge and faster responses.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        
+        <!-- Feature 4 -->
+        <tr>
+          <td>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td width="60" valign="top">
+                  <div style="background: linear-gradient(135deg, #f59e0b, #d97706); width: 50px; height: 50px; border-radius: 12px; text-align: center; line-height: 50px;">
+                    <span style="font-size: 24px;">⚡</span>
+                  </div>
+                </td>
+                <td valign="top" style="padding-left: 15px;">
+                  <h3 style="color: #0f172a; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">Blazing Fast Simulations</h3>
+                  <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0;">Optimized C++ engine now processes up to 10 million base pairs in seconds.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<blockquote style="background: #f3f4f6; padding: 20px; border-left: 4px solid #10b981; margin: 20px 0; font-style: italic;">
-  "As a teacher, Zygotrix has become an essential tool in my classroom. My students are more engaged than ever!"
-  <br><strong>— Dr. James K., Genetics Professor</strong>
-</blockquote>
+<!-- CTA SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%); padding: 50px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <h2 style="color: #ffffff; font-size: 28px; font-weight: 800; margin: 0 0 15px 0;">
+              Ready to Experience Version 2.0?
+            </h2>
+            <p style="color: #bfdbfe; font-size: 16px; margin: 0 0 25px 0;">
+              Update now to access all the new features!
+            </p>
+            
+            <a href="https://zygotrix.com/studio" style="display: inline-block; background: #ffffff; color: #1d4ed8; padding: 16px 40px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);">
+              🚀 Try Version 2.0 Now
+            </a>
+            
+            <p style="color: #93c5fd; font-size: 13px; margin-top: 20px;">
+              <a href="https://zygotrix.com/changelog" style="color: #93c5fd; text-decoration: underline;">View full changelog →</a>
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`,
+  news: `<!-- ZYGOTRIX NEWS ANNOUNCEMENT TEMPLATE -->
+<!-- Perfect for company announcements, partnerships, and exciting news -->
 
-<h2 style="color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;">🎁 Join Today and Get:</h2>
+<!-- HERO SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #581c87 0%, #7c3aed 50%, #4c1d95 100%); padding: 50px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <!-- News Badge -->
+            <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 50px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3);">
+              <span style="color: white; font-size: 14px; font-weight: 600;">📰 ANNOUNCEMENT</span>
+            </div>
+            
+            <!-- Main Headline -->
+            <h1 style="color: #ffffff; font-size: 38px; font-weight: 800; line-height: 1.2; margin: 0 0 20px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+              Exciting News from Zygotrix!
+            </h1>
+            
+            <!-- Subheadline -->
+            <p style="color: #e9d5ff; font-size: 18px; line-height: 1.6; margin: 0; max-width: 500px;">
+              We're thrilled to share some important updates with our amazing community.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<ul style="font-size: 16px; line-height: 2;">
-  <li>✅ <strong>Free Access</strong> to all basic features</li>
-  <li>✅ <strong>Unlimited Simulations</strong> to run genetic crosses</li>
-  <li>✅ <strong>AI Chatbot</strong> for 24/7 learning assistance</li>
-  <li>✅ <strong>Personal Dashboard</strong> to track your progress</li>
-  <li>✅ <strong>Community Access</strong> to connect with fellow learners</li>
-</ul>
+<!-- MAIN CONTENT SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: #ffffff; padding: 50px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td>
+            <!-- Featured News Block -->
+            <div style="background: linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%); padding: 30px; border-radius: 16px; border-left: 4px solid #7c3aed; margin-bottom: 30px;">
+              <h2 style="color: #581c87; font-size: 24px; font-weight: 700; margin: 0 0 15px 0;">
+                🎉 [Your Headline Here]
+              </h2>
+              <p style="color: #6b7280; font-size: 16px; line-height: 1.7; margin: 0;">
+                Share your exciting news here. This could be a partnership announcement, milestone achievement, award recognition, or any other important update you want to share with your community.
+              </p>
+            </div>
+            
+            <!-- Additional Details -->
+            <h3 style="color: #0f172a; font-size: 20px; font-weight: 700; margin: 0 0 15px 0;">
+              What This Means for You
+            </h3>
+            <p style="color: #64748b; font-size: 16px; line-height: 1.7; margin: 0 0 20px 0;">
+              Explain how this news impacts your users. What benefits will they see? What changes should they expect? Keep your community informed and engaged.
+            </p>
+            
+            <!-- Key Points -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                  <span style="color: #7c3aed; font-size: 18px; margin-right: 12px;">✦</span>
+                  <span style="color: #334155; font-size: 16px;"><strong>Key Point 1</strong> — Brief description of the first important detail</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                  <span style="color: #7c3aed; font-size: 18px; margin-right: 12px;">✦</span>
+                  <span style="color: #334155; font-size: 16px;"><strong>Key Point 2</strong> — Brief description of the second important detail</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0;">
+                  <span style="color: #7c3aed; font-size: 18px; margin-right: 12px;">✦</span>
+                  <span style="color: #334155; font-size: 16px;"><strong>Key Point 3</strong> — Brief description of the third important detail</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; margin: 30px 0;">
-  <h2 style="color: white; margin-bottom: 15px;">Ready to Start Your Genetics Journey?</h2>
-  <p style="color: #d1fae5; margin-bottom: 20px;">Creating your account takes less than 2 minutes!</p>
-  <a href="https://zygotrix.com/signup" style="display: inline-block; background: white; color: #059669; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">🧬 Create Your Free Account</a>
-</div>
+<!-- CTA SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #7c3aed 0%, #5b21b6 100%); padding: 45px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <h2 style="color: #ffffff; font-size: 24px; font-weight: 700; margin: 0 0 15px 0;">
+              Want to Learn More?
+            </h2>
+            <p style="color: #e9d5ff; font-size: 16px; margin: 0 0 25px 0;">
+              Read the full announcement on our blog
+            </p>
+            
+            <a href="https://zygotrix.com/blog" style="display: inline-block; background: #ffffff; color: #5b21b6; padding: 16px 40px; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);">
+              📖 Read Full Story
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`,
+  update: `<!-- ZYGOTRIX UPDATE NOTIFICATION TEMPLATE -->
+<!-- Perfect for system updates, maintenance notices, and general notifications -->
 
-<p>Have questions? Our team is here to help! Simply reply to this email or visit our FAQ page.</p>
+<!-- HERO SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #92400e 0%, #f59e0b 50%, #b45309 100%); padding: 50px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <!-- Update Badge -->
+            <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 50px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3);">
+              <span style="color: white; font-size: 14px; font-weight: 600;">🔔 UPDATE</span>
+            </div>
+            
+            <!-- Main Headline -->
+            <h1 style="color: #ffffff; font-size: 36px; font-weight: 800; line-height: 1.2; margin: 0 0 20px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+              Important Update
+            </h1>
+            
+            <!-- Subheadline -->
+            <p style="color: #fef3c7; font-size: 18px; line-height: 1.6; margin: 0; max-width: 500px;">
+              We wanted to keep you informed about the latest developments at Zygotrix.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<p>We can't wait to welcome you to the Zygotrix family!</p>
+<!-- MAIN CONTENT SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: #ffffff; padding: 50px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td>
+            <!-- Update Notice Box -->
+            <div style="background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%); padding: 25px; border-radius: 16px; border-left: 4px solid #f59e0b; margin-bottom: 30px;">
+              <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                <tr>
+                  <td width="50" valign="top">
+                    <div style="background: #f59e0b; width: 40px; height: 40px; border-radius: 10px; text-align: center; line-height: 40px;">
+                      <span style="font-size: 20px;">📢</span>
+                    </div>
+                  </td>
+                  <td valign="top" style="padding-left: 15px;">
+                    <h3 style="color: #92400e; font-size: 18px; font-weight: 700; margin: 0 0 8px 0;">What You Need to Know</h3>
+                    <p style="color: #78716c; font-size: 15px; line-height: 1.6; margin: 0;">
+                      Briefly describe the update here. Keep it clear and concise so users understand the key information at a glance.
+                    </p>
+                  </td>
+                </tr>
+              </table>
+            </div>
+            
+            <!-- Details Section -->
+            <h3 style="color: #0f172a; font-size: 20px; font-weight: 700; margin: 0 0 20px 0;">
+              Update Details
+            </h3>
+            
+            <!-- Detail Items -->
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin-bottom: 30px;">
+              <tr>
+                <td style="padding: 15px; background: #f8fafc; border-radius: 10px; margin-bottom: 10px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td width="40" valign="top">
+                        <span style="font-size: 24px;">📅</span>
+                      </td>
+                      <td valign="top" style="padding-left: 10px;">
+                        <p style="color: #64748b; font-size: 12px; text-transform: uppercase; margin: 0 0 5px 0;">When</p>
+                        <p style="color: #0f172a; font-size: 16px; font-weight: 600; margin: 0;">December 20, 2024 at 2:00 PM UTC</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr><td style="height: 10px;"></td></tr>
+              <tr>
+                <td style="padding: 15px; background: #f8fafc; border-radius: 10px; margin-bottom: 10px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td width="40" valign="top">
+                        <span style="font-size: 24px;">⏱️</span>
+                      </td>
+                      <td valign="top" style="padding-left: 10px;">
+                        <p style="color: #64748b; font-size: 12px; text-transform: uppercase; margin: 0 0 5px 0;">Duration</p>
+                        <p style="color: #0f172a; font-size: 16px; font-weight: 600; margin: 0;">Approximately 30 minutes</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+              <tr><td style="height: 10px;"></td></tr>
+              <tr>
+                <td style="padding: 15px; background: #f8fafc; border-radius: 10px;">
+                  <table width="100%" cellpadding="0" cellspacing="0" border="0">
+                    <tr>
+                      <td width="40" valign="top">
+                        <span style="font-size: 24px;">💡</span>
+                      </td>
+                      <td valign="top" style="padding-left: 10px;">
+                        <p style="color: #64748b; font-size: 12px; text-transform: uppercase; margin: 0 0 5px 0;">Impact</p>
+                        <p style="color: #0f172a; font-size: 16px; font-weight: 600; margin: 0;">No action required from your side</p>
+                      </td>
+                    </tr>
+                  </table>
+                </td>
+              </tr>
+            </table>
+            
+            <!-- Additional Info -->
+            <p style="color: #64748b; font-size: 15px; line-height: 1.7; margin: 0;">
+              Thank you for being part of our community! If you have any questions, don't hesitate to reach out to our support team.
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<p style="margin-top: 30px;">
-  Warm regards,<br>
-  <strong>The Zygotrix Team</strong><br>
-  <em style="color: #6b7280;">Empowering the next generation of geneticists</em>
-</p>
+<!-- FOOTER CTA -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: #0f172a; padding: 40px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <p style="color: #94a3b8; font-size: 14px; margin: 0 0 20px 0;">
+              Need help? Our support team is here for you.
+            </p>
+            <a href="https://zygotrix.com/support" style="display: inline-block; background: #f59e0b; color: #0f172a; padding: 14px 30px; border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px;">
+              📧 Contact Support
+            </a>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`,
+  marketing: `<!-- ZYGOTRIX PREMIUM MARKETING EMAIL TEMPLATE -->
+<!-- Edit the content below while keeping the structure intact -->
 
-<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+<!-- HERO SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0" style="margin: 0; padding: 0;">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0f172a 100%); padding: 60px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <!-- Logo/Brand Badge -->
+            <div style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 12px 24px; border-radius: 50px; margin-bottom: 30px;">
+              <span style="color: white; font-size: 14px; font-weight: 600; letter-spacing: 2px;">🧬 ZYGOTRIX</span>
+            </div>
+            
+            <!-- Main Headline -->
+            <h1 style="color: #ffffff; font-size: 42px; font-weight: 800; line-height: 1.2; margin: 0 0 20px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
+              Discover the <span style="background: linear-gradient(90deg, #10b981, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Future</span> of<br/>Genetics Education
+            </h1>
+            
+            <!-- Subheadline -->
+            <p style="color: #94a3b8; font-size: 18px; line-height: 1.6; margin: 0 0 40px 0; max-width: 480px;">
+              Join thousands of students and researchers who are transforming their understanding of DNA with our interactive platform.
+            </p>
+            
+            <!-- CTA Button -->
+            <a href="https://zygotrix.com/signup" style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; padding: 18px 48px; border-radius: 12px; text-decoration: none; font-weight: 700; font-size: 16px; box-shadow: 0 10px 40px rgba(16, 185, 129, 0.4); transition: all 0.3s;">
+              🚀 Start Free Today
+            </a>
+            
+            <p style="color: #64748b; font-size: 13px; margin-top: 20px;">No credit card required • Setup in 2 minutes</p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
 
-<p style="text-align: center; color: #9ca3af; font-size: 12px;">
-  © 2024 Zygotrix. All rights reserved.<br>
-  <a href="https://zygotrix.com" style="color: #10b981;">zygotrix.com</a>
-</p>`,
+<!-- SOCIAL PROOF BAR -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: #f8fafc; padding: 30px 20px; border-bottom: 1px solid #e2e8f0;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <p style="color: #64748b; font-size: 14px; margin: 0 0 15px 0; text-transform: uppercase; letter-spacing: 1px;">Trusted by learners worldwide</p>
+            <table cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <td style="padding: 0 25px; text-align: center;">
+                  <p style="color: #0f172a; font-size: 28px; font-weight: 800; margin: 0;">10K+</p>
+                  <p style="color: #64748b; font-size: 12px; margin: 5px 0 0 0;">Active Users</p>
+                </td>
+                <td style="padding: 0 25px; text-align: center; border-left: 1px solid #e2e8f0; border-right: 1px solid #e2e8f0;">
+                  <p style="color: #0f172a; font-size: 28px; font-weight: 800; margin: 0;">500K+</p>
+                  <p style="color: #64748b; font-size: 12px; margin: 5px 0 0 0;">Simulations Run</p>
+                </td>
+                <td style="padding: 0 25px; text-align: center;">
+                  <p style="color: #0f172a; font-size: 28px; font-weight: 800; margin: 0;">4.9★</p>
+                  <p style="color: #64748b; font-size: 12px; margin: 5px 0 0 0;">User Rating</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- FEATURES SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: #ffffff; padding: 60px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td>
+            <h2 style="color: #0f172a; font-size: 32px; font-weight: 700; text-align: center; margin: 0 0 15px 0;">
+              Everything You Need to <span style="color: #10b981;">Master Genetics</span>
+            </h2>
+            <p style="color: #64748b; font-size: 16px; text-align: center; margin: 0 0 40px 0;">
+              Powerful tools designed for modern learning
+            </p>
+          </td>
+        </tr>
+        
+        <!-- Feature Cards Row 1 -->
+        <tr>
+          <td>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <!-- Feature 1 -->
+                <td width="48%" style="background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%); padding: 25px; border-radius: 16px; vertical-align: top;">
+                  <div style="background: #10b981; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <span style="font-size: 24px;">🔬</span>
+                  </div>
+                  <h3 style="color: #0f172a; font-size: 18px; font-weight: 700; margin: 0 0 10px 0;">Interactive Simulations</h3>
+                  <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0;">Run genetic crosses in real-time with our powerful simulation engine.</p>
+                </td>
+                <td width="4%"></td>
+                <!-- Feature 2 -->
+                <td width="48%" style="background: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%); padding: 25px; border-radius: 16px; vertical-align: top;">
+                  <div style="background: #3b82f6; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <span style="font-size: 24px;">🤖</span>
+                  </div>
+                  <h3 style="color: #0f172a; font-size: 18px; font-weight: 700; margin: 0 0 10px 0;">AI Learning Assistant</h3>
+                  <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0;">Meet Zigi - your 24/7 AI tutor for genetics questions.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+        
+        <tr><td style="height: 15px;"></td></tr>
+        
+        <!-- Feature Cards Row 2 -->
+        <tr>
+          <td>
+            <table width="100%" cellpadding="0" cellspacing="0" border="0">
+              <tr>
+                <!-- Feature 3 -->
+                <td width="48%" style="background: linear-gradient(135deg, #fefce8 0%, #fef9c3 100%); padding: 25px; border-radius: 16px; vertical-align: top;">
+                  <div style="background: #eab308; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <span style="font-size: 24px;">📊</span>
+                  </div>
+                  <h3 style="color: #0f172a; font-size: 18px; font-weight: 700; margin: 0 0 10px 0;">Advanced Analytics</h3>
+                  <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0;">Visualize inheritance patterns with beautiful charts and graphs.</p>
+                </td>
+                <td width="4%"></td>
+                <!-- Feature 4 -->
+                <td width="48%" style="background: linear-gradient(135deg, #fdf4ff 0%, #fae8ff 100%); padding: 25px; border-radius: 16px; vertical-align: top;">
+                  <div style="background: #a855f7; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 15px;">
+                    <span style="font-size: 24px;">📚</span>
+                  </div>
+                  <h3 style="color: #0f172a; font-size: 18px; font-weight: 700; margin: 0 0 10px 0;">Trait Library</h3>
+                  <p style="color: #64748b; font-size: 14px; line-height: 1.5; margin: 0;">Explore 100+ genetic traits from eye color to complex conditions.</p>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- TESTIMONIAL SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%); padding: 60px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <p style="color: #10b981; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; margin: 0 0 20px 0;">💬 What Our Users Say</p>
+            
+            <div style="background: rgba(255,255,255,0.05); padding: 30px; border-radius: 20px; border: 1px solid rgba(255,255,255,0.1);">
+              <p style="color: #f1f5f9; font-size: 20px; font-style: italic; line-height: 1.6; margin: 0 0 25px 0;">
+                "Zygotrix completely transformed how I teach genetics. My students are more engaged than ever, and the AI assistant is like having a teaching aide available 24/7!"
+              </p>
+              <div>
+                <p style="color: #10b981; font-size: 16px; font-weight: 700; margin: 0;">Dr. Sarah Mitchell</p>
+                <p style="color: #64748b; font-size: 14px; margin: 5px 0 0 0;">Professor of Genetics, Stanford University</p>
+              </div>
+            </div>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- WHAT YOU GET SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: #ffffff; padding: 60px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <h2 style="color: #0f172a; font-size: 28px; font-weight: 700; margin: 0 0 30px 0;">
+              🎁 Join Today and Unlock
+            </h2>
+            
+            <table width="100%" cellpadding="0" cellspacing="0" border="0" style="text-align: left;">
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                  <span style="color: #10b981; font-size: 18px; margin-right: 12px;">✓</span>
+                  <span style="color: #334155; font-size: 16px;"><strong>Unlimited Simulations</strong> — Run as many genetic crosses as you want</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                  <span style="color: #10b981; font-size: 18px; margin-right: 12px;">✓</span>
+                  <span style="color: #334155; font-size: 16px;"><strong>AI Chatbot Access</strong> — Get instant answers to any genetics question</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                  <span style="color: #10b981; font-size: 18px; margin-right: 12px;">✓</span>
+                  <span style="color: #334155; font-size: 16px;"><strong>Personal Dashboard</strong> — Track your learning progress</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0; border-bottom: 1px solid #f1f5f9;">
+                  <span style="color: #10b981; font-size: 18px; margin-right: 12px;">✓</span>
+                  <span style="color: #334155; font-size: 16px;"><strong>Trait Library</strong> — Access our complete genetic database</span>
+                </td>
+              </tr>
+              <tr>
+                <td style="padding: 12px 0;">
+                  <span style="color: #10b981; font-size: 18px; margin-right: 12px;">✓</span>
+                  <span style="color: #334155; font-size: 16px;"><strong>Community Access</strong> — Connect with fellow genetics enthusiasts</span>
+                </td>
+              </tr>
+            </table>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>
+
+<!-- FINAL CTA SECTION -->
+<table width="100%" cellpadding="0" cellspacing="0" border="0">
+  <tr>
+    <td align="center" style="background: linear-gradient(135deg, #10b981 0%, #059669 50%, #047857 100%); padding: 60px 20px;">
+      <table width="600" cellpadding="0" cellspacing="0" border="0">
+        <tr>
+          <td align="center">
+            <h2 style="color: #ffffff; font-size: 36px; font-weight: 800; margin: 0 0 15px 0;">
+              Ready to Transform Your<br/>Genetics Learning?
+            </h2>
+            <p style="color: #d1fae5; font-size: 18px; margin: 0 0 30px 0;">
+              Join now and start your journey in under 2 minutes!
+            </p>
+            
+            <a href="https://zygotrix.com/signup" style="display: inline-block; background: #ffffff; color: #059669; padding: 18px 50px; border-radius: 12px; text-decoration: none; font-weight: 800; font-size: 18px; box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);">
+              🧬 Create Your Free Account
+            </a>
+            
+            <p style="color: #a7f3d0; font-size: 14px; margin-top: 25px;">
+              ⚡ Limited Time: Get early access to our upcoming DNA sequencing tools!
+            </p>
+          </td>
+        </tr>
+      </table>
+    </td>
+  </tr>
+</table>`,
 };
 
 const AdminNewsletterPage: React.FC = () => {
@@ -201,7 +988,7 @@ const AdminNewsletterPage: React.FC = () => {
   // Selection state
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
-  
+
   // Custom email input state
   const [customEmailInput, setCustomEmailInput] = useState("");
   const [customEmails, setCustomEmails] = useState<string[]>([]);
@@ -214,29 +1001,8 @@ const AdminNewsletterPage: React.FC = () => {
   const [editMode, setEditMode] = useState<"code" | "visual">("visual");
   const editorRef = React.useRef<HTMLDivElement>(null);
 
-  // Initialize editor content on mount and template change
-  React.useEffect(() => {
-    if (editorRef.current && editMode === "visual") {
-      // Only update if editor is empty or content is different
-      if (editorRef.current.innerHTML !== content) {
-        const selection = window.getSelection();
-        const range = selection?.rangeCount ? selection.getRangeAt(0) : null;
-
-        editorRef.current.innerHTML = content;
-
-        // Restore cursor position if there was one
-        if (range && editorRef.current.contains(range.startContainer)) {
-          try {
-            selection?.removeAllRanges();
-            selection?.addRange(range);
-          } catch (error) {
-            console.log("Error restoring selection:", error);
-            // Ignore errors when restoring selection
-          }
-        }
-      }
-    }
-  }, [templateType, editMode]); // Only when template or mode changes
+  // Store ref to editor - the key prop on the editor forces re-creation on template change
+  // dangerouslySetInnerHTML handles the initial content, onInput syncs edits back to state
 
   const executeCommand = (command: string, value?: string) => {
     document.execCommand(command, false, value);
@@ -285,6 +1051,8 @@ const AdminNewsletterPage: React.FC = () => {
   }, [isAdmin]);
 
   useEffect(() => {
+    // Update content state when template changes
+    // The editor's key={templateType} prop forces re-mount with new dangerouslySetInnerHTML
     setContent(EXAMPLE_CONTENT[templateType]);
   }, [templateType]);
 
@@ -331,22 +1099,22 @@ const AdminNewsletterPage: React.FC = () => {
 
   const addCustomEmail = () => {
     const email = customEmailInput.trim().toLowerCase();
-    
+
     if (!email) {
       setError("Please enter an email address");
       return;
     }
-    
+
     if (!isValidEmail(email)) {
       setError("Please enter a valid email address");
       return;
     }
-    
+
     if (customEmails.includes(email) || selectedEmails.has(email)) {
       setError("This email is already added");
       return;
     }
-    
+
     setCustomEmails((prev) => [...prev, email]);
     setSelectedEmails((prev) => new Set([...prev, email]));
     setCustomEmailInput("");
@@ -359,27 +1127,27 @@ const AdminNewsletterPage: React.FC = () => {
       .split(/[,;\n\s]+/)
       .map((e) => e.trim().toLowerCase())
       .filter((e) => e && isValidEmail(e));
-    
+
     if (emails.length === 0) {
       setError("No valid emails found");
       return;
     }
-    
+
     const newCustomEmails: string[] = [];
     const newSelectedEmails = new Set(selectedEmails);
-    
+
     emails.forEach((email) => {
       if (!customEmails.includes(email) && !newSelectedEmails.has(email)) {
         newCustomEmails.push(email);
         newSelectedEmails.add(email);
       }
     });
-    
+
     if (newCustomEmails.length === 0) {
       setError("All emails are already added");
       return;
     }
-    
+
     setCustomEmails((prev) => [...prev, ...newCustomEmails]);
     setSelectedEmails(newSelectedEmails);
     setCustomEmailInput("");
@@ -426,8 +1194,7 @@ const AdminNewsletterPage: React.FC = () => {
       });
 
       setSuccessMessage(
-        `Successfully sent ${result.success} email(s)${
-          result.failed > 0 ? `, ${result.failed} failed` : ""
+        `Successfully sent ${result.success} email(s)${result.failed > 0 ? `, ${result.failed} failed` : ""
         }`
       );
 
@@ -479,7 +1246,7 @@ const AdminNewsletterPage: React.FC = () => {
     }
   };
 
- type Recipient = (NewsletterSubscriber | SystemUser) & {
+  type Recipient = (NewsletterSubscriber | SystemUser) & {
     displayName?: string;
   };
 
@@ -613,35 +1380,32 @@ const AdminNewsletterPage: React.FC = () => {
 
                 {/* Search */}
 
-                                {/* Tabs */}
+                {/* Tabs */}
                 <div className="flex gap-1 mb-3 bg-gray-100 dark:bg-slate-700 rounded-lg p-1">
                   <button
                     onClick={() => setActiveTab("all")}
-                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      activeTab === "all"
-                        ? "bg-emerald-500 text-white"
-                        : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white"
-                    }`}
+                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${activeTab === "all"
+                      ? "bg-emerald-500 text-white"
+                      : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white"
+                      }`}
                   >
                     All ({newsletterSubscribers.length + systemUsers.length})
                   </button>
                   <button
                     onClick={() => setActiveTab("newsletter")}
-                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      activeTab === "newsletter"
-                        ? "bg-emerald-500 text-white"
-                        : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white"
-                    }`}
+                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${activeTab === "newsletter"
+                      ? "bg-emerald-500 text-white"
+                      : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white"
+                      }`}
                   >
                     Newsletter ({newsletterSubscribers.length})
                   </button>
                   <button
                     onClick={() => setActiveTab("system")}
-                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${
-                      activeTab === "system"
-                        ? "bg-emerald-500 text-white"
-                        : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white"
-                    }`}
+                    className={`flex-1 px-3 py-1.5 text-xs font-medium rounded transition-colors ${activeTab === "system"
+                      ? "bg-emerald-500 text-white"
+                      : "text-gray-600 dark:text-slate-300 hover:text-gray-900 dark:hover:text-white"
+                      }`}
                   >
                     Users ({systemUsers.length})
                   </button>
@@ -715,7 +1479,7 @@ const AdminNewsletterPage: React.FC = () => {
                           </div>
                         </div>
                       </label>
-                       {recipient.type === "newsletter_subscriber" && (
+                      {recipient.type === "newsletter_subscriber" && (
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
@@ -749,7 +1513,7 @@ const AdminNewsletterPage: React.FC = () => {
                   Send to any email address
                 </p>
               </div>
-              
+
               <div className="p-4 space-y-3">
                 {/* Email Input */}
                 <div className="flex gap-2">
@@ -784,11 +1548,11 @@ const AdminNewsletterPage: React.FC = () => {
                     Add
                   </button>
                 </div>
-                
+
                 <p className="text-xs text-gray-400 dark:text-slate-500">
                   💡 Tip: Paste multiple emails separated by commas, semicolons, or spaces
                 </p>
-                
+
                 {/* Custom Emails List */}
                 {customEmails.length > 0 && (
                   <div className="space-y-2">
@@ -854,30 +1618,26 @@ const AdminNewsletterPage: React.FC = () => {
                     <button
                       key={template.value}
                       onClick={() => setTemplateType(template.value)}
-                      className={`relative p-4 rounded-xl border-2 transition-all text-left ${
-                        isSelected
-                          ? `${template.borderColor} bg-gray-50 dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 shadow-lg`
-                          : "border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-gray-300 dark:hover:border-slate-600"
-                      }`}
+                      className={`relative p-4 rounded-xl border-2 transition-all text-left ${isSelected
+                        ? `${template.borderColor} bg-gray-50 dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 shadow-lg`
+                        : "border-gray-200 dark:border-slate-700 bg-white dark:bg-slate-800/50 hover:border-gray-300 dark:hover:border-slate-600"
+                        }`}
                     >
                       <div className="flex items-center gap-3 mb-2">
                         <div
-                          className={`p-2 rounded-lg ${
-                            isSelected
-                              ? template.color
-                              : "bg-gray-100 dark:bg-slate-700"
-                          }`}
+                          className={`p-2 rounded-lg ${isSelected
+                            ? template.color
+                            : "bg-gray-100 dark:bg-slate-700"
+                            }`}
                         >
                           <Icon
-                            className={`w-4 h-4 ${
-                              isSelected ? "text-white" : "text-gray-500 dark:text-slate-400"
-                            }`}
+                            className={`w-4 h-4 ${isSelected ? "text-white" : "text-gray-500 dark:text-slate-400"
+                              }`}
                           />
                         </div>
                         <h3
-                          className={`text-sm font-semibold ${
-                            isSelected ? "text-gray-900 dark:text-white" : "text-gray-600 dark:text-slate-300"
-                          }`}
+                          className={`text-sm font-semibold ${isSelected ? "text-gray-900 dark:text-white" : "text-gray-600 dark:text-slate-300"
+                            }`}
                         >
                           {template.label}
                         </h3>
@@ -929,22 +1689,20 @@ const AdminNewsletterPage: React.FC = () => {
                       <button
                         type="button"
                         onClick={() => setEditMode("visual")}
-                        className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                          editMode === "visual"
-                            ? "bg-emerald-500 text-white"
-                            : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
-                        }`}
+                        className={`px-3 py-1 text-xs font-medium rounded transition-colors ${editMode === "visual"
+                          ? "bg-emerald-500 text-white"
+                          : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
+                          }`}
                       >
                         Visual
                       </button>
                       <button
                         type="button"
                         onClick={() => setEditMode("code")}
-                        className={`px-3 py-1 text-xs font-medium rounded transition-colors ${
-                          editMode === "code"
-                            ? "bg-emerald-500 text-white"
-                            : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
-                        }`}
+                        className={`px-3 py-1 text-xs font-medium rounded transition-colors ${editMode === "code"
+                          ? "bg-emerald-500 text-white"
+                          : "text-gray-500 dark:text-slate-400 hover:text-gray-700 dark:hover:text-white"
+                          }`}
                       >
                         HTML
                       </button>
@@ -1065,6 +1823,7 @@ const AdminNewsletterPage: React.FC = () => {
 
                       {/* Editor */}
                       <div
+                        key={templateType} // Force re-render when template changes
                         ref={editorRef}
                         contentEditable
                         suppressContentEditableWarning
@@ -1072,6 +1831,11 @@ const AdminNewsletterPage: React.FC = () => {
                           const target = e.target as HTMLDivElement;
                           setContent(target.innerHTML);
                         }}
+                        onBlur={(e) => {
+                          const target = e.target as HTMLDivElement;
+                          setContent(target.innerHTML);
+                        }}
+                        dangerouslySetInnerHTML={{ __html: content }}
                         className="w-full min-h-[250px] max-h-[400px] px-4 py-3 bg-white text-sm text-gray-800 focus:outline-none prose prose-sm max-w-none overflow-auto"
                       />
                     </div>
@@ -1089,11 +1853,9 @@ const AdminNewsletterPage: React.FC = () => {
                     type="button"
                     onClick={handleSendNewsletter}
                     disabled={sending || selectedEmails.size === 0}
-                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${
-                      selectedTemplate?.color
-                    } ${
-                      selectedTemplate?.hoverColor
-                    } text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
+                    className={`flex-1 flex items-center justify-center gap-2 px-6 py-2.5 rounded-lg text-sm font-semibold transition-all ${selectedTemplate?.color
+                      } ${selectedTemplate?.hoverColor
+                      } text-white shadow-lg disabled:opacity-50 disabled:cursor-not-allowed`}
                   >
                     {sending ? (
                       <>

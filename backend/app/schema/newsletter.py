@@ -18,7 +18,7 @@ class NewsletterSubscribeResponse(BaseModel):
 class SendNewsletterRequest(BaseModel):
     """Request to send newsletter to subscribers."""
     recipient_emails: List[EmailStr]
-    template_type: Literal["changelog", "release", "news", "update"]
+    template_type: Literal["changelog", "release", "news", "update", "marketing"]
     subject: str
     content: str
 

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { chatService } from "../services";
 import { generateMessageId } from "../utils";
 import type { Message, ChatRequest } from "../types";
@@ -6,6 +6,7 @@ import type { Message, ChatRequest } from "../types";
 interface UseChatReturn {
   messages: Message[];
   isLoading: boolean;
+  isStreaming: boolean;
   error: string | null;
   conversationId: string | null;
   conversationTitle: string;
@@ -19,6 +20,7 @@ interface UseChatReturn {
 export const useChat = (initialConversationId?: string): UseChatReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+  const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(
     initialConversationId || null
@@ -26,10 +28,16 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
   const [conversationTitle, setConversationTitle] =
     useState<string>("New Conversation");
 
+  // RAF throttling for streaming updates
+  const chunkBuffer = useRef<string>("");
+  const updateScheduled = useRef(false);
+  const streamingMessageId = useRef<string>("");
+
   // Load an existing conversation
   const loadConversation = useCallback(async (convId: string) => {
     setIsLoading(true);
     setError(null);
+    setMessages([]); // Clear messages to show loading state
     try {
       const [conversation, messagesResponse] = await Promise.all([
         chatService.getConversation(convId),
@@ -84,50 +92,111 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
       setIsLoading(true);
       setError(null);
 
-      try {
-        const chatRequest: ChatRequest = {
-          conversation_id: conversationId || undefined,
-          message: content.trim(),
-          page_context: "Chat Interface",
-          stream: false,
-        };
+      // Create placeholder for streaming message
+      const tempMessageId = generateMessageId();
+      streamingMessageId.current = tempMessageId;
 
-        const response = await chatService.sendMessage(chatRequest);
+      const placeholderMessage: Message = {
+        id: tempMessageId,
+        role: "assistant",
+        content: "",
+        timestamp: Date.now(),
+        isStreaming: true,
+      };
 
-        // Update conversation ID if this was a new conversation
-        if (!conversationId && response.conversation_id) {
-          setConversationId(response.conversation_id);
+      setMessages((prev) => [...prev, placeholderMessage]);
+      setIsStreaming(true);
+
+      const chatRequest: ChatRequest = {
+        conversation_id: conversationId || undefined,
+        message: content.trim(),
+        page_context: "Chat Interface",
+        stream: true, // Enable streaming
+      };
+
+      // RAF-throttled update function
+      const scheduleUpdate = () => {
+        if (!updateScheduled.current) {
+          updateScheduled.current = true;
+          requestAnimationFrame(() => {
+            const contentToAdd = chunkBuffer.current;
+            chunkBuffer.current = "";
+            updateScheduled.current = false;
+
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === streamingMessageId.current
+                  ? { ...msg, content: msg.content + contentToAdd }
+                  : msg
+              )
+            );
+          });
         }
+      };
 
-        // Update conversation title
-        if (response.conversation_title) {
-          setConversationTitle(response.conversation_title);
+      await chatService.sendMessageStreaming(
+        chatRequest,
+        // onChunk callback
+        (chunk) => {
+          if (chunk.type === "content") {
+            chunkBuffer.current += chunk.content || "";
+            scheduleUpdate();
+          }
+        },
+        // onComplete callback
+        (response) => {
+          setIsStreaming(false);
+          setIsLoading(false);
+
+          // Update conversation ID if this was a new conversation
+          if (!conversationId && response.conversation_id) {
+            setConversationId(response.conversation_id);
+          }
+
+          // Update conversation title
+          if (response.conversation_title) {
+            setConversationTitle(response.conversation_title);
+          }
+
+          // Remove streaming flag and update with real message ID
+          setMessages((prev) =>
+            prev.map((msg) =>
+              msg.id === streamingMessageId.current
+                ? {
+                  ...msg,
+                  id: response.message.id,
+                  isStreaming: false,
+                  metadata: response.message.metadata,
+                  created_at: response.message.created_at,
+                }
+                : msg
+            )
+          );
+
+          // Clear refs
+          chunkBuffer.current = "";
+          streamingMessageId.current = "";
+        },
+        // onError callback
+        (error) => {
+          console.error("[useChat] Streaming error:", error.message);
+          setError(error.message);
+          setIsStreaming(false);
+          setIsLoading(false);
+
+          // Remove the streaming placeholder on error (keep user message)
+          const streamingId = streamingMessageId.current;
+          if (streamingId) {
+            setMessages((prev) =>
+              prev.filter((msg) => msg.id !== streamingId)
+            );
+          }
+
+          // Clear refs
+          chunkBuffer.current = "";
+          streamingMessageId.current = "";
         }
-
-        // Add assistant message from response
-        const assistantMessage: Message = {
-          id: response.message.id,
-          conversation_id: response.conversation_id,
-          role: "assistant",
-          content: response.message.content,
-          status: response.message.status,
-          metadata: response.message.metadata,
-          timestamp: new Date(
-            response.message.created_at || Date.now()
-          ).getTime(),
-        };
-
-        setMessages((prev) => [...prev, assistantMessage]);
-      } catch (err) {
-        const errorMessage =
-          err instanceof Error ? err.message : "Failed to send message";
-        setError(errorMessage);
-
-        // Remove the optimistic user message on error
-        setMessages((prev) => prev.slice(0, -1));
-      } finally {
-        setIsLoading(false);
-      }
+      );
     },
     [conversationId]
   );
@@ -140,6 +209,7 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
   return {
     messages,
     isLoading,
+    isStreaming,
     error,
     conversationId,
     conversationTitle,

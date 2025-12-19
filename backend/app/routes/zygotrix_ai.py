@@ -475,6 +475,11 @@ Question: {request.message}"""
                                 ConversationUpdate(title=request.message[:50] + ("..." if len(request.message) > 50 else ""))
                             )
 
+                        # Record token usage for rate limiting (same as non-streaming path)
+                        total_tokens = metadata.get("total_tokens", 0) if metadata else 0
+                        if total_tokens > 0:
+                            _rate_limiter.record_usage(user_id, total_tokens)
+
                     yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation.id, 'message_id': assistant_message.id if assistant_content else None})}\n\n"
 
         return StreamingResponse(

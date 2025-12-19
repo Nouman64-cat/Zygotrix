@@ -1,11 +1,13 @@
 import axiosInstance from "../api/config/axios.config";
 import { API_ENDPOINTS } from "../api/constants/api.constants";
+import { streamChatResponse, type StreamChunk } from "./streaming.service";
 import type {
   ChatRequest,
   ChatResponse,
   ConversationListResponse,
   MessageListResponse,
   Conversation,
+  MessageMetadata,
 } from "../../types";
 
 class ChatService {
@@ -29,6 +31,71 @@ class ChatService {
       }
     );
     return response.data;
+  }
+
+  /**
+   * Send a message with streaming response (SSE)
+   * @param request Chat request
+   * @param onChunk Callback for each content chunk
+   * @param onComplete Callback when streaming completes
+   * @param onError Callback for errors
+   */
+  async sendMessageStreaming(
+    request: ChatRequest,
+    onChunk: (chunk: StreamChunk) => void,
+    onComplete: (response: ChatResponse) => void,
+    onError: (error: Error) => void
+  ): Promise<void> {
+    try {
+      let fullContent = "";
+      let conversationId = "";
+      let messageId = "";
+      let metadata: MessageMetadata | undefined;
+      let chunkCount = 0;
+
+      console.log("[ChatService] Starting streaming for message:", request.message.substring(0, 50));
+
+      // Stream the response
+      for await (const chunk of streamChatResponse(request)) {
+        chunkCount++;
+        console.log("[ChatService] Received chunk #" + chunkCount + ":", chunk.type, chunk.content?.substring(0, 50));
+
+        if (chunk.type === "content") {
+          fullContent += chunk.content || "";
+          onChunk(chunk);
+        } else if (chunk.type === "metadata") {
+          metadata = chunk.metadata;
+          onChunk(chunk);
+        } else if (chunk.type === "done") {
+          conversationId = chunk.conversation_id || conversationId;
+          messageId = chunk.message_id || messageId;
+          onChunk(chunk);
+        } else if (chunk.type === "error") {
+          throw new Error(chunk.error || "Unknown streaming error");
+        }
+      }
+
+      console.log("[ChatService] Streaming complete. Total chunks:", chunkCount, "Content length:", fullContent.length);
+
+      // Call completion handler with full response
+      onComplete({
+        conversation_id: conversationId,
+        message: {
+          id: messageId,
+          role: "assistant",
+          content: fullContent,
+          conversation_id: conversationId,
+          metadata,
+          created_at: new Date().toISOString(),
+          timestamp: Date.now(),
+        },
+        conversation_title: request.message.slice(0, 100),
+        usage: metadata,
+      });
+    } catch (error) {
+      console.error("[ChatService] Streaming error:", error);
+      onError(error instanceof Error ? error : new Error("Streaming failed"));
+    }
   }
 
   /**

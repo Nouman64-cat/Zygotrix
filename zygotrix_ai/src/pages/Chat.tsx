@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout';
 import { MessageList, ChatInput, RateLimitIndicator } from '../components/chat';
 import { useChat } from '../hooks';
@@ -6,13 +7,17 @@ import { chatService } from '../services';
 import type { LocalConversation } from '../types';
 
 export const Chat: React.FC = () => {
+  const { conversationId: urlConversationId } = useParams<{ conversationId?: string }>();
+  const navigate = useNavigate();
+  
   const [conversationsList, setConversationsList] = useState<LocalConversation[]>([]);
-  const [_isLoadingConversations, setIsLoadingConversations] = useState(false);
   const [rateLimitRefresh, setRateLimitRefresh] = useState(0);
+  const [initialLoadDone, setInitialLoadDone] = useState(false);
 
   const {
     messages,
     isLoading,
+    isStreaming,
     error,
     conversationId,
     sendMessage,
@@ -22,7 +27,6 @@ export const Chat: React.FC = () => {
 
   // Load conversations list from API
   const loadConversations = useCallback(async () => {
-    setIsLoadingConversations(true);
     try {
       const response = await chatService.getConversations({ page_size: 50 });
       // Convert API conversations to LocalConversation format for sidebar
@@ -36,8 +40,6 @@ export const Chat: React.FC = () => {
       setConversationsList(localConversations);
     } catch (err) {
       console.error('Failed to load conversations:', err);
-    } finally {
-      setIsLoadingConversations(false);
     }
   }, []);
 
@@ -45,6 +47,25 @@ export const Chat: React.FC = () => {
   useEffect(() => {
     loadConversations();
   }, [loadConversations]);
+
+  // Load conversation from URL on initial mount
+  useEffect(() => {
+    if (!initialLoadDone && urlConversationId) {
+      loadConversation(urlConversationId);
+      setInitialLoadDone(true);
+    } else if (!initialLoadDone) {
+      setInitialLoadDone(true);
+    }
+  }, [urlConversationId, loadConversation, initialLoadDone]);
+
+  // Update URL when conversation changes
+  useEffect(() => {
+    if (conversationId && conversationId !== urlConversationId) {
+      navigate(`/chat/${conversationId}`, { replace: true });
+    } else if (!conversationId && urlConversationId) {
+      navigate('/chat', { replace: true });
+    }
+  }, [conversationId, urlConversationId, navigate]);
 
   // Refresh conversations list when a new message is sent (conversation might be new)
   useEffect(() => {
@@ -59,6 +80,7 @@ export const Chat: React.FC = () => {
 
   const handleNewConversation = () => {
     startNewConversation();
+    navigate('/chat', { replace: true });
   };
 
   const handleSelectConversation = async (id: string) => {
@@ -71,6 +93,7 @@ export const Chat: React.FC = () => {
       setConversationsList(prev => prev.filter(c => c.id !== id));
       if (conversationId === id) {
         startNewConversation();
+        navigate('/chat', { replace: true });
       }
     } catch (err) {
       console.error('Failed to delete conversation:', err);
@@ -79,8 +102,10 @@ export const Chat: React.FC = () => {
 
   const handleSendMessage = async (content: string) => {
     await sendMessage(content);
-    // Trigger rate limit refresh after sending
-    setRateLimitRefresh(prev => prev + 1);
+    // Small delay to ensure backend has finished recording token usage
+    setTimeout(() => {
+      setRateLimitRefresh(prev => prev + 1);
+    }, 1000);
   };
 
   return (
@@ -100,7 +125,7 @@ export const Chat: React.FC = () => {
           </div>
         )}
 
-        <MessageList messages={messages} isLoading={isLoading} />
+        <MessageList messages={messages} isLoading={isLoading} isStreaming={isStreaming} />
 
         {/* Rate limit indicator */}
         <div className="border-t border-gray-100 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-900">

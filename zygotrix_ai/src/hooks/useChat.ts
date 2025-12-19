@@ -158,13 +158,18 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
             setConversationTitle(response.conversation_title);
           }
 
-          // Remove streaming flag and update with real message ID
+          // Flush any remaining buffer content and finalize the message
+          const finalContent = chunkBuffer.current;
+          const msgId = streamingMessageId.current;
+
           setMessages((prev) =>
             prev.map((msg) =>
-              msg.id === streamingMessageId.current
+              msg.id === msgId
                 ? {
                   ...msg,
                   id: response.message.id,
+                  // Use the full content from response, or append remaining buffer
+                  content: response.message.content || (msg.content + finalContent),
                   isStreaming: false,
                   metadata: response.message.metadata,
                   created_at: response.message.created_at,

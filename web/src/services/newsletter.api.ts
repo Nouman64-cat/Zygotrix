@@ -47,7 +47,7 @@ export interface NewsletterSubscription {
 
 export interface SendNewsletterRequest {
   recipient_emails: string[];
-  template_type: "changelog" | "release" | "news" | "update";
+  template_type: "changelog" | "release" | "news" | "update" | "marketing";
   subject: string;
   content: string;
 }

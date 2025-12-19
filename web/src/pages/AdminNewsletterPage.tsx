@@ -74,9 +74,19 @@ const TEMPLATE_TYPES = [
     textColor: "text-amber-500",
     description: "General notifications",
   },
+  {
+    value: "marketing" as const,
+    label: "Marketing",
+    icon: HiSparkles,
+    color: "bg-gradient-to-r from-pink-500 to-rose-500",
+    hoverColor: "hover:from-pink-600 hover:to-rose-600",
+    borderColor: "border-pink-500",
+    textColor: "text-pink-500",
+    description: "Promotional & registration invite",
+  },
 ];
 
-const EXAMPLE_CONTENT = {
+const EXAMPLE_CONTENT: Record<string, string> = {
   changelog: `<h2>What's New in This Update</h2>
 <ul>
   <li><strong>New Feature:</strong> Advanced genetic analysis tools</li>
@@ -98,6 +108,75 @@ const EXAMPLE_CONTENT = {
   update: `<h2>Important Update</h2>
 <p>We wanted to keep you informed about the latest developments at Zygotrix.</p>
 <p>Thank you for being part of our community!</p>`,
+  marketing: `<div style="text-align: center; margin-bottom: 30px;">
+  <h1 style="color: #10b981; margin-bottom: 10px;">🧬 Unlock the Power of Genetics</h1>
+  <p style="font-size: 18px; color: #6b7280;">Join Zygotrix and Transform Your Understanding of DNA</p>
+</div>
+
+<p>Dear Future Geneticist,</p>
+
+<p>Are you ready to dive into the fascinating world of genetics? <strong>Zygotrix</strong> is the ultimate interactive platform designed to make learning genetics intuitive, engaging, and fun!</p>
+
+<h2 style="color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;">🚀 Why Choose Zygotrix?</h2>
+
+<div style="background: linear-gradient(135deg, #f0fdf4 0%, #ecfdf5 100%); padding: 20px; border-radius: 12px; margin: 20px 0;">
+  <h3 style="color: #059669; margin-top: 0;">✨ Interactive Simulations</h3>
+  <p>Run genetic crosses with our powerful simulation engine. Visualize inheritance patterns, Punnett squares, and phenotype distributions in real-time.</p>
+  
+  <h3 style="color: #059669;">📊 Advanced Analytics</h3>
+  <p>Get detailed insights with our polygenic score calculations, trait analysis tools, and comprehensive genetic breakdowns.</p>
+  
+  <h3 style="color: #059669;">🤖 AI-Powered Learning</h3>
+  <p>Meet <strong>Zigi</strong>, your personal genetics tutor! Ask questions, get explanations, and deepen your understanding with our intelligent chatbot.</p>
+  
+  <h3 style="color: #059669;">🔬 Extensive Trait Library</h3>
+  <p>Explore our comprehensive database of genetic traits, from eye color to complex polygenic conditions.</p>
+</div>
+
+<h2 style="color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;">📈 What Our Users Are Saying</h2>
+
+<blockquote style="background: #f3f4f6; padding: 20px; border-left: 4px solid #10b981; margin: 20px 0; font-style: italic;">
+  "Zygotrix completely changed how I understand genetics. The simulations are incredible and Zigi is always there to help!"
+  <br><strong>— Sarah M., Biology Student</strong>
+</blockquote>
+
+<blockquote style="background: #f3f4f6; padding: 20px; border-left: 4px solid #10b981; margin: 20px 0; font-style: italic;">
+  "As a teacher, Zygotrix has become an essential tool in my classroom. My students are more engaged than ever!"
+  <br><strong>— Dr. James K., Genetics Professor</strong>
+</blockquote>
+
+<h2 style="color: #10b981; border-bottom: 2px solid #10b981; padding-bottom: 10px;">🎁 Join Today and Get:</h2>
+
+<ul style="font-size: 16px; line-height: 2;">
+  <li>✅ <strong>Free Access</strong> to all basic features</li>
+  <li>✅ <strong>Unlimited Simulations</strong> to run genetic crosses</li>
+  <li>✅ <strong>AI Chatbot</strong> for 24/7 learning assistance</li>
+  <li>✅ <strong>Personal Dashboard</strong> to track your progress</li>
+  <li>✅ <strong>Community Access</strong> to connect with fellow learners</li>
+</ul>
+
+<div style="text-align: center; padding: 30px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 16px; margin: 30px 0;">
+  <h2 style="color: white; margin-bottom: 15px;">Ready to Start Your Genetics Journey?</h2>
+  <p style="color: #d1fae5; margin-bottom: 20px;">Creating your account takes less than 2 minutes!</p>
+  <a href="https://zygotrix.com/signup" style="display: inline-block; background: white; color: #059669; padding: 15px 40px; border-radius: 30px; text-decoration: none; font-weight: bold; font-size: 18px; box-shadow: 0 4px 15px rgba(0,0,0,0.2);">🧬 Create Your Free Account</a>
+</div>
+
+<p>Have questions? Our team is here to help! Simply reply to this email or visit our FAQ page.</p>
+
+<p>We can't wait to welcome you to the Zygotrix family!</p>
+
+<p style="margin-top: 30px;">
+  Warm regards,<br>
+  <strong>The Zygotrix Team</strong><br>
+  <em style="color: #6b7280;">Empowering the next generation of geneticists</em>
+</p>
+
+<hr style="border: none; border-top: 1px solid #e5e7eb; margin: 30px 0;">
+
+<p style="text-align: center; color: #9ca3af; font-size: 12px;">
+  © 2024 Zygotrix. All rights reserved.<br>
+  <a href="https://zygotrix.com" style="color: #10b981;">zygotrix.com</a>
+</p>`,
 };
 
 const AdminNewsletterPage: React.FC = () => {
@@ -122,6 +201,10 @@ const AdminNewsletterPage: React.FC = () => {
   // Selection state
   const [selectedEmails, setSelectedEmails] = useState<Set<string>>(new Set());
   const [searchTerm, setSearchTerm] = useState("");
+  
+  // Custom email input state
+  const [customEmailInput, setCustomEmailInput] = useState("");
+  const [customEmails, setCustomEmails] = useState<string[]>([]);
 
   // Email composition state
   const [templateType, setTemplateType] =
@@ -240,9 +323,83 @@ const AdminNewsletterPage: React.FC = () => {
     }
   };
 
+  // Custom email helpers
+  const isValidEmail = (email: string): boolean => {
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return emailRegex.test(email.trim());
+  };
+
+  const addCustomEmail = () => {
+    const email = customEmailInput.trim().toLowerCase();
+    
+    if (!email) {
+      setError("Please enter an email address");
+      return;
+    }
+    
+    if (!isValidEmail(email)) {
+      setError("Please enter a valid email address");
+      return;
+    }
+    
+    if (customEmails.includes(email) || selectedEmails.has(email)) {
+      setError("This email is already added");
+      return;
+    }
+    
+    setCustomEmails((prev) => [...prev, email]);
+    setSelectedEmails((prev) => new Set([...prev, email]));
+    setCustomEmailInput("");
+    setError(null);
+  };
+
+  const addMultipleEmails = (emailsText: string) => {
+    // Split by comma, semicolon, newline, or space
+    const emails = emailsText
+      .split(/[,;\n\s]+/)
+      .map((e) => e.trim().toLowerCase())
+      .filter((e) => e && isValidEmail(e));
+    
+    if (emails.length === 0) {
+      setError("No valid emails found");
+      return;
+    }
+    
+    const newCustomEmails: string[] = [];
+    const newSelectedEmails = new Set(selectedEmails);
+    
+    emails.forEach((email) => {
+      if (!customEmails.includes(email) && !newSelectedEmails.has(email)) {
+        newCustomEmails.push(email);
+        newSelectedEmails.add(email);
+      }
+    });
+    
+    if (newCustomEmails.length === 0) {
+      setError("All emails are already added");
+      return;
+    }
+    
+    setCustomEmails((prev) => [...prev, ...newCustomEmails]);
+    setSelectedEmails(newSelectedEmails);
+    setCustomEmailInput("");
+    setError(null);
+    setSuccessMessage(`Added ${newCustomEmails.length} email(s)`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  const removeCustomEmail = (email: string) => {
+    setCustomEmails((prev) => prev.filter((e) => e !== email));
+    setSelectedEmails((prev) => {
+      const newSet = new Set(prev);
+      newSet.delete(email);
+      return newSet;
+    });
+  };
+
   const handleSendNewsletter = async () => {
     if (selectedEmails.size === 0) {
-      setError("Please select at least one recipient");
+      setError("Please select at least one recipient or add a custom email");
       return;
     }
 
@@ -577,6 +734,103 @@ const AdminNewsletterPage: React.FC = () => {
                       )}
                     </div>
                   ))
+                )}
+              </div>
+            </div>
+
+            {/* Custom Email Section */}
+            <div className="mt-4 bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden shadow-sm">
+              <div className="p-4 border-b border-gray-200 dark:border-slate-700 bg-gradient-to-r from-pink-50 to-rose-50 dark:from-pink-900/20 dark:to-rose-900/20">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                  <MdEmail className="w-4 h-4 text-pink-500" />
+                  Add Custom Emails
+                </h3>
+                <p className="text-xs text-gray-500 dark:text-slate-400 mt-1">
+                  Send to any email address
+                </p>
+              </div>
+              
+              <div className="p-4 space-y-3">
+                {/* Email Input */}
+                <div className="flex gap-2">
+                  <input
+                    type="email"
+                    placeholder="Enter email address..."
+                    value={customEmailInput}
+                    onChange={(e) => setCustomEmailInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        e.preventDefault();
+                        if (customEmailInput.includes(",") || customEmailInput.includes(";") || customEmailInput.includes(" ")) {
+                          addMultipleEmails(customEmailInput);
+                        } else {
+                          addCustomEmail();
+                        }
+                      }
+                    }}
+                    className="flex-1 px-3 py-2 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-pink-500"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => {
+                      if (customEmailInput.includes(",") || customEmailInput.includes(";") || customEmailInput.includes(" ")) {
+                        addMultipleEmails(customEmailInput);
+                      } else {
+                        addCustomEmail();
+                      }
+                    }}
+                    className="px-4 py-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white rounded-lg text-sm font-medium transition-all"
+                  >
+                    Add
+                  </button>
+                </div>
+                
+                <p className="text-xs text-gray-400 dark:text-slate-500">
+                  💡 Tip: Paste multiple emails separated by commas, semicolons, or spaces
+                </p>
+                
+                {/* Custom Emails List */}
+                {customEmails.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-medium text-gray-500 dark:text-slate-400">
+                        Custom emails ({customEmails.length})
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          customEmails.forEach((email) => {
+                            setSelectedEmails((prev) => {
+                              const newSet = new Set(prev);
+                              newSet.delete(email);
+                              return newSet;
+                            });
+                          });
+                          setCustomEmails([]);
+                        }}
+                        className="text-xs text-red-500 hover:text-red-600 dark:hover:text-red-400"
+                      >
+                        Clear all
+                      </button>
+                    </div>
+                    <div className="flex flex-wrap gap-2">
+                      {customEmails.map((email) => (
+                        <span
+                          key={email}
+                          className="inline-flex items-center gap-1 px-2 py-1 bg-pink-100 dark:bg-pink-500/20 text-pink-700 dark:text-pink-300 rounded-full text-xs"
+                        >
+                          {email}
+                          <button
+                            type="button"
+                            onClick={() => removeCustomEmail(email)}
+                            className="p-0.5 hover:bg-pink-200 dark:hover:bg-pink-500/30 rounded-full transition-colors"
+                          >
+                            <MdClose className="w-3 h-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  </div>
                 )}
               </div>
             </div>

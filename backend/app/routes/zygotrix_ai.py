@@ -53,7 +53,7 @@ from ..chatbot_tools import (
     get_traits_count, search_traits, get_trait_details,
     calculate_punnett_square, parse_cross_from_message
 )
-from .chatbot import _rate_limiter  # Import the rate limiter instance
+from .chatbot import _rate_limiter, _log_token_usage  # Import the rate limiter instance and token logging function
 
 logger = logging.getLogger(__name__)
 
@@ -334,7 +334,7 @@ async def generate_claude_response(
 @router.post("/chat")
 async def chat(
     request: ChatRequest,
-    user_id: str = Depends(get_user_id_from_profile)
+    current_user: UserProfile = Depends(get_current_user)
 ):
     """
     Send a message and get a response. Supports streaming.
@@ -349,6 +349,10 @@ async def chat(
             raise HTTPException(status_code=503, detail="Chatbot is currently disabled")
     except Exception as e:
         logger.warning(f"Failed to check chatbot status: {e}")
+
+    # Extract user_id and user_name for convenience
+    user_id = current_user.id
+    user_name = current_user.name if hasattr(current_user, 'name') else None
 
     # Check rate limit
     allowed, usage = _rate_limiter.check_limit(user_id)
@@ -480,6 +484,17 @@ Question: {request.message}"""
                         if total_tokens > 0:
                             _rate_limiter.record_usage(user_id, total_tokens)
 
+                        # Log token usage to MongoDB for analytics
+                        _log_token_usage(
+                            user_id=user_id,
+                            user_name=user_name,
+                            input_tokens=metadata.get("input_tokens", 0) if metadata else 0,
+                            output_tokens=metadata.get("output_tokens", 0) if metadata else 0,
+                            cached=False,
+                            message_preview=request.message[:100],
+                            model=model
+                        )
+
                     yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation.id, 'message_id': assistant_message.id if assistant_content else None})}\n\n"
 
         return StreamingResponse(
@@ -525,6 +540,17 @@ Question: {request.message}"""
         if total_tokens > 0:
             _rate_limiter.record_usage(user_id, total_tokens)
 
+        # Log token usage to MongoDB for analytics
+        _log_token_usage(
+            user_id=user_id,
+            user_name=user_name,
+            input_tokens=metadata.get("input_tokens", 0),
+            output_tokens=metadata.get("output_tokens", 0),
+            cached=False,
+            message_preview=request.message[:100],
+            model=model
+        )
+
         return ChatResponse(
             conversation_id=conversation.id,
             message=assistant_message,
@@ -554,9 +580,12 @@ async def get_rate_limit_status(
 async def regenerate_response(
     conversation_id: str,
     message_id: str,
-    user_id: str = Depends(get_user_id_from_profile)
+    current_user: UserProfile = Depends(get_current_user)
 ):
     """Regenerate a response for a message."""
+    user_id = current_user.id
+    user_name = current_user.name if hasattr(current_user, 'name') else None
+
     conversation = ConversationService.get_conversation(conversation_id, user_id)
     if not conversation:
         raise HTTPException(status_code=404, detail="Conversation not found")
@@ -635,6 +664,22 @@ Question: {user_message.content}"""
             {"id": new_message.id},
             {"$set": {"metadata": msg_metadata.model_dump()}}
         )
+
+    # Record token usage for rate limiting
+    total_tokens = metadata.get("total_tokens", 0)
+    if total_tokens > 0:
+        _rate_limiter.record_usage(user_id, total_tokens)
+
+    # Log token usage to MongoDB for analytics
+    _log_token_usage(
+        user_id=user_id,
+        user_name=user_name,
+        input_tokens=metadata.get("input_tokens", 0),
+        output_tokens=metadata.get("output_tokens", 0),
+        cached=False,
+        message_preview=user_message.content[:100],
+        model=model
+    )
 
     return ChatResponse(
         conversation_id=conversation_id,

@@ -356,12 +356,6 @@ const AdminChatbotSettingsPage: React.FC = () => {
                           </option>
                         </optgroup>
                         <optgroup label="Legacy Models">
-                          <option value="claude-3-opus-20240229">
-                            Claude 3 Opus
-                          </option>
-                          <option value="claude-3-5-sonnet-20241022">
-                            Claude 3.5 Sonnet
-                          </option>
                           <option value="claude-3-haiku-20240307">
                             Claude 3 Haiku
                           </option>

@@ -331,10 +331,10 @@ const SimulationStudioPage: React.FC = () => {
               gene.chromosome === "autosomal"
                 ? 2
                 : gene.chromosome === "x" && sex === "male"
-                ? 1
-                : gene.chromosome === "y" && sex === "female"
-                ? 0
-                : 2;
+                  ? 1
+                  : gene.chromosome === "y" && sex === "female"
+                    ? 0
+                    : 2;
 
             const randomAlleles: string[] = [];
             for (let i = 0; i < slots; i++) {
@@ -722,9 +722,8 @@ const SimulationStudioPage: React.FC = () => {
 
     return (
       <div
-        className={`grid gap-2 ${
-          slotCount === 2 ? "grid-cols-2" : "grid-cols-1"
-        }`}
+        className={`grid gap-2 ${slotCount === 2 ? "grid-cols-2" : "grid-cols-1"
+          }`}
       >
         {Array.from({ length: slotCount }).map((_, index) => (
           <select
@@ -789,18 +788,18 @@ const SimulationStudioPage: React.FC = () => {
     <DashboardLayout>
       <div className="absolute inset-0 flex flex-col lg:flex-row overflow-hidden bg-slate-50 dark:bg-slate-950">
         {/* Left Sidebar - Controls (top on mobile) */}
-        <aside className="flex lg:w-80 flex-shrink-0 flex-col border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 max-h-[40vh] lg:max-h-none overflow-hidden">
+        <aside className="flex lg:w-64 2xl:w-80 flex-shrink-0 flex-col border-b lg:border-b-0 lg:border-r border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 max-h-[40vh] lg:max-h-none overflow-hidden">
           {/* Header */}
-          <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 p-3 lg:p-4">
-            <div className="flex items-center gap-3">
-              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 p-2">
-                <FaDna className="h-4 w-4 lg:h-5 lg:w-5 text-white" />
+          <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 p-2 lg:p-3 2xl:p-4">
+            <div className="flex items-center gap-2 2xl:gap-3">
+              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 p-1.5 2xl:p-2">
+                <FaDna className="h-3 w-3 lg:h-4 lg:w-4 2xl:h-5 2xl:w-5 text-white" />
               </div>
               <div>
-                <h1 className="text-base lg:text-lg font-bold text-slate-900 dark:text-white">
+                <h1 className="text-xs lg:text-sm 2xl:text-lg font-bold text-slate-900 dark:text-white">
                   Genetics Studio
                 </h1>
-                <p className="text-[10px] text-slate-600 dark:text-slate-400 hidden sm:block">
+                <p className="text-[9px] 2xl:text-[10px] text-slate-600 dark:text-slate-400 hidden 2xl:block">
                   Predict offspring traits
                 </p>
               </div>
@@ -856,27 +855,26 @@ const SimulationStudioPage: React.FC = () => {
               {/* Active Traits */}
               {genes.length > 0 && (
                 <div className="min-w-0">
-                  <h3 className="mb-2 text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">
+                  <h3 className="mb-1.5 2xl:mb-2 text-[9px] 2xl:text-xs font-bold uppercase tracking-wide text-slate-700 dark:text-slate-300">
                     Active Traits ({genes.length})
                   </h3>
-                  <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0">
+                  <div className="flex lg:flex-col gap-1.5 2xl:gap-2 overflow-x-auto lg:overflow-x-visible pb-2 lg:pb-0 max-h-[120px] lg:max-h-none overflow-y-auto">
                     {genes.map((gene) => {
                       const isActive = activeGene === gene.uid;
                       return (
                         <div
                           key={gene.uid}
-                          className={`group flex items-center justify-between rounded-lg border p-2 transition-all flex-shrink-0 lg:flex-shrink min-w-0 ${
-                            isActive
-                              ? "border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30"
-                              : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
-                          }`}
+                          className={`group flex items-center justify-between rounded-md border p-1.5 2xl:p-2 transition-all flex-shrink-0 lg:flex-shrink min-w-0 ${isActive
+                            ? "border-blue-400 dark:border-blue-500 bg-blue-50 dark:bg-blue-900/30"
+                            : "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600"
+                            }`}
                         >
                           <button
                             type="button"
                             onClick={() => setActiveGene(gene.uid)}
-                            className="flex flex-1 items-center gap-2 text-left focus:outline-none min-w-0"
+                            className="flex flex-1 items-center gap-1.5 2xl:gap-2 text-left focus:outline-none min-w-0"
                           >
-                            <span className="text-xs font-semibold text-slate-800 dark:text-white truncate" title={gene.displayName || gene.id}>
+                            <span className="text-[10px] 2xl:text-xs font-semibold text-slate-800 dark:text-white truncate" title={gene.displayName || gene.id}>
                               {gene.displayName || gene.id}
                             </span>
                             <DominanceIndicator
@@ -888,10 +886,10 @@ const SimulationStudioPage: React.FC = () => {
                           <button
                             type="button"
                             onClick={() => handleRemoveGene(gene.uid)}
-                            className="rounded p-1 text-slate-400 transition hover:bg-rose-100 hover:text-rose-600 ml-2 flex-shrink-0"
+                            className="rounded p-0.5 2xl:p-1 text-slate-400 transition hover:bg-rose-100 hover:text-rose-600 ml-1 2xl:ml-2 flex-shrink-0"
                             aria-label={`Remove ${gene.displayName || gene.id}`}
                           >
-                            <FaTrashAlt className="h-3 w-3" />
+                            <FaTrashAlt className="h-2.5 w-2.5 2xl:h-3 2xl:w-3" />
                           </button>
                         </div>
                       );
@@ -900,24 +898,24 @@ const SimulationStudioPage: React.FC = () => {
                 </div>
               )}
 
-              {/* Legend - hidden on mobile */}
-              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-3 hidden lg:block">
-                <div className="mb-2 flex items-center gap-1.5">
-                  <FaInfoCircle className="h-3 w-3 text-slate-500 dark:text-slate-400" />
-                  <span className="text-[10px] font-bold uppercase text-slate-700 dark:text-slate-300">
-                    Dominance
-                  </span>
-                </div>
-                <div className="space-y-1.5">
+              {/* Legend - compact horizontal layout on smaller screens */}
+              <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 p-2 hidden lg:block">
+                <div className="flex items-center gap-3 flex-wrap">
+                  <div className="flex items-center gap-1">
+                    <FaInfoCircle className="h-2.5 w-2.5 text-slate-500 dark:text-slate-400" />
+                    <span className="text-[9px] font-bold uppercase text-slate-700 dark:text-slate-300">
+                      Dominance:
+                    </span>
+                  </div>
                   {(Object.keys(dominancePalette) as DominancePattern[]).map(
                     (pattern) => {
                       const palette = dominancePalette[pattern];
                       return (
-                        <div key={pattern} className="flex items-center gap-2">
+                        <div key={pattern} className="flex items-center gap-1">
                           <span
-                            className={`h-2 w-2 rounded-full ${palette.dot}`}
+                            className={`h-1.5 w-1.5 rounded-full ${palette.dot}`}
                           />
-                          <span className="text-[10px] text-slate-600 dark:text-slate-400">
+                          <span className="text-[9px] text-slate-600 dark:text-slate-400">
                             {palette.label}
                           </span>
                         </div>
@@ -1007,7 +1005,7 @@ const SimulationStudioPage: React.FC = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2 lg:space-y-3">
+                  <div className="space-y-1.5 lg:space-y-2">
                     {genes.map((gene) => {
                       const isActive = activeGene === gene.uid;
                       return (
@@ -1021,14 +1019,13 @@ const SimulationStudioPage: React.FC = () => {
                               setActiveGene(gene.uid);
                             }
                           }}
-                          className={`cursor-pointer rounded-lg border-2 bg-white dark:bg-slate-800 p-2 lg:p-3 shadow-sm transition-all ${
-                            isActive
-                              ? "border-pink-400 dark:border-pink-500 ring-2 ring-pink-200 dark:ring-pink-900/50"
-                              : "border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-600"
-                          }`}
+                          className={`cursor-pointer rounded-md border-2 bg-white dark:bg-slate-800 p-1.5 lg:p-2 shadow-sm transition-all ${isActive
+                            ? "border-pink-400 dark:border-pink-500 ring-1 ring-pink-200 dark:ring-pink-900/50"
+                            : "border-slate-200 dark:border-slate-700 hover:border-pink-300 dark:hover:border-pink-600"
+                            }`}
                         >
-                          <div className="mb-1 lg:mb-2 flex items-center justify-between">
-                            <span className="text-[10px] lg:text-xs font-bold text-slate-800 dark:text-white truncate">
+                          <div className="mb-1 flex items-center justify-between">
+                            <span className="text-[9px] lg:text-[10px] font-bold text-slate-800 dark:text-white truncate">
                               {gene.displayName || gene.id}
                             </span>
                             <DominanceIndicator
@@ -1072,7 +1069,7 @@ const SimulationStudioPage: React.FC = () => {
                     </p>
                   </div>
                 ) : (
-                  <div className="space-y-2 lg:space-y-3">
+                  <div className="space-y-1.5 lg:space-y-2">
                     {genes.map((gene) => {
                       const isActive = activeGene === gene.uid;
                       return (
@@ -1086,14 +1083,13 @@ const SimulationStudioPage: React.FC = () => {
                               setActiveGene(gene.uid);
                             }
                           }}
-                          className={`cursor-pointer rounded-lg border-2 bg-white dark:bg-slate-800 p-2 lg:p-3 shadow-sm transition-all ${
-                            isActive
-                              ? "border-blue-400 dark:border-blue-500 ring-2 ring-blue-200 dark:ring-blue-900/50"
-                              : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600"
-                          }`}
+                          className={`cursor-pointer rounded-md border-2 bg-white dark:bg-slate-800 p-1.5 lg:p-2 shadow-sm transition-all ${isActive
+                            ? "border-blue-400 dark:border-blue-500 ring-1 ring-blue-200 dark:ring-blue-900/50"
+                            : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600"
+                            }`}
                         >
-                          <div className="mb-1 lg:mb-2 flex items-center justify-between">
-                            <span className="text-[10px] lg:text-xs font-bold text-slate-800 dark:text-white truncate">
+                          <div className="mb-1 flex items-center justify-between">
+                            <span className="text-[9px] lg:text-[10px] font-bold text-slate-800 dark:text-white truncate">
                               {gene.displayName || gene.id}
                             </span>
                             <DominanceIndicator
@@ -1147,77 +1143,77 @@ const SimulationStudioPage: React.FC = () => {
             </button>
             {isResultsExpanded && (
               <div className="min-h-0 flex-1 overflow-y-auto p-3 lg:p-4">
-              {!result ? (
-                <div className="flex items-center justify-center gap-3 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/50 dark:bg-slate-800/50 p-4 lg:p-6 text-center h-full">
-                  <FaDna className="h-8 w-8 lg:h-10 lg:w-10 text-slate-300 dark:text-slate-600 flex-shrink-0" />
-                  <p className="text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400">
-                    Run simulation to see results
-                  </p>
-                </div>
-              ) : (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
-                  {/* Sex Distribution */}
-                  <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-sm">
-                    <h4 className="mb-3 text-xs font-bold text-slate-800 dark:text-white">
-                      Sex Distribution
-                    </h4>
-                    <div className="space-y-2">
-                      {sexBreakdown.map((entry) => (
-                        <div
-                          key={entry.sex}
-                          className="flex items-center gap-2"
-                        >
-                          <span className="w-12 text-[10px] font-semibold uppercase text-slate-700 dark:text-slate-300">
-                            {entry.sex}
-                          </span>
-                          <div className="h-5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
-                            <div
-                              className="flex h-full items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 text-[9px] font-bold text-white"
-                              style={{ width: `${entry.share}%` }}
-                            >
-                              {entry.share}%
-                            </div>
-                          </div>
-                          <span className="w-8 text-right text-[10px] font-bold text-slate-700 dark:text-slate-300">
-                            {entry.count}
-                          </span>
-                        </div>
-                      ))}
-                    </div>
+                {!result ? (
+                  <div className="flex items-center justify-center gap-3 rounded-lg border-2 border-dashed border-slate-300 dark:border-slate-600 bg-white/50 dark:bg-slate-800/50 p-4 lg:p-6 text-center h-full">
+                    <FaDna className="h-8 w-8 lg:h-10 lg:w-10 text-slate-300 dark:text-slate-600 flex-shrink-0" />
+                    <p className="text-xs lg:text-sm font-medium text-slate-600 dark:text-slate-400">
+                      Run simulation to see results
+                    </p>
                   </div>
-
-                  {/* Trait Summaries */}
-                  {traitSummaries.map((summary) => (
-                    <div
-                      key={summary.id}
-                      className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-sm"
-                    >
-                      <div className="mb-2 flex items-center justify-between">
-                        <h4 className="text-xs font-bold text-slate-800 dark:text-white">
-                          {summary.label}
-                        </h4>
-                        <span className="rounded-full bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 text-[9px] font-bold text-purple-700 dark:text-purple-300">
-                          μ {summary.mean.toFixed(2)}
-                        </span>
-                      </div>
-                      <div className="flex flex-wrap gap-1.5">
-                        {summary.descriptors.map(([label, value]) => (
-                          <span
-                            key={label || "unspecified"}
-                            className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 px-2 py-1 text-[10px] font-semibold text-slate-700 dark:text-slate-300"
+                ) : (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
+                    {/* Sex Distribution */}
+                    <div className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-sm">
+                      <h4 className="mb-3 text-xs font-bold text-slate-800 dark:text-white">
+                        Sex Distribution
+                      </h4>
+                      <div className="space-y-2">
+                        {sexBreakdown.map((entry) => (
+                          <div
+                            key={entry.sex}
+                            className="flex items-center gap-2"
                           >
-                            {label || "unspecified"}
-                            <span className="rounded-full bg-blue-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
-                              {value}
+                            <span className="w-12 text-[10px] font-semibold uppercase text-slate-700 dark:text-slate-300">
+                              {entry.sex}
                             </span>
-                          </span>
+                            <div className="h-5 flex-1 overflow-hidden rounded-full bg-slate-200 dark:bg-slate-700">
+                              <div
+                                className="flex h-full items-center justify-center rounded-full bg-gradient-to-r from-emerald-400 to-teal-500 text-[9px] font-bold text-white"
+                                style={{ width: `${entry.share}%` }}
+                              >
+                                {entry.share}%
+                              </div>
+                            </div>
+                            <span className="w-8 text-right text-[10px] font-bold text-slate-700 dark:text-slate-300">
+                              {entry.count}
+                            </span>
+                          </div>
                         ))}
                       </div>
                     </div>
-                  ))}
-                </div>
-              )}
-            </div>
+
+                    {/* Trait Summaries */}
+                    {traitSummaries.map((summary) => (
+                      <div
+                        key={summary.id}
+                        className="rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-3 shadow-sm"
+                      >
+                        <div className="mb-2 flex items-center justify-between">
+                          <h4 className="text-xs font-bold text-slate-800 dark:text-white">
+                            {summary.label}
+                          </h4>
+                          <span className="rounded-full bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 text-[9px] font-bold text-purple-700 dark:text-purple-300">
+                            μ {summary.mean.toFixed(2)}
+                          </span>
+                        </div>
+                        <div className="flex flex-wrap gap-1.5">
+                          {summary.descriptors.map(([label, value]) => (
+                            <span
+                              key={label || "unspecified"}
+                              className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 px-2 py-1 text-[10px] font-semibold text-slate-700 dark:text-slate-300"
+                            >
+                              {label || "unspecified"}
+                              <span className="rounded-full bg-blue-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                                {value}
+                              </span>
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
             )}
           </aside>
         </main>

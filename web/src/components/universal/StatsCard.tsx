@@ -129,31 +129,30 @@ const StatsCard: React.FC<StatsCardProps> = ({
         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white dark:via-slate-700 to-transparent transform rotate-45 translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
       </div>
 
-      <div className="relative p-6">
-        <div className="flex items-start justify-between gap-4">
+      <div className="relative p-4 sm:p-5 lg:p-6">
+        <div className="flex items-start justify-between gap-3 sm:gap-4">
           <div className="flex-1 min-w-0">
             {/* Header with icon and title */}
-            <div className="flex items-center gap-3 mb-4">
+            <div className="flex items-center gap-2 sm:gap-3 mb-3 sm:mb-4">
               {icon && (
                 <div
                   className={`
-                  w-12 h-12 rounded-xl flex items-center justify-center
+                  w-10 h-10 sm:w-11 sm:h-11 lg:w-12 lg:h-12 rounded-lg sm:rounded-xl flex items-center justify-center
                   ${theme.iconBg} ${theme.iconText}
                   shadow-lg transform group-hover:scale-110 transition-transform duration-200
                 `}
                 >
-                  <div className="w-6 h-6">{icon}</div>
+                  <div className="w-5 h-5 sm:w-6 sm:h-6">{icon}</div>
                 </div>
               )}
               <div className="flex-1">
-                <h3 className="text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
+                <h3 className="text-xs sm:text-sm font-semibold text-slate-600 dark:text-slate-400 uppercase tracking-wide">
                   {title}
                 </h3>
                 {trend && (
                   <div
-                    className={`flex items-center gap-1 mt-1 text-xs ${
-                      trend.isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"
-                    }`}
+                    className={`flex items-center gap-1 mt-1 text-xs ${trend.isPositive ? "text-emerald-600 dark:text-emerald-400" : "text-red-500 dark:text-red-400"
+                      }`}
                   >
                     <span className={trend.isPositive ? "↗" : "↘"}></span>
                     <span className="font-medium">
@@ -168,7 +167,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
             </div>
 
             {/* Main content */}
-            <div className="mb-3">
+            <div className="mb-2 sm:mb-3">
               {(() => {
                 if (loading) {
                   return (
@@ -208,13 +207,13 @@ const StatsCard: React.FC<StatsCardProps> = ({
                 return (
                   <div className="flex items-baseline gap-1">
                     <span
-                      className={`text-5xl font-black ${theme.numberText} tracking-tight leading-none`}
+                      className={`text-3xl sm:text-4xl lg:text-5xl font-black ${theme.numberText} tracking-tight leading-none`}
                     >
                       {formatted.main}
                     </span>
                     {formatted.suffix && (
                       <span
-                        className={`text-xl font-bold ${theme.numberText} opacity-70 ml-1`}
+                        className={`text-base sm:text-lg lg:text-xl font-bold ${theme.numberText} opacity-70 ml-1`}
                       >
                         {formatted.suffix}
                       </span>
@@ -226,7 +225,7 @@ const StatsCard: React.FC<StatsCardProps> = ({
 
             {/* Description */}
             {description && !loading && !error && (
-              <p className="text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
                 {description}
               </p>
             )}
@@ -238,15 +237,14 @@ const StatsCard: React.FC<StatsCardProps> = ({
               <button
                 onClick={actionButton.onClick}
                 className={`
-                  px-4 py-2.5 text-sm font-semibold rounded-xl
+                  px-3 py-2 sm:px-4 sm:py-2.5 text-xs sm:text-sm font-semibold rounded-lg sm:rounded-xl
                   transition-all duration-200 cursor-pointer
                   focus:outline-none focus:ring-2 focus:ring-offset-2 dark:focus:ring-offset-slate-800
                   transform hover:scale-105 active:scale-95
                   shadow-md hover:shadow-lg
-                  ${
-                    actionButton.variant === "secondary"
-                      ? "bg-white/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 focus:ring-slate-300 dark:focus:ring-slate-600"
-                      : `${theme.iconBg} text-white hover:opacity-90 focus:ring-opacity-50`
+                  ${actionButton.variant === "secondary"
+                    ? "bg-white/80 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 focus:ring-slate-300 dark:focus:ring-slate-600"
+                    : `${theme.iconBg} text-white hover:opacity-90 focus:ring-opacity-50`
                   }
                 `}
               >

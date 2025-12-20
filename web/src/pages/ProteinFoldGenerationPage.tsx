@@ -879,11 +879,11 @@ const ProteinFoldGenerationPage: React.FC = () => {
       <div className="container mx-auto px-2 sm:px-4 py-4 sm:py-8 max-w-8xl">
 
         {/* Two Column Layout: Generate DNA (Left) & DNA/RNA Sequences (Right) */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
+        <div className="grid grid-cols-1 2xl:grid-cols-2 gap-4 sm:gap-6 mb-4 sm:mb-6">
           {/* Left Column: DNA Generation + Amino Acids */}
           <div className="flex flex-col gap-6">
             {/* Step 1 - DNA Generation with Tabs */}
-            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 border border-transparent dark:border-gray-700">
+            <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md dark:shadow-gray-900/50 border border-transparent dark:border-gray-700 2xl:h-full flex flex-col">
               <div className="flex flex-col sm:flex-row sm:items-center gap-2 px-4 sm:px-6 pt-4 sm:pt-6 pb-3 sm:pb-4">
                 <div className="flex items-center">
                   <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold mr-2 sm:mr-3 text-sm sm:text-base">
@@ -902,8 +902,8 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     onClick={() => setActiveTab("generate")}
                     disabled={!!dnaRnaResult}
                     className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === "generate"
-                        ? "border-blue-600 text-blue-600 dark:text-blue-400"
-                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
+                      ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
                       } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Generate Random
@@ -912,8 +912,8 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     onClick={() => setActiveTab("input-dna")}
                     disabled={!!dnaRnaResult}
                     className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === "input-dna"
-                        ? "border-blue-600 text-blue-600 dark:text-blue-400"
-                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
+                      ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
                       } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Input DNA
@@ -922,8 +922,8 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     onClick={() => setActiveTab("input-rna")}
                     disabled={!!dnaRnaResult}
                     className={`py-2 px-3 sm:px-4 text-xs sm:text-sm font-medium border-b-2 transition-colors whitespace-nowrap ${activeTab === "input-rna"
-                        ? "border-blue-600 text-blue-600 dark:text-blue-400"
-                        : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
+                      ? "border-blue-600 text-blue-600 dark:text-blue-400"
+                      : "border-transparent text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 hover:border-gray-300 dark:hover:border-gray-600 cursor-pointer"
                       } ${dnaRnaResult ? "opacity-50 cursor-not-allowed" : ""}`}
                   >
                     Input RNA
@@ -932,10 +932,10 @@ const ProteinFoldGenerationPage: React.FC = () => {
               </div>
 
               {/* Tab Content */}
-              <div className="p-4 sm:p-6">
+              <div className="p-4 sm:p-6 flex-1 flex flex-col">
                 {/* Generate Random DNA Tab */}
                 {activeTab === "generate" && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 flex-1 flex flex-col">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         Sequence Length (bp) - must be divisible by 3
@@ -1102,9 +1102,12 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     ) : (
                       <button
                         onClick={handleReset}
-                        className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                        className="w-full mt-auto bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group shadow-lg hover:shadow-xl"
                       >
-                        Reset & Start Over
+                        <svg className="w-5 h-5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Clear Results & Try New Sequence
                       </button>
                     )}
                   </div>
@@ -1112,7 +1115,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
                 {/* Input DNA Tab */}
                 {activeTab === "input-dna" && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 flex-1 flex flex-col">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         DNA Sequence
@@ -1147,9 +1150,12 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     ) : (
                       <button
                         onClick={handleReset}
-                        className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                        className="w-full mt-auto bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group shadow-lg hover:shadow-xl"
                       >
-                        Reset & Start Over
+                        <svg className="w-5 h-5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Clear Results & Try New Sequence
                       </button>
                     )}
                   </div>
@@ -1157,7 +1163,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
                 {/* Input RNA Tab */}
                 {activeTab === "input-rna" && (
-                  <div className="space-y-6">
+                  <div className="space-y-6 flex-1 flex flex-col">
                     <div>
                       <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                         RNA Sequence
@@ -1192,9 +1198,12 @@ const ProteinFoldGenerationPage: React.FC = () => {
                     ) : (
                       <button
                         onClick={handleReset}
-                        className="w-full bg-gray-600 hover:bg-gray-700 text-white font-semibold py-3 px-6 rounded-lg transition-colors"
+                        className="w-full mt-auto bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 text-white font-semibold py-3 px-6 rounded-lg transition-all duration-200 flex items-center justify-center gap-2 group shadow-lg hover:shadow-xl"
                       >
-                        Reset & Start Over
+                        <svg className="w-5 h-5 group-hover:rotate-180 transition-transform duration-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                        </svg>
+                        Clear Results & Try New Sequence
                       </button>
                     )}
                   </div>
@@ -1378,26 +1387,25 @@ const ProteinFoldGenerationPage: React.FC = () => {
                         {/* Fixed Tooltip Bar - Outside scrollable area */}
                         {proteinResult && (
                           <>
-                            <div className={`mb-2 px-4 py-3 rounded-lg border transition-all duration-300 ease-in-out ${hoveredCodon
+                            <div className={`mb-2 px-2 sm:px-4 py-2 sm:py-3 rounded-lg border transition-all duration-300 ease-in-out ${hoveredCodon
                               ? 'bg-purple-50 dark:bg-gray-900 border-purple-500 dark:border-purple-500 shadow-md'
                               : 'bg-gray-100 dark:bg-gray-900/50 border-gray-300 dark:border-gray-700'
                               }`}>
                               <div className="relative h-7 overflow-hidden">
                                 {/* Hovered state content */}
-                                <div className={`absolute inset-0 flex items-center gap-3 text-sm transition-all duration-300 ease-in-out ${hoveredCodon
+                                <div className={`absolute inset-0 flex items-center gap-1 sm:gap-3 text-xs sm:text-sm transition-all duration-300 ease-in-out flex-wrap ${hoveredCodon
                                   ? 'opacity-100 translate-y-0'
                                   : 'opacity-0 -translate-y-4'
                                   }`}>
                                   {hoveredCodon && (
                                     <>
-                                      <span className="font-mono text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50 px-2 py-1 rounded">{hoveredCodon.codon}</span>
+                                      <span className="font-mono text-purple-600 dark:text-purple-400 bg-purple-100 dark:bg-purple-900/50 px-1.5 sm:px-2 py-0.5 sm:py-1 rounded">{hoveredCodon.codon}</span>
                                       <span className="text-gray-500 dark:text-gray-400">→</span>
-                                      <span className="font-bold text-yellow-600 dark:text-yellow-400 text-lg">{hoveredCodon.symbol}</span>
+                                      <span className="font-bold text-yellow-600 dark:text-yellow-400 text-sm sm:text-lg">{hoveredCodon.symbol}</span>
                                       <span className="text-green-600 dark:text-green-400 font-medium">{hoveredCodon.name}</span>
-                                      <span className="text-gray-500 dark:text-gray-400">•</span>
-                                      <span className="text-gray-700 dark:text-gray-300">{hoveredCodon.fullName}</span>
-                                      <span className="text-gray-500 dark:text-gray-400">•</span>
-                                      <span className={`px-2 py-0.5 rounded text-xs font-semibold ${CLASSIFICATION_COLORS[hoveredCodon.classification].bg
+                                      <span className="text-gray-500 dark:text-gray-400 hidden sm:inline">•</span>
+                                      <span className="text-gray-700 dark:text-gray-300 hidden sm:inline">{hoveredCodon.fullName}</span>
+                                      <span className={`px-1.5 sm:px-2 py-0.5 rounded text-[10px] sm:text-xs font-semibold ${CLASSIFICATION_COLORS[hoveredCodon.classification].bg
                                         } ${CLASSIFICATION_COLORS[hoveredCodon.classification].text}`}>
                                         {hoveredCodon.classificationLabel}
                                       </span>
@@ -1405,7 +1413,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
                                   )}
                                 </div>
                                 {/* Default state content */}
-                                <div className={`absolute inset-0 flex items-center text-sm text-gray-500 dark:text-gray-400 italic transition-all duration-300 ease-in-out ${hoveredCodon
+                                <div className={`absolute inset-0 flex items-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 italic transition-all duration-300 ease-in-out ${hoveredCodon
                                   ? 'opacity-0 translate-y-4'
                                   : 'opacity-100 translate-y-0'
                                   }`}>
@@ -1416,7 +1424,7 @@ const ProteinFoldGenerationPage: React.FC = () => {
 
                             {/* Color Legend */}
                             <div className="mb-2 px-3 py-1.5 bg-gray-50 dark:bg-gray-900/30 rounded-lg border border-gray-200 dark:border-gray-700">
-                              <div className="flex items-center gap-3 flex-wrap text-xs">
+                              <div className="flex items-center gap-2 sm:gap-3 flex-wrap text-xs">
                                 <span className="text-gray-500 dark:text-gray-400">Legend:</span>
                                 <div className="flex items-center gap-1">
                                   <span className={`w-3 h-3 rounded ${CLASSIFICATION_COLORS.hydrophobic.bg}`}></span>
@@ -1687,8 +1695,8 @@ const ProteinFoldGenerationPage: React.FC = () => {
                               key={page}
                               onClick={() => setCurrentPage(page)}
                               className={`px-3 py-2 rounded-lg text-sm font-medium transition-colors ${currentPage === page
-                                  ? 'bg-purple-600 text-white'
-                                  : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
+                                ? 'bg-purple-600 text-white'
+                                : 'bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300'
                                 }`}
                             >
                               {page}

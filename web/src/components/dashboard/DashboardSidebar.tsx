@@ -491,7 +491,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       {/* Sidebar */}
       <aside
         className={`fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] transition-all duration-300 ease-in-out lg:translate-x-0 lg:static lg:z-auto lg:top-0 lg:h-full bg-white dark:bg-slate-800 border-r border-slate-200 dark:border-slate-700 flex flex-col ${isOpen ? "translate-x-0" : "-translate-x-full"
-          } w-64 ${isCollapsed ? "lg:w-16" : "lg:w-64"}`}
+          } w-64 ${isCollapsed ? "lg:w-14" : "lg:w-52 2xl:w-64"}`}
       >
         {/* Sidebar header */}
         <div className="flex items-center justify-between p-4 border-b border-slate-200 dark:border-slate-700">
@@ -558,14 +558,14 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </div>
 
         {/* Navigation */}
-        <nav className="p-4 space-y-2 flex-1 overflow-y-auto">
+        <nav className="p-3 2xl:p-4 space-y-1.5 2xl:space-y-2 flex-1 overflow-y-auto">
           {/* User Sidebar Items - hidden for admins */}
           {userSidebarItems.map((item) => (
             <div key={item.id} className="relative group">
               <Link
                 to={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
+                className={`flex items-center gap-2 2xl:gap-3 px-2 2xl:px-3 py-1.5 2xl:py-2 rounded-lg text-xs 2xl:text-sm font-medium transition-colors group ${isActivePath(item.href)
                   ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
                   : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
                   } ${isCollapsed ? "lg:justify-center" : ""} ${item.isChild && !isCollapsed ? "lg:ml-6" : ""
@@ -614,7 +614,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
               <Link
                 to={item.href}
                 onClick={onClose}
-                className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
+                className={`flex items-center gap-2 2xl:gap-3 px-2 2xl:px-3 py-1.5 2xl:py-2 rounded-lg text-xs 2xl:text-sm font-medium transition-colors group ${isActivePath(item.href)
                   ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
                   : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
                   } ${isCollapsed ? "lg:justify-center" : ""} ${item.isChild && !isCollapsed ? "lg:ml-6" : ""
@@ -675,7 +675,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
                   <Link
                     to={item.href}
                     onClick={onClose}
-                    className={`flex items-center gap-3 px-3 py-2 rounded-lg text-sm font-medium transition-colors group ${isActivePath(item.href)
+                    className={`flex items-center gap-2 2xl:gap-3 px-2 2xl:px-3 py-1.5 2xl:py-2 rounded-lg text-xs 2xl:text-sm font-medium transition-colors group ${isActivePath(item.href)
                       ? "bg-emerald-50 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700"
                       : "text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-700 hover:text-slate-900 dark:hover:text-white"
                       } ${isCollapsed ? "lg:justify-center" : ""}`}
@@ -706,11 +706,11 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </nav>
 
         {/* Footer */}
-        <div className="p-4 border-t border-slate-200 dark:border-slate-700 space-y-3">
+        <div className="p-3 2xl:p-4 border-t border-slate-200 dark:border-slate-700 space-y-2 2xl:space-y-3">
           {/* System Status */}
           <div className="relative group">
             <div
-              className={`flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 ${isCollapsed ? "lg:justify-center" : ""
+              className={`flex items-center gap-2 2xl:gap-3 text-[10px] 2xl:text-xs text-slate-500 dark:text-slate-400 ${isCollapsed ? "lg:justify-center" : ""
                 }`}
             >
               <div className="w-2 h-2 bg-green-500 rounded-full"></div>
@@ -731,7 +731,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
           <div className="relative group">
             <button
               onClick={handleSignOut}
-              className={`flex items-center gap-3 px-3 py-2 w-full rounded-lg text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ${isCollapsed ? "lg:justify-center" : ""
+              className={`flex items-center gap-2 2xl:gap-3 px-2 2xl:px-3 py-1.5 2xl:py-2 w-full rounded-lg text-xs 2xl:text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 transition-colors ${isCollapsed ? "lg:justify-center" : ""
                 }`}
             >
               <svg

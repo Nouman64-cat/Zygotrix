@@ -154,16 +154,16 @@ const ProjectsPage: React.FC = () => {
     <DashboardLayout>
       <div className="space-y-6">
         {/* Header */}
-        <div className="flex justify-between items-center">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3 sm:gap-4">
           <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-white">Projects</h1>
-            <p className="text-slate-600 dark:text-slate-400 mt-1">
+            <h1 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">Projects</h1>
+            <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400 mt-1">
               Manage your genomic analysis projects
             </p>
           </div>
           <button
             onClick={() => setShowTemplates(!showTemplates)}
-            className="px-4 py-2 bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors cursor-pointer"
+            className="px-3 py-1.5 sm:px-4 sm:py-2 text-sm sm:text-base bg-blue-600 dark:bg-blue-700 text-white rounded-lg hover:bg-blue-700 dark:hover:bg-blue-600 transition-colors cursor-pointer shrink-0"
           >
             {showTemplates ? "Hide Templates" : "Browse Templates"}
           </button>
@@ -183,7 +183,7 @@ const ProjectsPage: React.FC = () => {
 
         {/* Templates Section */}
         {showTemplates && (
-          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-6">
+          <div className="bg-slate-50 dark:bg-slate-800/50 rounded-lg p-4 sm:p-6">
             <h2 className="text-lg font-semibold text-slate-900 dark:text-white mb-4">
               Project Templates
             </h2>
@@ -192,12 +192,12 @@ const ProjectsPage: React.FC = () => {
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 dark:border-blue-400"></div>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
                 {templates.map((template) => (
                   <button
                     key={template.id}
                     onClick={() => handleCreateProject(template)}
-                    className="bg-white dark:bg-slate-800 rounded-lg p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm transition-all duration-200 text-left"
+                    className="bg-white dark:bg-slate-800 rounded-lg p-3 sm:p-4 border border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600 hover:shadow-sm transition-all duration-200 text-left"
                   >
                     <div className="flex items-center space-x-3 mb-2">
                       <BeakerIcon className="h-6 w-6 text-purple-600 dark:text-purple-400" />
@@ -226,11 +226,11 @@ const ProjectsPage: React.FC = () => {
         )}
 
         {/* Projects Grid */}
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 xl:grid-cols-8 gap-4">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-3 sm:gap-4">
           {/* Start New Project Card */}
           <button
             onClick={() => handleCreateProject()}
-            className="relative bg-gradient-to-br from-white via-blue-50 to-indigo-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-xl border-2 border-dashed border-blue-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xl transition-all duration-300 p-4 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[200px] w-full shadow-lg"
+            className="relative bg-gradient-to-br from-white via-blue-50 to-indigo-50 dark:from-slate-800 dark:via-slate-800 dark:to-slate-900 rounded-xl border-2 border-dashed border-blue-300 dark:border-slate-600 hover:border-blue-400 dark:hover:border-blue-500 hover:shadow-xl transition-all duration-300 p-3 sm:p-4 flex flex-col items-center justify-center text-center cursor-pointer group aspect-[3/4] min-h-[180px] sm:min-h-[200px] w-full shadow-lg"
           >
             {/* Notebook binding holes - colorful */}
             <div className="absolute left-3 top-4 bottom-4 w-2">
@@ -245,13 +245,13 @@ const ProjectsPage: React.FC = () => {
             </div>
 
             <div className="ml-4 flex flex-col items-center justify-center h-full">
-              <div className="w-12 h-12 bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-2xl flex items-center justify-center mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg">
-                <PlusIcon className="h-6 w-6 text-white" />
+              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-gradient-to-br from-blue-500 to-indigo-600 dark:from-blue-600 dark:to-indigo-700 rounded-xl sm:rounded-2xl flex items-center justify-center mb-2 sm:mb-3 group-hover:scale-110 transition-transform duration-300 shadow-lg">
+                <PlusIcon className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
               </div>
-              <h3 className="text-sm font-bold text-gray-900 dark:text-white mb-1">
+              <h3 className="text-xs sm:text-sm font-bold text-gray-900 dark:text-white mb-1">
                 Start New Project
               </h3>
-              <p className="text-gray-600 dark:text-slate-400 text-xs px-2">
+              <p className="text-gray-600 dark:text-slate-400 text-[10px] sm:text-xs px-1 sm:px-2 line-clamp-2">
                 Create a new genomic analysis project
               </p>
             </div>
@@ -268,7 +268,7 @@ const ProjectsPage: React.FC = () => {
                 onClick={() => navigate(`/studio/workspace/${project.id}`)}
                 role="button"
                 tabIndex={0}
-                className={`relative bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer aspect-[3/4] min-h-[200px] flex flex-col w-full text-left border-2 ${variants.border} hover:border-opacity-100 border-opacity-60 group overflow-hidden transform hover:-translate-y-1`}
+                className={`relative bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900 rounded-xl shadow-lg hover:shadow-2xl transition-all duration-300 cursor-pointer aspect-[3/4] min-h-[180px] sm:min-h-[200px] flex flex-col w-full text-left border-2 ${variants.border} hover:border-opacity-100 border-opacity-60 group overflow-hidden transform hover:-translate-y-1`}
                 onKeyPress={(e) => {
                   if (e.key === "Enter" || e.key === " ")
                     navigate(`/studio/workspace/${project.id}`);
@@ -292,12 +292,12 @@ const ProjectsPage: React.FC = () => {
                 />
 
                 {/* Main content */}
-                <div className="p-4 flex flex-col flex-1 pl-7">
-                  <div className="flex items-start justify-between mb-3">
+                <div className="p-3 sm:p-4 flex flex-col flex-1 pl-6 sm:pl-7">
+                  <div className="flex items-start justify-between mb-2 sm:mb-3">
                     <div
-                      className={`w-8 h-8 rounded-xl flex items-center justify-center bg-gradient-to-br ${variants.gradient} shadow-lg transform group-hover:scale-110 transition-transform duration-300`}
+                      className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg sm:rounded-xl flex items-center justify-center bg-gradient-to-br ${variants.gradient} shadow-lg transform group-hover:scale-110 transition-transform duration-300`}
                     >
-                      <IconComponent className="h-4 w-4 text-white" />
+                      <IconComponent className="h-3.5 w-3.5 sm:h-4 sm:w-4 text-white" />
                     </div>
 
                     <button
@@ -312,23 +312,23 @@ const ProjectsPage: React.FC = () => {
                     </button>
                   </div>
 
-                  <h3 className="text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-tight mb-2">
+                  <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white line-clamp-2 leading-tight mb-1 sm:mb-2">
                     {project.name}
                   </h3>
 
-                  <p className="text-slate-600 dark:text-slate-400 text-xs mb-3 line-clamp-3 flex-1">
+                  <p className="text-slate-600 dark:text-slate-400 text-[10px] sm:text-xs mb-2 sm:mb-3 line-clamp-2 sm:line-clamp-3 flex-1">
                     {project.description ||
                       "Study complex inheritance patterns including codominance and incomplete dominance"}
                   </p>
 
                   {/* Footer with colorful gradient background */}
-                  <div className={`border-t-2 ${variants.border} pt-2 mt-auto`}>
-                    <div className={`text-xs font-medium ${variants.text}`}>
+                  <div className={`border-t-2 ${variants.border} pt-1.5 sm:pt-2 mt-auto`}>
+                    <div className={`text-[10px] sm:text-xs font-medium ${variants.text}`}>
                       {project.created_at
                         ? formatDate(project.created_at)
                         : project.updated_at
-                        ? formatDate(project.updated_at)
-                        : "Unknown"}
+                          ? formatDate(project.updated_at)
+                          : "Unknown"}
                     </div>
                   </div>
                 </div>

@@ -3,11 +3,14 @@ import { Navigate, useLocation } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
 
+type UserRole = "user" | "admin" | "super_admin";
+
 type RequireAuthProps = {
   children: React.ReactElement;
+  allowedRoles?: UserRole[];
 };
 
-const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
+const RequireAuth: React.FC<RequireAuthProps> = ({ children, allowedRoles }) => {
   const { user, isAuthenticating } = useAuth();
   const location = useLocation();
 
@@ -53,6 +56,15 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children }) => {
 
   if (!user) {
     return <Navigate to="/signin" replace state={{ from: location }} />;
+  }
+
+  // Check role-based access if allowedRoles is specified
+  if (allowedRoles && allowedRoles.length > 0) {
+    const userRole = user.user_role as UserRole;
+    if (!allowedRoles.includes(userRole)) {
+      // Redirect unauthorized users to the studio dashboard
+      return <Navigate to="/studio" replace />;
+    }
   }
 
   return children;

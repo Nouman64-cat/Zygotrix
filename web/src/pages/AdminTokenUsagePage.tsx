@@ -79,19 +79,19 @@ const AdminTokenUsagePage: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [chartDays, setChartDays] = useState(30);
 
-  const isSuperAdmin = currentUser?.user_role === "super_admin";
+  const hasAdminAccess = currentUser?.user_role === "super_admin" || currentUser?.user_role === "admin";
 
   useEffect(() => {
-    if (isSuperAdmin) {
+    if (hasAdminAccess) {
       fetchStats();
     }
-  }, [isSuperAdmin]);
+  }, [hasAdminAccess]);
 
   useEffect(() => {
-    if (isSuperAdmin) {
+    if (hasAdminAccess) {
       fetchDailyData();
     }
-  }, [isSuperAdmin, chartDays]);
+  }, [hasAdminAccess, chartDays]);
 
   const fetchStats = async () => {
     try {
@@ -311,7 +311,7 @@ const AdminTokenUsagePage: React.FC = () => {
     },
   };
 
-  if (!isSuperAdmin) {
+  if (!hasAdminAccess) {
     return (
       <DashboardLayout>
         <div className="flex items-center justify-center h-full">
@@ -321,7 +321,7 @@ const AdminTokenUsagePage: React.FC = () => {
               Access Denied
             </h2>
             <p className="text-gray-500 dark:text-slate-400">
-              Only super admins can access token usage statistics.
+              Only admins can access token usage statistics.
             </p>
           </div>
         </div>

@@ -203,7 +203,7 @@ const AppContent: React.FC = () => {
         <Route
           path="studio/admin/users"
           element={
-            <RequireAuth>
+            <RequireAuth allowedRoles={["super_admin"]}>
               <AdminUsersPage />
             </RequireAuth>
           }
@@ -211,7 +211,7 @@ const AppContent: React.FC = () => {
         <Route
           path="studio/admin/newsletter"
           element={
-            <RequireAuth>
+            <RequireAuth allowedRoles={["super_admin"]}>
               <AdminNewsletterPage />
             </RequireAuth>
           }
@@ -219,7 +219,7 @@ const AppContent: React.FC = () => {
         <Route
           path="studio/admin/contact"
           element={
-            <RequireAuth>
+            <RequireAuth allowedRoles={["super_admin"]}>
               <AdminContactPage />
             </RequireAuth>
           }
@@ -227,7 +227,7 @@ const AppContent: React.FC = () => {
         <Route
           path="studio/admin/token-usage"
           element={
-            <RequireAuth>
+            <RequireAuth allowedRoles={["admin", "super_admin"]}>
               <AdminTokenUsagePage />
             </RequireAuth>
           }
@@ -235,7 +235,7 @@ const AppContent: React.FC = () => {
         <Route
           path="studio/admin/chatbot-settings"
           element={
-            <RequireAuth>
+            <RequireAuth allowedRoles={["admin", "super_admin"]}>
               <AdminChatbotSettingsPage />
             </RequireAuth>
           }
@@ -243,7 +243,7 @@ const AppContent: React.FC = () => {
         <Route
           path="studio/admin/job-queue"
           element={
-            <RequireAuth>
+            <RequireAuth allowedRoles={["super_admin"]}>
               <AdminJobQueuePage />
             </RequireAuth>
           }

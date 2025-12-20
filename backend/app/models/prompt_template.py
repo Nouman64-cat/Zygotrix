@@ -49,3 +49,33 @@ class PromptTemplateResponse(BaseModel):
     created_at: datetime = Field(..., description="Creation timestamp")
     updated_at: datetime = Field(..., description="Last update timestamp")
     updated_by: Optional[str] = Field(None, description="User ID who last updated this")
+
+
+class PromptChange(BaseModel):
+    """Individual prompt field change."""
+
+    field_name: str = Field(..., description="Name of the field that changed")
+    old_value: Optional[str] = Field(None, description="Previous value")
+    new_value: Optional[str] = Field(None, description="New value")
+
+
+class PromptTemplateHistory(BaseModel):
+    """Prompt template change history entry."""
+
+    id: Optional[str] = None
+    timestamp: str = Field(..., description="When the change occurred")
+    prompt_type: str = Field(..., description="Type of prompt that was changed")
+    action: str = Field(..., description="Action performed: 'update' or 'reset'")
+    updated_by: str = Field(..., description="User ID of admin who made the change")
+    updated_by_name: Optional[str] = Field(None, description="Name of admin")
+    updated_by_email: Optional[str] = Field(None, description="Email of admin")
+    changes: list[PromptChange] = Field(..., description="List of changes made")
+    ip_address: Optional[str] = Field(None, description="IP address of request")
+    user_agent: Optional[str] = Field(None, description="User agent of request")
+
+
+class PromptTemplateHistoryResponse(BaseModel):
+    """Response containing prompt template history."""
+
+    history: list[PromptTemplateHistory] = Field(..., description="List of history entries")
+    total_count: int = Field(..., description="Total number of history entries")

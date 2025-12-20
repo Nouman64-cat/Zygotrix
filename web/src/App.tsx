@@ -42,6 +42,7 @@ import AdminContactPage from "./pages/AdminContactPage";
 import AdminTokenUsagePage from "./pages/AdminTokenUsagePage";
 import AdminJobQueuePage from "./pages/AdminJobQueuePage";
 import AdminChatbotSettingsPage from "./pages/AdminChatbotSettingsPage";
+import ChatbotSettingsAuditPage from "./pages/ChatbotSettingsAuditPage";
 import PrivacyPage from "./pages/PrivacyPage";
 import TermsPage from "./pages/TermsPage";
 import ZygotrixAIChatPage from "./pages/ZygotrixAIChatPage";
@@ -237,6 +238,14 @@ const AppContent: React.FC = () => {
           element={
             <RequireAuth allowedRoles={["admin", "super_admin"]}>
               <AdminChatbotSettingsPage />
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/admin/chatbot-settings/audit"
+          element={
+            <RequireAuth allowedRoles={["super_admin"]}>
+              <ChatbotSettingsAuditPage />
             </RequireAuth>
           }
         />

@@ -48,6 +48,36 @@ _cached_pipeline_id: str | None = None
 
 
 # =============================================================================
+# MODEL PRICING CONFIGURATION
+# =============================================================================
+
+# Pricing per 1K tokens (updated 2025)
+MODEL_PRICING = {
+    "claude-3-haiku-20240307": {"input": 0.00025, "output": 0.00125},
+    "claude-3-sonnet-20240229": {"input": 0.003, "output": 0.015},
+    "claude-3-opus-20240229": {"input": 0.015, "output": 0.075},
+    "claude-3-5-sonnet-20241022": {"input": 0.003, "output": 0.015},
+    "claude-3-5-haiku-20241022": {"input": 0.0008, "output": 0.004},
+    "claude-sonnet-4-5-20250514": {"input": 0.003, "output": 0.015},
+    "claude-opus-4-5-20251101": {"input": 0.005, "output": 0.025},
+    "claude-haiku-4-5-20250514": {"input": 0.001, "output": 0.005},
+}
+
+
+def get_model_pricing(model: str) -> dict:
+    """Get pricing for a specific model. Defaults to Haiku 3 if model not found."""
+    return MODEL_PRICING.get(model, {"input": 0.00025, "output": 0.00125})
+
+
+def calculate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
+    """Calculate cost based on model-specific pricing."""
+    pricing = get_model_pricing(model)
+    input_cost = (input_tokens / 1000) * pricing["input"]
+    output_cost = (output_tokens / 1000) * pricing["output"]
+    return input_cost + output_cost
+
+
+# =============================================================================
 # LLM RESPONSE CACHE
 # =============================================================================
 
@@ -1222,7 +1252,7 @@ async def get_daily_token_usage(days: int = 30):
         end_date = datetime.now(timezone.utc)
         start_date = end_date - timedelta(days=days)
         
-        # Aggregate by day
+        # Aggregate by day with model-specific calculations
         pipeline = [
             {
                 "$match": {
@@ -1234,7 +1264,8 @@ async def get_daily_token_usage(days: int = 30):
                     "_id": {
                         "year": {"$year": "$timestamp"},
                         "month": {"$month": "$timestamp"},
-                        "day": {"$dayOfMonth": "$timestamp"}
+                        "day": {"$dayOfMonth": "$timestamp"},
+                        "model": "$model"
                     },
                     "total_tokens": {"$sum": "$total_tokens"},
                     "input_tokens": {"$sum": "$input_tokens"},
@@ -1248,26 +1279,56 @@ async def get_daily_token_usage(days: int = 30):
             },
             {"$sort": {"_id.year": 1, "_id.month": 1, "_id.day": 1}}
         ]
-        
+
         results = list(collection.aggregate(pipeline))
-        
-        # Format results
-        daily_usage = []
+
+        # Group by date and calculate total costs across all models
+        daily_data = {}
         for r in results:
             date_str = f"{r['_id']['year']}-{r['_id']['month']:02d}-{r['_id']['day']:02d}"
+            model = r['_id'].get('model', 'claude-3-haiku-20240307')
+
+            if date_str not in daily_data:
+                daily_data[date_str] = {
+                    "total_tokens": 0,
+                    "input_tokens": 0,
+                    "output_tokens": 0,
+                    "request_count": 0,
+                    "cached_count": 0,
+                    "unique_users": set(),
+                    "cost": 0.0
+                }
+
             input_tokens = r.get("input_tokens", 0)
             output_tokens = r.get("output_tokens", 0)
-            # Calculate cost (Claude 3 Haiku pricing)
-            cost = (input_tokens / 1000000) * 0.25 + (output_tokens / 1000000) * 1.25
-            
+
+            # Calculate cost using model-specific pricing
+            cost = calculate_cost(input_tokens, output_tokens, model or 'claude-3-haiku-20240307')
+
+            daily_data[date_str]["total_tokens"] += r.get("total_tokens", 0)
+            daily_data[date_str]["input_tokens"] += input_tokens
+            daily_data[date_str]["output_tokens"] += output_tokens
+            daily_data[date_str]["request_count"] += r.get("request_count", 0)
+            daily_data[date_str]["cached_count"] += r.get("cached_count", 0)
+            daily_data[date_str]["unique_users"].update(r.get("unique_users", []))
+            daily_data[date_str]["cost"] += cost
+
+        # Format results
+        daily_usage = []
+        for date_str in sorted(daily_data.keys()):
+            data = daily_data[date_str]
+            input_tokens = data["input_tokens"]
+            output_tokens = data["output_tokens"]
+            cost = data["cost"]
+
             daily_usage.append({
                 "date": date_str,
-                "total_tokens": r.get("total_tokens", 0),
+                "total_tokens": data["total_tokens"],
                 "input_tokens": input_tokens,
                 "output_tokens": output_tokens,
-                "request_count": r.get("request_count", 0),
-                "cached_count": r.get("cached_count", 0),
-                "unique_users": len(r.get("unique_users", [])),
+                "request_count": data["request_count"],
+                "cached_count": data["cached_count"],
+                "unique_users": len(data["unique_users"]),
                 "cost": round(cost, 4)
             })
         

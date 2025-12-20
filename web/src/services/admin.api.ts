@@ -9,9 +9,11 @@ import type {
   MessageResponse,
   ChatbotSettings,
   ChatbotSettingsResponse,
+  ChatbotSettingsHistoryResponse,
   PromptTemplate,
   PromptTemplateUpdate,
   PromptType,
+  PromptHistoryResponse,
 } from "../types/auth";
 
 export type AdminUserFilters = {
@@ -112,13 +114,25 @@ export const updateChatbotSettings = async (
   return response.data;
 };
 
+export const fetchChatbotSettingsHistory = async (
+  limit: number = 50,
+  skip: number = 0
+): Promise<ChatbotSettingsHistoryResponse> => {
+  const response = await API.get<ChatbotSettingsHistoryResponse>(
+    `${API_ROUTES.admin.chatbotSettings}/history?limit=${limit}&skip=${skip}`
+  );
+  return response.data;
+};
+
 // Prompt template management functions
 export const fetchAllPrompts = async (): Promise<PromptTemplate[]> => {
   const response = await API.get<PromptTemplate[]>(API_ROUTES.admin.prompts);
   return response.data;
 };
 
-export const fetchPrompt = async (promptType: PromptType): Promise<PromptTemplate> => {
+export const fetchPrompt = async (
+  promptType: PromptType
+): Promise<PromptTemplate> => {
   const response = await API.get<PromptTemplate>(
     API_ROUTES.admin.promptDetail(promptType)
   );
@@ -142,5 +156,18 @@ export const resetPromptToDefault = async (
   const response = await API.post<MessageResponse>(
     API_ROUTES.admin.resetPrompt(promptType)
   );
+  return response.data;
+};
+
+export const fetchPromptHistory = async (
+  limit: number = 50,
+  skip: number = 0,
+  promptType?: PromptType
+): Promise<PromptHistoryResponse> => {
+  let url = `${API_ROUTES.admin.prompts}/history?limit=${limit}&skip=${skip}`;
+  if (promptType) {
+    url += `&prompt_type=${promptType}`;
+  }
+  const response = await API.get<PromptHistoryResponse>(url);
   return response.data;
 };

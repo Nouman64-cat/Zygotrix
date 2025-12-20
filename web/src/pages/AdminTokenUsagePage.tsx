@@ -6,6 +6,8 @@ import {
   getDailyTokenUsage,
   type DailyUsageResponse,
 } from "../services/chatbotService";
+import { fetchChatbotSettings } from "../services/admin.api";
+import type { ChatbotSettings } from "../types/auth";
 import {
   MdError,
   MdRefresh,
@@ -75,6 +77,7 @@ const AdminTokenUsagePage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [stats, setStats] = useState<TokenUsageStats | null>(null);
   const [dailyData, setDailyData] = useState<DailyUsageResponse | null>(null);
+  const [chatbotSettings, setChatbotSettings] = useState<ChatbotSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chartDays, setChartDays] = useState(30);
@@ -84,6 +87,7 @@ const AdminTokenUsagePage: React.FC = () => {
   useEffect(() => {
     if (hasAdminAccess) {
       fetchStats();
+      fetchSettings();
     }
   }, [hasAdminAccess]);
 
@@ -123,9 +127,19 @@ const AdminTokenUsagePage: React.FC = () => {
     }
   };
 
+  const fetchSettings = async () => {
+    try {
+      const settings = await fetchChatbotSettings();
+      setChatbotSettings(settings);
+    } catch (err: unknown) {
+      console.error("Failed to fetch chatbot settings:", err);
+    }
+  };
+
   const handleRefresh = () => {
     fetchStats();
     fetchDailyData();
+    fetchSettings();
   };
 
   const formatNumber = (num: number) => {
@@ -148,12 +162,30 @@ const AdminTokenUsagePage: React.FC = () => {
     });
   };
 
-  // Claude 3 Haiku Pricing (as of Dec 2024):
-  // Input: $0.25 / MTok, Output: $1.25 / MTok
-  // Prompt Caching - Write: $0.30 / MTok, Read: $0.03 / MTok
-  const estimateCost = (inputTokens: number, outputTokens: number) => {
-    const inputCost = (inputTokens / 1000000) * 0.25;
-    const outputCost = (outputTokens / 1000000) * 1.25;
+  // Claude API Pricing (updated 2025) - per million tokens
+  const MODEL_PRICING: Record<string, { input: number; output: number; name: string }> = {
+    "claude-3-haiku-20240307": { input: 0.25, output: 1.25, name: "Claude 3 Haiku" },
+    "claude-3-sonnet-20240229": { input: 3, output: 15, name: "Claude 3 Sonnet" },
+    "claude-3-opus-20240229": { input: 15, output: 75, name: "Claude 3 Opus" },
+    "claude-3-5-sonnet-20241022": { input: 3, output: 15, name: "Claude 3.5 Sonnet" },
+    "claude-3-5-haiku-20241022": { input: 0.80, output: 4, name: "Claude 3.5 Haiku" },
+    "claude-sonnet-4-5-20250514": { input: 3, output: 15, name: "Claude Sonnet 4.5" },
+    "claude-opus-4-5-20251101": { input: 5, output: 25, name: "Claude Opus 4.5" },
+    "claude-haiku-4-5-20250514": { input: 1, output: 5, name: "Claude Haiku 4.5" },
+  };
+
+  const getModelInfo = (modelId: string) => {
+    return MODEL_PRICING[modelId] || MODEL_PRICING["claude-3-haiku-20240307"];
+  };
+
+  const estimateCost = (
+    inputTokens: number,
+    outputTokens: number,
+    model: string = "claude-3-haiku-20240307"
+  ) => {
+    const pricing = getModelInfo(model);
+    const inputCost = (inputTokens / 1000000) * pricing.input;
+    const outputCost = (outputTokens / 1000000) * pricing.output;
     return (inputCost + outputCost).toFixed(4);
   };
 
@@ -491,6 +523,26 @@ const AdminTokenUsagePage: React.FC = () => {
                   Active chatters
                 </div>
               </div>
+
+              {/* Current Model */}
+              {chatbotSettings && (
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border border-indigo-200 dark:border-indigo-700/50 rounded-xl p-3 sm:p-5 shadow-sm">
+                  <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                    <div className="p-1.5 sm:p-2 rounded-lg bg-indigo-100 dark:bg-indigo-500/20">
+                      <FaRobot className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-600 dark:text-indigo-400" />
+                    </div>
+                    <span className="text-xs sm:text-sm text-indigo-700 dark:text-indigo-300 font-medium">
+                      Current Model
+                    </span>
+                  </div>
+                  <div className="text-lg sm:text-2xl font-bold text-indigo-700 dark:text-indigo-300 mb-1">
+                    {getModelInfo(chatbotSettings.model).name}
+                  </div>
+                  <div className="text-[10px] sm:text-xs text-gray-600 dark:text-slate-400">
+                    ${getModelInfo(chatbotSettings.model).input} / ${getModelInfo(chatbotSettings.model).output} per MTok
+                  </div>
+                </div>
+              )}
             </div>
 
             {/* Chart and Token Info Row */}
@@ -557,12 +609,12 @@ const AdminTokenUsagePage: React.FC = () => {
                       </div>
                       <div className="text-lg font-bold text-blue-600 dark:text-blue-300">
                         $
-                        {((stats.total_input_tokens / 1000000) * 0.25).toFixed(
-                          4
-                        )}
+                        {((stats.total_input_tokens / 1000000) *
+                          getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").input
+                        ).toFixed(4)}
                       </div>
                       <div className="text-[10px] text-gray-400 dark:text-slate-500">
-                        @ $0.25/MTok
+                        @ ${getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").input}/MTok
                       </div>
                     </div>
                   </div>
@@ -591,12 +643,12 @@ const AdminTokenUsagePage: React.FC = () => {
                       </div>
                       <div className="text-lg font-bold text-green-600 dark:text-green-300">
                         $
-                        {((stats.total_output_tokens / 1000000) * 1.25).toFixed(
-                          4
-                        )}
+                        {((stats.total_output_tokens / 1000000) *
+                          getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").output
+                        ).toFixed(4)}
                       </div>
                       <div className="text-[10px] text-gray-400 dark:text-slate-500">
-                        @ $1.25/MTok
+                        @ ${getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").output}/MTok
                       </div>
                     </div>
                   </div>

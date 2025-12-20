@@ -11,7 +11,7 @@ import json
 import asyncio
 from datetime import datetime, timezone
 from typing import Optional, AsyncGenerator
-from fastapi import APIRouter, HTTPException, Depends, Query
+from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
 import httpx
@@ -54,6 +54,7 @@ from ..chatbot_tools import (
     calculate_punnett_square, parse_cross_from_message
 )
 from .chatbot import _rate_limiter, _log_token_usage  # Import the rate limiter instance and token logging function
+from ..services import auth as auth_services  # Import auth services for login tracking
 
 logger = logging.getLogger(__name__)
 
@@ -66,8 +67,54 @@ LLAMA_CLOUD_BASE_URL = "https://api.cloud.eu.llamaindex.ai"
 
 
 # =============================================================================
+# MODEL PRICING CONFIGURATION
+# =============================================================================
+
+# Pricing per 1K tokens (updated 2025)
+MODEL_PRICING = {
+    "claude-3-haiku-20240307": {"input": 0.00025, "output": 0.00125},
+    "claude-3-sonnet-20240229": {"input": 0.003, "output": 0.015},
+    "claude-3-opus-20240229": {"input": 0.015, "output": 0.075},
+    "claude-3-5-sonnet-20241022": {"input": 0.003, "output": 0.015},
+    "claude-3-5-haiku-20241022": {"input": 0.0008, "output": 0.004},
+    "claude-sonnet-4-5-20250514": {"input": 0.003, "output": 0.015},
+    "claude-opus-4-5-20251101": {"input": 0.005, "output": 0.025},
+    "claude-haiku-4-5-20250514": {"input": 0.001, "output": 0.005},
+}
+
+
+def get_model_pricing(model: str) -> dict:
+    """Get pricing for a specific model. Defaults to Haiku 3 if model not found."""
+    return MODEL_PRICING.get(model, {"input": 0.00025, "output": 0.00125})
+
+
+def calculate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
+    """Calculate cost based on model-specific pricing."""
+    pricing = get_model_pricing(model)
+    input_cost = (input_tokens / 1000) * pricing["input"]
+    output_cost = (output_tokens / 1000) * pricing["output"]
+    return input_cost + output_cost
+
+
+# =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
+
+def _get_client_ip(request: Request) -> str:
+    """Extract client IP from request, handling proxies."""
+    # Check for forwarded headers (when behind proxy/load balancer)
+    forwarded_for = request.headers.get("X-Forwarded-For")
+    if forwarded_for:
+        # Get the first IP in the chain (original client)
+        return forwarded_for.split(",")[0].strip()
+
+    real_ip = request.headers.get("X-Real-IP")
+    if real_ip:
+        return real_ip.strip()
+
+    # Fall back to direct client IP
+    return request.client.host if request.client else "Unknown"
+
 
 def get_user_id_from_profile(current_user: UserProfile = Depends(get_current_user)) -> str:
     """Extract user ID from authenticated user profile."""
@@ -333,7 +380,8 @@ async def generate_claude_response(
 
 @router.post("/chat")
 async def chat(
-    request: ChatRequest,
+    chat_request: ChatRequest,
+    http_request: Request,
     current_user: UserProfile = Depends(get_current_user)
 ):
     """
@@ -342,6 +390,18 @@ async def chat(
     If conversation_id is not provided, creates a new conversation.
     Set stream=True for Server-Sent Events streaming response.
     """
+    # Track user activity (login tracking for zygotrix_ai)
+    try:
+        ip_address = _get_client_ip(http_request)
+        user_agent = http_request.headers.get("User-Agent")
+        auth_services.update_user_activity(
+            user_id=current_user.id,
+            ip_address=ip_address,
+            user_agent=user_agent
+        )
+    except Exception as e:
+        logger.warning(f"Failed to update user activity: {e}")
+
     # Check if chatbot is enabled
     try:
         settings = get_chatbot_settings()
@@ -370,38 +430,38 @@ async def chat(
 
     # Get or create conversation
     conversation = None
-    if request.conversation_id:
+    if chat_request.conversation_id:
         conversation = ConversationService.get_conversation(
-            request.conversation_id, user_id
+            chat_request.conversation_id, user_id
         )
         if not conversation:
             raise HTTPException(status_code=404, detail="Conversation not found")
     else:
         # Create new conversation
         conv_data = ConversationCreate(
-            title=request.message[:50] + ("..." if len(request.message) > 50 else ""),
-            page_context=request.page_context,
+            title=chat_request.message[:50] + ("..." if len(chat_request.message) > 50 else ""),
+            page_context=chat_request.page_context,
         )
         conversation = ConversationService.create_conversation(user_id, conv_data)
 
     # Get conversation settings
     conv_settings = conversation.settings
-    model = request.model or conv_settings.model
-    temperature = request.temperature if request.temperature is not None else conv_settings.temperature
-    max_tokens = request.max_tokens or conv_settings.max_tokens
+    model = chat_request.model or conv_settings.model
+    temperature = chat_request.temperature if chat_request.temperature is not None else conv_settings.temperature
+    max_tokens = chat_request.max_tokens or conv_settings.max_tokens
 
     # Save user message
     user_message = MessageService.create_message(
         conversation_id=conversation.id,
         role=MessageRole.USER,
-        content=request.message,
-        parent_message_id=request.parent_message_id,
-        attachments=[a.model_dump() for a in request.attachments] if request.attachments else []
+        content=chat_request.message,
+        parent_message_id=chat_request.parent_message_id,
+        attachments=[a.model_dump() for a in chat_request.attachments] if chat_request.attachments else []
     )
 
     # Build context
-    traits_context = get_traits_context(request.message)
-    llama_context = await retrieve_llama_context(request.message)
+    traits_context = get_traits_context(chat_request.message)
+    llama_context = await retrieve_llama_context(chat_request.message)
 
     combined_context = traits_context
     if llama_context:
@@ -419,23 +479,23 @@ async def chat(
         claude_messages.append({"role": msg["role"], "content": msg["content"]})
 
     # Add current message with context
-    current_content = request.message
+    current_content = chat_request.message
     if combined_context:
         current_content = f"""Background information:
 {combined_context}
 
-Question: {request.message}"""
+Question: {chat_request.message}"""
 
     claude_messages.append({"role": "user", "content": current_content})
 
     # Get system prompt
-    is_simulation = request.page_context and "Simulation" in request.page_context
+    is_simulation = chat_request.page_context and "Simulation" in chat_request.page_context
     if is_simulation:
         system_prompt = get_simulation_tool_prompt("User", combined_context)
     else:
         system_prompt = get_zigi_system_prompt()
 
-    if request.stream:
+    if chat_request.stream:
         # Streaming response
         async def event_generator():
             assistant_content = ""
@@ -476,7 +536,7 @@ Question: {request.message}"""
                             ConversationService.update_conversation(
                                 conversation.id,
                                 user_id,
-                                ConversationUpdate(title=request.message[:50] + ("..." if len(request.message) > 50 else ""))
+                                ConversationUpdate(title=chat_request.message[:50] + ("..." if len(chat_request.message) > 50 else ""))
                             )
 
                         # Record token usage for rate limiting (same as non-streaming path)
@@ -491,7 +551,7 @@ Question: {request.message}"""
                             input_tokens=metadata.get("input_tokens", 0) if metadata else 0,
                             output_tokens=metadata.get("output_tokens", 0) if metadata else 0,
                             cached=False,
-                            message_preview=request.message[:100],
+                            message_preview=chat_request.message[:100],
                             model=model
                         )
 
@@ -532,7 +592,7 @@ Question: {request.message}"""
             ConversationService.update_conversation(
                 conversation.id,
                 user_id,
-                ConversationUpdate(title=request.message[:50] + ("..." if len(request.message) > 50 else ""))
+                ConversationUpdate(title=chat_request.message[:50] + ("..." if len(chat_request.message) > 50 else ""))
             )
 
         # Record token usage for rate limiting
@@ -547,7 +607,7 @@ Question: {request.message}"""
             input_tokens=metadata.get("input_tokens", 0),
             output_tokens=metadata.get("output_tokens", 0),
             cached=False,
-            message_preview=request.message[:100],
+            message_preview=chat_request.message[:100],
             model=model
         )
 
@@ -1082,7 +1142,7 @@ async def get_status():
 
 @router.get("/models")
 async def get_available_models():
-    """Get list of available AI models."""
+    """Get list of available AI models with accurate 2025 pricing."""
     return {
         "models": [
             {
@@ -1092,8 +1152,8 @@ async def get_available_models():
                 "description": "Fast and efficient for simple tasks",
                 "context_window": 200000,
                 "max_output": 4096,
-                "input_cost_per_1k": 0.00025,
-                "output_cost_per_1k": 0.00125,
+                "input_cost_per_1k": 0.00025,  # $0.25 per MTok
+                "output_cost_per_1k": 0.00125,  # $1.25 per MTok
             },
             {
                 "id": "claude-3-sonnet-20240229",
@@ -1102,8 +1162,8 @@ async def get_available_models():
                 "description": "Balanced performance and cost",
                 "context_window": 200000,
                 "max_output": 4096,
-                "input_cost_per_1k": 0.003,
-                "output_cost_per_1k": 0.015,
+                "input_cost_per_1k": 0.003,  # $3 per MTok
+                "output_cost_per_1k": 0.015,  # $15 per MTok
             },
             {
                 "id": "claude-3-opus-20240229",
@@ -1112,8 +1172,8 @@ async def get_available_models():
                 "description": "Most capable for complex tasks",
                 "context_window": 200000,
                 "max_output": 4096,
-                "input_cost_per_1k": 0.015,
-                "output_cost_per_1k": 0.075,
+                "input_cost_per_1k": 0.015,  # $15 per MTok
+                "output_cost_per_1k": 0.075,  # $75 per MTok
             },
             {
                 "id": "claude-3-5-sonnet-20241022",
@@ -1122,8 +1182,48 @@ async def get_available_models():
                 "description": "Latest model with improved reasoning",
                 "context_window": 200000,
                 "max_output": 8192,
-                "input_cost_per_1k": 0.003,
-                "output_cost_per_1k": 0.015,
+                "input_cost_per_1k": 0.003,  # $3 per MTok
+                "output_cost_per_1k": 0.015,  # $15 per MTok
+            },
+            {
+                "id": "claude-3-5-haiku-20241022",
+                "name": "Claude 3.5 Haiku",
+                "provider": "anthropic",
+                "description": "Faster and more affordable than 3.0",
+                "context_window": 200000,
+                "max_output": 8192,
+                "input_cost_per_1k": 0.0008,  # $0.80 per MTok
+                "output_cost_per_1k": 0.004,  # $4 per MTok
+            },
+            {
+                "id": "claude-sonnet-4-5-20250514",
+                "name": "Claude Sonnet 4.5",
+                "provider": "anthropic",
+                "description": "Advanced reasoning and performance (2025)",
+                "context_window": 200000,
+                "max_output": 8192,
+                "input_cost_per_1k": 0.003,  # $3 per MTok
+                "output_cost_per_1k": 0.015,  # $15 per MTok
+            },
+            {
+                "id": "claude-opus-4-5-20251101",
+                "name": "Claude Opus 4.5",
+                "provider": "anthropic",
+                "description": "Most capable Claude model (2025)",
+                "context_window": 200000,
+                "max_output": 8192,
+                "input_cost_per_1k": 0.005,  # $5 per MTok
+                "output_cost_per_1k": 0.025,  # $25 per MTok
+            },
+            {
+                "id": "claude-haiku-4-5-20250514",
+                "name": "Claude Haiku 4.5",
+                "provider": "anthropic",
+                "description": "Fast and affordable (2025)",
+                "context_window": 200000,
+                "max_output": 8192,
+                "input_cost_per_1k": 0.001,  # $1 per MTok
+                "output_cost_per_1k": 0.005,  # $5 per MTok
             },
         ]
     }

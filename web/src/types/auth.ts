@@ -195,6 +195,28 @@ export type ChatbotSettingsResponse = {
   settings: ChatbotSettings;
 };
 
+export type SettingChange = {
+  field_name: string;
+  old_value?: string | number | boolean | null;
+  new_value?: string | number | boolean | null;
+};
+
+export type ChatbotSettingsHistory = {
+  id?: string;
+  timestamp: string;
+  updated_by: string;
+  updated_by_name?: string;
+  updated_by_email?: string;
+  changes: SettingChange[];
+  ip_address?: string;
+  user_agent?: string;
+};
+
+export type ChatbotSettingsHistoryResponse = {
+  history: ChatbotSettingsHistory[];
+  total_count: number;
+};
+
 // Prompt template types
 export type PromptType = "system" | "system_verbose" | "simulation";
 
@@ -213,4 +235,29 @@ export type PromptTemplateUpdate = {
   prompt_content: string;
   description?: string | null;
   is_active?: boolean;
+};
+
+// Prompt history types
+export type PromptChange = {
+  field_name: string;
+  old_value?: string | null;
+  new_value?: string | null;
+};
+
+export type PromptHistory = {
+  id?: string;
+  timestamp: string;
+  prompt_type: PromptType;
+  action: "update" | "reset";
+  updated_by: string;
+  updated_by_name?: string;
+  updated_by_email?: string;
+  changes: PromptChange[];
+  ip_address?: string;
+  user_agent?: string;
+};
+
+export type PromptHistoryResponse = {
+  history: PromptHistory[];
+  total_count: number;
 };

@@ -81,3 +81,31 @@ class ChatbotSettingsResponse(BaseModel):
 
     message: str
     settings: ChatbotSettings
+
+
+class SettingChange(BaseModel):
+    """Individual setting change."""
+
+    field_name: str
+    old_value: Optional[str | int | float | bool] = None
+    new_value: Optional[str | int | float | bool] = None
+
+
+class ChatbotSettingsHistory(BaseModel):
+    """Chatbot settings change history entry."""
+
+    id: Optional[str] = None
+    timestamp: str
+    updated_by: str  # User ID of admin who made the change
+    updated_by_name: Optional[str] = None  # Name of admin
+    updated_by_email: Optional[str] = None  # Email of admin
+    changes: list[SettingChange]
+    ip_address: Optional[str] = None
+    user_agent: Optional[str] = None
+
+
+class ChatbotSettingsHistoryResponse(BaseModel):
+    """Response containing chatbot settings history."""
+
+    history: list[ChatbotSettingsHistory]
+    total_count: int

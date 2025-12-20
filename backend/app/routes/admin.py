@@ -2,7 +2,7 @@
 from typing import Optional, List
 from math import ceil
 
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from ..dependencies import get_current_admin, get_current_super_admin
 from ..schema.auth import (
@@ -19,6 +19,7 @@ from ..schema.chatbot_settings import (
     ChatbotSettings,
     ChatbotSettingsUpdate,
     ChatbotSettingsResponse,
+    ChatbotSettingsHistoryResponse,
 )
 from ..models.prompt_template import (
     PromptTemplateUpdate,
@@ -185,15 +186,27 @@ def get_chatbot_settings(
 @router.put("/chatbot/settings", response_model=ChatbotSettingsResponse)
 def update_chatbot_settings(
     settings_update: ChatbotSettingsUpdate,
+    request: Request,
     current_admin: UserProfile = Depends(get_current_admin),
 ) -> ChatbotSettingsResponse:
     """
     Update chatbot configuration settings.
     Only provided fields will be updated.
+    Logs changes to audit history.
     """
+    # Extract IP address and user agent for audit trail
+    ip_address = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or \
+                 request.headers.get("X-Real-IP", "").strip() or \
+                 (request.client.host if request.client else "Unknown")
+    user_agent = request.headers.get("User-Agent")
+
     updated_settings = chatbot_settings_service.update_chatbot_settings(
         updates=settings_update,
-        admin_user_id=current_admin.id
+        admin_user_id=current_admin.id,
+        admin_user_name=current_admin.name if hasattr(current_admin, 'name') else None,
+        admin_user_email=current_admin.email,
+        ip_address=ip_address,
+        user_agent=user_agent
     )
 
     return ChatbotSettingsResponse(
@@ -202,26 +215,74 @@ def update_chatbot_settings(
     )
 
 
+@router.get("/chatbot/settings/history", response_model=ChatbotSettingsHistoryResponse)
+def get_chatbot_settings_history(
+    limit: int = Query(default=50, ge=1, le=200, description="Maximum number of history entries"),
+    skip: int = Query(default=0, ge=0, description="Number of entries to skip"),
+    current_admin: UserProfile = Depends(get_current_super_admin),
+) -> ChatbotSettingsHistoryResponse:
+    """
+    Get chatbot settings change history.
+    **SUPER ADMIN ONLY** - View audit trail of all chatbot settings changes.
+
+    Returns detailed history including:
+    - Who made the change (admin name, email, ID)
+    - When the change was made (timestamp)
+    - What was changed (field name, old value, new value)
+    - Where the change came from (IP address, user agent)
+    """
+    return chatbot_settings_service.get_chatbot_settings_history(
+        limit=limit,
+        skip=skip
+    )
+
+
 # Prompt Template Management Endpoints
 @router.get("/prompts", response_model=List[PromptTemplateResponse])
 def get_all_prompts(
-    current_admin: UserProfile = Depends(get_current_super_admin),
+    current_admin: UserProfile = Depends(get_current_admin),
 ) -> List[PromptTemplateResponse]:
     """
     Get all prompt templates.
-    Requires super admin privileges.
+    Requires admin privileges.
     """
     return prompt_service.get_all_prompts()
+
+
+# NOTE: This route must come BEFORE /prompts/{prompt_type} to avoid 'history' being matched as a prompt_type
+@router.get("/prompts/history")
+def get_prompt_history(
+    prompt_type: Optional[str] = Query(default=None, description="Filter by prompt type"),
+    limit: int = Query(default=50, ge=1, le=200, description="Maximum number of history entries"),
+    skip: int = Query(default=0, ge=0, description="Number of entries to skip"),
+    current_admin: UserProfile = Depends(get_current_super_admin),
+):
+    """
+    Get prompt template change history.
+    **SUPER ADMIN ONLY** - View audit trail of all prompt changes.
+
+    Returns detailed history including:
+    - Who made the change (admin name, email, ID)
+    - When the change was made (timestamp)
+    - What was changed (field name, old value, new value)
+    - What action was taken (update, reset)
+    - Where the change came from (IP address, user agent)
+    """
+    return prompt_service.get_prompt_history(
+        prompt_type=prompt_type,
+        limit=limit,
+        skip=skip
+    )
 
 
 @router.get("/prompts/{prompt_type}", response_model=PromptTemplateResponse)
 def get_prompt(
     prompt_type: str,
-    current_admin: UserProfile = Depends(get_current_super_admin),
+    current_admin: UserProfile = Depends(get_current_admin),
 ) -> PromptTemplateResponse:
     """
     Get a specific prompt template by type.
-    Requires super admin privileges.
+    Requires admin privileges.
     """
     prompt = prompt_service.get_prompt_by_type(prompt_type)
     if not prompt:
@@ -233,16 +294,28 @@ def get_prompt(
 def update_prompt(
     prompt_type: str,
     prompt_update: PromptTemplateUpdate,
-    current_admin: UserProfile = Depends(get_current_super_admin),
+    request: Request,
+    current_admin: UserProfile = Depends(get_current_admin),
 ) -> PromptTemplateResponse:
     """
     Update a prompt template.
-    Requires super admin privileges.
+    Requires admin privileges.
+    Logs changes to audit history.
     """
+    # Extract IP address and user agent for audit trail
+    ip_address = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or \
+                 request.headers.get("X-Real-IP", "").strip() or \
+                 (request.client.host if request.client else "Unknown")
+    user_agent = request.headers.get("User-Agent")
+
     updated_prompt = prompt_service.update_prompt(
         prompt_type=prompt_type,
         prompt_update=prompt_update,
-        admin_user_id=current_admin.id
+        admin_user_id=current_admin.id,
+        admin_user_name=current_admin.full_name if hasattr(current_admin, 'full_name') else None,
+        admin_user_email=current_admin.email,
+        ip_address=ip_address,
+        user_agent=user_agent
     )
     if not updated_prompt:
         raise HTTPException(status_code=404, detail="Prompt template not found")
@@ -252,13 +325,30 @@ def update_prompt(
 @router.post("/prompts/{prompt_type}/reset", response_model=MessageResponse)
 def reset_prompt_to_default(
     prompt_type: str,
-    current_admin: UserProfile = Depends(get_current_super_admin),
+    request: Request,
+    current_admin: UserProfile = Depends(get_current_admin),
 ) -> MessageResponse:
     """
     Reset a prompt template to its default value.
-    Requires super admin privileges.
+    Requires admin privileges.
+    Logs changes to audit history.
     """
-    success = prompt_service.reset_to_default(prompt_type, current_admin.id)
+    # Extract IP address and user agent for audit trail
+    ip_address = request.headers.get("X-Forwarded-For", "").split(",")[0].strip() or \
+                 request.headers.get("X-Real-IP", "").strip() or \
+                 (request.client.host if request.client else "Unknown")
+    user_agent = request.headers.get("User-Agent")
+
+    success = prompt_service.reset_to_default(
+        prompt_type=prompt_type,
+        admin_user_id=current_admin.id,
+        admin_user_name=current_admin.full_name if hasattr(current_admin, 'full_name') else None,
+        admin_user_email=current_admin.email,
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
     if not success:
         raise HTTPException(status_code=404, detail="Prompt template not found")
     return MessageResponse(message=f"Prompt template '{prompt_type}' reset to default successfully")
+
+

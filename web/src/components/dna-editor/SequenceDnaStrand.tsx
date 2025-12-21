@@ -205,68 +205,152 @@ const SequenceDnaStrand: React.FC<SequenceDnaStrandProps> = ({
             </defs>
 
             {/* Draw the vertical DNA double helix with moving strands */}
-            {basePairs.map((pair, i) => {
-              const angle = (i * Math.PI) / 5; // Gentler helix curve for vertical display
-              const y = i * 28 + 50; // Vertical spacing
-              // Calculate positions for moving helix with wave-like motion
-              const helixRadius = 65; // Increased for more hollow space
-              const waveOffset = Math.sin(animationTime + i * 0.3) * 6; // Reduced wave for cleaner look
-              const leftX =
-                150 +
-                helixRadius * Math.cos(angle + animationTime * 0.5) +
-                waveOffset;
-              const rightX =
-                150 +
-                helixRadius * Math.cos(angle + Math.PI + animationTime * 0.5) -
-                waveOffset;
 
-              // Calculate depth for 3D effect (simulate perspective)
+            {/* FIRST PASS: Draw all backbone connections (behind everything) */}
+            {basePairs.map((pair, i) => {
+              if (i === 0) return null; // Skip first item - no previous connection
+
+              const angle = (i * Math.PI) / 5;
+              const y = i * 28 + 50;
+              const helixRadius = 65;
+              const waveOffset = Math.sin(animationTime + i * 0.3) * 6;
+              const leftX = 150 + helixRadius * Math.cos(angle + animationTime * 0.5) + waveOffset;
+              const rightX = 150 + helixRadius * Math.cos(angle + Math.PI + animationTime * 0.5) - waveOffset;
+
               const leftZ = Math.sin(angle + animationTime * 0.5);
               const rightZ = Math.sin(angle + Math.PI + animationTime * 0.5);
-
-              // Enhanced depth-based effects without zoom
               const leftOpacity = 0.6 + leftZ * 0.4;
               const rightOpacity = 0.6 + rightZ * 0.4;
-
-              // Dynamic animation delays for wave effect
               const animationDelay = i * 0.08;
 
+              const prevY = (i - 1) * 28 + 50;
+              const prevWaveOffset = Math.sin(animationTime + (i - 1) * 0.3) * 6;
+              const prevLeftX = 150 + helixRadius * Math.cos(((i - 1) * Math.PI) / 5 + animationTime * 0.5) + prevWaveOffset;
+              const prevRightX = 150 + helixRadius * Math.cos(((i - 1) * Math.PI) / 5 + Math.PI + animationTime * 0.5) - prevWaveOffset;
+
+              // Calculate offset to stop lines at circle edge (radius = 10 + 2 margin)
+              const circleOffset = 12;
+
+              // Left backbone: direction and offset
+              const leftDx = leftX - prevLeftX;
+              const leftDy = y - prevY;
+              const leftLen = Math.sqrt(leftDx * leftDx + leftDy * leftDy);
+              const leftNormX = leftLen > 0 ? leftDx / leftLen : 0;
+              const leftNormY = leftLen > 0 ? leftDy / leftLen : 1;
+              const leftStartX = prevLeftX + leftNormX * circleOffset;
+              const leftStartY = prevY + leftNormY * circleOffset;
+              const leftEndX = leftX - leftNormX * circleOffset;
+              const leftEndY = y - leftNormY * circleOffset;
+
+              // Right backbone: direction and offset
+              const rightDx = rightX - prevRightX;
+              const rightDy = y - prevY;
+              const rightLen = Math.sqrt(rightDx * rightDx + rightDy * rightDy);
+              const rightNormX = rightLen > 0 ? rightDx / rightLen : 0;
+              const rightNormY = rightLen > 0 ? rightDy / rightLen : 1;
+              const rightStartX = prevRightX + rightNormX * circleOffset;
+              const rightStartY = prevY + rightNormY * circleOffset;
+              const rightEndX = rightX - rightNormX * circleOffset;
+              const rightEndY = y - rightNormY * circleOffset;
+
               return (
-                <g
-                  key={pair.id}
-                  style={{
-                    animation: `dnaPulse 3s ease-in-out infinite`,
-                    animationDelay: `${animationDelay}s`,
-                  }}
-                >
-                  {/* Enhanced Base Pair Connection (Hydrogen Bonds) */}
-                  {/* Multiple lines to represent hydrogen bonds more accurately */}
+                <g key={`backbone-${pair.id}`}>
+                  {/* Left backbone curve - offset from circles */}
+                  <path
+                    d={`M ${leftStartX} ${leftStartY} Q ${(prevLeftX + leftX) / 2} ${(prevY + y) / 2} ${leftEndX} ${leftEndY}`}
+                    stroke="url(#backboneGradient-seq)"
+                    strokeWidth="3.5"
+                    opacity={leftOpacity * 0.9}
+                    fill="none"
+                    filter="url(#glow-seq)"
+                    strokeLinecap="round"
+                    style={{ animationDelay: `${animationDelay}s`, animationDuration: "2s" }}
+                  />
+                  {/* Right backbone curve - offset from circles */}
+                  <path
+                    d={`M ${rightStartX} ${rightStartY} Q ${(prevRightX + rightX) / 2} ${(prevY + y) / 2} ${rightEndX} ${rightEndY}`}
+                    stroke="url(#backboneGradient-seq)"
+                    strokeWidth="3.5"
+                    opacity={rightOpacity * 0.9}
+                    fill="none"
+                    filter="url(#glow-seq)"
+                    strokeLinecap="round"
+                    style={{ animationDelay: `${animationDelay + 0.1}s`, animationDuration: "2s" }}
+                  />
+                </g>
+              );
+            })}
+
+            {/* SECOND PASS: Draw hydrogen bonds */}
+            {basePairs.map((pair, i) => {
+              const angle = (i * Math.PI) / 5;
+              const y = i * 28 + 50;
+              const helixRadius = 65;
+              const waveOffset = Math.sin(animationTime + i * 0.3) * 6;
+              const leftX = 150 + helixRadius * Math.cos(angle + animationTime * 0.5) + waveOffset;
+              const rightX = 150 + helixRadius * Math.cos(angle + Math.PI + animationTime * 0.5) - waveOffset;
+
+              const leftZ = Math.sin(angle + animationTime * 0.5);
+              const rightZ = Math.sin(angle + Math.PI + animationTime * 0.5);
+              const leftOpacity = 0.6 + leftZ * 0.4;
+              const rightOpacity = 0.6 + rightZ * 0.4;
+              const animationDelay = i * 0.08;
+
+              // Offset hydrogen bonds to start/end at circle edge
+              const bondOffset = 12;
+              const bondLeftX = leftX + bondOffset;
+              const bondRightX = rightX - bondOffset;
+
+              return (
+                <g key={`bonds-${pair.id}`}>
                   {Array.from({ length: pair.bonds }).map((_, bondIndex) => {
-                    const bondOffset = (bondIndex - (pair.bonds - 1) / 2) * 3;
+                    const verticalOffset = (bondIndex - (pair.bonds - 1) / 2) * 3;
                     return (
                       <line
                         key={`${pair.id}-bond-${bondIndex}`}
-                        x1={leftX}
-                        y1={y + bondOffset}
-                        x2={rightX}
-                        y2={y + bondOffset}
+                        x1={bondLeftX}
+                        y1={y + verticalOffset}
+                        x2={bondRightX}
+                        y2={y + verticalOffset}
                         stroke={pair.color}
                         strokeWidth="2"
                         opacity={Math.min(leftOpacity, rightOpacity) * 0.9}
                         strokeDasharray="5,3"
                         strokeLinecap="round"
-                        style={{
-                          animationDelay: `${
-                            animationDelay + bondIndex * 0.1
-                          }s`,
-                        }}
+                        style={{ animationDelay: `${animationDelay + bondIndex * 0.1}s` }}
                       />
                     );
                   })}
+                </g>
+              );
+            })}
 
-                  {/* Enhanced Left Base with 3D appearance */}
+            {/* THIRD PASS: Draw nucleotide base circles (on top of everything) */}
+            {basePairs.map((pair, i) => {
+              const angle = (i * Math.PI) / 5;
+              const y = i * 28 + 50;
+              const helixRadius = 65;
+              const waveOffset = Math.sin(animationTime + i * 0.3) * 6;
+              const leftX = 150 + helixRadius * Math.cos(angle + animationTime * 0.5) + waveOffset;
+              const rightX = 150 + helixRadius * Math.cos(angle + Math.PI + animationTime * 0.5) - waveOffset;
+
+              const leftZ = Math.sin(angle + animationTime * 0.5);
+              const rightZ = Math.sin(angle + Math.PI + animationTime * 0.5);
+              const leftOpacity = 0.6 + leftZ * 0.4;
+              const rightOpacity = 0.6 + rightZ * 0.4;
+              const animationDelay = i * 0.08;
+
+              return (
+                <g
+                  key={`bases-${pair.id}`}
+                  style={{
+                    animation: `dnaPulse 3s ease-in-out infinite`,
+                    animationDelay: `${animationDelay}s`,
+                  }}
+                >
+                  {/* Left Base */}
                   <g transform={`translate(${leftX}, ${y})`}>
-                    {/* Base shadow for depth */}
+                    {/* Shadow */}
                     <ellipse
                       cx="1"
                       cy="1"
@@ -275,7 +359,7 @@ const SequenceDnaStrand: React.FC<SequenceDnaStrandProps> = ({
                       fill="rgba(0,0,0,0.25)"
                       opacity={leftOpacity * 0.6}
                     />
-                    {/* Main base circle */}
+                    {/* Main circle */}
                     <circle
                       cx="0"
                       cy="0"
@@ -286,7 +370,7 @@ const SequenceDnaStrand: React.FC<SequenceDnaStrandProps> = ({
                       stroke="rgba(255,255,255,0.5)"
                       strokeWidth="1.5"
                     />
-                    {/* Base letter */}
+                    {/* Letter */}
                     <text
                       x="0"
                       y="4"
@@ -300,9 +384,9 @@ const SequenceDnaStrand: React.FC<SequenceDnaStrandProps> = ({
                     </text>
                   </g>
 
-                  {/* Enhanced Right Base with 3D appearance */}
+                  {/* Right Base */}
                   <g transform={`translate(${rightX}, ${y})`}>
-                    {/* Base shadow for depth */}
+                    {/* Shadow */}
                     <ellipse
                       cx="1"
                       cy="1"
@@ -311,7 +395,7 @@ const SequenceDnaStrand: React.FC<SequenceDnaStrandProps> = ({
                       fill="rgba(0,0,0,0.25)"
                       opacity={rightOpacity * 0.6}
                     />
-                    {/* Main base circle */}
+                    {/* Main circle */}
                     <circle
                       cx="0"
                       cy="0"
@@ -322,7 +406,7 @@ const SequenceDnaStrand: React.FC<SequenceDnaStrandProps> = ({
                       stroke="rgba(255,255,255,0.5)"
                       strokeWidth="1.5"
                     />
-                    {/* Base letter */}
+                    {/* Letter */}
                     <text
                       x="0"
                       y="4"
@@ -335,67 +419,6 @@ const SequenceDnaStrand: React.FC<SequenceDnaStrandProps> = ({
                       {pair.right}
                     </text>
                   </g>
-
-                  {/* Enhanced Backbone connections with smooth curves */}
-                  {i > 0 &&
-                    (() => {
-                      const prevY = (i - 1) * 28 + 50;
-                      const prevWaveOffset =
-                        Math.sin(animationTime + (i - 1) * 0.3) * 6; // Match reduced wave
-                      const prevLeftX =
-                        150 +
-                        helixRadius *
-                          Math.cos(
-                            ((i - 1) * Math.PI) / 5 + animationTime * 0.5
-                          ) +
-                        prevWaveOffset;
-                      const prevRightX =
-                        150 +
-                        helixRadius *
-                          Math.cos(
-                            ((i - 1) * Math.PI) / 5 +
-                              Math.PI +
-                              animationTime * 0.5
-                          ) -
-                        prevWaveOffset;
-
-                      return (
-                        <>
-                          {/* Left backbone with flowing curve */}
-                          <path
-                            d={`M ${prevLeftX} ${prevY}
-                              Q ${(prevLeftX + leftX) / 2} ${(prevY + y) / 2}
-                              ${leftX} ${y}`}
-                            stroke="url(#backboneGradient-seq)"
-                            strokeWidth="3.5"
-                            opacity={leftOpacity * 0.9}
-                            fill="none"
-                            filter="url(#glow-seq)"
-                            strokeLinecap="round"
-                            style={{
-                              animationDelay: `${animationDelay}s`,
-                              animationDuration: "2s",
-                            }}
-                          />
-                          {/* Right backbone with flowing curve */}
-                          <path
-                            d={`M ${prevRightX} ${prevY}
-                              Q ${(prevRightX + rightX) / 2} ${(prevY + y) / 2}
-                              ${rightX} ${y}`}
-                            stroke="url(#backboneGradient-seq)"
-                            strokeWidth="3.5"
-                            opacity={rightOpacity * 0.9}
-                            fill="none"
-                            filter="url(#glow-seq)"
-                            strokeLinecap="round"
-                            style={{
-                              animationDelay: `${animationDelay + 0.1}s`,
-                              animationDuration: "2s",
-                            }}
-                          />
-                        </>
-                      );
-                    })()}
                 </g>
               );
             })}

@@ -153,11 +153,6 @@ const getInitials = (name: string) => {
   );
 };
 
-const buildFallbackIntro = (member: TeamMemberSummary) => {
-  const firstName = member.name.split(" ")[0] || member.name;
-  const role = member.role || "team member";
-  return `${firstName} contributes to Zygotrix as ${role}.`;
-};
 
 const values = [
   {
@@ -378,132 +373,210 @@ const AboutPage: React.FC = () => {
             </div>
           )}
 
-          <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-3 max-w-6xl mx-auto">
-            {teamLoading &&
-              [0, 1, 2].map((index) => (
-                <div
-                  key={`team-skeleton-${index}`}
-                  className="h-80 rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 shadow-lg animate-pulse"
-                />
-              ))}
+          {/* Team Members */}
+          {teamLoading && (
+            <div className="max-w-6xl mx-auto">
+              {/* Skeleton for founder */}
+              <div className="h-48 rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 shadow-lg animate-pulse mb-8" />
+              {/* Skeleton for other members */}
+              <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                {[0, 1, 2].map((index) => (
+                  <div
+                    key={`team-skeleton-${index}`}
+                    className="h-56 rounded-2xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 shadow-lg animate-pulse"
+                  />
+                ))}
+              </div>
+            </div>
+          )}
 
-            {!teamLoading &&
-              teamMembers.map((member, index) => {
-                const palette = cardPalettes[index % cardPalettes.length];
-                const socialProfiles = (member.socialProfiles ?? []).filter(
-                  (profile) => profile && profile.url
-                );
-                const intro =
-                  member.introduction && member.introduction.trim().length > 0
-                    ? member.introduction
-                    : buildFallbackIntro(member);
-                const isFounder = Boolean(member.founder);
-                const badgeLabel = isFounder ? "Founder" : "Contributor";
-                const badgeClasses = isFounder
-                  ? "bg-gradient-to-r from-blue-100 to-purple-100 text-blue-700 border border-blue-200"
-                  : "bg-gradient-to-r from-emerald-100 to-cyan-100 text-emerald-700 border border-emerald-200";
+          {!teamLoading && teamMembers.length > 0 && (() => {
+            const founder = teamMembers.find((m) => Boolean(m.founder));
+            const otherMembers = teamMembers.filter((m) => !Boolean(m.founder));
 
-                return (
+
+            return (
+              <div className="max-w-6xl mx-auto">
+                {/* Featured Founder Card */}
+                {founder && (
                   <Link
-                    key={member.slug}
-                    to={`/team/${member.slug}`}
-                    className={`group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-blue-500/20 hover:scale-[1.02]`}
+                    to={`/team/${founder.slug}`}
+                    className="group relative block overflow-hidden rounded-3xl border-2 border-[#1E3A8A]/30 dark:border-[#3B82F6]/40 bg-gradient-to-br from-white via-blue-50/50 to-emerald-50/50 dark:from-slate-800 dark:via-blue-900/20 dark:to-emerald-900/20 p-8 md:p-10 shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/20 transition-all hover:shadow-2xl hover:shadow-blue-500/30 hover:scale-[1.01] mb-10"
                   >
-                    <div
-                      className={`absolute inset-0 ${palette.overlayClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-                    />
+                    {/* Glow effect */}
+                    <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/5 via-[#3B82F6]/5 to-[#10B981]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
-                    <div className="relative mb-6 flex justify-center">
-                      <div className="relative">
-                        <div
-                          className={`absolute inset-0 rounded-full bg-gradient-to-r ${palette.glowGradient} blur-lg opacity-0 group-hover:opacity-30 transition-opacity duration-300`}
-                        />
-                        {member.photo?.url ? (
+                    {/* Decorative elements */}
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#3B82F6]/10 to-[#10B981]/10 rounded-full blur-3xl" />
+                    <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-[#1E3A8A]/10 to-[#3B82F6]/10 rounded-full blur-2xl" />
+
+                    <div className="relative flex flex-col md:flex-row items-center gap-6 md:gap-10">
+                      {/* Large Photo */}
+                      <div className="relative flex-shrink-0">
+                        <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
+                        {founder.photo?.url ? (
                           <img
-                            src={member.photo.url}
-                            alt={`${member.name} portrait`}
-                            className="relative h-20 w-20 rounded-full border-4 border-white object-cover shadow-lg group-hover:scale-110 transition-transform duration-300"
+                            src={founder.photo.url}
+                            alt={`${founder.name} portrait`}
+                            className="relative h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-white dark:border-slate-700 object-cover shadow-2xl group-hover:scale-105 transition-transform duration-300"
                           />
                         ) : (
-                          <div className="relative flex h-20 w-20 items-center justify-center rounded-full border-4 border-white bg-gradient-to-br from-slate-100 to-slate-200 text-2xl font-bold text-slate-600 shadow-lg group-hover:scale-110 transition-transform duration-300">
-                            {getInitials(member.name)}
+                          <div className="relative flex h-32 w-32 md:h-40 md:w-40 items-center justify-center rounded-full border-4 border-white dark:border-slate-700 bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] text-4xl md:text-5xl font-bold text-white shadow-2xl group-hover:scale-105 transition-transform duration-300">
+                            {getInitials(founder.name)}
                           </div>
                         )}
                       </div>
-                    </div>
 
-                    <div className="relative text-center">
-                      <h3
-                        className={`text-xl font-bold bg-gradient-to-r ${palette.titleGradient} bg-clip-text text-transparent transition-all duration-300 ${palette.hoverTitleGradient}`}
-                      >
-                        {member.name}
-                      </h3>
-                      <p className="text-sm text-slate-500 dark:text-slate-300 mt-1 mb-2">
-                        {member.role}
-                      </p>
+                      {/* Content */}
+                      <div className="flex-1 text-center md:text-left">
+                        {/* Founder Badge */}
+                        <div className="inline-flex items-center gap-2 mb-3">
+                          <span className="rounded-full px-5 py-2 text-sm font-bold bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] text-white shadow-lg">
+                            ✨ Founder & Creator
+                          </span>
+                        </div>
 
-                      <div className="flex flex-wrap justify-center gap-2 mb-4">
-                        <span
-                          className={`rounded-full px-4 py-1.5 text-xs font-semibold ${badgeClasses}`}
-                        >
-                          {badgeLabel}
-                        </span>
+                        <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-900 via-[#1E3A8A] to-[#3B82F6] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent mb-2">
+                          {founder.name}
+                        </h3>
+                        <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-3">
+                          {founder.role}
+                        </p>
+
+                        {/* Founder Bio */}
+                        {founder.introduction && founder.introduction.trim().length > 0 && (
+                          <p className="text-sm md:text-base text-slate-500 dark:text-slate-400 leading-relaxed mb-4 max-w-2xl">
+                            {founder.introduction}
+                          </p>
+                        )}
+
+                        {/* Social Links */}
+                        {(founder.socialProfiles ?? []).filter((p) => p && p.url).length > 0 && (
+                          <div className="flex justify-center md:justify-start gap-3">
+                            {(founder.socialProfiles ?? []).filter((p) => p && p.url).map((profile) => {
+                              const platform = inferPlatform(profile.platform, profile.url);
+                              return (
+                                <a
+                                  key={profile.url}
+                                  href={profile.url}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className={`rounded-full bg-white dark:bg-slate-700 p-3 shadow-lg hover:shadow-xl transition-all hover:scale-110 ${getSocialButtonClasses(platform)}`}
+                                  aria-label={`${founder.name}'s ${getPlatformLabel(platform)} profile`}
+                                  onClick={(event) => event.stopPropagation()}
+                                >
+                                  {getSocialIcon(platform)}
+                                </a>
+                              );
+                            })}
+                          </div>
+                        )}
                       </div>
 
-                      <p className="text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                        {intro}
-                      </p>
-
-                      {socialProfiles.length > 0 && (
-                        <div className="mt-6 flex justify-center gap-4">
-                          {socialProfiles.map((profile) => {
-                            const platform = inferPlatform(
-                              profile.platform,
-                              profile.url
-                            );
-
-                            return (
-                              <a
-                                key={profile.url}
-                                href={profile.url}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className={`rounded-full bg-white p-3 shadow-md hover:shadow-lg transition-all hover:scale-110 ${getSocialButtonClasses(
-                                  platform
-                                )}`}
-                                aria-label={`${member.name
-                                  }'s ${getPlatformLabel(platform)} profile`}
-                                onClick={(event) => event.stopPropagation()}
-                              >
-                                {getSocialIcon(platform)}
-                              </a>
-                            );
-                          })}
+                      {/* Arrow indicator */}
+                      <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] p-3 shadow-lg">
+                          <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                          </svg>
                         </div>
-                      )}
-                    </div>
-
-                    <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <div className="rounded-full bg-white/90 backdrop-blur-sm p-2 shadow-lg">
-                        <svg
-                          className={`h-4 w-4 ${palette.arrowColor}`}
-                          fill="none"
-                          stroke="currentColor"
-                          viewBox="0 0 24 24"
-                        >
-                          <path
-                            strokeLinecap="round"
-                            strokeLinejoin="round"
-                            strokeWidth={2}
-                            d="M17 8l4 4m0 0l-4 4m4-4H3"
-                          />
-                        </svg>
                       </div>
                     </div>
                   </Link>
-                );
-              })}
-          </div>
+                )}
+
+                {/* Other Team Members Grid */}
+                {otherMembers.length > 0 && (
+                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                    {otherMembers.map((member, index) => {
+                      const palette = cardPalettes[(index + 1) % cardPalettes.length];
+                      const socialProfiles = (member.socialProfiles ?? []).filter(
+                        (profile) => profile && profile.url
+                      );
+
+                      return (
+                        <Link
+                          key={member.slug}
+                          to={`/team/${member.slug}`}
+                          className="group relative overflow-hidden rounded-2xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-6 shadow-lg shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-xl hover:shadow-blue-500/15 hover:scale-[1.02]"
+                        >
+                          <div
+                            className={`absolute inset-0 ${palette.overlayClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                          />
+
+                          <div className="relative flex items-center gap-4">
+                            {/* Photo */}
+                            <div className="relative flex-shrink-0">
+                              <div
+                                className={`absolute inset-0 rounded-full bg-gradient-to-r ${palette.glowGradient} blur-md opacity-0 group-hover:opacity-30 transition-opacity duration-300`}
+                              />
+                              {member.photo?.url ? (
+                                <img
+                                  src={member.photo.url}
+                                  alt={`${member.name} portrait`}
+                                  className="relative h-16 w-16 rounded-full border-3 border-white object-cover shadow-md group-hover:scale-110 transition-transform duration-300"
+                                />
+                              ) : (
+                                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-3 border-white bg-gradient-to-br from-slate-100 to-slate-200 text-xl font-bold text-slate-600 shadow-md group-hover:scale-110 transition-transform duration-300">
+                                  {getInitials(member.name)}
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Info */}
+                            <div className="flex-1 min-w-0">
+                              <h3
+                                className={`text-lg font-bold bg-gradient-to-r ${palette.titleGradient} bg-clip-text text-transparent transition-all duration-300 ${palette.hoverTitleGradient} truncate`}
+                              >
+                                {member.name}
+                              </h3>
+                              <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                                {member.role}
+                              </p>
+                              <span className="inline-block mt-2 rounded-full px-3 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-cyan-100 dark:from-emerald-900/50 dark:to-cyan-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
+                                Contributor
+                              </span>
+                            </div>
+                          </div>
+
+                          {/* Social Links */}
+                          {socialProfiles.length > 0 && (
+                            <div className="relative mt-4 flex gap-2">
+                              {socialProfiles.slice(0, 4).map((profile) => {
+                                const platform = inferPlatform(profile.platform, profile.url);
+                                return (
+                                  <a
+                                    key={profile.url}
+                                    href={profile.url}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className={`rounded-full bg-white dark:bg-slate-700 p-2 shadow-sm hover:shadow-md transition-all hover:scale-110 ${getSocialButtonClasses(platform)}`}
+                                    aria-label={`${member.name}'s ${getPlatformLabel(platform)} profile`}
+                                    onClick={(event) => event.stopPropagation()}
+                                  >
+                                    {React.cloneElement(getSocialIcon(platform), { className: "h-4 w-4" })}
+                                  </a>
+                                );
+                              })}
+                            </div>
+                          )}
+
+                          {/* Arrow */}
+                          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                            <div className="rounded-full bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm p-1.5 shadow-md">
+                              <svg className={`h-3 w-3 ${palette.arrowColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                              </svg>
+                            </div>
+                          </div>
+                        </Link>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            );
+          })()}
 
           {!teamLoading && teamMembers.length === 0 && !teamError && (
             <div className="mt-10 mx-auto max-w-3xl rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-8 text-center shadow-md">
@@ -585,7 +658,7 @@ const AboutPage: React.FC = () => {
             {/* Discord Card */}
             <div className="group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-indigo-500/20 hover:scale-[1.02]">
               <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/5 via-purple-400/5 to-pink-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
+
               <div className="relative flex items-start gap-4">
                 <div className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <FaDiscord className="w-7 h-7" />
@@ -613,7 +686,7 @@ const AboutPage: React.FC = () => {
             {/* GitHub Card */}
             <div className="group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-slate-500/20 hover:scale-[1.02]">
               <div className="absolute inset-0 bg-gradient-to-br from-slate-400/5 via-gray-400/5 to-slate-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
-              
+
               <div className="relative flex items-start gap-4">
                 <div className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
                   <FaGithub className="w-7 h-7" />

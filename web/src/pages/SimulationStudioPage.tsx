@@ -792,7 +792,7 @@ const SimulationStudioPage: React.FC = () => {
           {/* Header */}
           <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 p-2 lg:p-3 2xl:p-4">
             <div className="flex items-center gap-2 2xl:gap-3">
-              <div className="rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 p-1.5 2xl:p-2">
+              <div className="rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 p-1.5 2xl:p-2">
                 <FaDna className="h-3 w-3 lg:h-4 lg:w-4 2xl:h-5 2xl:w-5 text-white" />
               </div>
               <div>
@@ -839,7 +839,7 @@ const SimulationStudioPage: React.FC = () => {
                     disabled={
                       isLoadingTraits || !selectedTrait || !traitOptions.length
                     }
-                    className="rounded-lg bg-gradient-to-r from-blue-500 to-indigo-600 px-4 py-2 text-xs font-bold text-white shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
+                    className="rounded-lg bg-gradient-to-r from-emerald-500 to-teal-600 px-4 py-2 text-xs font-bold text-white shadow-md transition-all hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-emerald-300 disabled:cursor-not-allowed disabled:opacity-50 whitespace-nowrap"
                   >
                     <FaPlusCircle className="mr-1 lg:mr-2 inline h-3 w-3" />
                     <span className="hidden sm:inline">Add </span>Trait
@@ -980,7 +980,7 @@ const SimulationStudioPage: React.FC = () => {
           {/* Top Section: Parents side by side */}
           <div className="flex min-w-0 flex-1 overflow-hidden">
             {/* Parent A */}
-            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden border-r border-slate-200 dark:border-slate-700 bg-gradient-to-br from-pink-50 to-purple-50 dark:from-pink-950 dark:to-purple-950">
+            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden border-r border-slate-200 dark:border-slate-700 bg-gradient-to-br from-rose-50 to-pink-50 dark:from-rose-950 dark:to-pink-950">
               <div className="flex-shrink-0 border-b border-pink-200 dark:border-pink-900 bg-white/80 dark:bg-slate-900/80 px-3 lg:px-4 py-2 lg:py-3">
                 <div className="flex items-center gap-2">
                   <div className="rounded-full bg-gradient-to-br from-pink-500 to-pink-600 p-1.5 lg:p-2">
@@ -1044,10 +1044,10 @@ const SimulationStudioPage: React.FC = () => {
             </div>
 
             {/* Parent B */}
-            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden bg-gradient-to-br from-blue-50 to-cyan-50 dark:from-blue-950 dark:to-cyan-950">
-              <div className="flex-shrink-0 border-b border-blue-200 dark:border-blue-900 bg-white/80 dark:bg-slate-900/80 px-3 lg:px-4 py-2 lg:py-3">
+            <div className="flex w-1/2 min-w-0 flex-col overflow-hidden bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950">
+              <div className="flex-shrink-0 border-b border-emerald-200 dark:border-emerald-900 bg-white/80 dark:bg-slate-900/80 px-3 lg:px-4 py-2 lg:py-3">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-full bg-gradient-to-br from-blue-500 to-blue-600 p-1.5 lg:p-2">
+                  <div className="rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 p-1.5 lg:p-2">
                     <FaMale className="h-3 w-3 lg:h-4 lg:w-4 text-white" />
                   </div>
                   <div>
@@ -1084,8 +1084,8 @@ const SimulationStudioPage: React.FC = () => {
                             }
                           }}
                           className={`cursor-pointer rounded-md border-2 bg-white dark:bg-slate-800 p-1.5 lg:p-2 shadow-sm transition-all ${isActive
-                            ? "border-blue-400 dark:border-blue-500 ring-1 ring-blue-200 dark:ring-blue-900/50"
-                            : "border-slate-200 dark:border-slate-700 hover:border-blue-300 dark:hover:border-blue-600"
+                            ? "border-emerald-400 dark:border-emerald-500 ring-1 ring-emerald-200 dark:ring-emerald-900/50"
+                            : "border-slate-200 dark:border-slate-700 hover:border-emerald-300 dark:hover:border-emerald-600"
                             }`}
                         >
                           <div className="mb-1 flex items-center justify-between">
@@ -1109,15 +1109,15 @@ const SimulationStudioPage: React.FC = () => {
           </div>
 
           {/* Bottom Section: Results Panel */}
-          <aside className={`flex flex-shrink-0 flex-col overflow-hidden border-t border-slate-200 dark:border-slate-700 bg-gradient-to-br from-purple-50 to-indigo-50 dark:from-purple-950 dark:to-indigo-950 transition-all duration-300 ${isResultsExpanded ? "h-[40%] min-h-[200px]" : "h-auto"}`}>
+          <aside className={`flex flex-shrink-0 flex-col overflow-hidden border-t border-slate-200 dark:border-slate-700 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950 dark:to-teal-950 transition-all duration-300 ${isResultsExpanded ? "h-[40%] min-h-[200px]" : "h-auto"}`}>
             <button
               type="button"
               onClick={() => setIsResultsExpanded(!isResultsExpanded)}
-              className="flex-shrink-0 border-b border-purple-200 dark:border-purple-900 bg-white/90 dark:bg-slate-900/90 px-3 lg:px-4 py-2 lg:py-3 backdrop-blur cursor-pointer hover:bg-white dark:hover:bg-slate-900 transition-colors w-full text-left"
+              className="flex-shrink-0 border-b border-emerald-200 dark:border-emerald-900 bg-white/90 dark:bg-slate-900/90 px-3 lg:px-4 py-2 lg:py-3 backdrop-blur cursor-pointer hover:bg-white dark:hover:bg-slate-900 transition-colors w-full text-left"
             >
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <div className="rounded-full bg-gradient-to-br from-purple-500 to-indigo-600 p-1.5 lg:p-2">
+                  <div className="rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 p-1.5 lg:p-2">
                     <HiOutlineSparkles className="h-3 w-3 lg:h-4 lg:w-4 text-white" />
                   </div>
                   <div>
@@ -1192,7 +1192,7 @@ const SimulationStudioPage: React.FC = () => {
                           <h4 className="text-xs font-bold text-slate-800 dark:text-white">
                             {summary.label}
                           </h4>
-                          <span className="rounded-full bg-purple-100 dark:bg-purple-900/50 px-2 py-0.5 text-[9px] font-bold text-purple-700 dark:text-purple-300">
+                          <span className="rounded-full bg-emerald-100 dark:bg-emerald-900/50 px-2 py-0.5 text-[9px] font-bold text-emerald-700 dark:text-emerald-300">
                             μ {summary.mean.toFixed(2)}
                           </span>
                         </div>
@@ -1203,7 +1203,7 @@ const SimulationStudioPage: React.FC = () => {
                               className="inline-flex items-center gap-1.5 rounded-md border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-700 px-2 py-1 text-[10px] font-semibold text-slate-700 dark:text-slate-300"
                             >
                               {label || "unspecified"}
-                              <span className="rounded-full bg-blue-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
+                              <span className="rounded-full bg-emerald-500 px-1.5 py-0.5 text-[9px] font-bold text-white">
                                 {value}
                               </span>
                             </span>

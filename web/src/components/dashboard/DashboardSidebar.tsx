@@ -1,7 +1,10 @@
 import React from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "../../context/AuthContext";
-
+import { GiDna2 } from "react-icons/gi";
+import { GiChemicalDrop } from "react-icons/gi";
+import { LuLayoutDashboard } from "react-icons/lu";
+import { GiDna1 } from "react-icons/gi";
 interface SidebarItem {
   id: string;
   label: string;
@@ -41,27 +44,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       id: "dashboard",
       label: "Dashboard",
       href: "/studio",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"
-          />
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"
-          />
-        </svg>
-      ),
+      icon: <LuLayoutDashboard className="w-5 h-5" />,
     },
     {
       id: "projects",
@@ -87,41 +70,19 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
       id: "simulation-studio",
       label: "Simulation Studio",
       href: "/studio/simulation-studio",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M12 6v6l4 2m5-2a9 9 0 11-18 0 9 9 0 0118 0z"
-          />
-        </svg>
-      ),
+      icon: <GiChemicalDrop className="w-5 h-5" />,
     },
     {
       id: "protein-fold-generation",
       label: "Protein Fold",
       href: "/studio/protein-fold-generation",
-      icon: (
-        <svg
-          className="w-5 h-5"
-          fill="none"
-          stroke="currentColor"
-          viewBox="0 0 24 24"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 3v2m6-2v2M9 19v2m6-2v2M5 9H3m2 6H3m18-6h-2m2 6h-2M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2zM9 9h6v6H9V9z"
-          />
-        </svg>
-      ),
+      icon: <GiDna2 className="w-5 h-5" />,
+    },
+    {
+      id: "dna-editor",
+      label: "DNA Editor",
+      href: "/studio/dna-editor",
+      icon: <GiDna1 className="w-5 h-5" />,
     },
     {
       id: "browse-traits",

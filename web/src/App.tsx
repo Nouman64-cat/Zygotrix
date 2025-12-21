@@ -11,6 +11,7 @@ import ContactPage from "./pages/ContactPage";
 import DnaGeneratorPage from "./pages/DnaGeneratorPage";
 import PunnettSquarePage from "./pages/PunnettSquarePage";
 import DnaToProteinPage from "./pages/DnaToProteinPage";
+import DnaEditorPage from "./pages/DnaEditorPage";
 import ZygoAIPage from "./pages/ZygoAIPage";
 import DataManagementPage from "./pages/DataManagementPage";
 import HomePage from "./pages/HomePage";
@@ -123,6 +124,16 @@ const AppContent: React.FC = () => {
             <RequireAuth>
               <OnboardingCheck>
                 <ProteinFoldGenerationPage />
+              </OnboardingCheck>
+            </RequireAuth>
+          }
+        />
+        <Route
+          path="studio/dna-editor"
+          element={
+            <RequireAuth>
+              <OnboardingCheck>
+                <DnaEditorPage />
               </OnboardingCheck>
             </RequireAuth>
           }

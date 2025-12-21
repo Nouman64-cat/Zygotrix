@@ -393,6 +393,9 @@ const AboutPage: React.FC = () => {
           {!teamLoading && teamMembers.length > 0 && (() => {
             const founder = teamMembers.find((m) => Boolean(m.founder));
             const otherMembers = teamMembers.filter((m) => !Boolean(m.founder));
+            // Separate active and non-active contributors
+            const activeMembers = otherMembers.filter((m) => m.active === true);
+            const inactiveMembers = otherMembers.filter((m) => m.active !== true);
 
 
             return (
@@ -485,94 +488,198 @@ const AboutPage: React.FC = () => {
                   </Link>
                 )}
 
-                {/* Other Team Members Grid */}
-                {otherMembers.length > 0 && (
-                  <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-                    {otherMembers.map((member, index) => {
-                      const palette = cardPalettes[(index + 1) % cardPalettes.length];
-                      const socialProfiles = (member.socialProfiles ?? []).filter(
-                        (profile) => profile && profile.url
-                      );
+                {/* Active Team Members Grid */}
+                {activeMembers.length > 0 && (
+                  <>
+                    <div className="mb-6">
+                      <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 animate-pulse" />
+                        Active Contributors
+                      </h3>
+                      <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                        Currently contributing to the Zygotrix project
+                      </p>
+                    </div>
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-12">
+                      {activeMembers.map((member, index) => {
+                        const palette = cardPalettes[(index + 1) % cardPalettes.length];
+                        const socialProfiles = (member.socialProfiles ?? []).filter(
+                          (profile) => profile && profile.url
+                        );
 
-                      return (
-                        <Link
-                          key={member.slug}
-                          to={`/team/${member.slug}`}
-                          className="group relative overflow-hidden rounded-2xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-6 shadow-lg shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-xl hover:shadow-blue-500/15 hover:scale-[1.02]"
-                        >
-                          <div
-                            className={`absolute inset-0 ${palette.overlayClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
-                          />
+                        return (
+                          <Link
+                            key={member.slug}
+                            to={`/team/${member.slug}`}
+                            className="group relative overflow-hidden rounded-2xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-6 shadow-lg shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-xl hover:shadow-blue-500/15 hover:scale-[1.02]"
+                          >
+                            <div
+                              className={`absolute inset-0 ${palette.overlayClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
+                            />
 
-                          <div className="relative flex items-center gap-4">
-                            {/* Photo */}
-                            <div className="relative flex-shrink-0">
-                              <div
-                                className={`absolute inset-0 rounded-full bg-gradient-to-r ${palette.glowGradient} blur-md opacity-0 group-hover:opacity-30 transition-opacity duration-300`}
-                              />
-                              {member.photo?.url ? (
-                                <img
-                                  src={member.photo.url}
-                                  alt={`${member.name} portrait`}
-                                  className="relative h-16 w-16 rounded-full border-3 border-white object-cover shadow-md group-hover:scale-110 transition-transform duration-300"
+                            <div className="relative flex items-center gap-4">
+                              {/* Photo */}
+                              <div className="relative flex-shrink-0">
+                                <div
+                                  className={`absolute inset-0 rounded-full bg-gradient-to-r ${palette.glowGradient} blur-md opacity-0 group-hover:opacity-30 transition-opacity duration-300`}
                                 />
-                              ) : (
-                                <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-3 border-white bg-gradient-to-br from-slate-100 to-slate-200 text-xl font-bold text-slate-600 shadow-md group-hover:scale-110 transition-transform duration-300">
-                                  {getInitials(member.name)}
-                                </div>
-                              )}
+                                {member.photo?.url ? (
+                                  <img
+                                    src={member.photo.url}
+                                    alt={`${member.name} portrait`}
+                                    className="relative h-16 w-16 rounded-full border-3 border-white object-cover shadow-md group-hover:scale-110 transition-transform duration-300"
+                                  />
+                                ) : (
+                                  <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-3 border-white bg-gradient-to-br from-slate-100 to-slate-200 text-xl font-bold text-slate-600 shadow-md group-hover:scale-110 transition-transform duration-300">
+                                    {getInitials(member.name)}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <h3
+                                  className={`text-lg font-bold bg-gradient-to-r ${palette.titleGradient} bg-clip-text text-transparent transition-all duration-300 ${palette.hoverTitleGradient} truncate`}
+                                >
+                                  {member.name}
+                                </h3>
+                                <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                                  {member.role}
+                                </p>
+                                <span className="inline-block mt-2 rounded-full px-3 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-cyan-100 dark:from-emerald-900/50 dark:to-cyan-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
+                                  Contributor
+                                </span>
+                              </div>
                             </div>
 
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <h3
-                                className={`text-lg font-bold bg-gradient-to-r ${palette.titleGradient} bg-clip-text text-transparent transition-all duration-300 ${palette.hoverTitleGradient} truncate`}
-                              >
-                                {member.name}
-                              </h3>
-                              <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
-                                {member.role}
-                              </p>
-                              <span className="inline-block mt-2 rounded-full px-3 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-cyan-100 dark:from-emerald-900/50 dark:to-cyan-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
-                                Contributor
-                              </span>
-                            </div>
-                          </div>
+                            {/* Social Links */}
+                            {socialProfiles.length > 0 && (
+                              <div className="relative mt-4 flex gap-2">
+                                {socialProfiles.slice(0, 4).map((profile) => {
+                                  const platform = inferPlatform(profile.platform, profile.url);
+                                  return (
+                                    <a
+                                      key={profile.url}
+                                      href={profile.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className={`rounded-full bg-white dark:bg-slate-700 p-2 shadow-sm hover:shadow-md transition-all hover:scale-110 ${getSocialButtonClasses(platform)}`}
+                                      aria-label={`${member.name}'s ${getPlatformLabel(platform)} profile`}
+                                      onClick={(event) => event.stopPropagation()}
+                                    >
+                                      {React.cloneElement(getSocialIcon(platform), { className: "h-4 w-4" })}
+                                    </a>
+                                  );
+                                })}
+                              </div>
+                            )}
 
-                          {/* Social Links */}
-                          {socialProfiles.length > 0 && (
-                            <div className="relative mt-4 flex gap-2">
-                              {socialProfiles.slice(0, 4).map((profile) => {
-                                const platform = inferPlatform(profile.platform, profile.url);
-                                return (
-                                  <a
-                                    key={profile.url}
-                                    href={profile.url}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                    className={`rounded-full bg-white dark:bg-slate-700 p-2 shadow-sm hover:shadow-md transition-all hover:scale-110 ${getSocialButtonClasses(platform)}`}
-                                    aria-label={`${member.name}'s ${getPlatformLabel(platform)} profile`}
-                                    onClick={(event) => event.stopPropagation()}
-                                  >
-                                    {React.cloneElement(getSocialIcon(platform), { className: "h-4 w-4" })}
-                                  </a>
-                                );
-                              })}
+                            {/* Arrow */}
+                            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="rounded-full bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm p-1.5 shadow-md">
+                                <svg className={`h-3 w-3 ${palette.arrowColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                              </div>
                             </div>
-                          )}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </>
+                )}
 
-                          {/* Arrow */}
-                          <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                            <div className="rounded-full bg-white/90 dark:bg-slate-700/90 backdrop-blur-sm p-1.5 shadow-md">
-                              <svg className={`h-3 w-3 ${palette.arrowColor}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                              </svg>
+                {/* Past Contributors / Alumni Section */}
+                {inactiveMembers.length > 0 && (
+                  <>
+                    <div className="mb-6 mt-8">
+                      <h3 className="text-xl font-bold text-slate-600 dark:text-slate-400 flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500" />
+                        Past Contributors
+                      </h3>
+                      <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+                        Alumni who helped shape Zygotrix
+                      </p>
+                    </div>
+                    <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+                      {inactiveMembers.map((member) => {
+                        const socialProfiles = (member.socialProfiles ?? []).filter(
+                          (profile) => profile && profile.url
+                        );
+
+                        return (
+                          <Link
+                            key={member.slug}
+                            to={`/team/${member.slug}`}
+                            className="group relative overflow-hidden rounded-2xl border-2 border-slate-200/70 dark:border-slate-700/40 bg-slate-50/60 dark:bg-slate-800/40 p-6 shadow-md shadow-slate-200/30 dark:shadow-slate-500/5 transition-all hover:shadow-lg hover:shadow-slate-400/20 hover:scale-[1.01] opacity-80 hover:opacity-100"
+                          >
+                            <div className="absolute inset-0 bg-gradient-to-br from-slate-400/5 via-slate-300/5 to-slate-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+
+                            <div className="relative flex items-center gap-4">
+                              {/* Photo - slightly desaturated */}
+                              <div className="relative flex-shrink-0">
+                                {member.photo?.url ? (
+                                  <img
+                                    src={member.photo.url}
+                                    alt={`${member.name} portrait`}
+                                    className="relative h-14 w-14 rounded-full border-2 border-slate-200 dark:border-slate-600 object-cover shadow-sm grayscale-[30%] group-hover:grayscale-0 transition-all duration-300"
+                                  />
+                                ) : (
+                                  <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-2 border-slate-200 dark:border-slate-600 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 text-lg font-bold text-slate-500 dark:text-slate-400 shadow-sm">
+                                    {getInitials(member.name)}
+                                  </div>
+                                )}
+                              </div>
+
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 truncate group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
+                                  {member.name}
+                                </h3>
+                                <p className="text-sm text-slate-400 dark:text-slate-500 truncate">
+                                  {member.role}
+                                </p>
+                                <span className="inline-block mt-2 rounded-full px-3 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
+                                  Past Contributor
+                                </span>
+                              </div>
                             </div>
-                          </div>
-                        </Link>
-                      );
-                    })}
-                  </div>
+
+                            {/* Social Links */}
+                            {socialProfiles.length > 0 && (
+                              <div className="relative mt-4 flex gap-2">
+                                {socialProfiles.slice(0, 4).map((profile) => {
+                                  const platform = inferPlatform(profile.platform, profile.url);
+                                  return (
+                                    <a
+                                      key={profile.url}
+                                      href={profile.url}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="rounded-full bg-slate-100 dark:bg-slate-700 p-2 shadow-sm hover:shadow-md transition-all hover:scale-110 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                      aria-label={`${member.name}'s ${getPlatformLabel(platform)} profile`}
+                                      onClick={(event) => event.stopPropagation()}
+                                    >
+                                      {React.cloneElement(getSocialIcon(platform), { className: "h-4 w-4" })}
+                                    </a>
+                                  );
+                                })}
+                              </div>
+                            )}
+
+                            {/* Arrow */}
+                            <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                              <div className="rounded-full bg-slate-200/90 dark:bg-slate-600/90 backdrop-blur-sm p-1.5 shadow-sm">
+                                <svg className="h-3 w-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                </svg>
+                              </div>
+                            </div>
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  </>
                 )}
               </div>
             );

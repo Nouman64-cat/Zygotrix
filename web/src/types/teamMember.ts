@@ -21,6 +21,7 @@ export interface TeamMember {
   slug: string;
   founder?: boolean | null;
   introduction?: string | null;
+  active?: boolean | null;
   socialProfiles: SocialProfile[];
 }
 
@@ -38,6 +39,7 @@ export interface TeamMemberSummary {
   slug: string;
   introduction: string | null;
   founder?: boolean | null;
+  active?: boolean | null;
   socialProfiles: SocialProfile[];
 }
 

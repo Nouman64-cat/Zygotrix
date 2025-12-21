@@ -33,6 +33,7 @@ export const fetchTeamMember = async (
         }
         founder
         introduction
+        active
         name
         photo {
           url
@@ -87,6 +88,7 @@ export const fetchTeamMembers = async (
         slug
         introduction
         founder
+        active
         photo {
           url
           fileName

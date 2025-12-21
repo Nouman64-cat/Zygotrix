@@ -237,36 +237,31 @@ const DnaEditorPage: React.FC = () => {
   return (
     <DashboardLayout>
       <div className="absolute inset-0 flex flex-col overflow-hidden bg-gradient-to-br from-slate-50 via-emerald-50/30 to-teal-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-slate-950">
-        {/* Top Header Bar */}
-        <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-4 py-3">
-          <div className="flex items-center justify-between gap-4 max-w-full">
-            <div className="flex items-center gap-3 min-w-0">
-              <div className="p-2 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-lg flex-shrink-0">
-                <Dna className="w-5 h-5 text-white" />
+        {/* Top Header Bar - Compact */}
+        <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 backdrop-blur-sm px-3 py-1.5">
+          <div className="flex items-center justify-between gap-2 max-w-full">
+            <div className="flex items-center gap-2 min-w-0">
+              <div className="p-1.5 bg-gradient-to-br from-emerald-500 to-teal-600 rounded-md flex-shrink-0">
+                <Dna className="w-4 h-4 text-white" />
               </div>
-              <div className="min-w-0">
-                <h1 className="text-xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent truncate">
-                  DNA Sequence Editor
-                </h1>
-                <p className="text-xs text-gray-600 dark:text-gray-400 hidden sm:block">
-                  Advanced molecular biology sequence analysis tool
-                </p>
-              </div>
+              <h1 className="text-base font-bold bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent truncate">
+                DNA Editor
+              </h1>
             </div>
 
             {/* Quick Stats in Header */}
-            <div className="hidden lg:flex items-center gap-3">
-              <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm px-3 py-1.5 text-center">
-                <div className="text-xs text-gray-500 dark:text-gray-400">Length</div>
-                <div className="text-sm font-bold text-gray-900 dark:text-gray-100">{stats.length.toLocaleString()} bp</div>
+            <div className="flex items-center gap-2">
+              <div className="hidden sm:flex items-center gap-1 px-2 py-0.5 bg-slate-100 dark:bg-slate-700 rounded text-xs">
+                <span className="text-gray-500 dark:text-gray-400">Len:</span>
+                <span className="font-semibold text-gray-900 dark:text-gray-100">{stats.length.toLocaleString()}</span>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm px-3 py-1.5 text-center">
-                <div className="text-xs text-gray-500 dark:text-gray-400">GC</div>
-                <div className="text-sm font-bold text-emerald-600 dark:text-emerald-400">{stats.gcContent.toFixed(1)}%</div>
+              <div className="hidden md:flex items-center gap-1 px-2 py-0.5 bg-emerald-50 dark:bg-emerald-900/30 rounded text-xs">
+                <span className="text-emerald-600 dark:text-emerald-400 font-semibold">GC:</span>
+                <span className="font-bold text-emerald-700 dark:text-emerald-300">{stats.gcContent.toFixed(1)}%</span>
               </div>
-              <div className="bg-white dark:bg-slate-800 rounded-lg shadow-sm px-3 py-1.5 text-center">
-                <div className="text-xs text-gray-500 dark:text-gray-400">AT</div>
-                <div className="text-sm font-bold text-blue-600 dark:text-blue-400">{stats.atContent.toFixed(1)}%</div>
+              <div className="hidden lg:flex items-center gap-1 px-2 py-0.5 bg-blue-50 dark:bg-blue-900/30 rounded text-xs">
+                <span className="text-blue-600 dark:text-blue-400 font-semibold">AT:</span>
+                <span className="font-bold text-blue-700 dark:text-blue-300">{stats.atContent.toFixed(1)}%</span>
               </div>
             </div>
           </div>
@@ -591,41 +586,45 @@ const DnaEditorPage: React.FC = () => {
 
           {/* RIGHT SIDE - DNA/mRNA Visualization */}
           <div className="hidden lg:flex w-80 xl:w-96 flex-col min-h-0 bg-gradient-to-br from-white to-emerald-50/50 dark:from-slate-800 dark:to-emerald-900/10">
-            {/* Header with Toggle */}
-            <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 px-3 py-2">
-              {/* DNA/mRNA Toggle Tabs */}
-              <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-lg mb-2">
-                <button
-                  onClick={() => setVisualizationType('dna')}
-                  className={`flex-1 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${visualizationType === 'dna'
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
-                >
-                  🧬 DNA
-                </button>
-                <button
-                  onClick={() => setVisualizationType('mrna')}
-                  className={`flex-1 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${visualizationType === 'mrna'
-                    ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-sm'
-                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
-                    }`}
-                >
-                  📜 mRNA
-                </button>
-              </div>
+            {/* Header with Toggle + Stats - Compact */}
+            <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 px-2 py-1.5">
+              {/* DNA/mRNA Toggle + Stats Row */}
+              <div className="flex items-center justify-between gap-2">
+                {/* Left: Toggle + bp count */}
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-0.5 p-0.5 bg-slate-100 dark:bg-slate-700 rounded">
+                    <button
+                      onClick={() => setVisualizationType('dna')}
+                      className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-all ${visualizationType === 'dna'
+                        ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                        }`}
+                    >
+                      DNA
+                    </button>
+                    <button
+                      onClick={() => setVisualizationType('mrna')}
+                      className={`px-2 py-0.5 text-[10px] font-semibold rounded transition-all ${visualizationType === 'mrna'
+                        ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white'
+                        : 'text-slate-500 dark:text-slate-400 hover:text-slate-700'
+                        }`}
+                    >
+                      mRNA
+                    </button>
+                  </div>
+                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                    {sequence ? `${sequence.replace(/\s/g, '').length}bp` : '–'}
+                  </span>
+                </div>
 
-              <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
-                {sequence
-                  ? (visualizationType === 'dna' ? 'Your DNA Sequence' : 'Transcribed mRNA')
-                  : (visualizationType === 'dna' ? 'DNA Double Helix' : 'mRNA Single Strand')
-                }
-              </h3>
-              {sequence && (
-                <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-0.5">
-                  {sequence.replace(/\s/g, '').length.toLocaleString()} {visualizationType === 'dna' ? 'base pairs' : 'nucleotides'}
-                </p>
-              )}
+                {/* Right: ATGC counts */}
+                <div className="flex items-center gap-1.5 text-[10px]">
+                  <span className="font-bold text-yellow-600 dark:text-yellow-400">{stats.aCount}<span className="font-normal text-gray-400 ml-0.5">A</span></span>
+                  <span className="font-bold text-orange-600 dark:text-orange-400">{stats.tCount}<span className="font-normal text-gray-400 ml-0.5">{visualizationType === 'dna' ? 'T' : 'U'}</span></span>
+                  <span className="font-bold text-purple-600 dark:text-purple-400">{stats.gCount}<span className="font-normal text-gray-400 ml-0.5">G</span></span>
+                  <span className="font-bold text-cyan-600 dark:text-cyan-400">{stats.cCount}<span className="font-normal text-gray-400 ml-0.5">C</span></span>
+                </div>
+              </div>
             </div>
 
             {/* Strand Visualization - Scrollable */}
@@ -636,32 +635,6 @@ const DnaEditorPage: React.FC = () => {
                 ) : (
                   <SequenceMrnaStrand sequence={sequence} />
                 )}
-              </div>
-            </div>
-
-            {/* Stats Summary */}
-            <div className="flex-shrink-0 border-t border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 p-3">
-              <div className="grid grid-cols-4 gap-2 text-center">
-                <div>
-                  <div className="text-lg font-bold text-yellow-600 dark:text-yellow-400">{stats.aCount}</div>
-                  <div className="text-[10px] text-gray-500 dark:text-gray-400">A</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
-                    {visualizationType === 'dna' ? stats.tCount : stats.tCount}
-                  </div>
-                  <div className="text-[10px] text-gray-500 dark:text-gray-400">
-                    {visualizationType === 'dna' ? 'T' : 'U'}
-                  </div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{stats.gCount}</div>
-                  <div className="text-[10px] text-gray-500 dark:text-gray-400">G</div>
-                </div>
-                <div>
-                  <div className="text-lg font-bold text-cyan-600 dark:text-cyan-400">{stats.cCount}</div>
-                  <div className="text-[10px] text-gray-500 dark:text-gray-400">C</div>
-                </div>
               </div>
             </div>
           </div>

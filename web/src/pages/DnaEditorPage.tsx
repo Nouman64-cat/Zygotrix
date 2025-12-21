@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Download, RotateCw, Search, Scissors, Copy, FileText, Dna, Calculator } from 'lucide-react';
 import DashboardLayout from '../layouts/DashboardLayout';
 import SequenceDnaStrand from '../components/dna-editor/SequenceDnaStrand';
+import SequenceMrnaStrand from '../components/dna-editor/SequenceMrnaStrand';
 import useDocumentTitle from '../hooks/useDocumentTitle';
 
 interface RestrictionSite {
@@ -56,6 +57,7 @@ const DnaEditorPage: React.FC = () => {
   const [basesPerLine, setBasesPerLine] = useState<number>(60);
   const [translationFrame, setTranslationFrame] = useState<number>(0);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [visualizationType, setVisualizationType] = useState<'dna' | 'mrna'>('dna');
 
   // Validate DNA sequence
   useEffect(() => {
@@ -587,28 +589,57 @@ const DnaEditorPage: React.FC = () => {
             </div>
           </div>
 
-          {/* RIGHT SIDE - DNA Visualization */}
+          {/* RIGHT SIDE - DNA/mRNA Visualization */}
           <div className="hidden lg:flex w-80 xl:w-96 flex-col min-h-0 bg-gradient-to-br from-white to-emerald-50/50 dark:from-slate-800 dark:to-emerald-900/10">
-            {/* Header */}
-            <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 px-4 py-3">
+            {/* Header with Toggle */}
+            <div className="flex-shrink-0 border-b border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 px-3 py-2">
+              {/* DNA/mRNA Toggle Tabs */}
+              <div className="flex gap-1 p-1 bg-slate-100 dark:bg-slate-700 rounded-lg mb-2">
+                <button
+                  onClick={() => setVisualizationType('dna')}
+                  className={`flex-1 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${visualizationType === 'dna'
+                    ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                >
+                  🧬 DNA
+                </button>
+                <button
+                  onClick={() => setVisualizationType('mrna')}
+                  className={`flex-1 px-3 py-1.5 text-xs font-semibold rounded-md transition-all ${visualizationType === 'mrna'
+                    ? 'bg-gradient-to-r from-orange-500 to-amber-600 text-white shadow-sm'
+                    : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200'
+                    }`}
+                >
+                  📜 mRNA
+                </button>
+              </div>
+
               <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300 text-center">
-                {sequence ? 'Your DNA Sequence' : 'DNA Double Helix'}
+                {sequence
+                  ? (visualizationType === 'dna' ? 'Your DNA Sequence' : 'Transcribed mRNA')
+                  : (visualizationType === 'dna' ? 'DNA Double Helix' : 'mRNA Single Strand')
+                }
               </h3>
               {sequence && (
                 <p className="text-xs text-center text-gray-500 dark:text-gray-400 mt-0.5">
-                  {sequence.replace(/\s/g, '').length.toLocaleString()} bases
+                  {sequence.replace(/\s/g, '').length.toLocaleString()} {visualizationType === 'dna' ? 'base pairs' : 'nucleotides'}
                 </p>
               )}
             </div>
 
-            {/* DNA Helix Visualization - Scrollable */}
+            {/* Strand Visualization - Scrollable */}
             <div className="flex-1 min-h-0 overflow-y-auto overflow-x-hidden p-4 scrollbar-thin scrollbar-thumb-emerald-300 dark:scrollbar-thumb-emerald-700 scrollbar-track-transparent hover:scrollbar-thumb-emerald-400 dark:hover:scrollbar-thumb-emerald-600">
               <div className="min-h-full">
-                <SequenceDnaStrand sequence={sequence} />
+                {visualizationType === 'dna' ? (
+                  <SequenceDnaStrand sequence={sequence} />
+                ) : (
+                  <SequenceMrnaStrand sequence={sequence} />
+                )}
               </div>
             </div>
 
-            {/* Stats Summary for Mobile */}
+            {/* Stats Summary */}
             <div className="flex-shrink-0 border-t border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-900/80 p-3">
               <div className="grid grid-cols-4 gap-2 text-center">
                 <div>
@@ -616,8 +647,12 @@ const DnaEditorPage: React.FC = () => {
                   <div className="text-[10px] text-gray-500 dark:text-gray-400">A</div>
                 </div>
                 <div>
-                  <div className="text-lg font-bold text-red-600 dark:text-red-400">{stats.tCount}</div>
-                  <div className="text-[10px] text-gray-500 dark:text-gray-400">T</div>
+                  <div className="text-lg font-bold text-orange-600 dark:text-orange-400">
+                    {visualizationType === 'dna' ? stats.tCount : stats.tCount}
+                  </div>
+                  <div className="text-[10px] text-gray-500 dark:text-gray-400">
+                    {visualizationType === 'dna' ? 'T' : 'U'}
+                  </div>
                 </div>
                 <div>
                   <div className="text-lg font-bold text-purple-600 dark:text-purple-400">{stats.gCount}</div>

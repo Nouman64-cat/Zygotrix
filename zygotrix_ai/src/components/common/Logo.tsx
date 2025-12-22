@@ -11,7 +11,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', className, showText = t
   const sizeMap = {
     sm: 'h-8 w-8',
     md: 'h-12 w-12',
-    lg: 'h-24 w-24',
+    lg: 'h-32 w-32',
   };
 
   const textSizeMap = {

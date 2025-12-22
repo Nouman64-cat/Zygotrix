@@ -3,6 +3,7 @@ from typing import List, Optional
 from datetime import datetime, timezone
 from fastapi import HTTPException
 import difflib
+import logging
 
 from ..repositories.prompt_repository import PromptRepository
 from ..models.prompt_template import (
@@ -13,43 +14,66 @@ from ..models.prompt_template import (
     PromptTemplateHistoryResponse,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def _compute_diff(old_text: Optional[str], new_text: str) -> tuple[str, str]:
     """
-    Compute a human-readable diff between old and new text.
-    Returns (removed_lines, added_lines) showing only what changed.
+    Compute a human-readable diff between old and new text with line numbers.
+    Returns (removed_lines, added_lines) showing only what changed with line numbers.
     """
     if old_text is None:
-        return ("(none)", f"+ {new_text[:500]}..." if len(new_text) > 500 else f"+ {new_text}")
-    
-    old_lines = old_text.splitlines(keepends=True)
-    new_lines = new_text.splitlines(keepends=True)
-    
-    diff = list(difflib.unified_diff(old_lines, new_lines, lineterm=''))
-    
-    if not diff:
-        return ("(no changes)", "(no changes)")
-    
+        # For new prompts, show line numbers for added content
+        new_lines_list = new_text.splitlines()
+        added_with_lines = []
+        for i, line in enumerate(new_lines_list[:20], 1):  # Show first 20 lines
+            added_with_lines.append(f"Line {i}: {line}")
+
+        if len(new_lines_list) > 20:
+            added_with_lines.append(f"... and {len(new_lines_list) - 20} more lines")
+
+        return ("(none)", "\n".join(added_with_lines))
+
+    old_lines = old_text.splitlines(keepends=False)
+    new_lines = new_text.splitlines(keepends=False)
+
+    # Use SequenceMatcher to get detailed line-by-line changes with positions
+    import difflib
+    matcher = difflib.SequenceMatcher(None, old_lines, new_lines)
+
     removed = []
     added = []
-    
-    for line in diff:
-        if line.startswith('-') and not line.startswith('---'):
-            removed.append(line[1:].strip())
-        elif line.startswith('+') and not line.startswith('+++'):
-            added.append(line[1:].strip())
-    
+
+    for tag, i1, i2, j1, j2 in matcher.get_opcodes():
+        if tag == 'delete':
+            # Lines removed from old text
+            for i in range(i1, i2):
+                removed.append(f"Line {i + 1}: {old_lines[i]}")
+        elif tag == 'insert':
+            # Lines added to new text
+            for j in range(j1, j2):
+                added.append(f"Line {j + 1}: {new_lines[j]}")
+        elif tag == 'replace':
+            # Lines replaced - show both removed and added with line numbers
+            for i in range(i1, i2):
+                removed.append(f"Line {i + 1}: {old_lines[i]}")
+            for j in range(j1, j2):
+                added.append(f"Line {j + 1}: {new_lines[j]}")
+
     # Join and truncate if too long
     removed_str = '\n'.join(removed) if removed else "(no removals)"
     added_str = '\n'.join(added) if added else "(no additions)"
-    
+
     # Truncate to reasonable size for storage
-    max_length = 1000
+    max_length = 2000  # Increased to accommodate line numbers
     if len(removed_str) > max_length:
-        removed_str = removed_str[:max_length] + "... (truncated)"
+        # Count how many lines we're showing
+        lines_shown = removed_str[:max_length].count('\n')
+        removed_str = removed_str[:max_length] + f"\n... ({len(removed) - lines_shown} more lines truncated)"
     if len(added_str) > max_length:
-        added_str = added_str[:max_length] + "... (truncated)"
-    
+        lines_shown = added_str[:max_length].count('\n')
+        added_str = added_str[:max_length] + f"\n... ({len(added) - lines_shown} more lines truncated)"
+
     return (removed_str, added_str)
 
 
@@ -197,6 +221,120 @@ def get_prompt_history_collection(required: bool = False):
         pass  # Indexes may already exist
 
     return collection
+
+
+def _get_admin_emails(exclude_user_id: Optional[str] = None) -> List[dict]:
+    """
+    Get all admin and super admin users, excluding the specified user.
+
+    Args:
+        exclude_user_id: User ID to exclude from the list (typically the user making the change)
+
+    Returns:
+        List of dicts with 'email' and 'full_name' keys
+    """
+    try:
+        from .auth import get_users_collection
+
+        collection = get_users_collection(required=False)
+        if collection is None:
+            return []
+
+        # Build query to get all admins and super admins
+        query = {
+            "user_role": {"$in": ["admin", "super_admin"]},
+            "is_active": {"$ne": False}
+        }
+
+        # Exclude the current user if specified
+        if exclude_user_id:
+            from bson import ObjectId
+            try:
+                query["_id"] = {"$ne": ObjectId(exclude_user_id)}
+            except Exception:
+                pass  # Invalid ObjectId, just continue
+
+        # Get all matching users
+        admins = list(collection.find(query, {"email": 1, "full_name": 1}))
+
+        return [
+            {
+                "email": admin.get("email", ""),
+                "full_name": admin.get("full_name", "Admin")
+            }
+            for admin in admins
+            if admin.get("email")  # Only include users with email
+        ]
+    except Exception as e:
+        logger.error(f"Failed to get admin emails: {e}")
+        return []
+
+
+def _send_prompt_change_notifications(
+    prompt_type: str,
+    action: str,
+    admin_user_id: str,
+    admin_user_name: Optional[str] = None,
+    admin_user_email: Optional[str] = None,
+    changes: Optional[List[PromptChange]] = None,
+    ip_address: Optional[str] = None
+):
+    """
+    Send email notifications to all admins and super admins about prompt changes.
+
+    Args:
+        prompt_type: Type of prompt that was changed
+        action: Action performed ("update" or "reset")
+        admin_user_id: ID of the admin who made the change
+        admin_user_name: Name of the admin who made the change
+        admin_user_email: Email of the admin who made the change
+        changes: List of changes made
+        ip_address: IP address of the admin who made the change
+    """
+    try:
+        from .email_service import EmailService
+        from .common import get_settings
+
+        # Get all admins except the one who made the change
+        admin_recipients = _get_admin_emails(exclude_user_id=admin_user_id)
+
+        if not admin_recipients:
+            logger.info("No other admins to notify about prompt change")
+            return
+
+        # Initialize email service
+        settings = get_settings()
+        email_service = EmailService(settings=settings)
+
+        # Prepare change data for email
+        changes_data = [change.model_dump() for change in changes] if changes else []
+        timestamp = datetime.now(timezone.utc).strftime("%Y-%m-%d %H:%M:%S UTC")
+
+        # Get frontend URL for admin panel link
+        admin_url = getattr(settings, 'frontend_url', 'https://zygotrix.com')
+
+        # Send email to each admin
+        for admin in admin_recipients:
+            try:
+                email_service.send_prompt_change_notification(
+                    admin_email=admin["email"],
+                    admin_name=admin_user_name or "Unknown Admin",
+                    admin_user_email=admin_user_email or "unknown@example.com",
+                    prompt_type=prompt_type,
+                    action=action,
+                    changes=changes_data,
+                    timestamp=timestamp,
+                    ip_address=ip_address,
+                    admin_url=admin_url
+                )
+                logger.info(f"Sent prompt change notification to {admin['email']}")
+            except Exception as e:
+                logger.error(f"Failed to send email to {admin['email']}: {e}")
+                # Continue to next admin even if one fails
+
+    except Exception as e:
+        # Don't fail the main operation if email notifications fail
+        logger.error(f"Failed to send prompt change notifications: {e}")
 
 
 def _log_prompt_change(
@@ -351,6 +489,17 @@ def update_prompt(
             user_agent=user_agent
         )
 
+        # Send email notifications to all other admins
+        _send_prompt_change_notifications(
+            prompt_type=prompt_type,
+            action="update",
+            admin_user_id=admin_user_id,
+            admin_user_name=admin_user_name,
+            admin_user_email=admin_user_email,
+            changes=changes,
+            ip_address=ip_address
+        )
+
     return get_prompt_by_type(prompt_type)
 
 
@@ -382,7 +531,7 @@ def reset_to_default(
     if success:
         # Compute diff to show only what changed
         removed, added = _compute_diff(old_content, DEFAULT_PROMPTS[prompt_type])
-        
+
         # Log the reset to audit history with diff
         changes = [
             PromptChange(
@@ -400,6 +549,17 @@ def reset_to_default(
             changes=changes,
             ip_address=ip_address,
             user_agent=user_agent
+        )
+
+        # Send email notifications to all other admins
+        _send_prompt_change_notifications(
+            prompt_type=prompt_type,
+            action="reset",
+            admin_user_id=admin_user_id,
+            admin_user_name=admin_user_name,
+            admin_user_email=admin_user_email,
+            changes=changes,
+            ip_address=ip_address
         )
 
     return success

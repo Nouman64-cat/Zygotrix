@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import DashboardLayout from "../layouts/DashboardLayout";
 import { useAuth } from "../context/AuthContext";
 import {
@@ -39,6 +39,10 @@ const AdminChatbotSettingsPage: React.FC = () => {
   const [promptSaving, setPromptSaving] = useState(false);
   const [promptError, setPromptError] = useState<string | null>(null);
   const [promptSuccess, setPromptSuccess] = useState<string | null>(null);
+
+  // Refs for scroll synchronization
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const lineNumbersRef = useRef<HTMLDivElement>(null);
 
   // Form state
   const [formData, setFormData] = useState<ChatbotSettings>({
@@ -226,6 +230,13 @@ const AdminChatbotSettingsPage: React.FC = () => {
       setPromptError(errorMessage);
     } finally {
       setPromptSaving(false);
+    }
+  };
+
+  // Synchronize scroll between textarea and line numbers
+  const handleTextareaScroll = () => {
+    if (textareaRef.current && lineNumbersRef.current) {
+      lineNumbersRef.current.scrollTop = textareaRef.current.scrollTop;
     }
   };
 
@@ -675,13 +686,43 @@ const AdminChatbotSettingsPage: React.FC = () => {
                           <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                             Prompt Content
                           </label>
-                          <textarea
-                            value={promptContent}
-                            onChange={(e) => setPromptContent(e.target.value)}
-                            rows={20}
-                            className="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent font-mono text-sm"
-                            placeholder="Enter prompt template content..."
-                          />
+                          <div className="relative border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
+                            <div className="flex" style={{ height: '480px' }}>
+                              {/* Line Numbers */}
+                              <div
+                                ref={lineNumbersRef}
+                                className="flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600 select-none overflow-hidden pointer-events-none"
+                                style={{
+                                  height: '480px',
+                                  paddingTop: '12px',
+                                  paddingBottom: '12px'
+                                }}
+                              >
+                                <div className="px-3 font-mono text-sm text-gray-500 dark:text-gray-400 text-right" style={{ lineHeight: '1.5rem' }}>
+                                  {promptContent.split('\n').map((_, index) => (
+                                    <div key={index} style={{ height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                      {index + 1}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                              {/* Textarea */}
+                              <textarea
+                                ref={textareaRef}
+                                value={promptContent}
+                                onChange={(e) => setPromptContent(e.target.value)}
+                                onScroll={handleTextareaScroll}
+                                rows={20}
+                                className="flex-1 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm resize-none overflow-y-auto"
+                                placeholder="Enter prompt template content..."
+                                style={{
+                                  height: '480px',
+                                  padding: '12px 16px',
+                                  lineHeight: '1.5rem'
+                                }}
+                              />
+                            </div>
+                          </div>
                           <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
                             Available placeholders: {"{BOT_NAME}"}, {"{user_name}"}, {"{FRONTEND_URL}"}, {"{simulation_context}"}
                           </p>

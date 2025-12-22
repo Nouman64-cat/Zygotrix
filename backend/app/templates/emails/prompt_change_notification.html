@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+          "Helvetica Neue", Arial, sans-serif;
+        line-height: 1.6;
+        color: #374151;
+        background: #f3f4f6;
+        padding: 20px;
+      }
+      .email-container {
+        max-width: 700px;
+        margin: 0 auto;
+        background: white;
+        border-radius: 16px;
+        overflow: hidden;
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+          0 2px 4px -1px rgba(0, 0, 0, 0.06);
+      }
+      .header {
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        padding: 40px 30px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+      }
+      .header::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: radial-gradient(
+          circle,
+          rgba(255, 255, 255, 0.1) 1px,
+          transparent 1px
+        );
+        background-size: 30px 30px;
+        animation: drift 20s linear infinite;
+      }
+      @keyframes drift {
+        0% {
+          transform: translate(0, 0);
+        }
+        100% {
+          transform: translate(30px, 30px);
+        }
+      }
+      .header-emoji {
+        font-size: 64px;
+        margin-bottom: 10px;
+        display: block;
+      }
+      .header h1 {
+        color: white;
+        font-size: 28px;
+        font-weight: 700;
+        margin: 0;
+        position: relative;
+        z-index: 1;
+      }
+      .content {
+        padding: 40px 30px;
+      }
+      .greeting {
+        font-size: 18px;
+        color: #1f2937;
+        margin-bottom: 20px;
+      }
+      .message {
+        font-size: 16px;
+        color: #4b5563;
+        margin-bottom: 25px;
+      }
+      .change-card {
+        background: linear-gradient(
+          135deg,
+          rgba(245, 158, 11, 0.05) 0%,
+          rgba(217, 119, 6, 0.05) 100%
+        );
+        border: 2px solid #f59e0b;
+        border-radius: 12px;
+        padding: 25px;
+        margin: 25px 0;
+      }
+      .change-card h2 {
+        color: #f59e0b;
+        font-size: 20px;
+        font-weight: 700;
+        margin-bottom: 15px;
+      }
+      .change-detail {
+        background: white;
+        border-radius: 8px;
+        padding: 15px;
+        margin: 15px 0;
+      }
+      .change-label {
+        font-size: 13px;
+        font-weight: 600;
+        color: #6b7280;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        margin-bottom: 8px;
+      }
+      .change-content {
+        background: #f9fafb;
+        border-left: 3px solid #e5e7eb;
+        padding: 12px;
+        font-family: "Courier New", monospace;
+        font-size: 13px;
+        color: #1f2937;
+        overflow-x: auto;
+        white-space: pre-wrap;
+        word-break: break-word;
+        border-radius: 4px;
+      }
+      .change-content.removed {
+        border-left-color: #ef4444;
+        background: #fef2f2;
+        color: #991b1b;
+      }
+      .change-content.added {
+        border-left-color: #10b981;
+        background: #f0fdf4;
+        color: #065f46;
+      }
+      .info-box {
+        background: #eff6ff;
+        border-left: 4px solid #3b82f6;
+        border-radius: 8px;
+        padding: 20px;
+        margin: 25px 0;
+      }
+      .info-box-title {
+        color: #1e40af;
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .info-item {
+        color: #1e3a8a;
+        font-size: 14px;
+        margin: 8px 0;
+      }
+      .info-item strong {
+        color: #1e40af;
+      }
+      .cta-button {
+        display: inline-block;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        color: white;
+        padding: 16px 40px;
+        text-decoration: none;
+        border-radius: 8px;
+        font-weight: 600;
+        font-size: 16px;
+        margin: 25px 0;
+        box-shadow: 0 4px 14px rgba(245, 158, 11, 0.4);
+      }
+      .divider {
+        height: 1px;
+        background: linear-gradient(
+          to right,
+          transparent,
+          #e5e7eb,
+          transparent
+        );
+        margin: 30px 0;
+      }
+      .footer {
+        background: #f9fafb;
+        padding: 30px;
+        text-align: center;
+        border-top: 1px solid #e5e7eb;
+      }
+      .footer-text {
+        color: #6b7280;
+        font-size: 14px;
+        margin: 5px 0;
+      }
+      .brand {
+        font-weight: 700;
+        background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+      }
+      .timestamp {
+        color: #9ca3af;
+        font-size: 13px;
+        font-style: italic;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="email-container">
+      <div class="header">
+        <h1>System Prompt Changed</h1>
+      </div>
+
+      <div class="content">
+        <p class="greeting">Hi Admin,</p>
+
+        <p class="message">
+          A system prompt has been modified. Please review the
+          changes below to stay informed about the configuration updates.
+        </p>
+
+        <div class="info-box">
+          <div class="info-box-title">Change Details</div>
+          <div class="info-item">
+            <strong>Changed By:</strong> {{ admin_name }} ({{ admin_email }})
+          </div>
+          <div class="info-item">
+            <strong>Prompt Type:</strong> {{ prompt_type }}
+          </div>
+          <div class="info-item">
+            <strong>Action:</strong> {{ action }}
+          </div>
+          <div class="info-item">
+            <strong>Timestamp:</strong>
+            <span class="timestamp">{{ timestamp }}</span>
+          </div>
+          {% if ip_address %}
+          <div class="info-item">
+            <strong>IP Address:</strong> {{ ip_address }}
+          </div>
+          {% endif %}
+        </div>
+
+        <div class="change-card">
+          <h2>What Changed</h2>
+
+          {% for change in changes %}
+          <div class="change-detail">
+            <div class="change-label">Field: {{ change.field_name }}</div>
+
+            {% if change.field_name == 'prompt_content' %}
+            <div style="margin-top: 15px">
+              <div class="change-label" style="color: #dc2626">
+                Removed Lines
+              </div>
+              <div class="change-content removed">{{ change.old_value }}</div>
+            </div>
+
+            <div style="margin-top: 15px">
+              <div class="change-label" style="color: #059669">Added Lines</div>
+              <div class="change-content added">{{ change.new_value }}</div>
+            </div>
+            {% else %}
+            <div style="margin-top: 10px">
+              <div class="change-label">Before</div>
+              <div class="change-content">{{ change.old_value or "(none)" }}</div>
+            </div>
+
+            <div style="margin-top: 10px">
+              <div class="change-label">After</div>
+              <div class="change-content">{{ change.new_value or "(none)" }}</div>
+            </div>
+            {% endif %}
+          </div>
+          {% endfor %}
+        </div>
+
+        <div class="divider"></div>
+
+        <p class="message" style="font-size: 14px; color: #6b7280">
+          This is an automated notification to keep all administrators informed
+          about system configuration changes. If you have any questions or
+          concerns about this change, please contact the administrator who made
+          the modification.
+        </p>
+      </div>
+
+      <div class="footer">
+        <p class="footer-text">
+          <strong class="brand">Zygotrix Admin Team</strong><br />
+          Automated System Notification
+        </p>
+      </div>
+    </div>
+  </body>
+</html>

@@ -153,3 +153,57 @@ class EmailService:
         )
 
         return self._send_email(user_email, subject, html_content, text_content)
+
+    def send_prompt_change_notification(
+        self,
+        admin_email: str,
+        admin_name: str,
+        admin_user_email: str,
+        prompt_type: str,
+        action: str,
+        changes: list,
+        timestamp: str,
+        ip_address: str = None,
+        admin_url: str = None
+    ) -> bool:
+
+        subject = f"System Prompt Changed: {prompt_type}"
+
+        # Provide default admin URL if not specified
+        if admin_url is None:
+            admin_url = getattr(self.settings, 'frontend_url', 'https://zygotrix.com')
+
+        context = {
+            "admin_name": admin_name,
+            "admin_email": admin_user_email,
+            "prompt_type": prompt_type,
+            "action": action,
+            "changes": changes,
+            "timestamp": timestamp,
+            "ip_address": ip_address,
+            "admin_url": admin_url,
+        }
+
+        html_content = self._render_template("prompt_change_notification.html", context)
+
+        # Build text content
+        changes_text = ""
+        for change in changes:
+            changes_text += f"\nField: {change['field_name']}\n"
+            changes_text += f"  Before: {change.get('old_value', '(none)')}\n"
+            changes_text += f"  After: {change.get('new_value', '(none)')}\n"
+
+        text_content = (
+            f"Hi Admin,\n\n"
+            f"A system prompt has been modified.\n\n"
+            f"Changed By: {admin_name} ({admin_user_email})\n"
+            f"Prompt Type: {prompt_type}\n"
+            f"Action: {action}\n"
+            f"Timestamp: {timestamp}\n"
+            f"{f'IP Address: {ip_address}' if ip_address else ''}\n\n"
+            f"Changes:\n{changes_text}\n\n"
+            "This is an automated notification to keep all administrators informed about system configuration changes.\n\n"
+            "Zygotrix Admin Team"
+        )
+
+        return self._send_email(admin_email, subject, html_content, text_content)

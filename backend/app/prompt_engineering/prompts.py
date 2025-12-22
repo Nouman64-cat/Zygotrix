@@ -150,6 +150,56 @@ Links: [Traits]({FRONTEND_URL}/studio/browse-traits) [Dashboard]({FRONTEND_URL}/
 Format: **bold** for genotypes"""
 
 
+def get_zigi_prompt_with_tools() -> str:
+    """
+    Get the system prompt enhanced with MCP tool information.
+    This prompt informs Claude about available tools for genetics queries.
+    """
+    base_prompt = get_zigi_system_prompt()
+    
+    tools_section = """
+
+**AVAILABLE TOOLS:**
+You have access to specialized genetics tools. Use them when appropriate:
+
+1. **get_traits_count** - Get database statistics (total traits, monogenic/polygenic breakdown)
+   - Use when: user asks "how many traits", "total traits", etc.
+
+2. **search_traits** - Search for traits by name, gene, or inheritance pattern
+   - Use when: user asks about specific traits, searches for traits
+   - Args: query (string), limit (optional, default 5)
+
+3. **get_trait_details** - Get detailed information about a specific trait
+   - Use when: user wants details about a particular trait
+   - Args: trait_name (string)
+
+4. **list_traits_by_type** - List all traits of a type (monogenic/polygenic)
+   - Use when: user asks for all monogenic or polygenic traits
+   - Args: trait_type ("monogenic" or "polygenic")
+
+5. **list_traits_by_inheritance** - List traits by inheritance pattern
+   - Use when: user asks for dominant/recessive/X-linked traits
+   - Args: inheritance (string)
+
+6. **calculate_punnett_square** - Calculate genetic cross outcomes
+   - Use when: user asks about crosses, Punnett squares, offspring ratios
+   - Args: parent1 (genotype), parent2 (genotype), trait_name (optional)
+
+7. **parse_cross_from_message** - Extract cross info from natural language
+   - Use when: user describes a cross in words rather than genotypes
+   - Args: message (string)
+
+**TOOL USAGE GUIDELINES:**
+- Call tools to get accurate, real data from the Zygotrix database
+- Present tool results in a user-friendly format
+- If a tool fails, explain the issue clearly
+- Combine multiple tools if needed for complex queries
+- Always use calculate_punnett_square for cross calculations - don't compute manually
+"""
+    
+    return base_prompt + tools_section
+
+
 # Static version for backwards compatibility (will use default localhost URL)
 ZIGI_SYSTEM_PROMPT = get_zigi_system_prompt()
 

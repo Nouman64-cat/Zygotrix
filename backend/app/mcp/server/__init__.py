@@ -8,11 +8,13 @@ Components:
 - tools.py: Genetic tool definitions (wrapped from chatbot_tools)
 """
 
-from .service import MCPServer
+from .service import MCPServer, get_mcp_server
 from .tools import mcp_tools, register_tools
 
 __all__ = [
     "MCPServer",
+    "get_mcp_server",
     "mcp_tools",
     "register_tools",
 ]
+

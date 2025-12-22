@@ -541,7 +541,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
         </div>
 
         {/* Navigation */}
-        <nav className="p-3 2xl:p-4 space-y-1.5 2xl:space-y-2 flex-1 overflow-y-auto">
+        <nav className="p-3 2xl:p-4 space-y-1.5 2xl:space-y-2 flex-1 overflow-y-auto scrollbar-hide">
           {/* User Sidebar Items - hidden for admins */}
           {userSidebarItems.map((item) => (
             <div key={item.id} className="relative group">

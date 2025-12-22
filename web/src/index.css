@@ -404,3 +404,13 @@ button:not(.btn-large) {
 .animate-slide-up {
   animation: slide-up 0.3s ease-out forwards;
 }
+
+/* Hide scrollbar while maintaining scroll functionality */
+.scrollbar-hide {
+  -ms-overflow-style: none; /* IE and Edge */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scrollbar-hide::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, and Opera */
+}

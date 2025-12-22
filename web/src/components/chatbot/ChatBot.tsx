@@ -14,6 +14,7 @@ interface ChatBotProps {
   currentPath: string;
   userName: string;
   userId?: string;
+  userRole?: string;
   isEnabled?: boolean;
   variant?: 'floating' | 'sidebar';
   simulationToolContext?: any; // Optional simulation tool context for command execution
@@ -23,7 +24,7 @@ interface ChatBotProps {
 const getChatMessagesKey = (userId?: string) => `zygotrix_chat_messages_${userId || 'anonymous'}`;
 const getChatUsageKey = (userId?: string) => `zygotrix_chat_usage_${userId || 'anonymous'}`;
 
-export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName, userId, isEnabled = true, variant = 'floating', simulationToolContext }) => {
+export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName, userId, userRole, isEnabled = true, variant = 'floating', simulationToolContext }) => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || 'Zigi';
   const pageContext = getPageContext(currentPath);
 
@@ -204,7 +205,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
 
     const pollUsage = async () => {
       try {
-        const latestUsage = await getUserRateLimit(userId);
+        const latestUsage = await getUserRateLimit(userId, userRole);
         if (latestUsage) {
           // Only update if there's a difference to avoid unnecessary re-renders
           if (
@@ -268,7 +269,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
     setIsLoading(true);
 
     try {
-      const response = await sendMessage(inputValue, pageContext, userName, userId);
+      const response = await sendMessage(inputValue, pageContext, userName, userId, userRole);
 
       // Parse and execute simulation commands if tool context is available
       if (simulationToolContext) {

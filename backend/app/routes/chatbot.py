@@ -380,8 +380,35 @@ class UserRateLimiter:
             "cooldown_active": False
         }
     
-    def check_limit(self, user_id: str) -> tuple[bool, dict]:
-        """Check if user is within rate limit."""
+    def check_limit(self, user_id: str, is_admin: bool = False) -> tuple[bool, dict]:
+        """
+        Check if user is within rate limit.
+
+        Args:
+            user_id: User ID to check
+            is_admin: Whether the user is an admin or super admin
+
+        Returns:
+            Tuple of (allowed, usage_dict)
+        """
+        # Check if admins have unlimited tokens enabled
+        if is_admin:
+            try:
+                from ..services.chatbot_settings import get_chatbot_settings
+                settings = get_chatbot_settings()
+                if settings.admin_unlimited_tokens:
+                    # Admin with unlimited tokens - always allow
+                    return (True, {
+                        "tokens_used": 0,
+                        "tokens_remaining": 999999,  # Effectively unlimited
+                        "reset_time": None,
+                        "is_limited": False,
+                        "cooldown_active": False,
+                        "admin_unlimited": True
+                    })
+            except Exception as e:
+                logger.error(f"Error checking admin unlimited tokens setting: {e}")
+
         usage = self.get_usage(user_id)
         return (not usage["is_limited"], usage)
     
@@ -446,6 +473,7 @@ class ChatRequest(BaseModel):
     pageContext: PageContext | None = None
     userName: str | None = None
     userId: str | None = None  # For token usage tracking
+    userRole: str | None = None  # For admin unlimited tokens feature
     sessionId: str | None = None  # For conversation memory
 
 
@@ -839,7 +867,7 @@ async def get_chatbot_status():
 
 
 @router.get("/rate-limit")
-async def get_rate_limit_status(userId: str | None = None):
+async def get_rate_limit_status(userId: str | None = None, userRole: str | None = None):
     """
     Public endpoint to get the current user's rate limit status.
     Used by frontend to display token usage bar in real-time.
@@ -855,7 +883,12 @@ async def get_rate_limit_status(userId: str | None = None):
     """
     try:
         user_id = userId or "anonymous"
-        usage = _rate_limiter.get_usage(user_id)
+
+        # Check if user is admin or super admin
+        is_admin = userRole in ["admin", "super_admin"] if userRole else False
+
+        # Use check_limit to get proper usage with admin unlimited tokens support
+        _, usage = _rate_limiter.check_limit(user_id, is_admin=is_admin)
 
         return {
             "tokens_used": usage["tokens_used"],
@@ -864,7 +897,8 @@ async def get_rate_limit_status(userId: str | None = None):
             "reset_time": usage["reset_time"],
             "is_limited": usage["is_limited"],
             "cooldown_active": usage["cooldown_active"],
-            "cooldown_hours": _rate_limiter.cooldown_seconds // 3600
+            "cooldown_hours": _rate_limiter.cooldown_seconds // 3600,
+            "admin_unlimited": usage.get("admin_unlimited", False)
         }
     except Exception as e:
         logger.error(f"Error fetching rate limit status: {e}")
@@ -911,9 +945,12 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
         # Get user ID for rate limiting
         user_id = request.userId or "anonymous"
-        
+
+        # Check if user is admin or super admin
+        is_admin = request.userRole in ["admin", "super_admin"] if request.userRole else False
+
         # Step 0: Check rate limit FIRST
-        is_allowed, usage_info = _rate_limiter.check_limit(user_id)
+        is_allowed, usage_info = _rate_limiter.check_limit(user_id, is_admin=is_admin)
         
         if not is_allowed:
             # User has exceeded their token limit
@@ -998,7 +1035,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         _rate_limiter.record_usage(user_id, total_tokens)
         
         # Get updated usage info after recording
-        _, updated_usage = _rate_limiter.check_limit(user_id)
+        _, updated_usage = _rate_limiter.check_limit(user_id, is_admin=is_admin)
         
         # Step 8: Log token usage for admin tracking
         _log_token_usage(

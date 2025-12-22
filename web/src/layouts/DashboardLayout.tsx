@@ -133,6 +133,7 @@ const DashboardLayout: React.FC<DashboardLayoutProps> = ({ children }) => {
           currentPath={location.pathname}
           userName={user?.full_name || user?.email?.split('@')[0] || 'there'}
           userId={user?.id}
+          userRole={user?.user_role || undefined}
           isEnabled={agentEnabled}
         />
       </div>

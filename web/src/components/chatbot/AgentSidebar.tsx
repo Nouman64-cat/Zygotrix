@@ -10,6 +10,7 @@ interface AgentSidebarProps {
   currentPath: string;
   userName: string;
   userId?: string;
+  userRole?: string;
   isEnabled?: boolean;
 }
 
@@ -19,6 +20,7 @@ export const AgentSidebar: React.FC<AgentSidebarProps> = ({
   currentPath,
   userName,
   userId,
+  userRole,
   isEnabled = true,
 }) => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || 'Zigi';
@@ -110,6 +112,7 @@ export const AgentSidebar: React.FC<AgentSidebarProps> = ({
               currentPath={currentPath}
               userName={userName}
               userId={userId}
+              userRole={userRole}
               isEnabled={isEnabled}
               simulationToolContext={simulationToolContext}
             />

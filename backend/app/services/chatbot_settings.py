@@ -77,6 +77,7 @@ def get_default_settings() -> ChatbotSettings:
         model="claude-3-haiku-20240307",
         enabled=True,
         response_caching=True,
+        admin_unlimited_tokens=False,
         created_at=datetime.utcnow().isoformat(),
         updated_at=datetime.utcnow().isoformat(),
         updated_by=None

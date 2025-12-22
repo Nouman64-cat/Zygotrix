@@ -35,6 +35,7 @@ export const FloatingChatButton: React.FC = () => {
         currentPath={location.pathname}
         userName={user?.full_name || user?.email?.split('@')[0] || 'there'}
         userId={user?.id}
+        userRole={user?.user_role || undefined}
         isEnabled={isEnabled}
       />
 

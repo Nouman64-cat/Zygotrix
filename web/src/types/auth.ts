@@ -185,6 +185,7 @@ export type ChatbotSettings = {
   model: string;
   enabled: boolean;
   response_caching: boolean;
+  admin_unlimited_tokens: boolean;
   created_at?: string;
   updated_at?: string;
   updated_by?: string;

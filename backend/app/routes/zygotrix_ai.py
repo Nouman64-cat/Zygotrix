@@ -414,8 +414,11 @@ async def chat(
     user_id = current_user.id
     user_name = current_user.name if hasattr(current_user, 'name') else None
 
+    # Check if user is admin or super admin
+    is_admin = hasattr(current_user, 'user_role') and current_user.user_role in ["admin", "super_admin"]
+
     # Check rate limit
-    allowed, usage = _rate_limiter.check_limit(user_id)
+    allowed, usage = _rate_limiter.check_limit(user_id, is_admin=is_admin)
     if not allowed:
         raise HTTPException(
             status_code=429,
@@ -621,10 +624,17 @@ Question: {chat_request.message}"""
 
 @router.get("/rate-limit")
 async def get_rate_limit_status(
-    user_id: str = Depends(get_user_id_from_profile)
+    current_user: UserProfile = Depends(get_current_user)
 ):
     """Get the current rate limit status for the authenticated user."""
-    usage = _rate_limiter.get_usage(user_id)
+    user_id = current_user.id
+
+    # Check if user is admin or super admin
+    is_admin = hasattr(current_user, 'user_role') and current_user.user_role in ["admin", "super_admin"]
+
+    # Use check_limit to get proper usage with admin unlimited tokens support
+    _, usage = _rate_limiter.check_limit(user_id, is_admin=is_admin)
+
     return {
         "tokens_used": usage.get("tokens_used", 0),
         "tokens_remaining": usage.get("tokens_remaining", 25000),
@@ -633,6 +643,7 @@ async def get_rate_limit_status(
         "is_limited": usage.get("is_limited", False),
         "cooldown_active": usage.get("cooldown_active", False),
         "cooldown_hours": _rate_limiter.cooldown_seconds / 3600,
+        "admin_unlimited": usage.get("admin_unlimited", False)
     }
 
 

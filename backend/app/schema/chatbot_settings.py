@@ -43,6 +43,10 @@ class ChatbotSettings(BaseModel):
         default=True,
         description="Whether LLM response caching is enabled"
     )
+    admin_unlimited_tokens: bool = Field(
+        default=False,
+        description="Whether admins have unlimited token usage (bypass token limits)"
+    )
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None
@@ -74,6 +78,7 @@ class ChatbotSettingsUpdate(BaseModel):
     model: Optional[str] = None
     enabled: Optional[bool] = None
     response_caching: Optional[bool] = None
+    admin_unlimited_tokens: Optional[bool] = None
 
 
 class ChatbotSettingsResponse(BaseModel):

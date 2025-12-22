@@ -53,11 +53,14 @@ const AdminChatbotSettingsPage: React.FC = () => {
     model: "claude-3-5-haiku-20241022",
     enabled: true,
     response_caching: true,
+    admin_unlimited_tokens: false,
   });
 
   const isAdmin =
     currentUser?.user_role === "admin" ||
     currentUser?.user_role === "super_admin";
+
+  const isSuperAdmin = currentUser?.user_role === "super_admin";
 
   useEffect(() => {
     if (isAdmin) {
@@ -88,6 +91,7 @@ const AdminChatbotSettingsPage: React.FC = () => {
         model: "claude-3-5-haiku-20241022",
         enabled: true,
         response_caching: true,
+        admin_unlimited_tokens: false,
       });
     } finally {
       setLoading(false);
@@ -558,6 +562,47 @@ const AdminChatbotSettingsPage: React.FC = () => {
                         <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
                       </label>
                     </div>
+
+                    {/* Admin Unlimited Tokens Toggle - Full Width (Super Admin Only) */}
+                    {isSuperAdmin && (
+                      <div className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${formData.admin_unlimited_tokens
+                        ? 'bg-purple-50 dark:bg-purple-900/20 border-purple-200 dark:border-purple-800'
+                        : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-700'
+                        }`}>
+                        <div>
+                          <div className="flex items-center gap-2 mb-1">
+                            <label
+                              htmlFor="admin_unlimited_tokens"
+                              className="text-sm font-medium text-gray-700 dark:text-gray-300"
+                            >
+                              Admin Unlimited Tokens
+                            </label>
+                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${formData.admin_unlimited_tokens
+                              ? 'bg-purple-100 dark:bg-purple-900 text-purple-800 dark:text-purple-200'
+                              : 'bg-gray-100 dark:bg-gray-900 text-gray-800 dark:text-gray-200'
+                              }`}>
+                              {formData.admin_unlimited_tokens ? 'Enabled' : 'Disabled'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-500 dark:text-gray-400">
+                            {formData.admin_unlimited_tokens
+                              ? 'Admins and super admins can use chatbot without token limits'
+                              : 'Admins are subject to the same token limits as regular users'}
+                          </p>
+                        </div>
+                        <label className="relative inline-flex items-center cursor-pointer">
+                          <input
+                            type="checkbox"
+                            id="admin_unlimited_tokens"
+                            name="admin_unlimited_tokens"
+                            checked={formData.admin_unlimited_tokens}
+                            onChange={handleInputChange}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-purple-300 dark:peer-focus:ring-purple-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-purple-600"></div>
+                        </label>
+                      </div>
+                    )}
                   </div>
 
                   {/* Form Actions */}

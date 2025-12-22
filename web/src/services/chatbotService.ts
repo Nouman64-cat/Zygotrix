@@ -72,7 +72,8 @@ export async function sendMessage(
   message: string,
   pageContext?: PageContext,
   userName?: string,
-  userId?: string
+  userId?: string,
+  userRole?: string
 ): Promise<string> {
   try {
     const sessionId = getSessionId();
@@ -87,6 +88,7 @@ export async function sendMessage(
         pageContext: pageContext,
         userName: userName,
         userId: userId,
+        userRole: userRole,
         sessionId: sessionId,
       }),
     });
@@ -211,12 +213,16 @@ export async function getChatbotStatus(): Promise<{ enabled: boolean }> {
 
 // Get current user's rate limit status (public endpoint)
 export async function getUserRateLimit(
-  userId?: string
+  userId?: string,
+  userRole?: string
 ): Promise<UsageInfo | null> {
   try {
     const url = new URL(`${API_BASE_URL}/api/chatbot/rate-limit`);
     if (userId) {
       url.searchParams.append("userId", userId);
+    }
+    if (userRole) {
+      url.searchParams.append("userRole", userRole);
     }
 
     const response = await fetch(url.toString());

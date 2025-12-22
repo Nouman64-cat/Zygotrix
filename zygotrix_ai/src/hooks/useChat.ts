@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useRef } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { chatService } from "../services";
 import { generateMessageId } from "../utils";
 import type { Message, ChatRequest } from "../types";
@@ -27,11 +27,6 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
   );
   const [conversationTitle, setConversationTitle] =
     useState<string>("New Conversation");
-
-  // RAF throttling for streaming updates
-  const chunkBuffer = useRef<string>("");
-  const updateScheduled = useRef(false);
-  const streamingMessageId = useRef<string>("");
 
   // Load an existing conversation
   const loadConversation = useCallback(async (convId: string) => {
@@ -92,116 +87,66 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
       setIsLoading(true);
       setError(null);
 
-      // Create placeholder for streaming message
+      // Create placeholder for assistant message (shows loading state)
       const tempMessageId = generateMessageId();
-      streamingMessageId.current = tempMessageId;
-
       const placeholderMessage: Message = {
         id: tempMessageId,
         role: "assistant",
         content: "",
         timestamp: Date.now(),
-        isStreaming: true,
+        isStreaming: true, // Used for loading indicator
       };
 
       setMessages((prev) => [...prev, placeholderMessage]);
-      setIsStreaming(true);
 
       const chatRequest: ChatRequest = {
         conversation_id: conversationId || undefined,
         message: content.trim(),
         page_context: "Chat Interface",
-        stream: true, // Enable streaming
+        stream: false, // Disable streaming to enable MCP tools (tools only work in non-streaming mode)
       };
 
-      // RAF-throttled update function
-      const scheduleUpdate = () => {
-        if (!updateScheduled.current) {
-          updateScheduled.current = true;
-          requestAnimationFrame(() => {
-            const contentToAdd = chunkBuffer.current;
-            chunkBuffer.current = "";
-            updateScheduled.current = false;
+      try {
+        // Use non-streaming API for MCP tool support
+        const response = await chatService.sendMessage(chatRequest);
 
-            setMessages((prev) =>
-              prev.map((msg) =>
-                msg.id === streamingMessageId.current
-                  ? { ...msg, content: msg.content + contentToAdd }
-                  : msg
-              )
-            );
-          });
+        // Update conversation ID if this was a new conversation
+        if (!conversationId && response.conversation_id) {
+          setConversationId(response.conversation_id);
         }
-      };
 
-      await chatService.sendMessageStreaming(
-        chatRequest,
-        // onChunk callback
-        (chunk) => {
-          if (chunk.type === "content") {
-            chunkBuffer.current += chunk.content || "";
-            scheduleUpdate();
-          }
-        },
-        // onComplete callback
-        (response) => {
-          setIsStreaming(false);
-          setIsLoading(false);
+        // Update conversation title
+        if (response.conversation_title) {
+          setConversationTitle(response.conversation_title);
+        }
 
-          // Update conversation ID if this was a new conversation
-          if (!conversationId && response.conversation_id) {
-            setConversationId(response.conversation_id);
-          }
-
-          // Update conversation title
-          if (response.conversation_title) {
-            setConversationTitle(response.conversation_title);
-          }
-
-          // Flush any remaining buffer content and finalize the message
-          const finalContent = chunkBuffer.current;
-          const msgId = streamingMessageId.current;
-
-          setMessages((prev) =>
-            prev.map((msg) =>
-              msg.id === msgId
-                ? {
+        // Replace placeholder with actual response
+        setMessages((prev) =>
+          prev.map((msg) =>
+            msg.id === tempMessageId
+              ? {
                   ...msg,
                   id: response.message.id,
-                  // Use the full content from response, or append remaining buffer
-                  content: response.message.content || (msg.content + finalContent),
+                  content: response.message.content,
                   isStreaming: false,
                   metadata: response.message.metadata,
                   created_at: response.message.created_at,
                 }
-                : msg
-            )
-          );
+              : msg
+          )
+        );
+      } catch (err) {
+        console.error("[useChat] Error:", err);
+        const errorMessage =
+          err instanceof Error ? err.message : "Failed to send message";
+        setError(errorMessage);
 
-          // Clear refs
-          chunkBuffer.current = "";
-          streamingMessageId.current = "";
-        },
-        // onError callback
-        (error) => {
-          console.error("[useChat] Streaming error:", error.message);
-          setError(error.message);
-          setIsStreaming(false);
-          setIsLoading(false);
-
-          // Remove the streaming placeholder on error (keep user message)
-          const streamingId = streamingMessageId.current;
-          if (streamingId) {
-            setMessages((prev) =>
-              prev.filter((msg) => msg.id !== streamingId)
-            );
-          }
-
-          // Clear refs
-          chunkBuffer.current = "";
-          streamingMessageId.current = "";
-        }
-      );
+        // Remove the placeholder on error (keep user message)
+        setMessages((prev) => prev.filter((msg) => msg.id !== tempMessageId));
+      } finally {
+        setIsLoading(false);
+        setIsStreaming(false);
+      }
     },
     [conversationId]
   );

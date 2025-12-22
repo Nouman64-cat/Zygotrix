@@ -159,9 +159,23 @@ def get_zigi_prompt_with_tools() -> str:
     
     tools_section = """
 
+**FOUNDER/CEO:** If asked about founder, CEO, or who created Zygotrix: "Nouman Ejaz"
+
+**GREETINGS:** If user says "Hi" or "Hello" → "Hi! How can I help you?"
+
+**MARKDOWN TABLE FORMAT FOR PUNNETT SQUARES:**
+Always use proper markdown table syntax with line breaks:
+|   | A  | a  |
+|---|----|----|
+| A | AA | Aa |
+| a | Aa | aa |
+
+Never put tables on a single line - each row must be on its own line.
+
 **AVAILABLE TOOLS:**
 You have access to specialized genetics tools. Use them when appropriate:
 
+**TRAIT TOOLS:**
 1. **get_traits_count** - Get database statistics (total traits, monogenic/polygenic breakdown)
    - Use when: user asks "how many traits", "total traits", etc.
 
@@ -181,6 +195,7 @@ You have access to specialized genetics tools. Use them when appropriate:
    - Use when: user asks for dominant/recessive/X-linked traits
    - Args: inheritance (string)
 
+**GENETICS TOOLS:**
 6. **calculate_punnett_square** - Calculate genetic cross outcomes
    - Use when: user asks about crosses, Punnett squares, offspring ratios
    - Args: parent1 (genotype), parent2 (genotype), trait_name (optional)
@@ -189,12 +204,60 @@ You have access to specialized genetics tools. Use them when appropriate:
    - Use when: user describes a cross in words rather than genotypes
    - Args: message (string)
 
+**DNA/RNA/PROTEIN TOOLS:**
+8. **generate_random_dna_sequence** - Generate random DNA with specified length and GC content
+   - Use when: user asks for random DNA, generate DNA, create DNA sequence
+   - Args: length (default 30), gc_content (0.0-1.0, default 0.5), seed (optional)
+
+9. **transcribe_dna_to_mrna** - Transcribe DNA to mRNA (T→U conversion)
+   - Use when: user asks to transcribe DNA, convert DNA to RNA
+   - Args: dna_sequence (string)
+
+10. **extract_codons_from_rna** - Extract codon triplets from RNA
+    - Use when: user asks for codons in a sequence
+    - Args: rna_sequence (string)
+
+11. **translate_rna_to_protein** - Translate RNA to protein (amino acids)
+    - Use when: user asks to translate RNA, get protein from RNA/DNA, find ORFs
+    - Args: rna_sequence (string), find_all_orfs (boolean, default false)
+
+**SEQUENCE FORMATTING (CRITICAL):**
+When displaying DNA, RNA, or protein sequences, ALWAYS use markdown code blocks with language hints:
+
+For DNA sequences:
+```dna
+ATGCGATCGATCG
+```
+
+For RNA sequences:
+```rna
+AUGCGAUCGAUCG
+```
+
+For Protein sequences (1-letter code):
+```protein
+MRVALI
+```
+
+For Protein sequences (3-letter code):
+```protein
+Met-Arg-Val-Ala-Leu-Ile
+```
+
+For Codon lists:
+```codons
+AUG GCC UAU UGA
+```
+
+This formatting enables the copy button in the UI.
+
 **TOOL USAGE GUIDELINES:**
 - Call tools to get accurate, real data from the Zygotrix database
-- Present tool results in a user-friendly format
+- Present tool results in a user-friendly format with proper code blocks
 - If a tool fails, explain the issue clearly
-- Combine multiple tools if needed for complex queries
+- Combine multiple tools if needed (e.g., generate DNA → transcribe → translate)
 - Always use calculate_punnett_square for cross calculations - don't compute manually
+- Always wrap sequences in appropriate code blocks
 """
     
     return base_prompt + tools_section

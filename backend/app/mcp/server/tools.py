@@ -21,6 +21,11 @@ from ...chatbot_tools import (
     list_traits_by_inheritance,
     calculate_punnett_square,
     parse_cross_from_message,
+    # DNA/RNA/Protein tools
+    generate_random_dna_sequence,
+    transcribe_dna_to_mrna,
+    extract_codons_from_rna,
+    translate_rna_to_protein,
 )
 
 logger = logging.getLogger(__name__)
@@ -32,6 +37,9 @@ logger = logging.getLogger(__name__)
 
 # List of all MCP tools with their definitions
 mcp_tools: List[Dict[str, Any]] = [
+    # =========================================================================
+    # TRAITS TOOLS
+    # =========================================================================
     {
         "name": "get_traits_count",
         "description": "Get the total number of traits in the Zygotrix database with breakdown by type",
@@ -102,6 +110,9 @@ mcp_tools: List[Dict[str, Any]] = [
         ],
         "handler": list_traits_by_inheritance,
     },
+    # =========================================================================
+    # GENETICS TOOLS
+    # =========================================================================
     {
         "name": "calculate_punnett_square",
         "description": "Calculate a Punnett Square for a genetic cross",
@@ -143,7 +154,89 @@ mcp_tools: List[Dict[str, Any]] = [
         ],
         "handler": parse_cross_from_message,
     },
+    # =========================================================================
+    # DNA / RNA / PROTEIN TOOLS
+    # =========================================================================
+    {
+        "name": "generate_random_dna_sequence",
+        "description": "Generate a random DNA sequence with specified length and GC content. Useful for demonstrations and simulations.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="length",
+                type="integer",
+                description="Number of base pairs to generate (default: 30, max: 1000)",
+                required=False,
+                default=30,
+            ),
+            ToolParameter(
+                name="gc_content",
+                type="number",
+                description="Proportion of G and C nucleotides (0.0 to 1.0, default: 0.5)",
+                required=False,
+                default=0.5,
+            ),
+            ToolParameter(
+                name="seed",
+                type="integer",
+                description="Optional seed for reproducible random generation",
+                required=False,
+                default=None,
+            ),
+        ],
+        "handler": generate_random_dna_sequence,
+    },
+    {
+        "name": "transcribe_dna_to_mrna",
+        "description": "Transcribe a DNA sequence to mRNA by replacing T (thymine) with U (uracil). This simulates the biological transcription process.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="dna_sequence",
+                type="string",
+                description="DNA sequence containing A, T, G, C nucleotides",
+                required=True,
+            ),
+        ],
+        "handler": transcribe_dna_to_mrna,
+    },
+    {
+        "name": "extract_codons_from_rna",
+        "description": "Extract codons (nucleotide triplets) from an RNA sequence. Each codon represents one amino acid.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="rna_sequence",
+                type="string",
+                description="RNA sequence containing A, U, G, C nucleotides",
+                required=True,
+            ),
+        ],
+        "handler": extract_codons_from_rna,
+    },
+    {
+        "name": "translate_rna_to_protein",
+        "description": "Translate an RNA sequence to protein by reading codons and converting to amino acids. Can find all Open Reading Frames (ORFs) or translate from position 0.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="rna_sequence",
+                type="string",
+                description="RNA sequence containing A, U, G, C nucleotides",
+                required=True,
+            ),
+            ToolParameter(
+                name="find_all_orfs",
+                type="boolean",
+                description="If true, find all Open Reading Frames (ORFs). If false, translate from position 0.",
+                required=False,
+                default=False,
+            ),
+        ],
+        "handler": translate_rna_to_protein,
+    },
 ]
+
 
 
 def register_tools(server: MCPServer = None) -> None:

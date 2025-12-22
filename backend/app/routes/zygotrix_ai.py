@@ -412,9 +412,17 @@ async def generate_claude_response_with_tools(
     total_output_tokens = 0
     tools_used = []
     
+    # Log tool availability for debugging
+    if tools:
+        tool_names = [t.get("name") for t in tools]
+        logger.info(f"MCP tools enabled: {len(tools)} tools available: {tool_names}")
+    else:
+        logger.info("MCP tools disabled for this request")
+    
     working_messages = messages.copy()
     
     for iteration in range(max_tool_iterations):
+        logger.info(f"Claude API iteration {iteration + 1}/{max_tool_iterations}")
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 request_body = {
@@ -452,16 +460,20 @@ async def generate_claude_response_with_tools(
                 total_input_tokens += usage.get("input_tokens", 0)
                 total_output_tokens += usage.get("output_tokens", 0)
                 
+                logger.info(f"Claude stop_reason: {stop_reason}")
+                
                 # Check if Claude wants to use tools
                 if stop_reason == "tool_use":
                     # Extract tool calls
                     tool_calls = extract_tool_calls(content_blocks)
                     
                     if tool_calls:
-                        logger.info(f"Claude requested {len(tool_calls)} tool(s)")
+                        tool_names = [tc.get("name") for tc in tool_calls]
+                        logger.info(f"Claude requested {len(tool_calls)} tool(s): {tool_names}")
                         
                         # Track which tools were used
                         for tc in tool_calls:
+                            logger.info(f"Tool call: {tc.get('name')} with input: {tc.get('input')}")
                             tools_used.append({
                                 "name": tc.get("name"),
                                 "input": tc.get("input"),
@@ -496,6 +508,11 @@ async def generate_claude_response_with_tools(
                     "tools_used": tools_used,
                     "tool_iterations": iteration + 1,
                 }
+                
+                if tools_used:
+                    logger.info(f"Response completed with {len(tools_used)} tool(s) used: {[t['name'] for t in tools_used]}")
+                else:
+                    logger.info("Response completed without tool use (Claude answered directly)")
                 
                 return final_content, metadata
                 
@@ -660,6 +677,7 @@ Question: {chat_request.message}"""
         system_prompt = get_zigi_prompt_with_tools()  # Use tool-aware prompt
 
     if chat_request.stream:
+        logger.info("Using STREAMING mode (MCP tools NOT available in streaming)")
         # Streaming response
         async def event_generator():
             assistant_content = ""
@@ -731,6 +749,7 @@ Question: {chat_request.message}"""
             }
         )
     else:
+        logger.info("Using NON-STREAMING mode with MCP tools enabled")
         # Non-streaming response with tool support
         content, metadata = await generate_claude_response_with_tools(
             claude_messages, system_prompt, model, max_tokens, temperature,

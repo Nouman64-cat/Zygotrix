@@ -1,7 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { FaUser } from 'react-icons/fa';
+import { FaUser, FaCopy, FaCheck } from 'react-icons/fa';
 import { cn, formatMessageTime } from '../../utils';
 import { useTypingEffect } from '../../hooks';
 import { ThinkingLoader } from '../common/ThinkingLoader';
@@ -12,13 +12,125 @@ interface ChatMessageProps {
   message: Message;
 }
 
+// Sequence type labels and colors
+const SEQUENCE_TYPES: Record<string, { label: string; color: string; bgColor: string }> = {
+  dna: { label: 'DNA', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/30' },
+  rna: { label: 'RNA', color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/30' },
+  protein: { label: 'Protein', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-50 dark:bg-green-900/30' },
+  codons: { label: 'Codons', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-900/30' },
+  aminoacids: { label: 'Amino Acids', color: 'text-teal-600 dark:text-teal-400', bgColor: 'bg-teal-50 dark:bg-teal-900/30' },
+};
+
+// Sequence code block component with copy functionality
+const SequenceCodeBlock: React.FC<{
+  code: string;
+  language: string;
+  children: React.ReactNode;
+}> = ({ code, language, children }) => {
+  const [copied, setCopied] = useState(false);
+
+  const sequenceType = SEQUENCE_TYPES[language.toLowerCase()] || null;
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(code);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      console.error('Failed to copy');
+    }
+  };
+
+  // If it's a recognized sequence type, render with special styling
+  if (sequenceType) {
+    return (
+      <div className={cn(
+        'relative rounded-lg border my-2 overflow-hidden',
+        'border-gray-200 dark:border-gray-700',
+        sequenceType.bgColor
+      )}>
+        {/* Header with label and copy button */}
+        <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
+          <span className={cn('text-xs font-semibold uppercase tracking-wide', sequenceType.color)}>
+            {sequenceType.label}
+          </span>
+          <button
+            onClick={handleCopy}
+            className={cn(
+              'flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all',
+              'hover:bg-gray-200 dark:hover:bg-gray-700',
+              copied ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+            )}
+            title="Copy to clipboard"
+          >
+            {copied ? (
+              <>
+                <FaCheck className="w-3 h-3" />
+                <span>Copied!</span>
+              </>
+            ) : (
+              <>
+                <FaCopy className="w-3 h-3" />
+                <span>Copy</span>
+              </>
+            )}
+          </button>
+        </div>
+        {/* Sequence content */}
+        <pre className="p-3 overflow-x-auto">
+          <code className="font-mono text-sm text-gray-800 dark:text-gray-200 break-all whitespace-pre-wrap">
+            {children}
+          </code>
+        </pre>
+      </div>
+    );
+  }
+
+  // Regular code block (not a sequence type)
+  return (
+    <div className="relative rounded-lg border border-gray-200 dark:border-gray-700 my-2 overflow-hidden bg-gray-100 dark:bg-gray-800">
+      <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-700">
+        <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
+          {language || 'Code'}
+        </span>
+        <button
+          onClick={handleCopy}
+          className={cn(
+            'flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all',
+            'hover:bg-gray-200 dark:hover:bg-gray-700',
+            copied ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+          )}
+          title="Copy to clipboard"
+        >
+          {copied ? (
+            <>
+              <FaCheck className="w-3 h-3" />
+              <span>Copied!</span>
+            </>
+          ) : (
+            <>
+              <FaCopy className="w-3 h-3" />
+              <span>Copy</span>
+            </>
+          )}
+        </button>
+      </div>
+      <pre className="p-3 overflow-x-auto">
+        <code className="font-mono text-sm text-gray-800 dark:text-gray-200">
+          {children}
+        </code>
+      </pre>
+    </div>
+  );
+};
+
 const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === 'user';
-  
+
   // Only enable typing effect for AI messages that are CURRENTLY streaming
   // Historical messages (isStreaming is false/undefined) show immediately
   const shouldAnimate = !isUser && !!message.isStreaming;
-  
+
   const { displayedText, isTyping } = useTypingEffect(message.content || '', {
     enabled: shouldAnimate,
     charsPerTick: 4,      // Characters per tick
@@ -69,19 +181,31 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
             h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
             h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
             h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+            // Enhanced code block with copy functionality
             code: ({ children, className }) => {
-              const isInline = !className;
-              return isInline ? (
+              const match = /language-(\w+)/.exec(className || '');
+              const language = match ? match[1] : '';
+              const codeString = String(children).replace(/\n$/, '');
+
+              // Check if it's a block code (has className) or inline
+              const isBlock = !!className;
+
+              if (isBlock) {
+                return (
+                  <SequenceCodeBlock code={codeString} language={language}>
+                    {children}
+                  </SequenceCodeBlock>
+                );
+              }
+
+              // Inline code
+              return (
                 <code className="bg-gray-200 dark:bg-gray-700 px-1 py-0.5 rounded text-sm font-mono">
-                  {children}
-                </code>
-              ) : (
-                <code className="block bg-gray-200 dark:bg-gray-700 p-2 rounded text-sm font-mono overflow-x-auto">
                   {children}
                 </code>
               );
             },
-            pre: ({ children }) => <pre className="mb-2">{children}</pre>,
+            pre: ({ children }) => <>{children}</>,
             blockquote: ({ children }) => (
               <blockquote className="border-l-4 border-emerald-500 pl-3 italic my-2">
                 {children}
@@ -131,6 +255,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
       </>
     );
   };
+
 
   return (
     <div className={cn('flex gap-3 px-4 py-3 md:px-6', isUser ? 'justify-end' : 'justify-start')}>

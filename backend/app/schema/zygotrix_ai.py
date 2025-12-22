@@ -276,8 +276,9 @@ class ChatRequest(BaseModel):
     # Context
     page_context: Optional[str] = None
 
-    # Streaming preference
-    stream: bool = True
+    # Streaming preference (default False to enable MCP tools)
+    # Note: MCP tools are only available in non-streaming mode
+    stream: bool = False
 
 
 class ChatResponse(BaseModel):

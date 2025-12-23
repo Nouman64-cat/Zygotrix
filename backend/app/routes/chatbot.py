@@ -16,7 +16,6 @@ from dotenv import load_dotenv, find_dotenv
 
 load_dotenv(find_dotenv())
 
-from ..prompt_engineering.prompts import get_zigi_system_prompt, get_simulation_tool_prompt, get_zigi_prompt_with_tools
 from ..chatbot_tools import (
     get_traits_count, 
     search_traits, 
@@ -24,17 +23,12 @@ from ..chatbot_tools import (
     calculate_punnett_square,
     parse_cross_from_message
 )
-from ..mcp import (
-    get_claude_tools_schema,
-    process_tool_calls,
-    extract_tool_calls,
-    extract_text_content,
-)
 
 from ..services.chatbot_settings import get_chatbot_settings
 from ..services.chatbot.response_cache_service import get_response_cache
 from ..services.chatbot.conversation_memory_service import get_conversation_memory
 from ..services.chatbot.rate_limiting_service import get_rate_limiter
+from ..services.chatbot.claude_ai_service import get_claude_ai_service
 
 logger = logging.getLogger(__name__)
 
@@ -343,210 +337,6 @@ Found {len(results)} matching trait(s):
     
     return "\n".join(context_parts)
 
-async def generate_response(
-    user_message: str, 
-    context: str, 
-    page_context: PageContext | None = None, 
-    user_name: str = "there",
-    conversation_history: list[dict] | None = None,
-    use_tools: bool = True,
-    max_tool_iterations: int = 5,
-) -> tuple[str, dict]:
-    """
-    Generate response using Claude AI with MCP tool calling support.
-    
-    Args:
-        user_message: The user's current message
-        context: RAG context from LlamaCloud
-        page_context: Current page information
-        user_name: User's display name
-        conversation_history: Previous messages in the conversation
-        use_tools: Whether to enable Claude's native tool calling
-        max_tool_iterations: Maximum number of tool call iterations
-    
-    Returns:
-        tuple: (response_text, token_usage_dict)
-               token_usage_dict contains: input_tokens, output_tokens
-    """
-    try:
-        # Check if user is on Simulation Studio page
-        is_simulation_studio = page_context and "Simulation Studio" in page_context.pageName
-
-        # Get appropriate system prompt (use tool-aware prompt for non-simulation)
-        if is_simulation_studio:
-            simulation_context = context if context else ""
-            system_prompt = get_simulation_tool_prompt(user_name, simulation_context)
-            use_tools = False  # Simulation uses command blocks, not MCP tools
-        else:
-            system_prompt = get_zigi_prompt_with_tools()  # Tool-aware prompt
-
-        # Build page context information
-        page_info = ""
-        if page_context:
-            features_list = "\n".join([f"- {feature}" for feature in page_context.features])
-            page_info = f"""
-CURRENT PAGE CONTEXT:
-The user is currently on: {page_context.pageName}
-Page Description: {page_context.description}
-Available Features on this page:
-{features_list}
-"""
-
-        # Build messages array with conversation history
-        messages = []
-        
-        # Add conversation history if available (for context)
-        if conversation_history:
-            for msg in conversation_history:
-                messages.append({
-                    "role": msg["role"],
-                    "content": msg["content"]
-                })
-        
-        # Add current user message with context
-        current_message_content = f"""{page_info}
-
-Background information (use this to answer, but don't copy it directly):
-{context}
-
-Question: {user_message}"""
-        
-        messages.append({
-            "role": "user",
-            "content": current_message_content
-        })
-
-        # Fetch dynamic settings from database
-        try:
-            settings = get_chatbot_settings()
-            model = settings.model
-            max_tokens = settings.max_tokens
-            temperature = settings.temperature
-            logger.info(f"Using settings: model={model}, max_tokens={max_tokens}, temperature={temperature}")
-        except Exception as e:
-            logger.warning(f"Failed to fetch chatbot settings, using defaults: {e}")
-            model = "claude-3-haiku-20240307"
-            max_tokens = 1024
-            temperature = 0.7
-
-        # Get MCP tools if enabled
-        tools = get_claude_tools_schema() if use_tools else []
-        total_input_tokens = 0
-        total_output_tokens = 0
-        tools_used = []
-        
-        working_messages = messages.copy()
-
-        # Tool calling loop
-        for iteration in range(max_tool_iterations):
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                request_body = {
-                    "model": model,
-                    "max_tokens": max_tokens,
-                    "temperature": temperature,
-                    "system": system_prompt,
-                    "messages": working_messages,
-                }
-                
-                # Only include tools if we have them
-                if tools:
-                    request_body["tools"] = tools
-                
-                response = await client.post(
-                    "https://api.anthropic.com/v1/messages",
-                    headers={
-                        "x-api-key": CLAUDE_API_KEY,
-                        "content-type": "application/json",
-                        "anthropic-version": "2023-06-01",
-                    },
-                    json=request_body,
-                )
-
-                if response.status_code != 200:
-                    logger.error(f"Claude API error: {response.status_code} - {response.text}")
-                    raise HTTPException(
-                        status_code=500,
-                        detail="Failed to generate response from AI",
-                    )
-
-                data = response.json()
-                content_blocks = data.get("content", [])
-                stop_reason = data.get("stop_reason", "end_turn")
-                usage = data.get("usage", {})
-                
-                total_input_tokens += usage.get("input_tokens", 0)
-                total_output_tokens += usage.get("output_tokens", 0)
-                
-                # Check if Claude wants to use tools
-                if stop_reason == "tool_use":
-                    tool_calls = extract_tool_calls(content_blocks)
-                    
-                    if tool_calls:
-                        logger.info(f"Claude requested {len(tool_calls)} tool(s): {[tc.get('name') for tc in tool_calls]}")
-                        
-                        # Track which tools were used
-                        for tc in tool_calls:
-                            tools_used.append({
-                                "name": tc.get("name"),
-                                "input": tc.get("input"),
-                            })
-                        
-                        # Execute tools and get results
-                        tool_results = await process_tool_calls(tool_calls)
-                        
-                        # Add assistant's response with tool_use to messages
-                        working_messages.append({
-                            "role": "assistant",
-                            "content": content_blocks,
-                        })
-                        
-                        # Add tool results to messages
-                        working_messages.append({
-                            "role": "user",
-                            "content": tool_results,
-                        })
-                        
-                        # Continue the loop to get Claude's final response
-                        continue
-                
-                # No tool use or end of conversation - extract final text
-                final_content = extract_text_content(content_blocks)
-                
-                token_usage = {
-                    "input_tokens": total_input_tokens,
-                    "output_tokens": total_output_tokens,
-                    "model": model,
-                    "tools_used": tools_used,
-                    "tool_iterations": iteration + 1,
-                }
-                
-                if tools_used:
-                    logger.info(f"Tools used in response: {[t['name'] for t in tools_used]}")
-                
-                return final_content or "I'm sorry, I couldn't generate a response.", token_usage
-
-        # Max iterations reached
-        logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
-        return "I apologize, but I encountered an issue processing your request. Please try again.", {
-            "input_tokens": total_input_tokens,
-            "output_tokens": total_output_tokens,
-            "model": model,
-            "tools_used": tools_used,
-            "tool_iterations": max_tool_iterations,
-        }
-
-    except httpx.HTTPError as e:
-        logger.error(f"HTTP error generating response: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="Failed to connect to AI service",
-        )
-    except Exception as e:
-        logger.error(f"Error generating response: {e}")
-        raise HTTPException(
-            status_code=500,
-            detail="An error occurred while generating response",
-        )
 
 
 @router.get("/status")
@@ -716,7 +506,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
         # Step 5: Generate response using Claude with context, page context, user name, and conversation history
         user_name = request.userName or "there"
-        response, token_usage = await generate_response(
+        response, token_usage = await get_claude_ai_service().generate_response(
             user_message=request.message, 
             context=combined_context, 
             page_context=request.pageContext, 

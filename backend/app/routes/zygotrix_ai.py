@@ -53,16 +53,13 @@ from ..chatbot_tools import (
     get_traits_count, search_traits, get_trait_details,
     calculate_punnett_square, parse_cross_from_message
 )
-from ..mcp import (
-    get_claude_tools_schema,
-    process_tool_calls,
-    extract_tool_calls,
-    extract_text_content,
-)
 
 from ..services.chatbot.rate_limiting_service import get_rate_limiter
 from ..services.chatbot.token_analytics_service import get_token_analytics_service
 from ..services import auth as auth_services 
+
+from ..services.zygotrix_ai.claude_service import get_zygotrix_claude_service
+from ..services.zygotrix_ai.admin_service import get_zygotrix_admin_service
 
 logger = logging.getLogger(__name__)
 
@@ -72,37 +69,6 @@ router = APIRouter(prefix="/api/zygotrix-ai", tags=["Zygotrix AI"])
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
 LLAMA_CLOUD_API_KEY = os.getenv("LLAMA_CLOUD_API_KEY")
 LLAMA_CLOUD_BASE_URL = "https://api.cloud.eu.llamaindex.ai"
-
-
-# =============================================================================
-# MODEL PRICING CONFIGURATION
-# =============================================================================
-
-# Pricing per 1K tokens (updated 2025)
-MODEL_PRICING = {
-    "claude-3-haiku-20240307": {"input": 0.00025, "output": 0.00125},
-    "claude-3-sonnet-20240229": {"input": 0.003, "output": 0.015},
-    "claude-3-opus-20240229": {"input": 0.015, "output": 0.075},
-    "claude-3-5-sonnet-20241022": {"input": 0.003, "output": 0.015},
-    "claude-3-5-haiku-20241022": {"input": 0.0008, "output": 0.004},
-    "claude-sonnet-4-5-20250514": {"input": 0.003, "output": 0.015},
-    "claude-opus-4-5-20251101": {"input": 0.005, "output": 0.025},
-    "claude-haiku-4-5-20250514": {"input": 0.001, "output": 0.005},
-}
-
-
-def get_model_pricing(model: str) -> dict:
-    """Get pricing for a specific model. Defaults to Haiku 3 if model not found."""
-    return MODEL_PRICING.get(model, {"input": 0.00025, "output": 0.00125})
-
-
-def calculate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
-    """Calculate cost based on model-specific pricing."""
-    pricing = get_model_pricing(model)
-    input_cost = (input_tokens / 1000) * pricing["input"]
-    output_cost = (output_tokens / 1000) * pricing["output"]
-    return input_cost + output_cost
-
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -247,292 +213,6 @@ async def retrieve_llama_context(query: str) -> str:
         logger.error(f"Error retrieving LlamaCloud context: {e}")
 
     return ""
-
-
-async def stream_claude_response(
-    messages: list,
-    system_prompt: str,
-    model: str,
-    max_tokens: int,
-    temperature: float
-) -> AsyncGenerator[dict, None]:
-    """Stream response from Claude API."""
-    try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            async with client.stream(
-                "POST",
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": CLAUDE_API_KEY,
-                    "content-type": "application/json",
-                    "anthropic-version": "2023-06-01",
-                },
-                json={
-                    "model": model,
-                    "max_tokens": max_tokens,
-                    "temperature": temperature,
-                    "system": system_prompt,
-                    "messages": messages,
-                    "stream": True,
-                }
-            ) as response:
-                if response.status_code != 200:
-                    error_text = await response.aread()
-                    logger.error(f"Claude API error: {response.status_code} - {error_text}")
-                    yield {"type": "error", "error": "Failed to generate response"}
-                    return
-
-                full_content = ""
-                input_tokens = 0
-                output_tokens = 0
-
-                async for line in response.aiter_lines():
-                    if line.startswith("data: "):
-                        data_str = line[6:]
-                        if data_str == "[DONE]":
-                            break
-
-                        try:
-                            data = json.loads(data_str)
-                            event_type = data.get("type")
-
-                            if event_type == "content_block_delta":
-                                delta = data.get("delta", {})
-                                if delta.get("type") == "text_delta":
-                                    text = delta.get("text", "")
-                                    full_content += text
-                                    yield {"type": "content", "content": text}
-
-                            elif event_type == "message_start":
-                                usage = data.get("message", {}).get("usage", {})
-                                input_tokens = usage.get("input_tokens", 0)
-
-                            elif event_type == "message_delta":
-                                usage = data.get("usage", {})
-                                output_tokens = usage.get("output_tokens", 0)
-
-                        except json.JSONDecodeError:
-                            continue
-
-                # Send final metadata
-                yield {
-                    "type": "metadata",
-                    "metadata": {
-                        "input_tokens": input_tokens,
-                        "output_tokens": output_tokens,
-                        "total_tokens": input_tokens + output_tokens,
-                        "model": model,
-                        "full_content": full_content,
-                    }
-                }
-
-                yield {"type": "done"}
-
-    except Exception as e:
-        logger.error(f"Streaming error: {e}")
-        yield {"type": "error", "error": str(e)}
-
-
-async def generate_claude_response(
-    messages: list,
-    system_prompt: str,
-    model: str,
-    max_tokens: int,
-    temperature: float
-) -> tuple[str, dict]:
-    """Generate non-streaming response from Claude."""
-    try:
-        async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers={
-                    "x-api-key": CLAUDE_API_KEY,
-                    "content-type": "application/json",
-                    "anthropic-version": "2023-06-01",
-                },
-                json={
-                    "model": model,
-                    "max_tokens": max_tokens,
-                    "temperature": temperature,
-                    "system": system_prompt,
-                    "messages": messages,
-                }
-            )
-
-            if response.status_code != 200:
-                raise HTTPException(status_code=500, detail="Failed to generate response")
-
-            data = response.json()
-            content = ""
-            if data.get("content") and len(data["content"]) > 0:
-                content = data["content"][0].get("text", "")
-
-            usage = data.get("usage", {})
-            metadata = {
-                "input_tokens": usage.get("input_tokens", 0),
-                "output_tokens": usage.get("output_tokens", 0),
-                "total_tokens": usage.get("input_tokens", 0) + usage.get("output_tokens", 0),
-                "model": model,
-            }
-
-            return content, metadata
-
-    except httpx.HTTPError as e:
-        logger.error(f"HTTP error: {e}")
-        raise HTTPException(status_code=500, detail="Failed to connect to AI service")
-
-
-async def generate_claude_response_with_tools(
-    messages: list,
-    system_prompt: str,
-    model: str,
-    max_tokens: int,
-    temperature: float,
-    use_tools: bool = True,
-    max_tool_iterations: int = 5,
-) -> tuple[str, dict]:
-    """
-    Generate response from Claude with native tool calling support.
-    
-    This function allows Claude to autonomously decide when to use tools.
-    It handles the tool-use loop automatically.
-    
-    Args:
-        messages: Conversation messages
-        system_prompt: System prompt
-        model: Claude model to use
-        max_tokens: Maximum tokens for response
-        temperature: Temperature setting
-        use_tools: Whether to enable tool use
-        max_tool_iterations: Maximum number of tool call iterations
-        
-    Returns:
-        Tuple of (final_content, metadata)
-    """
-    tools = get_claude_tools_schema() if use_tools else []
-    total_input_tokens = 0
-    total_output_tokens = 0
-    tools_used = []
-    
-    # Log tool availability for debugging
-    if tools:
-        tool_names = [t.get("name") for t in tools]
-        logger.info(f"MCP tools enabled: {len(tools)} tools available: {tool_names}")
-    else:
-        logger.info("MCP tools disabled for this request")
-    
-    working_messages = messages.copy()
-    
-    for iteration in range(max_tool_iterations):
-        logger.info(f"Claude API iteration {iteration + 1}/{max_tool_iterations}")
-        try:
-            async with httpx.AsyncClient(timeout=120.0) as client:
-                request_body = {
-                    "model": model,
-                    "max_tokens": max_tokens,
-                    "temperature": temperature,
-                    "system": system_prompt,
-                    "messages": working_messages,
-                }
-                
-                # Only include tools if we have them
-                if tools:
-                    request_body["tools"] = tools
-                
-                response = await client.post(
-                    "https://api.anthropic.com/v1/messages",
-                    headers={
-                        "x-api-key": CLAUDE_API_KEY,
-                        "content-type": "application/json",
-                        "anthropic-version": "2023-06-01",
-                    },
-                    json=request_body,
-                )
-                
-                if response.status_code != 200:
-                    error_text = response.text
-                    logger.error(f"Claude API error: {response.status_code} - {error_text}")
-                    raise HTTPException(status_code=500, detail="Failed to generate response")
-                
-                data = response.json()
-                content_blocks = data.get("content", [])
-                stop_reason = data.get("stop_reason", "end_turn")
-                usage = data.get("usage", {})
-                
-                total_input_tokens += usage.get("input_tokens", 0)
-                total_output_tokens += usage.get("output_tokens", 0)
-                
-                logger.info(f"Claude stop_reason: {stop_reason}")
-                
-                # Check if Claude wants to use tools
-                if stop_reason == "tool_use":
-                    # Extract tool calls
-                    tool_calls = extract_tool_calls(content_blocks)
-                    
-                    if tool_calls:
-                        tool_names = [tc.get("name") for tc in tool_calls]
-                        logger.info(f"Claude requested {len(tool_calls)} tool(s): {tool_names}")
-                        
-                        # Track which tools were used
-                        for tc in tool_calls:
-                            logger.info(f"Tool call: {tc.get('name')} with input: {tc.get('input')}")
-                            tools_used.append({
-                                "name": tc.get("name"),
-                                "input": tc.get("input"),
-                            })
-                        
-                        # Execute tools and get results
-                        tool_results = await process_tool_calls(tool_calls)
-                        
-                        # Add assistant's response with tool_use to messages
-                        working_messages.append({
-                            "role": "assistant",
-                            "content": content_blocks,
-                        })
-                        
-                        # Add tool results to messages
-                        working_messages.append({
-                            "role": "user",
-                            "content": tool_results,
-                        })
-                        
-                        # Continue the loop to get Claude's final response
-                        continue
-                
-                # No tool use or end of conversation - extract final text
-                final_content = extract_text_content(content_blocks)
-                
-                metadata = {
-                    "input_tokens": total_input_tokens,
-                    "output_tokens": total_output_tokens,
-                    "total_tokens": total_input_tokens + total_output_tokens,
-                    "model": model,
-                    "tools_used": tools_used,
-                    "tool_iterations": iteration + 1,
-                }
-                
-                if tools_used:
-                    logger.info(f"Response completed with {len(tools_used)} tool(s) used: {[t['name'] for t in tools_used]}")
-                else:
-                    logger.info("Response completed without tool use (Claude answered directly)")
-                
-                return final_content, metadata
-                
-        except httpx.HTTPError as e:
-            logger.error(f"HTTP error in tool loop: {e}")
-            raise HTTPException(status_code=500, detail="Failed to connect to AI service")
-    
-    # Max iterations reached
-    logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
-    return "I apologize, but I encountered an issue processing your request. Please try again.", {
-        "input_tokens": total_input_tokens,
-        "output_tokens": total_output_tokens,
-        "total_tokens": total_input_tokens + total_output_tokens,
-        "model": model,
-        "tools_used": tools_used,
-        "tool_iterations": max_tool_iterations,
-        "max_iterations_reached": True,
-    }
 
 
 # =============================================================================
@@ -685,7 +365,7 @@ Question: {chat_request.message}"""
             assistant_content = ""
             metadata = None
 
-            async for chunk in stream_claude_response(
+            async for chunk in get_zygotrix_claude_service().stream_response(
                 claude_messages, system_prompt, model, max_tokens, temperature
             ):
                 if chunk["type"] == "content":
@@ -753,7 +433,7 @@ Question: {chat_request.message}"""
     else:
         logger.info("Using NON-STREAMING mode with MCP tools enabled")
         # Non-streaming response with tool support
-        content, metadata = await generate_claude_response_with_tools(
+        content, metadata = await get_zygotrix_claude_service().generate_response_with_tools(
             claude_messages, system_prompt, model, max_tokens, temperature,
             use_tools=True,  # Enable MCP tools
         )
@@ -897,7 +577,7 @@ Question: {user_message.content}"""
     system_prompt = get_zigi_system_prompt()
 
     # Generate new response
-    content, metadata = await generate_claude_response(
+    content, metadata = await get_zygotrix_claude_service().generate_response(
         claude_messages, system_prompt, model, max_tokens, temperature
     )
 
@@ -1437,69 +1117,8 @@ async def get_admin_stats(
     admin: UserProfile = Depends(get_current_admin)
 ):
     """Get overall Zygotrix AI statistics (admin only)."""
-    from ..services.zygotrix_ai_service import (
-        get_conversations_collection,
-        get_messages_collection,
-        get_folders_collection,
-        get_shared_conversations_collection,
-    )
+    return get_zygotrix_admin_service().get_overall_stats()
 
-    conversations_collection = get_conversations_collection()
-    messages_collection = get_messages_collection()
-    folders_collection = get_folders_collection()
-    shared_collection = get_shared_conversations_collection()
-
-    stats = {
-        "total_conversations": 0,
-        "active_conversations": 0,
-        "archived_conversations": 0,
-        "deleted_conversations": 0,
-        "total_messages": 0,
-        "total_folders": 0,
-        "total_shared": 0,
-        "total_users": 0,
-        "conversations_today": 0,
-        "messages_today": 0,
-    }
-
-    if conversations_collection:
-        stats["total_conversations"] = conversations_collection.count_documents({})
-        stats["active_conversations"] = conversations_collection.count_documents({
-            "status": ConversationStatus.ACTIVE.value
-        })
-        stats["archived_conversations"] = conversations_collection.count_documents({
-            "status": ConversationStatus.ARCHIVED.value
-        })
-        stats["deleted_conversations"] = conversations_collection.count_documents({
-            "status": ConversationStatus.DELETED.value
-        })
-
-        # Unique users
-        unique_users = conversations_collection.distinct("user_id")
-        stats["total_users"] = len(unique_users)
-
-        # Today's conversations
-        from datetime import datetime, timedelta
-        today = datetime.utcnow().replace(hour=0, minute=0, second=0, microsecond=0)
-        stats["conversations_today"] = conversations_collection.count_documents({
-            "created_at": {"$gte": today.isoformat()}
-        })
-
-    if messages_collection:
-        stats["total_messages"] = messages_collection.count_documents({})
-
-        # Today's messages
-        stats["messages_today"] = messages_collection.count_documents({
-            "created_at": {"$gte": today.isoformat()}
-        })
-
-    if folders_collection:
-        stats["total_folders"] = folders_collection.count_documents({})
-
-    if shared_collection:
-        stats["total_shared"] = shared_collection.count_documents({})
-
-    return stats
 
 
 @router.get("/admin/users")
@@ -1509,55 +1128,8 @@ async def get_admin_user_stats(
     admin: UserProfile = Depends(get_current_admin)
 ):
     """Get per-user Zygotrix AI statistics (admin only)."""
-    from ..services.zygotrix_ai_service import get_conversations_collection
+    return get_zygotrix_admin_service().get_user_stats(page, page_size)
 
-    conversations_collection = get_conversations_collection()
-    if not conversations_collection:
-        return {"users": [], "total": 0}
-
-    # Aggregate by user
-    pipeline = [
-        {"$group": {
-            "_id": "$user_id",
-            "conversation_count": {"$sum": 1},
-            "total_tokens": {"$sum": "$total_tokens_used"},
-            "total_messages": {"$sum": "$message_count"},
-            "first_conversation": {"$min": "$created_at"},
-            "last_conversation": {"$max": "$updated_at"},
-        }},
-        {"$sort": {"total_tokens": -1}},
-        {"$skip": (page - 1) * page_size},
-        {"$limit": page_size},
-    ]
-
-    results = list(conversations_collection.aggregate(pipeline))
-
-    # Get total count
-    total_pipeline = [
-        {"$group": {"_id": "$user_id"}},
-        {"$count": "total"}
-    ]
-    total_result = list(conversations_collection.aggregate(total_pipeline))
-    total = total_result[0]["total"] if total_result else 0
-
-    users = []
-    for r in results:
-        users.append({
-            "user_id": r["_id"],
-            "conversation_count": r["conversation_count"],
-            "total_tokens": r.get("total_tokens", 0),
-            "total_messages": r.get("total_messages", 0),
-            "first_conversation": r.get("first_conversation"),
-            "last_conversation": r.get("last_conversation"),
-        })
-
-    return {
-        "users": users,
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "total_pages": (total + page_size - 1) // page_size,
-    }
 
 
 @router.get("/admin/conversations")
@@ -1569,49 +1141,9 @@ async def get_admin_conversations(
     admin: UserProfile = Depends(get_current_admin)
 ):
     """List all conversations (admin only)."""
-    from ..services.zygotrix_ai_service import get_conversations_collection
+    status_value = status.value if status else None
+    return get_zygotrix_admin_service().get_conversations(user_id, status_value, page, page_size)
 
-    conversations_collection = get_conversations_collection()
-    if not conversations_collection:
-        return {"conversations": [], "total": 0}
-
-    query = {}
-    if user_id:
-        query["user_id"] = user_id
-    if status:
-        query["status"] = status.value
-
-    total = conversations_collection.count_documents(query)
-
-    docs = list(
-        conversations_collection.find(query)
-        .sort("updated_at", -1)
-        .skip((page - 1) * page_size)
-        .limit(page_size)
-    )
-
-    conversations = []
-    for doc in docs:
-        doc.pop("_id", None)
-        conversations.append({
-            "id": doc["id"],
-            "user_id": doc["user_id"],
-            "title": doc["title"],
-            "status": doc.get("status"),
-            "message_count": doc.get("message_count", 0),
-            "total_tokens_used": doc.get("total_tokens_used", 0),
-            "is_shared": doc.get("is_shared", False),
-            "created_at": doc["created_at"],
-            "updated_at": doc["updated_at"],
-        })
-
-    return {
-        "conversations": conversations,
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "total_pages": (total + page_size - 1) // page_size,
-    }
 
 
 @router.delete("/admin/conversations/{conversation_id}")
@@ -1621,33 +1153,11 @@ async def admin_delete_conversation(
     admin: UserProfile = Depends(get_current_admin)
 ):
     """Delete any conversation (admin only)."""
-    from ..services.zygotrix_ai_service import (
-        get_conversations_collection,
-        get_messages_collection,
-    )
+    try:
+        return get_zygotrix_admin_service().delete_conversation(conversation_id, permanent)
+    except ValueError as e:
+        raise HTTPException(status_code=503, detail=str(e))
 
-    conversations_collection = get_conversations_collection()
-    messages_collection = get_messages_collection()
-
-    if not conversations_collection:
-        raise HTTPException(status_code=503, detail="Database not available")
-
-    if permanent:
-        # Hard delete
-        conversations_collection.delete_one({"id": conversation_id})
-        if messages_collection:
-            messages_collection.delete_many({"conversation_id": conversation_id})
-    else:
-        # Soft delete
-        conversations_collection.update_one(
-            {"id": conversation_id},
-            {"$set": {
-                "status": ConversationStatus.DELETED.value,
-                "updated_at": datetime.utcnow().isoformat()
-            }}
-        )
-
-    return {"message": "Conversation deleted"}
 
 
 @router.get("/admin/feedback")
@@ -1658,40 +1168,6 @@ async def get_admin_feedback(
     admin: UserProfile = Depends(get_current_admin)
 ):
     """Get all message feedback (admin only)."""
-    from ..services.zygotrix_ai_service import get_messages_collection
+    fb_type = feedback_type.value if feedback_type else None
+    return get_zygotrix_admin_service().get_feedback(fb_type, page, page_size)
 
-    messages_collection = get_messages_collection()
-    if not messages_collection:
-        return {"feedback": [], "total": 0}
-
-    query = {"feedback": {"$exists": True, "$ne": None}}
-    if feedback_type:
-        query["feedback.type"] = feedback_type.value
-
-    total = messages_collection.count_documents(query)
-
-    docs = list(
-        messages_collection.find(query)
-        .sort("created_at", -1)
-        .skip((page - 1) * page_size)
-        .limit(page_size)
-    )
-
-    feedback_items = []
-    for doc in docs:
-        feedback_items.append({
-            "message_id": doc["id"],
-            "conversation_id": doc["conversation_id"],
-            "content_preview": doc["content"][:200] if doc.get("content") else "",
-            "role": doc["role"],
-            "feedback": doc["feedback"],
-            "created_at": doc["created_at"],
-        })
-
-    return {
-        "feedback": feedback_items,
-        "total": total,
-        "page": page,
-        "page_size": page_size,
-        "total_pages": (total + page_size - 1) // page_size,
-    }

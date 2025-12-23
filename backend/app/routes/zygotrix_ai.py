@@ -6,9 +6,7 @@ folders, sharing, export, and search capabilities.
 """
 
 import logging
-import os
 import json
-import asyncio
 from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Query, Request
@@ -48,10 +46,7 @@ from ..services.chatbot_settings import get_chatbot_settings
 from ..dependencies import get_current_user, get_current_admin
 from ..schema.auth import UserProfile
 from ..prompt_engineering.prompts import get_zigi_system_prompt, get_simulation_tool_prompt, get_zigi_prompt_with_tools
-from ..chatbot_tools import (
-    get_traits_count, search_traits, get_trait_details,
-    calculate_punnett_square, parse_cross_from_message
-)
+
 
 from ..services.chatbot.rate_limiting_service import get_rate_limiter
 from ..services.chatbot.token_analytics_service import get_token_analytics_service
@@ -61,6 +56,8 @@ from ..services.zygotrix_ai.claude_service import get_zygotrix_claude_service
 from ..services.zygotrix_ai.admin_service import get_zygotrix_admin_service
 
 from ..services.chatbot.rag_service import get_rag_service
+
+from ..services.chatbot.traits_enrichment_service import get_traits_service
 
 logger = logging.getLogger(__name__)
 
@@ -90,70 +87,6 @@ def get_user_id_from_profile(current_user: UserProfile = Depends(get_current_use
     """Extract user ID from authenticated user profile."""
     return current_user.id
 
-
-def get_traits_context(message: str) -> str:
-    """Get traits-specific context for the message."""
-    import re
-    message_lower = message.lower()
-    context_parts = []
-
-    # Check for Punnett square queries
-    cross_keywords = ["cross", "punnett", "×", "offspring", "genotype", "phenotype"]
-    if any(keyword in message_lower for keyword in cross_keywords):
-        cross_data = parse_cross_from_message(message)
-        if cross_data.get("found"):
-            p1 = cross_data["parent1"]
-            p2 = cross_data["parent2"]
-            result = calculate_punnett_square(p1, p2)
-
-            if result.get("success"):
-                genotype_info = [
-                    f"  - {g['genotype']}: {g['percentage']} ({g['phenotype']})"
-                    for g in result["offspring_genotypes"]
-                ]
-
-                context_parts.append(f"""
-PUNNETT SQUARE CALCULATION:
-Cross: {p1} × {p2}
-Cross Type: {result['cross_type']}
-
-Offspring Genotypes:
-{chr(10).join(genotype_info)}
-
-Genotype Ratio: {result['genotype_ratio']}
-Phenotype Ratio: {result['phenotype_ratio']}
-
-Summary: {result['summary']}
-""")
-
-    # Check for count queries
-    count_patterns = [
-        r"how many traits", r"number of traits", r"total traits",
-        r"traits.*count", r"count.*traits"
-    ]
-    if any(re.search(pattern, message_lower) for pattern in count_patterns):
-        count_data = get_traits_count()
-        if not count_data.get("error"):
-            context_parts.append(f"""
-TRAITS DATABASE:
-{count_data['message']}
-- Total: {count_data['total_traits']}
-- Monogenic: {count_data['monogenic_traits']}
-- Polygenic: {count_data['polygenic_traits']}
-""")
-
-    # Search for related traits
-    if not context_parts:
-        search_result = search_traits(message_lower, limit=3)
-        if search_result.get("found") and search_result.get("count", 0) > 0:
-            results = search_result.get("results", [])[:3]
-            traits_info = [f"- {r['name']} ({r['type']}, {r['inheritance']})" for r in results]
-            context_parts.append(f"""
-RELATED TRAITS:
-{chr(10).join(traits_info)}
-""")
-
-    return "\n".join(context_parts)
 
 # =============================================================================
 # TOOLS ENDPOINT
@@ -263,7 +196,7 @@ async def chat(
     )
 
     # Build context
-    traits_context = get_traits_context(chat_request.message)
+    traits_context = get_traits_service().get_traits_context(chat_request.message)
     llama_context = await get_rag_service().retrieve_context(chat_request.message)
 
     combined_context = traits_context
@@ -492,7 +425,7 @@ async def regenerate_response(
     max_tokens = conv_settings.max_tokens
 
     # Build context and messages
-    traits_context = get_traits_context(user_message.content)
+    traits_context = get_traits_service().get_traits_context(user_message.content)
     llama_context = await get_rag_service().retrieve_context(user_message.content)
     combined_context = f"{traits_context}\n\n{llama_context}" if llama_context else traits_context
 

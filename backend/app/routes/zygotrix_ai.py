@@ -10,11 +10,10 @@ import os
 import json
 import asyncio
 from datetime import datetime, timezone
-from typing import Optional, AsyncGenerator
+from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Query, Request
 from fastapi.responses import StreamingResponse
 from pydantic import BaseModel
-import httpx
 
 from ..schema.zygotrix_ai import (
     # Conversations
@@ -61,14 +60,11 @@ from ..services import auth as auth_services
 from ..services.zygotrix_ai.claude_service import get_zygotrix_claude_service
 from ..services.zygotrix_ai.admin_service import get_zygotrix_admin_service
 
+from ..services.chatbot.rag_service import get_rag_service
+
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/zygotrix-ai", tags=["Zygotrix AI"])
-
-# Environment variables
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-LLAMA_CLOUD_API_KEY = os.getenv("LLAMA_CLOUD_API_KEY")
-LLAMA_CLOUD_BASE_URL = "https://api.cloud.eu.llamaindex.ai"
 
 # =============================================================================
 # HELPER FUNCTIONS
@@ -158,62 +154,6 @@ RELATED TRAITS:
 """)
 
     return "\n".join(context_parts)
-
-
-async def retrieve_llama_context(query: str) -> str:
-    """Retrieve context from LlamaCloud RAG."""
-    if not LLAMA_CLOUD_API_KEY:
-        return ""
-
-    try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            # Get pipeline ID first
-            response = await client.get(
-                f"{LLAMA_CLOUD_BASE_URL}/api/v1/pipelines",
-                headers={
-                    "Accept": "application/json",
-                    "Authorization": f"Bearer {LLAMA_CLOUD_API_KEY}",
-                },
-                params={
-                    "project_name": "Default",
-                    "pipeline_name": "Zygotrix",
-                }
-            )
-
-            if response.status_code != 200:
-                return ""
-
-            data = response.json()
-            pipelines = data if isinstance(data, list) else data.get("pipelines", [])
-            pipeline_id = None
-            for pipeline in pipelines:
-                if pipeline.get("name") == "Zygotrix":
-                    pipeline_id = pipeline.get("id")
-                    break
-
-            if not pipeline_id:
-                return ""
-
-            # Retrieve context
-            response = await client.post(
-                f"{LLAMA_CLOUD_BASE_URL}/api/v1/pipelines/{pipeline_id}/retrieve",
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {LLAMA_CLOUD_API_KEY}",
-                },
-                json={"query": query, "similarity_top_k": 3}
-            )
-
-            if response.status_code == 200:
-                data = response.json()
-                if data.get("retrievals"):
-                    return "\n\n".join([r.get("text", "") for r in data["retrievals"]])
-
-    except Exception as e:
-        logger.error(f"Error retrieving LlamaCloud context: {e}")
-
-    return ""
-
 
 # =============================================================================
 # TOOLS ENDPOINT
@@ -324,7 +264,7 @@ async def chat(
 
     # Build context
     traits_context = get_traits_context(chat_request.message)
-    llama_context = await retrieve_llama_context(chat_request.message)
+    llama_context = await get_rag_service().retrieve_context(chat_request.message)
 
     combined_context = traits_context
     if llama_context:
@@ -553,7 +493,7 @@ async def regenerate_response(
 
     # Build context and messages
     traits_context = get_traits_context(user_message.content)
-    llama_context = await retrieve_llama_context(user_message.content)
+    llama_context = await get_rag_service().retrieve_context(user_message.content)
     combined_context = f"{traits_context}\n\n{llama_context}" if llama_context else traits_context
 
     # Get history up to the user message

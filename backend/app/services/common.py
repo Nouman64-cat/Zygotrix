@@ -11,6 +11,7 @@ from pymongo.collection import Collection
 
 from app.core.database.connection import DatabaseConnectionManager, get_connection_manager
 from app.core.database.collections import CollectionName, get_collection
+from app.config import get_settings  # Re-export for backward compatibility
 
 
 # =============================================================================

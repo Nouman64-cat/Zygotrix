@@ -116,9 +116,9 @@ class AuthenticationService:
             InvalidCredentialsError: If credentials are invalid
             AuthenticationError: If user account is inactive
         """
-        # Authenticate user
-        user = self.authenticate_user(email, password)
-        user_id = user["id"]
+        # Authenticate user (returns raw document with _id)
+        user_doc = self.authenticate_user(email, password)
+        user_id = str(user_doc["_id"])
 
         # Update activity tracking
         try:
@@ -132,8 +132,9 @@ class AuthenticationService:
             # Don't fail authentication if activity tracking fails
             logger.warning(f"Failed to update activity for {user_id}: {e}")
 
-        # Build and return auth response
-        return self.build_auth_response(user)
+        # Serialize user and build auth response
+        serialized_user = self._serializer.serialize_user(user_doc)
+        return self.build_auth_response(serialized_user)
 
     def create_access_token(
         self,
@@ -151,7 +152,7 @@ class AuthenticationService:
             JWT token string
         """
         now = datetime.now(timezone.utc)
-        token_ttl = getattr(self._settings.auth, 'token_ttl_minutes', 60)
+        token_ttl = getattr(self._settings, 'auth_token_ttl_minutes', 60)
         expires_at = now + timedelta(minutes=token_ttl)
 
         payload = {
@@ -165,8 +166,8 @@ class AuthenticationService:
             payload.update(extra_claims)
 
         # Get JWT settings
-        secret_key = getattr(self._settings.auth, 'secret_key', self._settings.auth_secret_key)
-        algorithm = getattr(self._settings.auth, 'algorithm', self._settings.auth_jwt_algorithm)
+        secret_key = self._settings.auth_secret_key
+        algorithm = self._settings.auth_jwt_algorithm
 
         token = jwt.encode(payload, secret_key, algorithm=algorithm)
         logger.debug(f"Created access token for user {user_id} (expires in {token_ttl}m)")
@@ -188,8 +189,8 @@ class AuthenticationService:
             AuthenticationError: If token is invalid
         """
         try:
-            secret_key = getattr(self._settings.auth, 'secret_key', self._settings.auth_secret_key)
-            algorithm = getattr(self._settings.auth, 'algorithm', self._settings.auth_jwt_algorithm)
+            secret_key = self._settings.auth_secret_key
+            algorithm = self._settings.auth_jwt_algorithm
 
             payload = jwt.decode(token, secret_key, algorithms=[algorithm])
             logger.debug(f"Successfully decoded token for user {payload.get('sub')}")

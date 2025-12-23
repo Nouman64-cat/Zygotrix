@@ -59,8 +59,10 @@ from ..mcp import (
     extract_tool_calls,
     extract_text_content,
 )
-from .chatbot import _rate_limiter, _log_token_usage  # Import the rate limiter instance and token logging function
-from ..services import auth as auth_services  # Import auth services for login tracking
+
+from ..services.chatbot.rate_limiting_service import get_rate_limiter
+from ..services.chatbot.token_analytics_service import get_token_analytics_service
+from ..services import auth as auth_services 
 
 logger = logging.getLogger(__name__)
 
@@ -596,7 +598,7 @@ async def chat(
     is_admin = hasattr(current_user, 'user_role') and current_user.user_role in ["admin", "super_admin"]
 
     # Check rate limit
-    allowed, usage = _rate_limiter.check_limit(user_id, is_admin=is_admin)
+    allowed, usage = get_rate_limiter().check_limit(user_id, is_admin=is_admin)
     if not allowed:
         raise HTTPException(
             status_code=429,
@@ -724,10 +726,10 @@ Question: {chat_request.message}"""
                         # Record token usage for rate limiting (same as non-streaming path)
                         total_tokens = metadata.get("total_tokens", 0) if metadata else 0
                         if total_tokens > 0:
-                            _rate_limiter.record_usage(user_id, total_tokens)
+                            get_rate_limiter().record_usage(user_id, total_tokens)
 
                         # Log token usage to MongoDB for analytics
-                        _log_token_usage(
+                        get_token_analytics_service().log_usage(
                             user_id=user_id,
                             user_name=user_name,
                             input_tokens=metadata.get("input_tokens", 0) if metadata else 0,
@@ -787,10 +789,10 @@ Question: {chat_request.message}"""
         # Record token usage for rate limiting
         total_tokens = metadata.get("total_tokens", 0)
         if total_tokens > 0:
-            _rate_limiter.record_usage(user_id, total_tokens)
+            get_rate_limiter().record_usage(user_id, total_tokens)
 
         # Log token usage to MongoDB for analytics
-        _log_token_usage(
+        get_token_analytics_service().log_usage(
             user_id=user_id,
             user_name=user_name,
             input_tokens=metadata.get("input_tokens", 0),
@@ -819,16 +821,16 @@ async def get_rate_limit_status(
     is_admin = hasattr(current_user, 'user_role') and current_user.user_role in ["admin", "super_admin"]
 
     # Use check_limit to get proper usage with admin unlimited tokens support
-    _, usage = _rate_limiter.check_limit(user_id, is_admin=is_admin)
+    _, usage = get_rate_limiter().check_limit(user_id, is_admin=is_admin)
 
     return {
         "tokens_used": usage.get("tokens_used", 0),
         "tokens_remaining": usage.get("tokens_remaining", 25000),
-        "max_tokens": _rate_limiter.max_tokens,
+        "max_tokens": get_rate_limiter().max_tokens,
         "reset_time": usage.get("reset_time"),
         "is_limited": usage.get("is_limited", False),
         "cooldown_active": usage.get("cooldown_active", False),
-        "cooldown_hours": _rate_limiter.cooldown_seconds / 3600,
+        "cooldown_hours": get_rate_limiter().cooldown_seconds / 3600,
         "admin_unlimited": usage.get("admin_unlimited", False)
     }
 
@@ -925,10 +927,10 @@ Question: {user_message.content}"""
     # Record token usage for rate limiting
     total_tokens = metadata.get("total_tokens", 0)
     if total_tokens > 0:
-        _rate_limiter.record_usage(user_id, total_tokens)
+        get_rate_limiter().record_usage(user_id, total_tokens)
 
     # Log token usage to MongoDB for analytics
-    _log_token_usage(
+    get_token_analytics_service().log_usage(
         user_id=user_id,
         user_name=user_name,
         input_tokens=metadata.get("input_tokens", 0),

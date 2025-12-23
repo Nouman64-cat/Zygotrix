@@ -57,6 +57,39 @@ def clear_user_cache(user_id: Optional[str] = None) -> None:
 
 # Keep get_users_collection in services/common.py for now
 from app.services.common import get_users_collection
+from .authentication_service import get_authentication_service
+
+
+def resolve_user_from_token(token: str) -> Dict[str, Any]:
+    """
+    Resolve user from JWT token (compatibility wrapper).
+
+    Args:
+        token: JWT token string
+
+    Returns:
+        Serialized user dictionary
+    """
+    auth_service = get_authentication_service()
+    return auth_service.resolve_user_from_token(token)
+
+
+def update_user_activity(
+    user_id: str,
+    ip_address: Optional[str] = None,
+    user_agent: Optional[str] = None
+) -> None:
+    """
+    Update user's activity tracking (compatibility wrapper).
+
+    Args:
+        user_id: User's ID
+        ip_address: User's IP address
+        user_agent: User's browser user agent
+    """
+    user_service = get_user_service()
+    user_service.update_user_activity(user_id, ip_address, user_agent)
+
 
 __all__ = [
     "PasswordService",
@@ -71,4 +104,6 @@ __all__ = [
     "_normalize_email",
     "clear_user_cache",
     "get_users_collection",
+    "resolve_user_from_token",
+    "update_user_activity",
 ]

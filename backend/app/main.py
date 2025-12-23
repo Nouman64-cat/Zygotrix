@@ -28,7 +28,6 @@ from .schema.auth import UserProfile
 from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.common import HealthResponse
 from .services import polygenic as polygenic_services
-from .services import auth as auth_services
 from .mcp import mcp_lifespan
 from app.models import Trait
 from fastapi.middleware.cors import CORSMiddleware

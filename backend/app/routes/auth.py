@@ -2,7 +2,6 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from datetime import datetime, timezone
 
 from ..dependencies import get_current_user
-
 from ..schema.auth import (
     AuthResponse,
     SignupInitiateRequest,
@@ -15,21 +14,28 @@ from ..schema.auth import (
     UpdateProfileRequest,
     OnboardingRequest,
 )
-from ..services import auth as services
+from ..services.auth.signup_service import get_signup_service
+from ..services.auth.authentication_service import get_authentication_service
+from ..services.auth.user_service import get_user_service
+from ..config import get_settings
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 
 @router.post("/signup", response_model=SignupInitiateResponse, status_code=202)
 def signup(payload: SignupInitiateRequest) -> SignupInitiateResponse:
-    expires_at = services.request_signup_otp(
+    signup_service = get_signup_service()
+    settings = get_settings()
+
+    expires_at = signup_service.request_signup_otp(
         email=payload.email,
         password=payload.password.get_secret_value(),
         full_name=payload.full_name,
     )
+
     message = (
         "Account created directly (development mode). You can now sign in."
-        if services.get_settings().is_development
+        if settings.is_development
         else "An OTP has been sent to your email address. Please verify within the next 10 minutes."
     )
     return SignupInitiateResponse(message=message, expires_at=expires_at)
@@ -37,13 +43,15 @@ def signup(payload: SignupInitiateRequest) -> SignupInitiateResponse:
 
 @router.post("/signup/verify", response_model=MessageResponse)
 def verify_signup(payload: SignupVerifyRequest) -> MessageResponse:
-    services.verify_signup_otp(email=payload.email, otp=payload.otp)
+    signup_service = get_signup_service()
+    signup_service.verify_signup_otp(email=payload.email, otp=payload.otp)
     return MessageResponse(message="Account created successfully. You can now sign in.")
 
 
 @router.post("/signup/resend", response_model=SignupInitiateResponse)
 def resend_signup_otp(payload: SignupResendRequest) -> SignupInitiateResponse:
-    expires_at = services.resend_signup_otp(email=payload.email)
+    signup_service = get_signup_service()
+    expires_at = signup_service.resend_signup_otp(email=payload.email)
     return SignupInitiateResponse(
         message="A new OTP has been sent to your email address.",
         expires_at=expires_at,
@@ -68,27 +76,21 @@ def _get_client_ip(request: Request) -> str:
 
 @router.post("/login", response_model=AuthResponse)
 def login(payload: UserLoginRequest, request: Request) -> AuthResponse:
-    user = services.authenticate_user(
-        email=payload.email,
-        password=payload.password.get_secret_value(),
-    )
+    auth_service = get_authentication_service()
 
-    if not user.get("is_active", True):
-        raise HTTPException(
-            status_code=401,
-            detail="Your account has been deactivated. Please contact support."
-        )
-
-    # Update user activity with IP and browser info
+    # Extract client information
     ip_address = _get_client_ip(request)
     user_agent = request.headers.get("User-Agent")
-    services.update_user_activity(
-        user_id=user["id"],
+
+    # Authenticate and track activity
+    auth_response = auth_service.authenticate_and_track(
+        email=payload.email,
+        password=payload.password.get_secret_value(),
         ip_address=ip_address,
         user_agent=user_agent
     )
 
-    return AuthResponse(**services.build_auth_response(user))
+    return AuthResponse(**auth_response)
 
 
 @router.get("/me", response_model=UserProfile)
@@ -104,8 +106,9 @@ def update_profile(
     current_user: UserProfile = Depends(get_current_user),
 ) -> UserProfile:
     """Update the current user's profile information."""
+    user_service = get_user_service()
     updates = payload.model_dump(exclude_unset=True)
-    updated_user = services.update_user_profile(current_user.id, updates)
+    updated_user = user_service.update_user_profile(current_user.id, updates)
     return UserProfile(**updated_user)
 
 
@@ -115,6 +118,7 @@ def complete_onboarding(
     current_user: UserProfile = Depends(get_current_user),
 ) -> UserProfile:
     """Complete user onboarding and save preferences."""
+    user_service = get_user_service()
     updates = payload.model_dump(exclude_unset=True)
-    updated_user = services.update_user_profile(current_user.id, updates)
+    updated_user = user_service.update_user_profile(current_user.id, updates)
     return UserProfile(**updated_user)

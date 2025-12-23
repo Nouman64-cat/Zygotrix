@@ -1,7 +1,7 @@
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from .schema.auth import UserProfile
-from .services import auth as auth_services
+from .services.auth.authentication_service import get_authentication_service
 from .services import admin as admin_services
 
 bearer_scheme = HTTPBearer(auto_error=True)
@@ -10,7 +10,8 @@ bearer_scheme = HTTPBearer(auto_error=True)
 def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(bearer_scheme),
 ) -> UserProfile:
-    user = auth_services.resolve_user_from_token(credentials.credentials)
+    auth_service = get_authentication_service()
+    user = auth_service.resolve_user_from_token(credentials.credentials)
 
     # Check if user is active
     if not user.get("is_active", True):

@@ -30,7 +30,11 @@ from ..mcp import (
     extract_tool_calls,
     extract_text_content,
 )
+
 from ..services.chatbot_settings import get_chatbot_settings
+from ..services.chatbot.response_cache_service import get_response_cache
+from ..services.chatbot.conversation_memory_service import get_conversation_memory
+from ..services.chatbot.rate_limiting_service import get_rate_limiter
 
 logger = logging.getLogger(__name__)
 
@@ -82,390 +86,6 @@ def calculate_cost(input_tokens: int, output_tokens: int, model: str) -> float:
     output_cost = (output_tokens / 1000) * pricing["output"]
     return input_cost + output_cost
 
-
-# =============================================================================
-# LLM RESPONSE CACHE
-# =============================================================================
-
-class LLMResponseCache:
-    """
-    Simple in-memory TTL cache for LLM responses.
-    
-    Features:
-    - TTL-based expiration (default 1 hour)
-    - LRU eviction when max size reached
-    - Hash-based cache keys for consistent lookups
-    """
-    
-    def __init__(self, max_size: int = 1000, ttl_seconds: int = 3600):
-        self.max_size = max_size
-        self.ttl_seconds = ttl_seconds
-        self.cache: OrderedDict[str, dict] = OrderedDict()
-        self.hits = 0
-        self.misses = 0
-    
-    def _generate_key(self, message: str, context: str = "", page_name: str = "") -> str:
-        """Generate a unique cache key from the inputs."""
-        # Normalize message (lowercase, strip whitespace)
-        normalized_msg = message.lower().strip()
-        
-        # Create a hash of the key components
-        key_data = f"{normalized_msg}|{page_name}"
-        return hashlib.md5(key_data.encode()).hexdigest()
-    
-    def get(self, message: str, context: str = "", page_name: str = "") -> Optional[str]:
-        """Get a cached response if it exists and hasn't expired."""
-        key = self._generate_key(message, context, page_name)
-        
-        if key in self.cache:
-            entry = self.cache[key]
-            
-            # Check if expired
-            if time.time() - entry["timestamp"] < self.ttl_seconds:
-                self.hits += 1
-                # Move to end (most recently used)
-                self.cache.move_to_end(key)
-                logger.info(f"Cache HIT for message: '{message[:50]}...' (hits: {self.hits})")
-                return entry["response"]
-            else:
-                # Expired, remove it
-                del self.cache[key]
-        
-        self.misses += 1
-        return None
-    
-    def set(self, message: str, response: str, context: str = "", page_name: str = ""):
-        """Store a response in the cache."""
-        key = self._generate_key(message, context, page_name)
-        
-        # Evict oldest entries if cache is full
-        while len(self.cache) >= self.max_size:
-            self.cache.popitem(last=False)
-        
-        self.cache[key] = {
-            "response": response,
-            "timestamp": time.time(),
-            "message": message[:100]  # Store first 100 chars for debugging
-        }
-        logger.info(f"Cached response for: '{message[:50]}...' (cache size: {len(self.cache)})")
-    
-    def clear(self):
-        """Clear all cached entries."""
-        self.cache.clear()
-        self.hits = 0
-        self.misses = 0
-    
-    def get_stats(self) -> dict:
-        """Get cache statistics."""
-        total = self.hits + self.misses
-        hit_rate = (self.hits / total * 100) if total > 0 else 0
-        return {
-            "size": len(self.cache),
-            "max_size": self.max_size,
-            "hits": self.hits,
-            "misses": self.misses,
-            "hit_rate": f"{hit_rate:.1f}%",
-            "ttl_seconds": self.ttl_seconds
-        }
-
-
-# Global cache instance
-_response_cache = LLMResponseCache(
-    max_size=1000,      # Max 1000 cached responses
-    ttl_seconds=3600    # Cache for 1 hour
-)
-
-
-# =============================================================================
-# CONVERSATION MEMORY
-# =============================================================================
-
-class ConversationMemory:
-    """
-    Stores conversation history per session for context-aware responses.
-    
-    Features:
-    - Session-based storage keyed by sessionId
-    - TTL-based expiration (default 30 minutes)
-    - Max messages per session to control token usage
-    """
-    
-    def __init__(self, max_messages: int = 10, ttl_seconds: int = 1800):
-        """
-        Args:
-            max_messages: Maximum number of message pairs (user+assistant) to keep per session
-            ttl_seconds: Session expiration time (default 30 minutes)
-        """
-        self.max_messages = max_messages
-        self.ttl_seconds = ttl_seconds
-        self.sessions: dict[str, dict] = {}
-    
-    def get_history(self, session_id: str) -> list[dict]:
-        """Get conversation history for a session."""
-        if session_id not in self.sessions:
-            return []
-        
-        session = self.sessions[session_id]
-        
-        # Check if expired
-        if time.time() - session["last_activity"] > self.ttl_seconds:
-            del self.sessions[session_id]
-            return []
-        
-        return session["messages"]
-    
-    def add_message(self, session_id: str, role: str, content: str):
-        """Add a message to the session history."""
-        if session_id not in self.sessions:
-            self.sessions[session_id] = {
-                "messages": [],
-                "last_activity": time.time()
-            }
-        
-        session = self.sessions[session_id]
-        session["messages"].append({"role": role, "content": content})
-        session["last_activity"] = time.time()
-        
-        # Keep only the last N message pairs (2 messages per pair: user + assistant)
-        max_total = self.max_messages * 2
-        if len(session["messages"]) > max_total:
-            session["messages"] = session["messages"][-max_total:]
-        
-        logger.info(f"Session {session_id[:8]}... now has {len(session['messages'])} messages")
-    
-    def clear_session(self, session_id: str):
-        """Clear a specific session."""
-        if session_id in self.sessions:
-            del self.sessions[session_id]
-    
-    def cleanup_expired(self):
-        """Remove expired sessions."""
-        current_time = time.time()
-        expired = [
-            sid for sid, session in self.sessions.items()
-            if current_time - session["last_activity"] > self.ttl_seconds
-        ]
-        for sid in expired:
-            del self.sessions[sid]
-        if expired:
-            logger.info(f"Cleaned up {len(expired)} expired conversation sessions")
-    
-    def get_stats(self) -> dict:
-        """Get memory statistics."""
-        return {
-            "active_sessions": len(self.sessions),
-            "max_messages_per_session": self.max_messages,
-            "ttl_seconds": self.ttl_seconds
-        }
-
-
-# Global conversation memory instance
-# Memory persists for 5 hours (same as rate limit window) - no message count limit
-_conversation_memory = ConversationMemory(
-    max_messages=1000,    # Effectively unlimited - limited by tokens instead
-    ttl_seconds=18000     # 5 hours - matches rate limit window
-)
-
-
-# =============================================================================
-# USER RATE LIMITING
-# =============================================================================
-
-class UserRateLimiter:
-    """
-    Rate limiter to prevent excessive token usage per user.
-    
-    Logic:
-    - Users can use tokens freely until they hit the limit (25,000)
-    - When limit is reached, 5-hour cooldown starts
-    - After cooldown expires, user gets a fresh 25,000 tokens
-    - Data is persisted to MongoDB to survive server restarts
-    """
-    
-    def __init__(self, max_tokens: int = 25000, cooldown_seconds: int = 18000):
-        """
-        Args:
-            max_tokens: Maximum tokens before cooldown (default 25,000)
-            cooldown_seconds: Cooldown duration when limit reached (default 5 hours)
-        """
-        self.max_tokens = max_tokens
-        self.cooldown_seconds = cooldown_seconds
-        self._collection = None
-    
-    def _get_collection(self):
-        """Get MongoDB collection for rate limit data."""
-        if self._collection is None:
-            try:
-                from ..services.common import get_database
-                db = get_database()
-                if db is not None:
-                    self._collection = db["rate_limits"]
-            except Exception as e:
-                logger.warning(f"MongoDB not available for rate limiting: {e}")
-        return self._collection
-    
-    def _get_user_data(self, user_id: str) -> dict | None:
-        """Get user data from MongoDB or return None."""
-        collection = self._get_collection()
-        if collection is None:
-            return None
-        try:
-            return collection.find_one({"user_id": user_id})
-        except Exception as e:
-            logger.error(f"Error getting rate limit data: {e}")
-            return None
-    
-    def _save_user_data(self, user_id: str, data: dict):
-        """Save user data to MongoDB."""
-        collection = self._get_collection()
-        if collection is None:
-            return
-        try:
-            collection.update_one(
-                {"user_id": user_id},
-                {"$set": data},
-                upsert=True
-            )
-        except Exception as e:
-            logger.error(f"Error saving rate limit data: {e}")
-    
-    def get_usage(self, user_id: str) -> dict:
-        """Get current usage for a user."""
-        user_data = self._get_user_data(user_id)
-        current_time = time.time()
-        
-        if user_data is None:
-            # No data - user has full quota
-            return {
-                "tokens_used": 0,
-                "tokens_remaining": self.max_tokens,
-                "reset_time": None,
-                "is_limited": False,
-                "cooldown_active": False
-            }
-        
-        # Check if user is in cooldown
-        if user_data.get("cooldown_start"):
-            cooldown_start = user_data["cooldown_start"]
-            elapsed = current_time - cooldown_start
-            
-            if elapsed < self.cooldown_seconds:
-                # Still in cooldown
-                reset_time = cooldown_start + self.cooldown_seconds
-                return {
-                    "tokens_used": user_data.get("tokens_used", 0),
-                    "tokens_remaining": 0,
-                    "reset_time": datetime.fromtimestamp(reset_time, tz=timezone.utc).isoformat(),
-                    "is_limited": True,
-                    "cooldown_active": True
-                }
-            else:
-                # Cooldown expired - reset user
-                self._save_user_data(user_id, {
-                    "user_id": user_id,
-                    "tokens_used": 0,
-                    "cooldown_start": None
-                })
-                return {
-                    "tokens_used": 0,
-                    "tokens_remaining": self.max_tokens,
-                    "reset_time": None,
-                    "is_limited": False,
-                    "cooldown_active": False
-                }
-        
-        # No cooldown - just return usage
-        tokens_used = user_data.get("tokens_used", 0)
-        tokens_remaining = max(0, self.max_tokens - tokens_used)
-        
-        return {
-            "tokens_used": tokens_used,
-            "tokens_remaining": tokens_remaining,
-            "reset_time": None,
-            "is_limited": tokens_remaining <= 0,
-            "cooldown_active": False
-        }
-    
-    def check_limit(self, user_id: str, is_admin: bool = False) -> tuple[bool, dict]:
-        """
-        Check if user is within rate limit.
-
-        Args:
-            user_id: User ID to check
-            is_admin: Whether the user is an admin or super admin
-
-        Returns:
-            Tuple of (allowed, usage_dict)
-        """
-        # Check if admins have unlimited tokens enabled
-        if is_admin:
-            try:
-                from ..services.chatbot_settings import get_chatbot_settings
-                settings = get_chatbot_settings()
-                if settings.admin_unlimited_tokens:
-                    # Admin with unlimited tokens - always allow
-                    return (True, {
-                        "tokens_used": 0,
-                        "tokens_remaining": 999999,  # Effectively unlimited
-                        "reset_time": None,
-                        "is_limited": False,
-                        "cooldown_active": False,
-                        "admin_unlimited": True
-                    })
-            except Exception as e:
-                logger.error(f"Error checking admin unlimited tokens setting: {e}")
-
-        usage = self.get_usage(user_id)
-        return (not usage["is_limited"], usage)
-    
-    def record_usage(self, user_id: str, tokens: int):
-        """Record token usage for a user."""
-        user_data = self._get_user_data(user_id) or {"user_id": user_id, "tokens_used": 0}
-        
-        # Skip if in cooldown
-        if user_data.get("cooldown_start"):
-            return
-        
-        new_total = user_data.get("tokens_used", 0) + tokens
-        
-        # Check if limit reached
-        if new_total >= self.max_tokens:
-            # Start cooldown
-            self._save_user_data(user_id, {
-                "user_id": user_id,
-                "tokens_used": new_total,
-                "cooldown_start": time.time()
-            })
-            logger.info(f"User {user_id[:8]}... reached limit ({new_total}/{self.max_tokens}). Cooldown started.")
-        else:
-            # Just update usage
-            self._save_user_data(user_id, {
-                "user_id": user_id,
-                "tokens_used": new_total,
-                "cooldown_start": None
-            })
-            logger.info(f"User {user_id[:8]}... used {tokens} tokens, total: {new_total}/{self.max_tokens}")
-    
-    def get_reset_time_remaining(self, user_id: str) -> int | None:
-        """Get seconds until cooldown ends for a user."""
-        user_data = self._get_user_data(user_id)
-        if user_data is None or not user_data.get("cooldown_start"):
-            return None
-        
-        current_time = time.time()
-        elapsed = current_time - user_data["cooldown_start"]
-        
-        if elapsed >= self.cooldown_seconds:
-            return 0
-        
-        return int(self.cooldown_seconds - elapsed)
-
-
-# Global rate limiter instance
-_rate_limiter = UserRateLimiter(
-    max_tokens=25000,        # 25,000 tokens before cooldown
-    cooldown_seconds=18000   # 5 hours cooldown when limit reached
-)
 
 
 class PageContext(BaseModel):
@@ -966,16 +586,16 @@ async def get_rate_limit_status(userId: str | None = None, userRole: str | None 
         is_admin = userRole in ["admin", "super_admin"] if userRole else False
 
         # Use check_limit to get proper usage with admin unlimited tokens support
-        _, usage = _rate_limiter.check_limit(user_id, is_admin=is_admin)
+        _, usage = get_rate_limiter().check_limit(user_id, is_admin=is_admin)
 
         return {
             "tokens_used": usage["tokens_used"],
             "tokens_remaining": usage["tokens_remaining"],
-            "max_tokens": _rate_limiter.max_tokens,
+            "max_tokens": get_rate_limiter().max_tokens,
             "reset_time": usage["reset_time"],
             "is_limited": usage["is_limited"],
             "cooldown_active": usage["cooldown_active"],
-            "cooldown_hours": _rate_limiter.cooldown_seconds // 3600,
+            "cooldown_hours": get_rate_limiter().cooldown_seconds // 3600,
             "admin_unlimited": usage.get("admin_unlimited", False)
         }
     except Exception as e:
@@ -1028,11 +648,11 @@ async def chat(request: ChatRequest) -> ChatResponse:
         is_admin = request.userRole in ["admin", "super_admin"] if request.userRole else False
 
         # Step 0: Check rate limit FIRST
-        is_allowed, usage_info = _rate_limiter.check_limit(user_id, is_admin=is_admin)
+        is_allowed, usage_info = get_rate_limiter().check_limit(user_id, is_admin=is_admin)
         
         if not is_allowed:
             # User has exceeded their token limit
-            reset_seconds = _rate_limiter.get_reset_time_remaining(user_id)
+            reset_seconds = get_rate_limiter().get_reset_time_remaining(user_id)
             reset_minutes = reset_seconds // 60 if reset_seconds else 0
             reset_hours = reset_minutes // 60
             reset_mins_remaining = reset_minutes % 60
@@ -1051,7 +671,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         session_id = request.sessionId or user_id
         
         # Get conversation history for this session
-        conversation_history = _conversation_memory.get_history(session_id)
+        conversation_history = get_conversation_memory().get_history(session_id)
         
         # For short follow-up questions (like "how?", "why?"), skip cache
         is_followup = len(request.message.strip()) < 20 and conversation_history
@@ -1059,7 +679,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         # Step 1: Check cache first (but not for follow-up questions that need context)
         # Only use cache if response_caching_enabled is True
         if not is_followup and response_caching_enabled:
-            cached_response = _response_cache.get(
+            cached_response = get_response_cache().get(
                 message=request.message,
                 page_name=page_name
             )
@@ -1076,8 +696,8 @@ async def chat(request: ChatRequest) -> ChatResponse:
                     message_preview=request.message[:100]
                 )
                 # Still add to conversation memory for context
-                _conversation_memory.add_message(session_id, "user", request.message)
-                _conversation_memory.add_message(session_id, "assistant", cached_response)
+                get_conversation_memory().add_message(session_id, "user", request.message)
+                get_conversation_memory().add_message(session_id, "assistant", cached_response)
 
                 # Return with current usage info
                 return ChatResponse(response=cached_response, usage=usage_info)
@@ -1105,15 +725,15 @@ async def chat(request: ChatRequest) -> ChatResponse:
         )
         
         # Step 6: Store in conversation memory
-        _conversation_memory.add_message(session_id, "user", request.message)
-        _conversation_memory.add_message(session_id, "assistant", response)
+        get_conversation_memory().add_message(session_id, "user", request.message)
+        get_conversation_memory().add_message(session_id, "assistant", response)
         
         # Step 7: Calculate and record token usage for rate limiting
         total_tokens = token_usage.get("input_tokens", 0) + token_usage.get("output_tokens", 0)
-        _rate_limiter.record_usage(user_id, total_tokens)
+        get_rate_limiter().record_usage(user_id, total_tokens)
         
         # Get updated usage info after recording
-        _, updated_usage = _rate_limiter.check_limit(user_id, is_admin=is_admin)
+        _, updated_usage = get_rate_limiter().check_limit(user_id, is_admin=is_admin)
         
         # Step 8: Log token usage for admin tracking
         _log_token_usage(
@@ -1129,7 +749,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
         # Step 9: Cache the response for future requests (but not short follow-ups)
         # Only cache if response_caching_enabled is True
         if not is_followup and response_caching_enabled:
-            _response_cache.set(
+            get_response_cache().set(
                 message=request.message,
                 response=response,
                 page_name=page_name
@@ -1197,7 +817,7 @@ async def get_cache_stats():
         - hit_rate: Cache hit rate percentage
         - ttl_seconds: Time-to-live for cache entries
     """
-    return _response_cache.get_stats()
+    return get_response_cache().get_stats()
 
 
 @router.post("/cache/clear")
@@ -1207,8 +827,8 @@ async def clear_cache():
     
     Use this when prompts or responses change and you want to invalidate old cache.
     """
-    _response_cache.clear()
-    return {"message": "Cache cleared successfully", "stats": _response_cache.get_stats()}
+    get_response_cache().clear()
+    return {"message": "Cache cleared successfully", "stats": get_response_cache().get_stats()}
 
 
 # =============================================================================

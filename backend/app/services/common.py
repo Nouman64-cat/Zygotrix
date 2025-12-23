@@ -12,6 +12,7 @@ from pymongo.collection import Collection
 from app.core.database.connection import DatabaseConnectionManager, get_connection_manager
 from app.core.database.collections import CollectionName, get_collection
 
+
 # =============================================================================
 # Database Client and Connection Management
 # =============================================================================

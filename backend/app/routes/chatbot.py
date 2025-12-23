@@ -29,26 +29,11 @@ from ..services.chatbot.response_cache_service import get_response_cache
 from ..services.chatbot.conversation_memory_service import get_conversation_memory
 from ..services.chatbot.rate_limiting_service import get_rate_limiter
 from ..services.chatbot.claude_ai_service import get_claude_ai_service
+from ..services.chatbot.rag_service import get_rag_service
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/chatbot", tags=["Chatbot"])
-
-# Configuration - API keys from environment variables
-LLAMA_CLOUD_API_KEY = os.getenv("LLAMA_CLOUD_API_KEY")
-LLAMA_CLOUD_BASE_URL = "https://api.cloud.eu.llamaindex.ai"
-LLAMA_CLOUD_INDEX_NAME = "Zygotrix"
-LLAMA_CLOUD_ORG_ID = "7e4d6187-f46d-4435-a999-768d5c727cf1"
-LLAMA_CLOUD_PROJECT_NAME = "Default"
-
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-
-# Debug logging - show if keys are loaded (masked for security)
-logger.info(f"CLAUDE_API_KEY loaded: {'Yes' if CLAUDE_API_KEY else 'No'} (first 10 chars: {CLAUDE_API_KEY[:10] if CLAUDE_API_KEY else 'None'}...)")
-logger.info(f"LLAMA_CLOUD_API_KEY loaded: {'Yes' if LLAMA_CLOUD_API_KEY else 'No'}")
-
-# Cache the pipeline ID to avoid repeated lookups
-_cached_pipeline_id: str | None = None
 
 
 # =============================================================================
@@ -100,102 +85,6 @@ class ChatRequest(BaseModel):
 class ChatResponse(BaseModel):
     response: str
     usage: dict | None = None  # Token usage info for rate limiting
-
-
-async def get_pipeline_id() -> str | None:
-    """Get the pipeline ID from LlamaCloud by looking up the pipeline by name."""
-    global _cached_pipeline_id
-    
-    if _cached_pipeline_id:
-        return _cached_pipeline_id
-    
-    try:
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            # List all pipelines and find the one with our name
-            response = await client.get(
-                f"{LLAMA_CLOUD_BASE_URL}/api/v1/pipelines",
-                headers={
-                    "Accept": "application/json",
-                    "Authorization": f"Bearer {LLAMA_CLOUD_API_KEY}",
-                },
-                params={
-                    "project_name": LLAMA_CLOUD_PROJECT_NAME,
-                    "pipeline_name": LLAMA_CLOUD_INDEX_NAME,
-                }
-            )
-            
-            logger.info(f"Pipeline lookup response status: {response.status_code}")
-            
-            if response.status_code != 200:
-                logger.error(f"Failed to list pipelines: {response.status_code} - {response.text}")
-                return None
-            
-            data = response.json()
-            logger.info(f"Pipeline lookup response: {data}")
-            
-            # Find the pipeline with matching name
-            pipelines = data if isinstance(data, list) else data.get("pipelines", [])
-            for pipeline in pipelines:
-                if pipeline.get("name") == LLAMA_CLOUD_INDEX_NAME:
-                    _cached_pipeline_id = pipeline.get("id")
-                    logger.info(f"Found pipeline ID: {_cached_pipeline_id}")
-                    return _cached_pipeline_id
-            
-            logger.warning(f"Pipeline '{LLAMA_CLOUD_INDEX_NAME}' not found")
-            return None
-    except Exception as e:
-        logger.error(f"Error looking up pipeline ID: {e}")
-        return None
-
-
-async def retrieve_context(query: str) -> str:
-    """Retrieve relevant context from LlamaCloud."""
-    try:
-        # First get the pipeline ID
-        pipeline_id = await get_pipeline_id()
-        
-        if not pipeline_id:
-            logger.warning("Could not get pipeline ID, skipping retrieval")
-            return ""
-        
-        url = f"{LLAMA_CLOUD_BASE_URL}/api/v1/pipelines/{pipeline_id}/retrieve"
-        logger.info(f"Calling LlamaCloud retrieve: {url}")
-        logger.info(f"Query: {query}")
-        
-        async with httpx.AsyncClient(timeout=30.0) as client:
-            response = await client.post(
-                url,
-                headers={
-                    "Content-Type": "application/json",
-                    "Authorization": f"Bearer {LLAMA_CLOUD_API_KEY}",
-                },
-                json={
-                    "query": query,
-                    "similarity_top_k": 3,
-                },
-            )
-
-            logger.info(f"LlamaCloud response status: {response.status_code}")
-            
-            if response.status_code != 200:
-                logger.warning(f"LlamaCloud retrieval failed: {response.status_code}")
-                logger.warning(f"Response body: {response.text}")
-                return ""
-
-            data = response.json()
-            logger.info(f"LlamaCloud response data keys: {data.keys() if isinstance(data, dict) else 'not a dict'}")
-            logger.info(f"Full response: {data}")
-
-            # Extract text from retrieved nodes
-            if data.get("retrievals") and isinstance(data["retrievals"], list):
-                context = "\n\n".join([r.get("text", "") for r in data["retrievals"]])
-                logger.info(f"Retrieved context length: {len(context)} chars")
-                return context
-
-            return ""
-    except Exception as e:
-        logger.error(f"Error retrieving context: {e}")
-        return ""
 
 
 def get_traits_context(message: str) -> str:
@@ -493,7 +382,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 return ChatResponse(response=cached_response, usage=usage_info)
         
         # Step 2: Retrieve relevant context from LlamaCloud
-        llama_context = await retrieve_context(request.message)
+        llama_context = await get_rag_service().retrieve_context(request.message)
         
         # Step 3: Get traits-specific context from the traits database
         traits_context = get_traits_context(request.message)

@@ -1,4 +1,5 @@
 ﻿from __future__ import annotations
+from contextlib import asynccontextmanager
 from .services import gwas_dataset
 from .config import get_settings
 from .services.trait_db_setup import create_trait_indexes
@@ -28,6 +29,7 @@ from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.common import HealthResponse
 from .services import polygenic as polygenic_services
 from .services import auth as auth_services
+from .mcp import mcp_lifespan
 from app.models import Trait
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi import Depends, FastAPI, HTTPException, Response
@@ -36,6 +38,40 @@ from datetime import datetime, timezone
 import logging
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    """
+    FastAPI lifespan context manager.
+    Handles startup and shutdown events for the application.
+    """
+    # Startup
+    logger.info("🚀 Starting Zygotrix Backend...")
+    
+    # Initialize MCP
+    async with mcp_lifespan() as mcp_client:
+        logger.info("✅ MCP Client connected")
+        
+        # Load GWAS dataset
+        settings = get_settings()
+        if not settings.traits_json_only:
+            try:
+                gwas_dataset.ensure_dataset_loaded()
+                logger.info("✅ GWAS dataset loaded")
+            except gwas_dataset.DatasetLoadError as e:
+                logger.warning(f"⚠️ GWAS dataset unavailable: {e}")
+        
+        logger.info("✅ Zygotrix Backend started successfully")
+        
+        yield  # Application runs here
+        
+        # Shutdown
+        logger.info("👋 Shutting down Zygotrix Backend...")
+    
+    logger.info("✅ MCP Client disconnected")
+    logger.info("✅ Zygotrix Backend shutdown complete")
 
 
 app = FastAPI(
@@ -45,6 +81,7 @@ app = FastAPI(
     license_info={
         "name": "Proprietary",
     },
+    lifespan=lifespan,
 )
 
 app.add_middleware(
@@ -72,16 +109,7 @@ app.add_middleware(
 )
 
 
-@app.on_event("startup")
-async def startup_event():
-    settings = get_settings()
-    if settings.traits_json_only:
-        return
-
-    try:
-        gwas_dataset.ensure_dataset_loaded()
-    except gwas_dataset.DatasetLoadError as e:
-        print(f"⚠️  Warning: GWAS dataset unavailable: {e}")
+# Note: Startup logic has been moved to the lifespan context manager above
 
 
 app.include_router(auth_router)

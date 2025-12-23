@@ -799,6 +799,273 @@ def _extract_trait_name_from_message(message: str) -> str:
     return None
 
 
+# =============================================================================
+# DNA / RNA / PROTEIN TOOLS
+# =============================================================================
+
+def generate_random_dna_sequence(length: int = 30, gc_content: float = 0.5, seed: int = None) -> dict:
+    """
+    Generate a random DNA sequence with specified parameters.
+    
+    Args:
+        length: Number of base pairs to generate (default: 30, max: 1000)
+        gc_content: Proportion of G and C nucleotides (0.0 to 1.0, default: 0.5)
+        seed: Optional seed for reproducibility
+    
+    Returns:
+        dict: Generated DNA sequence with metadata
+    """
+    from app.services.protein_generator_impl import (
+        generate_dna_sequence,
+        calculate_actual_gc
+    )
+    
+    # Limit length for chatbot responses
+    if length > 1000:
+        length = 1000
+    if length < 3:
+        length = 3
+    
+    # Make length divisible by 3 for complete codons
+    length = (length // 3) * 3
+    
+    # Validate gc_content
+    gc_content = max(0.0, min(1.0, gc_content))
+    
+    try:
+        dna_sequence = generate_dna_sequence(length, gc_content, seed)
+        actual_gc = calculate_actual_gc(dna_sequence)
+        
+        return {
+            "success": True,
+            "dna_sequence": dna_sequence,
+            "length": len(dna_sequence),
+            "requested_gc_content": gc_content,
+            "actual_gc_content": round(actual_gc, 4),
+            "base_counts": {
+                "A": dna_sequence.count("A"),
+                "T": dna_sequence.count("T"),
+                "G": dna_sequence.count("G"),
+                "C": dna_sequence.count("C"),
+            },
+            "message": f"Generated a {len(dna_sequence)} bp DNA sequence with {actual_gc*100:.1f}% GC content."
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to generate DNA sequence: {str(e)}"
+        }
+
+
+def transcribe_dna_to_mrna(dna_sequence: str) -> dict:
+    """
+    Transcribe a DNA sequence to mRNA by replacing T with U.
+    
+    Args:
+        dna_sequence: Input DNA sequence (A, T, G, C characters)
+    
+    Returns:
+        dict: mRNA sequence with metadata
+    """
+    from app.services.protein_generator_impl import transcribe_to_rna
+    
+    # Clean and validate input
+    dna_clean = dna_sequence.upper().strip()
+    
+    # Validate DNA characters
+    valid_chars = set("ATGC")
+    if not all(c in valid_chars for c in dna_clean):
+        invalid_chars = set(dna_clean) - valid_chars
+        return {
+            "success": False,
+            "error": f"Invalid DNA characters found: {', '.join(invalid_chars)}. DNA should only contain A, T, G, C."
+        }
+    
+    if len(dna_clean) < 3:
+        return {
+            "success": False,
+            "error": "DNA sequence must be at least 3 nucleotides long."
+        }
+    
+    try:
+        mrna_sequence = transcribe_to_rna(dna_clean)
+        
+        return {
+            "success": True,
+            "dna_sequence": dna_clean,
+            "mrna_sequence": mrna_sequence,
+            "length": len(mrna_sequence),
+            "transcription_rule": "A→A, T→U, G→G, C→C (template strand)",
+            "message": f"Transcribed {len(dna_clean)} bp DNA to {len(mrna_sequence)} nt mRNA."
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to transcribe DNA: {str(e)}"
+        }
+
+
+def extract_codons_from_rna(rna_sequence: str) -> dict:
+    """
+    Extract codons (triplets) from an RNA sequence.
+    
+    Args:
+        rna_sequence: Input RNA sequence (A, U, G, C characters)
+    
+    Returns:
+        dict: List of codons with their positions
+    """
+    # Clean and validate input
+    rna_clean = rna_sequence.upper().strip()
+    
+    # Validate RNA characters
+    valid_chars = set("AUGC")
+    if not all(c in valid_chars for c in rna_clean):
+        invalid_chars = set(rna_clean) - valid_chars
+        return {
+            "success": False,
+            "error": f"Invalid RNA characters found: {', '.join(invalid_chars)}. RNA should only contain A, U, G, C."
+        }
+    
+    if len(rna_clean) < 3:
+        return {
+            "success": False,
+            "error": "RNA sequence must be at least 3 nucleotides long to form a codon."
+        }
+    
+    try:
+        codons = []
+        for i in range(0, len(rna_clean) - 2, 3):
+            codon = rna_clean[i:i+3]
+            codons.append({
+                "position": i + 1,  # 1-indexed for human readability
+                "codon": codon
+            })
+        
+        # Count remaining nucleotides that don't form a complete codon
+        remainder = len(rna_clean) % 3
+        
+        return {
+            "success": True,
+            "rna_sequence": rna_clean,
+            "total_codons": len(codons),
+            "codons": codons,
+            "codon_list": [c["codon"] for c in codons],
+            "incomplete_nucleotides": remainder,
+            "message": f"Extracted {len(codons)} codons from {len(rna_clean)} nt RNA sequence."
+        }
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to extract codons: {str(e)}"
+        }
+
+
+def translate_rna_to_protein(rna_sequence: str, find_all_orfs: bool = False) -> dict:
+    """
+    Translate an RNA sequence to protein by reading codons and converting to amino acids.
+    
+    Args:
+        rna_sequence: Input RNA sequence (A, U, G, C characters)
+        find_all_orfs: If True, find all Open Reading Frames. If False, translate from position 0.
+    
+    Returns:
+        dict: Protein sequence with amino acid information
+    """
+    from app.services.protein_generator_impl import (
+        extract_amino_acids,
+        find_all_orfs as find_orfs,
+        CODON_TABLE
+    )
+    
+    # Clean and validate input
+    rna_clean = rna_sequence.upper().strip()
+    
+    # Validate RNA characters
+    valid_chars = set("AUGC")
+    if not all(c in valid_chars for c in rna_clean):
+        invalid_chars = set(rna_clean) - valid_chars
+        return {
+            "success": False,
+            "error": f"Invalid RNA characters found: {', '.join(invalid_chars)}. RNA should only contain A, U, G, C."
+        }
+    
+    if len(rna_clean) < 3:
+        return {
+            "success": False,
+            "error": "RNA sequence must be at least 3 nucleotides long."
+        }
+    
+    try:
+        if find_all_orfs:
+            # Find all Open Reading Frames (start with AUG, end with stop codon)
+            orfs = find_orfs(rna_clean)
+            
+            if not orfs:
+                return {
+                    "success": True,
+                    "rna_sequence": rna_clean[:50] + "..." if len(rna_clean) > 50 else rna_clean,
+                    "orfs_found": 0,
+                    "orfs": [],
+                    "message": "No complete Open Reading Frames (ORFs) found. An ORF requires a start codon (AUG) followed by a stop codon (UAA, UAG, or UGA)."
+                }
+            
+            return {
+                "success": True,
+                "rna_sequence": rna_clean[:50] + "..." if len(rna_clean) > 50 else rna_clean,
+                "rna_length": len(rna_clean),
+                "orfs_found": len(orfs),
+                "orfs": [
+                    {
+                        "orf_number": i + 1,
+                        "start_position": orf["start_position"] + 1,  # 1-indexed
+                        "end_position": orf["end_position"],
+                        "protein_1letter": orf["protein_1letter"],
+                        "protein_3letter": orf["protein_3letter"],
+                        "amino_acid_count": orf["length"]
+                    }
+                    for i, orf in enumerate(orfs[:5])  # Limit to first 5 ORFs
+                ],
+                "message": f"Found {len(orfs)} Open Reading Frame(s) in the RNA sequence."
+            }
+        else:
+            # Simple translation from position 0
+            amino_acids = extract_amino_acids(rna_clean)
+            
+            if not amino_acids:
+                return {
+                    "success": True,
+                    "rna_sequence": rna_clean[:50] + "..." if len(rna_clean) > 50 else rna_clean,
+                    "amino_acids": [],
+                    "protein_1letter": "",
+                    "protein_3letter": "",
+                    "message": "No amino acids could be translated from this sequence."
+                }
+            
+            # Filter out STOP for protein sequence
+            coding_aas = [aa for aa in amino_acids if aa["name_3letter"] != "STOP"]
+            protein_1letter = "".join(aa["name_1letter"] for aa in coding_aas)
+            protein_3letter = "-".join(aa["name_3letter"] for aa in coding_aas)
+            
+            return {
+                "success": True,
+                "rna_sequence": rna_clean[:50] + "..." if len(rna_clean) > 50 else rna_clean,
+                "rna_length": len(rna_clean),
+                "amino_acids": amino_acids[:20],  # Limit for display
+                "amino_acid_count": len(coding_aas),
+                "protein_1letter": protein_1letter[:50] + ("..." if len(protein_1letter) > 50 else ""),
+                "protein_3letter": protein_3letter[:100] + ("..." if len(protein_3letter) > 100 else ""),
+                "stopped_at_stop_codon": any(aa["name_3letter"] == "STOP" for aa in amino_acids),
+                "message": f"Translated {len(rna_clean)} nt RNA to {len(coding_aas)} amino acids."
+            }
+            
+    except Exception as e:
+        return {
+            "success": False,
+            "error": f"Failed to translate RNA: {str(e)}"
+        }
+
+
 # Export the main functions for use by the chatbot
 __all__ = [
     "get_traits_count",
@@ -807,5 +1074,10 @@ __all__ = [
     "list_traits_by_type",
     "list_traits_by_inheritance",
     "calculate_punnett_square",
-    "parse_cross_from_message"
+    "parse_cross_from_message",
+    # DNA/RNA/Protein tools
+    "generate_random_dna_sequence",
+    "transcribe_dna_to_mrna",
+    "extract_codons_from_rna",
+    "translate_rna_to_protein",
 ]

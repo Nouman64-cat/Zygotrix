@@ -48,10 +48,16 @@ from ..services.zygotrix_ai_service import (
 from ..services.chatbot_settings import get_chatbot_settings
 from ..dependencies import get_current_user, get_current_admin
 from ..schema.auth import UserProfile
-from ..prompt_engineering.prompts import get_zigi_system_prompt, get_simulation_tool_prompt
+from ..prompt_engineering.prompts import get_zigi_system_prompt, get_simulation_tool_prompt, get_zigi_prompt_with_tools
 from ..chatbot_tools import (
     get_traits_count, search_traits, get_trait_details,
     calculate_punnett_square, parse_cross_from_message
+)
+from ..mcp import (
+    get_claude_tools_schema,
+    process_tool_calls,
+    extract_tool_calls,
+    extract_text_content,
 )
 from .chatbot import _rate_limiter, _log_token_usage  # Import the rate limiter instance and token logging function
 from ..services import auth as auth_services  # Import auth services for login tracking
@@ -374,6 +380,178 @@ async def generate_claude_response(
         raise HTTPException(status_code=500, detail="Failed to connect to AI service")
 
 
+async def generate_claude_response_with_tools(
+    messages: list,
+    system_prompt: str,
+    model: str,
+    max_tokens: int,
+    temperature: float,
+    use_tools: bool = True,
+    max_tool_iterations: int = 5,
+) -> tuple[str, dict]:
+    """
+    Generate response from Claude with native tool calling support.
+    
+    This function allows Claude to autonomously decide when to use tools.
+    It handles the tool-use loop automatically.
+    
+    Args:
+        messages: Conversation messages
+        system_prompt: System prompt
+        model: Claude model to use
+        max_tokens: Maximum tokens for response
+        temperature: Temperature setting
+        use_tools: Whether to enable tool use
+        max_tool_iterations: Maximum number of tool call iterations
+        
+    Returns:
+        Tuple of (final_content, metadata)
+    """
+    tools = get_claude_tools_schema() if use_tools else []
+    total_input_tokens = 0
+    total_output_tokens = 0
+    tools_used = []
+    
+    # Log tool availability for debugging
+    if tools:
+        tool_names = [t.get("name") for t in tools]
+        logger.info(f"MCP tools enabled: {len(tools)} tools available: {tool_names}")
+    else:
+        logger.info("MCP tools disabled for this request")
+    
+    working_messages = messages.copy()
+    
+    for iteration in range(max_tool_iterations):
+        logger.info(f"Claude API iteration {iteration + 1}/{max_tool_iterations}")
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                request_body = {
+                    "model": model,
+                    "max_tokens": max_tokens,
+                    "temperature": temperature,
+                    "system": system_prompt,
+                    "messages": working_messages,
+                }
+                
+                # Only include tools if we have them
+                if tools:
+                    request_body["tools"] = tools
+                
+                response = await client.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers={
+                        "x-api-key": CLAUDE_API_KEY,
+                        "content-type": "application/json",
+                        "anthropic-version": "2023-06-01",
+                    },
+                    json=request_body,
+                )
+                
+                if response.status_code != 200:
+                    error_text = response.text
+                    logger.error(f"Claude API error: {response.status_code} - {error_text}")
+                    raise HTTPException(status_code=500, detail="Failed to generate response")
+                
+                data = response.json()
+                content_blocks = data.get("content", [])
+                stop_reason = data.get("stop_reason", "end_turn")
+                usage = data.get("usage", {})
+                
+                total_input_tokens += usage.get("input_tokens", 0)
+                total_output_tokens += usage.get("output_tokens", 0)
+                
+                logger.info(f"Claude stop_reason: {stop_reason}")
+                
+                # Check if Claude wants to use tools
+                if stop_reason == "tool_use":
+                    # Extract tool calls
+                    tool_calls = extract_tool_calls(content_blocks)
+                    
+                    if tool_calls:
+                        tool_names = [tc.get("name") for tc in tool_calls]
+                        logger.info(f"Claude requested {len(tool_calls)} tool(s): {tool_names}")
+                        
+                        # Track which tools were used
+                        for tc in tool_calls:
+                            logger.info(f"Tool call: {tc.get('name')} with input: {tc.get('input')}")
+                            tools_used.append({
+                                "name": tc.get("name"),
+                                "input": tc.get("input"),
+                            })
+                        
+                        # Execute tools and get results
+                        tool_results = await process_tool_calls(tool_calls)
+                        
+                        # Add assistant's response with tool_use to messages
+                        working_messages.append({
+                            "role": "assistant",
+                            "content": content_blocks,
+                        })
+                        
+                        # Add tool results to messages
+                        working_messages.append({
+                            "role": "user",
+                            "content": tool_results,
+                        })
+                        
+                        # Continue the loop to get Claude's final response
+                        continue
+                
+                # No tool use or end of conversation - extract final text
+                final_content = extract_text_content(content_blocks)
+                
+                metadata = {
+                    "input_tokens": total_input_tokens,
+                    "output_tokens": total_output_tokens,
+                    "total_tokens": total_input_tokens + total_output_tokens,
+                    "model": model,
+                    "tools_used": tools_used,
+                    "tool_iterations": iteration + 1,
+                }
+                
+                if tools_used:
+                    logger.info(f"Response completed with {len(tools_used)} tool(s) used: {[t['name'] for t in tools_used]}")
+                else:
+                    logger.info("Response completed without tool use (Claude answered directly)")
+                
+                return final_content, metadata
+                
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP error in tool loop: {e}")
+            raise HTTPException(status_code=500, detail="Failed to connect to AI service")
+    
+    # Max iterations reached
+    logger.warning(f"Max tool iterations ({max_tool_iterations}) reached")
+    return "I apologize, but I encountered an issue processing your request. Please try again.", {
+        "input_tokens": total_input_tokens,
+        "output_tokens": total_output_tokens,
+        "total_tokens": total_input_tokens + total_output_tokens,
+        "model": model,
+        "tools_used": tools_used,
+        "tool_iterations": max_tool_iterations,
+        "max_iterations_reached": True,
+    }
+
+
+# =============================================================================
+# TOOLS ENDPOINT
+# =============================================================================
+
+@router.get("/tools")
+async def list_available_tools():
+    """
+    List all available MCP tools that the AI can use.
+    
+    Returns the tools in Claude's native format.
+    """
+    tools = get_claude_tools_schema()
+    return {
+        "tools": tools,
+        "count": len(tools),
+        "description": "These are the tools available to Zigi (Zygotrix AI) for answering genetics questions.",
+    }
+
+
 # =============================================================================
 # CHAT ENDPOINTS
 # =============================================================================
@@ -491,14 +669,15 @@ Question: {chat_request.message}"""
 
     claude_messages.append({"role": "user", "content": current_content})
 
-    # Get system prompt
+    # Get system prompt (use tool-aware prompt for better tool calling)
     is_simulation = chat_request.page_context and "Simulation" in chat_request.page_context
     if is_simulation:
         system_prompt = get_simulation_tool_prompt("User", combined_context)
     else:
-        system_prompt = get_zigi_system_prompt()
+        system_prompt = get_zigi_prompt_with_tools()  # Use tool-aware prompt
 
     if chat_request.stream:
+        logger.info("Using STREAMING mode (MCP tools NOT available in streaming)")
         # Streaming response
         async def event_generator():
             assistant_content = ""
@@ -570,10 +749,17 @@ Question: {chat_request.message}"""
             }
         )
     else:
-        # Non-streaming response
-        content, metadata = await generate_claude_response(
-            claude_messages, system_prompt, model, max_tokens, temperature
+        logger.info("Using NON-STREAMING mode with MCP tools enabled")
+        # Non-streaming response with tool support
+        content, metadata = await generate_claude_response_with_tools(
+            claude_messages, system_prompt, model, max_tokens, temperature,
+            use_tools=True,  # Enable MCP tools
         )
+        
+        # Log tool usage if any tools were used
+        tools_used = metadata.get("tools_used", [])
+        if tools_used:
+            logger.info(f"Tools used in response: {[t['name'] for t in tools_used]}")
 
         msg_metadata = MessageMetadata(
             input_tokens=metadata.get("input_tokens", 0),

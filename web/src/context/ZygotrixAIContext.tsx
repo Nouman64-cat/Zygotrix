@@ -19,7 +19,6 @@ import type {
   ConversationSummary,
   Message,
   Folder,
-  StreamChunk,
   StatusResponse,
 } from "../services/zygotrixAI.api";
 
@@ -451,68 +450,22 @@ export function ZygotrixAIProvider({ children }: { children: React.ReactNode }) 
     dispatch({ type: "SET_STREAMING", payload: true });
     dispatch({ type: "SET_STREAMING_CONTENT", payload: "" });
 
-    // Create abort controller for stopping
-    abortControllerRef.current = new AbortController();
-
     try {
       let conversationId = state.currentConversation?.id;
-      let assistantMessageId: string | null = null;
-      let fullContent = "";
 
-      await api.sendMessageStream(
-        {
-          conversation_id: conversationId,
-          message: content,
-          attachments,
-          stream: true,
-        },
-        (chunk: StreamChunk) => {
-          switch (chunk.type) {
-            case "content":
-              if (chunk.content) {
-                fullContent += chunk.content;
-                dispatch({ type: "APPEND_STREAMING_CONTENT", payload: chunk.content });
-              }
-              break;
+      // Use non-streaming API with MCP tool support
+      const response = await api.sendMessage({
+        conversation_id: conversationId,
+        message: content,
+        attachments,
+        stream: false, // Disable streaming to enable MCP tools
+      });
 
-            case "metadata":
-              // Metadata received
-              break;
+      conversationId = response.conversation_id;
+      const assistantMessage = response.message;
 
-            case "done":
-              if (chunk.conversation_id) {
-                conversationId = chunk.conversation_id;
-              }
-              if (chunk.message_id) {
-                assistantMessageId = chunk.message_id;
-              }
-              break;
-
-            case "error":
-              dispatch({ type: "SET_ERROR", payload: chunk.error || "Unknown error" });
-              break;
-          }
-        },
-        abortControllerRef.current.signal
-      );
-
-      // Create the assistant message
-      if (fullContent) {
-        const assistantMessage: Message = {
-          id: assistantMessageId || `assistant_${Date.now()}`,
-          conversation_id: conversationId || "",
-          role: "assistant",
-          content: fullContent,
-          status: "completed",
-          version: 1,
-          attachments: [],
-          created_at: new Date().toISOString(),
-          sibling_ids: [],
-          selected_sibling_index: 0,
-        };
-
-        dispatch({ type: "APPEND_MESSAGE", payload: assistantMessage });
-      }
+      // Add assistant message to the list
+      dispatch({ type: "APPEND_MESSAGE", payload: assistantMessage });
 
       // If this was a new conversation, reload conversations list
       if (!state.currentConversation && conversationId) {
@@ -539,14 +492,11 @@ export function ZygotrixAIProvider({ children }: { children: React.ReactNode }) 
       }
 
     } catch (err) {
-      if ((err as Error).name !== "AbortError") {
-        dispatch({ type: "SET_ERROR", payload: "Failed to send message" });
-        console.error(err);
-      }
+      dispatch({ type: "SET_ERROR", payload: "Failed to send message" });
+      console.error(err);
     } finally {
       dispatch({ type: "SET_STREAMING", payload: false });
       dispatch({ type: "SET_STREAMING_CONTENT", payload: "" });
-      abortControllerRef.current = null;
     }
   }, [state.currentConversation]);
 

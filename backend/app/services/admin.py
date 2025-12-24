@@ -7,6 +7,7 @@ from pymongo.errors import PyMongoError
 from fastapi import HTTPException
 
 from app.config import get_settings
+from app.repositories.builders.mongo_query_builder import MongoQueryBuilder
 from app.services.auth import (
     get_users_collection,
     _serialize_user,
@@ -37,32 +38,48 @@ def get_all_users(
     """
     collection = cast(Collection, get_users_collection(required=True))
 
-    # Build query
-    query: Dict[str, Any] = {}
+    # Build query using MongoQueryBuilder
+    builder = MongoQueryBuilder()
 
+    # Add search filter
     if search:
-        search_regex = {"$regex": search, "$options": "i"}
-        query["$or"] = [
-            {"email": search_regex},
-            {"full_name": search_regex},
-        ]
+        builder.with_or([
+            {"email": {"$regex": search, "$options": "i"}},
+            {"full_name": {"$regex": search, "$options": "i"}},
+        ])
 
+    # Add role filter
     if role_filter:
-        query["user_role"] = role_filter
+        builder.with_field("user_role", role_filter)
 
+    # Add status filter
     if status_filter:
         if status_filter == "active":
-            query["is_active"] = {"$ne": False}
+            builder.with_ne("is_active", False)
         elif status_filter == "inactive":
-            query["is_active"] = False
+            builder.with_field("is_active", False)
+
+    # Add sorting and pagination
+    builder.sorted_by("created_at", descending=True).paginated(page, page_size)
+
+    # Build the query components
+    query_components = builder.build()
+    query = query_components["filter"]
+    sort = query_components.get("sort")
+    skip = query_components.get("skip", 0)
+    limit = query_components.get("limit")
 
     # Get total count
     total = collection.count_documents(query)
 
     # Get paginated results
-    skip = (page - 1) * page_size
-    cursor = collection.find(query).sort(
-        "created_at", -1).skip(skip).limit(page_size)
+    cursor = collection.find(query)
+    if sort:
+        cursor = cursor.sort(sort)
+    if skip:
+        cursor = cursor.skip(skip)
+    if limit:
+        cursor = cursor.limit(limit)
 
     users = [_serialize_user(doc) for doc in cursor]
 

@@ -3,10 +3,9 @@ import logging
 from typing import Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..schema.auth import UserProfile, UniversityOnboardingRequest
-from ..services import auth as auth_services
+from ..dependencies import get_current_user, get_current_user_optional
 from ..services import university as university_services
 from ..services.email_service import EmailService
 from ..schema.university import (
@@ -28,42 +27,15 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/api/university", tags=["University"])
 
-bearer_scheme_optional = HTTPBearer(auto_error=False)
-bearer_scheme_required = HTTPBearer(auto_error=True)
-
-
-def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(
-        bearer_scheme_optional
-    ),
-) -> Optional[UserProfile]:
-    if not credentials:
-        return None
-    try:
-        user = auth_services.resolve_user_from_token(credentials.credentials)
-        return UserProfile(**user)
-    except Exception:
-        return None
-
-
-def get_current_user_required(
-    credentials: HTTPAuthorizationCredentials = Depends(
-        bearer_scheme_required),
-) -> UserProfile:
-    user = auth_services.resolve_user_from_token(credentials.credentials)
-    return UserProfile(**user)
-
 
 @router.get("/courses", response_model=CourseListResponse)
 def list_courses(detail: bool = Query(False)) -> CourseListResponse:
+    """
+    List all university courses.
+
+    The service layer handles field projection based on detail parameter.
+    """
     courses = university_services.list_courses(include_details=detail)
-    if not detail:
-        for course in courses:
-            if "modules" in course and course["modules"]:
-                course["modules_count"] = len(course["modules"])
-                course.pop("modules", None)
-            course.pop("long_description", None)
-            course.pop("practice_sets", None)
     return CourseListResponse(courses=courses)
 
 
@@ -91,7 +63,7 @@ def list_practice_sets() -> PracticeSetListResponse:
 
 @router.get("/dashboard", response_model=DashboardSummaryResponse)
 def dashboard_summary(
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ) -> DashboardSummaryResponse:
     course_docs = {
         course["slug"]: course
@@ -104,7 +76,7 @@ def dashboard_summary(
 @router.get("/progress/{course_slug}", response_model=CourseProgressResponse)
 def get_progress(
     course_slug: str,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ) -> CourseProgressResponse:
     progress = university_services.get_course_progress(
         current_user.id, course_slug)
@@ -125,7 +97,7 @@ def get_progress(
 @router.put("/progress", response_model=CourseProgressResponse)
 def update_progress(
     payload: CourseProgressUpdateRequest,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ) -> CourseProgressResponse:
     data = payload.dict(exclude_none=True)
     progress = university_services.save_course_progress(current_user.id, data)
@@ -135,7 +107,7 @@ def update_progress(
 @router.post("/enroll", response_model=CourseEnrollmentResponse, status_code=201)
 def enroll_course(
     payload: CourseEnrollmentRequest,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
     email_service: EmailService = Depends(EmailService),
 ) -> CourseEnrollmentResponse:
 
@@ -176,7 +148,7 @@ def enroll_course(
 
 @router.get("/enrollments", response_model=list[str])
 def list_enrollments(
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ) -> list[str]:
     return university_services.list_user_enrollments(current_user.id)
 
@@ -189,7 +161,7 @@ def list_enrollments(
 )
 def submit_assessment(
     payload: AssessmentSubmissionRequest,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ) -> AssessmentResultResponse:
 
     import logging
@@ -222,7 +194,7 @@ def submit_assessment(
 def get_assessment_history(
     course_slug: str,
     module_id: str = Query(None, description="Filter by module ID"),
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ) -> AssessmentHistoryResponse:
 
     attempts = university_services.get_assessment_history(
@@ -240,7 +212,7 @@ def get_assessment_history(
 )
 def generate_certificate(
     course_slug: str,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ) -> CertificateResponse:
 
     certificate = university_services.generate_certificate(
@@ -252,7 +224,7 @@ def generate_certificate(
 
 @router.post("/cache/clear", status_code=200)
 def clear_cache(
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ) -> None:
     from app.utils.redis_client import clear_cache_pattern
 
@@ -265,7 +237,7 @@ def clear_cache(
 @router.post("/onboarding", response_model=UserProfile)
 def complete_university_onboarding(
     payload: UniversityOnboardingRequest,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ) -> UserProfile:
     """Complete Zygotrix University user onboarding and save learning preferences."""
     updates = payload.model_dump(exclude_unset=True)

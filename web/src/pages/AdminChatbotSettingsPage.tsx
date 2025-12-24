@@ -150,8 +150,12 @@ const AdminChatbotSettingsPage: React.FC = () => {
       const data = await fetchAllPrompts();
       setPrompts(data);
 
-      // Select first prompt by default if none selected
-      if (!selectedPrompt && data.length > 0) {
+      // Auto-select system prompt
+      const systemPrompt = data.find((p) => p.prompt_type === "system");
+      if (systemPrompt) {
+        selectPrompt("system", systemPrompt);
+      } else if (!selectedPrompt && data.length > 0) {
+        // Fallback to first prompt if system not found
         selectPrompt(data[0].prompt_type as PromptType, data[0]);
       }
     } catch (err: unknown) {
@@ -632,172 +636,171 @@ const AdminChatbotSettingsPage: React.FC = () => {
 
         {/* Prompts Tab */}
         {activeTab === "prompts" && (
-          <>
+          <div className="space-y-6">
             {/* Prompt Messages */}
             {promptError && (
-              <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
                 <MdError className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
-                <p className="text-red-800 dark:text-red-200">{promptError}</p>
+                <p className="text-sm text-red-800 dark:text-red-200">{promptError}</p>
               </div>
             )}
 
             {promptSuccess && (
-              <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-3">
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-xl flex items-start gap-3 animate-in slide-in-from-top-2 duration-300">
                 <MdCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
-                <p className="text-green-800 dark:text-green-200">{promptSuccess}</p>
+                <p className="text-sm text-green-800 dark:text-green-200">{promptSuccess}</p>
               </div>
             )}
 
             {/* Prompt Loading State */}
             {promptsLoading ? (
-              <div className="flex items-center justify-center py-12">
-                <BiLoaderAlt className="w-8 h-8 animate-spin text-indigo-600" />
+              <div className="flex items-center justify-center py-20">
+                <div className="text-center">
+                  <BiLoaderAlt className="w-12 h-12 animate-spin text-indigo-600 mx-auto mb-4" />
+                  <p className="text-gray-600 dark:text-gray-400">Loading prompt templates...</p>
+                </div>
               </div>
             ) : (
-              <div className="grid grid-cols-12 gap-6">
-                {/* Prompt Type Selector */}
-                <div className="col-span-3">
-                  <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700 overflow-hidden">
-                    <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700">
-                      <h3 className="font-semibold text-gray-900 dark:text-white">Prompt Types</h3>
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+                {/* Prompt Editor Header */}
+                <div className="px-6 py-4 bg-gradient-to-r from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-b border-gray-200 dark:border-gray-700">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-gray-900 dark:text-white flex items-center gap-2">
+                        <MdCode className="w-5 h-5 text-indigo-600 dark:text-indigo-400" />
+                        System Prompt Editor
+                      </h3>
+                      <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                        Configure the main AI personality and behavior
+                      </p>
                     </div>
-                    <div className="p-2">
-                      {[
-                        { type: "system" as PromptType, label: "System Prompt", description: "Main chatbot prompt" },
-                        { type: "system_verbose" as PromptType, label: "Verbose Prompt", description: "Detailed fallback prompt" },
-                        { type: "simulation" as PromptType, label: "Simulation Prompt", description: "Simulation tool commands" },
-                      ].map((item) => (
-                        <button
-                          key={item.type}
-                          onClick={() => selectPrompt(item.type)}
-                          className={`w-full text-left px-3 py-2.5 rounded-lg mb-1 transition-all ${selectedPrompt === item.type
-                            ? "bg-indigo-50 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-300 font-medium"
-                            : "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"
-                            }`}
-                        >
-                          <div className="font-medium text-sm">{item.label}</div>
-                          <div className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">{item.description}</div>
-                        </button>
-                      ))}
+                    <div className="flex items-center gap-4">
+                      <label className="flex items-center gap-2 cursor-pointer group">
+                        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Active</span>
+                        <div className="relative">
+                          <input
+                            type="checkbox"
+                            checked={promptActive}
+                            onChange={(e) => setPromptActive(e.target.checked)}
+                            className="sr-only peer"
+                          />
+                          <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-indigo-600"></div>
+                        </div>
+                      </label>
                     </div>
                   </div>
                 </div>
 
-                {/* Prompt Editor */}
-                <div className="col-span-9">
-                  {selectedPrompt && (
-                    <div className="bg-white dark:bg-gray-800 rounded-xl shadow border border-gray-200 dark:border-gray-700">
-                      <div className="p-4 bg-gray-50 dark:bg-gray-900/50 border-b border-gray-200 dark:border-gray-700 flex items-center justify-between">
-                        <div>
-                          <h3 className="font-semibold text-gray-900 dark:text-white">
-                            {selectedPrompt === "system" && "System Prompt"}
-                            {selectedPrompt === "system_verbose" && "Verbose System Prompt"}
-                            {selectedPrompt === "simulation" && "Simulation Prompt"}
-                          </h3>
-                          <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
-                            Edit the prompt template content below
-                          </p>
-                        </div>
-                        <div className="flex items-center gap-2">
-                          <label className="flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="checkbox"
-                              checked={promptActive}
-                              onChange={(e) => setPromptActive(e.target.checked)}
-                              className="w-4 h-4 text-indigo-600 bg-gray-100 border-gray-300 rounded focus:ring-indigo-500 dark:focus:ring-indigo-600 dark:ring-offset-gray-800 focus:ring-2 dark:bg-gray-700 dark:border-gray-600"
-                            />
-                            <span className="text-sm text-gray-700 dark:text-gray-300">Active</span>
-                          </label>
-                        </div>
-                      </div>
+                <div className="p-6 space-y-6">
+                  {/* Description Field */}
+                  <div>
+                    <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                      Description
+                    </label>
+                    <input
+                      type="text"
+                      value={promptDescription}
+                      onChange={(e) => setPromptDescription(e.target.value)}
+                      placeholder="Brief description of this prompt template..."
+                      className="w-full px-4 py-3 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-900 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all"
+                    />
+                  </div>
 
-                      <div className="p-6 space-y-4">
-                        {/* Description */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Description
-                          </label>
-                          <input
-                            type="text"
-                            value={promptDescription}
-                            onChange={(e) => setPromptDescription(e.target.value)}
-                            placeholder="Brief description of this prompt"
-                            className="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                          />
-                        </div>
-
-                        {/* Prompt Content */}
-                        <div>
-                          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                            Prompt Content
-                          </label>
-                          <div className="relative border border-gray-300 dark:border-gray-600 rounded-lg overflow-hidden bg-white dark:bg-gray-900">
-                            <div className="flex" style={{ height: '480px' }}>
-                              {/* Line Numbers */}
-                              <div
-                                ref={lineNumbersRef}
-                                className="flex-shrink-0 bg-gray-50 dark:bg-gray-800 border-r border-gray-300 dark:border-gray-600 select-none overflow-hidden pointer-events-none"
-                                style={{
-                                  height: '480px',
-                                  paddingTop: '12px',
-                                  paddingBottom: '12px'
-                                }}
-                              >
-                                <div className="px-3 font-mono text-sm text-gray-500 dark:text-gray-400 text-right" style={{ lineHeight: '1.5rem' }}>
-                                  {promptContent.split('\n').map((_, index) => (
-                                    <div key={index} style={{ height: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-                                      {index + 1}
-                                    </div>
-                                  ))}
-                                </div>
-                              </div>
-                              {/* Textarea */}
-                              <textarea
-                                ref={textareaRef}
-                                value={promptContent}
-                                onChange={(e) => setPromptContent(e.target.value)}
-                                onScroll={handleTextareaScroll}
-                                rows={20}
-                                className="flex-1 bg-transparent text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono text-sm resize-none overflow-y-auto"
-                                placeholder="Enter prompt template content..."
-                                style={{
-                                  height: '480px',
-                                  padding: '12px 16px',
-                                  lineHeight: '1.5rem'
-                                }}
-                              />
-                            </div>
-                          </div>
-                          <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">
-                            Available placeholders: {"{BOT_NAME}"}, {"{user_name}"}, {"{FRONTEND_URL}"}, {"{simulation_context}"}
-                          </p>
-                        </div>
-
-                        {/* Actions */}
-                        <div className="flex items-center gap-3 pt-4">
-                          <Button
-                            onClick={handlePromptSave}
-                            disabled={promptSaving || !promptContent.trim()}
-                            text={promptSaving ? "Saving..." : "Save Prompt"}
-                            classNames="px-6 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:shadow-lg disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
-                            isLoading={promptSaving}
-                            loadingIcon={<BiLoaderAlt />}
-                          />
-                          <Button
-                            onClick={handlePromptReset}
-                            disabled={promptSaving}
-                            text="Reset to Default"
-                            classNames="px-6 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 cursor-pointer"
-                            icon={<MdRefresh />}
-                          />
-                        </div>
+                  {/* Prompt Content Editor */}
+                  <div>
+                    <div className="flex items-center justify-between mb-3">
+                      <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                        Prompt Template
+                      </label>
+                      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded font-mono">{promptContent.split('\n').length} lines</span>
+                        <span className="px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded font-mono">{promptContent.length} chars</span>
                       </div>
                     </div>
-                  )}
+
+                    <div className="relative border-2 border-gray-200 dark:border-gray-600 rounded-xl overflow-hidden bg-gray-50 dark:bg-gray-900 shadow-inner">
+                      <div className="flex" style={{ height: '560px' }}>
+                        {/* Line Numbers */}
+                        <div
+                          ref={lineNumbersRef}
+                          className="flex-shrink-0 bg-gray-100 dark:bg-gray-800 border-r-2 border-gray-200 dark:border-gray-600 select-none overflow-hidden"
+                          style={{
+                            width: '60px',
+                            height: '560px',
+                            paddingTop: '16px',
+                            paddingBottom: '16px'
+                          }}
+                        >
+                          <div className="font-mono text-xs text-gray-400 dark:text-gray-500 text-right pr-3" style={{ lineHeight: '1.6rem' }}>
+                            {promptContent.split('\n').map((_, index) => (
+                              <div key={index} className="hover:text-indigo-500 transition-colors" style={{ height: '1.6rem', display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+                                {index + 1}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* Textarea */}
+                        <textarea
+                          ref={textareaRef}
+                          value={promptContent}
+                          onChange={(e) => setPromptContent(e.target.value)}
+                          onScroll={handleTextareaScroll}
+                          className="flex-1 bg-white dark:bg-gray-900 text-gray-900 dark:text-white focus:outline-none focus:ring-0 font-mono text-sm resize-none overflow-y-auto"
+                          placeholder="Enter your system prompt template here..."
+                          style={{
+                            height: '560px',
+                            padding: '16px 20px',
+                            lineHeight: '1.6rem'
+                          }}
+                        />
+                      </div>
+                    </div>
+
+                    {/* Helpful Info */}
+                    <div className="mt-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl">
+                      <p className="text-xs font-semibold text-indigo-900 dark:text-indigo-200 mb-2">
+                        Available Placeholders:
+                      </p>
+                      <div className="flex flex-wrap gap-2">
+                        {[
+                          { key: "{BOT_NAME}", desc: "AI name" },
+                          { key: "{user_name}", desc: "User's name" },
+                          { key: "{FRONTEND_URL}", desc: "App URL" }
+                        ].map((placeholder) => (
+                          <div key={placeholder.key} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-white dark:bg-gray-800 border border-indigo-200 dark:border-indigo-700 rounded-lg">
+                            <code className="text-xs font-mono font-semibold text-indigo-700 dark:text-indigo-300">
+                              {placeholder.key}
+                            </code>
+                            <span className="text-xs text-gray-500 dark:text-gray-400">→ {placeholder.desc}</span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Footer */}
+                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <Button
+                    onClick={handlePromptReset}
+                    disabled={promptSaving}
+                    text="Reset to Default"
+                    classNames="px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 cursor-pointer shadow-sm hover:shadow"
+                    icon={<MdRefresh className="w-4 h-4" />}
+                  />
+                  <Button
+                    onClick={handlePromptSave}
+                    disabled={promptSaving || !promptContent.trim()}
+                    text={promptSaving ? "Saving Changes..." : "Save Prompt"}
+                    classNames="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                    isLoading={promptSaving}
+                    loadingIcon={<BiLoaderAlt className="w-4 h-4" />}
+                  />
                 </div>
               </div>
             )}
-          </>
+          </div>
         )}
       </div>
     </DashboardLayout>

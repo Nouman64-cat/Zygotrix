@@ -23,6 +23,7 @@ from .common import (
     get_projects_collection,
     get_simulation_logs_collection,
 )
+from ..repositories.builders.mongo_query_builder import MongoQueryBuilder
 from ..config import get_settings
 
 
@@ -458,15 +459,17 @@ class AnalyticsService:
         end_date: datetime,
         user_id: Optional[str],
     ):
-        criteria: Dict[str, Any] = {
-            "$or": [
-                {"updated_at": {"$gte": start_date, "$lte": end_date}},
-                {"created_at": {"$gte": start_date, "$lte": end_date}},
-            ]
-        }
+        # Use MongoQueryBuilder for cleaner query construction
+        builder = MongoQueryBuilder().with_or([
+            {"updated_at": {"$gte": start_date, "$lte": end_date}},
+            {"created_at": {"$gte": start_date, "$lte": end_date}},
+        ])
+
         if user_id:
-            criteria["owner_id"] = user_id
-        yield from collection.find(criteria)
+            builder.with_field("owner_id", user_id)
+
+        query = builder.build()["filter"]
+        yield from collection.find(query)
 
     def _summarize_simulation_dict(
         self, sim_results: Dict[str, Any]
@@ -578,10 +581,14 @@ class AnalyticsService:
         end_date: datetime,
         user_id: Optional[str],
     ):
-        criteria: Dict[str, Any] = {"timestamp": {"$gte": start_date, "$lte": end_date}}
+        # Use MongoQueryBuilder for cleaner query construction
+        builder = MongoQueryBuilder().with_date_range("timestamp", start_date, end_date)
+
         if user_id:
-            criteria["user_id"] = user_id
-        yield from collection.find(criteria)
+            builder.with_field("user_id", user_id)
+
+        query = builder.build()["filter"]
+        yield from collection.find(query)
 
     def _get_system_performance_metrics(self) -> SystemPerformanceMetrics:
 

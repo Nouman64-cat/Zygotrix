@@ -368,14 +368,14 @@ def _find_trait_for_genotype(genotype: str, trait_name: str = None):
 
 def calculate_punnett_square(parent1: str, parent2: str, trait_name: str = None) -> dict:
     """
-    Calculate a Punnett Square for a genetic cross using the existing MendelianCalculator.
+    Calculate a Punnett Square for a genetic cross.
     
-    This uses the same calculation engine as the Simulation Studio for consistency.
+    Supports monohybrid, dihybrid, trihybrid, and higher-order crosses.
     
     Args:
-        parent1: Genotype of first parent (e.g., "Aa", "BB", "AO")
+        parent1: Genotype of first parent (e.g., "Aa", "AaBb", "AaBbCcDd")
         parent2: Genotype of second parent
-        trait_name: Optional trait name to look up phenotypes
+        trait_name: Optional trait name to look up phenotypes (for monohybrid only)
     
     Returns:
         dict: Punnett square results with offspring genotypes and ratios
@@ -384,29 +384,44 @@ def calculate_punnett_square(parent1: str, parent2: str, trait_name: str = None)
     p1 = parent1.strip().replace(" ", "")
     p2 = parent2.strip().replace(" ", "")
     
-    # Validate genotypes
-    if not _is_valid_genotype(p1) or not _is_valid_genotype(p2):
+    # Validate genotypes using diploid constraint
+    p1_valid, p1_error = _validate_diploid_genotype(p1)
+    if not p1_valid:
         return {
             "error": True,
-            "message": f"Invalid genotype format. Please use formats like 'Aa', 'BB', 'AO'. Got: '{parent1}' and '{parent2}'"
+            "message": p1_error
         }
     
-    # Only support monohybrid (single gene) crosses for now
-    if len(p1) != 2 or len(p2) != 2:
+    p2_valid, p2_error = _validate_diploid_genotype(p2)
+    if not p2_valid:
         return {
             "error": True,
-            "message": f"Currently only monohybrid (single gene) crosses are supported. Both genotypes should have 2 alleles."
+            "message": p2_error
         }
     
-    # Try to find a matching trait for accurate phenotypes
-    trait = _find_trait_for_genotype(p1, trait_name)
+    # Parse genotypes into genes
+    p1_genes = _parse_genotype_to_genes(p1)
+    p2_genes = _parse_genotype_to_genes(p2)
     
-    if trait:
-        # Use the real MendelianCalculator with trait data
-        return _calculate_with_real_trait(p1, p2, trait)
-    else:
-        # Fall back to generic calculation
-        return _calculate_generic_cross(p1, p2)
+    # Both parents must have the same number of genes
+    if len(p1_genes) != len(p2_genes):
+        return {
+            "error": True,
+            "message": f"Both parents must have the same number of genes. Parent 1 has {len(p1_genes)} gene(s), Parent 2 has {len(p2_genes)} gene(s)."
+        }
+    
+    num_genes = len(p1_genes)
+    
+    # For monohybrid crosses, try to use trait data
+    if num_genes == 1:
+        trait = _find_trait_for_genotype(p1, trait_name)
+        if trait:
+            return _calculate_with_real_trait(p1, p2, trait)
+        else:
+            return _calculate_generic_cross(p1, p2)
+    
+    # For multihybrid crosses, use generic calculation
+    return _calculate_multihybrid_cross(p1_genes, p2_genes, p1, p2)
 
 
 def _calculate_with_real_trait(p1: str, p2: str, trait) -> dict:
@@ -558,12 +573,218 @@ def _calculate_generic_cross(p1: str, p2: str) -> dict:
     }
 
 
+def _calculate_multihybrid_cross(p1_genes: list, p2_genes: list, p1_full: str, p2_full: str) -> dict:
+    """
+    Calculate a multihybrid cross (dihybrid, trihybrid, etc.).
+    
+    Args:
+        p1_genes: List of gene pairs for parent 1 (e.g., ["Aa", "Bb"])
+        p2_genes: List of gene pairs for parent 2
+        p1_full: Full genotype string for parent 1
+        p2_full: Full genotype string for parent 2
+    
+    Returns:
+        dict: Punnett square results with offspring genotypes and ratios
+    """
+    import itertools
+    
+    num_genes = len(p1_genes)
+    cross_type = _get_cross_type(num_genes)
+    
+    # Generate gametes for each parent
+    # Each gamete contains one allele from each gene
+    
+    def get_gametes(genes: list) -> list:
+        """Generate all possible gametes from gene pairs."""
+        allele_options = []
+        for gene in genes:
+            # Each gene contributes one of its two alleles
+            allele_options.append([gene[0], gene[1]])
+        # Cartesian product gives all possible gamete combinations
+        return ["".join(combo) for combo in itertools.product(*allele_options)]
+    
+    p1_gametes = get_gametes(p1_genes)
+    p2_gametes = get_gametes(p2_genes)
+    
+    # Generate all offspring genotypes
+    offspring_genotypes = []
+    punnett_steps = []
+    
+    for g1 in p1_gametes:
+        for g2 in p2_gametes:
+            # Combine gametes to form offspring genotype
+            # Normalize each gene pair (uppercase first)
+            offspring_genes = []
+            for i in range(num_genes):
+                a1, a2 = g1[i], g2[i]
+                gene_pair = _normalize_allele_pair(a1, a2)
+                offspring_genes.append(gene_pair)
+            
+            offspring_genotype = "".join(offspring_genes)
+            offspring_genotypes.append(offspring_genotype)
+            
+            punnett_steps.append({
+                "parent1_gamete": g1,
+                "parent2_gamete": g2,
+                "offspring_genotype": offspring_genotype
+            })
+    
+    # Count genotype frequencies
+    genotype_counts = {}
+    for g in offspring_genotypes:
+        genotype_counts[g] = genotype_counts.get(g, 0) + 1
+    
+    total = len(offspring_genotypes)
+    
+    # Calculate genotype results
+    genotype_results = []
+    for genotype, count in sorted(genotype_counts.items()):
+        percentage = (count / total) * 100
+        phenotype = _predict_multihybrid_phenotype(genotype, num_genes)
+        genotype_results.append({
+            "genotype": genotype,
+            "count": count,
+            "ratio": f"{count}/{total}",
+            "percentage": f"{percentage:.2f}%",
+            "phenotype": phenotype
+        })
+    
+    # Calculate phenotype ratios
+    phenotype_counts = {}
+    for g in offspring_genotypes:
+        p = _predict_multihybrid_phenotype(g, num_genes)
+        phenotype_counts[p] = phenotype_counts.get(p, 0) + 1
+    
+    phenotype_results = []
+    for phenotype, count in sorted(phenotype_counts.items()):
+        percentage = (count / total) * 100
+        phenotype_results.append({
+            "phenotype": phenotype,
+            "count": count,
+            "ratio": f"{count}/{total}",
+            "percentage": f"{percentage:.2f}%"
+        })
+    
+    # Build Punnett grid for multihybrid
+    grid = _build_multihybrid_punnett_grid(p1_gametes, p2_gametes, punnett_steps)
+    
+    # Generate summary
+    summary = _generate_multihybrid_summary(p1_full, p2_full, num_genes, genotype_results, phenotype_results, total)
+    
+    return {
+        "success": True,
+        "cross_type": cross_type,
+        "num_genes": num_genes,
+        "trait_name": None,
+        "parent1": p1_full,
+        "parent2": p2_full,
+        "parent1_gametes": p1_gametes,
+        "parent2_gametes": p2_gametes,
+        "punnett_square": grid,
+        "offspring_genotypes": genotype_results,
+        "offspring_phenotypes": phenotype_results,
+        "genotype_ratio": _simplify_ratio(genotype_counts),
+        "phenotype_ratio": _simplify_ratio(phenotype_counts),
+        "total_offspring_combinations": total,
+        "unique_genotypes": len(genotype_counts),
+        "unique_phenotypes": len(phenotype_counts),
+        "using_real_trait_data": False,
+        "summary": summary
+    }
+
+
+def _predict_multihybrid_phenotype(genotype: str, num_genes: int) -> str:
+    """
+    Predict phenotype for a multihybrid genotype using generic dominant/recessive logic.
+    
+    Returns a description like "Dominant-Dominant-Recessive" for each gene.
+    """
+    genes = _parse_genotype_to_genes(genotype)
+    if not genes:
+        return "Unknown"
+    
+    phenotype_parts = []
+    gene_labels = "ABCDEFGHIJ"  # Labels for genes
+    
+    for i, gene in enumerate(genes):
+        if len(gene) != 2:
+            phenotype_parts.append("?")
+            continue
+        
+        a1, a2 = gene[0], gene[1]
+        gene_label = gene_labels[i] if i < len(gene_labels) else f"Gene{i+1}"
+        
+        # Determine dominance: uppercase = dominant
+        if a1.isupper() or a2.isupper():
+            phenotype_parts.append(f"{gene_label}_dominant")
+        else:
+            phenotype_parts.append(f"{gene_label}_recessive")
+    
+    return " | ".join(phenotype_parts)
+
+
+def _build_multihybrid_punnett_grid(p1_gametes: list, p2_gametes: list, steps: list) -> dict:
+    """Build a Punnett grid for multihybrid crosses."""
+    # Create a lookup for offspring genotypes
+    offspring_lookup = {}
+    for step in steps:
+        key = (step["parent1_gamete"], step["parent2_gamete"])
+        offspring_lookup[key] = step["offspring_genotype"]
+    
+    grid = {
+        "header": [""] + p1_gametes,
+        "rows": []
+    }
+    
+    for g2 in p2_gametes:
+        row = [g2]
+        for g1 in p1_gametes:
+            offspring = offspring_lookup.get((g1, g2), "")
+            row.append(offspring)
+        grid["rows"].append(row)
+    
+    return grid
+
+
+def _generate_multihybrid_summary(p1: str, p2: str, num_genes: int, 
+                                   genotypes: list, phenotypes: list, total: int) -> str:
+    """Generate a summary for multihybrid crosses."""
+    cross_type = _get_cross_type(num_genes)
+    
+    summary_parts = [
+        f"**{cross_type.capitalize()} Cross**: `{p1} × {p2}`",
+        f"",
+        f"This is a {num_genes}-gene cross producing **{total} possible offspring combinations**.",
+        f"",
+        f"**Unique Genotypes**: {len(genotypes)}",
+        f"**Unique Phenotypes**: {len(phenotypes)}",
+    ]
+    
+    # Add expected ratio for common crosses
+    if num_genes == 2:
+        summary_parts.append("")
+        summary_parts.append("For a dihybrid cross between two heterozygotes (AaBb × AaBb), the expected phenotypic ratio is **9:3:3:1**.")
+    elif num_genes == 3:
+        summary_parts.append("")
+        summary_parts.append("For a trihybrid cross, the expected phenotypic ratio follows factorial combinations of the 3:1 ratio.")
+    
+    return "\n".join(summary_parts)
+
+
 def _is_valid_genotype(genotype: str) -> bool:
-    """Check if a genotype string is valid."""
+    """
+    Check if a genotype string is valid for diploid organisms.
+    
+    Rules:
+    - Must be non-empty
+    - Must have even length (pairs of alleles)
+    - Must contain only letters (and optionally +/-)
+    - Each gene (pair of alleles) must use letters that represent a single gene
+    """
     if not genotype:
         return False
     
-    # Must be even length (pairs of alleles)
+    # Must be even length (pairs of alleles for diploid organisms)
     if len(genotype) % 2 != 0:
         return False
     
@@ -572,6 +793,89 @@ def _is_valid_genotype(genotype: str) -> bool:
         return False
     
     return True
+
+
+def _validate_diploid_genotype(genotype: str) -> tuple[bool, str]:
+    """
+    Validate that a genotype respects the diploid constraint.
+    
+    For humans (and most animals), each gene must have exactly 2 alleles.
+    
+    Args:
+        genotype: The genotype string to validate (e.g., "Aa", "AaBb", "AaBbCcDd")
+    
+    Returns:
+        Tuple of (is_valid, error_message)
+    """
+    if not genotype:
+        return False, "Genotype cannot be empty."
+    
+    # Check for odd length (must be pairs)
+    if len(genotype) % 2 != 0:
+        return False, f"Invalid genotype '{genotype}'. Humans are diploid - each gene must have exactly 2 alleles (e.g., 'Aa', not 'A' or 'AAA')."
+    
+    # Check for non-alphabetic characters (excluding +/-)
+    clean_genotype = genotype.replace("+", "").replace("-", "")
+    if not clean_genotype.isalpha():
+        return False, f"Invalid genotype '{genotype}'. Genotypes must contain only letters representing alleles."
+    
+    # Parse into gene pairs and validate each gene
+    genes = _parse_genotype_to_genes(genotype)
+    if genes is None:
+        return False, f"Invalid genotype '{genotype}'. Could not parse gene pairs."
+    
+    # Validate each gene pair
+    for gene_pair in genes:
+        if len(gene_pair) != 2:
+            return False, f"Invalid gene '{gene_pair}'. Humans are diploid - each gene must have exactly 2 alleles."
+        
+        a1, a2 = gene_pair[0], gene_pair[1]
+        
+        # The two alleles should be the same letter (one uppercase, one lowercase) 
+        # OR both the same (homozygous)
+        if a1.upper() != a2.upper():
+            # This might be intentional for special cases like blood types (AO, BO)
+            # Allow it but log
+            pass
+    
+    return True, ""
+
+
+def _parse_genotype_to_genes(genotype: str) -> list[str] | None:
+    """
+    Parse a multi-gene genotype string into individual gene pairs.
+    
+    Examples:
+        "Aa" -> ["Aa"]
+        "AaBb" -> ["Aa", "Bb"]
+        "AaBbCcDd" -> ["Aa", "Bb", "Cc", "Dd"]
+    
+    Args:
+        genotype: The genotype string
+    
+    Returns:
+        List of gene pairs, or None if parsing fails
+    """
+    if not genotype or len(genotype) % 2 != 0:
+        return None
+    
+    genes = []
+    for i in range(0, len(genotype), 2):
+        gene_pair = genotype[i:i+2]
+        genes.append(gene_pair)
+    
+    return genes
+
+
+def _get_cross_type(num_genes: int) -> str:
+    """Get the cross type name based on number of genes."""
+    cross_types = {
+        1: "monohybrid",
+        2: "dihybrid",
+        3: "trihybrid",
+        4: "tetrahybrid",
+    }
+    return cross_types.get(num_genes, f"{num_genes}-hybrid")
 
 
 def _predict_generic_phenotype(genotype: str) -> str:

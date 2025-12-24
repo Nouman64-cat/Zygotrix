@@ -5,7 +5,7 @@ Validators for email address format and domain validation.
 """
 
 import re
-from typing import Dict, Any, Set
+from typing import Dict, Any, Set, Optional
 
 from .chain import ValidationHandler
 from ..exceptions.validation import InvalidEmailFormatError, InvalidInputError

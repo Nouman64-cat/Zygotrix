@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request
 from datetime import datetime, timezone
 
 from ..dependencies import get_current_user
+from ..infrastructure.http.client_info import ClientInfoExtractor
 from ..schema.auth import (
     AuthResponse,
     SignupInitiateRequest,
@@ -58,28 +59,12 @@ def resend_signup_otp(payload: SignupResendRequest) -> SignupInitiateResponse:
     )
 
 
-def _get_client_ip(request: Request) -> str:
-    """Extract client IP from request, handling proxies."""
-    # Check for forwarded headers (when behind proxy/load balancer)
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        # Get the first IP in the chain (original client)
-        return forwarded_for.split(",")[0].strip()
-
-    real_ip = request.headers.get("X-Real-IP")
-    if real_ip:
-        return real_ip.strip()
-
-    # Fall back to direct client IP
-    return request.client.host if request.client else "Unknown"
-
-
 @router.post("/login", response_model=AuthResponse)
 def login(payload: UserLoginRequest, request: Request) -> AuthResponse:
     auth_service = get_authentication_service()
 
     # Extract client information
-    ip_address = _get_client_ip(request)
+    ip_address = ClientInfoExtractor.get_ip_address(request)
     user_agent = request.headers.get("User-Agent")
 
     # Authenticate and track activity

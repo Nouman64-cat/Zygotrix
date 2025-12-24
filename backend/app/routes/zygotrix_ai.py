@@ -40,6 +40,7 @@ from ..services.zygotrix_ai_service import (
 
 from ..services.chatbot_settings import get_chatbot_settings
 from ..dependencies import get_current_user, get_current_admin
+from ..infrastructure.http.client_info import ClientInfoExtractor
 from ..schema.auth import UserProfile
 from ..services import auth as auth_services
 
@@ -57,22 +58,6 @@ router = APIRouter(prefix="/api/zygotrix-ai", tags=["Zygotrix AI"])
 # =============================================================================
 # HELPER FUNCTIONS
 # =============================================================================
-
-def _get_client_ip(request: Request) -> str:
-    """Extract client IP from request, handling proxies."""
-    # Check for forwarded headers (when behind proxy/load balancer)
-    forwarded_for = request.headers.get("X-Forwarded-For")
-    if forwarded_for:
-        # Get the first IP in the chain (original client)
-        return forwarded_for.split(",")[0].strip()
-
-    real_ip = request.headers.get("X-Real-IP")
-    if real_ip:
-        return real_ip.strip()
-
-    # Fall back to direct client IP
-    return request.client.host if request.client else "Unknown"
-
 
 def get_user_id_from_profile(current_user: UserProfile = Depends(get_current_user)) -> str:
     """Extract user ID from authenticated user profile."""
@@ -116,7 +101,7 @@ async def chat(
     """
     # Track user activity (login tracking for zygotrix_ai)
     try:
-        ip_address = _get_client_ip(http_request)
+        ip_address = ClientInfoExtractor.get_ip_address(http_request)
         user_agent = http_request.headers.get("User-Agent")
         auth_services.update_user_activity(
             user_id=current_user.id,

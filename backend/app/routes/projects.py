@@ -63,22 +63,6 @@ def list_projects(
     )
 
 
-def create_project_local(
-    payload: ProjectCreateRequest,
-    current_user: UserProfile = Depends(get_current_user),
-) -> ProjectResponse:
-    project = create_project(
-        name=payload.name,
-        description=payload.description,
-        project_type=payload.type,
-        owner_id=current_user.id,
-        tags=payload.tags,
-        from_template=payload.from_template,
-        color=payload.color,
-    )
-    return ProjectResponse(project=project)
-
-
 @router.post("/", response_model=ProjectResponse, status_code=201)
 def create_project_route(
     payload: ProjectCreateRequest,

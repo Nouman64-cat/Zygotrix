@@ -1,6 +1,5 @@
 from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
-from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
 from ..schema.community import (
     QuestionCreate,
@@ -18,33 +17,10 @@ from ..schema.community import (
     MessageResponse,
 )
 from ..schema.auth import UserProfile
+from ..dependencies import get_current_user, get_current_user_optional
 from ..services import community as services
-from ..services import auth as auth_services
 
 router = APIRouter(prefix="/api/community", tags=["Community"])
-
-bearer_scheme = HTTPBearer(auto_error=False)
-
-
-def get_current_user_optional(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme),
-) -> Optional[UserProfile]:
-
-    if not credentials:
-        return None
-    try:
-        user = auth_services.resolve_user_from_token(credentials.credentials)
-        return UserProfile(**user)
-    except Exception:
-        return None
-
-
-def get_current_user_required(
-    credentials: HTTPAuthorizationCredentials = Depends(HTTPBearer(auto_error=True)),
-) -> UserProfile:
-
-    user = auth_services.resolve_user_from_token(credentials.credentials)
-    return UserProfile(**user)
 
 
 @router.get("/questions", response_model=QuestionListResponse)
@@ -74,7 +50,7 @@ def list_questions(
 @router.post("/questions", response_model=QuestionResponse, status_code=201)
 def create_question(
     payload: QuestionCreate,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     question_id = services.create_question(
@@ -122,7 +98,7 @@ def get_question(
 def update_question(
     question_id: str,
     payload: QuestionUpdate,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.update_question(
@@ -150,7 +126,7 @@ def update_question(
 @router.delete("/questions/{question_id}", response_model=MessageResponse)
 def delete_question(
     question_id: str,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.delete_question(question_id, current_user.id)
@@ -167,7 +143,7 @@ def delete_question(
 def vote_on_question(
     question_id: str,
     payload: VoteRequest,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.vote_question(question_id, current_user.id, payload.vote_type)
@@ -184,7 +160,7 @@ def vote_on_question(
 def create_answer(
     question_id: str,
     payload: AnswerCreate,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     answer_id = services.create_answer(
@@ -211,7 +187,7 @@ def create_answer(
 def update_answer(
     answer_id: str,
     payload: AnswerUpdate,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.update_answer(
@@ -231,7 +207,7 @@ def update_answer(
 @router.delete("/answers/{answer_id}", response_model=MessageResponse)
 def delete_answer(
     answer_id: str,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.delete_answer(answer_id, current_user.id)
@@ -251,7 +227,7 @@ def delete_answer(
 def accept_answer(
     question_id: str,
     answer_id: str,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.accept_answer(question_id, answer_id, current_user.id)
@@ -268,7 +244,7 @@ def accept_answer(
 def vote_on_answer(
     answer_id: str,
     payload: VoteRequest,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.vote_answer(answer_id, current_user.id, payload.vote_type)
@@ -283,7 +259,7 @@ def vote_on_answer(
 def create_comment(
     question_id: str,
     payload: CommentCreate,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     try:
@@ -331,7 +307,7 @@ def get_question_comments(
 def update_comment(
     comment_id: str,
     payload: CommentUpdate,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.update_comment(comment_id, payload.content, current_user.id)
@@ -356,7 +332,7 @@ def update_comment(
 @router.delete("/comments/{comment_id}", response_model=MessageResponse)
 def delete_comment(
     comment_id: str,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.delete_comment(comment_id, current_user.id)
@@ -373,7 +349,7 @@ def delete_comment(
 def vote_on_comment(
     comment_id: str,
     payload: VoteRequest,
-    current_user: UserProfile = Depends(get_current_user_required),
+    current_user: UserProfile = Depends(get_current_user),
 ):
 
     success = services.vote_comment(comment_id, current_user.id, payload.vote_type)

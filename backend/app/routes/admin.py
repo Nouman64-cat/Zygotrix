@@ -7,7 +7,6 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from ..dependencies import get_current_admin, get_current_super_admin
 from ..schema.auth import (
     UserProfile,
-    AdminUserListItem,
     AdminUserListResponse,
     AdminUserActionRequest,
     AdminUserActionResponse,
@@ -15,6 +14,7 @@ from ..schema.auth import (
     UserRole,
     MessageResponse,
 )
+from ..services.admin import serialize_admin_user_list
 from ..schema.chatbot_settings import (
     ChatbotSettings,
     ChatbotSettingsUpdate,
@@ -53,28 +53,8 @@ def list_users(
         status_filter=status,
     )
 
-    user_items = [
-        AdminUserListItem(
-            id=u["id"],
-            email=u["email"],
-            full_name=u.get("full_name"),
-            user_role=u.get("user_role", "user"),
-            is_active=u.get("is_active", True),
-            created_at=u["created_at"],
-            organization=u.get("organization"),
-            onboarding_completed=u.get("onboarding_completed", False),
-            university_onboarding_completed=u.get(
-                "university_onboarding_completed", False),
-            deactivated_at=u.get("deactivated_at"),
-            # Activity tracking fields
-            last_accessed_at=u.get("last_accessed_at"),
-            last_ip_address=u.get("last_ip_address"),
-            last_location=u.get("last_location"),
-            last_browser=u.get("last_browser"),
-            login_history=u.get("login_history"),
-        )
-        for u in users
-    ]
+    # Use serializer for clean transformation
+    user_items = serialize_admin_user_list(users)
 
     total_pages = ceil(total / page_size) if total > 0 else 1
 

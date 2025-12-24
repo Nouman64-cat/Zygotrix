@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import Depends, HTTPException
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from .schema.auth import UserProfile
@@ -5,6 +6,7 @@ from .services.auth.authentication_service import get_authentication_service
 from .services import admin as admin_services
 
 bearer_scheme = HTTPBearer(auto_error=True)
+bearer_scheme_optional = HTTPBearer(auto_error=False)
 
 
 def get_current_user(
@@ -21,6 +23,33 @@ def get_current_user(
         )
 
     return UserProfile(**user)
+
+
+def get_current_user_optional(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(bearer_scheme_optional),
+) -> Optional[UserProfile]:
+    """
+    Get current user if authenticated, None otherwise.
+
+    This dependency does not raise an error if no credentials are provided,
+    making it suitable for endpoints that work for both authenticated and
+    unauthenticated users.
+    """
+    if not credentials:
+        return None
+
+    try:
+        auth_service = get_authentication_service()
+        user = auth_service.resolve_user_from_token(credentials.credentials)
+
+        # Check if user is active
+        if not user.get("is_active", True):
+            return None
+
+        return UserProfile(**user)
+    except Exception:
+        # Invalid token or other auth errors - return None for optional auth
+        return None
 
 
 def get_current_admin(

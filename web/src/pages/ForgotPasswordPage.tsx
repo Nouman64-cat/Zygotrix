@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
 import logo from "../../public/zygotrix-logo.png";
+import { AxiosError } from "axios";
 
 import {
   requestPasswordResetOtp,
@@ -26,6 +27,24 @@ const formatExpiry = (value: string | null): string | null => {
 };
 
 const extractErrorMessage = (error: unknown): string => {
+  // Handle Axios errors
+  if (error instanceof AxiosError) {
+    const detail = error.response?.data?.detail;
+    const message = error.response?.data?.message;
+
+    if (typeof detail === 'string') return detail;
+    if (typeof message === 'string') return message;
+
+    // Fallback to status-based messages
+    if (error.response?.status === 401) {
+      return 'Invalid verification code. Please try again.';
+    }
+    if (error.response?.status === 400) {
+      return 'Invalid request. Please check your input.';
+    }
+  }
+
+  // Handle regular errors
   if (error instanceof Error) {
     try {
       const parsed = JSON.parse(error.message);
@@ -37,6 +56,7 @@ const extractErrorMessage = (error: unknown): string => {
     }
     return error.message;
   }
+
   return "We could not complete your request. Please try again.";
 };
 
@@ -164,7 +184,7 @@ const ForgotPasswordPage: React.FC = () => {
       return;
     }
 
-    setIsLoading(true);
+    setIsSubmitting(true);
     try {
       const response = await verifyPasswordResetOtpOnly({ email, otp });
       setMessage(response.message);
@@ -172,7 +192,7 @@ const ForgotPasswordPage: React.FC = () => {
     } catch (err) {
       setError(extractErrorMessage(err));
     } finally {
-      setIsLoading(false);
+      setIsSubmitting(false);
     }
   };
 

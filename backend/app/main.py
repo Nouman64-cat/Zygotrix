@@ -36,6 +36,9 @@ from typing import Optional
 from datetime import datetime, timezone
 import logging
 
+# Import exception handlers
+from .core.exceptions.handlers import register_exception_handlers
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
@@ -107,6 +110,8 @@ app.add_middleware(
     ],
 )
 
+# Register exception handlers
+register_exception_handlers(app)
 
 # Note: Startup logic has been moved to the lifespan context manager above
 

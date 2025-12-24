@@ -6,12 +6,8 @@ folders, sharing, export, and search capabilities.
 """
 
 import logging
-import json
-from datetime import datetime, timezone
 from typing import Optional
 from fastapi import APIRouter, HTTPException, Depends, Query, Request
-from fastapi.responses import StreamingResponse
-from pydantic import BaseModel
 
 from ..schema.zygotrix_ai import (
     # Conversations
@@ -45,19 +41,14 @@ from ..services.zygotrix_ai_service import (
 from ..services.chatbot_settings import get_chatbot_settings
 from ..dependencies import get_current_user, get_current_admin
 from ..schema.auth import UserProfile
-from ..prompt_engineering.prompts import get_zigi_system_prompt, get_simulation_tool_prompt, get_zigi_prompt_with_tools
-
+from ..services import auth as auth_services
 
 from ..services.chatbot.rate_limiting_service import get_rate_limiter
-from ..services.chatbot.token_analytics_service import get_token_analytics_service
-from ..services import auth as auth_services 
-
-from ..services.zygotrix_ai.claude_service import get_zygotrix_claude_service
 from ..services.zygotrix_ai.admin_service import get_zygotrix_admin_service
+from ..services.zygotrix_ai.chat_service import get_zygotrix_chat_service
+from ..services.zygotrix_ai.status_service import get_zygotrix_status_service
 
-from ..services.chatbot.rag_service import get_rag_service
-
-from ..services.chatbot.traits_enrichment_service import get_traits_service
+from ..mcp.claude_tools import get_claude_tools_schema
 
 logger = logging.getLogger(__name__)
 
@@ -143,224 +134,11 @@ async def chat(
     except Exception as e:
         logger.warning(f"Failed to check chatbot status: {e}")
 
-    # Extract user_id and user_name for convenience
-    user_id = current_user.id
-    user_name = current_user.name if hasattr(current_user, 'name') else None
-
-    # Check if user is admin or super admin
-    is_admin = hasattr(current_user, 'user_role') and current_user.user_role in ["admin", "super_admin"]
-
-    # Check rate limit
-    allowed, usage = get_rate_limiter().check_limit(user_id, is_admin=is_admin)
-    if not allowed:
-        raise HTTPException(
-            status_code=429,
-            detail={
-                "message": "Rate limit exceeded. Please wait for the cooldown period.",
-                "tokens_used": usage.get("tokens_used", 0),
-                "tokens_remaining": 0,
-                "reset_time": usage.get("reset_time"),
-                "cooldown_active": True
-            }
-        )
-
-    # Get or create conversation
-    conversation = None
-    if chat_request.conversation_id:
-        conversation = ConversationService.get_conversation(
-            chat_request.conversation_id, user_id
-        )
-        if not conversation:
-            raise HTTPException(status_code=404, detail="Conversation not found")
-    else:
-        # Create new conversation
-        conv_data = ConversationCreate(
-            title=chat_request.message[:50] + ("..." if len(chat_request.message) > 50 else ""),
-            page_context=chat_request.page_context,
-        )
-        conversation = ConversationService.create_conversation(user_id, conv_data)
-
-    # Get conversation settings
-    conv_settings = conversation.settings
-    model = chat_request.model or conv_settings.model
-    temperature = chat_request.temperature if chat_request.temperature is not None else conv_settings.temperature
-    max_tokens = chat_request.max_tokens or conv_settings.max_tokens
-
-    # Save user message
-    user_message = MessageService.create_message(
-        conversation_id=conversation.id,
-        role=MessageRole.USER,
-        content=chat_request.message,
-        parent_message_id=chat_request.parent_message_id,
-        attachments=[a.model_dump() for a in chat_request.attachments] if chat_request.attachments else []
+    # Delegate to chat service
+    response, conversation_id, message_id = await get_zygotrix_chat_service().process_chat_request(
+        chat_request, current_user
     )
-
-    # Build context
-    traits_context = get_traits_service().get_traits_context(chat_request.message)
-    llama_context = await get_rag_service().retrieve_context(chat_request.message)
-
-    combined_context = traits_context
-    if llama_context:
-        combined_context = f"{traits_context}\n\n{llama_context}" if traits_context else llama_context
-
-    # Get conversation history
-    history = MessageService.get_conversation_context(
-        conversation.id,
-        max_messages=conv_settings.context_window_messages
-    )
-
-    # Build messages for Claude
-    claude_messages = []
-    for msg in history[:-1]:  # Exclude the just-added user message
-        claude_messages.append({"role": msg["role"], "content": msg["content"]})
-
-    # Add current message with context
-    current_content = chat_request.message
-    if combined_context:
-        current_content = f"""Background information:
-{combined_context}
-
-Question: {chat_request.message}"""
-
-    claude_messages.append({"role": "user", "content": current_content})
-
-    # Get system prompt (use tool-aware prompt for better tool calling)
-    is_simulation = chat_request.page_context and "Simulation" in chat_request.page_context
-    if is_simulation:
-        system_prompt = get_simulation_tool_prompt("User", combined_context)
-    else:
-        system_prompt = get_zigi_prompt_with_tools()  # Use tool-aware prompt
-
-    if chat_request.stream:
-        logger.info("Using STREAMING mode (MCP tools NOT available in streaming)")
-        # Streaming response
-        async def event_generator():
-            assistant_content = ""
-            metadata = None
-
-            async for chunk in get_zygotrix_claude_service().stream_response(
-                claude_messages, system_prompt, model, max_tokens, temperature
-            ):
-                if chunk["type"] == "content":
-                    assistant_content += chunk.get("content", "")
-                    yield f"data: {json.dumps(chunk)}\n\n"
-
-                elif chunk["type"] == "metadata":
-                    metadata = chunk.get("metadata", {})
-
-                elif chunk["type"] == "error":
-                    yield f"data: {json.dumps(chunk)}\n\n"
-
-                elif chunk["type"] == "done":
-                    # Save assistant message
-                    if assistant_content:
-                        msg_metadata = MessageMetadata(
-                            input_tokens=metadata.get("input_tokens", 0) if metadata else 0,
-                            output_tokens=metadata.get("output_tokens", 0) if metadata else 0,
-                            total_tokens=metadata.get("total_tokens", 0) if metadata else 0,
-                            model=model,
-                        )
-                        assistant_message = MessageService.create_message(
-                            conversation_id=conversation.id,
-                            role=MessageRole.ASSISTANT,
-                            content=assistant_content,
-                            metadata=msg_metadata,
-                            parent_message_id=user_message.id,
-                        )
-
-                        # Update conversation title if first message
-                        if conversation.message_count <= 2:
-                            ConversationService.update_conversation(
-                                conversation.id,
-                                user_id,
-                                ConversationUpdate(title=chat_request.message[:50] + ("..." if len(chat_request.message) > 50 else ""))
-                            )
-
-                        # Record token usage for rate limiting (same as non-streaming path)
-                        total_tokens = metadata.get("total_tokens", 0) if metadata else 0
-                        if total_tokens > 0:
-                            get_rate_limiter().record_usage(user_id, total_tokens)
-
-                        # Log token usage to MongoDB for analytics
-                        get_token_analytics_service().log_usage(
-                            user_id=user_id,
-                            user_name=user_name,
-                            input_tokens=metadata.get("input_tokens", 0) if metadata else 0,
-                            output_tokens=metadata.get("output_tokens", 0) if metadata else 0,
-                            cached=False,
-                            message_preview=chat_request.message[:100],
-                            model=model
-                        )
-
-                    yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation.id, 'message_id': assistant_message.id if assistant_content else None})}\n\n"
-
-        return StreamingResponse(
-            event_generator(),
-            media_type="text/event-stream",
-            headers={
-                "Cache-Control": "no-cache",
-                "Connection": "keep-alive",
-                "X-Accel-Buffering": "no",
-            }
-        )
-    else:
-        logger.info("Using NON-STREAMING mode with MCP tools enabled")
-        # Non-streaming response with tool support
-        content, metadata = await get_zygotrix_claude_service().generate_response_with_tools(
-            claude_messages, system_prompt, model, max_tokens, temperature,
-            use_tools=True,  # Enable MCP tools
-        )
-        
-        # Log tool usage if any tools were used
-        tools_used = metadata.get("tools_used", [])
-        if tools_used:
-            logger.info(f"Tools used in response: {[t['name'] for t in tools_used]}")
-
-        msg_metadata = MessageMetadata(
-            input_tokens=metadata.get("input_tokens", 0),
-            output_tokens=metadata.get("output_tokens", 0),
-            total_tokens=metadata.get("total_tokens", 0),
-            model=model,
-        )
-
-        assistant_message = MessageService.create_message(
-            conversation_id=conversation.id,
-            role=MessageRole.ASSISTANT,
-            content=content,
-            metadata=msg_metadata,
-            parent_message_id=user_message.id,
-        )
-
-        # Update conversation title if first message
-        if conversation.message_count <= 2:
-            ConversationService.update_conversation(
-                conversation.id,
-                user_id,
-                ConversationUpdate(title=chat_request.message[:50] + ("..." if len(chat_request.message) > 50 else ""))
-            )
-
-        # Record token usage for rate limiting
-        total_tokens = metadata.get("total_tokens", 0)
-        if total_tokens > 0:
-            get_rate_limiter().record_usage(user_id, total_tokens)
-
-        # Log token usage to MongoDB for analytics
-        get_token_analytics_service().log_usage(
-            user_id=user_id,
-            user_name=user_name,
-            input_tokens=metadata.get("input_tokens", 0),
-            output_tokens=metadata.get("output_tokens", 0),
-            cached=False,
-            message_preview=chat_request.message[:100],
-            model=model
-        )
-
-        return ChatResponse(
-            conversation_id=conversation.id,
-            message=assistant_message,
-            conversation_title=conversation.title,
-            usage=msg_metadata,
-        )
+    return response
 
 
 @router.get("/rate-limit")
@@ -395,109 +173,8 @@ async def regenerate_response(
     current_user: UserProfile = Depends(get_current_user)
 ):
     """Regenerate a response for a message."""
-    user_id = current_user.id
-    user_name = current_user.name if hasattr(current_user, 'name') else None
-
-    conversation = ConversationService.get_conversation(conversation_id, user_id)
-    if not conversation:
-        raise HTTPException(status_code=404, detail="Conversation not found")
-
-    # Get the original message
-    original_message = MessageService.get_message(message_id)
-    if not original_message or original_message.role != MessageRole.ASSISTANT:
-        raise HTTPException(status_code=400, detail="Can only regenerate assistant messages")
-
-    # Get the user message that preceded this response
-    messages = MessageService.get_messages(conversation_id, limit=100)
-    user_message = None
-    for i, msg in enumerate(messages.messages):
-        if msg.id == message_id and i > 0:
-            user_message = messages.messages[i - 1]
-            break
-
-    if not user_message or user_message.role != MessageRole.USER:
-        raise HTTPException(status_code=400, detail="Could not find preceding user message")
-
-    # Get settings
-    conv_settings = conversation.settings
-    model = conv_settings.model
-    temperature = conv_settings.temperature
-    max_tokens = conv_settings.max_tokens
-
-    # Build context and messages
-    traits_context = get_traits_service().get_traits_context(user_message.content)
-    llama_context = await get_rag_service().retrieve_context(user_message.content)
-    combined_context = f"{traits_context}\n\n{llama_context}" if llama_context else traits_context
-
-    # Get history up to the user message
-    history = MessageService.get_conversation_context(conversation_id, max_messages=20)
-
-    claude_messages = []
-    for msg in history:
-        if msg.get("content") == user_message.content:
-            break
-        claude_messages.append(msg)
-
-    current_content = user_message.content
-    if combined_context:
-        current_content = f"""Background information:
-{combined_context}
-
-Question: {user_message.content}"""
-
-    claude_messages.append({"role": "user", "content": current_content})
-
-    system_prompt = get_zigi_system_prompt()
-
-    # Generate new response
-    content, metadata = await get_zygotrix_claude_service().generate_response(
-        claude_messages, system_prompt, model, max_tokens, temperature
-    )
-
-    msg_metadata = MessageMetadata(
-        input_tokens=metadata.get("input_tokens", 0),
-        output_tokens=metadata.get("output_tokens", 0),
-        total_tokens=metadata.get("total_tokens", 0),
-        model=model,
-    )
-
-    # Create as a new version/sibling
-    new_message = MessageService.update_message(
-        message_id,
-        content,
-        create_new_version=True
-    )
-
-    # Update with metadata
-    from ..services.zygotrix_ai_service import get_messages_collection
-    collection = get_messages_collection()
-    if collection and new_message:
-        collection.update_one(
-            {"id": new_message.id},
-            {"$set": {"metadata": msg_metadata.model_dump()}}
-        )
-
-    # Record token usage for rate limiting
-    total_tokens = metadata.get("total_tokens", 0)
-    if total_tokens > 0:
-        get_rate_limiter().record_usage(user_id, total_tokens)
-
-    # Log token usage to MongoDB for analytics
-    get_token_analytics_service().log_usage(
-        user_id=user_id,
-        user_name=user_name,
-        input_tokens=metadata.get("input_tokens", 0),
-        output_tokens=metadata.get("output_tokens", 0),
-        cached=False,
-        message_preview=user_message.content[:100],
-        model=model
-    )
-
-    return ChatResponse(
-        conversation_id=conversation_id,
-        message=new_message,
-        conversation_title=conversation.title,
-        usage=msg_metadata,
+    return await get_zygotrix_chat_service().regenerate_message_response(
+        conversation_id, message_id, current_user
     )
 
 
@@ -864,121 +541,13 @@ async def delete_template(
 @router.get("/status")
 async def get_status():
     """Get chatbot status and available models."""
-    try:
-        settings = get_chatbot_settings()
-        return {
-            "enabled": settings.enabled,
-            "default_model": settings.model,
-            "available_models": [
-                {"id": "claude-3-haiku-20240307", "name": "Claude 3 Haiku", "description": "Fast and efficient"},
-                {"id": "claude-3-sonnet-20240229", "name": "Claude 3 Sonnet", "description": "Balanced performance"},
-                {"id": "claude-3-opus-20240229", "name": "Claude 3 Opus", "description": "Most capable"},
-                {"id": "claude-3-5-sonnet-20241022", "name": "Claude 3.5 Sonnet", "description": "Latest and most intelligent"},
-            ],
-            "features": {
-                "streaming": True,
-                "conversation_history": True,
-                "message_editing": True,
-                "regeneration": True,
-                "folders": True,
-                "sharing": True,
-                "export": True,
-                "search": True,
-                "prompt_templates": True,
-            }
-        }
-    except Exception as e:
-        logger.warning(f"Failed to get chatbot status: {e}")
-        return {"enabled": True}
+    return get_zygotrix_status_service().get_status()
 
 
 @router.get("/models")
 async def get_available_models():
     """Get list of available AI models with accurate 2025 pricing."""
-    return {
-        "models": [
-            {
-                "id": "claude-3-haiku-20240307",
-                "name": "Claude 3 Haiku",
-                "provider": "anthropic",
-                "description": "Fast and efficient for simple tasks",
-                "context_window": 200000,
-                "max_output": 4096,
-                "input_cost_per_1k": 0.00025,  # $0.25 per MTok
-                "output_cost_per_1k": 0.00125,  # $1.25 per MTok
-            },
-            {
-                "id": "claude-3-sonnet-20240229",
-                "name": "Claude 3 Sonnet",
-                "provider": "anthropic",
-                "description": "Balanced performance and cost",
-                "context_window": 200000,
-                "max_output": 4096,
-                "input_cost_per_1k": 0.003,  # $3 per MTok
-                "output_cost_per_1k": 0.015,  # $15 per MTok
-            },
-            {
-                "id": "claude-3-opus-20240229",
-                "name": "Claude 3 Opus",
-                "provider": "anthropic",
-                "description": "Most capable for complex tasks",
-                "context_window": 200000,
-                "max_output": 4096,
-                "input_cost_per_1k": 0.015,  # $15 per MTok
-                "output_cost_per_1k": 0.075,  # $75 per MTok
-            },
-            {
-                "id": "claude-3-5-sonnet-20241022",
-                "name": "Claude 3.5 Sonnet",
-                "provider": "anthropic",
-                "description": "Latest model with improved reasoning",
-                "context_window": 200000,
-                "max_output": 8192,
-                "input_cost_per_1k": 0.003,  # $3 per MTok
-                "output_cost_per_1k": 0.015,  # $15 per MTok
-            },
-            {
-                "id": "claude-3-5-haiku-20241022",
-                "name": "Claude 3.5 Haiku",
-                "provider": "anthropic",
-                "description": "Faster and more affordable than 3.0",
-                "context_window": 200000,
-                "max_output": 8192,
-                "input_cost_per_1k": 0.0008,  # $0.80 per MTok
-                "output_cost_per_1k": 0.004,  # $4 per MTok
-            },
-            {
-                "id": "claude-sonnet-4-5-20250514",
-                "name": "Claude Sonnet 4.5",
-                "provider": "anthropic",
-                "description": "Advanced reasoning and performance (2025)",
-                "context_window": 200000,
-                "max_output": 8192,
-                "input_cost_per_1k": 0.003,  # $3 per MTok
-                "output_cost_per_1k": 0.015,  # $15 per MTok
-            },
-            {
-                "id": "claude-opus-4-5-20251101",
-                "name": "Claude Opus 4.5",
-                "provider": "anthropic",
-                "description": "Most capable Claude model (2025)",
-                "context_window": 200000,
-                "max_output": 8192,
-                "input_cost_per_1k": 0.005,  # $5 per MTok
-                "output_cost_per_1k": 0.025,  # $25 per MTok
-            },
-            {
-                "id": "claude-haiku-4-5-20250514",
-                "name": "Claude Haiku 4.5",
-                "provider": "anthropic",
-                "description": "Fast and affordable (2025)",
-                "context_window": 200000,
-                "max_output": 8192,
-                "input_cost_per_1k": 0.001,  # $1 per MTok
-                "output_cost_per_1k": 0.005,  # $5 per MTok
-            },
-        ]
-    }
+    return get_zygotrix_status_service().get_available_models()
 
 
 # =============================================================================

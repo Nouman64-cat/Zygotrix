@@ -69,6 +69,11 @@ def get_pending_signups_collection(required: bool = False) -> Optional[Collectio
     return get_collection(CollectionName.PENDING_SIGNUPS, required=required)
 
 
+def get_password_resets_collection(required: bool = False) -> Optional[Collection]:
+    """Get password resets collection."""
+    return get_collection(CollectionName.PASSWORD_RESETS, required=required)
+
+
 def get_traits_collection(required: bool = False) -> Optional[Collection]:
     """Get traits collection."""
     return get_collection(CollectionName.TRAITS, required=required)

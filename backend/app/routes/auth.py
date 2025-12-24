@@ -14,10 +14,15 @@ from ..schema.auth import (
     UserProfile,
     UpdateProfileRequest,
     OnboardingRequest,
+    PasswordResetRequestSchema,
+    PasswordResetVerifyOtpSchema,
+    PasswordResetVerifySchema,
+    PasswordResetResendSchema,
 )
 from ..services.auth.signup_service import get_signup_service
 from ..services.auth.authentication_service import get_authentication_service
 from ..services.auth.user_service import get_user_service
+from ..services.auth.password_reset_service import get_password_reset_service
 from ..config import get_settings
 
 router = APIRouter(prefix="/api/auth", tags=["Auth"])
@@ -107,3 +112,52 @@ def complete_onboarding(
     updates = payload.model_dump(exclude_unset=True)
     updated_user = user_service.update_user_profile(current_user.id, updates)
     return UserProfile(**updated_user)
+
+
+@router.post("/password-reset/request", response_model=SignupInitiateResponse, status_code=202)
+def request_password_reset(payload: PasswordResetRequestSchema) -> SignupInitiateResponse:
+    """
+    Request password reset OTP.
+
+    Note: Always returns success for security (email enumeration protection).
+    """
+    password_reset_service = get_password_reset_service()
+    expires_at = password_reset_service.request_password_reset(email=payload.email)
+    return SignupInitiateResponse(
+        message="If this email is registered, a password reset code has been sent. Please check your email.",
+        expires_at=expires_at,
+    )
+
+
+@router.post("/password-reset/verify-otp", response_model=MessageResponse)
+def verify_password_reset_otp(payload: PasswordResetVerifyOtpSchema) -> MessageResponse:
+    """Verify password reset OTP without resetting password."""
+    password_reset_service = get_password_reset_service()
+    result = password_reset_service.verify_otp_only(
+        email=payload.email,
+        otp=payload.otp,
+    )
+    return MessageResponse(message=result["message"])
+
+
+@router.post("/password-reset/verify", response_model=MessageResponse)
+def verify_password_reset(payload: PasswordResetVerifySchema) -> MessageResponse:
+    """Verify OTP and reset password."""
+    password_reset_service = get_password_reset_service()
+    result = password_reset_service.verify_and_reset_password(
+        email=payload.email,
+        otp=payload.otp,
+        new_password=payload.new_password.get_secret_value(),
+    )
+    return MessageResponse(message=result["message"])
+
+
+@router.post("/password-reset/resend", response_model=SignupInitiateResponse)
+def resend_password_reset_otp(payload: PasswordResetResendSchema) -> SignupInitiateResponse:
+    """Resend password reset OTP."""
+    password_reset_service = get_password_reset_service()
+    expires_at = password_reset_service.resend_reset_otp(email=payload.email)
+    return SignupInitiateResponse(
+        message="A new password reset code has been sent to your email.",
+        expires_at=expires_at,
+    )

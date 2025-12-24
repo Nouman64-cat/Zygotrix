@@ -76,6 +76,45 @@ class AuthService {
   isAuthenticated(): boolean {
     return !!this.getStoredToken();
   }
+
+  async requestPasswordReset(email: string): Promise<SignupResponse> {
+    const response = await axiosInstance.post<SignupResponse>(
+      API_ENDPOINTS.AUTH.PASSWORD_RESET_REQUEST,
+      { email }
+    );
+    return response.data;
+  }
+
+  async verifyPasswordResetOtpOnly(data: {
+    email: string;
+    otp: string;
+  }): Promise<VerifyOtpResponse> {
+    const response = await axiosInstance.post<VerifyOtpResponse>(
+      API_ENDPOINTS.AUTH.PASSWORD_RESET_VERIFY_OTP,
+      data
+    );
+    return response.data;
+  }
+
+  async verifyPasswordReset(data: {
+    email: string;
+    otp: string;
+    new_password: string;
+  }): Promise<VerifyOtpResponse> {
+    const response = await axiosInstance.post<VerifyOtpResponse>(
+      API_ENDPOINTS.AUTH.PASSWORD_RESET_VERIFY,
+      data
+    );
+    return response.data;
+  }
+
+  async resendPasswordResetOtp(email: string): Promise<ResendOtpResponse> {
+    const response = await axiosInstance.post<ResendOtpResponse>(
+      API_ENDPOINTS.AUTH.PASSWORD_RESET_RESEND,
+      { email }
+    );
+    return response.data;
+  }
 }
 
 export default new AuthService();

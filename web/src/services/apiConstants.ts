@@ -10,6 +10,10 @@ export const API_ROUTES = {
     me: "/api/auth/me",
     updateProfile: "/api/auth/profile",
     onboarding: "/api/auth/onboarding",
+    passwordResetRequest: "/api/auth/password-reset/request",
+    passwordResetVerifyOtp: "/api/auth/password-reset/verify-otp",
+    passwordResetVerify: "/api/auth/password-reset/verify",
+    passwordResetResend: "/api/auth/password-reset/resend",
   },
   portal: {
     status: "/api/portal/status",

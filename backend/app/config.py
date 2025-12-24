@@ -44,6 +44,9 @@ class Settings:
     mongodb_pending_signups_collection: str = os.getenv(
         "MONGODB_PENDING_SIGNUPS_COLLECTION", "pending_signups"
     )
+    mongodb_password_resets_collection: str = os.getenv(
+        "MONGODB_PASSWORD_RESETS_COLLECTION", "password_resets"
+    )
     mongodb_project_lines_collection: str = os.getenv(
         "MONGODB_PROJECT_LINES_COLLECTION", "project_lines"
     )
@@ -93,6 +96,7 @@ class Settings:
     aws_ses_from_email: str = os.getenv("AWS_SES_FROM_EMAIL", "no-reply@zygotrix.com")
     aws_smtp_port: int = _get_int("AWS_SMTP_PORT", 465)
     signup_otp_ttl_minutes: int = _get_int("SIGNUP_OTP_TTL_MINUTES", 10)
+    password_reset_otp_ttl_minutes: int = _get_int("PASSWORD_RESET_OTP_TTL_MINUTES", 10)
     # Super admin configuration
     super_admin_email: str = os.getenv("SUPER_ADMIN_EMAIL", "")
     # Trait source control: when true, serve traits from JSON only and disable trait CRUD

@@ -234,6 +234,21 @@ class AuthenticationService:
             logger.error(f"User not found for ID from token: {user_id}")
             raise AuthenticationError("User not found.")
 
+        # Check if password was changed after token was issued
+        password_changed_at = user.get("password_changed_at")
+        if password_changed_at:
+            from dateutil import parser
+            try:
+                password_changed_timestamp = parser.isoparse(password_changed_at).timestamp()
+                token_issued_at = payload.get("iat", 0)
+
+                if password_changed_timestamp > token_issued_at:
+                    logger.warning(f"Token invalidated: password changed after token issued for user {user_id}")
+                    raise AuthenticationError("Session expired. Please log in again.")
+            except (ValueError, TypeError) as e:
+                # If date parsing fails, log but don't block authentication
+                logger.warning(f"Failed to parse password_changed_at for user {user_id}: {e}")
+
         logger.debug(f"Resolved user from token: {user.get('email')}")
         return user
 

@@ -52,6 +52,7 @@ class UserProfile(BaseModel):
     last_ip_address: Optional[str] = None
     last_location: Optional[str] = None
     last_browser: Optional[str] = None
+    password_changed_at: Optional[str] = None
 
 
 class UpdateProfileRequest(BaseModel):
@@ -214,3 +215,38 @@ class AdminUpdateUserRoleRequest(BaseModel):
 
     user_id: str
     new_role: UserRole
+
+
+class PasswordResetRequestSchema(BaseModel):
+    """Payload to request password reset OTP."""
+
+    email: EmailStr
+
+
+class PasswordResetVerifyOtpSchema(BaseModel):
+    """Payload to verify password reset OTP only (without resetting password)."""
+
+    email: EmailStr
+    otp: str = Field(min_length=6, max_length=6)
+
+
+class PasswordResetVerifySchema(BaseModel):
+    """Payload to verify OTP and reset password."""
+
+    email: EmailStr
+    otp: str = Field(min_length=6, max_length=6)
+    new_password: SecretStr
+
+    @field_validator("new_password")
+    @classmethod
+    def validate_password(cls, value: SecretStr) -> SecretStr:
+        password = value.get_secret_value()
+        if len(password) < 8:
+            raise ValueError("Password must be at least 8 characters long.")
+        return value
+
+
+class PasswordResetResendSchema(BaseModel):
+    """Payload to resend password reset OTP."""
+
+    email: EmailStr

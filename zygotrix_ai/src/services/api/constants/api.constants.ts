@@ -31,6 +31,10 @@ export const API_ENDPOINTS = {
     LOGOUT: "/api/auth/logout",
     REFRESH_TOKEN: "/api/auth/refresh",
     VERIFY: "/api/auth/verify",
+    PASSWORD_RESET_REQUEST: "/api/auth/password-reset/request",
+    PASSWORD_RESET_VERIFY_OTP: "/api/auth/password-reset/verify-otp",
+    PASSWORD_RESET_VERIFY: "/api/auth/password-reset/verify",
+    PASSWORD_RESET_RESEND: "/api/auth/password-reset/resend",
   },
   USER: {
     GET_PROFILE: "/api/user/profile",

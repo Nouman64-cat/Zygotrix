@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, ThemeProvider } from './contexts';
 import { ProtectedRoute } from './components/common';
-import { Chat, Login, Register } from './pages';
+import { Chat, Login, Register, ForgotPassword } from './pages';
 
 const App = () => {
   return (
@@ -11,6 +11,7 @@ const App = () => {
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
+            <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route
               path="/chat/:conversationId"
               element={

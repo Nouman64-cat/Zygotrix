@@ -12,6 +12,9 @@ import type {
   UserProfile,
   UpdateProfilePayload,
   OnboardingPayload,
+  PasswordResetRequestPayload,
+  PasswordResetVerifyPayload,
+  PasswordResetResendPayload,
 } from "../types/auth";
 
 export const requestSignupOtp = async (
@@ -95,6 +98,46 @@ export const completeOnboarding = async (
 ): Promise<UserProfile> => {
   const response = await API.post<UserProfile>(
     API_ROUTES.auth.onboarding,
+    payload
+  );
+  return response.data;
+};
+
+export const requestPasswordResetOtp = async (
+  payload: PasswordResetRequestPayload
+): Promise<SignupInitiateResponse> => {
+  const response = await API.post<SignupInitiateResponse>(
+    API_ROUTES.auth.passwordResetRequest,
+    payload
+  );
+  return response.data;
+};
+
+export const verifyPasswordResetOtpOnly = async (
+  payload: { email: string; otp: string }
+): Promise<MessageResponse> => {
+  const response = await API.post<MessageResponse>(
+    API_ROUTES.auth.passwordResetVerifyOtp,
+    payload
+  );
+  return response.data;
+};
+
+export const verifyPasswordResetOtp = async (
+  payload: PasswordResetVerifyPayload
+): Promise<MessageResponse> => {
+  const response = await API.post<MessageResponse>(
+    API_ROUTES.auth.passwordResetVerify,
+    payload
+  );
+  return response.data;
+};
+
+export const resendPasswordResetOtp = async (
+  payload: PasswordResetResendPayload
+): Promise<SignupInitiateResponse> => {
+  const response = await API.post<SignupInitiateResponse>(
+    API_ROUTES.auth.passwordResetResend,
     payload
   );
   return response.data;

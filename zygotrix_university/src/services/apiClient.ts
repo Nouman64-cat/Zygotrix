@@ -27,7 +27,7 @@ apiClient.interceptors.response.use(
   (error) => {
     const isAuthRoute = error.config?.url?.includes("/api/auth/login");
     if (
-      (error.response?.status === 401 || error.response?.status === 403) &&
+      (error.response?.status === 403) &&
       !isAuthRoute
     ) {
       handleAuthFailure();

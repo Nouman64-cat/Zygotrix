@@ -23,6 +23,7 @@ class CollectionName(Enum):
     # User Management
     USERS = "users"
     PENDING_SIGNUPS = "pending_signups"
+    PASSWORD_RESETS = "password_resets"
 
     # Traits
     TRAITS = "traits"
@@ -106,6 +107,18 @@ class IndexConfig:
                     "keys": "expires_at",
                     "expireAfterSeconds": 0,
                     "name": "expires_at_ttl_idx"
+                },
+            ],
+            CollectionName.PASSWORD_RESETS: [
+                {
+                    "keys": "email",
+                    "unique": True,
+                    "name": "email_unique_idx"
+                },
+                {
+                    "keys": "otp_expires_at",
+                    "expireAfterSeconds": 0,
+                    "name": "otp_expires_at_ttl_idx"
                 },
             ],
 

@@ -267,6 +267,17 @@ export const Login: React.FC = () => {
                   </div>
                 </div>
 
+                {/* Forgot Password Link */}
+                <div className="text-right">
+                  <button
+                    type="button"
+                    onClick={() => navigate('/forgot-password')}
+                    className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors"
+                  >
+                    Forgot password?
+                  </button>
+                </div>
+
                 {/* Submit Button */}
                 <button
                   type="submit"

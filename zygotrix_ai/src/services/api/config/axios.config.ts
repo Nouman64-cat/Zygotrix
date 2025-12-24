@@ -36,8 +36,15 @@ axiosInstance.interceptors.response.use(
   },
   (error: AxiosError) => {
     if (error.response?.status === 401) {
-      storage.remove(STORAGE_KEYS.AUTH_TOKEN);
-      window.location.href = "/login";
+      // Don't redirect if it's a password reset or signup verification error
+      const url = error.config?.url || '';
+      const isPasswordReset = url.includes('/password-reset/');
+      const isSignupVerification = url.includes('/signup/verify') || url.includes('/signup/resend');
+
+      if (!isPasswordReset && !isSignupVerification) {
+        storage.remove(STORAGE_KEYS.AUTH_TOKEN);
+        window.location.href = "/login";
+      }
     }
     return Promise.reject(error);
   }

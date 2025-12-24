@@ -43,9 +43,9 @@ class OTPService:
             OTP code as string
 
         Note:
-            Length is configured via AUTH_OTP_LENGTH setting (default: 6)
+            Length is fixed at 6 digits
         """
-        otp_length = getattr(self._settings.auth, 'otp_length', 6)
+        otp_length = 6
         otp = "".join(secrets.choice(string.digits) for _ in range(otp_length))
         logger.debug(f"Generated OTP code of length {otp_length}")
         return otp
@@ -61,7 +61,7 @@ class OTPService:
             Dictionary containing hashed OTP data with expiration
         """
         now = datetime.now(timezone.utc)
-        otp_ttl = getattr(self._settings.auth, 'otp_ttl_minutes', 10)
+        otp_ttl = getattr(self._settings, 'signup_otp_ttl_minutes', 10)
         expires_at = now + timedelta(minutes=otp_ttl)
 
         otp_document = {
@@ -100,7 +100,7 @@ class OTPService:
                 raise OTPExpiredError("OTP has expired. Please request a new code.")
 
         # Check attempts
-        max_attempts = getattr(self._settings.auth, 'max_otp_attempts', 5)
+        max_attempts = 5  # Maximum OTP verification attempts
         attempts = stored_otp.get("otp_attempts", 0)
 
         if attempts >= max_attempts:

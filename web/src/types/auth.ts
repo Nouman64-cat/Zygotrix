@@ -98,6 +98,20 @@ export type SignupResendPayload = {
   email: string;
 };
 
+export type PasswordResetRequestPayload = {
+  email: string;
+};
+
+export type PasswordResetVerifyPayload = {
+  email: string;
+  otp: string;
+  new_password: string;
+};
+
+export type PasswordResetResendPayload = {
+  email: string;
+};
+
 export type MessageResponse = {
   message: string;
 };

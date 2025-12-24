@@ -239,6 +239,16 @@ const SignInPage: React.FC = () => {
                     </div>
                   </div>
 
+                  {/* Forgot Password Link */}
+                  <div className="text-right">
+                    <Link
+                      to="/forgot-password"
+                      className="text-sm font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors duration-300"
+                    >
+                      Forgot password?
+                    </Link>
+                  </div>
+
                   <button
                     type="submit"
                     disabled={isAuthenticating}

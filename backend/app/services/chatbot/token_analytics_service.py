@@ -1,0 +1,318 @@
+"""
+Token Analytics Service for usage tracking and cost calculations.
+
+Extracted from chatbot.py as part of Phase 2.4 refactoring.
+Handles token usage logging, aggregation, and cost calculations.
+"""
+
+import logging
+from datetime import datetime, timezone, timedelta
+from typing import Optional, Dict, List
+
+logger = logging.getLogger(__name__)
+
+# Default model for fallback
+CLAUDE_MODEL = "claude-3-haiku-20240307"
+
+# =============================================================================
+# MODEL PRICING CONFIGURATION
+# =============================================================================
+
+# Pricing per 1K tokens (updated 2025)
+MODEL_PRICING = {
+    "claude-3-haiku-20240307": {"input": 0.00025, "output": 0.00125},
+    "claude-3-sonnet-20240229": {"input": 0.003, "output": 0.015},
+    "claude-3-opus-20240229": {"input": 0.015, "output": 0.075},
+    "claude-3-5-sonnet-20241022": {"input": 0.003, "output": 0.015},
+    "claude-3-5-haiku-20241022": {"input": 0.0008, "output": 0.004},
+    "claude-sonnet-4-5-20250514": {"input": 0.003, "output": 0.015},
+    "claude-opus-4-5-20251101": {"input": 0.005, "output": 0.025},
+    "claude-haiku-4-5-20250514": {"input": 0.001, "output": 0.005},
+}
+
+
+class TokenAnalyticsService:
+    """
+    Service for token usage analytics and cost tracking.
+    
+    Responsibilities:
+    - Log token usage to MongoDB
+    - Aggregate usage statistics
+    - Calculate costs per model
+    - Generate daily/user reports
+    """
+    
+    def get_model_pricing(self, model: str) -> Dict[str, float]:
+        """Get pricing for a specific model. Defaults to Haiku 3 if model not found."""
+        return MODEL_PRICING.get(model, {"input": 0.00025, "output": 0.00125})
+    
+    def calculate_cost(self, input_tokens: int, output_tokens: int, model: str) -> float:
+        """Calculate cost based on model-specific pricing."""
+        pricing = self.get_model_pricing(model)
+        input_cost = (input_tokens / 1000) * pricing["input"]
+        output_cost = (output_tokens / 1000) * pricing["output"]
+        return input_cost + output_cost
+    
+    def log_usage(
+        self,
+        user_id: Optional[str],
+        user_name: Optional[str],
+        input_tokens: int,
+        output_tokens: int,
+        cached: bool,
+        message_preview: str,
+        model: Optional[str] = None
+    ) -> None:
+        """Log token usage to MongoDB for admin tracking."""
+        try:
+            from ..common import get_token_usage_collection
+            
+            collection = get_token_usage_collection()
+            if collection is None:
+                return  # MongoDB not available
+            
+            doc = {
+                "user_id": user_id or "anonymous",
+                "user_name": user_name or "Unknown",
+                "input_tokens": input_tokens,
+                "output_tokens": output_tokens,
+                "total_tokens": input_tokens + output_tokens,
+                "cached": cached,
+                "message_preview": message_preview,
+                "model": model or CLAUDE_MODEL,
+                "timestamp": datetime.now(timezone.utc),
+            }
+            
+            collection.insert_one(doc)
+            logger.debug(f"Logged token usage: {input_tokens + output_tokens} tokens for user {user_id or 'anonymous'}")
+        except Exception as e:
+            logger.warning(f"Failed to log token usage: {e}")
+    
+    def get_aggregate_stats(self) -> Dict:
+        """Get aggregate token usage statistics for all users."""
+        try:
+            from ..common import get_token_usage_collection
+            
+            collection = get_token_usage_collection()
+            if collection is None:
+                return {"error": "MongoDB not available", "users": []}
+            
+            # Aggregate token usage by user
+            pipeline = [
+                {
+                    "$group": {
+                        "_id": "$user_id",
+                        "user_name": {"$last": "$user_name"},
+                        "total_input_tokens": {"$sum": "$input_tokens"},
+                        "total_output_tokens": {"$sum": "$output_tokens"},
+                        "total_tokens": {"$sum": "$total_tokens"},
+                        "request_count": {"$sum": 1},
+                        "cached_count": {
+                            "$sum": {"$cond": [{"$eq": ["$cached", True]}, 1, 0]}
+                        },
+                        "last_request": {"$max": "$timestamp"},
+                    }
+                },
+                {"$sort": {"total_tokens": -1}}
+            ]
+            
+            results = list(collection.aggregate(pipeline))
+            
+            # Calculate totals
+            total_tokens = sum(r.get("total_tokens", 0) for r in results)
+            total_requests = sum(r.get("request_count", 0) for r in results)
+            cached_requests = sum(r.get("cached_count", 0) for r in results)
+            
+            # Format user data
+            users = []
+            for r in results:
+                users.append({
+                    "user_id": r["_id"],
+                    "user_name": r.get("user_name", "Unknown"),
+                    "total_tokens": r.get("total_tokens", 0),
+                    "input_tokens": r.get("total_input_tokens", 0),
+                    "output_tokens": r.get("total_output_tokens", 0),
+                    "request_count": r.get("request_count", 0),
+                    "cached_count": r.get("cached_count", 0),
+                    "cache_hit_rate": f"{(r.get('cached_count', 0) / r.get('request_count', 1)) * 100:.1f}%",
+                    "last_request": r.get("last_request").isoformat() if r.get("last_request") else None,
+                })
+            
+            return {
+                "total_tokens": total_tokens,
+                "total_input_tokens": sum(r.get("total_input_tokens", 0) for r in results),
+                "total_output_tokens": sum(r.get("total_output_tokens", 0) for r in results),
+                "total_requests": total_requests,
+                "cached_requests": cached_requests,
+                "cache_hit_rate": f"{(cached_requests / total_requests * 100) if total_requests > 0 else 0:.1f}%",
+                "user_count": len(users),
+                "users": users,
+            }
+        except Exception as e:
+            logger.error(f"Error fetching token usage stats: {e}")
+            return {"error": str(e), "users": []}
+    
+    def get_user_stats(self, user_id: str, limit: int = 50) -> Dict:
+        """Get detailed token usage history for a specific user."""
+        try:
+            from ..common import get_token_usage_collection
+            
+            collection = get_token_usage_collection()
+            if collection is None:
+                return {"error": "MongoDB not available", "history": []}
+            
+            # Get recent history for user
+            history = list(
+                collection.find({"user_id": user_id})
+                .sort("timestamp", -1)
+                .limit(limit)
+            )
+            
+            # Calculate totals for this user
+            total_tokens = sum(h.get("total_tokens", 0) for h in history)
+            
+            # Format history
+            formatted_history = []
+            for h in history:
+                formatted_history.append({
+                    "timestamp": h.get("timestamp").isoformat() if h.get("timestamp") else None,
+                    "input_tokens": h.get("input_tokens", 0),
+                    "output_tokens": h.get("output_tokens", 0),
+                    "total_tokens": h.get("total_tokens", 0),
+                    "cached": h.get("cached", False),
+                    "message_preview": h.get("message_preview", ""),
+                    "model": h.get("model", "unknown"),
+                })
+            
+            return {
+                "user_id": user_id,
+                "total_tokens": total_tokens,
+                "request_count": len(history),
+                "history": formatted_history,
+            }
+        except Exception as e:
+            logger.error(f"Error fetching user token usage: {e}")
+            return {"error": str(e), "history": []}
+    
+    def get_daily_stats(self, days: int = 30) -> Dict:
+        """Get daily aggregated token usage for the last N days."""
+        try:
+            from ..common import get_token_usage_collection
+            
+            collection = get_token_usage_collection()
+            if collection is None:
+                return {"error": "MongoDB not available", "daily_usage": []}
+            
+            # Calculate date range
+            end_date = datetime.now(timezone.utc)
+            start_date = end_date - timedelta(days=days)
+            
+            # Aggregate by day with model-specific calculations
+            pipeline = [
+                {
+                    "$match": {
+                        "timestamp": {"$gte": start_date, "$lte": end_date}
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": {
+                            "year": {"$year": "$timestamp"},
+                            "month": {"$month": "$timestamp"},
+                            "day": {"$dayOfMonth": "$timestamp"},
+                            "model": "$model"
+                        },
+                        "total_tokens": {"$sum": "$total_tokens"},
+                        "input_tokens": {"$sum": "$input_tokens"},
+                        "output_tokens": {"$sum": "$output_tokens"},
+                        "request_count": {"$sum": 1},
+                        "cached_count": {
+                            "$sum": {"$cond": [{"$eq": ["$cached", True]}, 1, 0]}
+                        },
+                        "unique_users": {"$addToSet": "$user_id"}
+                    }
+                },
+                {"$sort": {"_id.year": 1, "_id.month": 1, "_id.day": 1}}
+            ]
+
+            results = list(collection.aggregate(pipeline))
+
+            # Group by date and calculate total costs across all models
+            daily_data = {}
+            for r in results:
+                date_str = f"{r['_id']['year']}-{r['_id']['month']:02d}-{r['_id']['day']:02d}"
+                model = r['_id'].get('model', 'claude-3-haiku-20240307')
+
+                if date_str not in daily_data:
+                    daily_data[date_str] = {
+                        "total_tokens": 0,
+                        "input_tokens": 0,
+                        "output_tokens": 0,
+                        "request_count": 0,
+                        "cached_count": 0,
+                        "unique_users": set(),
+                        "cost": 0.0
+                    }
+
+                input_tokens = r.get("input_tokens", 0)
+                output_tokens = r.get("output_tokens", 0)
+
+                # Calculate cost using model-specific pricing
+                cost = self.calculate_cost(input_tokens, output_tokens, model or 'claude-3-haiku-20240307')
+
+                daily_data[date_str]["total_tokens"] += r.get("total_tokens", 0)
+                daily_data[date_str]["input_tokens"] += input_tokens
+                daily_data[date_str]["output_tokens"] += output_tokens
+                daily_data[date_str]["request_count"] += r.get("request_count", 0)
+                daily_data[date_str]["cached_count"] += r.get("cached_count", 0)
+                daily_data[date_str]["unique_users"].update(r.get("unique_users", []))
+                daily_data[date_str]["cost"] += cost
+
+            # Format results
+            daily_usage = []
+            for date_str in sorted(daily_data.keys()):
+                data = daily_data[date_str]
+                daily_usage.append({
+                    "date": date_str,
+                    "total_tokens": data["total_tokens"],
+                    "input_tokens": data["input_tokens"],
+                    "output_tokens": data["output_tokens"],
+                    "request_count": data["request_count"],
+                    "cached_count": data["cached_count"],
+                    "unique_users": len(data["unique_users"]),
+                    "cost": round(data["cost"], 4)
+                })
+            
+            # Calculate totals and projections
+            total_tokens = sum(d["total_tokens"] for d in daily_usage)
+            total_cost = sum(d["cost"] for d in daily_usage)
+            avg_daily_tokens = total_tokens / len(daily_usage) if daily_usage else 0
+            avg_daily_cost = total_cost / len(daily_usage) if daily_usage else 0
+            
+            return {
+                "daily_usage": daily_usage,
+                "summary": {
+                    "total_tokens": total_tokens,
+                    "total_cost": round(total_cost, 4),
+                    "avg_daily_tokens": round(avg_daily_tokens, 0),
+                    "avg_daily_cost": round(avg_daily_cost, 4),
+                    "projected_monthly_tokens": round(avg_daily_tokens * 30, 0),
+                    "projected_monthly_cost": round(avg_daily_cost * 30, 4),
+                    "days_with_data": len(daily_usage)
+                }
+            }
+        except Exception as e:
+            logger.error(f"Error fetching daily token usage: {e}")
+            return {"error": str(e), "daily_usage": []}
+
+
+# Global singleton instance
+_token_analytics_service: Optional[TokenAnalyticsService] = None
+
+
+def get_token_analytics_service() -> TokenAnalyticsService:
+    """Get or create the global TokenAnalyticsService instance."""
+    global _token_analytics_service
+    if _token_analytics_service is None:
+        _token_analytics_service = TokenAnalyticsService()
+    return _token_analytics_service

@@ -41,12 +41,12 @@ class CourseService:
 
         slug = doc.get("slug") or doc.get("id") or str(doc.get("_id"))
 
+        # Base fields always included
         course = {
             "id": str(doc.get("_id")) if doc.get("_id") else doc.get("id"),
             "slug": slug,
             "title": doc.get("title", ""),
             "short_description": doc.get("short_description") or doc.get("description"),
-            "long_description": doc.get("long_description"),
             "category": doc.get("category"),
             "level": doc.get("level"),
             "duration": doc.get("duration"),
@@ -64,8 +64,17 @@ class CourseService:
             ),
         }
 
-        if include_details and doc.get("modules"):
-            course["modules"] = doc["modules"]
+        # Include detailed fields only when requested
+        if include_details:
+            course["long_description"] = doc.get("long_description")
+            if doc.get("modules"):
+                course["modules"] = doc["modules"]
+            if doc.get("practice_sets"):
+                course["practice_sets"] = doc["practice_sets"]
+        else:
+            # For list view, include module count if modules exist
+            if doc.get("modules"):
+                course["modules_count"] = len(doc["modules"])
 
         return course
 

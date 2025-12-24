@@ -28,7 +28,6 @@ from .schema.auth import UserProfile
 from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.common import HealthResponse
 from .services import polygenic as polygenic_services
-from .services import auth as auth_services
 from .mcp import mcp_lifespan
 from app.models import Trait
 from fastapi.middleware.cors import CORSMiddleware
@@ -36,6 +35,9 @@ from fastapi import Depends, FastAPI, HTTPException, Response
 from typing import Optional
 from datetime import datetime, timezone
 import logging
+
+# Import exception handlers
+from .core.exceptions.handlers import register_exception_handlers
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -108,6 +110,8 @@ app.add_middleware(
     ],
 )
 
+# Register exception handlers
+register_exception_handlers(app)
 
 # Note: Startup logic has been moved to the lifespan context manager above
 

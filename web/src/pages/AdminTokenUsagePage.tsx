@@ -11,7 +11,6 @@ import type { ChatbotSettings } from "../types/auth";
 import {
   MdError,
   MdRefresh,
-  MdPerson,
   MdAutorenew,
   MdTrendingUp,
 } from "react-icons/md";
@@ -159,16 +158,7 @@ const AdminTokenUsagePage: React.FC = () => {
     return num.toString();
   };
 
-  const formatDate = (dateString: string | null) => {
-    if (!dateString) return "Never";
-    const date = new Date(dateString);
-    return date.toLocaleDateString("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "2-digit",
-      minute: "2-digit",
-    });
-  };
+
 
   // Claude API Pricing (updated 2025) - per million tokens
   const MODEL_PRICING: Record<string, { input: number; output: number; name: string }> = {
@@ -526,22 +516,20 @@ const AdminTokenUsagePage: React.FC = () => {
           <nav className="flex space-x-8" aria-label="Tabs">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`${
-                activeTab === "overview"
+              className={`${activeTab === "overview"
                   ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
             >
               <MdTrendingUp className="w-5 h-5" />
               Token Usage
             </button>
             <button
               onClick={() => setActiveTab("cache")}
-              className={`${
-                activeTab === "cache"
+              className={`${activeTab === "cache"
                   ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
             >
               <FaDatabase className="w-5 h-5" />
               Cache Analytics
@@ -569,380 +557,380 @@ const AdminTokenUsagePage: React.FC = () => {
             {activeTab === "overview" && (
               <>
                 {/* Stats Cards */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-4">
-              {/* Total Tokens */}
-              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-indigo-100 dark:bg-indigo-500/20">
-                    <HiSparkles className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 dark:text-indigo-400" />
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-2 sm:gap-4">
+                  {/* Total Tokens */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-indigo-100 dark:bg-indigo-500/20">
+                        <HiSparkles className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500 dark:text-indigo-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Total Tokens
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {formatNumber(stats.total_tokens)}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {formatNumber(stats.total_input_tokens)} in /{" "}
+                      {formatNumber(stats.total_output_tokens)} out
+                    </div>
                   </div>
-                  <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
-                    Total Tokens
-                  </span>
-                </div>
-                <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                  {formatNumber(stats.total_tokens)}
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
-                  {formatNumber(stats.total_input_tokens)} in /{" "}
-                  {formatNumber(stats.total_output_tokens)} out
-                </div>
-              </div>
 
-              {/* Current Cost */}
-              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-100 dark:bg-emerald-500/20">
-                    <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 dark:text-emerald-400" />
+                  {/* Current Cost */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-100 dark:bg-emerald-500/20">
+                        <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 dark:text-emerald-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Current Cost
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                      $
+                      {estimateCost(
+                        stats.total_input_tokens,
+                        stats.total_output_tokens
+                      )}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      Total API cost
+                    </div>
                   </div>
-                  <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
-                    Current Cost
-                  </span>
-                </div>
-                <div className="text-xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
-                  $
-                  {estimateCost(
-                    stats.total_input_tokens,
-                    stats.total_output_tokens
-                  )}
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
-                  Total API cost
-                </div>
-              </div>
 
-              {/* Projected Monthly Cost */}
-              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-amber-100 dark:bg-amber-500/20">
-                    <MdTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 dark:text-amber-400" />
+                  {/* Projected Monthly Cost */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-amber-100 dark:bg-amber-500/20">
+                        <MdTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 dark:text-amber-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Projected/Mo
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+                      $
+                      {dailyData?.summary
+                        ? dailyData.summary.projected_monthly_cost.toFixed(2)
+                        : "0.00"}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {chartDays}-day avg
+                    </div>
                   </div>
-                  <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
-                    Projected/Mo
-                  </span>
-                </div>
-                <div className="text-xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">
-                  $
-                  {dailyData?.summary
-                    ? dailyData.summary.projected_monthly_cost.toFixed(2)
-                    : "0.00"}
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
-                  {chartDays}-day avg
-                </div>
-              </div>
 
-              {/* Total Requests */}
-              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-500/20">
-                    <FaDatabase className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 dark:text-blue-400" />
+                  {/* Total Requests */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                        <FaDatabase className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 dark:text-blue-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Requests
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {formatNumber(stats.total_requests)}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      API calls
+                    </div>
                   </div>
-                  <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
-                    Requests
-                  </span>
-                </div>
-                <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                  {formatNumber(stats.total_requests)}
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
-                  API calls
-                </div>
-              </div>
 
-              {/* Response Cache Rate */}
-              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-cyan-100 dark:bg-cyan-500/20">
-                    <MdAutorenew className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-500 dark:text-cyan-400" />
+                  {/* Response Cache Rate */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-cyan-100 dark:bg-cyan-500/20">
+                        <MdAutorenew className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-500 dark:text-cyan-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Response Cache
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {stats.cache_hit_rate}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {stats.cached_requests} / {stats.total_requests}
+                    </div>
                   </div>
-                  <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
-                    Response Cache
-                  </span>
-                </div>
-                <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                  {stats.cache_hit_rate}
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
-                  {stats.cached_requests} / {stats.total_requests}
-                </div>
-              </div>
 
-              {/* Active Users */}
-              <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
-                <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
-                  <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-500/20">
-                    <FaUsers className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 dark:text-purple-400" />
+                  {/* Active Users */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-500/20">
+                        <FaUsers className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 dark:text-purple-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Users
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {stats.user_count}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      Active chatters
+                    </div>
                   </div>
-                  <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
-                    Users
-                  </span>
                 </div>
-                <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
-                  {stats.user_count}
-                </div>
-                <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
-                  Active chatters
-                </div>
-              </div>
-            </div>
 
-            {/* Chart and Token Info Row */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
-              {/* Usage Chart - Left (2/3) */}
-              <div className="lg:col-span-2 bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-4 shadow-sm">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
-                  <div className="flex items-center gap-2">
-                    <MdTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />
-                    <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                      Usage Over Time
+                {/* Chart and Token Info Row */}
+                <div className="grid grid-cols-1 lg:grid-cols-3 gap-3 sm:gap-4">
+                  {/* Usage Chart - Left (2/3) */}
+                  <div className="lg:col-span-2 bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+                      <div className="flex items-center gap-2">
+                        <MdTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-indigo-500" />
+                        <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                          Usage Over Time
+                        </h2>
+                      </div>
+                      <select
+                        value={chartDays}
+                        onChange={(e) => setChartDays(Number(e.target.value))}
+                        className="px-2 sm:px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                      >
+                        <option value={7}>Last 7 Days</option>
+                        <option value={14}>Last 14 Days</option>
+                        <option value={30}>Last 30 Days</option>
+                        <option value={60}>Last 60 Days</option>
+                        <option value={90}>Last 90 Days</option>
+                      </select>
+                    </div>
+
+                    {dailyData && dailyData.daily_usage.length > 0 ? (
+                      <div className="h-[200px] sm:h-[300px]">
+                        <Line data={chartData} options={chartOptions} />
+                      </div>
+                    ) : (
+                      <div className="h-[200px] sm:h-[300px] flex items-center justify-center">
+                        <p className="text-gray-400 dark:text-slate-500 text-sm">
+                          No usage data available
+                        </p>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Token Breakdown - Right (1/3) Stacked */}
+                  <div className="flex flex-col gap-4">
+                    {/* Input Tokens */}
+                    <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FaDatabase className="w-4 h-4 text-blue-500 dark:text-blue-400" />
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              Input Tokens
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-blue-500 dark:text-blue-400">
+                            {formatNumber(stats.total_input_tokens)}
+                          </div>
+                          <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                            Prompts + context sent
+                          </div>
+                        </div>
+                        <div className="text-right pl-4 border-l border-gray-200 dark:border-slate-600">
+                          <div className="text-xs text-gray-400 dark:text-slate-500 mb-1">
+                            Cost
+                          </div>
+                          <div className="text-lg font-bold text-blue-600 dark:text-blue-300">
+                            $
+                            {((stats.total_input_tokens / 1000000) *
+                              getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").input
+                            ).toFixed(4)}
+                          </div>
+                          <div className="text-[10px] text-gray-400 dark:text-slate-500">
+                            @ ${getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").input}/MTok
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Output Tokens */}
+                    <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FaDatabase className="w-4 h-4 text-green-500 dark:text-green-400" />
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              Output Tokens
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-green-500 dark:text-green-400">
+                            {formatNumber(stats.total_output_tokens)}
+                          </div>
+                          <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                            Responses generated
+                          </div>
+                        </div>
+                        <div className="text-right pl-4 border-l border-gray-200 dark:border-slate-600">
+                          <div className="text-xs text-gray-400 dark:text-slate-500 mb-1">
+                            Cost
+                          </div>
+                          <div className="text-lg font-bold text-green-600 dark:text-green-300">
+                            $
+                            {((stats.total_output_tokens / 1000000) *
+                              getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").output
+                            ).toFixed(4)}
+                          </div>
+                          <div className="text-[10px] text-gray-400 dark:text-slate-500">
+                            @ ${getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").output}/MTok
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Cache Savings */}
+                    <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1">
+                          <div className="flex items-center gap-2 mb-2">
+                            <FaDatabase className="w-4 h-4 text-purple-500 dark:text-purple-400" />
+                            <span className="text-sm font-medium text-gray-900 dark:text-white">
+                              Cache Tokens
+                            </span>
+                          </div>
+                          <div className="text-2xl font-bold text-purple-500 dark:text-purple-400">
+                            {formatNumber(stats.total_cache_read_tokens || 0)}
+                          </div>
+                          <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
+                            {stats.prompt_cache_hit_rate || "0.0%"} cache hit rate
+                          </div>
+                        </div>
+                        <div className="text-right pl-4 border-l border-gray-200 dark:border-slate-600">
+                          <div className="text-xs text-gray-400 dark:text-slate-500 mb-1">
+                            Saved
+                          </div>
+                          <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
+                            ${(stats.total_cache_savings || 0).toFixed(4)}
+                          </div>
+                          <div className="text-[10px] text-gray-400 dark:text-slate-500">
+                            90% cache discount
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* User Table */}
+                <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm">
+                  <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <FaUsers className="w-5 h-5 text-indigo-500" />
+                      Usage by User
                     </h2>
                   </div>
-                  <select
-                    value={chartDays}
-                    onChange={(e) => setChartDays(Number(e.target.value))}
-                    className="px-2 sm:px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 cursor-pointer"
-                  >
-                    <option value={7}>Last 7 Days</option>
-                    <option value={14}>Last 14 Days</option>
-                    <option value={30}>Last 30 Days</option>
-                    <option value={60}>Last 60 Days</option>
-                    <option value={90}>Last 90 Days</option>
-                  </select>
-                </div>
-
-                {dailyData && dailyData.daily_usage.length > 0 ? (
-                  <div className="h-[200px] sm:h-[300px]">
-                    <Line data={chartData} options={chartOptions} />
-                  </div>
-                ) : (
-                  <div className="h-[200px] sm:h-[300px] flex items-center justify-center">
-                    <p className="text-gray-400 dark:text-slate-500 text-sm">
-                      No usage data available
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Token Breakdown - Right (1/3) Stacked */}
-              <div className="flex flex-col gap-4">
-                {/* Input Tokens */}
-                <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaDatabase className="w-4 h-4 text-blue-500 dark:text-blue-400" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          Input Tokens
-                        </span>
-                      </div>
-                      <div className="text-2xl font-bold text-blue-500 dark:text-blue-400">
-                        {formatNumber(stats.total_input_tokens)}
-                      </div>
-                      <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-                        Prompts + context sent
-                      </div>
-                    </div>
-                    <div className="text-right pl-4 border-l border-gray-200 dark:border-slate-600">
-                      <div className="text-xs text-gray-400 dark:text-slate-500 mb-1">
-                        Cost
-                      </div>
-                      <div className="text-lg font-bold text-blue-600 dark:text-blue-300">
-                        $
-                        {((stats.total_input_tokens / 1000000) *
-                          getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").input
-                        ).toFixed(4)}
-                      </div>
-                      <div className="text-[10px] text-gray-400 dark:text-slate-500">
-                        @ ${getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").input}/MTok
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Output Tokens */}
-                <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaDatabase className="w-4 h-4 text-green-500 dark:text-green-400" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          Output Tokens
-                        </span>
-                      </div>
-                      <div className="text-2xl font-bold text-green-500 dark:text-green-400">
-                        {formatNumber(stats.total_output_tokens)}
-                      </div>
-                      <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-                        Responses generated
-                      </div>
-                    </div>
-                    <div className="text-right pl-4 border-l border-gray-200 dark:border-slate-600">
-                      <div className="text-xs text-gray-400 dark:text-slate-500 mb-1">
-                        Cost
-                      </div>
-                      <div className="text-lg font-bold text-green-600 dark:text-green-300">
-                        $
-                        {((stats.total_output_tokens / 1000000) *
-                          getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").output
-                        ).toFixed(4)}
-                      </div>
-                      <div className="text-[10px] text-gray-400 dark:text-slate-500">
-                        @ ${getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").output}/MTok
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* Cache Savings */}
-                <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
-                  <div className="flex items-center justify-between">
-                    <div className="flex-1">
-                      <div className="flex items-center gap-2 mb-2">
-                        <FaDatabase className="w-4 h-4 text-purple-500 dark:text-purple-400" />
-                        <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          Cache Tokens
-                        </span>
-                      </div>
-                      <div className="text-2xl font-bold text-purple-500 dark:text-purple-400">
-                        {formatNumber(stats.total_cache_read_tokens || 0)}
-                      </div>
-                      <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-                        {stats.prompt_cache_hit_rate || "0.0%"} cache hit rate
-                      </div>
-                    </div>
-                    <div className="text-right pl-4 border-l border-gray-200 dark:border-slate-600">
-                      <div className="text-xs text-gray-400 dark:text-slate-500 mb-1">
-                        Saved
-                      </div>
-                      <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                        ${(stats.total_cache_savings || 0).toFixed(4)}
-                      </div>
-                      <div className="text-[10px] text-gray-400 dark:text-slate-500">
-                        90% cache discount
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* User Table */}
-            <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm">
-              <div className="p-4 border-b border-gray-200 dark:border-slate-700">
-                <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
-                  <FaUsers className="w-5 h-5 text-indigo-500" />
-                  Usage by User
-                </h2>
-              </div>
-              <div className="overflow-x-auto">
-                <table className="w-full">
-                  <thead>
-                    <tr className="bg-gray-50 dark:bg-slate-800/50">
-                      <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
-                        User
-                      </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
-                        Total Tokens
-                      </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
-                        Input
-                      </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
-                        Output
-                      </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
-                        Requests
-                      </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">
-                        Cache Rate
-                      </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">
-                        Last Active
-                      </th>
-                      <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
-                        Est. Cost
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
-                    {stats.users.length === 0 ? (
-                      <tr>
-                        <td
-                          colSpan={8}
-                          className="px-4 py-12 text-center text-gray-400 dark:text-slate-500"
-                        >
-                          No usage data yet. Users will appear here after
-                          chatting with {botName}.
-                        </td>
-                      </tr>
-                    ) : (
-                      stats.users.map((user) => (
-                        <tr
-                          key={user.user_id}
-                          className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
-                        >
-                          <td className="px-4 py-3">
-                            <div className="flex items-center gap-3">
-                              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                                <span className="text-white text-xs font-bold">
-                                  {user.user_name.charAt(0).toUpperCase()}
-                                </span>
-                              </div>
-                              <div>
-                                <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                  {user.user_name}
-                                </div>
-                                <div className="text-xs text-gray-400 dark:text-slate-500">
-                                  {user.user_id}
-                                </div>
-                              </div>
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                              {formatNumber(user.total_tokens)}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right hidden sm:table-cell">
-                            <div className="text-sm text-gray-600 dark:text-slate-400">
-                              {formatNumber(user.input_tokens)}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right hidden sm:table-cell">
-                            <div className="text-sm text-gray-600 dark:text-slate-400">
-                              {formatNumber(user.output_tokens)}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="text-sm text-gray-600 dark:text-slate-400">
-                              {user.request_count}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right hidden md:table-cell">
-                            <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300">
-                              {user.cache_hit_rate}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3 text-right hidden lg:table-cell">
-                            <div className="text-xs text-gray-500 dark:text-slate-500">
-                              {user.last_request
-                                ? new Date(user.last_request).toLocaleDateString()
-                                : "N/A"}
-                            </div>
-                          </td>
-                          <td className="px-4 py-3 text-right">
-                            <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-                              ${estimateCost(user.input_tokens, user.output_tokens)}
-                            </div>
-                          </td>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 dark:bg-slate-800/50">
+                          <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            User
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            Total Tokens
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
+                            Input
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
+                            Output
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            Requests
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden md:table-cell">
+                            Cache Rate
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">
+                            Last Active
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            Est. Cost
+                          </th>
                         </tr>
-                      ))
-                    )}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                        {stats.users.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={8}
+                              className="px-4 py-12 text-center text-gray-400 dark:text-slate-500"
+                            >
+                              No usage data yet. Users will appear here after
+                              chatting with {botName}.
+                            </td>
+                          </tr>
+                        ) : (
+                          stats.users.map((user) => (
+                            <tr
+                              key={user.user_id}
+                              className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
+                            >
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                    <span className="text-white text-xs font-bold">
+                                      {user.user_name.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {user.user_name}
+                                    </div>
+                                    <div className="text-xs text-gray-400 dark:text-slate-500">
+                                      {user.user_id}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                                  {formatNumber(user.total_tokens)}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden sm:table-cell">
+                                <div className="text-sm text-gray-600 dark:text-slate-400">
+                                  {formatNumber(user.input_tokens)}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden sm:table-cell">
+                                <div className="text-sm text-gray-600 dark:text-slate-400">
+                                  {formatNumber(user.output_tokens)}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm text-gray-600 dark:text-slate-400">
+                                  {user.request_count}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden md:table-cell">
+                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300">
+                                  {user.cache_hit_rate}
+                                </span>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden lg:table-cell">
+                                <div className="text-xs text-gray-500 dark:text-slate-500">
+                                  {user.last_request
+                                    ? new Date(user.last_request).toLocaleDateString()
+                                    : "N/A"}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                                  ${estimateCost(user.input_tokens, user.output_tokens)}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               </>
             )}
 
@@ -950,193 +938,193 @@ const AdminTokenUsagePage: React.FC = () => {
             {activeTab === "cache" && (
               <>
                 {/* Prompt Caching Stats Row */}
-            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
-              {/* Cache Read Tokens */}
-              <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700 rounded-xl p-3 sm:p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 rounded-lg bg-green-100 dark:bg-green-500/20">
-                    <HiSparkles className="w-4 h-4 text-green-600 dark:text-green-400" />
-                  </div>
-                  <span className="text-xs font-medium text-green-700 dark:text-green-300">
-                    Cache Reads
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-green-700 dark:text-green-300">
-                  {formatNumber(stats.total_cache_read_tokens || 0)}
-                </div>
-                <div className="text-[10px] text-green-600/70 dark:text-green-400/70">
-                  90% cost reduction
-                </div>
-              </div>
-
-              {/* Total Cache Savings */}
-              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl p-3 sm:p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-500/20">
-                    <FaChartLine className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-                  </div>
-                  <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
-                    Total Saved
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
-                  ${(stats.total_cache_savings || 0).toFixed(2)}
-                </div>
-                <div className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">
-                  From prompt caching
-                </div>
-              </div>
-
-              {/* Prompt Cache Hit Rate */}
-              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-3 sm:p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-500/20">
-                    <MdAutorenew className="w-4 h-4 text-blue-600 dark:text-blue-400" />
-                  </div>
-                  <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
-                    Cache Efficiency
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
-                  {stats.prompt_cache_hit_rate || "0.0%"}
-                </div>
-                <div className="text-[10px] text-blue-600/70 dark:text-blue-400/70">
-                  Of input tokens cached
-                </div>
-              </div>
-
-              {/* Projected Monthly Savings */}
-              <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-3 sm:p-4 shadow-sm">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-500/20">
-                    <MdTrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
-                  </div>
-                  <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
-                    Monthly Savings
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
-                  $
-                  {dailyData?.summary?.projected_monthly_savings
-                    ? dailyData.summary.projected_monthly_savings.toFixed(2)
-                    : "0.00"}
-                </div>
-                <div className="text-[10px] text-purple-600/70 dark:text-purple-400/70">
-                  Projected cache savings
-                </div>
-              </div>
-            </div>
-
-            {/* Cache Savings Chart - Full Width */}
-            <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-4 shadow-sm">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
-                <div className="flex items-center gap-2">
-                  <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
-                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
-                    Cache Savings Over Time
-                  </h2>
-                </div>
-                <div className="text-xs text-gray-500 dark:text-slate-400">
-                  Prompt caching reduces costs by 90% on cached tokens
-                </div>
-              </div>
-
-              {dailyData && dailyData.daily_usage.length > 0 ? (
-                <div className="h-[200px] sm:h-[250px]">
-                  <Line data={cacheSavingsChartData} options={cacheSavingsChartOptions} />
-                </div>
-              ) : (
-                <div className="h-[200px] sm:h-[250px] flex items-center justify-center">
-                  <p className="text-gray-400 dark:text-slate-500 text-sm">
-                    No cache savings data available yet
-                  </p>
-                </div>
-              )}
-
-              <div className="mt-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
-                    <span className="font-medium text-emerald-700 dark:text-emerald-300">
-                      Prompt Cache Savings
-                    </span>
-                  </div>
-                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                    ${dailyData?.summary?.total_prompt_cache_savings?.toFixed(2) || "0.00"}
-                  </span>
-                </div>
-                <div className="flex items-center justify-between text-xs mb-2">
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
-                    <span className="font-medium text-cyan-700 dark:text-cyan-300">
-                      Response Cache Savings
-                    </span>
-                  </div>
-                  <span className="text-cyan-600 dark:text-cyan-400 font-bold">
-                    ${dailyData?.summary?.total_response_cache_savings?.toFixed(2) || "0.00"}
-                  </span>
-                </div>
-                <div className="pt-2 border-t border-emerald-300 dark:border-emerald-700">
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
-                      <span className="font-medium text-red-700 dark:text-red-300">
-                        Total Cost (with caching)
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+                  {/* Cache Read Tokens */}
+                  <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 rounded-lg bg-green-100 dark:bg-green-500/20">
+                        <HiSparkles className="w-4 h-4 text-green-600 dark:text-green-400" />
+                      </div>
+                      <span className="text-xs font-medium text-green-700 dark:text-green-300">
+                        Cache Reads
                       </span>
                     </div>
-                    <span className="text-red-600 dark:text-red-400 font-bold">
-                      ${dailyData?.summary?.total_cost?.toFixed(2) || "0.00"}
-                    </span>
+                    <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                      {formatNumber(stats.total_cache_read_tokens || 0)}
+                    </div>
+                    <div className="text-[10px] text-green-600/70 dark:text-green-400/70">
+                      90% cost reduction
+                    </div>
+                  </div>
+
+                  {/* Total Cache Savings */}
+                  <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-500/20">
+                        <FaChartLine className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                      </div>
+                      <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                        Total Saved
+                      </span>
+                    </div>
+                    <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                      ${(stats.total_cache_savings || 0).toFixed(2)}
+                    </div>
+                    <div className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">
+                      From prompt caching
+                    </div>
+                  </div>
+
+                  {/* Prompt Cache Hit Rate */}
+                  <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                        <MdAutorenew className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                      </div>
+                      <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                        Cache Efficiency
+                      </span>
+                    </div>
+                    <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                      {stats.prompt_cache_hit_rate || "0.0%"}
+                    </div>
+                    <div className="text-[10px] text-blue-600/70 dark:text-blue-400/70">
+                      Of input tokens cached
+                    </div>
+                  </div>
+
+                  {/* Projected Monthly Savings */}
+                  <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                    <div className="flex items-center gap-2 mb-2">
+                      <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-500/20">
+                        <MdTrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                      </div>
+                      <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
+                        Monthly Savings
+                      </span>
+                    </div>
+                    <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                      $
+                      {dailyData?.summary?.projected_monthly_savings
+                        ? dailyData.summary.projected_monthly_savings.toFixed(2)
+                        : "0.00"}
+                    </div>
+                    <div className="text-[10px] text-purple-600/70 dark:text-purple-400/70">
+                      Projected cache savings
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
 
-            {/* Info Card - Dual Cache System */}
-            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-2 border-indigo-200 dark:border-indigo-700 rounded-xl p-4">
-              <div className="flex items-start gap-3">
-                <HiSparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
-                <div className="space-y-3">
-                  <h3 className="text-sm font-bold text-indigo-700 dark:text-indigo-300">
-                    Dual Cache System
-                  </h3>
-
-                  {/* Response Cache */}
-                  <div className="pl-3 border-l-2 border-cyan-400">
-                    <h4 className="text-xs font-semibold text-cyan-700 dark:text-cyan-300 mb-1">
-                      1. Response Cache (In-Memory)
-                    </h4>
-                    <p className="text-xs text-gray-600 dark:text-slate-400">
-                      Stores complete LLM responses for <strong>1 hour</strong>. When the same question is asked,
-                      returns instantly with <strong className="text-emerald-600 dark:text-emerald-400">100% cost savings</strong> (zero API calls).
-                      Controlled via admin settings.
-                    </p>
+                {/* Cache Savings Chart - Full Width */}
+                <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+                    <div className="flex items-center gap-2">
+                      <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
+                      <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                        Cache Savings Over Time
+                      </h2>
+                    </div>
+                    <div className="text-xs text-gray-500 dark:text-slate-400">
+                      Prompt caching reduces costs by 90% on cached tokens
+                    </div>
                   </div>
 
-                  {/* Prompt Cache */}
-                  <div className="pl-3 border-l-2 border-green-400">
-                    <h4 className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">
-                      2. Prompt Cache (Claude API)
-                    </h4>
-                    <p className="text-xs text-gray-600 dark:text-slate-400">
-                      Caches conversation history and system prompts for <strong>5 minutes</strong>.
-                      Cache reads cost <strong className="text-emerald-600 dark:text-emerald-400">90% less</strong> than regular input tokens.
-                      Always enabled on every request.
-                    </p>
-                  </div>
+                  {dailyData && dailyData.daily_usage.length > 0 ? (
+                    <div className="h-[200px] sm:h-[250px]">
+                      <Line data={cacheSavingsChartData} options={cacheSavingsChartOptions} />
+                    </div>
+                  ) : (
+                    <div className="h-[200px] sm:h-[250px] flex items-center justify-center">
+                      <p className="text-gray-400 dark:text-slate-500 text-sm">
+                        No cache savings data available yet
+                      </p>
+                    </div>
+                  )}
 
-                  {/* Pricing Example */}
-                  <div className="mt-2 p-2 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                    <p className="text-xs text-gray-700 dark:text-slate-300">
-                      <strong className="text-indigo-600 dark:text-indigo-300">Pricing (Haiku):</strong>{" "}
-                      Input $0.25/MTok • Cache write $0.30/MTok •
-                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold"> Cache read $0.03/MTok (90% off!)</span> •
-                      Output $1.25/MTok
-                    </p>
+                  <div className="mt-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                    <div className="flex items-center justify-between text-xs mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                        <span className="font-medium text-emerald-700 dark:text-emerald-300">
+                          Prompt Cache Savings
+                        </span>
+                      </div>
+                      <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                        ${dailyData?.summary?.total_prompt_cache_savings?.toFixed(2) || "0.00"}
+                      </span>
+                    </div>
+                    <div className="flex items-center justify-between text-xs mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+                        <span className="font-medium text-cyan-700 dark:text-cyan-300">
+                          Response Cache Savings
+                        </span>
+                      </div>
+                      <span className="text-cyan-600 dark:text-cyan-400 font-bold">
+                        ${dailyData?.summary?.total_response_cache_savings?.toFixed(2) || "0.00"}
+                      </span>
+                    </div>
+                    <div className="pt-2 border-t border-emerald-300 dark:border-emerald-700">
+                      <div className="flex items-center justify-between text-xs">
+                        <div className="flex items-center gap-2">
+                          <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                          <span className="font-medium text-red-700 dark:text-red-300">
+                            Total Cost (with caching)
+                          </span>
+                        </div>
+                        <span className="text-red-600 dark:text-red-400 font-bold">
+                          ${dailyData?.summary?.total_cost?.toFixed(2) || "0.00"}
+                        </span>
+                      </div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </div>
+
+                {/* Info Card - Dual Cache System */}
+                <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-2 border-indigo-200 dark:border-indigo-700 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <HiSparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
+                    <div className="space-y-3">
+                      <h3 className="text-sm font-bold text-indigo-700 dark:text-indigo-300">
+                        Dual Cache System
+                      </h3>
+
+                      {/* Response Cache */}
+                      <div className="pl-3 border-l-2 border-cyan-400">
+                        <h4 className="text-xs font-semibold text-cyan-700 dark:text-cyan-300 mb-1">
+                          1. Response Cache (In-Memory)
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-slate-400">
+                          Stores complete LLM responses for <strong>1 hour</strong>. When the same question is asked,
+                          returns instantly with <strong className="text-emerald-600 dark:text-emerald-400">100% cost savings</strong> (zero API calls).
+                          Controlled via admin settings.
+                        </p>
+                      </div>
+
+                      {/* Prompt Cache */}
+                      <div className="pl-3 border-l-2 border-green-400">
+                        <h4 className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">
+                          2. Prompt Cache (Claude API)
+                        </h4>
+                        <p className="text-xs text-gray-600 dark:text-slate-400">
+                          Caches conversation history and system prompts for <strong>5 minutes</strong>.
+                          Cache reads cost <strong className="text-emerald-600 dark:text-emerald-400">90% less</strong> than regular input tokens.
+                          Always enabled on every request.
+                        </p>
+                      </div>
+
+                      {/* Pricing Example */}
+                      <div className="mt-2 p-2 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                        <p className="text-xs text-gray-700 dark:text-slate-300">
+                          <strong className="text-indigo-600 dark:text-indigo-300">Pricing (Haiku):</strong>{" "}
+                          Input $0.25/MTok • Cache write $0.30/MTok •
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold"> Cache read $0.03/MTok (90% off!)</span> •
+                          Output $1.25/MTok
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </>
             )}
           </>

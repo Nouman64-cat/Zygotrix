@@ -23,7 +23,7 @@ export interface PageContext {
 
 // Main chatbot function - calls backend API
 // Session ID for conversation memory - persists across messages and page navigation
-const SESSION_STORAGE_KEY = 'zygotrix_chat_session_id';
+const SESSION_STORAGE_KEY = "zygotrix_chat_session_id";
 
 function getSessionId(): string {
   // Try to get existing session ID from sessionStorage
@@ -159,6 +159,8 @@ export interface DailyUsage {
   cached_count: number;
   unique_users: number;
   cost: number;
+  prompt_cache_savings?: number;
+  response_cache_savings?: number;
 }
 
 export interface DailyUsageSummary {
@@ -168,6 +170,9 @@ export interface DailyUsageSummary {
   avg_daily_cost: number;
   projected_monthly_tokens: number;
   projected_monthly_cost: number;
+  projected_monthly_savings?: number;
+  total_prompt_cache_savings?: number;
+  total_response_cache_savings?: number;
   days_with_data: number;
 }
 

@@ -236,7 +236,7 @@ Respond naturally and conversationally. Keep it brief and friendly."""
         Skips: Pinecone (no semantic search needed)
         Optimizes for: tool availability, no embedding cost
         """
-        from ..zygotrix_ai.chat_service import ChatService
+        from ..zygotrix_ai.chat_service import ZygotrixChatService
 
         logger.debug("Routing: GENETICS_TOOLS (MCP tools only)")
 
@@ -245,7 +245,7 @@ Respond naturally and conversationally. Keep it brief and friendly."""
 
         # Use Zygotrix AI service with MCP tools enabled
         # This service has built-in MCP tool support
-        chat_service = ChatService()
+        chat_service = ZygotrixChatService()
 
         # Create a minimal request object
         from ..zygotrix_ai.models import ChatRequest
@@ -294,7 +294,7 @@ Respond naturally and conversationally. Keep it brief and friendly."""
         Uses: Pinecone + MCP tools + Traits DB + Claude
         Optimizes for: comprehensive context, full capabilities
         """
-        from ..zygotrix_ai.chat_service import ChatService
+        from ..zygotrix_ai.chat_service import ZygotrixChatService
 
         logger.debug("Routing: HYBRID (Pinecone + MCP tools)")
 
@@ -318,7 +318,7 @@ Respond naturally and conversationally. Keep it brief and friendly."""
         context_str = "\n\n".join(combined_context) if combined_context else ""
 
         # Step 4: Use Zygotrix AI service with full capabilities
-        chat_service = ChatService()
+        chat_service = ZygotrixChatService()
 
         from ..zygotrix_ai.models import ChatRequest
 

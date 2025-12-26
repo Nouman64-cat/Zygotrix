@@ -93,7 +93,7 @@ export const ForgotPassword = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [expiresAt, setExpiresAt] = useState<string | null>(null);
+  const [_expiresAt, setExpiresAt] = useState<string | null>(null);
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -305,7 +305,7 @@ export const ForgotPassword = () => {
                   {otp.map((digit, index) => (
                     <input
                       key={index}
-                      ref={(el) => (otpRefs.current[index] = el)}
+                      ref={(el) => { otpRefs.current[index] = el; }}
                       type="text"
                       inputMode="numeric"
                       maxLength={1}

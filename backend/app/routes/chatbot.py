@@ -24,6 +24,7 @@ from ..services.chatbot.claude_ai_service import get_claude_ai_service
 from ..services.chatbot.rag_service import get_rag_service
 from ..services.chatbot.traits_enrichment_service import get_traits_service
 from ..services.chatbot.token_analytics_service import get_token_analytics_service
+from ..services.chatbot.query_router import get_query_router
 
 logger = logging.getLogger(__name__)
 
@@ -213,31 +214,61 @@ async def chat(request: ChatRequest) -> ChatResponse:
             if not response_caching_enabled:
                 logger.info(f"⏭️  Skipping cache (disabled in settings)")
         
-        # Step 2: Retrieve relevant context from Pinecone
-        llama_context = await get_rag_service().retrieve_context(
-            request.message,
-            user_id=request.userId,
-            user_name=request.userName
-        )
-        
-        # Step 3: Get traits-specific context from the traits database
-        traits_context = get_traits_service().get_traits_context(request.message)
-        
-        # Step 4: Combine contexts
-        combined_context = llama_context
-        if traits_context:
-            combined_context = f"{traits_context}\n\n{llama_context}" if llama_context else traits_context
-            logger.info(f"Added traits context: {len(traits_context)} chars")
+        # Check if intelligent routing is enabled
+        use_intelligent_routing = os.getenv("ENABLE_INTELLIGENT_ROUTING", "true").lower() == "true"
 
-        # Step 5: Generate response using Claude with context, page context, user name, and conversation history
-        user_name = request.userName or "there"
-        response, token_usage = await get_claude_ai_service().generate_response(
-            user_message=request.message, 
-            context=combined_context, 
-            page_context=request.pageContext, 
-            user_name=user_name,
-            conversation_history=conversation_history
-        )
+        if use_intelligent_routing:
+            # NEW: Use intelligent routing layer
+            logger.info("🧠 Using intelligent routing")
+            router = get_query_router()
+
+            routing_result = await router.route_and_execute(
+                query=request.message,
+                user_id=request.userId,
+                user_name=request.userName,
+                page_context=request.pageContext,
+                conversation_history=conversation_history
+            )
+
+            response = routing_result["response"]
+            token_usage = routing_result.get("token_usage", {})
+
+            # Log routing decision
+            logger.info(
+                f"📊 Routing stats: type={routing_result['route_type']}, "
+                f"sources={routing_result['sources_used']}, "
+                f"confidence={routing_result['confidence']:.2f}, "
+                f"time={routing_result['response_time_ms']:.0f}ms"
+            )
+        else:
+            # OLD: Traditional flow (fallback)
+            logger.info("🔧 Using traditional routing (fallback mode)")
+
+            # Step 2: Retrieve relevant context from Pinecone
+            llama_context = await get_rag_service().retrieve_context(
+                request.message,
+                user_id=request.userId,
+                user_name=request.userName
+            )
+
+            # Step 3: Get traits-specific context from the traits database
+            traits_context = get_traits_service().get_traits_context(request.message)
+
+            # Step 4: Combine contexts
+            combined_context = llama_context
+            if traits_context:
+                combined_context = f"{traits_context}\n\n{llama_context}" if llama_context else traits_context
+                logger.info(f"Added traits context: {len(traits_context)} chars")
+
+            # Step 5: Generate response using Claude with context, page context, user name, and conversation history
+            user_name = request.userName or "there"
+            response, token_usage = await get_claude_ai_service().generate_response(
+                user_message=request.message,
+                context=combined_context,
+                page_context=request.pageContext,
+                user_name=user_name,
+                conversation_history=conversation_history
+            )
         
         # Step 6: Store in conversation memory
         get_conversation_memory().add_message(session_id, "user", request.message)
@@ -384,3 +415,87 @@ async def get_daily_embedding_usage(days: int = 30):
         - summary: Summary statistics including totals and projections
     """
     return get_token_analytics_service().get_embedding_daily_stats(days)
+
+
+@router.get("/admin/routing-health")
+async def get_routing_health():
+    """
+    Get intelligent routing system health status.
+
+    Returns health metrics for monitoring the routing layer.
+    """
+    import os
+    from ..services.chatbot.query_classifier import get_query_classifier
+
+    # Get configuration
+    routing_enabled = os.getenv("ENABLE_INTELLIGENT_ROUTING", "true").lower() == "true"
+    llm_enabled = os.getenv("ENABLE_LLM_CLASSIFIER", "true").lower() == "true"
+    threshold = float(os.getenv("CLASSIFIER_CONFIDENCE_THRESHOLD", "0.85"))
+
+    # Get classifier instance
+    classifier = get_query_classifier()
+
+    # Calculate cache stats
+    cache_size = len(classifier._cache) if hasattr(classifier, '_cache') else 0
+    cache_max = classifier._cache_max_size if hasattr(classifier, '_cache_max_size') else 1000
+
+    return {
+        "status": "healthy" if routing_enabled else "disabled",
+        "configuration": {
+            "routing_enabled": routing_enabled,
+            "llm_fallback_enabled": llm_enabled,
+            "confidence_threshold": threshold,
+            "llm_model": "claude-3-haiku-20240307"
+        },
+        "cache": {
+            "size": cache_size,
+            "max_size": cache_max,
+            "utilization": f"{(cache_size / cache_max * 100):.1f}%"
+        },
+        "recommendations": {
+            "threshold_too_low": threshold < 0.7,
+            "threshold_too_high": threshold > 0.95,
+            "cache_full": cache_size >= cache_max * 0.9
+        },
+        "endpoints": {
+            "test_classification": "/api/chatbot/admin/test-routing",
+            "health_check": "/api/chatbot/admin/routing-health"
+        }
+    }
+
+
+@router.post("/admin/test-routing")
+async def test_routing(query: str):
+    """
+    Test routing classification for a given query.
+
+    Useful for debugging and validating classifier behavior.
+
+    Args:
+        query: Query string to classify
+
+    Returns:
+        Classification result with route type and confidence
+    """
+    from ..services.chatbot.query_classifier import get_query_classifier
+
+    classifier = get_query_classifier()
+    query_type, confidence = await classifier.classify(query)
+
+    return {
+        "query": query,
+        "route_type": query_type.value,
+        "confidence": confidence,
+        "sources_used": {
+            "conversational": ["claude_only"],
+            "knowledge": ["pinecone", "claude"],
+            "genetics_tools": ["mcp_tools", "claude"],
+            "hybrid": ["pinecone", "mcp_tools", "claude"]
+        }.get(query_type.value, []),
+        "estimated_cost": {
+            "conversational": 0.0001,
+            "knowledge": 0.002,
+            "genetics_tools": 0.001,
+            "hybrid": 0.003
+        }.get(query_type.value, 0.002)
+    }

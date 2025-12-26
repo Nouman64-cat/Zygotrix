@@ -228,16 +228,70 @@ class ZygotrixChatService:
         user_name: Optional[str] = None
     ) -> str:
         """Build combined context from traits and RAG."""
-        traits_context = self.traits_service.get_traits_context(message)
-        llama_context = await self.rag_service.retrieve_context(
-            message,
-            user_id=user_id,
-            user_name=user_name
-        )
+        import os
 
-        if llama_context:
-            return f"{traits_context}\n\n{llama_context}" if traits_context else llama_context
-        return traits_context
+        # Check if intelligent routing is enabled
+        use_intelligent_routing = os.getenv("ENABLE_INTELLIGENT_ROUTING", "true").lower() == "true"
+
+        if use_intelligent_routing:
+            # Use intelligent routing to decide which data sources to use
+            from ..chatbot.query_classifier import get_query_classifier, QueryType
+            import logging
+
+            logger = logging.getLogger(__name__)
+            classifier = get_query_classifier()
+            query_type, confidence = await classifier.classify(message, user_id, user_name)
+
+            logger.info(f"🧠 Zygotrix AI using intelligent routing: {query_type.value} (confidence: {confidence:.2f})")
+
+            if query_type == QueryType.CONVERSATIONAL:
+                # No context needed for conversational queries
+                logger.debug("Routing: CONVERSATIONAL (no context)")
+                return ""
+
+            elif query_type == QueryType.KNOWLEDGE:
+                # Only RAG context needed
+                logger.debug("Routing: KNOWLEDGE (RAG only)")
+                llama_context = await self.rag_service.retrieve_context(
+                    message,
+                    user_id=user_id,
+                    user_name=user_name
+                )
+                return llama_context or ""
+
+            elif query_type == QueryType.GENETICS_TOOLS:
+                # Only traits context needed
+                logger.debug("Routing: GENETICS_TOOLS (traits only)")
+                traits_context = self.traits_service.get_traits_context(message)
+                return traits_context
+
+            else:  # HYBRID
+                # Full context (both RAG and traits)
+                logger.debug("Routing: HYBRID (RAG + traits)")
+                traits_context = self.traits_service.get_traits_context(message)
+                llama_context = await self.rag_service.retrieve_context(
+                    message,
+                    user_id=user_id,
+                    user_name=user_name
+                )
+                if llama_context:
+                    return f"{traits_context}\n\n{llama_context}" if traits_context else llama_context
+                return traits_context
+        else:
+            # Traditional flow: always use both
+            logger = logging.getLogger(__name__)
+            logger.info("🔧 Zygotrix AI using traditional routing (always full context)")
+
+            traits_context = self.traits_service.get_traits_context(message)
+            llama_context = await self.rag_service.retrieve_context(
+                message,
+                user_id=user_id,
+                user_name=user_name
+            )
+
+            if llama_context:
+                return f"{traits_context}\n\n{llama_context}" if traits_context else llama_context
+            return traits_context
 
     def _build_claude_messages(
         self,

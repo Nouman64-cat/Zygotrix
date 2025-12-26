@@ -174,7 +174,11 @@ async def chat(request: ChatRequest) -> ChatResponse:
         conversation_history = get_conversation_memory().get_history(session_id)
         
         # For short follow-up questions (like "how?", "why?"), skip cache
-        is_followup = len(request.message.strip()) < 20 and conversation_history
+        # Note: Disabled followup detection to improve cache hit rate
+        # is_followup = len(request.message.strip()) < 20 and len(conversation_history) > 0
+        is_followup = False  # Temporarily disabled - let all messages be cached
+
+        logger.info(f"Cache check - Message: '{request.message[:50]}...', Page: '{page_name}', IsFollowup: {is_followup}, CacheEnabled: {response_caching_enabled}")
 
         # Step 1: Check cache first (but not for follow-up questions that need context)
         # Only use cache if response_caching_enabled is True
@@ -185,7 +189,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
             )
 
             if cached_response:
-                logger.info(f"Returning cached response for: '{request.message[:50]}...'")
+                logger.info(f"✅ CACHE HIT! Returning cached response for: '{request.message[:50]}...'")
                 # Log cache hit (0 tokens used - doesn't count against rate limit)
                 get_token_analytics_service().log_usage(
                     user_id=request.userId,
@@ -201,6 +205,13 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
                 # Return with current usage info
                 return ChatResponse(response=cached_response, usage=usage_info)
+            else:
+                logger.info(f"❌ Cache miss for: '{request.message[:50]}...'")
+        else:
+            if is_followup:
+                logger.info(f"⏭️  Skipping cache (followup question): '{request.message[:50]}...'")
+            if not response_caching_enabled:
+                logger.info(f"⏭️  Skipping cache (disabled in settings)")
         
         # Step 2: Retrieve relevant context from LlamaCloud
         llama_context = await get_rag_service().retrieve_context(request.message)
@@ -254,6 +265,12 @@ async def chat(request: ChatRequest) -> ChatResponse:
                 response=response,
                 page_name=page_name
             )
+            logger.info(f"💾 Cached response for: '{request.message[:50]}...' (page: '{page_name}')")
+        else:
+            if is_followup:
+                logger.info(f"⏭️  Not caching (followup): '{request.message[:50]}...'")
+            if not response_caching_enabled:
+                logger.info(f"⏭️  Not caching (disabled in settings)")
 
         return ChatResponse(response=response, usage=updated_usage)
     except HTTPException:

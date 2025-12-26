@@ -306,14 +306,20 @@ Question: {user_message.content}"""
         if total_tokens > 0:
             self.rate_limiter.record_usage(user_id, total_tokens)
 
+        # Check if prompt caching was used
+        cache_read_tokens = metadata.get("cache_read_input_tokens", 0)
+        prompt_cache_used = cache_read_tokens > 0
+
         self.token_analytics.log_usage(
             user_id=user_id,
             user_name=user_name,
             input_tokens=metadata.get("input_tokens", 0),
             output_tokens=metadata.get("output_tokens", 0),
-            cached=False,
+            cached=prompt_cache_used,
             message_preview=message_preview[:100],
-            model=model
+            model=model,
+            cache_creation_input_tokens=metadata.get("cache_creation_input_tokens", 0),
+            cache_read_input_tokens=cache_read_tokens
         )
 
     async def _handle_streaming_chat(

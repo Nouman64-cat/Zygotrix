@@ -52,9 +52,12 @@ interface TokenUsageUser {
   total_tokens: number;
   input_tokens: number;
   output_tokens: number;
+  cache_creation_tokens: number;
+  cache_read_tokens: number;
   request_count: number;
   cached_count: number;
   cache_hit_rate: string;
+  cache_savings: number;
   last_request: string | null;
 }
 
@@ -62,9 +65,13 @@ interface TokenUsageStats {
   total_tokens: number;
   total_input_tokens: number;
   total_output_tokens: number;
+  total_cache_creation_tokens: number;
+  total_cache_read_tokens: number;
   total_requests: number;
   cached_requests: number;
   cache_hit_rate: string;
+  prompt_cache_hit_rate: string;
+  total_cache_savings: number;
   user_count: number;
   users: TokenUsageUser[];
   error?: string;
@@ -189,7 +196,7 @@ const AdminTokenUsagePage: React.FC = () => {
     return (inputCost + outputCost).toFixed(4);
   };
 
-  // Prepare chart data
+  // Prepare main usage chart data
   const chartData = {
     labels:
       dailyData?.daily_usage.map((d) => {
@@ -243,6 +250,53 @@ const AdminTokenUsagePage: React.FC = () => {
         pointRadius: 3,
         pointHoverRadius: 6,
         yAxisID: "y1",
+        borderWidth: 2,
+      },
+    ],
+  };
+
+  // Prepare cache savings chart data
+  const cacheSavingsChartData = {
+    labels:
+      dailyData?.daily_usage.map((d) => {
+        const date = new Date(d.date);
+        return date.toLocaleDateString("en-US", {
+          month: "short",
+          day: "numeric",
+        });
+      }) || [],
+    datasets: [
+      {
+        label: "Prompt Cache Savings",
+        data: dailyData?.daily_usage.map((d) => (d.prompt_cache_savings || 0) * 100) || [], // Convert to cents
+        borderColor: "rgb(16, 185, 129)",
+        backgroundColor: "rgba(16, 185, 129, 0.2)",
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        borderWidth: 2,
+      },
+      {
+        label: "Response Cache Savings",
+        data: dailyData?.daily_usage.map((d) => (d.response_cache_savings || 0) * 100) || [], // Convert to cents
+        borderColor: "rgb(6, 182, 212)",
+        backgroundColor: "rgba(6, 182, 212, 0.2)",
+        fill: true,
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 7,
+        borderWidth: 2,
+      },
+      {
+        label: "Total Cost",
+        data: dailyData?.daily_usage.map((d) => (d.cost || 0) * 100) || [], // Convert to cents
+        borderColor: "rgb(239, 68, 68)",
+        backgroundColor: "rgba(239, 68, 68, 0.1)",
+        fill: false,
+        tension: 0.4,
+        pointRadius: 4,
+        pointHoverRadius: 7,
         borderWidth: 2,
       },
     ],
@@ -337,6 +391,69 @@ const AdminTokenUsagePage: React.FC = () => {
               return `${(actual / 1000).toFixed(0)}K`;
             }
             return actual.toString();
+          },
+        },
+      },
+    },
+  };
+
+  // Cache savings chart options
+  const cacheSavingsChartOptions = {
+    responsive: true,
+    maintainAspectRatio: false,
+    interaction: {
+      mode: "index" as const,
+      intersect: false,
+    },
+    plugins: {
+      legend: {
+        position: "top" as const,
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+        },
+      },
+      tooltip: {
+        backgroundColor: "rgba(15, 23, 42, 0.9)",
+        titleColor: "#fff",
+        bodyColor: "#e2e8f0",
+        borderColor: "rgba(16, 185, 129, 0.5)",
+        borderWidth: 1,
+        padding: 12,
+        callbacks: {
+          label: function (context: TooltipItem<"line">) {
+            const label = context.dataset.label || "";
+            const value = context.parsed.y / 100; // Convert back from cents to dollars
+            return `${label}: $${value.toFixed(4)}`;
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: {
+          display: false,
+        },
+        ticks: {
+          maxRotation: 45,
+          minRotation: 45,
+        },
+      },
+      y: {
+        type: "linear" as const,
+        display: true,
+        position: "left" as const,
+        title: {
+          display: true,
+          text: "Cost (cents)",
+        },
+        grid: {
+          color: "rgba(148, 163, 184, 0.1)",
+        },
+        ticks: {
+          callback: function (value: number | string) {
+            const num = typeof value === "string" ? parseFloat(value) : value;
+            return `${num.toFixed(1)}¢`;
           },
         },
       },
@@ -501,14 +618,14 @@ const AdminTokenUsagePage: React.FC = () => {
                 </div>
               </div>
 
-              {/* Cache Hit Rate */}
+              {/* Response Cache Rate */}
               <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
                 <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
                   <div className="p-1.5 sm:p-2 rounded-lg bg-cyan-100 dark:bg-cyan-500/20">
                     <MdAutorenew className="w-4 h-4 sm:w-5 sm:h-5 text-cyan-500 dark:text-cyan-400" />
                   </div>
                   <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
-                    Cache Rate
+                    Response Cache
                   </span>
                 </div>
                 <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
@@ -536,8 +653,149 @@ const AdminTokenUsagePage: React.FC = () => {
                   Active chatters
                 </div>
               </div>
+            </div>
 
+            {/* Prompt Caching Stats Row */}
+            <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+              {/* Cache Read Tokens */}
+              <div className="bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-900/20 dark:to-emerald-900/20 border border-green-200 dark:border-green-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 rounded-lg bg-green-100 dark:bg-green-500/20">
+                    <HiSparkles className="w-4 h-4 text-green-600 dark:text-green-400" />
+                  </div>
+                  <span className="text-xs font-medium text-green-700 dark:text-green-300">
+                    Cache Reads
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-green-700 dark:text-green-300">
+                  {formatNumber(stats.total_cache_read_tokens || 0)}
+                </div>
+                <div className="text-[10px] text-green-600/70 dark:text-green-400/70">
+                  90% cost reduction
+                </div>
+              </div>
 
+              {/* Total Cache Savings */}
+              <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 border border-emerald-200 dark:border-emerald-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-500/20">
+                    <FaChartLine className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  </div>
+                  <span className="text-xs font-medium text-emerald-700 dark:text-emerald-300">
+                    Total Saved
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-emerald-700 dark:text-emerald-300">
+                  ${(stats.total_cache_savings || 0).toFixed(2)}
+                </div>
+                <div className="text-[10px] text-emerald-600/70 dark:text-emerald-400/70">
+                  From prompt caching
+                </div>
+              </div>
+
+              {/* Prompt Cache Hit Rate */}
+              <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 border border-blue-200 dark:border-blue-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                    <MdAutorenew className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <span className="text-xs font-medium text-blue-700 dark:text-blue-300">
+                    Cache Efficiency
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-blue-700 dark:text-blue-300">
+                  {stats.prompt_cache_hit_rate || "0.0%"}
+                </div>
+                <div className="text-[10px] text-blue-600/70 dark:text-blue-400/70">
+                  Of input tokens cached
+                </div>
+              </div>
+
+              {/* Projected Monthly Savings */}
+              <div className="bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border border-purple-200 dark:border-purple-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="p-1.5 rounded-lg bg-purple-100 dark:bg-purple-500/20">
+                    <MdTrendingUp className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+                  </div>
+                  <span className="text-xs font-medium text-purple-700 dark:text-purple-300">
+                    Monthly Savings
+                  </span>
+                </div>
+                <div className="text-2xl font-bold text-purple-700 dark:text-purple-300">
+                  $
+                  {dailyData?.summary?.projected_monthly_savings
+                    ? dailyData.summary.projected_monthly_savings.toFixed(2)
+                    : "0.00"}
+                </div>
+                <div className="text-[10px] text-purple-600/70 dark:text-purple-400/70">
+                  Projected cache savings
+                </div>
+              </div>
+            </div>
+
+            {/* Cache Savings Chart - Full Width */}
+            <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-4 shadow-sm">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+                <div className="flex items-center gap-2">
+                  <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500" />
+                  <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                    Cache Savings Over Time
+                  </h2>
+                </div>
+                <div className="text-xs text-gray-500 dark:text-slate-400">
+                  Prompt caching reduces costs by 90% on cached tokens
+                </div>
+              </div>
+
+              {dailyData && dailyData.daily_usage.length > 0 ? (
+                <div className="h-[200px] sm:h-[250px]">
+                  <Line data={cacheSavingsChartData} options={cacheSavingsChartOptions} />
+                </div>
+              ) : (
+                <div className="h-[200px] sm:h-[250px] flex items-center justify-center">
+                  <p className="text-gray-400 dark:text-slate-500 text-sm">
+                    No cache savings data available yet
+                  </p>
+                </div>
+              )}
+
+              <div className="mt-3 p-3 bg-gradient-to-r from-emerald-50 to-green-50 dark:from-emerald-900/20 dark:to-green-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg">
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-emerald-500"></div>
+                    <span className="font-medium text-emerald-700 dark:text-emerald-300">
+                      Prompt Cache Savings
+                    </span>
+                  </div>
+                  <span className="text-emerald-600 dark:text-emerald-400 font-bold">
+                    ${dailyData?.summary?.total_prompt_cache_savings?.toFixed(2) || "0.00"}
+                  </span>
+                </div>
+                <div className="flex items-center justify-between text-xs mb-2">
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 rounded-full bg-cyan-500"></div>
+                    <span className="font-medium text-cyan-700 dark:text-cyan-300">
+                      Response Cache Savings
+                    </span>
+                  </div>
+                  <span className="text-cyan-600 dark:text-cyan-400 font-bold">
+                    ${dailyData?.summary?.total_response_cache_savings?.toFixed(2) || "0.00"}
+                  </span>
+                </div>
+                <div className="pt-2 border-t border-emerald-300 dark:border-emerald-700">
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 rounded-full bg-red-500"></div>
+                      <span className="font-medium text-red-700 dark:text-red-300">
+                        Total Cost (with caching)
+                      </span>
+                    </div>
+                    <span className="text-red-600 dark:text-red-400 font-bold">
+                      ${dailyData?.summary?.total_cost?.toFixed(2) || "0.00"}
+                    </span>
+                  </div>
+                </div>
+              </div>
             </div>
 
             {/* Chart and Token Info Row */}
@@ -649,21 +907,21 @@ const AdminTokenUsagePage: React.FC = () => {
                   </div>
                 </div>
 
-                {/* Cost Saved */}
+                {/* Prompt Cache Savings */}
                 <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-4 shadow-sm">
                   <div className="flex items-center justify-between">
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-2">
                         <FaDatabase className="w-4 h-4 text-purple-500 dark:text-purple-400" />
                         <span className="text-sm font-medium text-gray-900 dark:text-white">
-                          Tokens Saved
+                          Cache Tokens
                         </span>
                       </div>
                       <div className="text-2xl font-bold text-purple-500 dark:text-purple-400">
-                        ~{formatNumber(stats.cached_requests * 150)}
+                        {formatNumber(stats.total_cache_read_tokens || 0)}
                       </div>
                       <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-                        {stats.cached_requests} cached requests
+                        {stats.prompt_cache_hit_rate || "0.0%"} cache hit rate
                       </div>
                     </div>
                     <div className="text-right pl-4 border-l border-gray-200 dark:border-slate-600">
@@ -671,14 +929,10 @@ const AdminTokenUsagePage: React.FC = () => {
                         Saved
                       </div>
                       <div className="text-lg font-bold text-emerald-600 dark:text-emerald-400">
-                        $
-                        {(
-                          ((stats.cached_requests * 150) / 1000000) *
-                          0.25
-                        ).toFixed(4)}
+                        ${(stats.total_cache_savings || 0).toFixed(4)}
                       </div>
                       <div className="text-[10px] text-gray-400 dark:text-slate-500">
-                        @ $0.25/MTok avg
+                        90% cache discount
                       </div>
                     </div>
                   </div>
@@ -830,26 +1084,48 @@ const AdminTokenUsagePage: React.FC = () => {
               </div>
             </div>
 
-            {/* Info Card */}
-            <div className="bg-indigo-50 dark:bg-indigo-500/10 border border-indigo-200 dark:border-indigo-500/30 rounded-xl p-4">
+            {/* Info Card - Dual Cache System */}
+            <div className="bg-gradient-to-br from-indigo-50 to-purple-50 dark:from-indigo-900/20 dark:to-purple-900/20 border-2 border-indigo-200 dark:border-indigo-700 rounded-xl p-4">
               <div className="flex items-start gap-3">
                 <HiSparkles className="w-5 h-5 text-indigo-500 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
-                <div>
-                  <h3 className="text-sm font-medium text-indigo-700 dark:text-indigo-300 mb-1">
-                    Token Usage Insights
+                <div className="space-y-3">
+                  <h3 className="text-sm font-bold text-indigo-700 dark:text-indigo-300">
+                    Dual Cache System
                   </h3>
-                  <p className="text-xs text-gray-600 dark:text-slate-400">
-                    Tokens are the building blocks of AI text processing. Input
-                    tokens include your prompts and context, while output tokens
-                    are the AI's responses. The cache system helps reduce costs
-                    by serving repeated questions from memory instead of calling
-                    the API.{" "}
-                    <strong className="text-indigo-600 dark:text-indigo-300">
-                      Claude 3 Haiku pricing:
-                    </strong>{" "}
-                    Input $0.25/MTok, Output $1.25/MTok. Prompt caching: Write
-                    $0.30/MTok, Read $0.03/MTok.
-                  </p>
+
+                  {/* Response Cache */}
+                  <div className="pl-3 border-l-2 border-cyan-400">
+                    <h4 className="text-xs font-semibold text-cyan-700 dark:text-cyan-300 mb-1">
+                      1. Response Cache (In-Memory)
+                    </h4>
+                    <p className="text-xs text-gray-600 dark:text-slate-400">
+                      Stores complete LLM responses for <strong>1 hour</strong>. When the same question is asked,
+                      returns instantly with <strong className="text-emerald-600 dark:text-emerald-400">100% cost savings</strong> (zero API calls).
+                      Controlled via admin settings.
+                    </p>
+                  </div>
+
+                  {/* Prompt Cache */}
+                  <div className="pl-3 border-l-2 border-green-400">
+                    <h4 className="text-xs font-semibold text-green-700 dark:text-green-300 mb-1">
+                      2. Prompt Cache (Claude API)
+                    </h4>
+                    <p className="text-xs text-gray-600 dark:text-slate-400">
+                      Caches conversation history and system prompts for <strong>5 minutes</strong>.
+                      Cache reads cost <strong className="text-emerald-600 dark:text-emerald-400">90% less</strong> than regular input tokens.
+                      Always enabled on every request.
+                    </p>
+                  </div>
+
+                  {/* Pricing Example */}
+                  <div className="mt-2 p-2 bg-white/50 dark:bg-slate-800/50 rounded-lg">
+                    <p className="text-xs text-gray-700 dark:text-slate-300">
+                      <strong className="text-indigo-600 dark:text-indigo-300">Pricing (Haiku):</strong>{" "}
+                      Input $0.25/MTok • Cache write $0.30/MTok •
+                      <span className="text-emerald-600 dark:text-emerald-400 font-semibold"> Cache read $0.03/MTok (90% off!)</span> •
+                      Output $1.25/MTok
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>

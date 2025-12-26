@@ -255,3 +255,92 @@ export async function getUserRateLimit(
     return null;
   }
 }
+
+// ==================== EMBEDDING USAGE ====================
+
+export interface EmbeddingUsageUser {
+  user_id: string;
+  user_name: string;
+  total_tokens: number;
+  total_cost: number;
+  request_count: number;
+  avg_tokens_per_request: number;
+  last_request: string | null;
+}
+
+export interface EmbeddingUsageStats {
+  total_tokens: number;
+  total_cost: number;
+  total_requests: number;
+  avg_tokens_per_request: number;
+  user_count: number;
+  users: EmbeddingUsageUser[];
+  error?: string;
+}
+
+export interface EmbeddingDailyUsage {
+  date: string;
+  total_tokens: number;
+  total_cost: number;
+  request_count: number;
+  unique_users: number;
+  avg_tokens_per_request: number;
+  models: Record<string, {
+    tokens: number;
+    cost: number;
+    requests: number;
+  }>;
+}
+
+export interface EmbeddingDailyUsageSummary {
+  total_tokens: number;
+  total_cost: number;
+  total_requests: number;
+  avg_daily_tokens: number;
+  avg_daily_cost: number;
+  projected_monthly_tokens: number;
+  projected_monthly_cost: number;
+  days_with_data: number;
+}
+
+export interface EmbeddingDailyUsageResponse {
+  daily_usage: EmbeddingDailyUsage[];
+  summary: EmbeddingDailyUsageSummary;
+  error?: string;
+}
+
+// Fetch embedding usage stats for admin dashboard
+export async function getEmbeddingUsageStats(): Promise<EmbeddingUsageStats | null> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/chatbot/admin/embedding-usage`
+    );
+    if (!response.ok) {
+      console.error("Failed to fetch embedding usage stats");
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching embedding usage stats:", error);
+    return null;
+  }
+}
+
+// Fetch daily embedding usage for line chart
+export async function getDailyEmbeddingUsage(
+  days: number = 30
+): Promise<EmbeddingDailyUsageResponse | null> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/chatbot/admin/embedding-usage-daily?days=${days}`
+    );
+    if (!response.ok) {
+      console.error("Failed to fetch daily embedding usage");
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching daily embedding usage:", error);
+    return null;
+  }
+}

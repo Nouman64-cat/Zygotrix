@@ -213,8 +213,12 @@ async def chat(request: ChatRequest) -> ChatResponse:
             if not response_caching_enabled:
                 logger.info(f"⏭️  Skipping cache (disabled in settings)")
         
-        # Step 2: Retrieve relevant context from LlamaCloud
-        llama_context = await get_rag_service().retrieve_context(request.message)
+        # Step 2: Retrieve relevant context from Pinecone
+        llama_context = await get_rag_service().retrieve_context(
+            request.message,
+            user_id=request.userId,
+            user_name=request.userName
+        )
         
         # Step 3: Get traits-specific context from the traits database
         traits_context = get_traits_service().get_traits_context(request.message)
@@ -343,11 +347,40 @@ async def get_user_token_usage(user_id: str, limit: int = 50):
 async def get_daily_token_usage(days: int = 30):
     """
     Get daily aggregated token usage for the last N days.
-    
+
     Args:
         days: Number of days to fetch (default 30)
-    
+
     Returns:
         - daily_usage: List of daily token usage with date, tokens, requests, and cost
     """
     return get_token_analytics_service().get_daily_stats(days)
+
+@router.get("/admin/embedding-usage")
+async def get_embedding_usage_stats():
+    """
+    Get aggregate embedding usage statistics for all users.
+
+    Returns:
+        - total_tokens: Total embedding tokens consumed across all users
+        - total_cost: Total cost in USD for embeddings
+        - total_requests: Total number of embedding requests
+        - avg_tokens_per_request: Average tokens per embedding request
+        - user_count: Number of users who used embeddings
+        - users: List of users with their embedding consumption
+    """
+    return get_token_analytics_service().get_embedding_stats()
+
+@router.get("/admin/embedding-usage-daily")
+async def get_daily_embedding_usage(days: int = 30):
+    """
+    Get daily aggregated embedding usage for the last N days.
+
+    Args:
+        days: Number of days to fetch (default 30)
+
+    Returns:
+        - daily_usage: List of daily embedding usage with date, tokens, requests, cost, and model breakdown
+        - summary: Summary statistics including totals and projections
+    """
+    return get_token_analytics_service().get_embedding_daily_stats(days)

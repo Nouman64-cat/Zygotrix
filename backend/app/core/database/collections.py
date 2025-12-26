@@ -49,6 +49,7 @@ class CollectionName(Enum):
     # Analytics & Logging
     SIMULATION_LOGS = "simulation_logs"
     TOKEN_USAGE = "token_usage"
+    EMBEDDING_USAGE = "embedding_usage"
 
     # Communication
     NEWSLETTERS = "newsletters"
@@ -470,6 +471,24 @@ class IndexConfig:
                 {
                     "keys": "service",
                     "name": "service_idx"
+                },
+            ],
+            CollectionName.EMBEDDING_USAGE: [
+                {
+                    "keys": "user_id",
+                    "name": "user_id_idx"
+                },
+                {
+                    "keys": "timestamp",
+                    "name": "timestamp_idx"
+                },
+                {
+                    "keys": [("user_id", 1), ("timestamp", -1)],
+                    "name": "user_timestamp_compound_idx"
+                },
+                {
+                    "keys": "model",
+                    "name": "model_idx"
                 },
             ],
 

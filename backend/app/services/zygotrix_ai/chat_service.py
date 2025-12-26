@@ -89,7 +89,11 @@ class ZygotrixChatService:
         )
 
         # Build context
-        combined_context = await self._build_context(chat_request.message)
+        combined_context = await self._build_context(
+            chat_request.message,
+            user_id=user_id,
+            user_name=user_name
+        )
 
         # Get conversation history and build Claude messages
         claude_messages = self._build_claude_messages(
@@ -145,7 +149,11 @@ class ZygotrixChatService:
         max_tokens = conv_settings.max_tokens
 
         # Build context and messages
-        combined_context = await self._build_context(user_message.content)
+        combined_context = await self._build_context(
+            user_message.content,
+            user_id=user_id,
+            user_name=user_name
+        )
         claude_messages = self._build_claude_messages_for_regeneration(
             conversation_id, user_message, combined_context
         )
@@ -213,10 +221,19 @@ class ZygotrixChatService:
             )
             return ConversationService.create_conversation(user_id, conv_data)
 
-    async def _build_context(self, message: str) -> str:
+    async def _build_context(
+        self,
+        message: str,
+        user_id: Optional[str] = None,
+        user_name: Optional[str] = None
+    ) -> str:
         """Build combined context from traits and RAG."""
         traits_context = self.traits_service.get_traits_context(message)
-        llama_context = await self.rag_service.retrieve_context(message)
+        llama_context = await self.rag_service.retrieve_context(
+            message,
+            user_id=user_id,
+            user_name=user_name
+        )
 
         if llama_context:
             return f"{traits_context}\n\n{llama_context}" if traits_context else llama_context

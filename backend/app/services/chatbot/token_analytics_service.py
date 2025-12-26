@@ -30,6 +30,13 @@ MODEL_PRICING = {
     "claude-haiku-4-5-20250514": {"input": 0.001, "output": 0.005},
 }
 
+# OpenAI Embedding Model Pricing (per 1M tokens)
+EMBEDDING_MODEL_PRICING = {
+    "text-embedding-3-small": 0.00002,  # $0.02 per 1M tokens
+    "text-embedding-3-large": 0.00013,  # $0.13 per 1M tokens
+    "text-embedding-ada-002": 0.0001,   # $0.10 per 1M tokens
+}
+
 
 class TokenAnalyticsService:
     """
@@ -274,6 +281,216 @@ class TokenAnalyticsService:
             logger.error(f"Error fetching user token usage: {e}")
             return {"error": str(e), "history": []}
     
+    def log_embedding_usage(
+        self,
+        user_id: Optional[str],
+        user_name: Optional[str],
+        tokens: int,
+        model: str,
+        query_preview: str
+    ) -> None:
+        """Log embedding token usage to MongoDB for admin tracking."""
+        try:
+            from ..common import get_embedding_usage_collection
+
+            collection = get_embedding_usage_collection()
+            if collection is None:
+                return  # MongoDB not available
+
+            # Calculate cost for embeddings
+            cost = self.calculate_embedding_cost(tokens, model)
+
+            doc = {
+                "user_id": user_id or "anonymous",
+                "user_name": user_name or "Unknown",
+                "tokens": tokens,
+                "model": model,
+                "cost": cost,
+                "query_preview": query_preview,
+                "timestamp": datetime.now(timezone.utc),
+            }
+
+            collection.insert_one(doc)
+            logger.debug(f"Logged embedding usage: {tokens} tokens (${cost:.6f}) for user {user_id or 'anonymous'}")
+        except Exception as e:
+            logger.warning(f"Failed to log embedding usage: {e}")
+
+    def calculate_embedding_cost(self, tokens: int, model: str) -> float:
+        """Calculate cost for embedding model usage."""
+        pricing = EMBEDDING_MODEL_PRICING.get(model, 0.00002)  # Default to text-embedding-3-small
+        return (tokens / 1_000_000) * pricing
+
+    def get_embedding_stats(self) -> Dict:
+        """Get aggregate embedding usage statistics."""
+        try:
+            from ..common import get_embedding_usage_collection
+
+            collection = get_embedding_usage_collection()
+            if collection is None:
+                return {"error": "MongoDB not available", "users": []}
+
+            # Aggregate embedding usage by user
+            pipeline = [
+                {
+                    "$group": {
+                        "_id": "$user_id",
+                        "user_name": {"$last": "$user_name"},
+                        "total_tokens": {"$sum": "$tokens"},
+                        "total_cost": {"$sum": "$cost"},
+                        "request_count": {"$sum": 1},
+                        "last_request": {"$max": "$timestamp"},
+                    }
+                },
+                {"$sort": {"total_tokens": -1}}
+            ]
+
+            results = list(collection.aggregate(pipeline))
+
+            # Calculate totals
+            total_tokens = sum(r.get("total_tokens", 0) for r in results)
+            total_cost = sum(r.get("total_cost", 0) for r in results)
+            total_requests = sum(r.get("request_count", 0) for r in results)
+
+            # Format user data
+            users = []
+            for r in results:
+                users.append({
+                    "user_id": r["_id"],
+                    "user_name": r.get("user_name", "Unknown"),
+                    "total_tokens": r.get("total_tokens", 0),
+                    "total_cost": round(r.get("total_cost", 0), 6),
+                    "request_count": r.get("request_count", 0),
+                    "avg_tokens_per_request": round(r.get("total_tokens", 0) / r.get("request_count", 1), 0),
+                    "last_request": r.get("last_request").isoformat() if r.get("last_request") else None,
+                })
+
+            return {
+                "total_tokens": total_tokens,
+                "total_cost": round(total_cost, 6),
+                "total_requests": total_requests,
+                "avg_tokens_per_request": round(total_tokens / total_requests, 0) if total_requests > 0 else 0,
+                "user_count": len(users),
+                "users": users,
+            }
+        except Exception as e:
+            logger.error(f"Error fetching embedding usage stats: {e}")
+            return {"error": str(e), "users": []}
+
+    def get_embedding_daily_stats(self, days: int = 30) -> Dict:
+        """Get daily aggregated embedding usage for the last N days."""
+        try:
+            from ..common import get_embedding_usage_collection
+
+            collection = get_embedding_usage_collection()
+            if collection is None:
+                return {"error": "MongoDB not available", "daily_usage": []}
+
+            # Calculate date range
+            end_date = datetime.now(timezone.utc)
+            start_date = end_date - timedelta(days=days)
+
+            # Aggregate by day and model
+            pipeline = [
+                {
+                    "$match": {
+                        "timestamp": {"$gte": start_date, "$lte": end_date}
+                    }
+                },
+                {
+                    "$group": {
+                        "_id": {
+                            "year": {"$year": "$timestamp"},
+                            "month": {"$month": "$timestamp"},
+                            "day": {"$dayOfMonth": "$timestamp"},
+                            "model": "$model"
+                        },
+                        "total_tokens": {"$sum": "$tokens"},
+                        "total_cost": {"$sum": "$cost"},
+                        "request_count": {"$sum": 1},
+                        "unique_users": {"$addToSet": "$user_id"}
+                    }
+                },
+                {"$sort": {"_id.year": 1, "_id.month": 1, "_id.day": 1}}
+            ]
+
+            results = list(collection.aggregate(pipeline))
+
+            # Group by date
+            daily_data = {}
+            for r in results:
+                date_str = f"{r['_id']['year']}-{r['_id']['month']:02d}-{r['_id']['day']:02d}"
+                model = r['_id'].get('model', 'text-embedding-3-small')
+
+                if date_str not in daily_data:
+                    daily_data[date_str] = {
+                        "total_tokens": 0,
+                        "total_cost": 0.0,
+                        "request_count": 0,
+                        "unique_users": set(),
+                        "models": {}
+                    }
+
+                daily_data[date_str]["total_tokens"] += r.get("total_tokens", 0)
+                daily_data[date_str]["total_cost"] += r.get("total_cost", 0)
+                daily_data[date_str]["request_count"] += r.get("request_count", 0)
+                daily_data[date_str]["unique_users"].update(r.get("unique_users", []))
+
+                # Track per-model usage
+                if model not in daily_data[date_str]["models"]:
+                    daily_data[date_str]["models"][model] = {
+                        "tokens": 0,
+                        "cost": 0.0,
+                        "requests": 0
+                    }
+                daily_data[date_str]["models"][model]["tokens"] += r.get("total_tokens", 0)
+                daily_data[date_str]["models"][model]["cost"] += r.get("total_cost", 0)
+                daily_data[date_str]["models"][model]["requests"] += r.get("request_count", 0)
+
+            # Format results
+            daily_usage = []
+            for date_str in sorted(daily_data.keys()):
+                data = daily_data[date_str]
+                daily_usage.append({
+                    "date": date_str,
+                    "total_tokens": data["total_tokens"],
+                    "total_cost": round(data["total_cost"], 6),
+                    "request_count": data["request_count"],
+                    "unique_users": len(data["unique_users"]),
+                    "avg_tokens_per_request": round(data["total_tokens"] / data["request_count"], 0) if data["request_count"] > 0 else 0,
+                    "models": {
+                        model: {
+                            "tokens": stats["tokens"],
+                            "cost": round(stats["cost"], 6),
+                            "requests": stats["requests"]
+                        }
+                        for model, stats in data["models"].items()
+                    }
+                })
+
+            # Calculate totals and projections
+            total_tokens = sum(d["total_tokens"] for d in daily_usage)
+            total_cost = sum(d["total_cost"] for d in daily_usage)
+            total_requests = sum(d["request_count"] for d in daily_usage)
+            avg_daily_tokens = total_tokens / len(daily_usage) if daily_usage else 0
+            avg_daily_cost = total_cost / len(daily_usage) if daily_usage else 0
+
+            return {
+                "daily_usage": daily_usage,
+                "summary": {
+                    "total_tokens": total_tokens,
+                    "total_cost": round(total_cost, 6),
+                    "total_requests": total_requests,
+                    "avg_daily_tokens": round(avg_daily_tokens, 0),
+                    "avg_daily_cost": round(avg_daily_cost, 6),
+                    "projected_monthly_tokens": round(avg_daily_tokens * 30, 0),
+                    "projected_monthly_cost": round(avg_daily_cost * 30, 6),
+                    "days_with_data": len(daily_usage)
+                }
+            }
+        except Exception as e:
+            logger.error(f"Error fetching daily embedding usage: {e}")
+            return {"error": str(e), "daily_usage": []}
+
     def get_daily_stats(self, days: int = 30) -> Dict:
         """Get daily aggregated token usage for the last N days."""
         try:

@@ -4,7 +4,11 @@ import { useAuth } from "../context/AuthContext";
 import {
   getTokenUsageStats,
   getDailyTokenUsage,
+  getEmbeddingUsageStats,
+  getDailyEmbeddingUsage,
   type DailyUsageResponse,
+  type EmbeddingUsageStats as EmbeddingStats,
+  type EmbeddingDailyUsageResponse,
 } from "../services/chatbotService";
 import { fetchChatbotSettings } from "../services/admin.api";
 import type { ChatbotSettings } from "../types/auth";
@@ -83,17 +87,20 @@ const AdminTokenUsagePage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [stats, setStats] = useState<TokenUsageStats | null>(null);
   const [dailyData, setDailyData] = useState<DailyUsageResponse | null>(null);
+  const [embeddingStats, setEmbeddingStats] = useState<EmbeddingStats | null>(null);
+  const [embeddingDailyData, setEmbeddingDailyData] = useState<EmbeddingDailyUsageResponse | null>(null);
   const [chatbotSettings, setChatbotSettings] = useState<ChatbotSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chartDays, setChartDays] = useState(30);
-  const [activeTab, setActiveTab] = useState<"overview" | "cache">("overview");
+  const [activeTab, setActiveTab] = useState<"overview" | "cache" | "embeddings">("overview");
 
   const hasAdminAccess = currentUser?.user_role === "super_admin" || currentUser?.user_role === "admin";
 
   useEffect(() => {
     if (hasAdminAccess) {
       fetchStats();
+      fetchEmbeddingStats();
       fetchSettings();
     }
   }, [hasAdminAccess]);
@@ -101,6 +108,7 @@ const AdminTokenUsagePage: React.FC = () => {
   useEffect(() => {
     if (hasAdminAccess) {
       fetchDailyData();
+      fetchEmbeddingDailyData();
     }
   }, [hasAdminAccess, chartDays]);
 
@@ -143,9 +151,33 @@ const AdminTokenUsagePage: React.FC = () => {
     }
   };
 
+  const fetchEmbeddingStats = async () => {
+    try {
+      const data = await getEmbeddingUsageStats();
+      if (data) {
+        setEmbeddingStats(data);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to fetch embedding stats:", err);
+    }
+  };
+
+  const fetchEmbeddingDailyData = async () => {
+    try {
+      const data = await getDailyEmbeddingUsage(chartDays);
+      if (data) {
+        setEmbeddingDailyData(data);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to fetch embedding daily data:", err);
+    }
+  };
+
   const handleRefresh = () => {
     fetchStats();
     fetchDailyData();
+    fetchEmbeddingStats();
+    fetchEmbeddingDailyData();
     fetchSettings();
   };
 
@@ -533,6 +565,16 @@ const AdminTokenUsagePage: React.FC = () => {
             >
               <FaDatabase className="w-5 h-5" />
               Cache Analytics
+            </button>
+            <button
+              onClick={() => setActiveTab("embeddings")}
+              className={`${activeTab === "embeddings"
+                  ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+            >
+              <HiSparkles className="w-5 h-5" />
+              Embeddings
             </button>
           </nav>
         </div>
@@ -1123,6 +1165,354 @@ const AdminTokenUsagePage: React.FC = () => {
                         </p>
                       </div>
                     </div>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Embeddings Tab */}
+            {activeTab === "embeddings" && embeddingStats && (
+              <>
+                {/* Embedding Stats Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
+                  {/* Total Tokens */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-500/20">
+                        <HiSparkles className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 dark:text-purple-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Total Tokens
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {formatNumber(embeddingStats.total_tokens)}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      Embedding tokens used
+                    </div>
+                  </div>
+
+                  {/* Total Cost */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-100 dark:bg-emerald-500/20">
+                        <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-500 dark:text-emerald-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Total Cost
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-emerald-600 dark:text-emerald-400 mb-1">
+                      ${embeddingStats.total_cost.toFixed(6)}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      OpenAI embeddings
+                    </div>
+                  </div>
+
+                  {/* Projected Monthly Cost */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-amber-100 dark:bg-amber-500/20">
+                        <MdTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-amber-500 dark:text-amber-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Projected/Mo
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">
+                      $
+                      {embeddingDailyData?.summary
+                        ? embeddingDailyData.summary.projected_monthly_cost.toFixed(6)
+                        : "0.000000"}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {chartDays}-day avg
+                    </div>
+                  </div>
+
+                  {/* Total Requests */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                        <FaDatabase className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 dark:text-blue-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Requests
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {formatNumber(embeddingStats.total_requests)}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {embeddingStats.avg_tokens_per_request.toFixed(0)} tokens/req
+                    </div>
+                  </div>
+                </div>
+
+                {/* Embedding Usage Chart */}
+                <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-4 shadow-sm">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-3 sm:mb-4">
+                    <div className="flex items-center gap-2">
+                      <MdTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500" />
+                      <h2 className="text-base sm:text-lg font-semibold text-gray-900 dark:text-white">
+                        Embedding Usage Over Time
+                      </h2>
+                    </div>
+                    <select
+                      value={chartDays}
+                      onChange={(e) => setChartDays(Number(e.target.value))}
+                      className="px-2 sm:px-3 py-1.5 text-xs bg-white dark:bg-slate-800 border border-gray-300 dark:border-slate-600 rounded-lg text-gray-700 dark:text-white focus:ring-2 focus:ring-indigo-500 cursor-pointer"
+                    >
+                      <option value={7}>Last 7 Days</option>
+                      <option value={14}>Last 14 Days</option>
+                      <option value={30}>Last 30 Days</option>
+                      <option value={60}>Last 60 Days</option>
+                      <option value={90}>Last 90 Days</option>
+                    </select>
+                  </div>
+
+                  {embeddingDailyData && embeddingDailyData.daily_usage.length > 0 ? (
+                    <div className="h-[200px] sm:h-[300px]">
+                      <Line
+                        data={{
+                          labels: embeddingDailyData.daily_usage.map((d) => {
+                            const date = new Date(d.date);
+                            return date.toLocaleDateString("en-US", {
+                              month: "short",
+                              day: "numeric",
+                            });
+                          }),
+                          datasets: [
+                            {
+                              label: "Tokens",
+                              data: embeddingDailyData.daily_usage.map((d) => d.total_tokens),
+                              borderColor: "rgb(168, 85, 247)",
+                              backgroundColor: "rgba(168, 85, 247, 0.1)",
+                              fill: true,
+                              tension: 0.4,
+                              pointRadius: 3,
+                              pointHoverRadius: 6,
+                              borderWidth: 2,
+                            },
+                            {
+                              label: "Cost (cents)",
+                              data: embeddingDailyData.daily_usage.map((d) => d.total_cost * 100),
+                              borderColor: "rgb(16, 185, 129)",
+                              backgroundColor: "rgba(16, 185, 129, 0.05)",
+                              fill: false,
+                              tension: 0.4,
+                              pointRadius: 3,
+                              pointHoverRadius: 6,
+                              borderWidth: 2,
+                              yAxisID: "y1",
+                            },
+                          ],
+                        }}
+                        options={{
+                          responsive: true,
+                          maintainAspectRatio: false,
+                          interaction: {
+                            mode: "index" as const,
+                            intersect: false,
+                          },
+                          plugins: {
+                            legend: {
+                              position: "top" as const,
+                              labels: {
+                                usePointStyle: true,
+                                padding: 20,
+                              },
+                            },
+                            tooltip: {
+                              backgroundColor: "rgba(15, 23, 42, 0.9)",
+                              titleColor: "#fff",
+                              bodyColor: "#e2e8f0",
+                              borderColor: "rgba(168, 85, 247, 0.3)",
+                              borderWidth: 1,
+                              padding: 12,
+                              callbacks: {
+                                label: function (context: TooltipItem<"line">) {
+                                  const label = context.dataset.label || "";
+                                  const value = context.parsed.y;
+                                  if (label === "Cost (cents)") {
+                                    return `${label}: ${value.toFixed(4)}¢`;
+                                  }
+                                  return `${label}: ${formatNumber(value)}`;
+                                },
+                              },
+                            },
+                          },
+                          scales: {
+                            x: {
+                              grid: {
+                                display: false,
+                              },
+                              ticks: {
+                                maxRotation: 45,
+                                minRotation: 45,
+                              },
+                            },
+                            y: {
+                              type: "linear" as const,
+                              display: true,
+                              position: "left" as const,
+                              title: {
+                                display: true,
+                                text: "Tokens",
+                              },
+                              grid: {
+                                color: "rgba(148, 163, 184, 0.1)",
+                              },
+                              ticks: {
+                                callback: function (value: number | string) {
+                                  const num = typeof value === "string" ? parseFloat(value) : value;
+                                  return formatNumber(num);
+                                },
+                              },
+                            },
+                            y1: {
+                              type: "linear" as const,
+                              display: true,
+                              position: "right" as const,
+                              title: {
+                                display: true,
+                                text: "Cost (cents)",
+                              },
+                              grid: {
+                                drawOnChartArea: false,
+                              },
+                              ticks: {
+                                callback: function (value: number | string) {
+                                  const num = typeof value === "string" ? parseFloat(value) : value;
+                                  return `${num.toFixed(2)}¢`;
+                                },
+                              },
+                            },
+                          },
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-[200px] sm:h-[300px] flex items-center justify-center">
+                      <p className="text-gray-400 dark:text-slate-500 text-sm">
+                        No embedding usage data available
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Model Info */}
+                  <div className="mt-4 p-3 bg-purple-50 dark:bg-purple-900/20 border border-purple-200 dark:border-purple-800 rounded-lg">
+                    <div className="flex items-center gap-2 mb-2">
+                      <HiSparkles className="w-4 h-4 text-purple-500" />
+                      <h4 className="text-sm font-semibold text-purple-700 dark:text-purple-300">
+                        Embedding Model: text-embedding-3-small
+                      </h4>
+                    </div>
+                    <p className="text-xs text-gray-600 dark:text-slate-400">
+                      Pricing: <strong className="text-purple-600 dark:text-purple-400">$0.02 per 1M tokens</strong> - Used for semantic search and context retrieval from Pinecone vector database
+                    </p>
+                  </div>
+                </div>
+
+                {/* User Table */}
+                <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm">
+                  <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <FaUsers className="w-5 h-5 text-purple-500" />
+                      Embedding Usage by User
+                    </h2>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead>
+                        <tr className="bg-gray-50 dark:bg-slate-800/50">
+                          <th className="text-left px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            User
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            Tokens
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            Requests
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
+                            Avg/Request
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">
+                            Last Active
+                          </th>
+                          <th className="text-right px-4 py-3 text-xs font-medium text-gray-500 dark:text-slate-400 uppercase tracking-wider">
+                            Cost
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-100 dark:divide-slate-700/50">
+                        {embeddingStats.users.length === 0 ? (
+                          <tr>
+                            <td
+                              colSpan={6}
+                              className="px-4 py-12 text-center text-gray-400 dark:text-slate-500"
+                            >
+                              No embedding usage data yet.
+                            </td>
+                          </tr>
+                        ) : (
+                          embeddingStats.users.map((user) => (
+                            <tr
+                              key={user.user_id}
+                              className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
+                            >
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-600 flex items-center justify-center">
+                                    <span className="text-white text-xs font-bold">
+                                      {user.user_name.charAt(0).toUpperCase()}
+                                    </span>
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {user.user_name}
+                                    </div>
+                                    <div className="text-xs text-gray-400 dark:text-slate-500">
+                                      {user.user_id}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                                  {formatNumber(user.total_tokens)}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm text-gray-600 dark:text-slate-400">
+                                  {user.request_count}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden sm:table-cell">
+                                <div className="text-sm text-gray-600 dark:text-slate-400">
+                                  {user.avg_tokens_per_request.toFixed(0)}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden lg:table-cell">
+                                <div className="text-xs text-gray-500 dark:text-slate-500">
+                                  {user.last_request
+                                    ? new Date(user.last_request).toLocaleDateString()
+                                    : "N/A"}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm font-semibold text-purple-600 dark:text-purple-400">
+                                  ${user.total_cost.toFixed(6)}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
                   </div>
                 </div>
               </>

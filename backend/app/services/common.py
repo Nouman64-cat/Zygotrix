@@ -149,6 +149,11 @@ def get_token_usage_collection(required: bool = False) -> Optional[Collection]:
     return get_collection(CollectionName.TOKEN_USAGE, required=required)
 
 
+def get_embedding_usage_collection(required: bool = False) -> Optional[Collection]:
+    """Get embedding usage collection (analytics)."""
+    return get_collection(CollectionName.EMBEDDING_USAGE, required=required)
+
+
 def get_newsletters_collection(required: bool = False) -> Optional[Collection]:
     """Get newsletters collection (communication)."""
     return get_collection(CollectionName.NEWSLETTERS, required=required)

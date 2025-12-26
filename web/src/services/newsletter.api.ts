@@ -96,3 +96,75 @@ export const sendNewsletter = async (
   );
   return response.data;
 };
+
+// AI Template Generation & Management
+
+export interface GenerateTemplateRequest {
+  description: string;
+  template_type?: string;
+}
+
+export interface GenerateTemplateResponse {
+  html: string;
+  description: string;
+  template_type: string;
+  generated_at: string;
+  token_usage: {
+    input_tokens: number;
+    output_tokens: number;
+  };
+}
+
+export interface SaveTemplateRequest {
+  name: string;
+  html: string;
+  description: string;
+  template_type: string;
+  thumbnail_url?: string;
+}
+
+export interface EmailTemplate {
+  _id: string;
+  name: string;
+  html: string;
+  description: string;
+  template_type: string;
+  created_by: string;
+  thumbnail_url?: string;
+  created_at: string;
+  updated_at: string;
+  is_active: boolean;
+  usage_count: number;
+}
+
+export const generateTemplateWithAI = async (
+  data: GenerateTemplateRequest
+): Promise<GenerateTemplateResponse> => {
+  const response = await API.post<GenerateTemplateResponse>(
+    API_ROUTES.newsletter.generateTemplate,
+    data
+  );
+  return response.data;
+};
+
+export const saveCustomTemplate = async (
+  data: SaveTemplateRequest
+): Promise<EmailTemplate> => {
+  const response = await API.post<EmailTemplate>(
+    API_ROUTES.newsletter.templates,
+    data
+  );
+  return response.data;
+};
+
+export const getCustomTemplates = async (
+  templateType?: string
+): Promise<{ templates: EmailTemplate[]; count: number }> => {
+  const params = templateType ? { template_type: templateType } : {};
+  const response = await API.get(API_ROUTES.newsletter.templates, { params });
+  return response.data;
+};
+
+export const deleteCustomTemplate = async (templateId: string): Promise<void> => {
+  await API.delete(API_ROUTES.newsletter.deleteTemplate(templateId));
+};

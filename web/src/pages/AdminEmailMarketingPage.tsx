@@ -97,11 +97,6 @@ const EXAMPLE_CONTENT: Record<string, string> = {
       <table width="600" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td align="center">
-            <!-- Changelog Badge -->
-            <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 50px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3);">
-              <span style="color: white; font-size: 14px; font-weight: 600;">📝 CHANGELOG</span>
-            </div>
-            
             <!-- Main Headline -->
             <h1 style="color: #ffffff; font-size: 38px; font-weight: 800; line-height: 1.2; margin: 0 0 15px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
               What's New This Week
@@ -288,11 +283,6 @@ const EXAMPLE_CONTENT: Record<string, string> = {
       <table width="600" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td align="center">
-            <!-- Version Badge -->
-            <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 50px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3);">
-              <span style="color: white; font-size: 14px; font-weight: 600;">🚀 NEW RELEASE</span>
-            </div>
-            
             <!-- Version Number -->
             <h1 style="color: #ffffff; font-size: 52px; font-weight: 800; line-height: 1.1; margin: 0 0 15px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
               Version 2.0
@@ -477,11 +467,6 @@ const EXAMPLE_CONTENT: Record<string, string> = {
       <table width="600" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td align="center">
-            <!-- News Badge -->
-            <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 50px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3);">
-              <span style="color: white; font-size: 14px; font-weight: 600;">📰 ANNOUNCEMENT</span>
-            </div>
-            
             <!-- Main Headline -->
             <h1 style="color: #ffffff; font-size: 38px; font-weight: 800; line-height: 1.2; margin: 0 0 20px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
               Exciting News from Zygotrix!
@@ -584,11 +569,6 @@ const EXAMPLE_CONTENT: Record<string, string> = {
       <table width="600" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td align="center">
-            <!-- Update Badge -->
-            <div style="display: inline-block; background: rgba(255,255,255,0.2); padding: 8px 20px; border-radius: 50px; margin-bottom: 25px; border: 1px solid rgba(255,255,255,0.3);">
-              <span style="color: white; font-size: 14px; font-weight: 600;">🔔 UPDATE</span>
-            </div>
-            
             <!-- Main Headline -->
             <h1 style="color: #ffffff; font-size: 36px; font-weight: 800; line-height: 1.2; margin: 0 0 20px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
               Important Update
@@ -727,11 +707,6 @@ const EXAMPLE_CONTENT: Record<string, string> = {
       <table width="600" cellpadding="0" cellspacing="0" border="0">
         <tr>
           <td align="center">
-            <!-- Logo/Brand Badge -->
-            <div style="display: inline-block; background: linear-gradient(135deg, #10b981 0%, #059669 100%); padding: 12px 24px; border-radius: 50px; margin-bottom: 30px;">
-              <span style="color: white; font-size: 14px; font-weight: 600; letter-spacing: 2px;">🧬 ZYGOTRIX</span>
-            </div>
-            
             <!-- Main Headline -->
             <h1 style="color: #ffffff; font-size: 42px; font-weight: 800; line-height: 1.2; margin: 0 0 20px 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;">
               Discover the <span style="background: linear-gradient(90deg, #10b981, #34d399); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">Future</span> of<br/>Genetics Education
@@ -966,8 +941,8 @@ const EXAMPLE_CONTENT: Record<string, string> = {
 </table>`,
 };
 
-const AdminNewsletterPage: React.FC = () => {
-  useDocumentTitle("Newsletter Manager");
+const AdminEmailMarketingPage: React.FC = () => {
+  useDocumentTitle("Email Marketing");
 
   const { user: currentUser } = useAuth();
   const [newsletterSubscribers, setNewsletterSubscribers] = useState<NewsletterSubscriber[]>([]);
@@ -1000,6 +975,23 @@ const AdminNewsletterPage: React.FC = () => {
   const [content, setContent] = useState("");
   const [editMode, setEditMode] = useState<"code" | "visual">("visual");
   const editorRef = React.useRef<HTMLDivElement>(null);
+
+  // AI Template Generator state
+  const [showAIGenerator, setShowAIGenerator] = useState(false);
+  const [aiDescription, setAiDescription] = useState("");
+  const [aiGenerating, setAiGenerating] = useState(false);
+  const [aiError, setAiError] = useState<string | null>(null);
+
+  // Template Library state
+  const [showTemplateLibrary, setShowTemplateLibrary] = useState(false);
+  const [customTemplates, setCustomTemplates] = useState<newsletterApi.EmailTemplate[]>([]);
+  const [templatesLoading, setTemplatesLoading] = useState(false);
+
+  // Save Template state
+  const [showSaveTemplate, setShowSaveTemplate] = useState(false);
+  const [saveTemplateName, setSaveTemplateName] = useState("");
+  const [saveTemplateDescription, setSaveTemplateDescription] = useState("");
+  const [savingTemplate, setSavingTemplate] = useState(false);
 
   // Store ref to editor - the key prop on the editor forces re-creation on template change
   // dangerouslySetInnerHTML handles the initial content, onInput syncs edits back to state
@@ -1165,6 +1157,104 @@ const AdminNewsletterPage: React.FC = () => {
     });
   };
 
+  // AI Template Generation
+  const handleGenerateWithAI = async () => {
+    if (!aiDescription.trim()) {
+      setAiError("Please describe the email template you want to generate");
+      return;
+    }
+
+    try {
+      setAiGenerating(true);
+      setAiError(null);
+
+      const result = await newsletterApi.generateTemplateWithAI({
+        description: aiDescription,
+        template_type: templateType,
+      });
+
+      setContent(result.html);
+      setShowAIGenerator(false);
+      setAiDescription("");
+      setSuccessMessage(`AI template generated successfully! Used ${result.token_usage.input_tokens + result.token_usage.output_tokens} tokens.`);
+      setTimeout(() => setSuccessMessage(null), 5000);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to generate template";
+      setAiError(errorMessage);
+    } finally {
+      setAiGenerating(false);
+    }
+  };
+
+  // Template Library
+  const loadTemplateLibrary = async () => {
+    try {
+      setTemplatesLoading(true);
+      const response = await newsletterApi.getCustomTemplates();
+      setCustomTemplates(response.templates);
+    } catch (err: unknown) {
+      console.error("Failed to load templates:", err);
+      setError("Failed to load template library");
+    } finally {
+      setTemplatesLoading(false);
+    }
+  };
+
+  const loadTemplate = (template: newsletterApi.EmailTemplate) => {
+    setContent(template.html);
+    setShowTemplateLibrary(false);
+    setSuccessMessage(`Loaded template: ${template.name}`);
+    setTimeout(() => setSuccessMessage(null), 3000);
+  };
+
+  const deleteTemplate = async (templateId: string) => {
+    try {
+      await newsletterApi.deleteCustomTemplate(templateId);
+      setCustomTemplates((prev) => prev.filter((t) => t._id !== templateId));
+      setSuccessMessage("Template deleted successfully");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: unknown) {
+      console.error("Failed to delete template:", err);
+      setError("Failed to delete template");
+    }
+  };
+
+  // Save Current Template
+  const handleSaveTemplate = async () => {
+    if (!saveTemplateName.trim()) {
+      setError("Please enter a template name");
+      return;
+    }
+
+    if (!content.trim()) {
+      setError("No content to save");
+      return;
+    }
+
+    try {
+      setSavingTemplate(true);
+      setError(null);
+
+      await newsletterApi.saveCustomTemplate({
+        name: saveTemplateName,
+        html: content,
+        description: saveTemplateDescription || `Custom ${templateType} template`,
+        template_type: templateType,
+      });
+
+      setShowSaveTemplate(false);
+      setSaveTemplateName("");
+      setSaveTemplateDescription("");
+      setSuccessMessage("Template saved successfully!");
+      setTimeout(() => setSuccessMessage(null), 3000);
+    } catch (err: unknown) {
+      const errorMessage = err instanceof Error ? err.message : "Failed to save template";
+      setError(errorMessage);
+    } finally {
+      setSavingTemplate(false);
+    }
+  };
+
   const handleSendNewsletter = async () => {
     if (selectedEmails.size === 0) {
       setError("Please select at least one recipient or add a custom email");
@@ -1315,10 +1405,10 @@ const AdminNewsletterPage: React.FC = () => {
             </div>
             <div>
               <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-                Newsletter Manager
+                Email Campaigns
               </h1>
               <p className="text-sm text-gray-500 dark:text-slate-400">
-                Compose and send emails to subscribers
+                Create, design, and send beautiful email campaigns
               </p>
             </div>
           </div>
@@ -1656,6 +1746,38 @@ const AdminNewsletterPage: React.FC = () => {
                   );
                 })}
               </div>
+
+              {/* AI Template Actions */}
+              <div className="mt-4 flex flex-wrap gap-3">
+                <button
+                  type="button"
+                  onClick={() => setShowAIGenerator(true)}
+                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg text-sm font-medium shadow-lg transition-all"
+                >
+                  <HiSparkles className="w-4 h-4" />
+                  Generate with AI
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowTemplateLibrary(true);
+                    loadTemplateLibrary();
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-white border border-gray-300 dark:border-slate-600 rounded-lg text-sm font-medium transition-colors"
+                >
+                  <FaNewspaper className="w-4 h-4" />
+                  Template Library
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowSaveTemplate(true)}
+                  disabled={!content.trim()}
+                  className="flex items-center gap-2 px-4 py-2 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  <MdCheckCircle className="w-4 h-4" />
+                  Save Template
+                </button>
+              </div>
             </div>
 
             {/* Email Content */}
@@ -1889,8 +2011,280 @@ const AdminNewsletterPage: React.FC = () => {
         type="danger"
         isLoading={deletingEmail === confirmModal.email}
       />
+
+      {/* AI Template Generator Modal */}
+      {showAIGenerator && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-gradient-to-br from-purple-500 to-indigo-600 rounded-lg">
+                    <HiSparkles className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Generate Email with AI
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">
+                      Describe your email and let Claude create it
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowAIGenerator(false);
+                    setAiDescription("");
+                    setAiError(null);
+                  }}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  <MdClose className="w-5 h-5 text-gray-500 dark:text-slate-400" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              {aiError && (
+                <div className="p-4 bg-red-50 dark:bg-red-500/10 border border-red-200 dark:border-red-500/30 rounded-lg flex items-center gap-2">
+                  <MdError className="w-5 h-5 text-red-500 flex-shrink-0" />
+                  <span className="text-sm text-red-600 dark:text-red-400">{aiError}</span>
+                </div>
+              )}
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Describe Your Email
+                </label>
+                <textarea
+                  value={aiDescription}
+                  onChange={(e) => setAiDescription(e.target.value)}
+                  placeholder="E.g., Create a promotional email for our summer sale with vibrant orange and yellow colors, featuring product showcases, discount badges, and a big 'Shop Now' call-to-action button. Include sections for featured products and customer testimonials."
+                  rows={6}
+                  className="w-full px-4 py-3 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                />
+                <p className="mt-2 text-xs text-gray-500 dark:text-slate-400">
+                  Be specific about colors, layout, sections, and call-to-actions you want.
+                </p>
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleGenerateWithAI}
+                  disabled={aiGenerating || !aiDescription.trim()}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white rounded-lg font-semibold shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {aiGenerating ? (
+                    <>
+                      <BiLoaderAlt className="w-5 h-5 animate-spin" />
+                      Generating...
+                    </>
+                  ) : (
+                    <>
+                      <HiSparkles className="w-5 h-5" />
+                      Generate Template
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowAIGenerator(false);
+                    setAiDescription("");
+                    setAiError(null);
+                  }}
+                  disabled={aiGenerating}
+                  className="px-6 py-3 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Template Library Modal */}
+      {showTemplateLibrary && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-y-auto">
+            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-indigo-500 rounded-lg">
+                    <FaNewspaper className="w-6 h-6 text-white" />
+                  </div>
+                  <div>
+                    <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                      Template Library
+                    </h2>
+                    <p className="text-sm text-gray-500 dark:text-slate-400">
+                      Browse and load your saved templates
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowTemplateLibrary(false)}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  <MdClose className="w-5 h-5 text-gray-500 dark:text-slate-400" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6">
+              {templatesLoading ? (
+                <div className="flex items-center justify-center py-12">
+                  <BiLoaderAlt className="w-8 h-8 text-indigo-500 animate-spin" />
+                </div>
+              ) : customTemplates.length === 0 ? (
+                <div className="text-center py-12">
+                  <FaNewspaper className="w-16 h-16 text-gray-300 dark:text-slate-600 mx-auto mb-4" />
+                  <p className="text-gray-500 dark:text-slate-400">
+                    No saved templates yet. Generate one with AI or save your current design!
+                  </p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {customTemplates.map((template) => (
+                    <div
+                      key={template._id}
+                      className="border border-gray-200 dark:border-slate-700 rounded-xl overflow-hidden hover:shadow-lg transition-shadow"
+                    >
+                      <div className="h-48 overflow-hidden bg-gray-100 dark:bg-slate-700">
+                        <div
+                          className="w-full h-full overflow-auto text-[8px] pointer-events-none"
+                          dangerouslySetInnerHTML={{ __html: template.html }}
+                        />
+                      </div>
+                      <div className="p-4">
+                        <h3 className="font-semibold text-gray-900 dark:text-white mb-1">
+                          {template.name}
+                        </h3>
+                        <p className="text-xs text-gray-500 dark:text-slate-400 mb-3 line-clamp-2">
+                          {template.description}
+                        </p>
+                        <div className="flex items-center gap-2 mb-3">
+                          <span className="px-2 py-1 bg-indigo-100 dark:bg-indigo-500/20 text-indigo-700 dark:text-indigo-300 rounded text-xs font-medium">
+                            {template.template_type}
+                          </span>
+                          <span className="text-xs text-gray-400 dark:text-slate-500">
+                            {new Date(template.created_at).toLocaleDateString()}
+                          </span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => loadTemplate(template)}
+                            className="flex-1 px-3 py-2 bg-indigo-500 hover:bg-indigo-600 text-white rounded-lg text-sm font-medium transition-colors"
+                          >
+                            Load
+                          </button>
+                          <button
+                            onClick={() => deleteTemplate(template._id)}
+                            className="px-3 py-2 bg-red-100 dark:bg-red-500/20 hover:bg-red-200 dark:hover:bg-red-500/30 text-red-600 dark:text-red-400 rounded-lg transition-colors"
+                          >
+                            <MdDelete className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Save Template Modal */}
+      {showSaveTemplate && (
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-50 p-4">
+          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-2xl max-w-lg w-full">
+            <div className="p-6 border-b border-gray-200 dark:border-slate-700">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="p-2 bg-emerald-500 rounded-lg">
+                    <MdCheckCircle className="w-6 h-6 text-white" />
+                  </div>
+                  <h2 className="text-xl font-bold text-gray-900 dark:text-white">
+                    Save Template
+                  </h2>
+                </div>
+                <button
+                  onClick={() => {
+                    setShowSaveTemplate(false);
+                    setSaveTemplateName("");
+                    setSaveTemplateDescription("");
+                  }}
+                  className="p-2 hover:bg-gray-100 dark:hover:bg-slate-700 rounded-lg transition-colors"
+                >
+                  <MdClose className="w-5 h-5 text-gray-500 dark:text-slate-400" />
+                </button>
+              </div>
+            </div>
+
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Template Name *
+                </label>
+                <input
+                  type="text"
+                  value={saveTemplateName}
+                  onChange={(e) => setSaveTemplateName(e.target.value)}
+                  placeholder="E.g., Summer Sale 2025"
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 dark:text-slate-300 mb-2">
+                  Description (Optional)
+                </label>
+                <textarea
+                  value={saveTemplateDescription}
+                  onChange={(e) => setSaveTemplateDescription(e.target.value)}
+                  placeholder="Brief description of this template..."
+                  rows={3}
+                  className="w-full px-4 py-2.5 bg-white dark:bg-slate-700 border border-gray-300 dark:border-slate-600 rounded-lg text-sm text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-slate-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                />
+              </div>
+
+              <div className="flex gap-3">
+                <button
+                  onClick={handleSaveTemplate}
+                  disabled={savingTemplate || !saveTemplateName.trim()}
+                  className="flex-1 flex items-center justify-center gap-2 px-6 py-3 bg-emerald-500 hover:bg-emerald-600 text-white rounded-lg font-semibold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {savingTemplate ? (
+                    <>
+                      <BiLoaderAlt className="w-5 h-5 animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <MdCheckCircle className="w-5 h-5" />
+                      Save Template
+                    </>
+                  )}
+                </button>
+                <button
+                  onClick={() => {
+                    setShowSaveTemplate(false);
+                    setSaveTemplateName("");
+                    setSaveTemplateDescription("");
+                  }}
+                  disabled={savingTemplate}
+                  className="px-6 py-3 bg-gray-100 dark:bg-slate-700 hover:bg-gray-200 dark:hover:bg-slate-600 text-gray-700 dark:text-white rounded-lg font-medium transition-colors disabled:opacity-50"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   );
 };
 
-export default AdminNewsletterPage;
+export default AdminEmailMarketingPage;

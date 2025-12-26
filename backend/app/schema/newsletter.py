@@ -29,3 +29,42 @@ class SendNewsletterResponse(BaseModel):
     success: int
     failed: int
     failed_emails: List[dict]
+
+
+class GenerateTemplateRequest(BaseModel):
+    """Request to generate email template with AI."""
+    description: str
+    template_type: str = "custom"
+
+
+class GenerateTemplateResponse(BaseModel):
+    """Response with AI-generated template."""
+    html: str
+    description: str
+    template_type: str
+    generated_at: str
+    token_usage: dict
+
+
+class SaveTemplateRequest(BaseModel):
+    """Request to save custom email template."""
+    name: str
+    html: str
+    description: str
+    template_type: str
+    thumbnail_url: str | None = None
+
+
+class TemplateResponse(BaseModel):
+    """Response with template information."""
+    _id: str
+    name: str
+    html: str
+    description: str
+    template_type: str
+    created_by: str
+    thumbnail_url: str | None
+    created_at: datetime
+    updated_at: datetime
+    is_active: bool
+    usage_count: int

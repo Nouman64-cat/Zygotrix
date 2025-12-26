@@ -16,23 +16,42 @@ logger = logging.getLogger(__name__)
 class RateLimitingService:
     """
     Rate limiter to prevent excessive token usage per user.
-    
+
     Logic:
-    - Users can use tokens freely until they hit the limit (25,000)
-    - When limit is reached, 5-hour cooldown starts
-    - After cooldown expires, user gets a fresh 25,000 tokens
+    - Users can use tokens freely until they hit the limit (configurable via settings)
+    - When limit is reached, cooldown starts (configurable via settings)
+    - After cooldown expires, user gets a fresh token quota
     - Data is persisted to MongoDB to survive server restarts
+    - Limits are read from chatbot settings to allow dynamic configuration
     """
-    
-    def __init__(self, max_tokens: int = 25000, cooldown_seconds: int = 18000):
-        """
-        Args:
-            max_tokens: Maximum tokens before cooldown (default 25,000)
-            cooldown_seconds: Cooldown duration when limit reached (default 5 hours)
-        """
-        self.max_tokens = max_tokens
-        self.cooldown_seconds = cooldown_seconds
+
+    def __init__(self):
+        """Initialize rate limiter. Limits are fetched from chatbot settings."""
         self._collection = None
+        self._default_max_tokens = 25000  # Fallback if settings unavailable
+        self._default_cooldown_hours = 5  # Fallback if settings unavailable
+
+    @property
+    def max_tokens(self) -> int:
+        """Get max tokens from chatbot settings, with fallback to default."""
+        try:
+            from ..chatbot_settings import get_chatbot_settings
+            settings = get_chatbot_settings()
+            return settings.token_limit_per_session
+        except Exception as e:
+            logger.warning(f"Could not fetch token limit from settings, using default: {e}")
+            return self._default_max_tokens
+
+    @property
+    def cooldown_seconds(self) -> int:
+        """Get cooldown duration from chatbot settings, with fallback to default."""
+        try:
+            from ..chatbot_settings import get_chatbot_settings
+            settings = get_chatbot_settings()
+            return settings.reset_limit_hours * 3600  # Convert hours to seconds
+        except Exception as e:
+            logger.warning(f"Could not fetch cooldown hours from settings, using default: {e}")
+            return self._default_cooldown_hours * 3600
     
     def _get_collection(self):
         """Get MongoDB collection for rate limit data."""
@@ -208,11 +227,13 @@ _rate_limiter: Optional[RateLimitingService] = None
 
 
 def get_rate_limiter() -> RateLimitingService:
-    """Get or create the global RateLimitingService instance."""
+    """
+    Get or create the global RateLimitingService instance.
+
+    Token limits are now read dynamically from chatbot settings,
+    so changes in the admin interface take effect immediately.
+    """
     global _rate_limiter
     if _rate_limiter is None:
-        _rate_limiter = RateLimitingService(
-            max_tokens=25000,        # 25,000 tokens before cooldown
-            cooldown_seconds=18000   # 5 hours cooldown when limit reached
-        )
+        _rate_limiter = RateLimitingService()
     return _rate_limiter

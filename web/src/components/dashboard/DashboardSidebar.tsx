@@ -287,7 +287,7 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
 
   // Admin items - different items for admin vs super_admin
   // admin: Token Usage + Chatbot Settings only
-  // super_admin: User Management, Newsletter, Contact Messages, Job Queue + Token Usage + Chatbot Settings
+  // super_admin: User Management, Email Marketing, Contact Messages, Job Queue + Token Usage + Chatbot Settings
   const adminItems: SidebarItem[] = hasAdminAccess
     ? [
       // Super admin only items
@@ -314,9 +314,9 @@ const DashboardSidebar: React.FC<DashboardSidebarProps> = ({
             ),
           },
           {
-            id: "admin-newsletter",
-            label: "Newsletter",
-            href: "/studio/admin/newsletter",
+            id: "admin-email-marketing",
+            label: "Email Marketing",
+            href: "/studio/admin/email-marketing",
             icon: (
               <svg
                 className="w-5 h-5"

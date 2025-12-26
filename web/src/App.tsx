@@ -39,7 +39,7 @@ import SimulationStudioPage from "./pages/SimulationStudioPage";
 import ProteinFoldGenerationPage from "./pages/ProteinFoldGenerationPage";
 import OnboardingPage from "./pages/OnboardingPage";
 import AdminUsersPage from "./pages/AdminUsersPage";
-import AdminNewsletterPage from "./pages/AdminNewsletterPage";
+import AdminEmailMarketingPage from "./pages/AdminEmailMarketingPage";
 import AdminContactPage from "./pages/AdminContactPage";
 import AdminTokenUsagePage from "./pages/AdminTokenUsagePage";
 import AdminJobQueuePage from "./pages/AdminJobQueuePage";
@@ -222,10 +222,10 @@ const AppContent: React.FC = () => {
           }
         />
         <Route
-          path="studio/admin/newsletter"
+          path="studio/admin/email-marketing"
           element={
             <RequireAuth allowedRoles={["super_admin"]}>
-              <AdminNewsletterPage />
+              <AdminEmailMarketingPage />
             </RequireAuth>
           }
         />

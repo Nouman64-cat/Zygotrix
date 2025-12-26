@@ -6,6 +6,10 @@ from ..schema.newsletter import (
     NewsletterSubscribeResponse,
     SendNewsletterRequest,
     SendNewsletterResponse,
+    GenerateTemplateRequest,
+    GenerateTemplateResponse,
+    SaveTemplateRequest,
+    TemplateResponse,
 )
 from ..services import newsletter as newsletter_service
 from ..dependencies import get_current_admin
@@ -235,3 +239,82 @@ def send_newsletter(
     )
 
     return SendNewsletterResponse(**result)
+
+
+@router.post("/generate-template", response_model=GenerateTemplateResponse)
+async def generate_template_with_ai(
+    payload: GenerateTemplateRequest,
+    current_user: UserProfile = Depends(get_current_admin)
+) -> GenerateTemplateResponse:
+    """
+    Generate email template using AI based on description (Admin only).
+
+    This endpoint uses Claude AI to generate beautiful, responsive HTML email
+    templates based on natural language descriptions.
+    """
+    result = await newsletter_service.generate_email_template_with_ai(
+        description=payload.description,
+        template_type=payload.template_type,
+        user_id=current_user.id,
+        user_name=current_user.full_name or current_user.email
+    )
+
+    return GenerateTemplateResponse(**result)
+
+
+@router.post("/templates", response_model=TemplateResponse)
+def save_template(
+    payload: SaveTemplateRequest,
+    current_user: UserProfile = Depends(get_current_admin)
+) -> TemplateResponse:
+    """
+    Save custom email template (Admin only).
+
+    This endpoint saves a custom email template to the database for later reuse.
+    """
+    result = newsletter_service.save_custom_template(
+        name=payload.name,
+        html=payload.html,
+        description=payload.description,
+        template_type=payload.template_type,
+        created_by=current_user.id,
+        thumbnail_url=payload.thumbnail_url
+    )
+
+    return TemplateResponse(**result)
+
+
+@router.get("/templates")
+def get_templates(
+    template_type: str | None = None,
+    current_user: UserProfile = Depends(get_current_admin)
+):
+    """
+    Get all custom email templates (Admin only).
+
+    This endpoint retrieves all saved custom email templates, optionally filtered by type.
+    """
+    templates = newsletter_service.get_custom_templates(
+        created_by=None,  # Get all templates for now
+        template_type=template_type
+    )
+
+    return {"templates": templates, "count": len(templates)}
+
+
+@router.delete("/templates/{template_id}")
+def delete_template(
+    template_id: str,
+    current_user: UserProfile = Depends(get_current_admin)
+):
+    """
+    Delete custom email template (Admin only).
+
+    This endpoint deletes a custom template. Only the creator or admin can delete.
+    """
+    newsletter_service.delete_custom_template(
+        template_id=template_id,
+        user_id=current_user.id
+    )
+
+    return {"message": "Template deleted successfully"}

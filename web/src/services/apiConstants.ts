@@ -106,6 +106,10 @@ export const API_ROUTES = {
     unsubscribe: (email: string) =>
       "/api/newsletter/unsubscribe/" + encodeURIComponent(email),
     send: "/api/newsletter/send",
+    generateTemplate: "/api/newsletter/generate-template",
+    templates: "/api/newsletter/templates",
+    deleteTemplate: (templateId: string) =>
+      "/api/newsletter/templates/" + encodeURIComponent(templateId),
   },
   contact: {
     submit: "/api/contact/submit",

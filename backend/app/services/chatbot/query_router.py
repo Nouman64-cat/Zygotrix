@@ -250,11 +250,16 @@ Respond naturally and conversationally. Keep it brief and friendly."""
         # Create a minimal request object
         from ...schema.zygotrix_ai import ChatRequest
 
+        # Convert page_context to string if it's an object
+        page_context_str = None
+        if page_context:
+            page_context_str = page_context.pageName if hasattr(page_context, 'pageName') else str(page_context)
+
         chat_request = ChatRequest(
             message=query,
             stream=False,
             conversation_id=None,  # New conversation
-            page_context=None
+            page_context=page_context_str
         )
 
         # Create a mock user object
@@ -322,11 +327,16 @@ Respond naturally and conversationally. Keep it brief and friendly."""
 
         from ...schema.zygotrix_ai import ChatRequest
 
+        # Convert page_context to string if it's an object
+        page_context_str = None
+        if page_context:
+            page_context_str = page_context.pageName if hasattr(page_context, 'pageName') else str(page_context)
+
         chat_request = ChatRequest(
             message=query,
             stream=False,
             conversation_id=None,
-            page_context=page_context
+            page_context=page_context_str
         )
 
         class MockUser:

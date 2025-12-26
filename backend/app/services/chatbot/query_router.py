@@ -248,7 +248,7 @@ Respond naturally and conversationally. Keep it brief and friendly."""
         chat_service = ZygotrixChatService()
 
         # Create a minimal request object
-        from ..zygotrix_ai.models import ChatRequest
+        from ...schema.zygotrix_ai import ChatRequest
 
         chat_request = ChatRequest(
             message=query,
@@ -320,7 +320,7 @@ Respond naturally and conversationally. Keep it brief and friendly."""
         # Step 4: Use Zygotrix AI service with full capabilities
         chat_service = ZygotrixChatService()
 
-        from ..zygotrix_ai.models import ChatRequest
+        from ...schema.zygotrix_ai import ChatRequest
 
         chat_request = ChatRequest(
             message=query,

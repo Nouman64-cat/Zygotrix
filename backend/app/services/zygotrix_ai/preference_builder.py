@@ -8,8 +8,11 @@ Builds customized system prompts based on user preferences for:
 - Visual aids (diagrams, lists, tables)
 """
 
+import logging
 from typing import Optional
 from ...schema.zygotrix_ai import ChatPreferences
+
+logger = logging.getLogger(__name__)
 
 
 def build_preference_instructions(preferences: ChatPreferences) -> str:
@@ -92,6 +95,7 @@ def build_preference_instructions(preferences: ChatPreferences) -> str:
     # Build the final instruction block
     if instructions:
         instruction_text = "\n".join(instructions)
+        logger.info(f"🎨 Built {len(instructions)} preference instructions for system prompt")
         return f"""
 
 ## User Response Preferences

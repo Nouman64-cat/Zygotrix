@@ -229,6 +229,7 @@ class ZygotrixChatService:
             from ..auth.user_service import get_user_service
             user_service = get_user_service()
             preferences = user_service.get_user_preferences(user_id)
+            logger.info(f"📋 Fetched preferences for user {user_id[:8]}...: style={preferences.communication_style}, length={preferences.answer_length}, auto_learn={preferences.auto_learn}")
             return preferences
         except Exception as e:
             logger.warning(f"Failed to fetch user preferences for {user_id}: {e}")
@@ -301,6 +302,9 @@ class ZygotrixChatService:
                     {"_id": ObjectId(user_id)},
                     {"$set": {"preferences": prefs_dict}}
                 )
+
+                # Clear user service cache so API returns fresh data
+                user_service._clear_user_cache(user_id)
 
                 # Log the update
                 detected_signals = [s for s, v in signals.items() if v]
@@ -479,7 +483,12 @@ Question: {user_message.content}"""
             base_prompt = get_zigi_prompt_with_tools()
 
         # Enhance with user preferences
-        return enhance_system_prompt(base_prompt, user_preferences)
+        enhanced_prompt = enhance_system_prompt(base_prompt, user_preferences)
+        if user_preferences:
+            logger.info(f"✨ Enhanced system prompt with user preferences")
+        else:
+            logger.info(f"ℹ️ Using default system prompt (no user preferences)")
+        return enhanced_prompt
 
     def _find_preceding_user_message(self, conversation_id: str, message_id: str):
         """Find the user message that preceded an assistant message."""

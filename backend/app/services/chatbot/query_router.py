@@ -278,9 +278,9 @@ Respond naturally and conversationally. Keep it brief and friendly."""
         )
 
         return {
-            "response": response_data.response,
+            "response": response_data.message.content,
             "sources_used": ["mcp_tools", "traits_db", "claude"],
-            "token_usage": response_data.usage.__dict__ if hasattr(response_data, 'usage') else None,
+            "token_usage": response_data.usage.model_dump() if response_data.usage else None,
             "conversation_id": conversation_id,
             "message_id": message_id
         }
@@ -358,9 +358,9 @@ Respond naturally and conversationally. Keep it brief and friendly."""
             sources.append("rag_context")
 
         return {
-            "response": response_data.response,
+            "response": response_data.message.content,
             "sources_used": sources,
-            "token_usage": response_data.usage.__dict__ if hasattr(response_data, 'usage') else None,
+            "token_usage": response_data.usage.model_dump() if response_data.usage else None,
             "conversation_id": conversation_id,
             "message_id": message_id
         }

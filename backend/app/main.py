@@ -39,7 +39,11 @@ import logging
 # Import exception handlers
 from .core.exceptions.handlers import register_exception_handlers
 
-logging.basicConfig(level=logging.INFO)
+# Import logging configuration
+from .core.logging_config import setup_logging
+
+# Setup logging (console + error file)
+setup_logging()
 logger = logging.getLogger(__name__)
 
 

@@ -11,6 +11,8 @@ import type {
   VerifyOtpResponse,
   ResendOtpRequest,
   ResendOtpResponse,
+  ChatPreferences,
+  UserPreferencesUpdate,
 } from "../../types";
 
 class AuthService {
@@ -112,6 +114,32 @@ class AuthService {
     const response = await axiosInstance.post<ResendOtpResponse>(
       API_ENDPOINTS.AUTH.PASSWORD_RESET_RESEND,
       { email }
+    );
+    return response.data;
+  }
+
+  // AI Behavior Preferences
+  async getUserPreferences(): Promise<ChatPreferences> {
+    const response = await axiosInstance.get<ChatPreferences>(
+      API_ENDPOINTS.AUTH.PREFERENCES
+    );
+    return response.data;
+  }
+
+  async updateUserPreferences(
+    payload: UserPreferencesUpdate
+  ): Promise<ChatPreferences> {
+    const response = await axiosInstance.patch<ChatPreferences>(
+      API_ENDPOINTS.AUTH.PREFERENCES,
+      payload
+    );
+    return response.data;
+  }
+
+  async resetUserPreferences(): Promise<ChatPreferences> {
+    const response = await axiosInstance.post<ChatPreferences>(
+      API_ENDPOINTS.AUTH.PREFERENCES_RESET,
+      {}
     );
     return response.data;
   }

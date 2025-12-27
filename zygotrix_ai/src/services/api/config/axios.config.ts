@@ -11,7 +11,7 @@ const BASE_URL = import.meta.env.VITE_BASE_URL;
 
 const axiosInstance: AxiosInstance = axios.create({
   baseURL: BASE_URL,
-  timeout: 30000,
+  timeout: 120000, // 2 minutes to handle longer AI responses
   headers: {
     "Content-Type": "application/json",
   },
@@ -37,9 +37,10 @@ axiosInstance.interceptors.response.use(
   (error: AxiosError) => {
     if (error.response?.status === 401) {
       // Don't redirect if it's a password reset or signup verification error
-      const url = error.config?.url || '';
-      const isPasswordReset = url.includes('/password-reset/');
-      const isSignupVerification = url.includes('/signup/verify') || url.includes('/signup/resend');
+      const url = error.config?.url || "";
+      const isPasswordReset = url.includes("/password-reset/");
+      const isSignupVerification =
+        url.includes("/signup/verify") || url.includes("/signup/resend");
 
       if (!isPasswordReset && !isSignupVerification) {
         storage.remove(STORAGE_KEYS.AUTH_TOKEN);

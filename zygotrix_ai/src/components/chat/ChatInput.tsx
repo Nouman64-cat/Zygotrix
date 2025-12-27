@@ -48,7 +48,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div className="  p-4 md:p-4">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto px-2 lg:px-4">
         <div className="relative flex items-end gap-2 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/20 dark:focus-within:ring-emerald-400/30 transition-all duration-200">
           <textarea
             ref={textareaRef}

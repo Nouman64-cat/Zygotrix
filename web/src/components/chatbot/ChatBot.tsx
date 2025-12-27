@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { sendMessage, getLatestUsage, resetSession, getUserRateLimit, type ChatMessage, type UsageInfo, type ChatMessageAction } from '../../services/chatbotService';
 import { getPageContext } from '../../utils/pageContext';
-import { MdInfoOutline } from "react-icons/md";
+import { MdInfoOutline, MdPsychology } from "react-icons/md";
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { parseSimulationCommands, executeSimulationCommands } from '../../services/simulationCommands';
 import { InlineActions } from './InlineActions';
+import { PreferencesModal } from '../zygotrix-ai/ConversationModals';
 import zygoAILogo from '../../../public/zygotrix-ai.png';
 
 interface ChatBotProps {
@@ -95,6 +96,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
   const [isLoading, setIsLoading] = useState(false);
   const [usage, setUsage] = useState<UsageInfo | null>(getInitialUsage);
   const [showInfo, setShowInfo] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Reload messages when userId changes (user switching)
@@ -385,6 +387,14 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
           </button>
+          {/* AI Behavior Button */}
+          <button
+            onClick={() => setShowPreferences(true)}
+            className="rounded-full p-2 transition-colors cursor-pointer"
+            title="AI Behavior Preferences"
+          >
+            <MdPsychology className="w-5 h-5" />
+          </button>
           {/* Info Button */}
           <button
             onClick={() => setShowInfo(!showInfo)}
@@ -575,6 +585,12 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
           </button>
         </div>
       </div>
+
+      {/* AI Behavior Preferences Modal */}
+      <PreferencesModal
+        isOpen={showPreferences}
+        onClose={() => setShowPreferences(false)}
+      />
     </div>
   );
 };

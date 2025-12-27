@@ -43,7 +43,7 @@ const MessageListComponent: React.FC<MessageListProps> = ({
 
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto">
-      <div className="max-w-4xl mx-auto">
+      <div className="max-w-6xl mx-auto px-2 lg:px-4">
         {messages.map((message) => (
           <ChatMessage key={message.id} message={message} />
         ))}

@@ -16,16 +16,19 @@ import {
   HiDotsVertical,
   HiOutlineSparkles,
 } from "react-icons/hi";
+import { MdPsychology } from "react-icons/md";
 import { LuBiohazard } from "react-icons/lu";
 
 interface ChatInterfaceProps {
   onOpenSettings?: () => void;
+  onOpenPreferences?: () => void;
   onShare?: () => void;
   onExport?: () => void;
 }
 
 export default function ChatInterface({
   onOpenSettings,
+  onOpenPreferences,
   onShare,
   onExport,
 }: ChatInterfaceProps) {
@@ -215,6 +218,16 @@ export default function ChatInterface({
                 >
                   <HiCog className="w-4 h-4" />
                   Conversation Settings
+                </button>
+                <button
+                  onClick={() => {
+                    onOpenPreferences?.();
+                    setShowMenu(false);
+                  }}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800"
+                >
+                  <MdPsychology className="w-4 h-4" />
+                  AI Behavior
                 </button>
               </div>
             )}

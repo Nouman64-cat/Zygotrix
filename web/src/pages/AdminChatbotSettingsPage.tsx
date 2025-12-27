@@ -8,8 +8,13 @@ import {
   updatePrompt,
   resetPromptToDefault,
 } from "../services/admin.api";
-import type { ChatbotSettings, PromptTemplate, PromptType } from "../types/auth";
-import { MdError, MdCheckCircle, MdSettings, MdCode, MdRefresh } from "react-icons/md";
+import {
+  getUserPreferences,
+  updateUserPreferences,
+  resetUserPreferences,
+} from "../services/auth.api";
+import type { ChatbotSettings, PromptTemplate, PromptType, ChatPreferences } from "../types/auth";
+import { MdError, MdCheckCircle, MdSettings, MdCode, MdRefresh, MdPsychology } from "react-icons/md";
 import { BiLoaderAlt } from "react-icons/bi";
 import { FaRobot } from "react-icons/fa";
 import Button from "../components/common/Button";
@@ -27,7 +32,14 @@ const AdminChatbotSettingsPage: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   // Tab state
-  const [activeTab, setActiveTab] = useState<"settings" | "prompts">("settings");
+  const [activeTab, setActiveTab] = useState<"settings" | "prompts" | "preferences">("settings");
+
+  // AI Behavior Preferences state
+  const [preferences, setPreferences] = useState<ChatPreferences | null>(null);
+  const [preferencesLoading, setPreferencesLoading] = useState(false);
+  const [preferencesSaving, setPreferencesSaving] = useState(false);
+  const [preferencesError, setPreferencesError] = useState<string | null>(null);
+  const [preferencesSuccess, setPreferencesSuccess] = useState<string | null>(null);
 
   // Prompt management state
   const [prompts, setPrompts] = useState<PromptTemplate[]>([]);
@@ -67,6 +79,8 @@ const AdminChatbotSettingsPage: React.FC = () => {
       fetchSettings();
       if (activeTab === "prompts") {
         fetchPromptsData();
+      } else if (activeTab === "preferences") {
+        fetchPreferencesData();
       }
     }
   }, [isAdmin, activeTab]);
@@ -248,6 +262,96 @@ const AdminChatbotSettingsPage: React.FC = () => {
     }
   };
 
+  // AI Behavior Preferences functions
+  const fetchPreferencesData = async () => {
+    try {
+      setPreferencesLoading(true);
+      setPreferencesError(null);
+      const data = await getUserPreferences();
+      setPreferences(data);
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to fetch preferences";
+      setPreferencesError(errorMessage);
+    } finally {
+      setPreferencesLoading(false);
+    }
+  };
+
+  const handlePreferenceChange = (
+    field: keyof ChatPreferences,
+    value: string | string[] | boolean
+  ) => {
+    if (!preferences) return;
+    setPreferences({
+      ...preferences,
+      [field]: value,
+    });
+  };
+
+  const handlePreferenceArrayToggle = (
+    field: "teaching_aids" | "visual_aids",
+    value: string
+  ) => {
+    if (!preferences) return;
+    const currentArray = preferences[field] || [];
+    const newArray = currentArray.includes(value)
+      ? currentArray.filter((item) => item !== value)
+      : [...currentArray, value];
+    setPreferences({
+      ...preferences,
+      [field]: newArray,
+    });
+  };
+
+  const handleSavePreferences = async () => {
+    if (!preferences) return;
+
+    setPreferencesSaving(true);
+    setPreferencesError(null);
+    setPreferencesSuccess(null);
+
+    try {
+      const updated = await updateUserPreferences({
+        communication_style: preferences.communication_style,
+        answer_length: preferences.answer_length,
+        teaching_aids: preferences.teaching_aids,
+        visual_aids: preferences.visual_aids,
+        auto_learn: preferences.auto_learn,
+      });
+      setPreferences(updated);
+      setPreferencesSuccess("Preferences updated successfully!");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to update preferences";
+      setPreferencesError(errorMessage);
+    } finally {
+      setPreferencesSaving(false);
+    }
+  };
+
+  const handleResetPreferences = async () => {
+    if (!window.confirm("Are you sure you want to reset preferences to defaults?")) {
+      return;
+    }
+
+    setPreferencesSaving(true);
+    setPreferencesError(null);
+    setPreferencesSuccess(null);
+
+    try {
+      const defaults = await resetUserPreferences();
+      setPreferences(defaults);
+      setPreferencesSuccess("Preferences reset to defaults successfully!");
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error ? err.message : "Failed to reset preferences";
+      setPreferencesError(errorMessage);
+    } finally {
+      setPreferencesSaving(false);
+    }
+  };
+
   if (!isAdmin) {
     return (
       <DashboardLayout>
@@ -307,6 +411,16 @@ const AdminChatbotSettingsPage: React.FC = () => {
               >
                 <MdCode className="w-5 h-5" />
                 Prompt Templates
+              </button>
+              <button
+                onClick={() => setActiveTab("preferences")}
+                className={`${activeTab === "preferences"
+                  ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                  } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+              >
+                <MdPsychology className="w-5 h-5" />
+                AI Behavior
               </button>
             </nav>
           </div>
@@ -800,6 +914,277 @@ const AdminChatbotSettingsPage: React.FC = () => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* AI Behavior Preferences Tab */}
+        {activeTab === "preferences" && (
+          <div className="space-y-6">
+            {/* Preferences Messages */}
+            {preferencesError && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg flex items-start gap-3">
+                <MdError className="w-5 h-5 text-red-600 dark:text-red-400 flex-shrink-0 mt-0.5" />
+                <p className="text-red-800 dark:text-red-200">{preferencesError}</p>
+              </div>
+            )}
+
+            {preferencesSuccess && (
+              <div className="p-4 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg flex items-start gap-3">
+                <MdCheckCircle className="w-5 h-5 text-green-600 dark:text-green-400 flex-shrink-0 mt-0.5" />
+                <p className="text-green-800 dark:text-green-200">{preferencesSuccess}</p>
+              </div>
+            )}
+
+            {/* Loading State */}
+            {preferencesLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <BiLoaderAlt className="w-8 h-8 animate-spin text-indigo-600" />
+              </div>
+            ) : preferences ? (
+              <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+                <div className="p-6 space-y-6">
+                  {/* Info Banner */}
+                  <div className="bg-indigo-50 dark:bg-indigo-900/20 border border-indigo-200 dark:border-indigo-800 rounded-xl p-4">
+                    <div className="flex items-start gap-3">
+                      <MdPsychology className="w-5 h-5 text-indigo-600 dark:text-indigo-400 flex-shrink-0 mt-0.5" />
+                      <div>
+                        <h3 className="text-sm font-semibold text-indigo-900 dark:text-indigo-200 mb-1">
+                          How AI Behavior Preferences Work
+                        </h3>
+                        <p className="text-xs text-indigo-700 dark:text-indigo-300">
+                          Configure how {botName} responds to you. The AI can automatically learn your preferences from your prompts, or you can manually configure them here. These settings apply to all your conversations.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Auto-Learn Toggle */}
+                  <div className={`flex items-center justify-between p-4 rounded-lg border-2 transition-all ${preferences.auto_learn
+                    ? 'bg-green-50 dark:bg-green-900/20 border-green-200 dark:border-green-800'
+                    : 'bg-gray-50 dark:bg-gray-900/20 border-gray-200 dark:border-gray-700'
+                    }`}>
+                    <div>
+                      <div className="flex items-center gap-2 mb-1">
+                        <label className="text-sm font-semibold text-gray-900 dark:text-white">
+                          Automatic Learning
+                        </label>
+                        {preferences.auto_learn && (
+                          <span className="px-2 py-0.5 text-xs font-medium bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 rounded-full">
+                            Active
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs text-gray-600 dark:text-gray-400">
+                        AI automatically detects and learns from signals in your prompts (e.g., "give me examples", "be detailed")
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={preferences.auto_learn}
+                        onChange={(e) => handlePreferenceChange("auto_learn", e.target.checked)}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-indigo-300 dark:peer-focus:ring-indigo-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-green-600"></div>
+                    </label>
+                  </div>
+
+                  {/* Communication Style */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Communication Style
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { value: "simple", label: "Simple", desc: "Everyday language, no jargon" },
+                        { value: "conversational", label: "Conversational", desc: "Friendly, balanced tone" },
+                        { value: "technical", label: "Technical", desc: "Scientific terminology" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => handlePreferenceChange("communication_style", option.value)}
+                          className={`p-3 rounded-lg border-2 text-left transition-all ${
+                            preferences.communication_style === option.value
+                              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
+                              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                              preferences.communication_style === option.value
+                                ? "border-indigo-600 bg-indigo-600"
+                                : "border-gray-300 dark:border-gray-600"
+                            }`}>
+                              {preferences.communication_style === option.value && (
+                                <div className="w-2 h-2 rounded-full bg-white"></div>
+                              )}
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                              {option.label}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {option.desc}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Answer Length */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Answer Length
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { value: "brief", label: "Brief", desc: "Concise, key points only" },
+                        { value: "balanced", label: "Balanced", desc: "Neither too brief nor detailed" },
+                        { value: "detailed", label: "Detailed", desc: "Comprehensive explanations" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => handlePreferenceChange("answer_length", option.value)}
+                          className={`p-3 rounded-lg border-2 text-left transition-all ${
+                            preferences.answer_length === option.value
+                              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
+                              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
+                              preferences.answer_length === option.value
+                                ? "border-indigo-600 bg-indigo-600"
+                                : "border-gray-300 dark:border-gray-600"
+                            }`}>
+                              {preferences.answer_length === option.value && (
+                                <div className="w-2 h-2 rounded-full bg-white"></div>
+                              )}
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                              {option.label}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {option.desc}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Teaching Aids */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Teaching Aids
+                      <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">(Select multiple)</span>
+                    </label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        { value: "examples", label: "Examples", desc: "Include practical examples" },
+                        { value: "real_world", label: "Real-World", desc: "Real-world applications" },
+                        { value: "analogies", label: "Analogies", desc: "Use comparisons & metaphors" },
+                        { value: "step_by_step", label: "Step-by-Step", desc: "Break down processes" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => handlePreferenceArrayToggle("teaching_aids", option.value)}
+                          className={`p-3 rounded-lg border-2 text-left transition-all ${
+                            (preferences.teaching_aids || []).includes(option.value)
+                              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
+                              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                              (preferences.teaching_aids || []).includes(option.value)
+                                ? "border-indigo-600 bg-indigo-600"
+                                : "border-gray-300 dark:border-gray-600"
+                            }`}>
+                              {(preferences.teaching_aids || []).includes(option.value) && (
+                                <MdCheckCircle className="w-3 h-3 text-white" />
+                              )}
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                              {option.label}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {option.desc}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Visual Aids */}
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+                      Visual Aids
+                      <span className="ml-2 text-xs text-gray-500 dark:text-gray-400">(Select multiple)</span>
+                    </label>
+                    <div className="grid grid-cols-3 gap-3">
+                      {[
+                        { value: "lists", label: "Lists", desc: "Bullet points & numbered lists" },
+                        { value: "tables", label: "Tables", desc: "Structured data tables" },
+                        { value: "diagrams", label: "Diagrams", desc: "Visual representations" },
+                      ].map((option) => (
+                        <button
+                          key={option.value}
+                          type="button"
+                          onClick={() => handlePreferenceArrayToggle("visual_aids", option.value)}
+                          className={`p-3 rounded-lg border-2 text-left transition-all ${
+                            (preferences.visual_aids || []).includes(option.value)
+                              ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
+                              : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
+                          }`}
+                        >
+                          <div className="flex items-center gap-2 mb-1">
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                              (preferences.visual_aids || []).includes(option.value)
+                                ? "border-indigo-600 bg-indigo-600"
+                                : "border-gray-300 dark:border-gray-600"
+                            }`}>
+                              {(preferences.visual_aids || []).includes(option.value) && (
+                                <MdCheckCircle className="w-3 h-3 text-white" />
+                              )}
+                            </div>
+                            <span className="text-sm font-semibold text-gray-900 dark:text-white">
+                              {option.label}
+                            </span>
+                          </div>
+                          <p className="text-xs text-gray-600 dark:text-gray-400">
+                            {option.desc}
+                          </p>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Footer */}
+                <div className="px-6 py-4 bg-gray-50 dark:bg-gray-900/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between">
+                  <Button
+                    onClick={handleResetPreferences}
+                    disabled={preferencesSaving}
+                    text="Reset to Defaults"
+                    classNames="px-5 py-2.5 text-sm font-semibold text-gray-700 dark:text-gray-300 bg-white dark:bg-gray-700 border-2 border-gray-300 dark:border-gray-600 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-600 disabled:opacity-50 disabled:cursor-not-allowed transition-all flex items-center gap-2 cursor-pointer shadow-sm hover:shadow"
+                    icon={<MdRefresh className="w-4 h-4" />}
+                  />
+                  <Button
+                    onClick={handleSavePreferences}
+                    disabled={preferencesSaving}
+                    text={preferencesSaving ? "Saving Preferences..." : "Save Preferences"}
+                    classNames="px-6 py-2.5 text-sm font-semibold text-white bg-gradient-to-r from-indigo-600 to-purple-600 rounded-lg hover:from-indigo-700 hover:to-purple-700 shadow-lg hover:shadow-xl disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+                    isLoading={preferencesSaving}
+                    loadingIcon={<BiLoaderAlt className="w-4 h-4" />}
+                  />
+                </div>
+              </div>
+            ) : null}
           </div>
         )}
       </div>

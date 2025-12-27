@@ -6,12 +6,13 @@ Handles chat orchestration, context building, and response generation.
 
 import logging
 import json
+import asyncio
 from typing import Optional, AsyncGenerator, Dict, Any, Tuple
 from fastapi import HTTPException
 
 from ...schema.zygotrix_ai import (
     ChatRequest, ChatResponse, MessageRole, MessageMetadata,
-    ConversationCreate, ConversationUpdate,
+    ConversationCreate, ConversationUpdate, ChatPreferences
 )
 from ...services.zygotrix_ai_service import (
     ConversationService, MessageService,
@@ -79,6 +80,9 @@ class ZygotrixChatService:
         temperature = chat_request.temperature if chat_request.temperature is not None else conv_settings.temperature
         max_tokens = chat_request.max_tokens or conv_settings.max_tokens
 
+        # Fetch user preferences for response customization
+        user_preferences = self._get_user_preferences(user_id)
+
         # Save user message
         user_message = MessageService.create_message(
             conversation_id=conversation.id,
@@ -87,6 +91,13 @@ class ZygotrixChatService:
             parent_message_id=chat_request.parent_message_id,
             attachments=[a.model_dump() for a in chat_request.attachments] if chat_request.attachments else []
         )
+
+        # Analyze message for preference signals (asynchronous, non-blocking)
+        asyncio.create_task(self._analyze_and_update_preferences(
+            user_id=user_id,
+            message=chat_request.message,
+            model=model
+        ))
 
         # Build context
         combined_context = await self._build_context(
@@ -103,8 +114,8 @@ class ZygotrixChatService:
             combined_context
         )
 
-        # Get system prompt
-        system_prompt = self._get_system_prompt(chat_request.page_context, combined_context)
+        # Get system prompt (with user preferences)
+        system_prompt = self._get_system_prompt(chat_request.page_context, combined_context, user_preferences)
 
         # Handle streaming vs non-streaming
         if chat_request.stream:
@@ -203,6 +214,101 @@ class ZygotrixChatService:
     # =========================================================================
     # PRIVATE HELPER METHODS
     # =========================================================================
+
+    def _get_user_preferences(self, user_id: str) -> Optional[ChatPreferences]:
+        """
+        Fetch user's AI behavior preferences.
+
+        Args:
+            user_id: User's ID
+
+        Returns:
+            ChatPreferences or None if not found
+        """
+        try:
+            from ..auth.user_service import get_user_service
+            user_service = get_user_service()
+            preferences = user_service.get_user_preferences(user_id)
+            return preferences
+        except Exception as e:
+            logger.warning(f"Failed to fetch user preferences for {user_id}: {e}")
+            return None
+
+    async def _analyze_and_update_preferences(
+        self,
+        user_id: str,
+        message: str,
+        model: str
+    ):
+        """
+        Analyze user message for preference signals and update preferences.
+
+        This runs asynchronously and non-blocking - errors are logged but don't affect the chat.
+
+        Args:
+            user_id: User's ID
+            message: User's message content
+            model: Claude model being used (from chatbot settings)
+        """
+        try:
+            from .preference_detector import PreferenceDetector, calculate_preference_update
+            from ..auth.user_service import get_user_service
+
+            user_service = get_user_service()
+
+            # Get current user preferences
+            current_prefs = user_service.get_user_preferences(user_id)
+
+            # Check if auto-learning is enabled
+            auto_learn = getattr(current_prefs, 'auto_learn', True)
+            if not auto_learn:
+                logger.debug(f"Auto-learning disabled for user {user_id}, skipping preference detection")
+                return
+
+            # Get current preference scores
+            current_scores = getattr(current_prefs, 'preference_scores', {}) or {}
+
+            # Detect preference signals
+            detector = PreferenceDetector(model=model, use_ai=True)
+            signals = await detector.detect_preferences(message, confidence_threshold=0.7)
+
+            # Only update if signals were detected
+            if any(signals.values()):
+                # Calculate updated scores and preferences
+                updated_scores, updated_prefs = calculate_preference_update(signals, current_scores)
+
+                # Prepare update payload
+                from ...schema.auth import UserPreferencesUpdate
+                update_payload = UserPreferencesUpdate(
+                    communication_style=updated_prefs.communication_style,
+                    answer_length=updated_prefs.answer_length,
+                    teaching_aids=updated_prefs.teaching_aids,
+                    visual_aids=updated_prefs.visual_aids,
+                    auto_learn=auto_learn,  # Preserve auto_learn setting
+                )
+
+                # Update in database (with scores)
+                from bson import ObjectId
+                from ...services.common import get_users_collection
+                collection = get_users_collection(required=True)
+
+                prefs_dict = updated_prefs.model_dump()
+                prefs_dict['preference_scores'] = updated_scores
+                prefs_dict['auto_learn'] = auto_learn
+                prefs_dict['updated_by'] = 'system'
+
+                collection.update_one(
+                    {"_id": ObjectId(user_id)},
+                    {"$set": {"preferences": prefs_dict}}
+                )
+
+                # Log the update
+                detected_signals = [s for s, v in signals.items() if v]
+                logger.info(f"✨ Auto-updated preferences for user {user_id} based on signals: {', '.join(detected_signals)}")
+
+        except Exception as e:
+            # Don't fail the chat if preference analysis fails
+            logger.warning(f"Preference auto-update failed for user {user_id}: {e}")
 
     async def _get_or_create_conversation(self, chat_request: ChatRequest, user_id: str):
         """Get existing conversation or create a new one."""
@@ -346,13 +452,34 @@ Question: {user_message.content}"""
         claude_messages.append({"role": "user", "content": current_content})
         return claude_messages
 
-    def _get_system_prompt(self, page_context: Optional[str], combined_context: str) -> str:
-        """Get appropriate system prompt based on context."""
+    def _get_system_prompt(
+        self,
+        page_context: Optional[str],
+        combined_context: str,
+        user_preferences: Optional[ChatPreferences] = None
+    ) -> str:
+        """
+        Get appropriate system prompt based on context and user preferences.
+
+        Args:
+            page_context: Page context string
+            combined_context: Combined RAG/traits context
+            user_preferences: User's ChatPreferences (optional)
+
+        Returns:
+            System prompt string (enhanced with preferences if available)
+        """
+        from .preference_builder import enhance_system_prompt
+
+        # Get base system prompt
         is_simulation = page_context and "Simulation" in page_context
         if is_simulation:
-            return get_simulation_tool_prompt("User", combined_context)
+            base_prompt = get_simulation_tool_prompt("User", combined_context)
         else:
-            return get_zigi_prompt_with_tools()
+            base_prompt = get_zigi_prompt_with_tools()
+
+        # Enhance with user preferences
+        return enhance_system_prompt(base_prompt, user_preferences)
 
     def _find_preceding_user_message(self, conversation_id: str, message_id: str):
         """Find the user message that preceded an assistant message."""

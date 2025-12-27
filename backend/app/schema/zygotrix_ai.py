@@ -465,3 +465,62 @@ class PromptTemplateUpdate(BaseModel):
     description: Optional[str] = Field(default=None, max_length=500)
     category: Optional[str] = None
     is_public: Optional[bool] = None
+
+
+# =============================================================================
+# USER PREFERENCE MODELS
+# =============================================================================
+
+class ChatPreferences(BaseModel):
+    """
+    User preferences for how Zygotrix AI responds.
+
+    These preferences are automatically learned from user prompts and can be
+    manually adjusted in the chatbot settings.
+    """
+    # Communication style
+    communication_style: str = Field(
+        default="conversational",
+        description="How AI communicates: simple, technical, or conversational"
+    )
+
+    # Answer length preference
+    answer_length: str = Field(
+        default="balanced",
+        description="Response length preference: brief, balanced, or detailed"
+    )
+
+    # Teaching aids (what helps the user learn)
+    teaching_aids: List[str] = Field(
+        default_factory=list,
+        description="Preferred teaching methods: examples, real_world, analogies, step_by_step"
+    )
+
+    # Visual aids (how information is presented)
+    visual_aids: List[str] = Field(
+        default_factory=list,
+        description="Preferred visual formats: diagrams, lists, tables"
+    )
+
+    # Internal fields for automatic learning
+    preference_scores: Dict[str, int] = Field(
+        default_factory=dict,
+        description="Internal scores (0-100) for each preference signal"
+    )
+
+    # Auto-learning toggle
+    auto_learn: bool = Field(
+        default=True,
+        description="Enable automatic preference learning from user prompts"
+    )
+
+    # Tracking metadata
+    last_updated: Optional[str] = Field(
+        default=None,
+        description="When preferences were last updated"
+    )
+
+    updated_by: Optional[str] = Field(
+        default=None,
+        description="Who/what updated preferences: 'system' or 'manual'"
+    )

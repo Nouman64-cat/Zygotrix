@@ -12,4 +12,5 @@ export {
   ShareModal,
   ExportModal,
   NewFolderModal,
+  PreferencesModal,
 } from "./ConversationModals";

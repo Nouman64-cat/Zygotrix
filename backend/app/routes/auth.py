@@ -14,11 +14,13 @@ from ..schema.auth import (
     UserProfile,
     UpdateProfileRequest,
     OnboardingRequest,
+    UserPreferencesUpdate,
     PasswordResetRequestSchema,
     PasswordResetVerifyOtpSchema,
     PasswordResetVerifySchema,
     PasswordResetResendSchema,
 )
+from ..schema.zygotrix_ai import ChatPreferences
 from ..services.auth.signup_service import get_signup_service
 from ..services.auth.authentication_service import get_authentication_service
 from ..services.auth.user_service import get_user_service
@@ -112,6 +114,57 @@ def complete_onboarding(
     updates = payload.model_dump(exclude_unset=True)
     updated_user = user_service.update_user_profile(current_user.id, updates)
     return UserProfile(**updated_user)
+
+
+@router.get("/me/preferences", response_model=ChatPreferences)
+def get_user_preferences(
+    current_user: UserProfile = Depends(get_current_user),
+) -> ChatPreferences:
+    """
+    Get current user's AI behavior preferences.
+
+    Returns preferences for how Zygotrix AI responds (style, length, teaching aids, etc.)
+    """
+    user_service = get_user_service()
+    preferences = user_service.get_user_preferences(current_user.id)
+    return preferences
+
+
+@router.patch("/me/preferences", response_model=ChatPreferences)
+def update_user_preferences(
+    payload: UserPreferencesUpdate,
+    current_user: UserProfile = Depends(get_current_user),
+) -> ChatPreferences:
+    """
+    Update current user's AI behavior preferences.
+
+    Allows manual control over:
+    - Communication style (simple, technical, conversational)
+    - Answer length (brief, balanced, detailed)
+    - Teaching aids (examples, analogies, step-by-step, real-world)
+    - Visual aids (diagrams, lists, tables)
+    - Auto-learning toggle
+    """
+    user_service = get_user_service()
+    preferences = user_service.update_user_preferences(current_user.id, payload)
+    return preferences
+
+
+@router.post("/me/preferences/reset", response_model=ChatPreferences)
+def reset_user_preferences(
+    current_user: UserProfile = Depends(get_current_user),
+) -> ChatPreferences:
+    """
+    Reset user's AI behavior preferences to defaults.
+
+    Clears all customizations and returns to:
+    - Communication style: conversational
+    - Answer length: balanced
+    - No teaching/visual aids active
+    """
+    user_service = get_user_service()
+    preferences = user_service.reset_user_preferences(current_user.id)
+    return preferences
 
 
 @router.post("/password-reset/request", response_model=SignupInitiateResponse, status_code=202)

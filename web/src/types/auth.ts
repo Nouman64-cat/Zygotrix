@@ -276,3 +276,23 @@ export type PromptHistoryResponse = {
   history: PromptHistory[];
   total_count: number;
 };
+
+// AI Behavior Preferences types
+export type ChatPreferences = {
+  communication_style: "simple" | "technical" | "conversational";
+  answer_length: "brief" | "balanced" | "detailed";
+  teaching_aids: string[]; // ["examples", "real_world", "analogies", "step_by_step"]
+  visual_aids: string[]; // ["diagrams", "lists", "tables"]
+  preference_scores?: Record<string, number>; // Internal scores (0-100)
+  auto_learn: boolean; // Enable automatic preference learning
+  last_updated?: string | null;
+  updated_by?: "system" | "manual" | null;
+};
+
+export type UserPreferencesUpdate = {
+  communication_style?: "simple" | "technical" | "conversational";
+  answer_length?: "brief" | "balanced" | "detailed";
+  teaching_aids?: string[];
+  visual_aids?: string[];
+  auto_learn?: boolean;
+};

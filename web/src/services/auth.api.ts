@@ -15,6 +15,8 @@ import type {
   PasswordResetRequestPayload,
   PasswordResetVerifyPayload,
   PasswordResetResendPayload,
+  ChatPreferences,
+  UserPreferencesUpdate,
 } from "../types/auth";
 
 export const requestSignupOtp = async (
@@ -139,6 +141,30 @@ export const resendPasswordResetOtp = async (
   const response = await API.post<SignupInitiateResponse>(
     API_ROUTES.auth.passwordResetResend,
     payload
+  );
+  return response.data;
+};
+
+// AI Behavior Preferences API
+export const getUserPreferences = async (): Promise<ChatPreferences> => {
+  const response = await API.get<ChatPreferences>(API_ROUTES.auth.preferences);
+  return response.data;
+};
+
+export const updateUserPreferences = async (
+  payload: UserPreferencesUpdate
+): Promise<ChatPreferences> => {
+  const response = await API.patch<ChatPreferences>(
+    API_ROUTES.auth.preferences,
+    payload
+  );
+  return response.data;
+};
+
+export const resetUserPreferences = async (): Promise<ChatPreferences> => {
+  const response = await API.post<ChatPreferences>(
+    API_ROUTES.auth.preferencesReset,
+    {}
   );
   return response.data;
 };

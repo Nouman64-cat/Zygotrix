@@ -3,6 +3,9 @@ from enum import Enum
 from typing import Optional, List
 from pydantic import BaseModel, EmailStr, Field, SecretStr, field_validator
 
+# Import ChatPreferences for user AI behavior preferences
+from .zygotrix_ai import ChatPreferences
+
 
 class UserRole(str, Enum):
     """User role enumeration."""
@@ -40,7 +43,8 @@ class UserProfile(BaseModel):
     role: Optional[str] = None
     field_of_study: Optional[str] = None
     university_onboarding_completed: Optional[bool] = False
-    preferences: Optional[dict] = None
+    # AI behavior preferences (how Zygotrix AI responds)
+    preferences: Optional[ChatPreferences] = None
     created_at: str
     # Admin-related fields
     user_role: Optional[str] = UserRole.USER.value
@@ -68,7 +72,20 @@ class UpdateProfileRequest(BaseModel):
     bio: Optional[str] = None
     location: Optional[str] = None
     timezone: Optional[str] = None
-    preferences: Optional[dict] = None
+    preferences: Optional[ChatPreferences] = None
+
+
+class UserPreferencesUpdate(BaseModel):
+    """Payload for updating user AI behavior preferences."""
+
+    communication_style: Optional[str] = None
+    answer_length: Optional[str] = None
+    teaching_aids: Optional[List[str]] = None
+    visual_aids: Optional[List[str]] = None
+    auto_learn: Optional[bool] = Field(
+        default=True,
+        description="Enable automatic preference learning from user prompts"
+    )
 
 
 class OnboardingRequest(BaseModel):

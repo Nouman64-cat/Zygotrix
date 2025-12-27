@@ -14,6 +14,8 @@ export const API_ROUTES = {
     passwordResetVerifyOtp: "/api/auth/password-reset/verify-otp",
     passwordResetVerify: "/api/auth/password-reset/verify",
     passwordResetResend: "/api/auth/password-reset/resend",
+    preferences: "/api/auth/me/preferences",
+    preferencesReset: "/api/auth/me/preferences/reset",
   },
   portal: {
     status: "/api/portal/status",

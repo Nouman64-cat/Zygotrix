@@ -15,6 +15,7 @@ import {
   SettingsModal,
   ShareModal,
   ExportModal,
+  PreferencesModal,
 } from "../components/zygotrix-ai";
 import type { ConversationSettings, ExportFormat } from "../services/zygotrixAI.api";
 import { LuBiohazard } from "react-icons/lu";
@@ -38,6 +39,7 @@ function ZygotrixAIChatContent() {
 
   // Modal states
   const [showSettings, setShowSettings] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
   const [showShare, setShowShare] = useState(false);
   const [showExport, setShowExport] = useState(false);
 
@@ -136,6 +138,7 @@ function ZygotrixAIChatContent() {
       <div className="flex-1 flex flex-col min-w-0">
         <ChatInterface
           onOpenSettings={() => setShowSettings(true)}
+          onOpenPreferences={() => setShowPreferences(true)}
           onShare={() => setShowShare(true)}
           onExport={() => setShowExport(true)}
         />
@@ -170,6 +173,12 @@ function ZygotrixAIChatContent() {
           />
         </>
       )}
+
+      {/* AI Behavior Preferences Modal (user-level, always available) */}
+      <PreferencesModal
+        isOpen={showPreferences}
+        onClose={() => setShowPreferences(false)}
+      />
     </div>
   );
 }

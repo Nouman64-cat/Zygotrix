@@ -12,6 +12,8 @@ import logging
 from app.services.common import get_users_collection, get_pending_signups_collection
 from app.core.exceptions.database import DatabaseError, RecordNotFoundError
 from app.core.exceptions.auth import InvalidCredentialsError
+from app.schema.zygotrix_ai import ChatPreferences
+from app.schema.auth import UserPreferencesUpdate
 from .password_service import get_password_service
 from .user_serializer import get_user_serializer
 from .activity_tracking_service import get_activity_tracking_service
@@ -327,6 +329,128 @@ class UserService:
         except PyMongoError as e:
             logger.warning(f"Failed to update activity for {user_id}: {e}")
             # Don't raise - activity tracking is not critical
+
+    # ==================== User Preferences ====================
+
+    def get_user_preferences(self, user_id: str) -> ChatPreferences:
+        """
+        Get user's AI behavior preferences.
+
+        Args:
+            user_id: User's ID
+
+        Returns:
+            ChatPreferences object (default if not set)
+
+        Raises:
+            InvalidCredentialsError: If user not found
+        """
+        user = self.get_user_by_id(user_id)
+
+        # Return preferences if they exist, otherwise return defaults
+        if user.get("preferences"):
+            return ChatPreferences(**user["preferences"])
+        else:
+            # Return default preferences
+            return ChatPreferences()
+
+    def update_user_preferences(
+        self,
+        user_id: str,
+        preferences_update: UserPreferencesUpdate
+    ) -> ChatPreferences:
+        """
+        Update user's AI behavior preferences.
+
+        Args:
+            user_id: User's ID
+            preferences_update: Preference updates
+
+        Returns:
+            Updated ChatPreferences
+
+        Raises:
+            InvalidCredentialsError: If user not found
+            DatabaseError: If update fails
+        """
+        collection = get_users_collection(required=True)
+
+        try:
+            object_id = ObjectId(user_id)
+        except Exception:
+            raise InvalidCredentialsError("Invalid user ID.")
+
+        # Get current preferences or create new ones
+        user = self.get_user_by_id(user_id)
+        current_prefs = user.get("preferences") or {}
+
+        # Merge with updates
+        prefs_dict = {**current_prefs}
+        for field, value in preferences_update.model_dump(exclude_none=True).items():
+            if value is not None:
+                prefs_dict[field] = value
+
+        try:
+            result = collection.update_one(
+                {"_id": object_id},
+                {"$set": {"preferences": prefs_dict}}
+            )
+
+            if result.matched_count == 0:
+                raise RecordNotFoundError("User", user_id)
+
+            # Clear cache
+            self._clear_user_cache(user_id)
+
+            logger.info(f"Updated preferences for user {user_id}")
+            return ChatPreferences(**prefs_dict)
+
+        except PyMongoError as e:
+            logger.error(f"Error updating preferences for {user_id}: {e}")
+            raise DatabaseError(f"Failed to update preferences: {str(e)}")
+
+    def reset_user_preferences(self, user_id: str) -> ChatPreferences:
+        """
+        Reset user's AI behavior preferences to defaults.
+
+        Args:
+            user_id: User's ID
+
+        Returns:
+            Default ChatPreferences
+
+        Raises:
+            InvalidCredentialsError: If user not found
+            DatabaseError: If update fails
+        """
+        collection = get_users_collection(required=True)
+
+        try:
+            object_id = ObjectId(user_id)
+        except Exception:
+            raise InvalidCredentialsError("Invalid user ID.")
+
+        # Create default preferences
+        default_prefs = ChatPreferences()
+
+        try:
+            result = collection.update_one(
+                {"_id": object_id},
+                {"$set": {"preferences": default_prefs.model_dump()}}
+            )
+
+            if result.matched_count == 0:
+                raise RecordNotFoundError("User", user_id)
+
+            # Clear cache
+            self._clear_user_cache(user_id)
+
+            logger.info(f"Reset preferences to defaults for user {user_id}")
+            return default_prefs
+
+        except PyMongoError as e:
+            logger.error(f"Error resetting preferences for {user_id}: {e}")
+            raise DatabaseError(f"Failed to reset preferences: {str(e)}")
 
     # ==================== User Queries ====================
 

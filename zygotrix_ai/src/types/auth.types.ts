@@ -2,6 +2,25 @@ export interface UserPreferences {
   [key: string]: unknown;
 }
 
+export interface ChatPreferences {
+  communication_style: "simple" | "technical" | "conversational";
+  answer_length: "brief" | "balanced" | "detailed";
+  teaching_aids: string[];
+  visual_aids: string[];
+  preference_scores?: Record<string, number>;
+  auto_learn: boolean;
+  last_updated?: string | null;
+  updated_by?: "system" | "manual" | null;
+}
+
+export interface UserPreferencesUpdate {
+  communication_style?: "simple" | "technical" | "conversational";
+  answer_length?: "brief" | "balanced" | "detailed";
+  teaching_aids?: string[];
+  visual_aids?: string[];
+  auto_learn?: boolean;
+}
+
 export interface LoginHistoryEntry {
   timestamp: string;
   ip_address: string;

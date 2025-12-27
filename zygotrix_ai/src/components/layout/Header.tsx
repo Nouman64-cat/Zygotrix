@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import { FiMenu, FiPlus, FiLogOut } from 'react-icons/fi';
+import { MdPsychology } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts';
-import { Logo, IconButton, ThemeSwitcher } from '../common';
+import { Logo, IconButton, ThemeSwitcher, PreferencesModal } from '../common';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -18,6 +19,7 @@ export const Header: React.FC<HeaderProps> = ({
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const [showPreferences, setShowPreferences] = useState(false);
 
   const handleLogout = async () => {
     await logout();
@@ -57,6 +59,13 @@ export const Header: React.FC<HeaderProps> = ({
 
         <div className="flex items-center gap-2">
           <ThemeSwitcher variant="icon" />
+
+          <IconButton
+            icon={<MdPsychology />}
+            onClick={() => setShowPreferences(true)}
+            tooltip="AI Behavior Preferences"
+            variant="ghost"
+          />
 
           <IconButton
             icon={<FiPlus />}
@@ -104,6 +113,12 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       </div>
+
+      {/* AI Behavior Preferences Modal */}
+      <PreferencesModal
+        isOpen={showPreferences}
+        onClose={() => setShowPreferences(false)}
+      />
     </header>
   );
 };

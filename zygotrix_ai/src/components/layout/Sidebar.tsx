@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMessageSquare, FiPlus, FiTrash2, FiX, FiLogOut, FiChevronLeft, FiChevronRight } from 'react-icons/fi';
+import { FiMessageSquare, FiPlus, FiTrash2, FiX, FiLogOut, FiChevronLeft, FiChevronRight, FiSettings } from 'react-icons/fi';
 import { cn, formatTimestamp, truncateText } from '../../utils';
 import { IconButton, Button, Logo } from '../common';
 import { useAuth } from '../../contexts';
@@ -14,6 +14,7 @@ interface SidebarProps {
   onDeleteConversation: (id: string) => void;
   isOpen: boolean;
   onClose: () => void;
+  onOpenSettings: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -24,6 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onDeleteConversation,
   isOpen,
   onClose,
+  onOpenSettings,
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -160,8 +162,34 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Bottom Section: User Info & Logout */}
+        {/* Bottom Section: Settings, User Info & Logout */}
         <div className="border-t border-gray-200 dark:border-gray-800">
+          {/* Settings */}
+          <div className="p-3 border-b border-gray-200 dark:border-gray-800">
+            {isCollapsed ? (
+              <IconButton
+                icon={<FiSettings />}
+                onClick={() => {
+                  onOpenSettings();
+                  onClose();
+                }}
+                tooltip="Settings"
+                className="w-full hover:bg-gray-100 dark:hover:bg-gray-800"
+              />
+            ) : (
+              <button
+                onClick={() => {
+                  onOpenSettings();
+                  onClose();
+                }}
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
+              >
+                <FiSettings size={18} />
+                Settings
+              </button>
+            )}
+          </div>
+
           {/* User Info & Logout */}
           <div className="p-3">
             {user && !isCollapsed && (

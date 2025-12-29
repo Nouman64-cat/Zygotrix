@@ -257,6 +257,7 @@ class ZygotrixClaudeService:
         total_cache_read_tokens = 0
         tools_used = []
         breeding_widget_data = None  # Track breeding simulation data if tool is used
+        dna_rna_widget_data = None  # Track DNA/RNA visualization data if tool is used
 
         # Log tool availability for debugging
         if tools:
@@ -382,9 +383,12 @@ class ZygotrixClaudeService:
                             # Execute tools and get results
                             tool_results = await process_tool_calls(tool_calls)
 
-                            # Extract breeding simulation data from tool results if present
+                            # Extract widget data from tool results if present
                             for i, tc in enumerate(tool_calls):
-                                if tc.get("name") == "create_breeding_simulation" and i < len(tool_results):
+                                tool_name = tc.get("name")
+
+                                # Extract breeding simulation data
+                                if tool_name == "create_breeding_simulation" and i < len(tool_results):
                                     try:
                                         # Parse the tool result content (it's JSON string)
                                         result_content = tool_results[i].get("content", "{}")
@@ -395,6 +399,19 @@ class ZygotrixClaudeService:
                                                 logger.info("Extracted breeding simulation widget data from tool results")
                                     except Exception as e:
                                         logger.warning(f"Failed to extract breeding data: {e}")
+
+                                # Extract DNA/RNA visualization data
+                                elif tool_name in ["generate_random_dna_sequence", "transcribe_dna_to_mrna"] and i < len(tool_results):
+                                    try:
+                                        # Parse the tool result content (it's JSON string)
+                                        result_content = tool_results[i].get("content", "{}")
+                                        if isinstance(result_content, str):
+                                            result_data = json.loads(result_content)
+                                            if result_data.get("widget_type") == "dna_rna_visualizer":
+                                                dna_rna_widget_data = result_data
+                                                logger.info(f"Extracted DNA/RNA widget data from {tool_name}")
+                                    except Exception as e:
+                                        logger.warning(f"Failed to extract DNA/RNA data: {e}")
 
                             # Add assistant's response with tool_use to messages
                             working_messages.append({
@@ -433,6 +450,16 @@ class ZygotrixClaudeService:
                             "parent2": breeding_widget_data.get("parent2"),
                             "traits": breeding_widget_data.get("traits"),
                             "results": breeding_widget_data.get("results"),
+                        }
+
+                    # Add DNA/RNA widget data if present
+                    if dna_rna_widget_data:
+                        metadata["widget_type"] = "dna_rna_visualizer"
+                        metadata["dna_rna_data"] = {
+                            "dna_sequence": dna_rna_widget_data.get("dna_rna_data", {}).get("dna_sequence"),
+                            "mrna_sequence": dna_rna_widget_data.get("dna_rna_data", {}).get("mrna_sequence"),
+                            "operation": dna_rna_widget_data.get("dna_rna_data", {}).get("operation"),
+                            "metadata": dna_rna_widget_data.get("dna_rna_data", {}).get("metadata"),
                         }
 
                     if tools_used:

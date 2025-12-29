@@ -31,13 +31,23 @@ export interface MessageMetadata {
   provider?: string;
   latency_ms?: number;
   cached?: boolean;
-  // Breeding lab widget data
-  widget_type?: 'breeding_lab';
+  // Widget data for interactive visualizations
+  widget_type?: 'breeding_lab' | 'dna_rna_visualizer';
   breeding_data?: {
     parent1?: any;
     parent2?: any;
     traits?: string[];
     results?: any;
+  };
+  dna_rna_data?: {
+    dna_sequence?: string;
+    mrna_sequence?: string;
+    operation?: 'generate_dna' | 'transcribe_to_mrna' | 'both';
+    metadata?: {
+      length?: number;
+      gc_content?: number;
+      base_counts?: Record<string, number>;
+    };
   };
 }
 

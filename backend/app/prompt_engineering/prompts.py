@@ -248,13 +248,19 @@ You have access to specialized genetics tools. Use them when appropriate:
    - Default traits if not specified: eye_color and hair_color
 
 **DNA/RNA/PROTEIN TOOLS:**
-9. **generate_random_dna_sequence** - Generate random DNA with specified length and GC content
-   - Use when: user asks for random DNA, generate DNA, create DNA sequence
+9. **generate_random_dna_sequence** - Generate random DNA with INTERACTIVE VISUAL WIDGET
+   - IMPORTANT: This tool creates a visual DNA widget showing the double helix and sequence details
+   - Use when: user asks for random DNA, generate DNA, create DNA sequence, "show me DNA"
    - Args: length (default 30), gc_content (0.0-1.0, default 0.5), seed (optional)
+   - Widget displays: color-coded nucleotides, complementary base pairs, GC content stats
+   - Response strategy: Keep text brief (1-2 sentences), let the widget show the DNA
 
-10. **transcribe_dna_to_mrna** - Transcribe DNA to mRNA (T→U conversion)
-    - Use when: user asks to transcribe DNA, convert DNA to RNA
+10. **transcribe_dna_to_mrna** - Transcribe DNA to mRNA with INTERACTIVE VISUAL WIDGET
+    - IMPORTANT: This tool creates a visual widget showing both DNA and mRNA sequences
+    - Use when: user asks to transcribe DNA, convert DNA to RNA/mRNA, "show me transcription"
     - Args: dna_sequence (string)
+    - Widget displays: DNA double helix, mRNA single strand with codons, transcription rules
+    - Response strategy: Keep text brief, explain the key concept, let widget show the sequences
 
 11. **extract_codons_from_rna** - Extract codon triplets from RNA
     - Use when: user asks for codons in a sequence
@@ -300,8 +306,9 @@ This formatting enables the copy button in the UI.
 - If a tool fails, explain the issue clearly
 - Combine multiple tools if needed (e.g., generate DNA → transcribe → translate)
 - 🎯 ALWAYS use create_breeding_simulation for genetic crosses - DON'T compute Punnett squares manually in text
+- 🧬 ALWAYS use generate_random_dna_sequence and transcribe_dna_to_mrna for DNA/RNA tasks - they create visual widgets
 - Always wrap sequences in appropriate code blocks
-- After using create_breeding_simulation, keep your response brief - let the widget do the teaching
+- After using widget-enabled tools (breeding, DNA/RNA), keep your response brief - let the widget do the teaching
 """
     
     return base_prompt + tools_section

@@ -161,7 +161,7 @@ mcp_tools: List[Dict[str, Any]] = [
     # =========================================================================
     {
         "name": "generate_random_dna_sequence",
-        "description": "Generate a random DNA sequence with specified length and GC content. Useful for demonstrations and simulations.",
+        "description": "Generate random DNA sequence with INTERACTIVE VISUAL WIDGET showing double helix, base pairs, and GC content. Use when user asks for DNA generation, wants to see DNA structure, or requests sequence visualization.",
         "category": ToolCategory.GENETICS,
         "parameters": [
             ToolParameter(
@@ -190,7 +190,7 @@ mcp_tools: List[Dict[str, Any]] = [
     },
     {
         "name": "transcribe_dna_to_mrna",
-        "description": "Transcribe a DNA sequence to mRNA by replacing T (thymine) with U (uracil). This simulates the biological transcription process.",
+        "description": "Transcribe DNA to mRNA with INTERACTIVE VISUAL WIDGET showing both DNA and mRNA sequences, codons, and transcription rules. Use when user asks for transcription, wants to convert DNA to RNA, or requests visualization of gene expression.",
         "category": ToolCategory.GENETICS,
         "parameters": [
             ToolParameter(

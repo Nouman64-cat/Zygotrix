@@ -84,9 +84,10 @@ class MessageMetadata(BaseModel):
     finish_reason: Optional[str] = None
     cached: bool = False
 
-    # Breeding lab widget data
-    widget_type: Optional[str] = None
-    breeding_data: Optional[dict] = None
+    # Widget data for interactive visualizations
+    widget_type: Optional[str] = None  # 'breeding_lab' or 'dna_rna_visualizer'
+    breeding_data: Optional[dict] = None  # For breeding simulations
+    dna_rna_data: Optional[dict] = None  # For DNA/RNA visualizations
 
 
 class Message(BaseModel):

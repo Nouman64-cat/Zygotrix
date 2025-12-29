@@ -6,6 +6,7 @@ import { cn, formatMessageTime } from '../../utils';
 import { useTypingEffect } from '../../hooks';
 import { ThinkingLoader } from '../common/ThinkingLoader';
 import { BreedingLabWidget } from '../breeding';
+import { DnaRnaWidget } from '../dna';
 import type { Message } from '../../types';
 import Logo from '../../../public/zygotrix-ai.png';
 
@@ -151,6 +152,9 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   // Check if message has breeding widget data
   const hasBreedingWidget = message.metadata?.widget_type === 'breeding_lab' && message.metadata?.breeding_data;
 
+  // Check if message has DNA/RNA widget data
+  const hasDnaRnaWidget = message.metadata?.widget_type === 'dna_rna_visualizer' && message.metadata?.dna_rna_data;
+
   // Render content - use markdown for AI messages, plain text for user
   const renderContent = () => {
     if (showLoader) {
@@ -262,6 +266,16 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
             initialParentA={message.metadata.breeding_data.parent1}
             initialParentB={message.metadata.breeding_data.parent2}
             traitIds={message.metadata.breeding_data.traits}
+          />
+        )}
+
+        {/* Render DNA/RNA widget if present */}
+        {hasDnaRnaWidget && message.metadata?.dna_rna_data && (
+          <DnaRnaWidget
+            dnaSequence={message.metadata.dna_rna_data.dna_sequence || ''}
+            mrnaSequence={message.metadata.dna_rna_data.mrna_sequence || ''}
+            operation={message.metadata.dna_rna_data.operation}
+            metadata={message.metadata.dna_rna_data.metadata}
           />
         )}
       </>

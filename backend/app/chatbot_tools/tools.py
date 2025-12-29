@@ -1140,7 +1140,7 @@ def generate_random_dna_sequence(length: int = 30, gc_content: float = 0.5, seed
         dna_sequence = generate_dna_sequence(length, gc_content, seed)
         actual_gc = calculate_actual_gc(dna_sequence)
         
-        return {
+        result = {
             "success": True,
             "dna_sequence": dna_sequence,
             "length": len(dna_sequence),
@@ -1152,8 +1152,26 @@ def generate_random_dna_sequence(length: int = 30, gc_content: float = 0.5, seed
                 "G": dna_sequence.count("G"),
                 "C": dna_sequence.count("C"),
             },
-            "message": f"Generated a {len(dna_sequence)} bp DNA sequence with {actual_gc*100:.1f}% GC content."
+            "message": f"Generated a {len(dna_sequence)} bp DNA sequence with {actual_gc*100:.1f}% GC content.",
+            # Widget data for frontend visualization
+            "widget_type": "dna_rna_visualizer",
+            "dna_rna_data": {
+                "dna_sequence": dna_sequence,
+                "mrna_sequence": None,
+                "operation": "generate_dna",
+                "metadata": {
+                    "length": len(dna_sequence),
+                    "gc_content": round(actual_gc, 4),
+                    "base_counts": {
+                        "A": dna_sequence.count("A"),
+                        "T": dna_sequence.count("T"),
+                        "G": dna_sequence.count("G"),
+                        "C": dna_sequence.count("C"),
+                    }
+                }
+            }
         }
+        return result
     except Exception as e:
         return {
             "success": False,
@@ -1193,15 +1211,27 @@ def transcribe_dna_to_mrna(dna_sequence: str) -> dict:
     
     try:
         mrna_sequence = transcribe_to_rna(dna_clean)
-        
-        return {
+
+        result = {
             "success": True,
             "dna_sequence": dna_clean,
             "mrna_sequence": mrna_sequence,
             "length": len(mrna_sequence),
             "transcription_rule": "A→A, T→U, G→G, C→C (template strand)",
-            "message": f"Transcribed {len(dna_clean)} bp DNA to {len(mrna_sequence)} nt mRNA."
+            "message": f"Transcribed {len(dna_clean)} bp DNA to {len(mrna_sequence)} nt mRNA.",
+            # Widget data for frontend visualization
+            "widget_type": "dna_rna_visualizer",
+            "dna_rna_data": {
+                "dna_sequence": dna_clean,
+                "mrna_sequence": mrna_sequence,
+                "operation": "transcribe_to_mrna",
+                "metadata": {
+                    "length": len(mrna_sequence),
+                    "base_counts": None  # Could add RNA base counts if needed
+                }
+            }
         }
+        return result
     except Exception as e:
         return {
             "success": False,

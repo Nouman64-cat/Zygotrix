@@ -183,6 +183,7 @@ class ZygotrixChatService:
             model=model,
             widget_type=metadata.get("widget_type"),
             breeding_data=metadata.get("breeding_data"),
+            dna_rna_data=metadata.get("dna_rna_data"),
         )
 
         # Create as a new version/sibling
@@ -577,6 +578,7 @@ Question: {user_message.content}"""
                             model=model,
                             widget_type=metadata.get("widget_type") if metadata else None,
                             breeding_data=metadata.get("breeding_data") if metadata else None,
+                            dna_rna_data=metadata.get("dna_rna_data") if metadata else None,
                         )
                         assistant_message = MessageService.create_message(
                             conversation_id=conversation.id,
@@ -645,6 +647,7 @@ Question: {user_message.content}"""
             model=model,
             widget_type=metadata.get("widget_type"),
             breeding_data=metadata.get("breeding_data"),
+            dna_rna_data=metadata.get("dna_rna_data"),
         )
 
         assistant_message = MessageService.create_message(

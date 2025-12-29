@@ -187,7 +187,7 @@ class BreedingService {
    * For complete dominance: if any uppercase letter, use dominant phenotype
    */
   private determinePhenotype(
-    genotype: string,
+    _genotype: string,
     phenotypeOptions: string[],
     phenotypicRatios: Record<string, number>
   ): string {

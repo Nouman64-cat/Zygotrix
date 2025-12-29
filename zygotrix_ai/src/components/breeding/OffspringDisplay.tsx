@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { FiX, FiPlus } from 'react-icons/fi';
-import { Button, IconButton } from '../common';
+import { IconButton } from '../common';
 import { OrganismCard } from './OrganismCard';
 import type { BreedingResult, Organism } from '../../types';
 
@@ -109,7 +109,7 @@ export const OffspringDisplay: React.FC<OffspringDisplayProps> = ({
           Sample Offspring ({result.offspring.length})
         </h3>
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-3">
-          {result.offspring.map((offspring, index) => (
+          {result.offspring.map((offspring, _index) => (
             <div key={offspring.id} className="relative group">
               <OrganismCard organism={offspring} draggable={false} compact={true} />
               <button

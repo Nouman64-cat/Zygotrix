@@ -26,6 +26,8 @@ from ...chatbot_tools import (
     transcribe_dna_to_mrna,
     extract_codons_from_rna,
     translate_rna_to_protein,
+    # Breeding simulation tools
+    create_breeding_simulation,
 )
 
 logger = logging.getLogger(__name__)
@@ -234,6 +236,52 @@ mcp_tools: List[Dict[str, Any]] = [
             ),
         ],
         "handler": translate_rna_to_protein,
+    },
+    # =========================================================================
+    # BREEDING SIMULATION TOOL
+    # =========================================================================
+    {
+        "name": "create_breeding_simulation",
+        "description": "Create an interactive breeding simulation widget that appears in the chat. Use this when users ask about genetic crosses, inheritance patterns, or want to see Mendelian genetics in action.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="parent1_genotypes",
+                type="object",
+                description="Dict of trait->genotype for parent 1 (e.g., {'eye_color': 'Bb', 'hair_color': 'Hh'})",
+                required=False,
+                default=None,
+            ),
+            ToolParameter(
+                name="parent2_genotypes",
+                type="object",
+                description="Dict of trait->genotype for parent 2",
+                required=False,
+                default=None,
+            ),
+            ToolParameter(
+                name="parent1_sex",
+                type="string",
+                description="Sex of parent 1: 'male' or 'female'",
+                required=False,
+                default="male",
+            ),
+            ToolParameter(
+                name="parent2_sex",
+                type="string",
+                description="Sex of parent 2: 'male' or 'female'",
+                required=False,
+                default="female",
+            ),
+            ToolParameter(
+                name="run_cross",
+                type="boolean",
+                description="If true, automatically run the genetic cross and show results",
+                required=False,
+                default=True,
+            ),
+        ],
+        "handler": create_breeding_simulation,
     },
 ]
 

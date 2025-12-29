@@ -44,6 +44,10 @@ export const API_ENDPOINTS = {
     GET_SETTINGS: "/api/user/settings",
     UPDATE_SETTINGS: "/api/user/settings",
   },
+  GENETICS: {
+    TRAITS: "/api/traits",
+    MENDELIAN_SIMULATE: "/api/mendelian/simulate",
+  },
 } as const;
 
 export const API_BASE_URL = import.meta.env.VITE_BASE_URL;

@@ -1370,10 +1370,97 @@ def translate_rna_to_protein(rna_sequence: str, find_all_orfs: bool = False) -> 
         }
 
 
+def create_breeding_simulation(parent1_genotypes: dict = None, parent2_genotypes: dict = None,
+                              parent1_sex: str = "male", parent2_sex: str = "female",
+                              run_cross: bool = True) -> dict:
+    """
+    Create an interactive breeding simulation for the chat interface.
+
+    Args:
+        parent1_genotypes: Dict of trait->genotype for parent 1 (e.g., {"eye_color": "Bb", "hair_color": "Hh"})
+        parent2_genotypes: Dict of trait->genotype for parent 2
+        parent1_sex: "male" or "female" (default: "male")
+        parent2_sex: "male" or "female" (default: "female")
+        run_cross: If True, automatically run the genetic cross
+
+    Returns:
+        dict: Breeding simulation data formatted for the frontend widget
+    """
+    # Default genotypes if not provided
+    if not parent1_genotypes:
+        parent1_genotypes = {"eye_color": "Bb", "hair_color": "Hh"}
+    if not parent2_genotypes:
+        parent2_genotypes = {"eye_color": "bb", "hair_color": "hh"}
+
+    # Determine phenotypes
+    def determine_phenotype(genotypes: dict) -> dict:
+        phenotypes = {}
+        for trait, genotype in genotypes.items():
+            if trait == "eye_color":
+                phenotypes[trait] = "Brown" if "B" in genotype else "Blue"
+            elif trait == "hair_color":
+                phenotypes[trait] = "Black" if "H" in genotype else "Blonde"
+        return phenotypes
+
+    parent1_phenotypes = determine_phenotype(parent1_genotypes)
+    parent2_phenotypes = determine_phenotype(parent2_genotypes)
+
+    simulation_data = {
+        "widget_type": "breeding_lab",
+        "parent1": {
+            "id": "parent_1",
+            "name": "Parent A",
+            "sex": parent1_sex,
+            "genotype": parent1_genotypes,
+            "phenotype": parent1_phenotypes
+        },
+        "parent2": {
+            "id": "parent_2",
+            "name": "Parent B",
+            "sex": parent2_sex,
+            "genotype": parent2_genotypes,
+            "phenotype": parent2_phenotypes
+        },
+        "traits": list(parent1_genotypes.keys()),
+        "results": None
+    }
+
+    # Run the cross if requested
+    if run_cross:
+        try:
+            from app.services.service_factory import get_service_factory
+            factory = get_service_factory()
+            mendelian_service = factory.get_mendelian_service()
+
+            # Simulate the cross
+            result = mendelian_service.simulate_cross(
+                parent1_genotypes=parent1_genotypes,
+                parent2_genotypes=parent2_genotypes,
+                trait_filter=list(parent1_genotypes.keys()),
+                as_percentages=True
+            )
+
+            simulation_data["results"] = {
+                "genotypic_ratios": {
+                    trait: data["genotypic_ratios"]
+                    for trait, data in result["results"].items()
+                },
+                "phenotypic_ratios": {
+                    trait: data["phenotypic_ratios"]
+                    for trait, data in result["results"].items()
+                },
+                "simulations": 100
+            }
+        except Exception as e:
+            simulation_data["error"] = f"Failed to run cross: {str(e)}"
+
+    return simulation_data
+
+
 # Export the main functions for use by the chatbot
 __all__ = [
     "get_traits_count",
-    "search_traits", 
+    "search_traits",
     "get_trait_details",
     "list_traits_by_type",
     "list_traits_by_inheritance",
@@ -1384,4 +1471,6 @@ __all__ = [
     "transcribe_dna_to_mrna",
     "extract_codons_from_rna",
     "translate_rna_to_protein",
+    # Breeding simulation tools
+    "create_breeding_simulation",
 ]

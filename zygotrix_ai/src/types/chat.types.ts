@@ -31,6 +31,14 @@ export interface MessageMetadata {
   provider?: string;
   latency_ms?: number;
   cached?: boolean;
+  // Breeding lab widget data
+  widget_type?: 'breeding_lab';
+  breeding_data?: {
+    parent1?: any;
+    parent2?: any;
+    traits?: string[];
+    results?: any;
+  };
 }
 
 // Message from the API

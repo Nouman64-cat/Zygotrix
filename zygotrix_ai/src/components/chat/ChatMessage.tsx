@@ -5,6 +5,7 @@ import { FaUser, FaCopy, FaCheck } from 'react-icons/fa';
 import { cn, formatMessageTime } from '../../utils';
 import { useTypingEffect } from '../../hooks';
 import { ThinkingLoader } from '../common/ThinkingLoader';
+import { BreedingLabWidget } from '../breeding';
 import type { Message } from '../../types';
 import Logo from '../../../public/zygotrix-ai.png';
 
@@ -147,6 +148,9 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   // Show loader only when streaming with no content yet
   const showLoader = shouldAnimate && !message.content;
 
+  // Check if message has breeding widget data
+  const hasBreedingWidget = message.metadata?.widget_type === 'breeding_lab' && message.metadata?.breeding_data;
+
   // Render content - use markdown for AI messages, plain text for user
   const renderContent = () => {
     if (showLoader) {
@@ -165,7 +169,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
       );
     }
 
-    // AI messages: render markdown
+    // AI messages: render markdown + optional breeding widget
     return (
       <>
         <ReactMarkdown
@@ -251,6 +255,14 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
         </ReactMarkdown>
         {showCursor && (
           <span className="inline-block w-0.5 h-4 ml-0.5 bg-gray-600 dark:bg-gray-300 animate-pulse" />
+        )}
+        {/* Render breeding widget if present */}
+        {hasBreedingWidget && message.metadata?.breeding_data && (
+          <BreedingLabWidget
+            initialParentA={message.metadata.breeding_data.parent1}
+            initialParentB={message.metadata.breeding_data.parent2}
+            traitIds={message.metadata.breeding_data.traits}
+          />
         )}
       </>
     );

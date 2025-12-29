@@ -13,6 +13,8 @@ from .tools import (
     transcribe_dna_to_mrna,
     extract_codons_from_rna,
     translate_rna_to_protein,
+    # Breeding simulation tools
+    create_breeding_simulation,
 )
 
 __all__ = [
@@ -28,5 +30,7 @@ __all__ = [
     "transcribe_dna_to_mrna",
     "extract_codons_from_rna",
     "translate_rna_to_protein",
+    # Breeding simulation tools
+    "create_breeding_simulation",
 ]
 

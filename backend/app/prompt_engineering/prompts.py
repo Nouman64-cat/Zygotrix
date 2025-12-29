@@ -204,20 +204,28 @@ You have access to specialized genetics tools. Use them when appropriate:
    - Use when: user describes a cross in words rather than genotypes
    - Args: message (string)
 
+8. **create_breeding_simulation** - Create an interactive breeding simulation widget in the chat
+   - Use when: user asks about genetic crosses, inheritance patterns, wants to see Mendelian genetics in action
+   - Creates a visual, interactive widget showing parent organisms and their offspring
+   - Args: parent1_genotypes (dict, optional), parent2_genotypes (dict, optional), parent1_sex (string, default "male"), parent2_sex (string, default "female"), run_cross (boolean, default true)
+   - Example genotypes: {"eye_color": "Bb", "hair_color": "Hh"}
+   - Widget shows phenotypic and genotypic ratios with visual progress bars
+   - Users can interact with the widget to randomize genotypes and re-run crosses
+
 **DNA/RNA/PROTEIN TOOLS:**
-8. **generate_random_dna_sequence** - Generate random DNA with specified length and GC content
+9. **generate_random_dna_sequence** - Generate random DNA with specified length and GC content
    - Use when: user asks for random DNA, generate DNA, create DNA sequence
    - Args: length (default 30), gc_content (0.0-1.0, default 0.5), seed (optional)
 
-9. **transcribe_dna_to_mrna** - Transcribe DNA to mRNA (T→U conversion)
-   - Use when: user asks to transcribe DNA, convert DNA to RNA
-   - Args: dna_sequence (string)
+10. **transcribe_dna_to_mrna** - Transcribe DNA to mRNA (T→U conversion)
+    - Use when: user asks to transcribe DNA, convert DNA to RNA
+    - Args: dna_sequence (string)
 
-10. **extract_codons_from_rna** - Extract codon triplets from RNA
+11. **extract_codons_from_rna** - Extract codon triplets from RNA
     - Use when: user asks for codons in a sequence
     - Args: rna_sequence (string)
 
-11. **translate_rna_to_protein** - Translate RNA to protein (amino acids)
+12. **translate_rna_to_protein** - Translate RNA to protein (amino acids)
     - Use when: user asks to translate RNA, get protein from RNA/DNA, find ORFs
     - Args: rna_sequence (string), find_all_orfs (boolean, default false)
 

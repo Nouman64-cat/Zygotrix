@@ -196,21 +196,56 @@ You have access to specialized genetics tools. Use them when appropriate:
    - Args: inheritance (string)
 
 **GENETICS TOOLS:**
-6. **calculate_punnett_square** - Calculate genetic cross outcomes
-   - Use when: user asks about crosses, Punnett squares, offspring ratios
+6. **calculate_punnett_square** - Calculate genetic cross outcomes (USE ONLY FOR TEXT-BASED EXPLANATIONS)
+   - Use when: user explicitly asks for calculations/ratios WITHOUT wanting interactive visualization
    - Args: parent1 (genotype), parent2 (genotype), trait_name (optional)
+   - Note: Prefer create_breeding_simulation for most genetic cross requests
 
 7. **parse_cross_from_message** - Extract cross info from natural language
    - Use when: user describes a cross in words rather than genotypes
    - Args: message (string)
 
-8. **create_breeding_simulation** - Create an interactive breeding simulation widget in the chat
-   - Use when: user asks about genetic crosses, inheritance patterns, wants to see Mendelian genetics in action
+8. **create_breeding_simulation** - 🎯 PRIMARY TOOL FOR GENETIC CROSSES
+   - **CRITICAL: USE THIS TOOL for ANY genetic cross, inheritance, or breeding request**
+
+   **ALWAYS use this tool when user asks about:**
+   - "Show me a breeding simulation" or "create a simulation"
+   - "genetic cross" or "cross between X and Y"
+   - "inheritance pattern" or "how is X inherited"
+   - "Punnett square" or "offspring ratios"
+   - "what happens when..." (breeding/crossing scenarios)
+   - "demonstrate/model/visualize/simulate" (any genetics concept)
+   - "Mendelian genetics" or "law of segregation"
+   - "carrier × carrier" or any parent combinations
+   - "breeding lab/tool/simulator/experiment"
+   - "interactive genetics" or "visual genetics"
+
+   **How to use:**
    - Creates a visual, interactive widget showing parent organisms and their offspring
-   - Args: parent1_genotypes (dict, optional), parent2_genotypes (dict, optional), parent1_sex (string, default "male"), parent2_sex (string, default "female"), run_cross (boolean, default true)
-   - Example genotypes: {"eye_color": "Bb", "hair_color": "Hh"}
-   - Widget shows phenotypic and genotypic ratios with visual progress bars
-   - Users can interact with the widget to randomize genotypes and re-run crosses
+   - Args:
+     * parent1_genotypes (dict, optional) - e.g., {"eye_color": "Bb", "hair_color": "Hh"}
+     * parent2_genotypes (dict, optional) - e.g., {"eye_color": "bb", "hair_color": "hh"}
+     * parent1_sex (string, default "male")
+     * parent2_sex (string, default "female")
+     * run_cross (boolean, default true)
+
+   **What it displays:**
+   - Interactive parent organism cards with genotypes/phenotypes
+   - Visual results with genotypic and phenotypic ratios as progress bars
+   - Randomize and re-run buttons for experimentation
+   - Complete Punnett square calculations
+
+   **Response strategy after calling this tool:**
+   - Keep your text response BRIEF and educational
+   - Explain the KEY CONCEPT (1-2 sentences)
+   - Let the widget handle the visual demonstration
+   - Example: "In this cross between heterozygous (Bb) and homozygous recessive (bb) parents, you'll see a 50/50 split. The widget below shows the interactive results!"
+
+   **When to infer genotypes:**
+   - If user says "brown eyes × blue eyes", infer Bb × bb (common dominance)
+   - If user says "heterozygous × homozygous recessive", use Aa × aa format
+   - For trait names (eye color, hair color), use standard notation (Bb, Hh, etc.)
+   - Default traits if not specified: eye_color and hair_color
 
 **DNA/RNA/PROTEIN TOOLS:**
 9. **generate_random_dna_sequence** - Generate random DNA with specified length and GC content
@@ -264,8 +299,9 @@ This formatting enables the copy button in the UI.
 - Present tool results in a user-friendly format with proper code blocks
 - If a tool fails, explain the issue clearly
 - Combine multiple tools if needed (e.g., generate DNA → transcribe → translate)
-- Always use calculate_punnett_square for cross calculations - don't compute manually
+- 🎯 ALWAYS use create_breeding_simulation for genetic crosses - DON'T compute Punnett squares manually in text
 - Always wrap sequences in appropriate code blocks
+- After using create_breeding_simulation, keep your response brief - let the widget do the teaching
 """
     
     return base_prompt + tools_section

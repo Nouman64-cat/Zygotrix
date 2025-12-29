@@ -647,11 +647,6 @@ Question: {user_message.content}"""
             breeding_data=metadata.get("breeding_data"),
         )
 
-        # DEBUG: Log metadata creation
-        if msg_metadata.widget_type:
-            logger.info(f"Created MessageMetadata with widget_type: {msg_metadata.widget_type}")
-            logger.info(f"Breeding data present: {msg_metadata.breeding_data is not None}")
-
         assistant_message = MessageService.create_message(
             conversation_id=conversation.id,
             role=MessageRole.ASSISTANT,

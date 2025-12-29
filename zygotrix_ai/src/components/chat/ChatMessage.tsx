@@ -151,12 +151,6 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   // Check if message has breeding widget data
   const hasBreedingWidget = message.metadata?.widget_type === 'breeding_lab' && message.metadata?.breeding_data;
 
-  // DEBUG: Log metadata to console
-  if (message.role === 'assistant') {
-    console.log('Message metadata:', message.metadata);
-    console.log('Has breeding widget:', hasBreedingWidget);
-  }
-
   // Render content - use markdown for AI messages, plain text for user
   const renderContent = () => {
     if (showLoader) {

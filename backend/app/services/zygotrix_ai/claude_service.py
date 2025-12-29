@@ -434,10 +434,6 @@ class ZygotrixClaudeService:
                             "traits": breeding_widget_data.get("traits"),
                             "results": breeding_widget_data.get("results"),
                         }
-                        logger.info(f"Added breeding widget data to metadata: {metadata['widget_type']}")
-                        logger.info(f"Breeding data keys: {list(metadata['breeding_data'].keys())}")
-                    else:
-                        logger.info("No breeding widget data found in this response")
 
                     if tools_used:
                         logger.info(f"Response completed with {len(tools_used)} tool(s) used: {[t['name'] for t in tools_used]}")

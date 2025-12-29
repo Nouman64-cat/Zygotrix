@@ -117,7 +117,7 @@ mcp_tools: List[Dict[str, Any]] = [
     # =========================================================================
     {
         "name": "calculate_punnett_square",
-        "description": "Calculate a Punnett Square for a genetic cross",
+        "description": "Calculate Punnett Square (text-based only). Only use when user explicitly wants calculations WITHOUT visualization. Prefer create_breeding_simulation for most requests.",
         "category": ToolCategory.GENETICS,
         "parameters": [
             ToolParameter(
@@ -242,7 +242,7 @@ mcp_tools: List[Dict[str, Any]] = [
     # =========================================================================
     {
         "name": "create_breeding_simulation",
-        "description": "Create an interactive breeding simulation widget that appears in the chat. Use this when users ask about genetic crosses, inheritance patterns, or want to see Mendelian genetics in action.",
+        "description": "PRIMARY TOOL for genetic crosses. Creates an interactive breeding simulation widget. Use when user asks about: genetic crosses, Punnett squares, inheritance patterns, breeding simulations, 'what happens when', offspring ratios, carrier crosses, Mendelian genetics, or any breeding/crossing scenario. Always prefer this over calculate_punnett_square for visual demonstrations.",
         "category": ToolCategory.GENETICS,
         "parameters": [
             ToolParameter(

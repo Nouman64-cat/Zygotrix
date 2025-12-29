@@ -161,15 +161,15 @@ mcp_tools: List[Dict[str, Any]] = [
     # =========================================================================
     {
         "name": "generate_random_dna_sequence",
-        "description": "Generate random DNA sequence with INTERACTIVE VISUAL WIDGET showing double helix, base pairs, and GC content. Use when user asks for DNA generation, wants to see DNA structure, or requests sequence visualization.",
+        "description": "PRIMARY TOOL for DNA generation. Creates INTERACTIVE VISUAL WIDGET with animated double helix. Use when user asks about: DNA generation/creation, DNA visualization/display, specific base pair counts, DNA structure, or ANY DNA-related request. NEVER generate DNA sequences in text - ALWAYS use this tool.",
         "category": ToolCategory.GENETICS,
         "parameters": [
             ToolParameter(
                 name="length",
                 type="integer",
-                description="Number of base pairs to generate (default: 30, max: 1000)",
+                description="Number of base pairs to generate (default: 18, max: 1000)",
                 required=False,
-                default=30,
+                default=18,
             ),
             ToolParameter(
                 name="gc_content",
@@ -190,7 +190,7 @@ mcp_tools: List[Dict[str, Any]] = [
     },
     {
         "name": "transcribe_dna_to_mrna",
-        "description": "Transcribe DNA to mRNA with INTERACTIVE VISUAL WIDGET showing both DNA and mRNA sequences, codons, and transcription rules. Use when user asks for transcription, wants to convert DNA to RNA, or requests visualization of gene expression.",
+        "description": "PRIMARY TOOL for DNA transcription. Creates INTERACTIVE VISUAL WIDGET with DNA double helix and mRNA single strand. Use when user asks about: transcription, DNA to RNA/mRNA conversion, gene expression visualization, or ANY transcription-related request. NEVER transcribe DNA in text - ALWAYS use this tool.",
         "category": ToolCategory.GENETICS,
         "parameters": [
             ToolParameter(

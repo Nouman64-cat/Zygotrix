@@ -1107,15 +1107,15 @@ def _extract_trait_name_from_message(message: str) -> str:
 # DNA / RNA / PROTEIN TOOLS
 # =============================================================================
 
-def generate_random_dna_sequence(length: int = 30, gc_content: float = 0.5, seed: int = None) -> dict:
+def generate_random_dna_sequence(length: int = 18, gc_content: float = 0.5, seed: int = None) -> dict:
     """
     Generate a random DNA sequence with specified parameters.
-    
+
     Args:
-        length: Number of base pairs to generate (default: 30, max: 1000)
+        length: Number of base pairs to generate (default: 18, max: 1000)
         gc_content: Proportion of G and C nucleotides (0.0 to 1.0, default: 0.5)
         seed: Optional seed for reproducibility
-    
+
     Returns:
         dict: Generated DNA sequence with metadata
     """

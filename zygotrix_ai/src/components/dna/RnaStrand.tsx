@@ -13,7 +13,7 @@ interface RnaStrandProps {
 const RnaStrand: React.FC<RnaStrandProps> = ({
   sequence,
   className = '',
-  showCodons = true
+  showCodons: _showCodons = true
 }) => {
   const [animationTime, setAnimationTime] = useState(0);
 
@@ -242,8 +242,6 @@ const RnaStrand: React.FC<RnaStrandProps> = ({
               const zDepth = Math.sin(animationTime + i * 0.4);
               const opacity = 0.7 + zDepth * 0.3;
               const scale = 1 + zDepth * 0.05;
-
-              const animationDelay = i * 0.1;
 
               return (
                 <g key={`base-${base.id}`}>

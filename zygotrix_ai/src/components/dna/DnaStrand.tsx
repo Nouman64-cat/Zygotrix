@@ -340,7 +340,6 @@ const DnaStrand: React.FC<DnaStrandProps> = ({ sequence, className = '' }) => {
               const rightZ = Math.sin(angle + Math.PI + animationTime * 0.5);
               const leftOpacity = 0.6 + leftZ * 0.4;
               const rightOpacity = 0.6 + rightZ * 0.4;
-              const animationDelay = i * 0.08;
 
               return (
                 <g key={`bases-${pair.id}`}>

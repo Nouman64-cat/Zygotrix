@@ -31,7 +31,7 @@ const DnaRnaWidget: React.FC<DnaRnaWidgetProps> = ({
   const hasMrna = mrnaSequence && mrnaSequence.length > 0;
 
   // Copy sequence to clipboard
-  const copyToClipboard = (sequence: string, type: string) => {
+  const copyToClipboard = (sequence: string, _type: string) => {
     navigator.clipboard.writeText(sequence);
     // Could add toast notification here
   };

@@ -256,7 +256,8 @@ class ZygotrixClaudeService:
         total_cache_creation_tokens = 0
         total_cache_read_tokens = 0
         tools_used = []
-        
+        breeding_widget_data = None  # Track breeding simulation data if tool is used
+
         # Log tool availability for debugging
         if tools:
             tool_names = [t.get("name") for t in tools]
@@ -380,19 +381,33 @@ class ZygotrixClaudeService:
                             
                             # Execute tools and get results
                             tool_results = await process_tool_calls(tool_calls)
-                            
+
+                            # Extract breeding simulation data from tool results if present
+                            for i, tc in enumerate(tool_calls):
+                                if tc.get("name") == "create_breeding_simulation" and i < len(tool_results):
+                                    try:
+                                        # Parse the tool result content (it's JSON string)
+                                        result_content = tool_results[i].get("content", "{}")
+                                        if isinstance(result_content, str):
+                                            result_data = json.loads(result_content)
+                                            if result_data.get("widget_type") == "breeding_lab":
+                                                breeding_widget_data = result_data
+                                                logger.info("Extracted breeding simulation widget data from tool results")
+                                    except Exception as e:
+                                        logger.warning(f"Failed to extract breeding data: {e}")
+
                             # Add assistant's response with tool_use to messages
                             working_messages.append({
                                 "role": "assistant",
                                 "content": content_blocks,
                             })
-                            
+
                             # Add tool results to messages
                             working_messages.append({
                                 "role": "user",
                                 "content": tool_results,
                             })
-                            
+
                             # Continue the loop to get Claude's final response
                             continue
                     
@@ -409,6 +424,20 @@ class ZygotrixClaudeService:
                         "tools_used": tools_used,
                         "tool_iterations": iteration + 1,
                     }
+
+                    # Add breeding widget data if present
+                    if breeding_widget_data:
+                        metadata["widget_type"] = "breeding_lab"
+                        metadata["breeding_data"] = {
+                            "parent1": breeding_widget_data.get("parent1"),
+                            "parent2": breeding_widget_data.get("parent2"),
+                            "traits": breeding_widget_data.get("traits"),
+                            "results": breeding_widget_data.get("results"),
+                        }
+                        logger.info(f"Added breeding widget data to metadata: {metadata['widget_type']}")
+                        logger.info(f"Breeding data keys: {list(metadata['breeding_data'].keys())}")
+                    else:
+                        logger.info("No breeding widget data found in this response")
 
                     if tools_used:
                         logger.info(f"Response completed with {len(tools_used)} tool(s) used: {[t['name'] for t in tools_used]}")

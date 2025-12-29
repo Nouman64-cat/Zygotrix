@@ -181,6 +181,8 @@ class ZygotrixChatService:
             output_tokens=metadata.get("output_tokens", 0),
             total_tokens=metadata.get("total_tokens", 0),
             model=model,
+            widget_type=metadata.get("widget_type"),
+            breeding_data=metadata.get("breeding_data"),
         )
 
         # Create as a new version/sibling
@@ -573,6 +575,8 @@ Question: {user_message.content}"""
                             output_tokens=metadata.get("output_tokens", 0) if metadata else 0,
                             total_tokens=metadata.get("total_tokens", 0) if metadata else 0,
                             model=model,
+                            widget_type=metadata.get("widget_type") if metadata else None,
+                            breeding_data=metadata.get("breeding_data") if metadata else None,
                         )
                         assistant_message = MessageService.create_message(
                             conversation_id=conversation.id,
@@ -639,7 +643,14 @@ Question: {user_message.content}"""
             output_tokens=metadata.get("output_tokens", 0),
             total_tokens=metadata.get("total_tokens", 0),
             model=model,
+            widget_type=metadata.get("widget_type"),
+            breeding_data=metadata.get("breeding_data"),
         )
+
+        # DEBUG: Log metadata creation
+        if msg_metadata.widget_type:
+            logger.info(f"Created MessageMetadata with widget_type: {msg_metadata.widget_type}")
+            logger.info(f"Breeding data present: {msg_metadata.breeding_data is not None}")
 
         assistant_message = MessageService.create_message(
             conversation_id=conversation.id,

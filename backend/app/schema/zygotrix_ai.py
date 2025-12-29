@@ -84,6 +84,10 @@ class MessageMetadata(BaseModel):
     finish_reason: Optional[str] = None
     cached: bool = False
 
+    # Breeding lab widget data
+    widget_type: Optional[str] = None
+    breeding_data: Optional[dict] = None
+
 
 class Message(BaseModel):
     """A single message in a conversation."""

@@ -7,6 +7,7 @@ import { useTypingEffect } from '../../hooks';
 import { ThinkingLoader } from '../common/ThinkingLoader';
 import { BreedingLabWidget } from '../breeding';
 import { DnaRnaWidget } from '../dna';
+import { GwasWidget } from '../gwas';
 import type { Message } from '../../types';
 import Logo from '../../../public/zygotrix-ai.png';
 
@@ -155,6 +156,9 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   // Check if message has DNA/RNA widget data
   const hasDnaRnaWidget = message.metadata?.widget_type === 'dna_rna_visualizer' && message.metadata?.dna_rna_data;
 
+  // Check if message has GWAS widget data
+  const hasGwasWidget = message.metadata?.widget_type === 'gwas_results' && message.metadata?.gwas_data;
+
   // Render content - use markdown for AI messages, plain text for user
   const renderContent = () => {
     if (showLoader) {
@@ -277,6 +281,11 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
             operation={message.metadata.dna_rna_data.operation}
             metadata={message.metadata.dna_rna_data.metadata}
           />
+        )}
+
+        {/* Render GWAS widget if present */}
+        {hasGwasWidget && message.metadata?.gwas_data && (
+          <GwasWidget gwasData={message.metadata.gwas_data} />
         )}
       </>
     );

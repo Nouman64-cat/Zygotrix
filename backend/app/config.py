@@ -122,6 +122,12 @@ class Settings:
     )
     # Threshold for using parallel generation (in base pairs)
     parallel_dna_threshold: int = _get_int("PARALLEL_DNA_THRESHOLD", 1_000_000)  # 1M bp
+    # C++ GWAS CLI path
+    _default_gwas_cli = "zyg_gwas_cli.exe" if os.name == "nt" else "zyg_gwas_cli"
+    cpp_gwas_cli_path: str = os.getenv(
+        "CPP_GWAS_CLI_PATH",
+        os.path.join("..", "zygotrix_engine_cpp", "build", "Release", _default_gwas_cli),
+    )
     # Twilio WhatsApp notification settings
     twilio_account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")
     twilio_auth_token: str = os.getenv("TWILIO_AUTH_TOKEN", "")

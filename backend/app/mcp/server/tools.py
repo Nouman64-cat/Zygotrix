@@ -28,6 +28,12 @@ from ...chatbot_tools import (
     translate_rna_to_protein,
     # Breeding simulation tools
     create_breeding_simulation,
+    # GWAS tools
+    list_gwas_datasets,
+    get_gwas_job_status,
+    run_gwas_analysis,
+    get_gwas_results,
+    list_gwas_jobs,
 )
 
 logger = logging.getLogger(__name__)
@@ -282,6 +288,145 @@ mcp_tools: List[Dict[str, Any]] = [
             ),
         ],
         "handler": create_breeding_simulation,
+    },
+    # =========================================================================
+    # GWAS ANALYSIS TOOLS
+    # =========================================================================
+    {
+        "name": "list_gwas_datasets",
+        "description": "List user's GWAS datasets with status and metadata. Use to show available datasets for analysis.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="user_id",
+                type="string",
+                description="User identifier (required for authorization)",
+                required=True,
+            ),
+        ],
+        "handler": list_gwas_datasets,
+    },
+    {
+        "name": "run_gwas_analysis",
+        "description": "PRIMARY GWAS TOOL. Run GWAS analysis and return interactive Manhattan/Q-Q plot visualization. Use when user asks to: run GWAS, analyze genetic associations, find SNPs associated with a trait, perform linear/logistic regression, or generate Manhattan plot. Returns widget with visualization.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="dataset_id",
+                type="string",
+                description="Dataset ID to analyze (use list_gwas_datasets to find)",
+                required=True,
+            ),
+            ToolParameter(
+                name="user_id",
+                type="string",
+                description="User identifier (required for authorization)",
+                required=True,
+            ),
+            ToolParameter(
+                name="phenotype_column",
+                type="string",
+                description="Name of phenotype column to analyze (e.g., 'height', 'bmi')",
+                required=True,
+            ),
+            ToolParameter(
+                name="analysis_type",
+                type="string",
+                description="Type of analysis: 'linear' (quantitative traits), 'logistic' (binary traits), 'chi_square' (fast association)",
+                required=False,
+                default="linear",
+            ),
+            ToolParameter(
+                name="covariates",
+                type="array",
+                description="List of covariate column names (e.g., ['age', 'sex'])",
+                required=False,
+                default=None,
+            ),
+            ToolParameter(
+                name="maf_threshold",
+                type="number",
+                description="Minimum minor allele frequency (default: 0.01)",
+                required=False,
+                default=0.01,
+            ),
+            ToolParameter(
+                name="num_threads",
+                type="integer",
+                description="Number of CPU threads for parallel processing (default: 4)",
+                required=False,
+                default=4,
+            ),
+        ],
+        "handler": run_gwas_analysis,
+    },
+    {
+        "name": "get_gwas_results",
+        "description": "Get results from a completed GWAS analysis job. Use to view previous results or show Manhattan plot for completed job.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="job_id",
+                type="string",
+                description="Job identifier (from run_gwas_analysis or list_gwas_jobs)",
+                required=True,
+            ),
+            ToolParameter(
+                name="user_id",
+                type="string",
+                description="User identifier (required for authorization)",
+                required=True,
+            ),
+        ],
+        "handler": get_gwas_results,
+    },
+    {
+        "name": "get_gwas_job_status",
+        "description": "Get current status of a GWAS analysis job (queued, processing, completed, failed). Use to check if job finished.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="job_id",
+                type="string",
+                description="Job identifier",
+                required=True,
+            ),
+            ToolParameter(
+                name="user_id",
+                type="string",
+                description="User identifier (required for authorization)",
+                required=True,
+            ),
+        ],
+        "handler": get_gwas_job_status,
+    },
+    {
+        "name": "list_gwas_jobs",
+        "description": "List user's GWAS analysis jobs with status and metadata. Use to show job history or find job IDs.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="user_id",
+                type="string",
+                description="User identifier (required for authorization)",
+                required=True,
+            ),
+            ToolParameter(
+                name="status",
+                type="string",
+                description="Optional status filter: 'queued', 'processing', 'completed', 'failed'",
+                required=False,
+                default=None,
+            ),
+            ToolParameter(
+                name="limit",
+                type="integer",
+                description="Maximum number of jobs to return (default: 10)",
+                required=False,
+                default=10,
+            ),
+        ],
+        "handler": list_gwas_jobs,
     },
 ]
 

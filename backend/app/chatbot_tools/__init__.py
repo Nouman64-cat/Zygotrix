@@ -17,6 +17,14 @@ from .tools import (
     create_breeding_simulation,
 )
 
+from .gwas_tools import (
+    list_gwas_datasets,
+    get_gwas_job_status,
+    run_gwas_analysis,
+    get_gwas_results,
+    list_gwas_jobs,
+)
+
 __all__ = [
     "get_traits_count",
     "search_traits",
@@ -32,5 +40,11 @@ __all__ = [
     "translate_rna_to_protein",
     # Breeding simulation tools
     "create_breeding_simulation",
+    # GWAS tools
+    "list_gwas_datasets",
+    "get_gwas_job_status",
+    "run_gwas_analysis",
+    "get_gwas_results",
+    "list_gwas_jobs",
 ]
 

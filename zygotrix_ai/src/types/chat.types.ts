@@ -32,7 +32,7 @@ export interface MessageMetadata {
   latency_ms?: number;
   cached?: boolean;
   // Widget data for interactive visualizations
-  widget_type?: 'breeding_lab' | 'dna_rna_visualizer';
+  widget_type?: 'breeding_lab' | 'dna_rna_visualizer' | 'gwas_results';
   breeding_data?: {
     parent1?: any;
     parent2?: any;
@@ -47,6 +47,49 @@ export interface MessageMetadata {
       length?: number;
       gc_content?: number;
       base_counts?: Record<string, number>;
+    };
+  };
+  gwas_data?: {
+    job_id: string;
+    dataset_id: string;
+    analysis_type: string;
+    phenotype: string;
+    status: string;
+    manhattan_data?: {
+      chromosomes: Array<{
+        chr: number;
+        positions: number[];
+        p_values: number[];
+        neg_log_p: number[];
+        rsids: string[];
+        betas: number[];
+      }>;
+      genome_wide_sig: number;
+      suggestive_sig: number;
+    };
+    qq_data?: {
+      expected: number[];
+      observed: number[];
+      lambda_gc: number;
+      n_snps: number;
+    };
+    top_associations?: Array<{
+      rsid: string;
+      chromosome: number;
+      position: number;
+      ref_allele: string;
+      alt_allele: string;
+      p_value: number;
+      beta?: number;
+      se?: number;
+      maf: number;
+      n_samples: number;
+    }>;
+    summary?: {
+      total_snps: number;
+      snps_filtered: number;
+      execution_time_seconds?: number;
+      lambda_gc: number;
     };
   };
 }

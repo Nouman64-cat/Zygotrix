@@ -189,6 +189,7 @@ class GwasAnalysisRequest(BaseModel):
     covariates: List[str] = Field(default_factory=list, description="Covariate column names")
     maf_threshold: float = Field(default=0.01, ge=0.001, le=0.5, description="Minimum MAF")
     significance_threshold: float = Field(default=5e-8, ge=0, le=1, description="P-value threshold")
+    num_threads: int = Field(default=4, ge=1, le=32, description="Number of CPU threads for analysis")
 
     @field_validator("phenotype_column")
     @classmethod

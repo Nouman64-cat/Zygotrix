@@ -4,7 +4,7 @@ GWAS Dataset Service
 High-level service for GWAS dataset management.
 
 Orchestrates:
-- File upload and storage
+- File upload and storage (DigitalOcean Spaces or local fallback)
 - File parsing (VCF, PLINK, CSV)
 - Data validation
 - Database persistence
@@ -20,7 +20,7 @@ from ..repositories import (
 )
 from ..schema.gwas import GwasDatasetStatus, GwasFileFormat
 from .gwas_file_parser import VcfParser, PlinkParser, PhenotypeParser, CustomJsonParser
-from .gwas_storage import GwasStorageManager
+from .cloud_storage import get_cloud_storage_manager
 
 logger = logging.getLogger(__name__)
 
@@ -29,7 +29,7 @@ class GwasDatasetService:
     """Service for managing GWAS datasets."""
 
     def __init__(self):
-        self.storage = GwasStorageManager()
+        self.storage = get_cloud_storage_manager()
         self.dataset_repo = get_gwas_dataset_repository()
 
     async def upload_and_parse_dataset(
@@ -111,7 +111,12 @@ class GwasDatasetService:
             )
 
             # 5. Parse file based on format
-            parsed_data = self._parse_dataset_file(file_path, file_format)
+            # For cloud storage, we parse directly from the file content
+            parsed_data = self._parse_dataset_content(
+                file_content=file_content,
+                filename=file.filename,
+                file_format=file_format,
+            )
 
             # 6. Save processed data
             self.storage.save_processed_data(
@@ -169,16 +174,21 @@ class GwasDatasetService:
                 detail=f"Dataset upload/parsing failed: {str(e)}"
             )
 
-    def _parse_dataset_file(
+    def _parse_dataset_content(
         self,
-        file_path: Path,
+        file_content: bytes,
+        filename: str,
         file_format: GwasFileFormat,
     ) -> Dict[str, Any]:
         """
-        Parse dataset file based on format.
+        Parse dataset from file content (bytes).
+        
+        Uses a temporary file for compatibility with existing parsers.
+        This approach works for both local and cloud storage.
 
         Args:
-            file_path: Path to uploaded file
+            file_content: File content as bytes
+            filename: Original filename
             file_format: File format enum
 
         Returns:
@@ -187,24 +197,41 @@ class GwasDatasetService:
         Raises:
             ValueError: If format is unsupported
         """
-        logger.info(f"Parsing {file_format.value} file: {file_path}")
+        import tempfile
+        import os
+        
+        logger.info(f"Parsing {file_format.value} file: {filename}")
 
-        if file_format == GwasFileFormat.VCF:
-            parser = VcfParser(file_path)
-            return parser.parse()
+        # Create a temporary file to parse
+        # This is needed because existing parsers expect file paths
+        suffix = Path(filename).suffix
+        with tempfile.NamedTemporaryFile(mode='wb', suffix=suffix, delete=False) as tmp_file:
+            tmp_file.write(file_content)
+            tmp_path = Path(tmp_file.name)
+        
+        try:
+            if file_format == GwasFileFormat.VCF:
+                parser = VcfParser(tmp_path)
+                return parser.parse()
 
-        elif file_format == GwasFileFormat.PLINK:
-            # For PLINK, file_path should be .bed file
-            parser = PlinkParser(file_path)
-            return parser.parse()
+            elif file_format == GwasFileFormat.PLINK:
+                # For PLINK, file_path should be .bed file
+                parser = PlinkParser(tmp_path)
+                return parser.parse()
 
-        elif file_format == GwasFileFormat.CUSTOM:
-            # Custom JSON format
-            parser = CustomJsonParser(file_path)
-            return parser.parse()
+            elif file_format == GwasFileFormat.CUSTOM:
+                # Custom JSON format
+                parser = CustomJsonParser(tmp_path)
+                return parser.parse()
 
-        else:
-            raise ValueError(f"Unsupported file format: {file_format.value}")
+            else:
+                raise ValueError(f"Unsupported file format: {file_format.value}")
+        finally:
+            # Clean up temporary file
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
 
     def delete_dataset(self, user_id: str, dataset_id: str) -> bool:
         """

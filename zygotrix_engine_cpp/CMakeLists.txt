@@ -9,6 +9,9 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 # Find threading library (required for parallel generation)
 find_package(Threads REQUIRED)
 
+# Find OpenMP (for GWAS parallelization)
+find_package(OpenMP)
+
 add_library(zygotrix_engine STATIC
     src/Engine.cpp
     src/GenotypeUtils.cpp
@@ -24,6 +27,10 @@ add_library(zygotrix_engine STATIC
     src/ParallelDnaGenerator.cpp
     src/ThreadPool.cpp
     src/ParallelOrfFinder.cpp
+    # GWAS sources
+    src/gwas/LinearRegression.cpp
+    src/gwas/ChiSquareTest.cpp
+    src/gwas/GwasAnalyzer.cpp
     third_party/json11/json11.cpp
 )
 
@@ -34,10 +41,17 @@ target_include_directories(zygotrix_engine
     PRIVATE
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party
         ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
+        ${CMAKE_CURRENT_SOURCE_DIR}/third_party/eigen
 )
 
 # Link threading library to the engine
 target_link_libraries(zygotrix_engine PUBLIC Threads::Threads)
+
+# Link OpenMP if available
+if(OpenMP_CXX_FOUND)
+    target_link_libraries(zygotrix_engine PUBLIC OpenMP::OpenMP_CXX)
+    target_compile_definitions(zygotrix_engine PRIVATE _OPENMP)
+endif()
 
 add_executable(zyg_demo examples/demo.cpp)
 target_link_libraries(zyg_demo PRIVATE zygotrix_engine)
@@ -89,6 +103,18 @@ target_include_directories(zyg_protein_cli PRIVATE
     ${CMAKE_CURRENT_SOURCE_DIR}/src
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party
     ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
+)
+
+# GWAS CLI (statistical analysis engine)
+add_executable(zyg_gwas_cli
+    src/GwasCli.cpp
+)
+target_link_libraries(zyg_gwas_cli PRIVATE zygotrix_engine)
+target_include_directories(zyg_gwas_cli PRIVATE
+    ${CMAKE_CURRENT_SOURCE_DIR}/include
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/json11
+    ${CMAKE_CURRENT_SOURCE_DIR}/third_party/eigen
 )
 
 enable_testing()

@@ -61,6 +61,11 @@ class CollectionName(Enum):
     CONVERSATIONS = "conversations"
     CHAT_HISTORY = "chat_history"
 
+    # GWAS
+    GWAS_DATASETS = "gwas_datasets"
+    GWAS_JOBS = "gwas_jobs"
+    GWAS_RESULTS = "gwas_results"
+
 
 class IndexConfig:
     """Index configuration for MongoDB collections."""
@@ -624,6 +629,79 @@ class IndexConfig:
                     "keys": "timestamp",
                     "expireAfterSeconds": 2592000,  # 30 days
                     "name": "timestamp_ttl_idx"
+                },
+            ],
+
+            # ===== GWAS =====
+            CollectionName.GWAS_DATASETS: [
+                {
+                    "keys": "user_id",
+                    "name": "user_id_idx"
+                },
+                {
+                    "keys": "created_at",
+                    "name": "created_at_idx"
+                },
+                {
+                    "keys": "status",
+                    "name": "status_idx"
+                },
+                {
+                    "keys": [("user_id", 1), ("created_at", -1)],
+                    "name": "user_created_compound_idx"
+                },
+                {
+                    "keys": [("user_id", 1), ("status", 1)],
+                    "name": "user_status_compound_idx"
+                },
+            ],
+            CollectionName.GWAS_JOBS: [
+                {
+                    "keys": "user_id",
+                    "name": "user_id_idx"
+                },
+                {
+                    "keys": "dataset_id",
+                    "name": "dataset_id_idx"
+                },
+                {
+                    "keys": "status",
+                    "name": "status_idx"
+                },
+                {
+                    "keys": "created_at",
+                    "name": "created_at_idx"
+                },
+                {
+                    "keys": [("user_id", 1), ("status", 1)],
+                    "name": "user_status_compound_idx"
+                },
+                {
+                    "keys": [("user_id", 1), ("created_at", -1)],
+                    "name": "user_created_compound_idx"
+                },
+                {
+                    "keys": [("status", 1), ("created_at", -1)],
+                    "name": "status_created_compound_idx"
+                },
+            ],
+            CollectionName.GWAS_RESULTS: [
+                {
+                    "keys": "job_id",
+                    "name": "job_id_idx",
+                    "unique": True
+                },
+                {
+                    "keys": "user_id",
+                    "name": "user_id_idx"
+                },
+                {
+                    "keys": "dataset_id",
+                    "name": "dataset_id_idx"
+                },
+                {
+                    "keys": "created_at",
+                    "name": "created_at_idx"
                 },
             ],
         }

@@ -32,7 +32,7 @@ export interface MessageMetadata {
   latency_ms?: number;
   cached?: boolean;
   // Widget data for interactive visualizations
-  widget_type?: 'breeding_lab' | 'dna_rna_visualizer' | 'gwas_results';
+  widget_type?: "breeding_lab" | "dna_rna_visualizer" | "gwas_results";
   breeding_data?: {
     parent1?: any;
     parent2?: any;
@@ -42,7 +42,7 @@ export interface MessageMetadata {
   dna_rna_data?: {
     dna_sequence?: string;
     mrna_sequence?: string;
-    operation?: 'generate_dna' | 'transcribe_to_mrna' | 'both';
+    operation?: "generate_dna" | "transcribe_to_mrna" | "both";
     metadata?: {
       length?: number;
       gc_content?: number;
@@ -60,18 +60,13 @@ export interface MessageMetadata {
         chr: number;
         positions: number[];
         p_values: number[];
-        neg_log_p: number[];
-        rsids: string[];
-        betas: number[];
+        labels: string[];
       }>;
-      genome_wide_sig: number;
-      suggestive_sig: number;
     };
     qq_data?: {
       expected: number[];
       observed: number[];
-      lambda_gc: number;
-      n_snps: number;
+      genomic_inflation_lambda: number;
     };
     top_associations?: Array<{
       rsid: string;
@@ -87,9 +82,10 @@ export interface MessageMetadata {
     }>;
     summary?: {
       total_snps: number;
-      snps_filtered: number;
+      significant_snps_bonferroni: number;
+      significant_snps_fdr: number;
       execution_time_seconds?: number;
-      lambda_gc: number;
+      genomic_inflation_lambda: number;
     };
   };
 }

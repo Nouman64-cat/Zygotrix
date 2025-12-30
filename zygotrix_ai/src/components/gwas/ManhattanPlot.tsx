@@ -4,18 +4,18 @@ interface ChromosomeData {
   chr: number;
   positions: number[];
   p_values: number[];
-  neg_log_p: number[];
-  rsids: string[];
-  betas: number[];
+  labels: string[];
 }
 
 interface ManhattanPlotProps {
   data: {
     chromosomes: ChromosomeData[];
-    genome_wide_sig: number;
-    suggestive_sig: number;
   };
 }
+
+// Standard GWAS significance thresholds
+const GENOME_WIDE_SIG = 5e-8;
+const SUGGESTIVE_SIG = 1e-5;
 
 export const ManhattanPlot: React.FC<ManhattanPlotProps> = ({ data }) => {
   const [hoveredPoint, setHoveredPoint] = useState<{
@@ -36,12 +36,18 @@ export const ManhattanPlot: React.FC<ManhattanPlotProps> = ({ data }) => {
   const plotHeight = height - margin.top - margin.bottom;
 
   // Calculate cumulative positions for chromosome layout
-  const { chromosomeRanges, maxNegLogP, totalWidth } = useMemo(() => {
+  const { chromosomeRanges, maxNegLogP, totalWidth, processedData } = useMemo(() => {
     let cumulativePosition = 0;
     const ranges: Array<{ chr: number; start: number; end: number; midpoint: number }> = [];
     let maxP = 0;
 
-    data.chromosomes.forEach(chrData => {
+    // Process data with calculated -log10(p) values
+    const processed = data.chromosomes.map(chrData => {
+      const neg_log_p = chrData.p_values.map(p => p > 0 ? -Math.log10(p) : 50);
+      return { ...chrData, neg_log_p };
+    });
+
+    processed.forEach(chrData => {
       const chrStart = cumulativePosition;
       const chrWidth = chrData.positions.length > 0
         ? Math.max(...chrData.positions) - Math.min(...chrData.positions)
@@ -60,18 +66,19 @@ export const ManhattanPlot: React.FC<ManhattanPlotProps> = ({ data }) => {
 
     return {
       chromosomeRanges: ranges,
-      maxNegLogP: Math.ceil(maxP),
-      totalWidth: cumulativePosition
+      maxNegLogP: Math.ceil(maxP) || 10,
+      totalWidth: cumulativePosition || 1,
+      processedData: processed
     };
   }, [data.chromosomes]);
 
   // Significance thresholds
-  const genomeWideSigNegLog = -Math.log10(data.genome_wide_sig);
-  const suggestiveSigNegLog = -Math.log10(data.suggestive_sig);
+  const genomeWideSigNegLog = -Math.log10(GENOME_WIDE_SIG);
+  const suggestiveSigNegLog = -Math.log10(SUGGESTIVE_SIG);
 
   // Colors for alternating chromosomes
   const getChromosomeColor = (chr: number, pValue: number) => {
-    const isSignificant = pValue < data.genome_wide_sig;
+    const isSignificant = pValue < GENOME_WIDE_SIG;
     if (isSignificant) {
       return '#DC2626'; // red-600
     }
@@ -142,12 +149,13 @@ export const ManhattanPlot: React.FC<ManhattanPlotProps> = ({ data }) => {
           />
 
           {/* Data points */}
-          {data.chromosomes.map((chrData) => {
+          {processedData.map((chrData) => {
             const chrRange = chromosomeRanges.find(r => r.chr === chrData.chr);
             if (!chrRange) return null;
 
             return chrData.positions.map((pos, idx) => {
-              const relativePos = pos - Math.min(...chrData.positions);
+              const minPos = Math.min(...chrData.positions);
+              const relativePos = pos - minPos;
               const x = margin.left + ((chrRange.start + relativePos) / totalWidth) * plotWidth;
               const y = margin.top + plotHeight - (chrData.neg_log_p[idx] / maxNegLogP) * plotHeight;
               const color = getChromosomeColor(chrData.chr, chrData.p_values[idx]);
@@ -162,11 +170,11 @@ export const ManhattanPlot: React.FC<ManhattanPlotProps> = ({ data }) => {
                   opacity="0.7"
                   className="hover:opacity-100 cursor-pointer transition-opacity"
                   onMouseEnter={() => setHoveredPoint({
-                    rsid: chrData.rsids[idx],
+                    rsid: chrData.labels[idx] || `SNP-${idx}`,
                     chr: chrData.chr,
                     pos: pos,
                     pValue: chrData.p_values[idx],
-                    beta: chrData.betas[idx],
+                    beta: 0,
                     x,
                     y
                   })}
@@ -304,8 +312,8 @@ export const ManhattanPlot: React.FC<ManhattanPlotProps> = ({ data }) => {
 
       {/* Summary stats */}
       <div className="mt-3 text-sm text-gray-600 dark:text-gray-400 text-center">
-        Genome-wide significance: P &lt; {data.genome_wide_sig.toExponential(0)} •
-        Suggestive: P &lt; {data.suggestive_sig.toExponential(0)}
+        Genome-wide significance: P &lt; {GENOME_WIDE_SIG.toExponential(0)} •
+        Suggestive: P &lt; {SUGGESTIVE_SIG.toExponential(0)}
       </div>
     </div>
   );

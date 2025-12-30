@@ -51,7 +51,7 @@ export const GwasWidget: React.FC<GwasWidgetProps> = ({ gwasData }) => {
               <div className="text-sm text-gray-600 dark:text-gray-400">
                 <div>{gwasData.summary.total_snps.toLocaleString()} SNPs tested</div>
                 <div className="text-xs mt-0.5">
-                  λ<sub>GC</sub> = {gwasData.summary.lambda_gc.toFixed(3)}
+                  λ<sub>GC</sub> = {gwasData.summary.genomic_inflation_lambda.toFixed(3)}
                 </div>
               </div>
             </div>

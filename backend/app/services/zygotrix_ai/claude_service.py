@@ -258,6 +258,7 @@ class ZygotrixClaudeService:
         tools_used = []
         breeding_widget_data = None  # Track breeding simulation data if tool is used
         dna_rna_widget_data = None  # Track DNA/RNA visualization data if tool is used
+        gwas_widget_data = None  # Track GWAS analysis data if tool is used
 
         # Log tool availability for debugging
         if tools:
@@ -413,6 +414,19 @@ class ZygotrixClaudeService:
                                     except Exception as e:
                                         logger.warning(f"Failed to extract DNA/RNA data: {e}")
 
+                                # Extract GWAS analysis data
+                                elif tool_name in ["run_gwas_analysis", "get_gwas_results"] and i < len(tool_results):
+                                    try:
+                                        # Parse the tool result content (it's JSON string)
+                                        result_content = tool_results[i].get("content", "{}")
+                                        if isinstance(result_content, str):
+                                            result_data = json.loads(result_content)
+                                            if result_data.get("widget_type") == "gwas_results":
+                                                gwas_widget_data = result_data
+                                                logger.info(f"Extracted GWAS widget data from {tool_name}")
+                                    except Exception as e:
+                                        logger.warning(f"Failed to extract GWAS data: {e}")
+
                             # Add assistant's response with tool_use to messages
                             working_messages.append({
                                 "role": "assistant",
@@ -461,6 +475,11 @@ class ZygotrixClaudeService:
                             "operation": dna_rna_widget_data.get("dna_rna_data", {}).get("operation"),
                             "metadata": dna_rna_widget_data.get("dna_rna_data", {}).get("metadata"),
                         }
+
+                    # Add GWAS widget data if present
+                    if gwas_widget_data:
+                        metadata["widget_type"] = "gwas_results"
+                        metadata["gwas_data"] = gwas_widget_data.get("gwas_data", {})
 
                     if tools_used:
                         logger.info(f"Response completed with {len(tools_used)} tool(s) used: {[t['name'] for t in tools_used]}")

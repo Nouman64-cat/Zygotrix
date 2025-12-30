@@ -4,8 +4,7 @@ interface QQPlotProps {
   data: {
     expected: number[];
     observed: number[];
-    lambda_gc: number;
-    n_snps: number;
+    genomic_inflation_lambda: number;
   };
 }
 
@@ -36,7 +35,7 @@ export const QQPlot: React.FC<QQPlotProps> = ({ data }) => {
     return { text: 'Inflated', color: 'text-red-600 dark:text-red-400' };
   };
 
-  const inflation = getInflationInterpretation(data.lambda_gc);
+  const inflation = getInflationInterpretation(data.genomic_inflation_lambda);
 
   return (
     <div className="flex flex-col items-center">
@@ -203,7 +202,7 @@ export const QQPlot: React.FC<QQPlotProps> = ({ data }) => {
             Genomic Inflation (λ<sub>GC</sub>)
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {data.lambda_gc.toFixed(3)}
+            {data.genomic_inflation_lambda.toFixed(3)}
           </div>
           <div className={`text-xs font-semibold mt-1 ${inflation.color}`}>
             {inflation.text}
@@ -215,7 +214,7 @@ export const QQPlot: React.FC<QQPlotProps> = ({ data }) => {
             SNPs Analyzed
           </div>
           <div className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-            {data.n_snps.toLocaleString()}
+            {data.observed.length.toLocaleString()}
           </div>
         </div>
       </div>

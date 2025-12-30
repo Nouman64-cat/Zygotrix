@@ -83,20 +83,38 @@ class ZygotrixChatService:
         # Fetch user preferences for response customization
         user_preferences = self._get_user_preferences(user_id)
 
-        # Save user message
+        # Handle file attachments FIRST (for GWAS datasets)
+        # This uploads files to cloud storage before we save the message
+        upload_results = await self._handle_file_attachments(
+            chat_request.attachments,
+            chat_request.message,
+            user_id
+        )
+
+        # Strip file content from attachments before storing in MongoDB
+        # MongoDB has a 16MB document limit, so we only store metadata
+        safe_attachments = []
+        if chat_request.attachments:
+            for a in chat_request.attachments:
+                # Create a copy without the large content field
+                safe_attachment = {
+                    "id": a.id,
+                    "type": a.type,
+                    "name": a.name,
+                    "mime_type": a.mime_type,
+                    "size_bytes": a.size_bytes,
+                    # Don't include 'content' - it could be 100s of MBs!
+                    # The file has already been uploaded to cloud storage
+                }
+                safe_attachments.append(safe_attachment)
+
+        # Save user message (with metadata only, no file content)
         user_message = MessageService.create_message(
             conversation_id=conversation.id,
             role=MessageRole.USER,
             content=chat_request.message,
             parent_message_id=chat_request.parent_message_id,
-            attachments=[a.model_dump() for a in chat_request.attachments] if chat_request.attachments else []
-        )
-
-        # Handle file attachments automatically (for GWAS datasets)
-        upload_results = await self._handle_file_attachments(
-            chat_request.attachments,
-            chat_request.message,
-            user_id
+            attachments=safe_attachments
         )
 
         # Analyze message for preference signals (asynchronous, non-blocking)

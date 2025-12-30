@@ -153,7 +153,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               ref={fileInputRef}
               type="file"
               multiple
-              accept=".vcf,.vcf.gz,.bed,.bim,.fam,.csv,.tsv,.json"
+              accept=".vcf,.vcf.gz,.gz,.bed,.bim,.fam,.csv,.tsv,.json,application/gzip,application/x-gzip"
               onChange={handleFileSelect}
               className="hidden"
               disabled={disabled}
@@ -164,7 +164,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               disabled={disabled}
               variant="ghost"
               size="md"
-              tooltip="Attach file (.vcf, .bed, .csv, .json)"
+              tooltip="Attach genomic files (.vcf, .vcf.gz, .bed, .csv, .json)"
             />
           </div>
 

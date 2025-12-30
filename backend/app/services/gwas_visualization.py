@@ -40,30 +40,32 @@ def generate_manhattan_data(associations: List[SnpAssociation]) -> Dict[str, Any
     """
     # Group by chromosome
     chr_data: Dict[int, Dict[str, List]] = defaultdict(
-        lambda: {"positions": [], "p_values": [], "neg_log_p": [], "rsids": [], "betas": []}
+        lambda: {"positions": [], "p_values": [], "labels": []}
     )
 
     for assoc in associations:
         chr_num = assoc.chromosome
         chr_data[chr_num]["positions"].append(assoc.position)
         chr_data[chr_num]["p_values"].append(assoc.p_value)
-        chr_data[chr_num]["neg_log_p"].append(-math.log10(assoc.p_value) if assoc.p_value > 0 else 50.0)
-        chr_data[chr_num]["rsids"].append(assoc.rsid)
-        chr_data[chr_num]["betas"].append(assoc.beta if assoc.beta is not None else 0.0)
+        # Only add label for significant SNPs (p < 1e-5)
+        if assoc.p_value < 1e-5:
+            chr_data[chr_num]["labels"].append(assoc.rsid)
+        else:
+            chr_data[chr_num]["labels"].append("")
 
-    # Convert to sorted list
+    # Convert to sorted list matching ChromosomeData schema
     chromosomes = [
         {
             "chr": chr_num,
-            **data
+            "positions": data["positions"],
+            "p_values": data["p_values"],
+            "labels": data["labels"],
         }
         for chr_num, data in sorted(chr_data.items())
     ]
 
     return {
         "chromosomes": chromosomes,
-        "genome_wide_sig": 5e-8,  # Standard GWAS threshold
-        "suggestive_sig": 1e-5,
     }
 
 
@@ -94,8 +96,7 @@ def generate_qq_data(associations: List[SnpAssociation]) -> Dict[str, Any]:
         return {
             "expected": [],
             "observed": [],
-            "lambda_gc": 1.0,
-            "n_snps": 0,
+            "genomic_inflation_lambda": 1.0,
         }
 
     # Sort p-values
@@ -117,8 +118,7 @@ def generate_qq_data(associations: List[SnpAssociation]) -> Dict[str, Any]:
     return {
         "expected": expected_neg_log,
         "observed": observed_neg_log,
-        "lambda_gc": round(lambda_gc, 3),
-        "n_snps": n_snps,
+        "genomic_inflation_lambda": round(lambda_gc, 3),
     }
 
 
@@ -254,7 +254,7 @@ def get_top_associations(
     associations: List[SnpAssociation],
     limit: int = 100,
     p_threshold: float = 1e-5,
-) -> List[Dict[str, Any]]:
+) -> List[SnpAssociation]:
     """
     Get top significant associations.
 
@@ -264,7 +264,7 @@ def get_top_associations(
         p_threshold: P-value threshold for significance
 
     Returns:
-        List of top association dicts sorted by p-value
+        List of top SnpAssociation objects sorted by p-value
     """
     # Filter by p-value threshold
     significant = [assoc for assoc in associations if assoc.p_value < p_threshold]
@@ -272,26 +272,8 @@ def get_top_associations(
     # Sort by p-value (ascending)
     significant_sorted = sorted(significant, key=lambda x: x.p_value)
 
-    # Take top N
-    top_assocs = significant_sorted[:limit]
-
-    # Convert to dict format
-    return [
-        {
-            "rsid": assoc.rsid,
-            "chromosome": assoc.chromosome,
-            "position": assoc.position,
-            "ref_allele": assoc.ref_allele,
-            "alt_allele": assoc.alt_allele,
-            "p_value": assoc.p_value,
-            "beta": assoc.beta,
-            "se": assoc.se,
-            "maf": assoc.maf,
-            "n_samples": assoc.n_samples,
-            "odds_ratio": assoc.odds_ratio,
-        }
-        for assoc in top_assocs
-    ]
+    # Take top N and return as SnpAssociation objects
+    return significant_sorted[:limit]
 
 
 def generate_summary_statistics(associations: List[SnpAssociation]) -> Dict[str, Any]:
@@ -302,40 +284,42 @@ def generate_summary_statistics(associations: List[SnpAssociation]) -> Dict[str,
         associations: List of SNP association results
 
     Returns:
-        Dict with summary stats:
+        Dict matching GwasSummaryStats schema:
             {
-                "total_snps": int,
-                "genome_wide_significant": int (p < 5e-8),
-                "suggestive_significant": int (p < 1e-5),
-                "mean_maf": float,
-                "lambda_gc": float,
-                "chromosomes_tested": List[int],
+                "total_snps_tested": int,
+                "significant_snps_bonferroni": int (p < 5e-8),
+                "significant_snps_fdr": int (p < 1e-5, approximate FDR),
+                "genomic_inflation_lambda": float,
+                "mean_chi_square": float (optional),
+                "median_p_value": float (optional),
             }
     """
     if not associations:
         return {
-            "total_snps": 0,
-            "genome_wide_significant": 0,
-            "suggestive_significant": 0,
-            "mean_maf": 0.0,
-            "lambda_gc": 1.0,
-            "chromosomes_tested": [],
+            "total_snps_tested": 1,  # Schema requires gt=0
+            "significant_snps_bonferroni": 0,
+            "significant_snps_fdr": 0,
+            "genomic_inflation_lambda": 1.0,
+            "mean_chi_square": None,
+            "median_p_value": None,
         }
 
     p_values = [assoc.p_value for assoc in associations if assoc.p_value > 0]
     lambda_gc = calculate_genomic_inflation(sorted(p_values))
 
-    genome_wide_sig = sum(1 for assoc in associations if assoc.p_value < 5e-8)
-    suggestive_sig = sum(1 for assoc in associations if assoc.p_value < 1e-5)
+    # Bonferroni significant (genome-wide significance, p < 5e-8)
+    bonferroni_sig = sum(1 for assoc in associations if assoc.p_value < 5e-8)
+    # FDR significant (suggestive significance, p < 1e-5 as approximate FDR threshold)
+    fdr_sig = sum(1 for assoc in associations if assoc.p_value < 1e-5)
 
-    mean_maf = sum(assoc.maf for assoc in associations) / len(associations)
-    chromosomes = sorted(set(assoc.chromosome for assoc in associations))
+    # Calculate median p-value
+    median_p = _median(sorted(p_values)) if p_values else None
 
     return {
-        "total_snps": len(associations),
-        "genome_wide_significant": genome_wide_sig,
-        "suggestive_significant": suggestive_sig,
-        "mean_maf": round(mean_maf, 4),
-        "lambda_gc": round(lambda_gc, 3),
-        "chromosomes_tested": chromosomes,
+        "total_snps_tested": len(associations),
+        "significant_snps_bonferroni": bonferroni_sig,
+        "significant_snps_fdr": fdr_sig,
+        "genomic_inflation_lambda": round(lambda_gc, 3),
+        "mean_chi_square": None,  # Optional field
+        "median_p_value": round(median_p, 6) if median_p is not None else None,
     }

@@ -29,6 +29,7 @@ from ...chatbot_tools import (
     # Breeding simulation tools
     create_breeding_simulation,
     # GWAS tools
+    upload_gwas_dataset,
     list_gwas_datasets,
     get_gwas_job_status,
     run_gwas_analysis,
@@ -292,6 +293,63 @@ mcp_tools: List[Dict[str, Any]] = [
     # =========================================================================
     # GWAS ANALYSIS TOOLS
     # =========================================================================
+    {
+        "name": "upload_gwas_dataset",
+        "description": "Upload a GWAS dataset file from chat. Use when user attaches a VCF, PLINK, or CSV file and wants to upload it for analysis.",
+        "category": ToolCategory.GENETICS,
+        "parameters": [
+            ToolParameter(
+                name="user_id",
+                type="string",
+                description="User identifier",
+                required=True,
+            ),
+            ToolParameter(
+                name="file_content",
+                type="string",
+                description="Base64-encoded file content from attachment",
+                required=True,
+            ),
+            ToolParameter(
+                name="filename",
+                type="string",
+                description="Original filename (e.g., 'data.vcf')",
+                required=True,
+            ),
+            ToolParameter(
+                name="name",
+                type="string",
+                description="Dataset name",
+                required=True,
+            ),
+            ToolParameter(
+                name="trait_name",
+                type="string",
+                description="Trait being studied (e.g., 'height')",
+                required=True,
+            ),
+            ToolParameter(
+                name="file_format",
+                type="string",
+                description="File format: 'vcf', 'plink', or 'custom'",
+                required=False,
+            ),
+            ToolParameter(
+                name="description",
+                type="string",
+                description="Optional description",
+                required=False,
+            ),
+            ToolParameter(
+                name="trait_type",
+                type="string",
+                description="'quantitative' or 'binary'",
+                required=False,
+                default="quantitative",
+            ),
+        ],
+        "handler": upload_gwas_dataset,
+    },
     {
         "name": "list_gwas_datasets",
         "description": "List user's GWAS datasets with status and metadata. Use to show available datasets for analysis.",

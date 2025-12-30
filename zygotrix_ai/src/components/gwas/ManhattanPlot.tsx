@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import { cn } from '../../utils';
 
 interface ChromosomeData {
   chr: number;

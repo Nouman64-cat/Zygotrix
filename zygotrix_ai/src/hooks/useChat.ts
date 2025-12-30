@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from "react";
 import { chatService } from "../services";
 import { generateMessageId } from "../utils";
-import type { Message, ChatRequest } from "../types";
+import type { Message, ChatRequest, MessageAttachment } from "../types";
 
 interface UseChatReturn {
   messages: Message[];
@@ -10,7 +10,7 @@ interface UseChatReturn {
   error: string | null;
   conversationId: string | null;
   conversationTitle: string;
-  sendMessage: (content: string) => Promise<void>;
+  sendMessage: (content: string, attachments?: MessageAttachment[]) => Promise<void>;
   clearMessages: () => void;
   setMessages: (messages: Message[]) => void;
   loadConversation: (conversationId: string) => Promise<void>;
@@ -72,14 +72,15 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string) => {
-      if (!content.trim()) return;
+    async (content: string, attachments?: MessageAttachment[]) => {
+      if (!content.trim() && (!attachments || attachments.length === 0)) return;
 
       // Create optimistic user message
       const userMessage: Message = {
         id: generateMessageId(),
         role: "user",
         content: content.trim(),
+        attachments,
         timestamp: Date.now(),
       };
 
@@ -102,6 +103,7 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
       const chatRequest: ChatRequest = {
         conversation_id: conversationId || undefined,
         message: content.trim(),
+        attachments,
         page_context: "Chat Interface",
         stream: false, // Disable streaming to enable MCP tools (tools only work in non-streaming mode)
       };

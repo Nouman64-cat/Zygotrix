@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { FaUser, FaCopy, FaCheck } from 'react-icons/fa';
+import { FiFile } from 'react-icons/fi';
 import { cn, formatMessageTime } from '../../utils';
 import { useTypingEffect } from '../../hooks';
 import { ThinkingLoader } from '../common/ThinkingLoader';
@@ -127,6 +128,13 @@ const SequenceCodeBlock: React.FC<{
   );
 };
 
+// Helper function to format file size
+const formatFileSize = (bytes: number): string => {
+  if (bytes < 1024) return `${bytes} B`;
+  if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
 const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === 'user';
 
@@ -166,12 +174,31 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
     }
 
     if (isUser) {
-      // User messages: plain text
+      // User messages: plain text + attachments
       return (
         <>
           {textToShow}
           {showCursor && (
             <span className="inline-block w-0.5 h-4 ml-0.5 bg-gray-600 dark:bg-gray-300 animate-pulse" />
+          )}
+          {/* Display file attachments */}
+          {message.attachments && message.attachments.length > 0 && (
+            <div className="mt-2 space-y-1">
+              {message.attachments.map((attachment) => (
+                <div
+                  key={attachment.id}
+                  className="flex items-center gap-2 bg-white/20 dark:bg-white/10 rounded-lg px-3 py-2 text-sm border border-white/30 dark:border-white/20"
+                >
+                  <FiFile className="flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="truncate font-medium">{attachment.name}</p>
+                    {attachment.size_bytes && (
+                      <p className="text-xs opacity-80">{formatFileSize(attachment.size_bytes)}</p>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </>
       );

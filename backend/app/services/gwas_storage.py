@@ -21,7 +21,7 @@ from pathlib import Path
 from typing import Dict, Any, List, Optional
 from datetime import datetime
 
-from app.config import settings
+# Settings not needed for storage manager
 
 
 class GwasStorageManager:

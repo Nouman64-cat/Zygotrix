@@ -31,7 +31,7 @@ from ..repositories import (
     get_gwas_job_repository,
     get_gwas_result_repository,
 )
-from ..services import get_gwas_analysis_service
+from ..services import get_gwas_analysis_service, get_gwas_dataset_service
 from ..services import gwas_dataset  # For legacy trait search
 
 router = APIRouter(prefix="/api/gwas", tags=["GWAS"])
@@ -59,34 +59,24 @@ async def upload_dataset(
     - PLINK: Binary PLINK format (.bed/.bim/.fam - upload as zip)
     - CUSTOM: Custom JSON format
 
-    **Note:** This is a placeholder implementation. Phase 3 will add full file parsing.
-    For now, it creates a dataset entry without processing the file.
+    This endpoint will:
+    1. Upload the file to secure storage
+    2. Parse the file based on format
+    3. Extract SNPs, samples, and phenotypes
+    4. Validate data integrity
+    5. Save processed data for analysis
     """
-    dataset_repo = get_gwas_dataset_repository()
+    dataset_service = get_gwas_dataset_service()
 
-    # TODO: Phase 3 - Implement file upload to storage
-    # - Save file to backend/data/gwas_datasets/{user_id}/{dataset_id}/
-    # - Parse VCF/PLINK format
-    # - Extract SNPs, samples, phenotypes
-    # - Validate file structure
-
-    # For now, create dataset entry without file processing
-    dataset = dataset_repo.create(
+    # Upload and parse dataset
+    dataset = await dataset_service.upload_and_parse_dataset(
         user_id=current_user.id,
+        file=file,
         name=name,
         description=description,
-        file_format=file_format.value,
+        file_format=file_format,
         trait_type=trait_type,
         trait_name=trait_name,
-        file_path=None,  # Will be set in Phase 3
-    )
-
-    # Update status to READY (in Phase 3, this will be PROCESSING → READY)
-    dataset_repo.update_status(
-        dataset_id=dataset.id,
-        status=GwasDatasetStatus.READY,
-        num_snps=1000,  # Placeholder
-        num_samples=100,  # Placeholder
     )
 
     return dataset
@@ -149,7 +139,7 @@ def get_dataset(
 def delete_dataset(
     dataset_id: str = Path(..., description="Dataset ID"),
     current_user: UserProfile = Depends(get_current_user),
-) -> None:
+):
     """
     Delete a GWAS dataset.
 
@@ -166,10 +156,10 @@ def delete_dataset(
     if dataset.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="Unauthorized access to dataset")
 
-    # TODO: Delete associated jobs and results
-    # TODO: Delete files from storage
+    # Delete dataset and all associated files
+    dataset_service = get_gwas_dataset_service()
+    success = dataset_service.delete_dataset(user_id=current_user.id, dataset_id=dataset_id)
 
-    success = dataset_repo.delete(dataset_id)
     if not success:
         raise HTTPException(status_code=500, detail="Failed to delete dataset")
 
@@ -347,7 +337,7 @@ def get_job_status(
 def cancel_job(
     job_id: str = Path(..., description="Job ID"),
     current_user: UserProfile = Depends(get_current_user),
-) -> None:
+):
     """
     Cancel a running or queued GWAS analysis job.
 

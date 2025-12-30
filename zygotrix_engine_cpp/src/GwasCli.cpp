@@ -7,7 +7,7 @@
 
 #include "gwas/GwasAnalyzer.hpp"
 #include "gwas/GwasTypes.hpp"
-#include "third_party/json11/json11.hpp"
+#include "json11.hpp"
 
 #include <iostream>
 #include <string>
@@ -30,7 +30,7 @@ bool parse_request(const Json& json_input, GwasRequest& request, std::string& er
     for (const auto& snp_json : json_input["snps"].array_items()) {
         Snp snp;
         snp.rsid = snp_json["rsid"].string_value();
-        snp.chromosome = snp_json["chromosome"].int_value();
+        snp.chromosome = static_cast<int>(snp_json["chromosome"].number_value());
         snp.position = snp_json["position"].number_value();
         snp.ref_allele = snp_json["ref_allele"].string_value();
         snp.alt_allele = snp_json["alt_allele"].string_value();
@@ -53,7 +53,7 @@ bool parse_request(const Json& json_input, GwasRequest& request, std::string& er
         // Parse genotypes
         if (sample_json["genotypes"].is_array()) {
             for (const auto& g : sample_json["genotypes"].array_items()) {
-                sample.genotypes.push_back(g.int_value());
+                sample.genotypes.push_back(static_cast<int>(g.number_value()));
             }
         }
 
@@ -78,7 +78,7 @@ bool parse_request(const Json& json_input, GwasRequest& request, std::string& er
         request.maf_threshold = 0.01;  // Default
     }
 
-    request.num_threads = json_input["num_threads"].int_value();
+    request.num_threads = static_cast<int>(json_input["num_threads"].number_value());
     if (request.num_threads == 0) {
         request.num_threads = 4;  // Default
     }
@@ -94,7 +94,7 @@ Json response_to_json(const GwasResponse& response) {
     std::vector<Json> results_json;
 
     for (const auto& result : response.results) {
-        results_json.push_back(Json::object {
+        results_json.push_back(Json::JsonObject{
             {"rsid", result.rsid},
             {"chromosome", result.chromosome},
             {"position", static_cast<double>(result.position)},
@@ -112,7 +112,7 @@ Json response_to_json(const GwasResponse& response) {
         });
     }
 
-    return Json::object {
+    return Json::JsonObject{
         {"success", response.error.empty()},
         {"results", results_json},
         {"snps_tested", response.snps_tested},
@@ -134,7 +134,7 @@ int main(int argc, char* argv[]) {
         Json json_input = Json::parse(input_str, parse_error);
 
         if (!parse_error.empty()) {
-            Json error_response = Json::object {
+            Json error_response = Json::JsonObject{
                 {"success", false},
                 {"error", "JSON parse error: " + parse_error}
             };
@@ -147,7 +147,7 @@ int main(int argc, char* argv[]) {
         std::string error;
 
         if (!parse_request(json_input, request, error)) {
-            Json error_response = Json::object {
+            Json error_response = Json::JsonObject{
                 {"success", false},
                 {"error", "Invalid request: " + error}
             };
@@ -161,7 +161,7 @@ int main(int argc, char* argv[]) {
 
         GwasResponse response;
         if (!analyzer.analyze(request, response)) {
-            Json error_response = Json::object {
+            Json error_response = Json::JsonObject{
                 {"success", false},
                 {"error", response.error.empty() ? "Analysis failed" : response.error}
             };
@@ -176,14 +176,14 @@ int main(int argc, char* argv[]) {
         return 0;
 
     } catch (const std::exception& e) {
-        Json error_response = Json::object {
+        Json error_response = Json::JsonObject{
             {"success", false},
             {"error", std::string("Exception: ") + e.what()}
         };
         std::cout << error_response.dump() << std::endl;
         return 1;
     } catch (...) {
-        Json error_response = Json::object {
+        Json error_response = Json::JsonObject{
             {"success", false},
             {"error", "Unknown exception occurred"}
         };

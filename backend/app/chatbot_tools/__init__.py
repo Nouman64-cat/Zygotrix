@@ -18,6 +18,7 @@ from .tools import (
 )
 
 from .gwas_tools import (
+    upload_gwas_dataset,
     list_gwas_datasets,
     get_gwas_job_status,
     run_gwas_analysis,
@@ -41,6 +42,7 @@ __all__ = [
     # Breeding simulation tools
     "create_breeding_simulation",
     # GWAS tools
+    "upload_gwas_dataset",
     "list_gwas_datasets",
     "get_gwas_job_status",
     "run_gwas_analysis",

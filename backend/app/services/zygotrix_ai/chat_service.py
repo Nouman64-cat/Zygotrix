@@ -92,6 +92,13 @@ class ZygotrixChatService:
             attachments=[a.model_dump() for a in chat_request.attachments] if chat_request.attachments else []
         )
 
+        # Handle file attachments automatically (for GWAS datasets)
+        upload_results = await self._handle_file_attachments(
+            chat_request.attachments,
+            chat_request.message,
+            user_id
+        )
+
         # Analyze message for preference signals (asynchronous, non-blocking)
         asyncio.create_task(self._analyze_and_update_preferences(
             user_id=user_id,
@@ -99,19 +106,24 @@ class ZygotrixChatService:
             model=model
         ))
 
-        # Build context
+        # Build context (include upload results if any)
         combined_context = await self._build_context(
             chat_request.message,
             user_id=user_id,
             user_name=user_name
         )
 
+        # Add upload results to context
+        if upload_results:
+            combined_context = f"{upload_results}\n\n{combined_context}" if combined_context else upload_results
+
         # Get conversation history and build Claude messages
         claude_messages = self._build_claude_messages(
             conversation.id,
             conv_settings.context_window_messages,
             chat_request.message,
-            combined_context
+            combined_context,
+            attachments=chat_request.attachments
         )
 
         # Get system prompt (with user preferences)
@@ -237,6 +249,167 @@ class ZygotrixChatService:
         except Exception as e:
             logger.warning(f"Failed to fetch user preferences for {user_id}: {e}")
             return None
+
+    async def _handle_file_attachments(
+        self,
+        attachments: Optional[list],
+        message: str,
+        user_id: str
+    ) -> Optional[str]:
+        """
+        Automatically handle file attachments (e.g., GWAS datasets).
+
+        For genomic files (.vcf, .bed, etc.), automatically uploads them
+        and returns a summary to include in the AI's context.
+
+        Args:
+            attachments: List of file attachments
+            message: User's message (to extract trait name)
+            user_id: User ID
+
+        Returns:
+            Summary text about uploaded files, or None if no files
+        """
+        if not attachments or len(attachments) == 0:
+            return None
+
+        # Import GWAS upload function
+        from ...chatbot_tools.gwas_tools import upload_gwas_dataset
+
+        results = []
+
+        for attachment in attachments:
+            filename = attachment.name.lower()
+
+            # Check if it's a genomic file
+            is_genomic_file = any(
+                filename.endswith(ext)
+                for ext in ['.vcf', '.vcf.gz', '.bed', '.bim', '.fam', '.csv', '.tsv', '.json']
+            )
+
+            if not is_genomic_file:
+                continue
+
+            # Auto-detect file format
+            if filename.endswith('.vcf') or filename.endswith('.vcf.gz'):
+                file_format = 'vcf'
+            elif filename.endswith('.bed'):
+                file_format = 'plink'
+            else:
+                file_format = 'custom'
+
+            # Try to extract trait name from message
+            trait_name = self._extract_trait_name(message)
+
+            # Generate dataset name from filename
+            dataset_name = filename.replace('.vcf.gz', '').replace('.vcf', '').replace('.bed', '')
+
+            logger.info(f"📤 Auto-uploading genomic file: {attachment.name} ({file_format})")
+
+            try:
+                # Import required modules for async upload
+                from io import BytesIO
+                from fastapi import UploadFile
+                from ...services.gwas_dataset_service import get_gwas_dataset_service
+                from ...schema.gwas import GwasFileFormat
+                import base64
+
+                # Decode base64 content
+                try:
+                    file_bytes = base64.b64decode(attachment.content)
+                except Exception:
+                    if isinstance(attachment.content, str):
+                        file_bytes = attachment.content.encode()
+                    else:
+                        file_bytes = attachment.content
+
+                # Create UploadFile object
+                file_obj = UploadFile(
+                    filename=attachment.name,
+                    file=BytesIO(file_bytes)
+                )
+
+                # Call async upload function directly (we're already in async context)
+                dataset_service = get_gwas_dataset_service()
+                dataset = await dataset_service.upload_and_parse_dataset(
+                    user_id=user_id,
+                    file=file_obj,
+                    name=dataset_name,
+                    description=f"Uploaded via chat: {message[:100]}",
+                    file_format=GwasFileFormat(file_format),
+                    trait_type="quantitative",
+                    trait_name=trait_name,
+                )
+
+                # Format success result
+                upload_result = {
+                    "success": True,
+                    "dataset_id": dataset.id,
+                    "dataset_info": {
+                        "name": dataset.name,
+                        "num_snps": dataset.num_snps,
+                        "num_samples": dataset.num_samples,
+                        "trait_name": dataset.trait_name,
+                    }
+                }
+
+                if upload_result.get("success"):
+                    dataset_info = upload_result.get("dataset_info", {})
+                    result_text = f"""✅ Dataset '{dataset_info.get('name')}' uploaded successfully!
+📊 File: {attachment.name}
+📈 SNPs: {dataset_info.get('num_snps', 'N/A'):,}
+👥 Samples: {dataset_info.get('num_samples', 'N/A'):,}
+🔬 Trait: {dataset_info.get('trait_name', 'N/A')}
+🆔 Dataset ID: {upload_result.get('dataset_id')}
+
+🎯 ACTION REQUIRED: Now run GWAS analysis on this dataset using the run_gwas_analysis tool.
+Use these parameters:
+- dataset_id: "{upload_result.get('dataset_id')}"
+- user_id: "{user_id}"
+- phenotype_column: "{dataset_info.get('trait_name', 'phenotype')}"
+- analysis_type: "linear" (or "logistic" if binary trait)
+
+The C++ GWAS engine will analyze all {dataset_info.get('num_snps', 0):,} SNPs and generate:
+- Manhattan plot showing genome-wide significant associations
+- Q-Q plot for quality control
+- Top associated SNPs with p-values and effect sizes
+"""
+                    results.append(result_text)
+                    logger.info(f"✅ Successfully uploaded {attachment.name}")
+                else:
+                    error_msg = upload_result.get('message', 'Unknown error')
+                    result_text = f"❌ Failed to upload {attachment.name}: {error_msg}"
+                    results.append(result_text)
+                    logger.error(f"❌ Upload failed for {attachment.name}: {error_msg}")
+
+            except Exception as e:
+                logger.error(f"Exception uploading {attachment.name}: {e}", exc_info=True)
+                results.append(f"❌ Error uploading {attachment.name}: {str(e)}")
+
+        if results:
+            return "\n\n".join(results)
+
+        return None
+
+    def _extract_trait_name(self, message: str) -> str:
+        """Extract trait name from user message."""
+        message_lower = message.lower()
+
+        # Common trait keywords
+        traits = {
+            'height': ['height', 'stature', 'tall'],
+            'bmi': ['bmi', 'body mass index', 'weight'],
+            'diabetes': ['diabetes', 'glucose', 'blood sugar'],
+            'bp': ['blood pressure', 'hypertension'],
+            'cholesterol': ['cholesterol', 'ldl', 'hdl'],
+        }
+
+        for trait, keywords in traits.items():
+            if any(kw in message_lower for kw in keywords):
+                return trait
+
+        # Default
+        return "unknown_trait"
 
     async def _analyze_and_update_preferences(
         self,
@@ -411,9 +584,10 @@ class ZygotrixChatService:
         conversation_id: str,
         max_messages: int,
         current_message: str,
-        combined_context: str
+        combined_context: str,
+        attachments: Optional[list] = None
     ) -> list:
-        """Build message history for Claude."""
+        """Build message history for Claude, including file attachments."""
         history = MessageService.get_conversation_context(
             conversation_id,
             max_messages=max_messages
@@ -421,15 +595,28 @@ class ZygotrixChatService:
 
         claude_messages = []
         for msg in history[:-1]:  # Exclude the just-added user message
-            claude_messages.append({"role": msg["role"], "content": msg["content"]})
+            # Check if message has attachments
+            if msg.get("attachments") and len(msg["attachments"]) > 0:
+                # Include attachment info in message text for context
+                content_with_attachments = msg["content"]
+                content_with_attachments += "\n\n[Attachments: "
+                content_with_attachments += ", ".join([att.get("name", "unknown") for att in msg["attachments"]])
+                content_with_attachments += "]"
+                claude_messages.append({"role": msg["role"], "content": content_with_attachments})
+            else:
+                claude_messages.append({"role": msg["role"], "content": msg["content"]})
 
-        # Add current message with context
+        # Add current message with context and attachments
         current_content = current_message
         if combined_context:
             current_content = f"""Background information:
 {combined_context}
 
 Question: {current_message}"""
+
+        # Note: File attachments are handled server-side automatically
+        # and results are added to combined_context, so we don't include
+        # the full file content here (would exceed token limits for large files)
 
         claude_messages.append({"role": "user", "content": current_content})
         return claude_messages

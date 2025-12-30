@@ -138,6 +138,7 @@ class GwasAnalysisService:
                 summary=summary_stats,
                 manhattan_plot_data=manhattan_data,
                 qq_plot_data=qq_data,
+                top_hits=[assoc.model_dump() for assoc in top_associations],
             )
 
             # Step 7: Update job status to COMPLETED

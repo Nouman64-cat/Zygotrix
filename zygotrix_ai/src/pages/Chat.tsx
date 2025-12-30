@@ -147,8 +147,8 @@ export const Chat: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async (content: string) => {
-    await sendMessage(content);
+  const handleSendMessage = async (content: string, attachments?: import('../types').MessageAttachment[]) => {
+    await sendMessage(content, attachments);
     setTimeout(() => {
       setRateLimitRefresh(prev => prev + 1);
     }, 1000);

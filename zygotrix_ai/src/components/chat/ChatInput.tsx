@@ -320,7 +320,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         {/* Gemini-style Input Card - attached to bottom on mobile */}
         <div
           className={cn(
-            "relative bg-gray-50 dark:bg-gray-800/95 backdrop-blur-xl transition-all duration-300",
+            "relative bg-white dark:bg-gray-900 backdrop-blur-xl transition-all duration-300",
             // Mobile: no border, no shadow, rounded top corners only, attached to bottom
             "rounded-t-3xl sm:rounded-2xl md:rounded-3xl",
             "border-t border-x sm:border border-gray-200 dark:border-gray-700/50",

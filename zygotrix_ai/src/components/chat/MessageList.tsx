@@ -45,9 +45,20 @@ const MessageListComponent: React.FC<MessageListProps> = ({
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto">
       <div className="max-w-6xl mx-auto px-2 lg:px-4">
-        {messages.map((message) => (
-          <ChatMessage key={message.id} message={message} />
-        ))}
+        {messages.map((message, index) => {
+          const prevMessage = index > 0 ? messages[index - 1] : null;
+          // Add extra spacing when a user message follows an AI message (new conversation turn)
+          const isNewTurn = prevMessage && prevMessage.role === 'assistant' && message.role === 'user';
+
+          return (
+            <div key={message.id}>
+              {isNewTurn && (
+                <div className="h-6 sm:h-10" />
+              )}
+              <ChatMessage message={message} />
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { FaUser, FaCopy, FaCheck } from 'react-icons/fa';
+import { FaCopy, FaCheck } from 'react-icons/fa';
 import { FiFile } from 'react-icons/fi';
-import { cn, formatMessageTime } from '../../utils';
+import { cn } from '../../utils';
 import { useTypingEffect } from '../../hooks';
 import { ThinkingLoader } from '../common/ThinkingLoader';
 import { BreedingLabWidget } from '../breeding';
@@ -210,16 +210,16 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
         <ReactMarkdown
           remarkPlugins={[remarkGfm]}
           components={{
-            // Override default elements with custom styling
-            p: ({ children }) => <p className="mb-2 last:mb-0 text-sm sm:text-base">{children}</p>,
+            // Override default elements with custom styling - generous spacing for readability
+            p: ({ children }) => <p className="mb-6 last:mb-0 text-sm sm:text-base leading-relaxed">{children}</p>,
             strong: ({ children }) => <strong className="font-bold">{children}</strong>,
             em: ({ children }) => <em className="italic">{children}</em>,
-            ul: ({ children }) => <ul className="list-disc list-outside ml-4 sm:ml-5 mb-2 space-y-1 text-sm sm:text-base">{children}</ul>,
-            ol: ({ children }) => <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-2 space-y-1 text-sm sm:text-base">{children}</ol>,
-            li: ({ children }) => <li className="pl-1">{children}</li>,
-            h1: ({ children }) => <h1 className="text-base sm:text-lg font-bold mb-2">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-sm sm:text-base font-bold mb-2">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-xs sm:text-sm font-bold mb-1">{children}</h3>,
+            ul: ({ children }) => <ul className="list-disc list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm sm:text-base">{children}</ul>,
+            ol: ({ children }) => <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm sm:text-base">{children}</ol>,
+            li: ({ children }) => <li className="pl-1 leading-relaxed">{children}</li>,
+            h1: ({ children }) => <h1 className="text-base sm:text-lg font-bold mb-4 mt-6 first:mt-0">{children}</h1>,
+            h2: ({ children }) => <h2 className="text-sm sm:text-base font-bold mb-4 mt-6 first:mt-0">{children}</h2>,
+            h3: ({ children }) => <h3 className="text-xs sm:text-sm font-bold mb-3 mt-5 first:mt-0">{children}</h3>,
             // Enhanced code block with copy functionality
             code: ({ children, className }) => {
               const match = /language-(\w+)/.exec(className || '');
@@ -320,56 +320,31 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
 
 
   return (
-    <div className={cn('flex gap-2 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 md:px-6', isUser ? 'justify-end' : 'justify-start')}>
+    <div className={cn('flex gap-2 sm:gap-3 px-2 sm:px-4 py-4 sm:py-5 md:px-6', isUser ? 'justify-end' : 'justify-start')}>
       <div className={cn('flex gap-2 sm:gap-3 max-w-full sm:max-w-[85%] md:max-w-3xl lg:max-w-4xl', isUser && 'flex-row-reverse')}>
-        {/* Avatar - hidden on mobile */}
-        <div className="hidden md:flex flex-shrink-0">
-          {isUser ? (
-            <div className="w-10 h-10 rounded-full flex items-center justify-center bg-emerald-600 text-white">
-              <FaUser className="w-5 h-5" />
-            </div>
-          ) : (
+        {/* Avatar - only show for AI, hidden on mobile */}
+        {!isUser && (
+          <div className="hidden md:flex flex-shrink-0">
             <div className="w-10 h-10 flex items-center justify-center">
               <img src={LOGO_URL} alt="Zygotrix AI" className="w-10 h-10 object-cover rounded-full" />
             </div>
-          )}
-        </div>
-
-        {/* Message Bubble */}
-        <div className="min-w-0 space-y-1">
-          {/* Name and Timestamp */}
-          <div className={cn('flex items-center gap-1.5 sm:gap-2', isUser && 'justify-end')}>
-            <span className={cn(
-              'font-semibold text-xs sm:text-sm',
-              isUser ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-gray-100'
-            )}>
-              {isUser ? 'You' : 'Zygotrix AI'}
-            </span>
-            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
-              {formatMessageTime(message.timestamp)}
-            </span>
           </div>
+        )}
 
-          {/* Content Bubble */}
-          <div
-            className={cn(
-              'rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-sm min-h-[2rem] sm:min-h-[2.5rem] min-w-[3rem]',
-              isUser
-                ? 'bg-emerald-600 dark:bg-emerald-700 text-white rounded-tr-sm'
-                : 'bg-gray-100 dark:bg-gray-800 rounded-tl-sm'
-            )}
-          >
-            <div
-              className={cn(
-                'max-w-none break-words text-sm sm:text-base',
-                isUser
-                  ? 'text-white'
-                  : 'text-gray-800 dark:text-gray-200'
-              )}
-            >
+        {/* Message Content */}
+        <div className="min-w-0 flex-1">
+          {/* User messages keep the bubble, AI messages are clean text */}
+          {isUser ? (
+            <div className="rounded-2xl px-3 py-2 sm:px-4 sm:py-3 bg-emerald-600 dark:bg-emerald-700 text-white rounded-tr-sm shadow-sm min-w-[3rem]">
+              <div className="max-w-none break-words text-sm sm:text-base text-white">
+                {renderContent()}
+              </div>
+            </div>
+          ) : (
+            <div className="text-gray-800 dark:text-gray-200 text-sm sm:text-base leading-relaxed">
               {renderContent()}
             </div>
-          </div>
+          )}
         </div>
       </div>
     </div>

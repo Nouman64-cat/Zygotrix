@@ -1,47 +1,59 @@
 ---
 sidebar_position: 1
+slug: /
 ---
 
-# Tutorial Intro
+# Welcome to Zygotrix
 
-Let's discover **Docusaurus in less than 5 minutes**.
+**Zygotrix** is an AI-powered genetics education platform that makes learning genetics interactive, engaging, and accessible to everyone.
+
+## What is Zygotrix?
+
+Zygotrix combines cutting-edge AI technology with comprehensive genetics tools to provide:
+
+- 🤖 **Zigi AI Chatbot** - An intelligent assistant that answers genetics questions and performs calculations
+- 🧬 **Punnett Square Calculator** - Visualize genetic crosses from simple to complex multi-gene scenarios
+- 📊 **GWAS Analysis** - Perform genome-wide association studies on your own data
+- 🔬 **DNA/RNA Tools** - Generate, transcribe, and translate genetic sequences
+- 🎓 **Zygotrix University** - Structured courses for learning genetics
+
+## Quick Links
+
+| What do you want to do? | Go to |
+|------------------------|-------|
+| Install Zygotrix | [Installation Guide](./getting-started/installation) |
+| Learn the architecture | [Architecture Overview](./architecture/overview) |
+| Use the API | [API Reference](./api/introduction) |
+| Understand GWAS | [GWAS Analysis](./features/gwas-analysis) |
+| Set up AI chatbot | [AI Chatbot](./features/ai-chatbot) |
+
+## Technology Stack
+
+### Backend
+- **Python 3.11+** with FastAPI
+- **MongoDB** for data storage
+- **Redis** for caching and sessions
+- **Claude AI** by Anthropic for intelligent responses
+
+### C++ Engine
+- High-performance genetic calculations
+- **Eigen** library for linear algebra (GWAS)
+- **OpenMP** for parallel processing
+
+### Frontend
+- **React** with TypeScript
+- **Vite** for fast development
+- Modern UI with dark mode support
 
 ## Getting Started
 
-Get started by **creating a new site**.
-
-Or **try Docusaurus immediately** with **[docusaurus.new](https://docusaurus.new)**.
-
-### What you'll need
-
-- [Node.js](https://nodejs.org/en/download/) version 20.0 or above:
-  - When installing Node.js, you are recommended to check all checkboxes related to dependencies.
-
-## Generate a new site
-
-Generate a new Docusaurus site using the **classic template**.
-
-The classic template will automatically be added to your project after you run the command:
-
 ```bash
-npm init docusaurus@latest my-website classic
+# Clone the repository
+git clone https://github.com/Nouman64-cat/Zygotrix.git
+cd Zygotrix
+
+# Follow the setup guide
+# See: Getting Started → Installation
 ```
 
-You can type this command into Command Prompt, Powershell, Terminal, or any other integrated terminal of your code editor.
-
-The command also installs all necessary dependencies you need to run Docusaurus.
-
-## Start your site
-
-Run the development server:
-
-```bash
-cd my-website
-npm run start
-```
-
-The `cd` command changes the directory you're working with. In order to work with your newly created Docusaurus site, you'll need to navigate the terminal there.
-
-The `npm run start` command builds your website locally and serves it through a development server, ready for you to view at http://localhost:3000/.
-
-Open `docs/intro.md` (this page) and edit some lines: the site **reloads automatically** and displays your changes.
+Ready to dive in? Head to the [Installation Guide](./getting-started/installation) to get started!

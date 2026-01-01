@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiMenu } from 'react-icons/fi';
 import { Sidebar } from './Sidebar';
-import { IconButton, ThemeSwitcher, SettingsModal } from '../common';
+import { IconButton, ThemeSwitcher, SettingsModal, Logo } from '../common';
 import { LOGO_URL } from '../../config';
 import type { LocalConversation } from '../../types';
 
@@ -39,9 +39,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        {/* Desktop: Theme Switcher - Top Left */}
+        {/* Desktop: Logo & Name - Top Left */}
         <div className="hidden md:block absolute top-4 left-4 z-10">
-          <ThemeSwitcher variant="icon" />
+          <Logo size="sm" showText={true} />
         </div>
 
         {/* Mobile: Header with menu button, logo, and theme switcher */}

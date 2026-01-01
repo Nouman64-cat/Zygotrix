@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { MdPsychology, MdCheckCircle, MdError, MdRefresh, MdClose } from 'react-icons/md';
 import { BiLoaderAlt } from 'react-icons/bi';
+import { ThemeSwitcher } from './ThemeSwitcher';
 import authService from '../../services/auth/auth.service';
 import type { ChatPreferences, UserPreferencesUpdate } from '../../types';
 
@@ -144,8 +145,8 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
             <button
               onClick={() => setActiveTab('preferences')}
               className={`py-3 px-1 border-b-2 font-medium text-sm transition-colors flex items-center gap-2 ${activeTab === 'preferences'
-                  ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
-                  : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
+                ? 'border-indigo-500 text-indigo-600 dark:text-indigo-400'
+                : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300'
                 }`}
             >
               <MdPsychology className="w-5 h-5" />
@@ -196,6 +197,19 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                     </div>
                   )}
 
+                  {/* Appearance Section */}
+                  <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-medium text-gray-900 dark:text-white">Appearance</h3>
+                        <p className="text-xs text-gray-500 mt-1">Choose your preferred theme</p>
+                      </div>
+                      <div className="bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                        <ThemeSwitcher variant="toggle" />
+                      </div>
+                    </div>
+                  </div>
+
                   {/* Automatic Learning Toggle */}
                   <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4">
                     <div className="flex items-center justify-between">
@@ -241,15 +255,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                           key={option.value}
                           onClick={() => handlePreferenceChange('communication_style', option.value)}
                           className={`p-3 rounded-lg border-2 transition-all text-left ${preferences.communication_style === option.value
-                              ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                             }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
                             <div
                               className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${preferences.communication_style === option.value
-                                  ? 'border-indigo-600 bg-indigo-600'
-                                  : 'border-gray-300 dark:border-gray-600'
+                                ? 'border-indigo-600 bg-indigo-600'
+                                : 'border-gray-300 dark:border-gray-600'
                                 }`}
                             >
                               {preferences.communication_style === option.value && (
@@ -281,15 +295,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                           key={option.value}
                           onClick={() => handlePreferenceChange('answer_length', option.value)}
                           className={`p-3 rounded-lg border-2 transition-all text-left ${preferences.answer_length === option.value
-                              ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                             }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
                             <div
                               className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${preferences.answer_length === option.value
-                                  ? 'border-indigo-600 bg-indigo-600'
-                                  : 'border-gray-300 dark:border-gray-600'
+                                ? 'border-indigo-600 bg-indigo-600'
+                                : 'border-gray-300 dark:border-gray-600'
                                 }`}
                             >
                               {preferences.answer_length === option.value && (
@@ -322,15 +336,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                           key={option.value}
                           onClick={() => handlePreferenceArrayToggle('teaching_aids', option.value)}
                           className={`p-3 rounded-lg border-2 transition-all text-left ${preferences.teaching_aids?.includes(option.value)
-                              ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                             }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
                             <div
                               className={`w-4 h-4 rounded border-2 flex items-center justify-center ${preferences.teaching_aids?.includes(option.value)
-                                  ? 'border-indigo-600 bg-indigo-600'
-                                  : 'border-gray-300 dark:border-gray-600'
+                                ? 'border-indigo-600 bg-indigo-600'
+                                : 'border-gray-300 dark:border-gray-600'
                                 }`}
                             >
                               {preferences.teaching_aids?.includes(option.value) && (
@@ -362,15 +376,15 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
                           key={option.value}
                           onClick={() => handlePreferenceArrayToggle('visual_aids', option.value)}
                           className={`p-3 rounded-lg border-2 transition-all text-left ${preferences.visual_aids?.includes(option.value)
-                              ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
-                              : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                            ? 'border-indigo-600 bg-indigo-50 dark:bg-indigo-900/20'
+                            : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
                             }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
                             <div
                               className={`w-4 h-4 rounded border-2 flex items-center justify-center ${preferences.visual_aids?.includes(option.value)
-                                  ? 'border-indigo-600 bg-indigo-600'
-                                  : 'border-gray-300 dark:border-gray-600'
+                                ? 'border-indigo-600 bg-indigo-600'
+                                : 'border-gray-300 dark:border-gray-600'
                                 }`}
                             >
                               {preferences.visual_aids?.includes(option.value) && (

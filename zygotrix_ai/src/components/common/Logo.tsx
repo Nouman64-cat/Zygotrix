@@ -22,7 +22,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', className, showText = t
   };
 
   return (
-    <div className={cn('flex items-center', className)}>
+    <div className={cn('flex items-center gap-3', className)}>
       <img
         src={LOGO_URL}
         alt="Zygotrix AI"

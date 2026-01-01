@@ -113,10 +113,10 @@ Both alleles fully expressed:
 
 | Cross Complexity | Calculation Time |
 |-----------------|------------------|
-| Monohybrid (1 gene) | <10ms |
-| Dihybrid (2 genes) | <20ms |
-| Trihybrid (3 genes) | <50ms |
-| 5+ genes | <200ms |
+| Monohybrid (1 gene) | Under 10ms |
+| Dihybrid (2 genes) | Under 20ms |
+| Trihybrid (3 genes) | Under 50ms |
+| 5+ genes | Under 200ms |
 
 Powered by the C++ engine for maximum performance.
 

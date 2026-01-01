@@ -49,7 +49,8 @@ curl "http://localhost:8000/api/genetics/dna/random?length=500&gc_content=0.6"
 
 | Length | Time |
 |--------|------|
-| 1,000 bp | <10ms |
+| 1,000 bp | Under 10ms |
 | 100,000 bp | ~50ms |
 | 1,000,000 bp | ~500ms |
 | 10,000,000 bp | ~5s (parallel C++) |
+

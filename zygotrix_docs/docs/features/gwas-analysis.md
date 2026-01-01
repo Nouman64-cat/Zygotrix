@@ -137,7 +137,7 @@ Powered by the C++ GWAS engine with Eigen library:
 
 | Dataset Size | Analysis Time |
 |--------------|---------------|
-| 1,000 SNPs, 100 samples | <1 second |
+| 1,000 SNPs, 100 samples | Under 1 second |
 | 10,000 SNPs, 500 samples | ~5 seconds |
 | 100,000 SNPs, 1,000 samples | ~30 seconds |
 | 1M SNPs, 1,000 samples | ~5 minutes |

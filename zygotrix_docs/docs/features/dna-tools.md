@@ -111,10 +111,10 @@ curl -X POST http://localhost:8000/api/genetics/rna/translate \
 
 | Operation | Sequence Length | Time |
 |-----------|-----------------|------|
-| Generate DNA | 1,000 bp | <10ms |
+| Generate DNA | 1,000 bp | Under 10ms |
 | Generate DNA | 1,000,000 bp | ~500ms |
-| Transcription | Any | <1ms |
-| Translation | 10,000 codons | <10ms |
+| Transcription | Any | Under 1ms |
+| Translation | 10,000 codons | Under 10ms |
 
 ## API Reference
 

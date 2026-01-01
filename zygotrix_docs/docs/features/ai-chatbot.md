@@ -141,5 +141,6 @@ The tool encountered an error. Try:
 
 Complex calculations take time:
 - GWAS analysis: 30s-5min
-- Simple Punnett: <1s
+- Simple Punnett: under 1s
 - DNA generation: 1-5s
+

@@ -5,7 +5,7 @@ import {themes as prismThemes} from 'prism-react-renderer';
 const config = {
   title: 'Zygotrix Documentation',
   tagline: 'AI-Powered Genetics Education Platform',
-  favicon: 'img/favicon.ico',
+  favicon: 'https://zygotrix.fra1.cdn.digitaloceanspaces.com/cdn/zygotrix-logo.ico',
 
   future: {
     v4: true,
@@ -60,7 +60,9 @@ const config = {
         title: 'Zygotrix',
         logo: {
           alt: 'Zygotrix Logo',
-          src: 'img/logo.svg',
+          src: 'https://zygotrix.fra1.cdn.digitaloceanspaces.com/cdn/zygotrix-logo.png',
+          width: 32,
+          height: 32,
         },
         items: [
           {

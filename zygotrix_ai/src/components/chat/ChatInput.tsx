@@ -135,26 +135,25 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     recognition.interimResults = true;
     recognition.lang = 'en-US';
 
+    // Store the current value before recording starts so we can append speech to it
+    const initialValue = textareaRef.current?.value || '';
+
     recognition.onstart = () => {
       setIsRecording(true);
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let finalTranscript = '';
-      let interimTranscript = '';
+      let speechTranscript = '';
 
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          finalTranscript += transcript;
-        } else {
-          interimTranscript += transcript;
-        }
+      // Reconstruct the full transcript from the current session
+      for (let i = 0; i < event.results.length; i++) {
+        speechTranscript += event.results[i][0].transcript;
       }
 
-      if (finalTranscript) {
-        setValue(prev => prev + (prev ? ' ' : '') + finalTranscript);
-      }
+      // Update input with (Initial Text + Current Speech)
+      // This shows interim results (typing as you speak)
+      const newValue = initialValue + (initialValue && speechTranscript ? ' ' : '') + speechTranscript;
+      setValue(newValue);
     };
 
     recognition.onerror = () => {

@@ -26,7 +26,7 @@ export const RateLimitIndicator: React.FC<RateLimitIndicatorProps> = ({
             setError(null);
             const status = await chatService.getRateLimitStatus();
             setRateLimit(status);
-            
+
             // Notify parent about rate limit status
             if (onRateLimitChange) {
                 onRateLimitChange(
@@ -138,13 +138,14 @@ export const RateLimitIndicator: React.FC<RateLimitIndicatorProps> = ({
             {/* Rate limit bar */}
             <div className="flex items-center gap-2">
                 {rateLimit.cooldown_active ? (
-                    <FiAlertTriangle className="text-red-500" />
+                    <FiAlertTriangle className="text-red-500 hidden sm:block" />
                 ) : (
-                    <FiZap className={colorClass} />
+                    <FiZap className={`${colorClass} hidden sm:block`} />
                 )}
 
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between text-xs mb-1">
+                    {/* Desktop: Full labels and percentage, Mobile: Just the bar */}
+                    <div className="hidden sm:flex items-center justify-between text-xs mb-1">
                         <span className="text-gray-600 dark:text-gray-400 font-medium">
                             {rateLimit.cooldown_active ? 'Rate Limited' : 'Token Usage'}
                         </span>
@@ -163,9 +164,9 @@ export const RateLimitIndicator: React.FC<RateLimitIndicatorProps> = ({
                 </div>
             </div>
 
-            {/* Cooldown message */}
+            {/* Cooldown message - always show when active */}
             {rateLimit.cooldown_active && rateLimit.reset_time && (
-                <div className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400 pl-6">
+                <div className="flex items-center gap-1 text-xs text-red-600 dark:text-red-400 sm:pl-6">
                     <FiClock className="w-3 h-3" />
                     <span>Resets in {formatResetTime(rateLimit.reset_time)}</span>
                 </div>

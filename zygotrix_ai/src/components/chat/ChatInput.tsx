@@ -283,8 +283,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div
-      className="p-0 pb-4 sm:pb-0 sm:px-4 sm:py-3 md:px-6 md:py-4"
-      style={{ paddingBottom: 'max(16px, env(safe-area-inset-bottom, 16px))' }}
+      className="p-0 pb-6 sm:pb-0 sm:px-4 sm:py-3 md:px-6 md:py-4"
+      style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom, 24px))' }}
     >
       <div className="max-w-5xl mx-auto">
         {/* File Attachments Preview */}

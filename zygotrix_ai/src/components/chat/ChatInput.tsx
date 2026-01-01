@@ -151,9 +151,42 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       }
 
       // Update input with (Initial Text + Current Speech)
-      // This shows interim results (typing as you speak)
       const newValue = initialValue + (initialValue && speechTranscript ? ' ' : '') + speechTranscript;
       setValue(newValue);
+
+      // Check for send commands
+      // Only check if we have a final result to avoid accidental sending on partial matches
+      const isFinal = event.results[event.results.length - 1]?.isFinal;
+      if (isFinal) {
+        const lowerTranscript = speechTranscript.toLowerCase().trim();
+        const sendCommands = ['send message', 'please send', 'send this', 'send it', 'submit message'];
+
+        // Check if the transcript ENDS with any of the commands
+        const matchedCommand = sendCommands.find(cmd =>
+          lowerTranscript.endsWith(cmd) || lowerTranscript.endsWith(cmd + '.') || lowerTranscript.endsWith(cmd + '!')
+        );
+
+        if (matchedCommand) {
+          // Remove the command from the text
+          // We need to be careful to remove it from the end of newValue
+          // Construct the final message content
+          let messageContent = newValue;
+
+          // Regex to match the command at the end, case insensitive, with optional punctuation
+          const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
+          messageContent = messageContent.replace(commandRegex, '').trim();
+
+          if (messageContent) {
+            // Stop recording
+            recognition.stop();
+            setIsRecording(false);
+
+            // Send the message
+            setValue(''); // Clear input
+            onSend(messageContent, attachments, enabledTools);
+          }
+        }
+      }
     };
 
     recognition.onerror = () => {

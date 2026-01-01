@@ -45,11 +45,11 @@ Simulate natural or artificial selection.
 
 Observe random changes in small populations.
 
-## Using with Zigi
+## Using with Zygotrix AI
 
 > **You:** Simulate breeding Aa × Aa for 5 generations with 10 offspring each
 >
-> **Zigi:** Running breeding simulation...
+> **Zygotrix AI:** Running breeding simulation...
 > 
 > **F1 Generation:**
 > - AA: 2 (20%)

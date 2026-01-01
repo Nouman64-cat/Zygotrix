@@ -88,13 +88,13 @@ curl -X POST http://localhost:8000/api/genetics/rna/translate \
 | ... | ... | ... |
 | UAA, UAG, UGA | Stop | * |
 
-## Using with Zigi
+## Using with Zygotrix AI
 
 ### Generate and Transcribe
 
 > **You:** Generate 500bp of DNA and transcribe it to mRNA
 >
-> **Zigi:** Here's a random 500bp DNA sequence:
+> **Zygotrix AI:** Here's a random 500bp DNA sequence:
 > `ATGCGATC...`
 > 
 > Transcribed to mRNA:
@@ -104,7 +104,7 @@ curl -X POST http://localhost:8000/api/genetics/rna/translate \
 
 > **You:** Generate 300bp of DNA, transcribe it, and translate to protein
 >
-> **Zigi:** Starting with random DNA...
+> **Zygotrix AI:** Starting with random DNA...
 > Final protein sequence: Met-Arg-Ser-Ile...
 
 ## Performance

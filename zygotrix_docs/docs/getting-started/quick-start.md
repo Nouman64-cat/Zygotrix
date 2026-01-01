@@ -41,11 +41,11 @@ curl -X POST http://localhost:8000/api/genetics/cross \
 
 ### Using the AI Chatbot
 
-Simply ask Zigi:
+Simply ask Zygotrix AI:
 
 > "What are the offspring genotypes when crossing Aa × Aa?"
 
-Zigi will calculate the Punnett square and explain the results!
+Zygotrix AI will calculate the Punnett square and explain the results!
 
 ## DNA Sequence Generation
 
@@ -112,6 +112,6 @@ Visit http://localhost:8000/docs for the interactive Swagger UI where you can:
 ## Next Steps
 
 - [Configuration Guide](./configuration) - Customize settings
-- [AI Chatbot Features](../features/ai-chatbot) - Learn about Zigi
+- [AI Chatbot Features](../features/ai-chatbot) - Learn about Zygotrix AI
 - [GWAS Analysis](../features/gwas-analysis) - Deep dive into GWAS
 - [API Reference](../api/introduction) - Full API documentation

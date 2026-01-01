@@ -4,7 +4,7 @@ sidebar_position: 5
 
 # AI Chatbot Architecture
 
-Zigi, the Zygotrix AI chatbot, is powered by Claude AI with custom genetics tools through the Model Context Protocol (MCP).
+Zygotrix AI, the Zygotrix AI chatbot, is powered by Claude AI with custom genetics tools through the Model Context Protocol (MCP).
 
 ## Overview
 
@@ -156,7 +156,7 @@ def build_context(conversation):
 
 ## User Preferences
 
-Zigi adapts to user preferences:
+Zygotrix AI adapts to user preferences:
 
 ```python
 preferences = {

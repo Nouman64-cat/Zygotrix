@@ -54,6 +54,6 @@ Track your learning journey:
 
 ## Integration with AI Chatbot
 
-Ask Zigi for help while learning:
+Ask Zygotrix AI for help while learning:
 > "Explain incomplete dominance with an example"
 > "I'm stuck on this genetics problem, can you help?"

@@ -2,19 +2,18 @@
 sidebar_position: 1
 ---
 
-# AI Chatbot (Zigi)
+# AI Chatbot (Zygotrix AI)
 
-Zigi is your intelligent genetics assistant, powered by Claude AI with specialized genetics tools.
+Zygotrix AI is your intelligent genetics assistant, powered by Claude AI with specialized genetics tools.
 
-## What Can Zigi Do?
+## What Can Zygotrix AI Do?
 
-### 🧬 Genetics Calculations
+### 1. Solve Genetics Problems
 
-Ask Zigi to calculate Punnett squares:
+Ask Zygotrix AI to calculate Punnett squares:
+> "What is the result of crossing Aa × Aa?"
 
-> **You:** What are the offspring of Aa × Aa?
->
-> **Zigi:** When crossing Aa × Aa, the offspring genotypes are:
+> **Zygotrix AI:** When crossing Aa × Aa, the offspring genotypes are:
 > - **AA (25%)** - Homozygous dominant
 > - **Aa (50%)** - Heterozygous  
 > - **aa (25%)** - Homozygous recessive
@@ -27,15 +26,15 @@ Search the genetics database:
 
 > **You:** Tell me about eye color inheritance
 >
-> **Zigi:** Eye color is determined by multiple genes, but simplified to single-gene inheritance...
+> **Zygotrix AI:** Eye color is determined by multiple genes, but simplified to single-gene inheritance...
 
-### 🔬 DNA/RNA Tools
+### 2. Generate DNA Sequences
 
-Generate and analyze sequences:
+Need a sample sequence?
 
-> **You:** Generate 500bp of random DNA and transcribe it
->
-> **Zigi:** Here's a random 500bp DNA sequence: ATGC... 
+> "Generate a random 500bp DNA sequence"
+
+> **Zygotrix AI:** Here's a random 500bp DNA sequence: ATGC... 
 > Transcribed to mRNA: AUGC...
 
 ### 📊 GWAS Analysis
@@ -44,24 +43,22 @@ Upload and analyze genetic data:
 
 > **You:** [Uploads file.vcf] Analyze this VCF file
 >
-> **Zigi:** I've processed your VCF file with 10,000 SNPs and 200 samples. Running linear regression analysis... Here are the top significant associations...
+> **Zygotrix AI:** I've processed your VCF file with 10,000 SNPs and 200 samples. Running linear regression analysis... Here are the top significant associations...
 
-## Getting Started
-
-### 1. Access the Chatbot
+## How to Interact
 
 Navigate to the Zygotrix AI interface at your frontend URL.
 
 ### 2. Ask a Question
 
-Type your genetics question naturally. Zigi understands:
+Type your genetics question naturally. Zygotrix AI understands:
 - Genetics terminology
 - Casual questions
 - Complex multi-part requests
 
 ### 3. View Tool Usage
 
-When Zigi uses tools, you'll see:
+When Zygotrix AI uses tools, you'll see:
 - Which tools were called
 - The results returned
 - How they informed the response
@@ -80,13 +77,13 @@ When Zigi uses tools, you'll see:
 
 ### Ask Follow-up Questions
 
-Zigi remembers your conversation context:
+Zygotrix AI remembers your conversation context:
 > "What if both parents were Bb?"
 > "Show me a more complex example"
 
 ## User Preferences
 
-Zigi adapts to your preferences:
+Zygotrix AI adapts to your preferences:
 
 ### Communication Style
 - **Technical** - Scientific terminology
@@ -100,7 +97,7 @@ Zigi adapts to your preferences:
 
 ### Auto-Learning
 
-Zigi learns your preferences from your messages:
+Zygotrix AI learns your preferences from your messages:
 - "Explain simply" → Sets simple style
 - "Tell me more" → Sets detailed length
 

@@ -109,7 +109,7 @@ const config = {
             title: 'Features',
             items: [
               {
-                label: 'AI Chatbot (Zigi)',
+                label: 'AI Chatbot (Zygotrix AI)',
                 to: '/docs/features/ai-chatbot',
               },
               {

@@ -184,4 +184,4 @@ Zygotrix/
 
 - [Backend Architecture](./backend) - Deep dive into FastAPI structure
 - [C++ Engine](./cpp-engine) - Understanding the performance layer
-- [AI Chatbot Architecture](./ai-chatbot) - How Zigi works
+- [AI Chatbot Architecture](./ai-chatbot) - How Zygotrix AI works

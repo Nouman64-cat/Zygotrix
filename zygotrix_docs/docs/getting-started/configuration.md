@@ -67,14 +67,14 @@ python -c "import secrets; print(secrets.token_hex(32))"
 ```
 :::
 
-### AI Chatbot (Zigi)
+### AI Chatbot (Zygotrix AI)
 
 ```bash
 # Anthropic API key for Claude
 ANTHROPIC_API_KEY=sk-ant-...
 
 # Bot name (displayed in UI)
-ZYGOTRIX_BOT_NAME=Zigi
+ZYGOTRIX_BOT_NAME=Zygotrix AI
 
 # Model selection (optional)
 CLAUDE_MODEL=claude-sonnet-4-20250514

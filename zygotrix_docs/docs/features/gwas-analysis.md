@@ -29,7 +29,7 @@ curl -X POST http://localhost:8000/api/gwas/datasets/upload \
   -F "file=@your_data.vcf"
 ```
 
-Or through Zigi:
+Or through Zygotrix AI:
 > [Upload file] "Analyze this VCF file"
 
 ### 2. Run Analysis

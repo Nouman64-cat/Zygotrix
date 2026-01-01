@@ -39,7 +39,7 @@ curl -X POST http://localhost:8000/api/genetics/cross \
   }'
 ```
 
-### Using Zigi
+### Using Zygotrix AI
 
 Simply ask:
 > "What are the offspring of Aa × Aa?"

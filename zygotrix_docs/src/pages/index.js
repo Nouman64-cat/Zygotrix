@@ -38,7 +38,7 @@ const FeatureList = [
   },
   {
     title: 'AI-Powered Assistant',
-    description: 'Zigi, your intelligent genetics assistant powered by Claude AI, answers questions and performs calculations.',
+    description: 'Zygotrix AI, your intelligent genetics assistant powered by Claude AI, answers questions and performs calculations.',
   },
   {
     title: 'GWAS Analysis',

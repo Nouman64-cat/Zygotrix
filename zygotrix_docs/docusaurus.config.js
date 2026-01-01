@@ -77,7 +77,7 @@ const config = {
             position: 'left',
             label: 'API Reference',
           },
-          {to: '/blog', label: 'Changelog', position: 'left'},
+          {to: '/founder', label: 'Founder', position: 'left'},
           {
             href: 'https://github.com/Nouman64-cat/Zygotrix',
             label: 'GitHub',
@@ -126,8 +126,8 @@ const config = {
             title: 'More',
             items: [
               {
-                label: 'Changelog',
-                to: '/blog',
+                label: 'Founder',
+                to: '/founder',
               },
               {
                 label: 'GitHub',

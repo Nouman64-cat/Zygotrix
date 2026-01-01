@@ -11,11 +11,11 @@ slug: /
 
 Zygotrix combines cutting-edge AI technology with comprehensive genetics tools to provide:
 
-- 🤖 **Zigi AI Chatbot** - An intelligent assistant that answers genetics questions and performs calculations
-- 🧬 **Punnett Square Calculator** - Visualize genetic crosses from simple to complex multi-gene scenarios
-- 📊 **GWAS Analysis** - Perform genome-wide association studies on your own data
-- 🔬 **DNA/RNA Tools** - Generate, transcribe, and translate genetic sequences
-- 🎓 **Zygotrix University** - Structured courses for learning genetics
+- **Zigi AI Chatbot** - An intelligent assistant that answers genetics questions and performs calculations
+- **Punnett Square Calculator** - Visualize genetic crosses from simple to complex multi-gene scenarios
+- **GWAS Analysis** - Perform genome-wide association studies on your own data
+- **DNA/RNA Tools** - Generate, transcribe, and translate genetic sequences
+- **Zygotrix University** - Structured courses for learning genetics
 
 ## Quick Links
 

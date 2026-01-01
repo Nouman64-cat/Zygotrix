@@ -23,7 +23,7 @@ function HomepageHeader() {
           <Link
             className="button button--secondary button--lg"
             to="/docs">
-            Get Started 🚀
+            Get Started
           </Link>
         </div>
       </div>
@@ -33,15 +33,15 @@ function HomepageHeader() {
 
 const FeatureList = [
   {
-    title: '🧬 Genetics Calculations',
+    title: 'Genetics Calculations',
     description: 'Calculate Punnett squares, genetic crosses, and inheritance patterns with our high-performance C++ engine.',
   },
   {
-    title: '🤖 AI-Powered Assistant',
+    title: 'AI-Powered Assistant',
     description: 'Zigi, your intelligent genetics assistant powered by Claude AI, answers questions and performs calculations.',
   },
   {
-    title: '📊 GWAS Analysis',
+    title: 'GWAS Analysis',
     description: 'Run genome-wide association studies on your VCF files with statistical analysis and visualization.',
   },
 ];

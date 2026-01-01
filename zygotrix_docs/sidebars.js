@@ -4,11 +4,11 @@ const sidebars = {
     {
       type: 'doc',
       id: 'intro',
-      label: '👋 Introduction',
+      label: 'Introduction',
     },
     {
       type: 'category',
-      label: '🚀 Getting Started',
+      label: 'Getting Started',
       collapsed: false,
       items: [
         'getting-started/installation',
@@ -18,7 +18,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '🏗️ Architecture',
+      label: 'Architecture',
       items: [
         'architecture/overview',
         'architecture/backend',
@@ -29,7 +29,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '✨ Features',
+      label: 'Features',
       items: [
         'features/ai-chatbot',
         'features/punnett-squares',
@@ -41,7 +41,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '👨‍💻 Developer Guide',
+      label: 'Developer Guide',
       items: [
         'developer-guide/contributing',
         'developer-guide/code-style',
@@ -54,11 +54,11 @@ const sidebars = {
     {
       type: 'doc',
       id: 'api/introduction',
-      label: '📖 API Introduction',
+      label: 'API Introduction',
     },
     {
       type: 'category',
-      label: '🔐 Authentication',
+      label: 'Authentication',
       items: [
         'api/auth/overview',
         'api/auth/signup',
@@ -68,7 +68,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '🧬 Traits',
+      label: 'Traits',
       items: [
         'api/traits/list',
         'api/traits/search',
@@ -77,7 +77,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '📊 GWAS',
+      label: 'GWAS',
       items: [
         'api/gwas/upload-dataset',
         'api/gwas/run-analysis',
@@ -86,7 +86,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '🧪 DNA Tools',
+      label: 'DNA Tools',
       items: [
         'api/dna/generate',
         'api/dna/transcribe',
@@ -95,7 +95,7 @@ const sidebars = {
     },
     {
       type: 'category',
-      label: '🤖 AI Chatbot',
+      label: 'AI Chatbot',
       items: [
         'api/chatbot/conversations',
         'api/chatbot/messages',

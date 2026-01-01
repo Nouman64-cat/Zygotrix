@@ -286,6 +286,10 @@ class ChatRequest(BaseModel):
     # Note: MCP tools are only available in non-streaming mode
     stream: bool = False
 
+    # Tools that are explicitly enabled for this message
+    # E.g., ["gwas_analysis"] to enable GWAS analysis
+    enabled_tools: List[str] = Field(default_factory=list)
+
 
 class ChatResponse(BaseModel):
     """Response model for a chat message (non-streaming)."""

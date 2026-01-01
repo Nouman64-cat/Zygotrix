@@ -85,10 +85,12 @@ class ZygotrixChatService:
 
         # Handle file attachments FIRST (for GWAS datasets)
         # This uploads files to cloud storage before we save the message
+        # GWAS processing only happens if 'gwas_analysis' tool is enabled
         upload_results = await self._handle_file_attachments(
             chat_request.attachments,
             chat_request.message,
-            user_id
+            user_id,
+            enabled_tools=chat_request.enabled_tools or []
         )
 
         # Strip file content from attachments before storing in MongoDB
@@ -273,24 +275,29 @@ class ZygotrixChatService:
         self,
         attachments: Optional[list],
         message: str,
-        user_id: str
+        user_id: str,
+        enabled_tools: Optional[list] = None
     ) -> Optional[str]:
         """
         Automatically handle file attachments (e.g., GWAS datasets).
 
-        For genomic files (.vcf, .bed, etc.), automatically uploads them
-        and returns a summary to include in the AI's context.
+        For genomic files (.vcf, .bed, etc.), uploads them and runs GWAS analysis
+        ONLY if the 'gwas_analysis' tool is explicitly enabled.
 
         Args:
             attachments: List of file attachments
             message: User's message (to extract trait name)
             user_id: User ID
+            enabled_tools: List of enabled tool names (e.g., ['gwas_analysis'])
 
         Returns:
             Summary text about uploaded files, or None if no files
         """
         if not attachments or len(attachments) == 0:
             return None
+
+        # Check if GWAS analysis tool is enabled
+        gwas_enabled = enabled_tools and 'gwas_analysis' in enabled_tools
 
         # Import GWAS upload function
         from ...chatbot_tools.gwas_tools import upload_gwas_dataset
@@ -307,6 +314,22 @@ class ZygotrixChatService:
             )
 
             if not is_genomic_file:
+                continue
+
+            # If GWAS tool is not enabled, inform the user but don't process the file
+            if not gwas_enabled:
+                results.append(
+                    f"[SYSTEM INSTRUCTION: The user has attached a genomic file but has NOT enabled the GWAS Analysis tool. "
+                    f"You MUST inform them that they need to enable the tool before you can run GWAS analysis. "
+                    f"Do NOT attempt to run GWAS analysis. Just acknowledge their request and guide them to enable the tool.]\n\n"
+                    f"📎 **Genomic file detected:** {attachment.name}\n"
+                    f"⚠️ **GWAS Analysis tool is not enabled.** To run GWAS analysis on this file:\n"
+                    f"1. Click the **Tools** button (slider icon) in the chat input\n"
+                    f"2. Enable **🧬 GWAS Analysis**\n"
+                    f"3. Send your message again\n\n"
+                    f"The tool allows me to analyze genetic variants and identify associations with traits."
+                )
+                logger.info(f"📎 Genomic file attached but GWAS not enabled: {attachment.name}")
                 continue
 
             # Auto-detect file format

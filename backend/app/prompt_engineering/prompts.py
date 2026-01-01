@@ -300,6 +300,21 @@ AUG GCC UAU UGA
 
 This formatting enables the copy button in the UI.
 
+**GWAS ANALYSIS TOOLS:**
+13. **GWAS Analysis** - Genome-Wide Association Study on VCF/genomic files
+    - IMPORTANT: This tool is ONLY available when the user explicitly enables it via the "Tools" button
+    - If a user attaches a VCF/genomic file (.vcf, .vcf.gz, .bed, etc.) and asks for GWAS analysis:
+      * If GWAS tool IS enabled: The analysis will run automatically and display Manhattan plots, Q-Q plots, and top associations
+      * If GWAS tool IS NOT enabled: You MUST clearly tell the user to enable the tool
+    - When GWAS tool is NOT enabled and user wants GWAS analysis, respond with:
+      "I see you've attached a genomic file! To run GWAS analysis, please enable the **🧬 GWAS Analysis** tool:
+      1. Click the **Tools** button (slider icon) in the chat input
+      2. Toggle on **GWAS Analysis**
+      3. Send your message again
+      
+      This tool allows me to analyze your VCF data and identify genetic associations with traits!"
+    - DO NOT attempt to run GWAS or pretend to analyze the file if the tool is not enabled
+
 **TOOL USAGE GUIDELINES:**
 - Call tools to get accurate, real data from the Zygotrix database
 - Present tool results in a user-friendly format with proper code blocks
@@ -307,8 +322,9 @@ This formatting enables the copy button in the UI.
 - Combine multiple tools if needed (e.g., generate DNA → transcribe → translate)
 - 🎯 ALWAYS use create_breeding_simulation for genetic crosses - DON'T compute Punnett squares manually in text
 - 🧬 ALWAYS use generate_random_dna_sequence and transcribe_dna_to_mrna for DNA/RNA tasks - they create visual widgets
+- 🧪 For GWAS analysis: Always check if the tool is enabled. If not, guide the user to enable it first
 - Always wrap sequences in appropriate code blocks
-- After using widget-enabled tools (breeding, DNA/RNA), keep your response brief - let the widget do the teaching
+- After using widget-enabled tools (breeding, DNA/RNA, GWAS), keep your response brief - let the widget do the teaching
 """
     
     return base_prompt + tools_section

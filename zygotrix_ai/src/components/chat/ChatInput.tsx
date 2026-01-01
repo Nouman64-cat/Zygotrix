@@ -1,11 +1,27 @@
 import React, { useState, useRef, useEffect, type KeyboardEvent } from 'react';
-import { FiSend, FiPlus, FiX, FiFile } from 'react-icons/fi';
+import { FiSend, FiPlus, FiX, FiFile, FiSliders, FiCheck } from 'react-icons/fi';
 import { cn } from '../../utils';
-import { IconButton } from '../common';
 import type { MessageAttachment } from '../../types';
 
+// Available AI tools
+interface AiTool {
+  id: string;
+  name: string;
+  description: string;
+  icon: string;
+}
+
+const AVAILABLE_TOOLS: AiTool[] = [
+  {
+    id: 'gwas_analysis',
+    name: 'GWAS Analysis',
+    description: 'Genome-wide association study on VCF files',
+    icon: '🧬',
+  },
+];
+
 interface ChatInputProps {
-  onSend: (message: string, attachments?: MessageAttachment[]) => void;
+  onSend: (message: string, attachments?: MessageAttachment[], enabledTools?: string[]) => void;
   disabled?: boolean;
   placeholder?: string;
 }
@@ -13,24 +29,47 @@ interface ChatInputProps {
 export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   disabled = false,
-  placeholder = 'Message Zygotrix AI...',
+  placeholder = 'Ask Zygotrix AI',
 }) => {
   const [value, setValue] = useState('');
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
+  const [enabledTools, setEnabledTools] = useState<string[]>([]);
+  const [showToolsMenu, setShowToolsMenu] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const toolsMenuRef = useRef<HTMLDivElement>(null);
 
   const adjustHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
       textarea.style.height = 'auto';
-      textarea.style.height = `${Math.min(textarea.scrollHeight, 200)}px`;
+      // Very compact on mobile (24px single line), taller on desktop (44px)
+      const minHeight = window.innerWidth < 640 ? 24 : 44;
+      const maxHeight = window.innerWidth < 640 ? 120 : 150;
+      const newHeight = Math.max(minHeight, Math.min(textarea.scrollHeight, maxHeight));
+      textarea.style.height = `${newHeight}px`;
     }
   };
 
   useEffect(() => {
     adjustHeight();
   }, [value]);
+
+  // Close tools menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (toolsMenuRef.current && !toolsMenuRef.current.contains(event.target as Node)) {
+        setShowToolsMenu(false);
+      }
+    };
+
+    if (showToolsMenu) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showToolsMenu]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -87,13 +126,26 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     setAttachments((prev) => prev.filter((att) => att.id !== id));
   };
 
+  const handleToggleTool = (toolId: string) => {
+    setEnabledTools((prev) =>
+      prev.includes(toolId)
+        ? prev.filter((id) => id !== toolId)
+        : [...prev, toolId]
+    );
+  };
+
   const handleSend = () => {
     if ((value.trim() || attachments.length > 0) && !disabled) {
-      onSend(value.trim(), attachments.length > 0 ? attachments : undefined);
+      onSend(
+        value.trim(),
+        attachments.length > 0 ? attachments : undefined,
+        enabledTools.length > 0 ? enabledTools : undefined
+      );
       setValue('');
       setAttachments([]);
+      // Don't reset enabled tools - keep them persistent for the session
       if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = window.innerWidth < 640 ? '24px' : '44px';
       }
     }
   };
@@ -111,20 +163,51 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  const canSend = (value.trim() || attachments.length > 0) && !disabled;
+  const hasEnabledTools = enabledTools.length > 0;
+
   return (
-    <div className="  p-4 md:p-4">
-      <div className="max-w-6xl mx-auto px-2 lg:px-4">
+    <div className="p-2 sm:p-3 md:p-4">
+      <div className="max-w-4xl mx-auto">
+        {/* Enabled Tools Indicator */}
+        {enabledTools.length > 0 && (
+          <div className="mb-2 flex flex-wrap gap-1.5">
+            {enabledTools.map((toolId) => {
+              const tool = AVAILABLE_TOOLS.find((t) => t.id === toolId);
+              if (!tool) return null;
+              return (
+                <div
+                  key={toolId}
+                  className="flex items-center gap-1.5 bg-emerald-100 dark:bg-emerald-500/15 border border-emerald-300 dark:border-emerald-500/40 rounded-lg px-2 py-1 text-xs"
+                >
+                  <span>{tool.icon}</span>
+                  <span className="text-emerald-700 dark:text-emerald-300 font-medium">{tool.name}</span>
+                  <button
+                    onClick={() => handleToggleTool(toolId)}
+                    className="ml-0.5 text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                    title="Disable tool"
+                  >
+                    <FiX className="text-xs" />
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+
         {/* File Attachments Preview */}
         {attachments.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-2">
+          <div className="mb-3 flex flex-wrap gap-2">
             {attachments.map((attachment) => (
               <div
                 key={attachment.id}
-                className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-700 rounded-lg px-3 py-2 text-sm"
+                className="flex items-center gap-2 bg-emerald-50 dark:bg-emerald-500/10 border border-emerald-200 dark:border-emerald-500/30 rounded-xl px-3 py-2 text-sm backdrop-blur-sm"
               >
-                <FiFile className="text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                <div className="w-8 h-8 rounded-lg bg-emerald-100 dark:bg-emerald-500/20 flex items-center justify-center">
+                  <FiFile className="text-emerald-600 dark:text-emerald-400 text-sm" />
+                </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-gray-900 dark:text-gray-100 truncate font-medium">
+                  <p className="text-gray-900 dark:text-gray-100 truncate font-medium text-sm">
                     {attachment.name}
                   </p>
                   {attachment.size_bytes && (
@@ -135,68 +218,173 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 </div>
                 <button
                   onClick={() => handleRemoveAttachment(attachment.id)}
-                  className="text-gray-500 hover:text-red-600 dark:text-gray-400 dark:hover:text-red-400 transition-colors"
+                  className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700/50 hover:bg-red-100 dark:hover:bg-red-500/30 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
                   disabled={disabled}
                 >
-                  <FiX />
+                  <FiX className="text-xs" />
                 </button>
               </div>
             ))}
           </div>
         )}
 
-        {/* Input Area */}
-        <div className="relative flex items-end gap-2 bg-gray-50 dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 focus-within:border-emerald-500 dark:focus-within:border-emerald-400 focus-within:ring-2 focus-within:ring-emerald-500/20 dark:focus-within:ring-emerald-400/30 transition-all duration-200">
-          {/* File Upload Button */}
-          <div className="flex-shrink-0 p-2">
-            <input
-              ref={fileInputRef}
-              type="file"
-              multiple
-              accept=".vcf,.vcf.gz,.gz,.bed,.bim,.fam,.csv,.tsv,.json,application/gzip,application/x-gzip"
-              onChange={handleFileSelect}
-              className="hidden"
+        {/* Gemini-style Input Card */}
+        <div
+          className={cn(
+            "relative bg-white dark:bg-gray-800/80 backdrop-blur-xl rounded-xl sm:rounded-2xl md:rounded-3xl border transition-all duration-300",
+            "border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600/70",
+            "focus-within:border-emerald-500 dark:focus-within:border-emerald-500/50 focus-within:ring-1 focus-within:ring-emerald-500/20",
+            "shadow-lg shadow-gray-200/50 dark:shadow-black/20"
+          )}
+        >
+          {/* Text Input Area - Top */}
+          <div className="px-3 pt-2.5 pb-0 sm:px-4 sm:pt-3 sm:pb-1">
+            <textarea
+              ref={textareaRef}
+              value={value}
+              onChange={(e) => setValue(e.target.value)}
+              onKeyDown={handleKeyDown}
+              placeholder={placeholder}
               disabled={disabled}
-            />
-            <IconButton
-              icon={<FiPlus />}
-              onClick={() => fileInputRef.current?.click()}
-              disabled={disabled}
-              variant="ghost"
-              size="md"
-              tooltip="Attach genomic files (.vcf, .vcf.gz, .bed, .csv, .json)"
+              rows={1}
+              className={cn(
+                'w-full resize-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500',
+                'focus:outline-none disabled:cursor-not-allowed',
+                'text-sm sm:text-base leading-snug sm:leading-relaxed',
+                'min-h-[24px] sm:min-h-[44px] max-h-[120px] sm:max-h-[150px]'
+              )}
             />
           </div>
 
-          {/* Text Input */}
-          <textarea
-            ref={textareaRef}
-            value={value}
-            onChange={(e) => setValue(e.target.value)}
-            onKeyDown={handleKeyDown}
-            placeholder={placeholder}
-            disabled={disabled}
-            rows={1}
-            className={cn(
-              'flex-1 resize-none bg-transparent px-4 py-3 text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500',
-              'focus:outline-none disabled:cursor-not-allowed min-h-[48px] max-h-[200px]'
-            )}
-          />
+          {/* Bottom Toolbar */}
+          <div className="flex items-center justify-between px-2 pb-2 sm:px-3 sm:pb-3 sm:pt-1">
+            {/* Left Actions */}
+            <div className="flex items-center gap-0.5 sm:gap-1">
+              {/* File Upload Button */}
+              <input
+                ref={fileInputRef}
+                type="file"
+                multiple
+                accept=".vcf,.vcf.gz,.gz,.bed,.bim,.fam,.csv,.tsv,.json,application/gzip,application/x-gzip"
+                onChange={handleFileSelect}
+                className="hidden"
+                disabled={disabled}
+              />
+              <button
+                onClick={() => fileInputRef.current?.click()}
+                disabled={disabled}
+                className={cn(
+                  "w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200",
+                  "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50",
+                  "disabled:opacity-40 disabled:cursor-not-allowed"
+                )}
+                title="Attach genomic files"
+              >
+                <FiPlus className="text-base sm:text-lg" />
+              </button>
 
-          {/* Send Button */}
-          <div className="flex-shrink-0 p-2">
-            <IconButton
-              icon={<FiSend />}
-              onClick={handleSend}
-              disabled={disabled || (!value.trim() && attachments.length === 0)}
-              variant="primary"
-              size="md"
-              tooltip="Send message (Enter)"
-            />
+              {/* Tools Button with Dropdown */}
+              <div className="relative" ref={toolsMenuRef}>
+                <button
+                  onClick={() => setShowToolsMenu(!showToolsMenu)}
+                  disabled={disabled}
+                  className={cn(
+                    "h-8 sm:h-9 px-2 sm:px-3 rounded-lg sm:rounded-xl flex items-center gap-1.5 sm:gap-2 transition-all duration-200",
+                    hasEnabledTools
+                      ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20"
+                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50",
+                    "disabled:opacity-40 disabled:cursor-not-allowed"
+                  )}
+                  title="Analysis Tools"
+                >
+                  <FiSliders className="text-sm sm:text-base" />
+                  <span className="text-xs sm:text-sm font-medium hidden sm:inline">Tools</span>
+                  {hasEnabledTools && (
+                    <span className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center">
+                      {enabledTools.length}
+                    </span>
+                  )}
+                </button>
+
+                {/* Tools Dropdown Menu */}
+                {showToolsMenu && (
+                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
+                    <div className="p-2 border-b border-gray-100 dark:border-gray-700">
+                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
+                        AI Analysis Tools
+                      </p>
+                    </div>
+                    <div className="p-1">
+                      {AVAILABLE_TOOLS.map((tool) => {
+                        const isEnabled = enabledTools.includes(tool.id);
+                        return (
+                          <button
+                            key={tool.id}
+                            onClick={() => handleToggleTool(tool.id)}
+                            className={cn(
+                              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                              isEnabled
+                                ? "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
+                                : "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"
+                            )}
+                          >
+                            <span className="text-lg">{tool.icon}</span>
+                            <div className="flex-1 text-left">
+                              <p className="text-sm font-medium">{tool.name}</p>
+                              <p className="text-xs text-gray-400 dark:text-gray-500">{tool.description}</p>
+                            </div>
+                            <div
+                              className={cn(
+                                "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
+                                isEnabled
+                                  ? "bg-emerald-500 border-emerald-500"
+                                  : "border-gray-300 dark:border-gray-600"
+                              )}
+                            >
+                              {isEnabled && <FiCheck className="text-white text-xs" />}
+                            </div>
+                          </button>
+                        );
+                      })}
+                    </div>
+                    <div className="p-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
+                      <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
+                        Enable tools to use advanced AI features
+                      </p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Right Actions */}
+            <div className="flex items-center gap-1.5 sm:gap-2">
+              {/* Model Indicator */}
+              <div className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg bg-gray-100 dark:bg-gray-700/40 text-gray-500 dark:text-gray-400 text-sm">
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
+                <span className="font-medium">AI</span>
+              </div>
+
+              {/* Send Button */}
+              <button
+                onClick={handleSend}
+                disabled={!canSend}
+                className={cn(
+                  "w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200",
+                  canSend
+                    ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 active:scale-95"
+                    : "bg-gray-100 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                )}
+                title="Send message (Enter)"
+              >
+                <FiSend className={cn("text-base sm:text-lg", canSend && "-rotate-45")} />
+              </button>
+            </div>
           </div>
         </div>
 
-        <p className="mt-2 md:text-xs text-[10px] text-gray-500 dark:text-gray-400 text-center">
+        {/* Disclaimer */}
+        <p className="mt-3 text-[11px] text-gray-400 dark:text-gray-500 text-center">
           Zygotrix AI can make mistakes. Please verify important information.
         </p>
       </div>

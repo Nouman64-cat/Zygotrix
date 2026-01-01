@@ -174,6 +174,8 @@ export interface ChatRequest {
   parent_message_id?: string;
   page_context?: string;
   stream?: boolean;
+  // Tools that are explicitly enabled for this message
+  enabled_tools?: string[];
   // Legacy fields for backwards compatibility with old API
   userName?: string;
   userId?: string;

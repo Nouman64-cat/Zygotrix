@@ -9,12 +9,12 @@ import type { LocalConversation } from '../types';
 export const Chat: React.FC = () => {
   const { conversationId: urlConversationId } = useParams<{ conversationId?: string }>();
   const navigate = useNavigate();
-  
+
   const [conversationsList, setConversationsList] = useState<LocalConversation[]>([]);
   const [rateLimitRefresh, setRateLimitRefresh] = useState(0);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
-  
+
   // Rate limit state - can be set from API or from error messages
   const [isRateLimitedFromAPI, setIsRateLimitedFromAPI] = useState(false);
   const [resetTime, setResetTime] = useState<string | null>(null);
@@ -32,7 +32,7 @@ export const Chat: React.FC = () => {
 
   // Parse error to check for rate limit - check multiple patterns
   const isRateLimitedFromError = error ? (
-    error.includes('429') || 
+    error.includes('429') ||
     error.toLowerCase().includes('rate limit') ||
     error.toLowerCase().includes('too many requests') ||
     error.toLowerCase().includes('cooldown')
@@ -147,8 +147,8 @@ export const Chat: React.FC = () => {
     }
   };
 
-  const handleSendMessage = async (content: string, attachments?: import('../types').MessageAttachment[]) => {
-    await sendMessage(content, attachments);
+  const handleSendMessage = async (content: string, attachments?: import('../types').MessageAttachment[], enabledTools?: string[]) => {
+    await sendMessage(content, attachments, enabledTools);
     setTimeout(() => {
       setRateLimitRefresh(prev => prev + 1);
     }, 1000);
@@ -184,8 +184,8 @@ export const Chat: React.FC = () => {
 
             {/* Horizontal Rate Limit Indicator - Mobile/Tablet only */}
             <div className="xl:hidden border-b border-gray-200 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-900">
-              <RateLimitIndicator 
-                refreshTrigger={rateLimitRefresh} 
+              <RateLimitIndicator
+                refreshTrigger={rateLimitRefresh}
                 onRateLimitChange={handleRateLimitChange}
               />
             </div>
@@ -208,9 +208,9 @@ export const Chat: React.FC = () => {
 
           {/* Vertical Rate Limit Indicator - Right Side (desktop only) */}
           <div className="hidden xl:flex w-16 border-l border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-            <RateLimitIndicator 
-              refreshTrigger={rateLimitRefresh} 
-              vertical 
+            <RateLimitIndicator
+              refreshTrigger={rateLimitRefresh}
+              vertical
               onRateLimitChange={handleRateLimitChange}
             />
           </div>

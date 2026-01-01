@@ -10,7 +10,11 @@ interface UseChatReturn {
   error: string | null;
   conversationId: string | null;
   conversationTitle: string;
-  sendMessage: (content: string, attachments?: MessageAttachment[]) => Promise<void>;
+  sendMessage: (
+    content: string,
+    attachments?: MessageAttachment[],
+    enabledTools?: string[]
+  ) => Promise<void>;
   clearMessages: () => void;
   setMessages: (messages: Message[]) => void;
   loadConversation: (conversationId: string) => Promise<void>;
@@ -72,7 +76,11 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
   }, []);
 
   const sendMessage = useCallback(
-    async (content: string, attachments?: MessageAttachment[]) => {
+    async (
+      content: string,
+      attachments?: MessageAttachment[],
+      enabledTools?: string[]
+    ) => {
       if (!content.trim() && (!attachments || attachments.length === 0)) return;
 
       // Create optimistic user message
@@ -106,6 +114,7 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
         attachments,
         page_context: "Chat Interface",
         stream: false, // Disable streaming to enable MCP tools (tools only work in non-streaming mode)
+        enabled_tools: enabledTools || [],
       };
 
       try {

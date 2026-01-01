@@ -28,6 +28,13 @@ export const Chat: React.FC = () => {
   const [isRateLimitedFromAPI, setIsRateLimitedFromAPI] = useState(false);
   const [resetTime, setResetTime] = useState<string | null>(null);
 
+  // Persist conversationsList changes to localStorage
+  useEffect(() => {
+    if (conversationsList.length > 0) {
+      localStorage.setItem('zygotrix_conversations', JSON.stringify(conversationsList));
+    }
+  }, [conversationsList]);
+
   const {
     messages,
     isLoading,
@@ -157,6 +164,20 @@ export const Chat: React.FC = () => {
     }
   };
 
+  const handleRenameConversation = async (id: string, newTitle: string) => {
+    try {
+      // Optimistic update
+      setConversationsList(prev => prev.map(c =>
+        c.id === id ? { ...c, title: newTitle } : c
+      ));
+
+      await chatService.updateConversation(id, { title: newTitle });
+    } catch (err) {
+      console.error('Failed to rename conversation:', err);
+      loadConversations(); // Revert on error
+    }
+  };
+
   const handleSendMessage = async (content: string, attachments?: import('../types').MessageAttachment[], enabledTools?: string[]) => {
     await sendMessage(content, attachments, enabledTools);
     setTimeout(() => {
@@ -171,6 +192,7 @@ export const Chat: React.FC = () => {
       onSelectConversation={handleSelectConversation}
       onNewConversation={handleNewConversation}
       onDeleteConversation={handleDeleteConversation}
+      onRenameConversation={handleRenameConversation}
     >
       <>
         {/* Rate Limit Modal */}

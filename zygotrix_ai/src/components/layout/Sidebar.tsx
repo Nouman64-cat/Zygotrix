@@ -13,6 +13,7 @@ interface SidebarProps {
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
   onDeleteConversation: (id: string) => void;
+  onRenameConversation: (id: string, newTitle: string) => void;
   isOpen: boolean;
   onClose: () => void;
   onOpenSettings: () => void;
@@ -24,6 +25,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onSelectConversation,
   onNewConversation,
   onDeleteConversation,
+  onRenameConversation,
   isOpen,
   onClose,
   onOpenSettings,
@@ -41,6 +43,18 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
+  // Renaming state
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editTitle, setEditTitle] = useState('');
+
+  const handleRenameSubmit = () => {
+    if (editingId && editTitle.trim()) {
+      onRenameConversation(editingId, editTitle.trim());
+    }
+    setEditingId(null);
+    setEditTitle('');
+  };
+
   const filteredConversations = conversations.filter(c =>
     c.title.toLowerCase().includes(searchQuery.toLowerCase())
   );
@@ -56,15 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       )}
 
       {/* Click outside to close menu */}
-      {activeMenuId && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={(e) => {
-            e.stopPropagation();
-            setActiveMenuId(null);
-          }}
-        />
-      )}
+
       <aside
         className={cn(
           'fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-30',
@@ -73,6 +79,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
           isCollapsed ? 'w-16' : 'w-72'
         )}
       >
+        {/* Click outside to close menu */}
+        {activeMenuId && (
+          <div
+            className="fixed inset-0 z-40 cursor-default"
+            onClick={(e) => {
+              e.stopPropagation();
+              setActiveMenuId(null);
+            }}
+          />
+        )}
         <div className={cn(
           "hidden md:flex items-center px-2 pt-4 pb-2 mb-1 min-h-[44px]",
           (isCollapsed && !isSearchOpen) ? "justify-center" : (isSearchOpen ? "bg-gray-50 dark:bg-gray-800/50 rounded-lg mx-2" : "justify-between")
@@ -193,9 +209,28 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClose();
                 }}
               >
-                <p className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                  {truncateText(conversation.title, 35)}
-                </p>
+                {editingId === conversation.id ? (
+                  <input
+                    autoFocus
+                    type="text"
+                    className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 text-sm font-medium border-none outline-none focus:ring-0 p-0 m-0 w-full truncate"
+                    value={editTitle}
+                    onChange={(e) => setEditTitle(e.target.value)}
+                    onBlur={handleRenameSubmit}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') handleRenameSubmit();
+                      if (e.key === 'Escape') {
+                        setEditingId(null);
+                        setEditTitle('');
+                      }
+                    }}
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                ) : (
+                  <p className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                    {truncateText(conversation.title, 35)}
+                  </p>
+                )}
                 <IconButton
                   icon={<FiMoreVertical />}
                   onClick={(e) => {
@@ -217,8 +252,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       className="w-full text-left px-3 py-2 text-sm hover:!bg-gray-50 dark:hover:!bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-200"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: Implement Rename
-                        console.log('Rename', conversation.id);
+                        setEditingId(conversation.id);
+                        setEditTitle(conversation.title);
                         setActiveMenuId(null);
                       }}
                     >

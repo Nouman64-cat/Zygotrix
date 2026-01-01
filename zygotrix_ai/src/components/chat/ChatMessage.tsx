@@ -187,13 +187,13 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
               {message.attachments.map((attachment) => (
                 <div
                   key={attachment.id}
-                  className="flex items-center gap-2 bg-white/20 dark:bg-white/10 rounded-lg px-3 py-2 text-sm border border-white/30 dark:border-white/20"
+                  className="flex items-center gap-2 bg-white/20 dark:bg-white/10 rounded-lg px-2 sm:px-3 py-1.5 sm:py-2 text-xs sm:text-sm border border-white/30 dark:border-white/20"
                 >
-                  <FiFile className="flex-shrink-0" />
+                  <FiFile className="flex-shrink-0 text-sm" />
                   <div className="flex-1 min-w-0">
-                    <p className="truncate font-medium">{attachment.name}</p>
+                    <p className="truncate font-medium text-xs sm:text-sm">{attachment.name}</p>
                     {attachment.size_bytes && (
-                      <p className="text-xs opacity-80">{formatFileSize(attachment.size_bytes)}</p>
+                      <p className="text-[10px] sm:text-xs opacity-80">{formatFileSize(attachment.size_bytes)}</p>
                     )}
                   </div>
                 </div>
@@ -211,15 +211,15 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
           remarkPlugins={[remarkGfm]}
           components={{
             // Override default elements with custom styling
-            p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
+            p: ({ children }) => <p className="mb-2 last:mb-0 text-sm sm:text-base">{children}</p>,
             strong: ({ children }) => <strong className="font-bold">{children}</strong>,
             em: ({ children }) => <em className="italic">{children}</em>,
-            ul: ({ children }) => <ul className="list-disc list-outside ml-5 mb-2 space-y-1">{children}</ul>,
-            ol: ({ children }) => <ol className="list-decimal list-outside ml-5 mb-2 space-y-1">{children}</ol>,
+            ul: ({ children }) => <ul className="list-disc list-outside ml-4 sm:ml-5 mb-2 space-y-1 text-sm sm:text-base">{children}</ul>,
+            ol: ({ children }) => <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-2 space-y-1 text-sm sm:text-base">{children}</ol>,
             li: ({ children }) => <li className="pl-1">{children}</li>,
-            h1: ({ children }) => <h1 className="text-lg font-bold mb-2">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-base font-bold mb-2">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-sm font-bold mb-1">{children}</h3>,
+            h1: ({ children }) => <h1 className="text-base sm:text-lg font-bold mb-2">{children}</h1>,
+            h2: ({ children }) => <h2 className="text-sm sm:text-base font-bold mb-2">{children}</h2>,
+            h3: ({ children }) => <h3 className="text-xs sm:text-sm font-bold mb-1">{children}</h3>,
             // Enhanced code block with copy functionality
             code: ({ children, className }) => {
               const match = /language-(\w+)/.exec(className || '');
@@ -320,8 +320,8 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
 
 
   return (
-    <div className={cn('flex gap-3 px-4 py-3 md:px-6', isUser ? 'justify-end' : 'justify-start')}>
-      <div className={cn('flex gap-3 max-w-[90%] md:max-w-3xl lg:max-w-4xl', isUser && 'flex-row-reverse')}>
+    <div className={cn('flex gap-2 sm:gap-3 px-2 sm:px-4 py-2 sm:py-3 md:px-6', isUser ? 'justify-end' : 'justify-start')}>
+      <div className={cn('flex gap-2 sm:gap-3 max-w-full sm:max-w-[85%] md:max-w-3xl lg:max-w-4xl', isUser && 'flex-row-reverse')}>
         {/* Avatar - hidden on mobile */}
         <div className="hidden md:flex flex-shrink-0">
           {isUser ? (
@@ -338,14 +338,14 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
         {/* Message Bubble */}
         <div className="min-w-0 space-y-1">
           {/* Name and Timestamp */}
-          <div className={cn('flex items-center gap-2', isUser && 'justify-end')}>
+          <div className={cn('flex items-center gap-1.5 sm:gap-2', isUser && 'justify-end')}>
             <span className={cn(
-              'font-semibold text-sm',
+              'font-semibold text-xs sm:text-sm',
               isUser ? 'text-gray-700 dark:text-gray-300' : 'text-gray-900 dark:text-gray-100'
             )}>
               {isUser ? 'You' : 'Zygotrix AI'}
             </span>
-            <span className="text-xs text-gray-500 dark:text-gray-400">
+            <span className="text-[10px] sm:text-xs text-gray-500 dark:text-gray-400">
               {formatMessageTime(message.timestamp)}
             </span>
           </div>
@@ -353,7 +353,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
           {/* Content Bubble */}
           <div
             className={cn(
-              'rounded-2xl px-4 py-3 shadow-sm min-h-[2.5rem] min-w-[3rem]',
+              'rounded-2xl px-3 py-2 sm:px-4 sm:py-3 shadow-sm min-h-[2rem] sm:min-h-[2.5rem] min-w-[3rem]',
               isUser
                 ? 'bg-emerald-600 dark:bg-emerald-700 text-white rounded-tr-sm'
                 : 'bg-gray-100 dark:bg-gray-800 rounded-tl-sm'
@@ -361,7 +361,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
           >
             <div
               className={cn(
-                'max-w-none break-words',
+                'max-w-none break-words text-sm sm:text-base',
                 isUser
                   ? 'text-white'
                   : 'text-gray-800 dark:text-gray-200'

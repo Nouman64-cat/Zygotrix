@@ -164,40 +164,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const canSend = (value.trim() || attachments.length > 0) && !disabled;
-  const hasEnabledTools = enabledTools.length > 0;
 
   return (
-    <div className="p-2 sm:p-3 md:p-4">
+    <div className="p-0 sm:p-3 md:p-4">
       <div className="max-w-4xl mx-auto">
-        {/* Enabled Tools Indicator */}
-        {enabledTools.length > 0 && (
-          <div className="mb-2 flex flex-wrap gap-1.5">
-            {enabledTools.map((toolId) => {
-              const tool = AVAILABLE_TOOLS.find((t) => t.id === toolId);
-              if (!tool) return null;
-              return (
-                <div
-                  key={toolId}
-                  className="flex items-center gap-1.5 bg-emerald-100 dark:bg-emerald-500/15 border border-emerald-300 dark:border-emerald-500/40 rounded-lg px-2 py-1 text-xs"
-                >
-                  <span>{tool.icon}</span>
-                  <span className="text-emerald-700 dark:text-emerald-300 font-medium">{tool.name}</span>
-                  <button
-                    onClick={() => handleToggleTool(toolId)}
-                    className="ml-0.5 text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
-                    title="Disable tool"
-                  >
-                    <FiX className="text-xs" />
-                  </button>
-                </div>
-              );
-            })}
-          </div>
-        )}
-
         {/* File Attachments Preview */}
         {attachments.length > 0 && (
-          <div className="mb-3 flex flex-wrap gap-2">
+          <div className="mb-2 sm:mb-3 mx-2 sm:mx-0 flex flex-wrap gap-2">
             {attachments.map((attachment) => (
               <div
                 key={attachment.id}
@@ -228,13 +201,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           </div>
         )}
 
-        {/* Gemini-style Input Card */}
+        {/* Gemini-style Input Card - attached to bottom on mobile */}
         <div
           className={cn(
-            "relative bg-white dark:bg-gray-800/80 backdrop-blur-xl rounded-xl sm:rounded-2xl md:rounded-3xl border transition-all duration-300",
-            "border-gray-200 dark:border-gray-700/50 hover:border-gray-300 dark:hover:border-gray-600/70",
-            "focus-within:border-emerald-500 dark:focus-within:border-emerald-500/50 focus-within:ring-1 focus-within:ring-emerald-500/20",
-            "shadow-lg shadow-gray-200/50 dark:shadow-black/20"
+            "relative bg-gray-50 dark:bg-gray-800/95 backdrop-blur-xl transition-all duration-300",
+            // Mobile: no border, no shadow, rounded top corners only, attached to bottom
+            "rounded-t-3xl sm:rounded-2xl md:rounded-3xl",
+            "border-t border-x sm:border border-gray-200 dark:border-gray-700/50",
+            "sm:hover:border-gray-300 dark:sm:hover:border-gray-600/70",
+            "focus-within:border-emerald-500 dark:focus-within:border-emerald-500/50 sm:focus-within:ring-1 focus-within:ring-emerald-500/20",
+            "sm:shadow-lg sm:shadow-gray-200/50 dark:sm:shadow-black/20"
           )}
         >
           {/* Text Input Area - Top */}
@@ -290,20 +266,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   disabled={disabled}
                   className={cn(
                     "h-8 sm:h-9 px-2 sm:px-3 rounded-lg sm:rounded-xl flex items-center gap-1.5 sm:gap-2 transition-all duration-200",
-                    hasEnabledTools
-                      ? "text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20"
-                      : "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50",
+                    "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50",
                     "disabled:opacity-40 disabled:cursor-not-allowed"
                   )}
                   title="Analysis Tools"
                 >
                   <FiSliders className="text-sm sm:text-base" />
-                  <span className="text-xs sm:text-sm font-medium hidden sm:inline">Tools</span>
-                  {hasEnabledTools && (
-                    <span className="w-4 h-4 rounded-full bg-emerald-500 text-white text-[10px] font-bold flex items-center justify-center">
-                      {enabledTools.length}
-                    </span>
-                  )}
                 </button>
 
                 {/* Tools Dropdown Menu */}
@@ -355,6 +323,28 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* Enabled Tools - Inline Pills (Gemini style) */}
+              {enabledTools.map((toolId) => {
+                const tool = AVAILABLE_TOOLS.find((t) => t.id === toolId);
+                if (!tool) return null;
+                return (
+                  <div
+                    key={toolId}
+                    className="h-8 sm:h-9 flex items-center gap-1 sm:gap-1.5 bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 rounded-lg sm:rounded-xl px-2 sm:px-2.5 text-xs sm:text-sm"
+                  >
+                    <span className="text-sm">{tool.icon}</span>
+                    <span className="text-emerald-700 dark:text-emerald-300 font-medium hidden sm:inline">{tool.name}</span>
+                    <button
+                      onClick={() => handleToggleTool(toolId)}
+                      className="text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                      title="Disable tool"
+                    >
+                      <FiX className="text-xs" />
+                    </button>
+                  </div>
+                );
+              })}
             </div>
 
             {/* Right Actions */}
@@ -381,10 +371,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               </button>
             </div>
           </div>
+          {/* Disclaimer - inside the card on mobile */}
+          <p className="px-3 pb-2 sm:hidden text-[10px] text-gray-400 dark:text-gray-500 text-center">
+            Zygotrix AI can make mistakes. Verify important info.
+          </p>
         </div>
 
-        {/* Disclaimer */}
-        <p className="mt-3 text-[11px] text-gray-400 dark:text-gray-500 text-center">
+        {/* Disclaimer - outside card on desktop */}
+        <p className="hidden sm:block mt-3 text-[11px] text-gray-400 dark:text-gray-500 text-center">
           Zygotrix AI can make mistakes. Please verify important information.
         </p>
       </div>

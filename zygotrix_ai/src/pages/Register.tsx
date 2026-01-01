@@ -359,20 +359,20 @@ export const Register: React.FC = () => {
             </div>
 
             {/* Right Panel - Forms */}
-            <div className="flex-1 flex items-center justify-center p-6 lg:p-12 relative z-10">
+            <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12 relative z-10 overflow-y-auto">
                 <div className="w-full max-w-md">
                     {/* Form Card */}
                     <div className="relative group">
                         {/* Animated Gradient Border */}
                         <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 rounded-3xl opacity-20 blur-lg group-hover:opacity-30 transition-opacity duration-500" style={{ animation: 'gradient-x 4s ease infinite', backgroundSize: '200% 200%' }} />
 
-                        <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-gray-700/50 shadow-2xl shadow-gray-300/20 dark:shadow-black/30 p-8 lg:p-10">
+                        <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/50 dark:border-gray-700/50 shadow-2xl shadow-gray-300/20 dark:shadow-black/30 p-5 sm:p-8 lg:p-10">
                             {/* Header */}
-                            <div className="text-center mb-6">
-                                <div className="flex justify-center mb-4">
+                            <div className="text-center mb-4 sm:mb-6">
+                                <div className="flex justify-center mb-3 sm:mb-4">
                                     <div className="relative">
-                                        <div className="absolute -inset-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full opacity-20 blur-xl animate-pulse" style={{ animationDuration: '3s' }} />
-                                        <Logo size="lg" showText={false} />
+                                        <div className="absolute -inset-2 sm:-inset-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full opacity-20 blur-xl animate-pulse" style={{ animationDuration: '3s' }} />
+                                        <Logo size="md" showText={false} className="sm:scale-110" />
                                     </div>
                                 </div>
 
@@ -405,13 +405,13 @@ export const Register: React.FC = () => {
 
                             {/* Step: Signup Form */}
                             {step === 'signup' && (
-                                <form onSubmit={handleSignup} className="space-y-5">
-                                    <h2 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-2">Create Account</h2>
-                                    <p className="text-gray-600 dark:text-gray-400 text-center text-sm mb-6">Start your genetics research journey</p>
+                                <form onSubmit={handleSignup} className="space-y-4 sm:space-y-5">
+                                    <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white text-center mb-1 sm:mb-2">Create Account</h2>
+                                    <p className="text-gray-600 dark:text-gray-400 text-center text-xs sm:text-sm mb-4 sm:mb-6">Start your genetics research journey</p>
 
                                     {/* Full Name */}
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Full Name</label>
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Full Name</label>
                                         <div className={`relative transition-transform duration-200 ${focusedField === 'name' ? 'scale-[1.02]' : ''}`}>
                                             <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 blur transition-opacity duration-300 ${focusedField === 'name' ? 'opacity-40' : ''}`} />
                                             <div className="relative flex items-center">
@@ -424,15 +424,15 @@ export const Register: React.FC = () => {
                                                     onBlur={() => setFocusedField(null)}
                                                     placeholder="John Doe"
                                                     disabled={isLoading}
-                                                    className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
+                                                    className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Email */}
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Email Address *</label>
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Email Address *</label>
                                         <div className={`relative transition-transform duration-200 ${focusedField === 'email' ? 'scale-[1.02]' : ''}`}>
                                             <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 blur transition-opacity duration-300 ${focusedField === 'email' ? 'opacity-40' : ''}`} />
                                             <div className="relative flex items-center">
@@ -446,15 +446,15 @@ export const Register: React.FC = () => {
                                                     placeholder="your.email@example.com"
                                                     disabled={isLoading}
                                                     required
-                                                    className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
+                                                    className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
                                                 />
                                             </div>
                                         </div>
                                     </div>
 
                                     {/* Password */}
-                                    <div className="space-y-2">
-                                        <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">Password *</label>
+                                    <div className="space-y-1.5 sm:space-y-2">
+                                        <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">Password *</label>
                                         <div className={`relative transition-transform duration-200 ${focusedField === 'password' ? 'scale-[1.02]' : ''}`}>
                                             <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 blur transition-opacity duration-300 ${focusedField === 'password' ? 'opacity-40' : ''}`} />
                                             <div className="relative flex items-center">
@@ -468,7 +468,7 @@ export const Register: React.FC = () => {
                                                     placeholder="At least 8 characters"
                                                     disabled={isLoading}
                                                     required
-                                                    className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
+                                                    className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
                                                 />
                                                 <button
                                                     type="button"
@@ -484,7 +484,7 @@ export const Register: React.FC = () => {
                                     <button
                                         type="submit"
                                         disabled={isLoading}
-                                        className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                        className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                                     >
                                         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                                         <span className="relative flex items-center justify-center gap-2">
@@ -520,10 +520,10 @@ export const Register: React.FC = () => {
 
                             {/* Step: OTP Verification */}
                             {step === 'verify' && (
-                                <form onSubmit={handleVerifyOtp} className="space-y-6">
+                                <form onSubmit={handleVerifyOtp} className="space-y-4 sm:space-y-6">
                                     <div className="text-center">
-                                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">Verify Your Email</h2>
-                                        <p className="text-gray-600 dark:text-gray-400 text-sm">
+                                        <h2 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-1.5 sm:mb-2">Verify Your Email</h2>
+                                        <p className="text-gray-600 dark:text-gray-400 text-xs sm:text-sm">
                                             Enter the 6-digit code sent to{' '}
                                             <span className="font-semibold text-emerald-600 dark:text-emerald-400">{email}</span>
                                         </p>
@@ -543,7 +543,7 @@ export const Register: React.FC = () => {
                                                 onKeyDown={(e) => handleOtpKeyDown(index, e)}
                                                 onPaste={handleOtpPaste}
                                                 disabled={isLoading}
-                                                className="w-12 h-14 text-center text-xl font-bold rounded-xl bg-gray-50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:border-emerald-500 focus:outline-none transition-all duration-200 disabled:opacity-50"
+                                                className="w-10 h-10 sm:w-12 sm:h-14 text-center text-lg sm:text-xl font-bold rounded-lg sm:rounded-xl bg-gray-50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:border-emerald-500 focus:outline-none transition-all duration-200 disabled:opacity-50"
                                             />
                                         ))}
                                     </div>
@@ -558,7 +558,7 @@ export const Register: React.FC = () => {
                                     <button
                                         type="submit"
                                         disabled={isLoading || otp.join('').length !== 6}
-                                        className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                                        className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                                     >
                                         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                                         <span className="relative flex items-center justify-center gap-2">
@@ -619,7 +619,7 @@ export const Register: React.FC = () => {
                                     <button
                                         type="button"
                                         onClick={() => navigate('/login')}
-                                        className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98]"
+                                        className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98]"
                                     >
                                         <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
                                         <span className="relative flex items-center justify-center gap-2">
@@ -633,12 +633,12 @@ export const Register: React.FC = () => {
                     </div>
 
                     {/* Terms */}
-                    <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+                    <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-4 sm:mt-6">
                         By creating an account, you agree to our Terms of Service and Privacy Policy
                     </p>
 
                     {/* Mobile DNA Icon */}
-                    <div className="lg:hidden flex justify-center mt-8">
+                    <div className="hidden sm:flex lg:hidden justify-center mt-6">
                         <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-xl opacity-30" />
                             <GiDna2 className="relative w-10 h-10 text-emerald-600 dark:text-emerald-400" style={{ animation: 'spin 15s linear infinite' }} />

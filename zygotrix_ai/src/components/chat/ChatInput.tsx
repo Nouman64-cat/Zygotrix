@@ -59,7 +59,7 @@ const AVAILABLE_TOOLS: AiTool[] = [
   {
     id: 'gwas_analysis',
     name: 'GWAS Analysis',
-    description: 'Genome-wide association study on VCF files',
+    description: '',
     icon: '🧬',
   },
 ];
@@ -320,7 +320,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         {/* Gemini-style Input Card - attached to bottom on mobile */}
         <div
           className={cn(
-            "relative bg-white dark:bg-gray-900 backdrop-blur-xl transition-all duration-300",
+            "relative bg-white dark:bg-gray-800 backdrop-blur-xl transition-all duration-300",
             // Mobile: no border, no shadow, rounded top corners only, attached to bottom
             "rounded-t-3xl sm:rounded-2xl md:rounded-3xl",
             "border-t border-x sm:border border-gray-200 dark:border-gray-700/50",
@@ -393,12 +393,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
                 {/* Tools Dropdown Menu */}
                 {showToolsMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
-                    <div className="p-2 border-b border-gray-100 dark:border-gray-700">
-                      <p className="text-xs text-gray-500 dark:text-gray-400 font-medium uppercase tracking-wide">
-                        AI Analysis Tools
-                      </p>
-                    </div>
+                  <div className="absolute bottom-full left-0 mb-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
                     <div className="p-1">
                       {AVAILABLE_TOOLS.map((tool) => {
                         const isEnabled = enabledTools.includes(tool.id);
@@ -414,10 +409,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                             )}
                           >
                             <span className="text-lg">{tool.icon}</span>
-                            <div className="flex-1 text-left">
-                              <p className="text-sm font-medium">{tool.name}</p>
-                              <p className="text-xs text-gray-400 dark:text-gray-500">{tool.description}</p>
-                            </div>
+                            <p className="flex-1 text-left text-xs font-medium">{tool.name}</p>
                             <div
                               className={cn(
                                 "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
@@ -431,11 +423,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                           </button>
                         );
                       })}
-                    </div>
-                    <div className="p-2 border-t border-gray-100 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50">
-                      <p className="text-[10px] text-gray-400 dark:text-gray-500 text-center">
-                        Enable tools to use advanced AI features
-                      </p>
                     </div>
                   </div>
                 )}

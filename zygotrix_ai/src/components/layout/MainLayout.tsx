@@ -26,7 +26,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
-    <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-950">
+    <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-900">
       <Sidebar
         conversations={conversations}
         currentConversationId={currentConversationId}
@@ -52,9 +52,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               onClick={() => setIsSidebarOpen(true)}
               tooltip="Open menu"
             />
-            <img 
-              src={LOGO_URL} 
-              alt="Zygotrix" 
+            <img
+              src={LOGO_URL}
+              alt="Zygotrix"
               className="w-8 h-8 object-cover rounded-full"
             />
             <span className="text-md font-semibold text-gray-900 dark:text-gray-100">

@@ -190,7 +190,14 @@ export const Chat: React.FC = () => {
               />
             </div>
 
-            <MessageList messages={messages} isLoading={isLoading} isStreaming={isStreaming} />
+            <MessageList
+              messages={messages}
+              isLoading={isLoading}
+              isStreaming={isStreaming}
+              onQuickAction={(text) => handleSendMessage(`Help me with: ${text}`)}
+              onSend={handleSendMessage}
+              inputDisabled={isLoading || isRateLimited}
+            />
 
             {/* Rate Limit Banner - shows persistently when rate limited */}
             {isRateLimited && (
@@ -200,10 +207,13 @@ export const Chat: React.FC = () => {
               />
             )}
 
-            <ChatInput
-              onSend={handleSendMessage}
-              disabled={isLoading || isRateLimited}
-            />
+            {/* ChatInput at bottom - only show when there are messages */}
+            {messages.length > 0 && (
+              <ChatInput
+                onSend={handleSendMessage}
+                disabled={isLoading || isRateLimited}
+              />
+            )}
           </div>
 
           {/* Vertical Rate Limit Indicator - Right Side (desktop only) */}

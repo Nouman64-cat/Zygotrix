@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import { FaCopy, FaCheck } from 'react-icons/fa';
+import { FaCheck } from 'react-icons/fa';
+import { MdContentCopy } from 'react-icons/md';
 import { FiFile } from 'react-icons/fi';
 import { cn } from '../../utils';
 import { useTypingEffect } from '../../hooks';
@@ -74,7 +75,7 @@ const SequenceCodeBlock: React.FC<{
               </>
             ) : (
               <>
-                <FaCopy className="w-3 h-3" />
+                <MdContentCopy className="w-3 h-3" />
                 <span>Copy</span>
               </>
             )}
@@ -113,7 +114,7 @@ const SequenceCodeBlock: React.FC<{
             </>
           ) : (
             <>
-              <FaCopy className="w-3 h-3" />
+              <MdContentCopy className="w-3 h-3" />
               <span>Copy</span>
             </>
           )}
@@ -319,30 +320,78 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   };
 
 
+  // State for copying message content
+  const [messageCopied, setMessageCopied] = useState(false);
+
+  // Copy message content to clipboard
+  const handleCopyMessage = async () => {
+    try {
+      await navigator.clipboard.writeText(message.content || '');
+      setMessageCopied(true);
+      setTimeout(() => setMessageCopied(false), 2000);
+    } catch {
+      console.error('Failed to copy message');
+    }
+  };
+
   return (
     <div className={cn('flex gap-2 sm:gap-3 px-2 sm:px-4 py-4 sm:py-5 md:px-6', isUser ? 'justify-end' : 'justify-start')}>
-      <div className={cn('flex gap-2 sm:gap-3 max-w-full sm:max-w-[85%] md:max-w-3xl lg:max-w-4xl', isUser && 'flex-row-reverse')}>
+      <div className={cn(
+        'group flex items-start gap-2 sm:gap-3',
+        // User messages have max-width, AI responses use full width
+        isUser ? 'max-w-full sm:max-w-[85%] md:max-w-3xl lg:max-w-4xl flex-row-reverse' : 'max-w-full'
+      )}>
         {/* Avatar - only show for AI, hidden on mobile */}
         {!isUser && (
           <div className="hidden md:flex flex-shrink-0">
-            <div className="w-10 h-10 flex items-center justify-center">
-              <img src={LOGO_URL} alt="Zygotrix AI" className="w-10 h-10 object-cover rounded-full" />
+            <div className="w-8 h-8 flex items-center justify-center">
+              <img src={LOGO_URL} alt="Zygotrix AI" className="w-8 h-8 object-cover rounded-full" />
             </div>
           </div>
         )}
 
         {/* Message Content */}
         <div className="min-w-0 flex-1">
-          {/* User messages keep the bubble, AI messages are clean text */}
+          {/* User messages have gray bubble like Gemini, AI messages are clean text */}
           {isUser ? (
-            <div className="rounded-2xl px-3 py-2 sm:px-4 sm:py-3 bg-emerald-600 dark:bg-emerald-700 text-white rounded-tr-sm shadow-sm min-w-[3rem]">
-              <div className="max-w-none break-words text-sm sm:text-base text-white">
+            <div className="relative rounded-3xl px-4 py-2.5 sm:px-5 sm:py-3 bg-gray-100 dark:bg-gray-700 rounded-tr-lg shadow-sm min-w-[3rem]">
+              <div className="max-w-none break-words text-sm sm:text-base text-gray-800 dark:text-gray-200">
                 {renderContent()}
               </div>
+              {/* Copy button - show on hover for user messages */}
+              <button
+                onClick={handleCopyMessage}
+                className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
+                title="Copy message"
+              >
+                {messageCopied ? <FaCheck className="w-3.5 h-3.5 text-emerald-500" /> : <MdContentCopy className="w-3.5 h-3.5" />}
+              </button>
             </div>
           ) : (
-            <div className="text-gray-800 dark:text-gray-200 text-sm sm:text-base leading-relaxed">
+            <div className="text-gray-800 dark:text-gray-200 text-sm sm:text-base leading-relaxed pt-1.5">
               {renderContent()}
+              {/* Copy button - always visible for AI responses */}
+              {!showLoader && message.content && (
+                <div className="mt-3 flex items-center gap-2">
+                  <button
+                    onClick={handleCopyMessage}
+                    className="flex items-center gap-1.5 px-2.5 py-1 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-all duration-200"
+                    title="Copy response"
+                  >
+                    {messageCopied ? (
+                      <>
+                        <FaCheck className="w-3 h-3 text-emerald-500" />
+                        <span className="text-emerald-500">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <MdContentCopy className="w-3 h-3" />
+                        <span>Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+              )}
             </div>
           )}
         </div>

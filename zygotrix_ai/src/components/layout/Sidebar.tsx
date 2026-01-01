@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMessageSquare, FiPlus, FiTrash2, FiX, FiLogOut, FiChevronLeft, FiChevronRight, FiSettings } from 'react-icons/fi';
-import { cn, formatTimestamp, truncateText } from '../../utils';
+import { FiPlus, FiTrash2, FiX, FiLogOut, FiChevronLeft, FiChevronRight, FiSettings } from 'react-icons/fi';
+import { cn, truncateText } from '../../utils';
 import { IconButton, Button, Logo } from '../common';
 import { useAuth } from '../../contexts';
 import type { LocalConversation } from '../../types';
@@ -110,11 +110,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Conversations List */}
-        <div className="flex-1 overflow-y-auto p-3 space-y-1">
+        <div className="flex-1 overflow-y-auto scrollbar-hide p-3 space-y-1">
           {conversations.length === 0 ? (
             !isCollapsed && (
               <div className="text-center py-8 px-4">
-                <FiMessageSquare className="mx-auto text-3xl text-gray-400 dark:text-gray-600 mb-2" />
                 <p className="text-sm text-gray-500 dark:text-gray-400">No conversations yet</p>
               </div>
             )
@@ -126,37 +125,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   'group relative flex items-center gap-2 p-3 rounded-lg cursor-pointer',
                   'hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200',
                   currentConversationId === conversation.id && 'bg-gray-100 dark:bg-gray-800',
-                  isCollapsed && 'justify-center'
+                  isCollapsed && 'hidden' // Hide conversations when collapsed
                 )}
                 onClick={() => {
                   onSelectConversation(conversation.id);
                   onClose();
                 }}
-                title={isCollapsed ? conversation.title : undefined}
               >
-                <FiMessageSquare className="flex-shrink-0 text-gray-600 dark:text-gray-400" />
-                {!isCollapsed && (
-                  <>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                        {truncateText(conversation.title, 30)}
-                      </p>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">
-                        {formatTimestamp(conversation.updatedAt)}
-                      </p>
-                    </div>
-                    <IconButton
-                      icon={<FiTrash2 />}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        onDeleteConversation(conversation.id);
-                      }}
-                      size="sm"
-                      className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-                      tooltip="Delete"
-                    />
-                  </>
-                )}
+                <p className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {truncateText(conversation.title, 35)}
+                </p>
+                <IconButton
+                  icon={<FiTrash2 />}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onDeleteConversation(conversation.id);
+                  }}
+                  size="sm"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
+                  tooltip="Delete"
+                />
               </div>
             ))
           )}

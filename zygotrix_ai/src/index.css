@@ -9,10 +9,23 @@
 html,
 body,
 #root {
-  height: 100%;
+  /* Use dvh (dynamic viewport height) for mobile browsers */
+  height: 100dvh;
+  height: 100%; /* Fallback for browsers that don't support dvh */
   margin: 0;
   padding: 0;
   overflow: hidden;
+  /* Support for notched devices and browser UI */
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}
+
+/* Ensure mobile browsers account for safe areas */
+@supports (height: 100dvh) {
+  html,
+  body,
+  #root {
+    height: 100dvh;
+  }
 }
 
 :root {

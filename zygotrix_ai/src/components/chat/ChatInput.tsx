@@ -282,7 +282,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const canSend = (value.trim() || attachments.length > 0) && !disabled;
 
   return (
-    <div className="p-0 sm:px-4 sm:py-3 md:px-6 md:py-4">
+    <div className="p-0 sm:px-4 sm:py-3 md:px-6 md:py-4" style={{ paddingBottom: 'max(0px, env(safe-area-inset-bottom))' }}>
       <div className="max-w-5xl mx-auto">
         {/* File Attachments Preview */}
         {attachments.length > 0 && (

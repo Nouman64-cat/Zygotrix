@@ -14,6 +14,7 @@ const footerLinks = [
   {
     heading: "Resources",
     links: [
+      { label: "Documentation", href: "https://docs.zygotrix.com/docs/" },
       { label: "Blogs", to: "/blogs" },
       { label: "Community", to: "/community" },
     ],
@@ -326,15 +327,27 @@ const Footer: React.FC = () => {
                   {section.heading}
                 </h4>
                 <ul className="space-y-3">
-                  {section.links.map((link) => (
+                  {section.links.map((link: any) => (
                     <li key={link.label}>
-                      <Link
-                        to={link.to}
-                        className="group inline-flex items-center gap-2 text-sm text-slate-400 transition-all duration-200 hover:text-white"
-                      >
-                        <span className="w-0 h-px bg-gradient-to-r from-[#10B981] to-[#3B82F6] transition-all duration-300 group-hover:w-3" />
-                        {link.label}
-                      </Link>
+                      {link.href ? (
+                        <a
+                           href={link.href}
+                           target="_blank"
+                           rel="noopener noreferrer"
+                           className="group inline-flex items-center gap-2 text-sm text-slate-400 transition-all duration-200 hover:text-white"
+                        >
+                           <span className="w-0 h-px bg-gradient-to-r from-[#10B981] to-[#3B82F6] transition-all duration-300 group-hover:w-3" />
+                           {link.label}
+                        </a>
+                      ) : (
+                        <Link
+                          to={link.to}
+                          className="group inline-flex items-center gap-2 text-sm text-slate-400 transition-all duration-200 hover:text-white"
+                        >
+                          <span className="w-0 h-px bg-gradient-to-r from-[#10B981] to-[#3B82F6] transition-all duration-300 group-hover:w-3" />
+                          {link.label}
+                        </Link>
+                      )}
                     </li>
                   ))}
                 </ul>

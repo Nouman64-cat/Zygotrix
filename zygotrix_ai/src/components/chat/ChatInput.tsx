@@ -1,7 +1,51 @@
-import React, { useState, useRef, useEffect, type KeyboardEvent } from 'react';
-import { FiSend, FiPlus, FiX, FiFile, FiSliders, FiCheck } from 'react-icons/fi';
+import React, { useState, useRef, useEffect, useCallback, type KeyboardEvent } from 'react';
+import { FiSend, FiPlus, FiX, FiFile, FiSliders, FiCheck, FiMic } from 'react-icons/fi';
 import { cn } from '../../utils';
 import type { MessageAttachment } from '../../types';
+
+// TypeScript declarations for Web Speech API
+interface SpeechRecognitionEvent extends Event {
+  results: SpeechRecognitionResultList;
+  resultIndex: number;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  item(index: number): SpeechRecognitionResult;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): SpeechRecognitionAlternative;
+  [index: number]: SpeechRecognitionAlternative;
+  isFinal: boolean;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  abort(): void;
+  onresult: ((event: SpeechRecognitionEvent) => void) | null;
+  onerror: ((event: Event) => void) | null;
+  onend: (() => void) | null;
+  onstart: (() => void) | null;
+}
+
+declare global {
+  interface Window {
+    SpeechRecognition: new () => SpeechRecognition;
+    webkitSpeechRecognition: new () => SpeechRecognition;
+  }
+}
 
 // Available AI tools
 interface AiTool {
@@ -35,9 +79,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
   const [enabledTools, setEnabledTools] = useState<string[]>([]);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  // Check if speech recognition is supported
+  const isSpeechSupported = typeof window !== 'undefined' &&
+    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
 
   const adjustHeight = () => {
     const textarea = textareaRef.current;
@@ -70,6 +120,72 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showToolsMenu]);
+
+  // Initialize speech recognition
+  const startRecording = useCallback(() => {
+    if (!isSpeechSupported) {
+      alert('Voice input is not supported in your browser. Please try Chrome or Edge.');
+      return;
+    }
+
+    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    const recognition = new SpeechRecognitionAPI();
+
+    recognition.continuous = true;
+    recognition.interimResults = true;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => {
+      setIsRecording(true);
+    };
+
+    recognition.onresult = (event: SpeechRecognitionEvent) => {
+      let finalTranscript = '';
+      let interimTranscript = '';
+
+      for (let i = event.resultIndex; i < event.results.length; i++) {
+        const transcript = event.results[i][0].transcript;
+        if (event.results[i].isFinal) {
+          finalTranscript += transcript;
+        } else {
+          interimTranscript += transcript;
+        }
+      }
+
+      if (finalTranscript) {
+        setValue(prev => prev + (prev ? ' ' : '') + finalTranscript);
+      }
+    };
+
+    recognition.onerror = () => {
+      setIsRecording(false);
+      recognitionRef.current = null;
+    };
+
+    recognition.onend = () => {
+      setIsRecording(false);
+      recognitionRef.current = null;
+    };
+
+    recognitionRef.current = recognition;
+    recognition.start();
+  }, [isSpeechSupported]);
+
+  const stopRecording = useCallback(() => {
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+      recognitionRef.current = null;
+    }
+    setIsRecording(false);
+  }, []);
+
+  const toggleRecording = useCallback(() => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  }, [isRecording, startRecording, stopRecording]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -166,8 +282,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const canSend = (value.trim() || attachments.length > 0) && !disabled;
 
   return (
-    <div className="p-0 sm:p-3 md:p-4">
-      <div className="max-w-4xl mx-auto">
+    <div className="p-0 sm:px-4 sm:py-3 md:px-6 md:py-4">
+      <div className="max-w-5xl mx-auto">
         {/* File Attachments Preview */}
         {attachments.length > 0 && (
           <div className="mb-2 sm:mb-3 mx-2 sm:mx-0 flex flex-wrap gap-2">
@@ -220,8 +336,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              disabled={disabled}
+              placeholder={isRecording ? 'Listening...' : placeholder}
+              disabled={disabled || isRecording}
               rows={1}
               className={cn(
                 'w-full resize-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500',
@@ -272,6 +388,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   title="Analysis Tools"
                 >
                   <FiSliders className="text-sm sm:text-base" />
+                  <span className="hidden sm:inline text-sm font-medium">Tools</span>
                 </button>
 
                 {/* Tools Dropdown Menu */}
@@ -348,12 +465,25 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             </div>
 
             {/* Right Actions */}
-            <div className="flex items-center gap-1.5 sm:gap-2">
-              {/* Model Indicator */}
-              <div className="hidden sm:flex items-center gap-1.5 px-3 h-8 rounded-lg bg-gray-100 dark:bg-gray-700/40 text-gray-500 dark:text-gray-400 text-sm">
-                <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                <span className="font-medium">AI</span>
-              </div>
+            <div className="flex items-center gap-1 sm:gap-1.5">
+
+              {/* Voice Input Button */}
+              {isSpeechSupported && (
+                <button
+                  onClick={toggleRecording}
+                  disabled={disabled}
+                  className={cn(
+                    "w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200",
+                    isRecording
+                      ? "bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30"
+                      : "bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600/50",
+                    "disabled:opacity-40 disabled:cursor-not-allowed"
+                  )}
+                  title={isRecording ? "Stop recording" : "Voice input"}
+                >
+                  <FiMic className="text-base sm:text-lg" />
+                </button>
+              )}
 
               {/* Send Button */}
               <button

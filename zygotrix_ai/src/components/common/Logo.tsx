@@ -1,5 +1,6 @@
 import React from 'react';
 import { cn } from '../../utils';
+import { LOGO_URL } from '../../config';
 
 interface LogoProps {
   size?: 'sm' | 'md' | 'lg';
@@ -23,7 +24,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', className, showText = t
   return (
     <div className={cn('flex items-center', className)}>
       <img
-        src="/zygotrix-ai.png"
+        src={LOGO_URL}
         alt="Zygotrix AI"
         className={cn(sizeMap[size], 'object-cover')}
       />

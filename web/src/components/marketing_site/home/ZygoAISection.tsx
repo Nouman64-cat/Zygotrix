@@ -3,7 +3,7 @@ import { Link } from "react-router-dom";
 import { RiSparklingFill } from "react-icons/ri";
 import { HiOutlineSparkles, HiLightningBolt, HiChatAlt2 } from "react-icons/hi";
 import { BiAnalyse } from "react-icons/bi";
-import zygoAILogo from "../../../../public/zygotrix-ai.png";
+import { ZYGO_AI_LOGO_URL } from "../../../config";
 
 const ZygoAISection: React.FC = () => {
   const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || "ZygoAI";
@@ -45,7 +45,7 @@ const ZygoAISection: React.FC = () => {
 
         <div className="flex justify-center items-center">
 
-         <img src={zygoAILogo} alt="Zygotrix AI" className="w-64 h-64 object-contain" />
+         <img src={ZYGO_AI_LOGO_URL} alt="Zygotrix AI" className="w-64 h-64 object-contain" />
         </div>
       <div className="relative mx-auto max-w-7xl px-6">
         {/* Header */}

@@ -4,6 +4,7 @@ import { MdPsychology } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts';
 import { Logo, IconButton, ThemeSwitcher, PreferencesModal } from '../common';
+import { LOGO_URL } from '../../config';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -42,7 +43,7 @@ export const Header: React.FC<HeaderProps> = ({
           {/* Mobile-only logo and text */}
           <div className="flex items-center gap-2 md:hidden">
             <img 
-              src="/zygotrix-ai.png" 
+              src={LOGO_URL} 
               alt="Zygotrix" 
               className="w-6 h-6 object-cover rounded-full"
             />

@@ -2,6 +2,7 @@ import React from "react";
 import { Navigate, useLocation } from "react-router-dom";
 
 import { useAuth } from "../../context/AuthContext";
+import { LOGO_URL } from "../../config";
 
 type UserRole = "user" | "admin" | "super_admin";
 
@@ -21,7 +22,7 @@ const RequireAuth: React.FC<RequireAuthProps> = ({ children, allowedRoles }) => 
           {/* Logo */}
           <div className="mb-8">
             <img
-              src="/zygotrix-logo.png"
+              src={LOGO_URL}
               alt="Zygotrix Logo"
               className="w-24 h-24 mx-auto"
             />

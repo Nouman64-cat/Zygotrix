@@ -13,7 +13,7 @@ import { HiBeaker, HiCog } from "react-icons/hi";
 
 import { fetchTeamMembers } from "../services/teamMember";
 import type { TeamMemberSummary } from "../types/teamMember";
-import logo from "../../public/zygotrix-logo.png";
+import { LOGO_URL } from "../config";
 import useDocumentTitle from "../hooks/useDocumentTitle";
 
 const cardPalettes = [
@@ -322,7 +322,7 @@ const AboutPage: React.FC = () => {
                 <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] rounded-full animate-pulse" />
                 <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-r from-[#10B981] to-[#059669] rounded-full animate-pulse delay-1000" />
 
-                <img src={logo} alt="Zygotrix" className="mx-auto w-36 mb-6" />
+                <img src={LOGO_URL} alt="Zygotrix" className="mx-auto w-36 mb-6" />
                 <p className="text-center text-sm leading-relaxed text-slate-600 dark:text-slate-300">
                   Merging Mendelian logic, polygenic scoring, and thoughtful
                   interaction design into a single learning platform.

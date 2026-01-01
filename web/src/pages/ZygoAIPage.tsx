@@ -18,7 +18,7 @@ import {
   FaUserGraduate,
   FaChartLine,
 } from "react-icons/fa";
-import zygoAILogo from "../../public/zygotrix-ai.png";
+import { ZYGO_AI_LOGO_URL } from "../config";
 
 const ZYGOTRIX_AI_URL = import.meta.env.VITE_ZYGOTRIX_AI_URL || "https://ai.zygotrix.com";
 
@@ -177,7 +177,7 @@ const ZygoAIPage: React.FC = () => {
           <div className="relative inline-block mb-8">
             <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#1E3A8A]/30 to-[#10B981]/30 blur-2xl animate-pulse"></div>
             <img
-              src={zygoAILogo}
+              src={ZYGO_AI_LOGO_URL}
               alt="Zygotrix AI"
               className="relative w-64 h-64 object-contain drop-shadow-2xl"
             />

@@ -9,8 +9,8 @@ import { ThinkingLoader } from '../common/ThinkingLoader';
 import { BreedingLabWidget } from '../breeding';
 import { DnaRnaWidget } from '../dna';
 import { GwasWidget } from '../gwas';
+import { LOGO_URL } from '../../config';
 import type { Message } from '../../types';
-import Logo from '../../../public/zygotrix-ai.png';
 
 interface ChatMessageProps {
   message: Message;
@@ -330,7 +330,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
             </div>
           ) : (
             <div className="w-10 h-10 flex items-center justify-center">
-              <img src={Logo} alt="Zygotrix AI" className="w-10 h-10 object-cover rounded-full" />
+              <img src={LOGO_URL} alt="Zygotrix AI" className="w-10 h-10 object-cover rounded-full" />
             </div>
           )}
         </div>

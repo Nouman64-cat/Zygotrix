@@ -1,6 +1,6 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import logo from "../../../public/zygotrix-logo.png";
+import { LOGO_URL } from "../../config";
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 
@@ -114,7 +114,7 @@ const DashboardHeader: React.FC<DashboardHeaderProps> = ({ onMenuToggle }) => {
           </button>
 
           <Link to="/studio" className="flex items-center gap-2 2xl:gap-3">
-            <img src={logo} alt="Zygotrix" className="w-7 h-7 2xl:w-8 2xl:h-8" />
+            <img src={LOGO_URL} alt="Zygotrix" className="w-7 h-7 2xl:w-8 2xl:h-8" />
             <div className="hidden sm:block">
               <h1 className="text-sm 2xl:text-lg font-semibold text-slate-900 dark:text-white">
                 Zygotrix Studio

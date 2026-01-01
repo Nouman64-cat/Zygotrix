@@ -4,7 +4,7 @@ import { FiLogOut, FiSun, FiMoon, FiChevronDown } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import logo from "../../../public/zygotrix-logo.png";
+import { LOGO_URL } from "../../config";
 
 import { PiDna } from "react-icons/pi";
 import { IoSchoolOutline } from "react-icons/io5";
@@ -88,7 +88,7 @@ const Navbar: React.FC = () => {
         <Link to="/" className="group flex items-center gap-3">
           <div className="relative">
             <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A] to-[#10B981] rounded-xl blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
-            <img src={logo} alt="Zygotrix" className="relative w-10 h-10 object-contain" />
+            <img src={LOGO_URL} alt="Zygotrix" className="relative w-10 h-10 object-contain" />
           </div>
           <div className="hidden sm:block">
             <p className="text-base font-bold tracking-tight text-slate-900 dark:text-white">

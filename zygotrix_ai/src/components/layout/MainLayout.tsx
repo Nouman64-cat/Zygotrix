@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FiMenu } from 'react-icons/fi';
 import { Sidebar } from './Sidebar';
 import { IconButton, ThemeSwitcher, SettingsModal } from '../common';
+import { LOGO_URL } from '../../config';
 import type { LocalConversation } from '../../types';
 
 interface MainLayoutProps {
@@ -52,7 +53,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               tooltip="Open menu"
             />
             <img 
-              src="/zygotrix-ai.png" 
+              src={LOGO_URL} 
               alt="Zygotrix" 
               className="w-8 h-8 object-cover rounded-full"
             />

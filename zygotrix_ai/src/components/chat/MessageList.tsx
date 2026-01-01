@@ -2,6 +2,7 @@ import React from 'react';
 import { ChatMessage } from './ChatMessage';
 import { PageLoader } from '../common/PageLoader';
 import { useAutoScroll } from '../../hooks';
+import { LOGO_URL } from '../../config';
 import type { Message } from '../../types';
 
 interface MessageListProps {
@@ -28,7 +29,7 @@ const MessageListComponent: React.FC<MessageListProps> = ({
       <div className="flex-1 flex items-center justify-center px-4">
         <div className="text-center max-w-md">
           <div className="w-32 h-32 mx-auto mb-4 rounded-2xl flex items-center justify-center">
-            <img src="/zygotrix-ai.png" alt="Zygotrix AI" className="w-32 h-32 object-cover" />
+            <img src={LOGO_URL} alt="Zygotrix AI" className="w-32 h-32 object-cover" />
           </div>
           <h2 className="text-2xl font-semibold text-gray-900 dark:text-gray-100 mb-2">
             Welcome to Zygotrix AI

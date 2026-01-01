@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { FaEye, FaEyeSlash } from "react-icons/fa";
-import logo from "../../public/zygotrix-logo.png";
+import { LOGO_URL } from "../config";
 import { AxiosError } from "axios";
 
 import {
@@ -356,7 +356,7 @@ const ForgotPasswordPage: React.FC = () => {
                   <div className="relative inline-block">
                     <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-[#1E3A8A]/20 to-[#10B981]/20 blur-lg opacity-50" />
                     <img
-                      src={logo}
+                      src={LOGO_URL}
                       alt="Zygotrix"
                       className="relative h-16 w-16 mx-auto"
                     />

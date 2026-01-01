@@ -1,4 +1,5 @@
 import React from 'react';
+import { LOGO_URL } from '../../config';
 
 interface PageLoaderProps {
   message?: string;
@@ -31,7 +32,7 @@ export const PageLoader: React.FC<PageLoaderProps> = ({
           {/* Logo container */}
           <div className="relative w-24 h-24 rounded-full bg-white dark:bg-gray-900 flex items-center justify-center shadow-2xl">
             <img 
-              src="/zygotrix-ai.png" 
+              src={LOGO_URL} 
               alt="Zygotrix AI" 
               className="w-24 h-24 object-cover animate-pulse"
               style={{ animationDuration: '2s' }}

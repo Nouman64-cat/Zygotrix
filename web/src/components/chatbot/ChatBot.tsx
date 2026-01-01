@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 import { parseSimulationCommands, executeSimulationCommands } from '../../services/simulationCommands';
 import { InlineActions } from './InlineActions';
 import { PreferencesModal } from '../zygotrix-ai/ConversationModals';
-import zygoAILogo from '../../../public/zygotrix-ai.png';
+import { ZYGO_AI_LOGO_URL } from '../../config';
 
 interface ChatBotProps {
   isOpen: boolean;
@@ -370,7 +370,7 @@ export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, 
       <div className=" flex items-center justify-between">
         <div className="flex items-center">
           <div className="w-20 h-14 rounded-full flex items-center justify-center overflow-hidden flex-shrink-0">
-            <img src={zygoAILogo} alt="Zygotrix AI" className="w-20 h-20 object-contain" />
+            <img src={ZYGO_AI_LOGO_URL} alt="Zygotrix AI" className="w-20 h-20 object-contain" />
           </div>
           <div>
             <h3 className="font-semibold text-base">{botName}</h3>

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useContext } from 'react';
 import { HiChevronLeft } from "react-icons/hi";
 import { ChatBot } from './ChatBot';
 import { SimulationToolContext } from '../../context/SimulationToolContext';
-import zygoAILogo from '../../../public/zygotrix-ai.png';
+import { ZYGO_AI_LOGO_URL } from '../../config';
 
 interface AgentSidebarProps {
   isCollapsed: boolean;
@@ -82,7 +82,7 @@ export const AgentSidebar: React.FC<AgentSidebarProps> = ({
                 className="relative w-16 h-16 rounded-lg flex items-center justify-center hover:shadow-lg  transition-all duration-300 cursor-pointer overflow-hidden"
                 aria-label="Expand AI Assistant"
               >
-                <img src={zygoAILogo} alt="Zygotrix AI" className="w-64 h-64 object-contain" />
+                <img src={ZYGO_AI_LOGO_URL} alt="Zygotrix AI" className="w-64 h-64 object-contain" />
               </button>
 
               {/* Tooltip */}

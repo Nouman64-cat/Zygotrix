@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import logo from "../../../public/zygotrix-logo.png";
+import { LOGO_URL } from "../../config";
 import { subscribeToNewsletter } from "../../services/newsletter.api";
 
 const footerLinks = [
@@ -286,7 +286,7 @@ const Footer: React.FC = () => {
             <div className="group inline-flex items-center gap-3 mb-6">
               <div className="relative">
                 <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#10B981]/20 to-[#3B82F6]/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                <img src={logo} alt="Zygotrix" className="relative w-12 h-12 object-contain" />
+                <img src={LOGO_URL} alt="Zygotrix" className="relative w-12 h-12 object-contain" />
               </div>
               <div className="leading-tight">
                 <p className="text-lg font-bold text-white">

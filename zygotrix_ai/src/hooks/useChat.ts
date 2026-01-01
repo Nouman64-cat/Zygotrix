@@ -32,11 +32,33 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
   const [conversationTitle, setConversationTitle] =
     useState<string>("New Conversation");
 
+  // Persist messages to localStorage
+  useEffect(() => {
+    if (conversationId && messages.length > 0) {
+      localStorage.setItem(
+        `zygotrix_msg_cache_${conversationId}`,
+        JSON.stringify(messages)
+      );
+    }
+  }, [messages, conversationId]);
+
   // Load an existing conversation
   const loadConversation = useCallback(async (convId: string) => {
     setIsLoading(true);
     setError(null);
-    setMessages([]); // Clear messages to show loading state
+
+    // Try loading from cache first to avoid empty state
+    try {
+      const cached = localStorage.getItem(`zygotrix_msg_cache_${convId}`);
+      if (cached) {
+        setMessages(JSON.parse(cached));
+      } else {
+        setMessages([]);
+      }
+    } catch (e) {
+      setMessages([]);
+    }
+
     try {
       const [conversation, messagesResponse] = await Promise.all([
         chatService.getConversation(convId),
@@ -45,12 +67,11 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
 
       setConversationId(convId);
       setConversationTitle(conversation.title);
-      setMessages(
-        messagesResponse.messages.map((msg) => ({
-          ...msg,
-          timestamp: new Date(msg.created_at || Date.now()).getTime(),
-        }))
-      );
+      const fetchedMessages = messagesResponse.messages.map((msg) => ({
+        ...msg,
+        timestamp: new Date(msg.created_at || Date.now()).getTime(),
+      }));
+      setMessages(fetchedMessages);
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load conversation";

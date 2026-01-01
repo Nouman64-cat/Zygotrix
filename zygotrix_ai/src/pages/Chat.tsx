@@ -10,7 +10,16 @@ export const Chat: React.FC = () => {
   const { conversationId: urlConversationId } = useParams<{ conversationId?: string }>();
   const navigate = useNavigate();
 
-  const [conversationsList, setConversationsList] = useState<LocalConversation[]>([]);
+  // Load initial state from localStorage if available
+  const [conversationsList, setConversationsList] = useState<LocalConversation[]>(() => {
+    try {
+      const cached = localStorage.getItem('zygotrix_conversations');
+      return cached ? JSON.parse(cached) : [];
+    } catch (e) {
+      console.warn('Failed to parse cached conversations', e);
+      return [];
+    }
+  });
   const [rateLimitRefresh, setRateLimitRefresh] = useState(0);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
@@ -86,6 +95,7 @@ export const Chat: React.FC = () => {
         updatedAt: new Date(conv.updated_at).getTime(),
       }));
       setConversationsList(localConversations);
+      localStorage.setItem('zygotrix_conversations', JSON.stringify(localConversations));
     } catch (err) {
       console.error('Failed to load conversations:', err);
     }

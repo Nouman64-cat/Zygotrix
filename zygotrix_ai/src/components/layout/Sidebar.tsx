@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiTrash2, FiX, FiLogOut, FiSettings, FiMenu, FiSearch, FiEdit, FiMoreVertical, FiEdit2 } from 'react-icons/fi';
-import { BsPinAngle } from 'react-icons/bs';
+import { FiTrash2, FiSettings, FiMenu, FiX, FiSearch, FiEdit, FiMoreVertical, FiEdit2, FiLogOut } from 'react-icons/fi';
+import { BsPinAngle, BsPinFill } from 'react-icons/bs';
 import { cn, truncateText } from '../../utils';
 import { IconButton, Button, Logo } from '../common';
 import { useAuth } from '../../contexts';
@@ -14,6 +14,7 @@ interface SidebarProps {
   onNewConversation: () => void;
   onDeleteConversation: (id: string) => void;
   onRenameConversation: (id: string, newTitle: string) => void;
+  onPinConversation: (id: string, isPinned: boolean) => void;
   isOpen: boolean;
   onClose: () => void;
   onOpenSettings: () => void;
@@ -26,6 +27,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onNewConversation,
   onDeleteConversation,
   onRenameConversation,
+  onPinConversation,
   isOpen,
   onClose,
   onOpenSettings,
@@ -226,10 +228,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     }}
                     onClick={(e) => e.stopPropagation()}
                   />
+
                 ) : (
-                  <p className="flex-1 text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                    {truncateText(conversation.title, 35)}
-                  </p>
+                  <div className="flex-1 flex items-center min-w-0">
+                    {conversation.isPinned && (
+                      <BsPinFill className="w-3 h-3 text-blue-500 mr-1.5 shrink-0" />
+                    )}
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                      {truncateText(conversation.title, 35)}
+                    </p>
+                  </div>
                 )}
                 <IconButton
                   icon={<FiMoreVertical />}
@@ -263,12 +271,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
                       className="w-full text-left px-3 py-2 text-sm hover:!bg-gray-50 dark:hover:!bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-200"
                       onClick={(e) => {
                         e.stopPropagation();
-                        // TODO: Implement Pin
-                        console.log('Pin', conversation.id);
+                        onPinConversation(conversation.id, !conversation.isPinned);
                         setActiveMenuId(null);
                       }}
                     >
-                      <BsPinAngle size={14} /> Pin
+                      <BsPinAngle size={14} />
+                      {conversation.isPinned ? 'Unpin' : 'Pin'}
                     </button>
                     <div className="h-px bg-gray-100 dark:bg-gray-700 my-1" />
                     <button

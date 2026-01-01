@@ -13,6 +13,7 @@ interface MainLayoutProps {
   onNewConversation: () => void;
   onDeleteConversation: (id: string) => void;
   onRenameConversation: (id: string, newTitle: string) => void;
+  onPinConversation: (id: string, isPinned: boolean) => void;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({
@@ -23,6 +24,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onNewConversation,
   onDeleteConversation,
   onRenameConversation,
+  onPinConversation,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -36,6 +38,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         onNewConversation={onNewConversation}
         onDeleteConversation={onDeleteConversation}
         onRenameConversation={onRenameConversation}
+        onPinConversation={onPinConversation}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         onOpenSettings={() => setIsSettingsOpen(true)}

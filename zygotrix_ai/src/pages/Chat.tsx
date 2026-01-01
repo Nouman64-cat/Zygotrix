@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout';
 import { MessageList, ChatInput, RateLimitIndicator, RateLimitModal, RateLimitBanner } from '../components/chat';
@@ -100,6 +100,7 @@ export const Chat: React.FC = () => {
         messages: [],
         createdAt: new Date(conv.created_at).getTime(),
         updatedAt: new Date(conv.updated_at).getTime(),
+        isPinned: conv.is_pinned,
       }));
       setConversationsList(localConversations);
       localStorage.setItem('zygotrix_conversations', JSON.stringify(localConversations));
@@ -178,6 +179,28 @@ export const Chat: React.FC = () => {
     }
   };
 
+  const handlePinConversation = async (id: string, isPinned: boolean) => {
+    try {
+      // Optimistic update
+      setConversationsList(prev => prev.map(c =>
+        c.id === id ? { ...c, isPinned } : c
+      ));
+
+      await chatService.updateConversation(id, { is_pinned: isPinned });
+    } catch (err) {
+      console.error('Failed to pin conversation:', err);
+      loadConversations(); // Revert
+    }
+  };
+
+  // Sort conversations: Pinned first, then by date
+  const sortedConversations = useMemo(() => {
+    return [...conversationsList].sort((a, b) => {
+      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
+      return b.updatedAt - a.updatedAt;
+    });
+  }, [conversationsList]);
+
   const handleSendMessage = async (content: string, attachments?: import('../types').MessageAttachment[], enabledTools?: string[]) => {
     await sendMessage(content, attachments, enabledTools);
     setTimeout(() => {
@@ -187,12 +210,13 @@ export const Chat: React.FC = () => {
 
   return (
     <MainLayout
-      conversations={conversationsList}
+      conversations={sortedConversations}
       currentConversationId={conversationId || undefined}
       onSelectConversation={handleSelectConversation}
       onNewConversation={handleNewConversation}
       onDeleteConversation={handleDeleteConversation}
       onRenameConversation={handleRenameConversation}
+      onPinConversation={handlePinConversation}
     >
       <>
         {/* Rate Limit Modal */}

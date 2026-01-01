@@ -225,6 +225,7 @@ export interface LocalConversation {
   messages: Message[];
   createdAt: number;
   updatedAt: number;
+  isPinned?: boolean;
 }
 
 // Rate limit status from the API

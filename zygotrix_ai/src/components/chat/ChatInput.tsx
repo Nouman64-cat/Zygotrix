@@ -80,6 +80,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const [enabledTools, setEnabledTools] = useState<string[]>([]);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
+  const [recordingPlaceholder, setRecordingPlaceholder] = useState('Listening...');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
@@ -120,6 +121,26 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [showToolsMenu]);
+
+  // Rotate recording placeholder text
+  useEffect(() => {
+    let interval: ReturnType<typeof setInterval>;
+    if (isRecording) {
+      const prompts = [
+        'Listening... Say "send message"',
+        'Listening... Say "send it"',
+        'Listening... Say "submit message"'
+      ];
+      let index = 0;
+      setRecordingPlaceholder(prompts[0]);
+
+      interval = setInterval(() => {
+        index = (index + 1) % prompts.length;
+        setRecordingPlaceholder(prompts[index]);
+      }, 2000);
+    }
+    return () => clearInterval(interval);
+  }, [isRecording]);
 
   // Initialize speech recognition
   const startRecording = useCallback(() => {
@@ -371,7 +392,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={isRecording ? 'Listening...' : placeholder}
+              placeholder={isRecording ? recordingPlaceholder : placeholder}
               disabled={disabled || isRecording}
               rows={1}
               className={cn(

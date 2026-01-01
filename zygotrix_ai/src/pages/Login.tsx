@@ -166,32 +166,32 @@ export const Login: React.FC = () => {
       </div>
 
       {/* Right Panel - Login Form */}
-      <div className="flex-1 flex items-center justify-center p-6 lg:p-12 relative z-10">
+      <div className="flex-1 flex items-center justify-center p-4 sm:p-6 lg:p-12 relative z-10 overflow-y-auto">
         <div className="w-full max-w-md">
           {/* Form Card */}
           <div className="relative group">
             {/* Animated Gradient Border */}
             <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 rounded-3xl opacity-20 blur-lg group-hover:opacity-30 transition-opacity duration-500" style={{ animation: 'gradient-x 4s ease infinite', backgroundSize: '200% 200%' }} />
 
-            <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-3xl border border-white/50 dark:border-gray-700/50 shadow-2xl shadow-gray-300/20 dark:shadow-black/30 p-8 lg:p-10">
+            <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/50 dark:border-gray-700/50 shadow-2xl shadow-gray-300/20 dark:shadow-black/30 p-5 sm:p-8 lg:p-10">
               {/* Header */}
-              <div className="text-center mb-8">
-                <div className="flex justify-center mb-6">
+              <div className="text-center mb-5 sm:mb-8">
+                <div className="flex justify-center mb-4 sm:mb-6">
                   <div className="relative">
-                    <div className="absolute -inset-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full opacity-20 blur-xl animate-pulse" style={{ animationDuration: '3s' }} />
-                    <Logo size="lg" showText={false} />
+                    <div className="absolute -inset-2 sm:-inset-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full opacity-20 blur-xl animate-pulse" style={{ animationDuration: '3s' }} />
+                    <Logo size="md" showText={false} className="sm:scale-110" />
                   </div>
                 </div>
 
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-4">
-                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-[10px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-3 sm:mb-4">
+                  <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-emerald-500 animate-pulse" />
                   Secure Login
                 </div>
 
-                <h1 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
+                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                   Welcome Back
                 </h1>
-                <p className="text-gray-600 dark:text-gray-400">
+                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
                   Sign in to continue to Zygotrix AI
                 </p>
               </div>
@@ -209,10 +209,10 @@ export const Login: React.FC = () => {
               )}
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                 {/* Email */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Email Address
                   </label>
                   <div className={`relative transition-transform duration-200 ${focusedField === 'email' ? 'scale-[1.02]' : ''}`}>
@@ -229,15 +229,15 @@ export const Login: React.FC = () => {
                         disabled={isLoading}
                         autoComplete="email"
                         required
-                        className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
+                        className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Password */}
-                <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                <div className="space-y-1.5 sm:space-y-2">
+                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
                     Password
                   </label>
                   <div className={`relative transition-transform duration-200 ${focusedField === 'password' ? 'scale-[1.02]' : ''}`}>
@@ -254,7 +254,7 @@ export const Login: React.FC = () => {
                         disabled={isLoading}
                         autoComplete="current-password"
                         required
-                        className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
+                        className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
                       />
                       <button
                         type="button"
@@ -282,7 +282,7 @@ export const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-4 font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
                 >
                   {/* Shine Effect */}
                   <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -304,7 +304,7 @@ export const Login: React.FC = () => {
               </form>
 
               {/* Divider */}
-              <div className="relative my-8">
+              <div className="relative my-5 sm:my-8">
                 <div className="absolute inset-0 flex items-center">
                   <div className="w-full border-t border-gray-200 dark:border-gray-700" />
                 </div>
@@ -319,7 +319,7 @@ export const Login: React.FC = () => {
               <button
                 type="button"
                 onClick={() => navigate('/register')}
-                className="w-full py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-semibold hover:border-emerald-500 hover:text-emerald-600 dark:hover:border-emerald-400 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all duration-300"
+                className="w-full py-3 sm:py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-sm sm:text-base text-gray-700 dark:text-gray-300 font-semibold hover:border-emerald-500 hover:text-emerald-600 dark:hover:border-emerald-400 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all duration-300"
               >
                 Create an Account
               </button>
@@ -327,12 +327,12 @@ export const Login: React.FC = () => {
           </div>
 
           {/* Terms */}
-          <p className="text-center text-sm text-gray-500 dark:text-gray-400 mt-6">
+          <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-4 sm:mt-6">
             By signing in, you agree to our Terms of Service and Privacy Policy
           </p>
 
           {/* Mobile DNA Icon */}
-          <div className="lg:hidden flex justify-center mt-8">
+          <div className="hidden sm:flex lg:hidden justify-center mt-6">
             <div className="relative">
               <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-xl opacity-30" />
               <GiDna2 className="relative w-10 h-10 text-emerald-600 dark:text-emerald-400" style={{ animation: 'spin 15s linear infinite' }} />

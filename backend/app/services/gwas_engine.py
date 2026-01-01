@@ -24,9 +24,8 @@ def _load_gwas_cli_path() -> Path:
     Locate the C++ GWAS CLI executable.
 
     Search order:
-    1. CPP_GWAS_CLI_PATH environment variable
-    2. Settings cpp_gwas_cli_path
-    3. Auto-detect .exe extension on Windows
+    1. Settings cpp_gwas_cli_path (can be overridden via CPP_GWAS_CLI_PATH env var)
+    2. Auto-detect .exe extension on Windows
 
     Returns:
         Path to the executable
@@ -58,8 +57,7 @@ def _load_gwas_cli_path() -> Path:
         status_code=500,
         detail=(
             "C++ GWAS CLI executable not found. "
-            "Set CPP_GWAS_CLI_PATH to the compiled zyg_gwas_cli binary. "
-            "Build instructions: zygotrix_engine_cpp/GWAS_BUILD_INSTRUCTIONS.md"
+            "Build the engine first: see zygotrix_engine_cpp/GWAS_BUILD_INSTRUCTIONS.md"
         ),
     )
 

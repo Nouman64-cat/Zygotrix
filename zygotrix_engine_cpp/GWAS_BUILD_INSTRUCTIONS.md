@@ -61,8 +61,9 @@ cmake -B build -S . -DCMAKE_BUILD_TYPE=Release
 # Build
 cmake --build build --config Release
 
-# Output location
+# Output location (Visual Studio multi-config)
 build\Release\zyg_gwas_cli.exe
+# Note: MinGW/Makefiles output to build\zyg_gwas_cli.exe (no Release folder)
 ```
 
 ### Option 2: MinGW (Windows)
@@ -100,8 +101,8 @@ build/zyg_gwas_cli
 Test the GWAS CLI:
 
 ```bash
-# Create test input
-echo '{"snps":[{"rsid":"rs1","chromosome":1,"position":1000,"ref_allele":"A","alt_allele":"G"}],"samples":[{"sample_id":"s1","phenotype":1.5,"genotypes":[0]},{"sample_id":"s2","phenotype":2.0,"genotypes":[1]},{"sample_id":"s3","phenotype":2.5,"genotypes":[2]}],"test_type":"linear","maf_threshold":0.01,"num_threads":4}' | build\Release\zyg_gwas_cli.exe
+# Create test input (adjust path based on your build: build\ for MinGW, build\Release\ for VS)
+echo '{"snps":[{"rsid":"rs1","chromosome":1,"position":1000,"ref_allele":"A","alt_allele":"G"}],"samples":[{"sample_id":"s1","phenotype":1.5,"genotypes":[0]},{"sample_id":"s2","phenotype":2.0,"genotypes":[1]},{"sample_id":"s3","phenotype":2.5,"genotypes":[2]}],"test_type":"linear","maf_threshold":0.01,"num_threads":4}' | build\zyg_gwas_cli.exe
 
 # Expected output: JSON with success=true and association results
 ```
@@ -161,7 +162,8 @@ Create `test_gwas.json`:
 
 Run:
 ```bash
-type test_gwas.json | build\Release\zyg_gwas_cli.exe
+# Use build\ for MinGW, build\Release\ for Visual Studio
+type test_gwas.json | build\zyg_gwas_cli.exe
 ```
 
 Expected output:
@@ -198,22 +200,19 @@ Expected performance (approximate):
 
 ## Integration with Python Backend
 
-After building, set the environment variable:
+**No configuration needed!** The Python backend automatically finds the GWAS CLI at:
+- `../zygotrix_engine_cpp/build/zyg_gwas_cli.exe` (Windows)
+- `../zygotrix_engine_cpp/build/zyg_gwas_cli` (Linux/Mac)
 
+This works automatically when running from the `backend/` directory.
+
+**Optional override:** If you need a custom path, set the environment variable:
 ```bash
 # Windows
-set CPP_GWAS_CLI_PATH=D:\Zygotrix\zygotrix_engine_cpp\build\Release\zyg_gwas_cli.exe
+set CPP_GWAS_CLI_PATH=C:\custom\path\zyg_gwas_cli.exe
 
 # Linux/Mac
-export CPP_GWAS_CLI_PATH=/path/to/zygotrix_engine_cpp/build/zyg_gwas_cli
-```
-
-Or update `backend/app/config.py`:
-```python
-cpp_gwas_cli_path: str = os.getenv(
-    "CPP_GWAS_CLI_PATH",
-    os.path.join("..", "zygotrix_engine_cpp", "build", "Release", "zyg_gwas_cli.exe"),
-)
+export CPP_GWAS_CLI_PATH=/custom/path/zyg_gwas_cli
 ```
 
 ## Next Steps

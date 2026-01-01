@@ -126,7 +126,7 @@ class Settings:
     _default_gwas_cli = "zyg_gwas_cli.exe" if os.name == "nt" else "zyg_gwas_cli"
     cpp_gwas_cli_path: str = os.getenv(
         "CPP_GWAS_CLI_PATH",
-        os.path.join("..", "zygotrix_engine_cpp", "build", "Release", _default_gwas_cli),
+        os.path.join("..", "zygotrix_engine_cpp", "build", _default_gwas_cli),
     )
     # Twilio WhatsApp notification settings
     twilio_account_sid: str = os.getenv("TWILIO_ACCOUNT_SID", "")

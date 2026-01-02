@@ -11,12 +11,12 @@ export interface VoiceControlContextType {
   resumeListening: () => void; // Resume the universal mic after pause
   registerCommand: (
     trigger: string,
-    action: () => void,
+    action: (text: string) => void,
     description: string
   ) => () => void;
   availableCommands: Record<
     string,
-    { action: () => void; description: string }
+    { action: (text: string) => void; description: string }
   >;
   setDictationCallback: (
     callback: ((text: string, isFinal: boolean) => void) | null

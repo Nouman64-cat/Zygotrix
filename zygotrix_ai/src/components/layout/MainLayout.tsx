@@ -37,18 +37,18 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   useEffect(() => {
     // Command 1: Go to Settings
     const unregisterSettings = registerCommand(
-      'open settings', 
-      () => navigate('/settings'), 
+      'open settings',
+      () => navigate('/settings'),
       'Navigates to the settings page'
     );
 
     // Command 2: Go to Chat
     const unregisterChat = registerCommand(
-      'go to chat', 
-      () => navigate('/chat'), 
+      'go to chat',
+      () => navigate('/chat'),
       'Navigates to the main chat interface'
     );
-    
+
     // Command 3: Create New Chat
     const unregisterNew = registerCommand(
       'create new chat',
@@ -70,6 +70,66 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       'Shows your AI token usage statistics'
     );
 
+    // Command 6: Toggle Sidebar (Open/Close/Expand/Collapse)
+    const unregisterOpenSidebar = registerCommand(
+      'open sidebar',
+      () => {
+        setIsSidebarOpen(true); // Open on mobile
+        setIsCollapsed(false);  // Expand on desktop
+      },
+      'Opens/Expands the sidebar'
+    );
+
+    const unregisterCloseSidebar = registerCommand(
+      'close sidebar',
+      () => {
+        setIsSidebarOpen(false); // Close on mobile
+        setIsCollapsed(true);    // Collapse on desktop
+        setIsSearchOpen(false);  // Close search when collapsing
+      },
+      'Closes/Collapses the sidebar'
+    );
+
+    // Command 7: Search Chat (with optional query)
+    const unregisterSearch = registerCommand(
+      'search chat',
+      (text: string) => {
+        setIsSidebarOpen(true);
+        setIsCollapsed(false);
+        setIsSearchOpen(true);
+
+        // Parse query: "search chat for hello" -> "hello"
+        // Also handle "search for chat hello", "find chat hello"
+
+        // Common patterns - consolidated and broader
+        const patterns = [
+          /(?:search|find)\s+(?:for\s+)?(?:my\s+|the\s+)?chats?\s+(?:like\s+|for\s+|about\s+)?(.+)/i,
+          /search\s+(?:like\s+|for\s+)?(.+)/i // Fallback
+        ];
+
+        for (const pattern of patterns) {
+          const match = text.match(pattern);
+          if (match && match[1]) {
+            // Found a query!
+            const extracted = match[1].trim();
+            // Remove trailing punctuation
+            const cleanQuery = extracted.replace(/[.!?]*$/, '');
+            setSearchQuery(cleanQuery);
+            console.log('🔍 Voice search query:', cleanQuery);
+            return;
+          }
+        }
+      },
+      'Searches conversations. Examples: "search chat for hello", "find my chats about biology"'
+    );
+
+    // Command 8: Clear Search
+    const unregisterClearSearch = registerCommand(
+      'clear search',
+      () => setSearchQuery(''),
+      'Clears the search input field'
+    );
+
     // Cleanup
     return () => {
       unregisterSettings();
@@ -77,12 +137,24 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       unregisterNew();
       unregisterTheme();
       unregisterUsage();
+      unregisterOpenSidebar();
+      unregisterCloseSidebar();
+      unregisterSearch();
+      unregisterClearSearch();
     };
   }, [registerCommand, navigate, onNewConversation, toggleTheme]);
-  
+
   // State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // Auto-clear search when closed
+  useEffect(() => {
+    if (!isSearchOpen) setSearchQuery('');
+  }, [isSearchOpen]);
+
   // Mobile Avatar Menu State
   const [isMobileAvatarOpen, setIsMobileAvatarOpen] = useState(false);
   const mobileAvatarRef = useRef<HTMLDivElement>(null);
@@ -119,7 +191,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         setIsDesktopAvatarOpen(false);
       }
     };
-    
+
     if (isMobileAvatarOpen || isDesktopAvatarOpen) {
       document.addEventListener('mousedown', handleClickOutside);
     }
@@ -196,14 +268,20 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         onPinConversation={onPinConversation}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
+        isCollapsed={isCollapsed}
+        onToggleCollapse={() => setIsCollapsed(!isCollapsed)}
+        isSearchOpen={isSearchOpen}
+        onToggleSearch={setIsSearchOpen}
+        searchQuery={searchQuery}
+        onSearchQueryChange={setSearchQuery}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
-        
+
         {/* Desktop Header */}
         <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
           <Logo size="sm" showText={true} />
-          
+
           <div className="flex items-center gap-2">
             <IconButton
               icon={<FiMic className={isListening && !isDictating ? "text-red-500 animate-pulse" : ""} />}
@@ -243,7 +321,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               Zygotrix AI
             </span>
           </div>
-          
+
           {/* User Avatar with Dropdown */}
           <div className="flex items-center gap-2">
             <IconButton
@@ -253,7 +331,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               variant="ghost"
               className={isListening ? "bg-red-50 dark:bg-red-900/20" : ""}
             />
-            
+
             <div className="relative" ref={mobileAvatarRef}>
               <button
                 onClick={() => setIsMobileAvatarOpen(!isMobileAvatarOpen)}

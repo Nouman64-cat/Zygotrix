@@ -48,7 +48,7 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const wasListeningBeforePauseRef = useRef(false);
 
   // The Registry of all active buttons/actions
-  const [commands, setCommands] = useState<Record<string, { action: () => void; description: string }>>({});
+  const [commands, setCommands] = useState<Record<string, { action: (text: string) => void; description: string }>>({});
 
   // The Dictation Receiver (e.g. ChatInput)
   const [dictationCallback, setDictationCallbackState] = useState<((text: string, isFinal: boolean) => void) | null>(null);
@@ -124,13 +124,14 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       });
 
       const data = await response.json();
-      const matchedId = data.choices[0]?.message?.content?.trim();
+      const rawId = data.choices[0]?.message?.content?.trim();
+      const matchedId = rawId?.replace(/^['"`]+|['"`]+$/g, ''); // Strip quotes
 
       console.log("🤖 AI Decided:", matchedId);
 
       // 3. Execute the command
       if (matchedId && commandsRef.current[matchedId]) {
-        commandsRef.current[matchedId].action();
+        commandsRef.current[matchedId].action(userText);
         setTranscript(`Executed: ${matchedId}`); // visual feedback
       } else {
         console.warn("No matching command found.");
@@ -273,7 +274,7 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, [isListening]);
 
-  const registerCommand = useCallback((trigger: string, action: () => void, description: string) => {
+  const registerCommand = useCallback((trigger: string, action: (text: string) => void, description: string) => {
     const id = trigger.toLowerCase();
     setCommands(prev => ({
       ...prev,

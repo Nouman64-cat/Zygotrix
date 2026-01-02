@@ -546,11 +546,61 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       'Stops voice control when user says bye, goodbye, quit, stop listening, etc.'
     );
 
+    const unregisterOpenTools = registerCommand(
+      'open tools',
+      () => setShowToolsMenu(true),
+      'Opens the tools menu'
+    );
+
+    const unregisterCloseTools = registerCommand(
+      'close tools',
+      () => setShowToolsMenu(false),
+      'Closes the tools menu'
+    );
+
+    const unregisterEnableTool = registerCommand(
+      'enable tool',
+      (text: string) => {
+        const lower = text.toLowerCase();
+        const match = lower.match(/(?:enable|use|add)\s+(?:tool\s+)?(.+)/i);
+        if (match && match[1]) {
+          const query = match[1].trim();
+          const tool = AVAILABLE_TOOLS.find(t => t.name.toLowerCase().includes(query) || t.id.includes(query));
+          if (tool) {
+            setEnabledTools(prev => prev.includes(tool.id) ? prev : [...prev, tool.id]);
+            console.log(`🔧 Enabled tool: ${tool.name} via voice`);
+          }
+        }
+      },
+      'Enables a specific tool (e.g. "enable gwas")'
+    );
+
+    const unregisterDisableTool = registerCommand(
+      'disable tool',
+      (text: string) => {
+        const lower = text.toLowerCase();
+        const match = lower.match(/(?:disable|remove)\s+(?:tool\s+)?(.+)/i);
+        if (match && match[1]) {
+          const query = match[1].trim();
+          const tool = AVAILABLE_TOOLS.find(t => t.name.toLowerCase().includes(query) || t.id.includes(query));
+          if (tool) {
+            setEnabledTools(prev => prev.filter(id => id !== tool.id));
+            console.log(`🔧 Disabled tool: ${tool.name} via voice`);
+          }
+        }
+      },
+      'Disables a specific tool (e.g. "disable gwas")'
+    );
+
     return () => {
       unregisterFocus();
       unregisterClear();
       unregisterSend();
       unregisterStop();
+      unregisterOpenTools();
+      unregisterCloseTools();
+      unregisterEnableTool();
+      unregisterDisableTool();
     };
   }, [registerCommand, toggleListening, setDictationCallback]);
 

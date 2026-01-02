@@ -158,6 +158,12 @@ interface SidebarProps {
   onPinConversation: (id: string, isPinned: boolean) => void;
   isOpen: boolean;
   onClose: () => void;
+  isCollapsed: boolean;
+  onToggleCollapse: () => void;
+  isSearchOpen: boolean;
+  onToggleSearch: (isOpen: boolean) => void;
+  searchQuery: string;
+  onSearchQueryChange: (query: string) => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -170,18 +176,23 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onPinConversation,
   isOpen,
   onClose,
+  isCollapsed,
+  onToggleCollapse,
+  isSearchOpen,
+  onToggleSearch,
+  searchQuery,
+  onSearchQueryChange,
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const [isCollapsed, setIsCollapsed] = useState(false);
 
   const handleLogout = async () => {
     await logout();
     navigate('/login');
   };
 
-  const [searchQuery, setSearchQuery] = useState('');
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  // searchQuery and isSearchOpen state moved to props
+
   const [activeMenuId, setActiveMenuId] = useState<string | null>(null);
 
   // Renaming state
@@ -238,18 +249,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <div className="flex items-center w-full gap-2 px-2 py-1.5">
               <FiSearch className="text-gray-400 w-4 h-4" />
               <input
+                autoFocus
                 type="text"
                 placeholder="Search..."
                 className="flex-1 bg-transparent border-none outline-none focus:outline-none focus:ring-0 text-sm p-0 text-gray-900 dark:text-gray-100 placeholder-gray-500"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => onSearchQueryChange(e.target.value)}
               />
               <IconButton
                 icon={<FiX />}
-                onClick={() => {
-                  setIsSearchOpen(false);
-                  setSearchQuery('');
-                }}
+                onClick={() => onToggleSearch(false)}
                 size="sm"
                 className="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-700 w-6 h-6 min-h-0"
               />
@@ -258,7 +267,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <>
               <IconButton
                 icon={<FiMenu />}
-                onClick={() => setIsCollapsed(!isCollapsed)}
+                onClick={onToggleCollapse}
                 tooltip={isCollapsed ? 'Expand sidebar' : 'Collapse sidebar'}
                 className="cursor-pointer text-gray-500 hover:text-gray-900 hover:!bg-gray-50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:!bg-gray-800"
               />
@@ -266,7 +275,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               {!isCollapsed && (
                 <IconButton
                   icon={<FiSearch />}
-                  onClick={() => setIsSearchOpen(true)}
+                  onClick={() => onToggleSearch(true)}
                   tooltip="Search conversations"
                   className="cursor-pointer text-gray-500 hover:text-gray-900 hover:!bg-gray-50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:!bg-gray-800"
                 />

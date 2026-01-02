@@ -385,7 +385,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             "border-t border-x sm:border border-gray-200 dark:border-gray-700/50",
             "sm:hover:border-gray-300 dark:sm:hover:border-gray-600/70",
             "focus-within:border-emerald-500 dark:focus-within:border-emerald-500/50 sm:focus-within:ring-1 focus-within:ring-emerald-500/20",
-            "sm:shadow-lg sm:shadow-gray-200/50 dark:sm:shadow-black/20"
+            "shadow-[0_-15px_30px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-15px_30px_-5px_rgba(0,0,0,0.4)]"
           )}
         >
           {/* Text Input Area - Top */}

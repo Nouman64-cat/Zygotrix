@@ -25,7 +25,7 @@ interface SpeechRecognitionResult {
 
 interface SpeechRecognitionAlternative {
   transcript: string;
-  confidence: number;
+  confidence?: number;
 }
 
 interface SpeechRecognition extends EventTarget {
@@ -41,12 +41,8 @@ interface SpeechRecognition extends EventTarget {
   onstart: (() => void) | null;
 }
 
-declare global {
-  interface Window {
-    SpeechRecognition: new () => SpeechRecognition;
-    webkitSpeechRecognition: new () => SpeechRecognition;
-  }
-}
+// Use global declarations from VoiceControlContext
+// The Window interface is already augmented there
 
 // Available AI tools
 interface AiTool {
@@ -93,8 +89,17 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  const { registerCommand, setDictationCallback, toggleListening, isListening } = useVoiceControl();
+  const { registerCommand, setDictationCallback, isListening: isUniversalMicActive, toggleListening } = useVoiceControl();
   const [isFocused, setIsFocused] = useState(false);
+
+  // Debounce to prevent double sends
+  const lastSendTimeRef = useRef(0);
+
+  // Track universal mic state via ref to prevent useEffect re-runs
+  const isUniversalMicActiveRef = useRef(isUniversalMicActive);
+  useEffect(() => {
+    isUniversalMicActiveRef.current = isUniversalMicActive;
+  }, [isUniversalMicActive]);
 
   // Check if speech recognition is supported
   const isSpeechSupported = typeof window !== 'undefined' &&
@@ -148,73 +153,229 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  // Handle Dictation from VoiceControlContext
+  // Handle Dictation (used by both local mic and universal mic when focused)
   const handleDictation = useCallback((speechTranscript: string, isFinal: boolean) => {
-      // NOTE: We don't have access to "initialValue" here easily unless we use a ref for 'value'
-      // But we can just append to the current value state if we are careful.
-      // Better: Use functional state update or a ref.
-      
-      if (!isFinal) return; // For now only handle final to avoid complex cursor management
+    // NOTE: We don't have access to "initialValue" here easily unless we use a ref for 'value'
+    // But we can just append to the current value state if we are careful.
+    // Better: Use functional state update or a ref.
 
-      setValue(prev => {
-        const newValue = prev + (prev ? ' ' : '') + speechTranscript;
-        
-        // Check for send commands
-        const lowerTranscript = speechTranscript.toLowerCase().trim();
-        const sendCommands = ['send message', 'please send', 'send this', 'send it', 'submit message'];
+    if (!isFinal) return; // For now only handle final to avoid complex cursor management
 
-        // Check if the transcript ENDS with any of the commands
-        const matchedCommand = sendCommands.find(cmd =>
-          lowerTranscript.endsWith(cmd) || lowerTranscript.endsWith(cmd + '.') || lowerTranscript.endsWith(cmd + '!')
-        );
+    setValue(prev => {
+      const newValue = prev + (prev ? ' ' : '') + speechTranscript;
 
-        if (matchedCommand) {
-          // Send command detected!
-          // We need to trigger send.
-          // Since we are in a state update, we can't trigger send immediately with the new value easily.
-          // We will use a useEffect or a timeout?
-          // Or just cheat:
-          setTimeout(() => {
-             // Remove command from text
-             const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
-             const messageContent = newValue.replace(commandRegex, '').trim();
-             if (messageContent) {
-               onSend(messageContent, attachments, enabledTools);
-               setValue('');
-               setAttachments([]);
-             }
-          }, 0);
-          return newValue; // Update visually briefly
+      // Check for send commands
+      const lowerTranscript = speechTranscript.toLowerCase().trim();
+      const sendCommands = ['send message', 'please send', 'send this', 'send it', 'submit message'];
+
+      // Check if the transcript ENDS with any of the commands
+      const matchedCommand = sendCommands.find(cmd =>
+        lowerTranscript.endsWith(cmd) || lowerTranscript.endsWith(cmd + '.') || lowerTranscript.endsWith(cmd + '!')
+      );
+
+      if (matchedCommand) {
+        // Send command detected!
+        // Check debounce to prevent double sends
+        const now = Date.now();
+        if (now - lastSendTimeRef.current < 2000) {
+          console.log('🚫 Voice send blocked by debounce');
+          return newValue; // Just return the value, don't send
         }
-        
-        return newValue;
-      });
-  }, [onSend, attachments, enabledTools]);
 
-  // Register dictation when focused
+        // IMMEDIATELY mark the send time BEFORE setTimeout to prevent race conditions
+        // This way, if handleDictation is called again rapidly, it will see this timestamp
+        lastSendTimeRef.current = now;
+
+        // We need to trigger send.
+        // Since we are in a state update, we can't trigger send immediately with the new value easily.
+        setTimeout(() => {
+          // Remove command from text
+          const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
+          const messageContent = newValue.replace(commandRegex, '').trim();
+          if (messageContent) {
+            onSend(messageContent, attachments, enabledTools);
+            setValue('');
+            setAttachments([]);
+
+            // IMPORTANT: Also clear dictation mode and reset recording indicator
+            setDictationCallback(null);
+            setIsRecording(false);
+            console.log('🎤 Dictation ended after voice send command');
+          }
+        }, 0);
+        return newValue; // Update visually briefly
+      }
+
+      return newValue;
+    });
+  }, [onSend, attachments, enabledTools, setDictationCallback]);
+
+  // Register dictation only when focused AND universal mic is active (for universal mic dictation)
   const handleDictationRef = useRef(handleDictation);
   useEffect(() => {
     handleDictationRef.current = handleDictation;
   }, [handleDictation]);
 
+  // NOTE: We no longer automatically manage dictation callback via useEffect.
+  // Instead, it's explicitly controlled by:
+  // - toggleRecording() function
+  // - "focus input" command
+  // - handleSend() function
+  // This avoids conflicts where the useEffect would immediately reset the callback.
+
+  // --- Independent ChatInput Speech Recognition ---
+  // Track if local recognition is active
+  const isLocalRecognitionActiveRef = useRef(false);
+  // Track if we WANT to be recording (prevents premature onend from stopping us)
+  const shouldBeRecordingRef = useRef(false);
+  // Track current value to access in callbacks
+  const valueRef = useRef(value);
   useEffect(() => {
-    if (isFocused && isListening) {
-      setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
-    } else if (!isFocused) {
-      setDictationCallback(null);
+    valueRef.current = value;
+  }, [value]);
+  // Store the value at the time recording started
+  const initialValueOnStartRef = useRef('');
+
+  // Initialize local speech recognition for ChatInput (independent from universal mic)
+  useEffect(() => {
+    if (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
+      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+      const recognition = new SpeechRecognitionAPI();
+
+      recognition.continuous = true;
+      recognition.interimResults = true;
+      recognition.lang = 'en-US';
+
+      // Track the finalized text so we can append interim text to it (use ref to persist across restarts)
+      const baseTextRef = { current: '' };
+      // Track if this is the first start (not a restart)
+      let isFirstStart = true;
+
+      recognition.onstart = () => {
+        console.log('🎤 Local recognition onstart fired');
+        isLocalRecognitionActiveRef.current = true;
+        setIsRecording(true);
+        setRecordingPlaceholder(RECORDING_PROMPTS[0]);
+
+        // On first start, capture any existing text in the input
+        if (isFirstStart) {
+          initialValueOnStartRef.current = valueRef.current;
+          baseTextRef.current = valueRef.current;
+          isFirstStart = false;
+        }
+        // On restart (not first start), baseTextRef.current is preserved to accumulate text
+      };
+
+      recognition.onresult = (event: SpeechRecognitionEvent) => {
+        let interimTranscript = '';
+        let finalTranscript = '';
+
+        for (let i = event.resultIndex || 0; i < event.results.length; ++i) {
+          const transcript = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            finalTranscript += transcript;
+          } else {
+            interimTranscript += transcript;
+          }
+        }
+
+        // If we got final text, add it to the base and update the input
+        if (finalTranscript) {
+          baseTextRef.current = baseTextRef.current + (baseTextRef.current ? ' ' : '') + finalTranscript.trim();
+          setValue(baseTextRef.current);
+
+          // Check for send commands (inline, don't call handleDictation which duplicates text)
+          const lowerTranscript = finalTranscript.toLowerCase().trim();
+          const sendCommands = ['send message', 'please send', 'send this', 'send it', 'submit message'];
+          const matchedCommand = sendCommands.find(cmd =>
+            lowerTranscript.endsWith(cmd) || lowerTranscript.endsWith(cmd + '.') || lowerTranscript.endsWith(cmd + '!')
+          );
+
+          if (matchedCommand) {
+            // Remove command from text and send
+            setTimeout(() => {
+              const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
+              const messageContent = baseTextRef.current.replace(commandRegex, '').trim();
+              if (messageContent) {
+                // Use the handleSendRef to send the message
+                setValue(messageContent);
+                handleSendRef.current();
+              }
+            }, 0);
+          }
+        }
+
+        // Show interim text in real-time (appended to base text)
+        if (interimTranscript) {
+          const displayText = baseTextRef.current + (baseTextRef.current ? ' ' : '') + interimTranscript;
+          setValue(displayText);
+        }
+      };
+
+      recognition.onend = () => {
+        console.log('🎤 Local recognition onend fired, shouldBeRecording:', shouldBeRecordingRef.current);
+        isLocalRecognitionActiveRef.current = false;
+
+        // If we're supposed to be recording, restart (handles browser quirks)
+        if (shouldBeRecordingRef.current && recognitionRef.current) {
+          console.log('🎤 Restarting local recognition...');
+          setTimeout(() => {
+            if (shouldBeRecordingRef.current && recognitionRef.current && !isLocalRecognitionActiveRef.current) {
+              try {
+                recognitionRef.current.start();
+              } catch (e) {
+                console.warn('Failed to restart local recognition:', e);
+                shouldBeRecordingRef.current = false;
+                setIsRecording(false);
+              }
+            }
+          }, 100);
+        } else {
+          setIsRecording(false);
+          // Reset base text when stopping
+          baseTextRef.current = '';
+        }
+      };
+
+      recognition.onerror = (event: Event) => {
+        console.warn('ChatInput speech recognition error:', event);
+        isLocalRecognitionActiveRef.current = false;
+        // Only stop if we're not supposed to be recording
+        if (!shouldBeRecordingRef.current) {
+          setIsRecording(false);
+          baseTextRef.current = '';
+        }
+      };
+
+      recognitionRef.current = recognition;
     }
-    return () => setDictationCallback(null);
-  }, [isFocused, isListening, setDictationCallback]);
 
-  // Sync local recording state with global listener for UI
-  useEffect(() => {
-    setIsRecording(isListening);
-  }, [isListening]);
+    // Cleanup on unmount
+    return () => {
+      shouldBeRecordingRef.current = false;
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch (e) { /* ignore */ }
+      }
+    };
+  }, []);
 
-  // Use global toggle
+  // Toggle recording - uses universal mic's dictation mode to avoid conflicts
   const toggleRecording = useCallback(() => {
-    toggleListening();
-  }, [toggleListening]);
+    if (isRecording) {
+      // Stop recording - clear dictation callback
+      setDictationCallback(null);
+      setIsRecording(false);
+      console.log('🎤 Recording stopped via button');
+    } else {
+      // Start recording - set dictation callback to write to input
+      setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
+      setIsRecording(true);
+      setRecordingPlaceholder(RECORDING_PROMPTS[0]);
+      console.log('🎤 Recording started via button (using universal mic)');
+    }
+  }, [isRecording, setDictationCallback]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -280,7 +441,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   };
 
   const handleSend = () => {
+    // Debounce: prevent double sends within 2 seconds
+    const now = Date.now();
+    if (now - lastSendTimeRef.current < 2000) {
+      console.log('🚫 Send blocked by debounce (sent recently)');
+      return;
+    }
+
     if ((value.trim() || attachments.length > 0) && !disabled) {
+      lastSendTimeRef.current = now; // Mark send time
       onSend(
         value.trim(),
         attachments.length > 0 ? attachments : undefined,
@@ -291,6 +460,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       // Don't reset enabled tools - keep them persistent for the session
       if (textareaRef.current) {
         textareaRef.current.style.height = window.innerWidth < 640 ? '24px' : '44px';
+      }
+
+      // After sending, clear dictation mode and reset recording indicator
+      if (isRecording) {
+        setDictationCallback(null); // Clear dictation callback
+        setIsRecording(false);
+        console.log('🎤 Dictation ended after send');
       }
     }
   };
@@ -305,15 +481,26 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     const unregisterFocus = registerCommand(
       'focus input',
       () => {
-         // Focus the textarea AND enable dictation immediately
-         if (textareaRef.current) {
-            textareaRef.current.focus();
-            setIsFocused(true);
-            // Immediately enable dictation to avoid race condition
-            setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
-         }
+        // Focus the textarea AND enable local mic dictation
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          setIsFocused(true);
+
+          // Instead of starting a separate local mic (which conflicts with universal mic),
+          // we use the universal mic's dictation mode by setting the callback.
+          // This way there's only ONE speech recognition active.
+
+          // Set up dictation callback for the universal mic to write to this input
+          setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
+
+          // Show the recording indicator (red mic button)
+          setIsRecording(true);
+          setRecordingPlaceholder(RECORDING_PROMPTS[0]);
+
+          console.log('🎤 Focus input: Using universal mic for dictation');
+        }
       },
-      'Focuses the chat input box and enables dictation'
+      'Focuses the chat input box and enables dictation via universal mic'
     );
 
     const unregisterClear = registerCommand(
@@ -331,12 +518,25 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       'Sends the current message'
     );
 
+    // Add stop listening command for words like bye, goodbye, quit, stop
+    const unregisterStop = registerCommand(
+      'stop listening',
+      () => {
+        console.log('🎤 Stop listening command received');
+        if (isUniversalMicActiveRef.current) {
+          toggleListening(); // Turn off universal mic
+        }
+      },
+      'Stops voice control when user says bye, goodbye, quit, stop listening, etc.'
+    );
+
     return () => {
       unregisterFocus();
       unregisterClear();
       unregisterSend();
+      unregisterStop();
     };
-  }, [registerCommand]);
+  }, [registerCommand, toggleListening, setDictationCallback]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

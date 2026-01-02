@@ -13,8 +13,10 @@ interface SpeechRecognitionResultList {
   [index: number]: SpeechRecognitionResult;
 }
 interface SpeechRecognitionResult {
+  length: number;
+  item(index: number): { transcript: string; confidence?: number };
   isFinal: boolean;
-  [index: number]: { transcript: string };
+  [index: number]: { transcript: string; confidence?: number };
 }
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
@@ -26,6 +28,7 @@ interface SpeechRecognition extends EventTarget {
   onresult: ((event: SpeechRecognitionEvent) => void) | null;
   onend: (() => void) | null;
   onerror: ((event: Event) => void) | null;
+  onstart: (() => void) | null;
 }
 
 declare global {
@@ -37,15 +40,19 @@ declare global {
 
 export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [isListening, setIsListening] = useState(false);
+  const [isPaused, setIsPaused] = useState(false); // True when paused for local mic
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
-  
+
+  // Ref to track if we were listening before pause (to know if we should resume)
+  const wasListeningBeforePauseRef = useRef(false);
+
   // The Registry of all active buttons/actions
   const [commands, setCommands] = useState<Record<string, { action: () => void; description: string }>>({});
-  
+
   // The Dictation Receiver (e.g. ChatInput)
   const [dictationCallback, setDictationCallbackState] = useState<((text: string, isFinal: boolean) => void) | null>(null);
-  
+
   // Ref for dictation callback to access in async onresult
   const dictationCallbackRef = useRef(dictationCallback);
   useEffect(() => {
@@ -53,7 +60,22 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, [dictationCallback]);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
-  
+
+  // Use ref to track listening state for async callbacks (prevents stale closure)
+  const isListeningRef = useRef(isListening);
+  useEffect(() => {
+    isListeningRef.current = isListening;
+  }, [isListening]);
+
+  // Use ref to track paused state for async callbacks
+  const isPausedRef = useRef(isPaused);
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
+
+  // Track if recognition is currently active to prevent double-start
+  const isRecognitionActiveRef = useRef(false);
+
   // We use a ref for commands to access the latest state inside the async API callback
   const commandsRef = useRef(commands);
   useEffect(() => {
@@ -119,16 +141,16 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
     } finally {
       setIsProcessing(false);
       // Optional: Clear transcript after a delay so the UI looks clean
-      setTimeout(() => setTranscript(''), 2000); 
+      setTimeout(() => setTranscript(''), 2000);
     }
   };
 
-  // --- Initialize Speech Recognition ---
+  // --- Initialize Speech Recognition (only once on mount) ---
   useEffect(() => {
     if (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
       const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognitionAPI();
-      
+
       recognition.continuous = true;
       recognition.interimResults = true;
       recognition.lang = 'en-US';
@@ -149,12 +171,12 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
         setTranscript(currentTranscript);
 
         // 🧠 TRIGGER THE BRAIN or DICTATION
-        
+
         // If we have a Dictation Receiver (like ChatInput is focused)
         if (dictationCallbackRef.current) {
-           dictationCallbackRef.current(currentTranscript, isFinal);
-           // We do NOT call processVoiceCommand here, because we are typing!
-        } 
+          dictationCallbackRef.current(currentTranscript, isFinal);
+          // We do NOT call processVoiceCommand here, because we are typing!
+        }
         else if (isFinal) {
           // Only process if it's a "Final" result (user stopped speaking) AND no dictation is active
           processVoiceCommand(currentTranscript);
@@ -162,30 +184,92 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       };
 
       recognition.onend = () => {
-        if (isListening) {
-          try { recognition.start(); } catch (e) { /**/ }
+        isRecognitionActiveRef.current = false;
+        // Use ref to get the current listening state (avoids stale closure)
+        // Do NOT restart if paused (another mic is active)
+        if (isListeningRef.current && !isPausedRef.current) {
+          // User still wants to listen and we're not paused, restart recognition
+          setTimeout(() => {
+            if (isListeningRef.current && !isPausedRef.current && recognitionRef.current && !isRecognitionActiveRef.current) {
+              try {
+                recognitionRef.current.start();
+                isRecognitionActiveRef.current = true;
+              } catch (e) {
+                console.warn('Failed to restart recognition:', e);
+              }
+            }
+          }, 100); // Small delay to prevent rapid start/stop cycles
         } else {
-          setIsListening(false);
+          if (!isPausedRef.current) {
+            setIsListening(false);
+          }
+        }
+      };
+
+      recognition.onerror = (event: Event) => {
+        console.warn('Speech recognition error:', event);
+        isRecognitionActiveRef.current = false;
+        // On error, try to restart if still listening AND not paused
+        if (isListeningRef.current && !isPausedRef.current) {
+          setTimeout(() => {
+            if (isListeningRef.current && !isPausedRef.current && recognitionRef.current && !isRecognitionActiveRef.current) {
+              try {
+                recognitionRef.current.start();
+                isRecognitionActiveRef.current = true;
+              } catch (e) {
+                console.warn('Failed to restart after error:', e);
+              }
+            }
+          }, 500);
         }
       };
 
       recognitionRef.current = recognition;
     }
-  }, [isListening]); // Re-bind if listening state changes drastically
+
+    // Cleanup on unmount
+    return () => {
+      if (recognitionRef.current) {
+        try {
+          recognitionRef.current.abort();
+        } catch (e) { /* ignore */ }
+      }
+    };
+  }, []); // Initialize only once on mount
 
   const toggleListening = useCallback(() => {
     if (!recognitionRef.current) return;
 
     if (isListening) {
-      recognitionRef.current.stop();
-      setIsListening(false);
-    } else {
+      // Stop listening
+      isRecognitionActiveRef.current = false;
       try {
-        recognitionRef.current.start();
-        setIsListening(true);
+        recognitionRef.current.abort(); // Use abort to immediately stop
       } catch (e) {
-        console.error(e);
+        console.warn('Error stopping recognition:', e);
       }
+      setIsListening(false);
+      setTranscript(''); // Clear transcript for clean restart
+    } else {
+      // Start listening
+      // First, make sure any previous instance is fully stopped
+      try {
+        recognitionRef.current.abort();
+      } catch (e) { /* ignore */ }
+
+      // Small delay to ensure clean state before starting
+      setTimeout(() => {
+        if (recognitionRef.current && !isRecognitionActiveRef.current) {
+          try {
+            recognitionRef.current.start();
+            isRecognitionActiveRef.current = true;
+            setIsListening(true);
+          } catch (e) {
+            console.error('Failed to start recognition:', e);
+            setIsListening(false);
+          }
+        }
+      }, 50);
     }
   }, [isListening]);
 
@@ -210,15 +294,62 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
   }, []);
 
   const setDictationCallback = useCallback((callback: ((text: string, isFinal: boolean) => void) | null) => {
+    // Update the ref immediately so onresult can use it right away (no waiting for useEffect)
+    dictationCallbackRef.current = callback;
+    // Also update state for React reactivity
     setDictationCallbackState(() => callback);
+    console.log('🎤 Dictation callback set:', callback ? 'ACTIVE' : 'NULL');
+  }, []);
+
+  // Pause the universal mic (temporarily stop without turning off)
+  const pauseListening = useCallback(() => {
+    if (!recognitionRef.current) return;
+
+    // Remember if we were listening so we can resume later
+    wasListeningBeforePauseRef.current = isListeningRef.current;
+
+    if (isListeningRef.current) {
+      try {
+        recognitionRef.current.abort();
+      } catch (e) {
+        console.warn('Error pausing recognition:', e);
+      }
+      isRecognitionActiveRef.current = false;
+    }
+    setIsPaused(true);
+    setTranscript('');
+  }, []);
+
+  // Resume the universal mic after pause
+  const resumeListening = useCallback(() => {
+    if (!recognitionRef.current) return;
+
+    setIsPaused(false);
+
+    // Only resume if we were listening before the pause
+    if (wasListeningBeforePauseRef.current && !isRecognitionActiveRef.current) {
+      setTimeout(() => {
+        if (recognitionRef.current && !isRecognitionActiveRef.current && isListeningRef.current) {
+          try {
+            recognitionRef.current.start();
+            isRecognitionActiveRef.current = true;
+          } catch (e) {
+            console.error('Failed to resume recognition:', e);
+          }
+        }
+      }, 100);
+    }
   }, []);
 
   return (
-    <VoiceControlContext.Provider value={{ 
-      isListening, 
+    <VoiceControlContext.Provider value={{
+      isListening,
+      isPaused,
       isProcessing,
-      transcript, 
+      transcript,
       toggleListening,
+      pauseListening,
+      resumeListening,
       registerCommand,
       availableCommands: commands,
       setDictationCallback,

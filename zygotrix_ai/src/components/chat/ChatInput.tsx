@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, type KeyboardEvent } from 'react';
 import { FiSend, FiPlus, FiX, FiFile, FiSliders, FiCheck, FiMic } from 'react-icons/fi';
 import { cn } from '../../utils';
+import { useVoiceControl } from '../../contexts';
 import type { MessageAttachment } from '../../types';
 
 // TypeScript declarations for Web Speech API
@@ -321,6 +322,48 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       }
     }
   };
+
+  const { registerCommand } = useVoiceControl();
+  
+  // Keep ref to handleSend to avoid re-registering commands on every specific state change
+  const handleSendRef = useRef(handleSend);
+  useEffect(() => {
+    handleSendRef.current = handleSend;
+  });
+
+  useEffect(() => {
+    const unregisterFocus = registerCommand(
+      'focus input',
+      () => {
+         // Focus the textarea
+         if (textareaRef.current) {
+            textareaRef.current.focus();
+         }
+      },
+      'Focuses the chat input box'
+    );
+
+    const unregisterClear = registerCommand(
+      'clear input',
+      () => {
+        setValue('');
+        setAttachments([]);
+      },
+      'Clears the text and attachments'
+    );
+
+    const unregisterSend = registerCommand(
+      'send message',
+      () => handleSendRef.current(),
+      'Sends the current message'
+    );
+
+    return () => {
+      unregisterFocus();
+      unregisterClear();
+      unregisterSend();
+    };
+  }, [registerCommand]);
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

@@ -2,7 +2,7 @@ import React from 'react';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { PageLoader } from '../common/PageLoader';
-import { useAutoScroll } from '../../hooks';
+import { useAutoScroll, useIsMobile } from '../../hooks';
 import { useAuth } from '../../contexts';
 import type { Message, MessageAttachment } from '../../types';
 
@@ -55,6 +55,7 @@ const MessageListComponent: React.FC<MessageListProps> = ({
   inputDisabled = false
 }) => {
   const scrollRef = useAutoScroll<HTMLDivElement>([messages, isLoading], isStreaming);
+  const isMobile = useIsMobile();
   const { user } = useAuth();
 
   // Get first name from full name
@@ -86,8 +87,8 @@ const MessageListComponent: React.FC<MessageListProps> = ({
             </h1>
 
             {/* Desktop only: Centered ChatInput */}
-            {onSend && (
-              <div className="hidden sm:block mb-6">
+            {onSend && !isMobile && (
+              <div className="mb-6">
                 <ChatInput
                   onSend={onSend}
                   disabled={inputDisabled}
@@ -113,8 +114,8 @@ const MessageListComponent: React.FC<MessageListProps> = ({
         </div>
 
         {/* Mobile only: Fixed bottom ChatInput */}
-        {onSend && (
-          <div className="sm:hidden">
+        {onSend && isMobile && (
+          <div>
             <ChatInput
               onSend={onSend}
               disabled={inputDisabled}

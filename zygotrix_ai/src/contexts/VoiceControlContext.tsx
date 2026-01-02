@@ -182,9 +182,14 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }));
     return () => {
       setCommands(prev => {
-        const newCmds = { ...prev };
-        delete newCmds[id];
-        return newCmds;
+        // Only remove if the current action is the one we registered
+        // This prevents removing a command that was just overwritten by a new component
+        if (prev[id]?.action === action) {
+          const newCmds = { ...prev };
+          delete newCmds[id];
+          return newCmds;
+        }
+        return prev;
       });
     };
   }, []);

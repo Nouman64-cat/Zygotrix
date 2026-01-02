@@ -1,12 +1,14 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiMoon, FiChevronRight } from 'react-icons/fi';
-import { MdPsychology, MdCheckCircle, MdError, MdRefresh } from 'react-icons/md';
+import { FiUser, FiActivity, FiSun } from 'react-icons/fi';
+import { MdCheckCircle, MdError, MdRefresh, MdPsychology } from 'react-icons/md';
 import { BiLoaderAlt } from 'react-icons/bi';
 import { MainLayout } from '../components/layout';
 import { ThemeSwitcher } from '../components/common/ThemeSwitcher';
+import { RateLimitIndicator } from '../components/chat';
 import authService from '../services/auth/auth.service';
 import { chatService } from '../services';
+import { useAuth } from '../contexts';
 import type { ChatPreferences, UserPreferencesUpdate, LocalConversation } from '../types';
 import { Button } from '../components/common';
 import { cn } from '../utils';
@@ -16,27 +18,35 @@ interface SettingsNavItem {
   id: string;
   label: string;
   icon: React.ReactNode;
-  description: string;
 }
 
 const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
   {
+    id: 'general',
+    label: 'General',
+    icon: <FiUser className="w-4 h-4" />,
+  },
+  {
     id: 'learning',
-    label: 'Automatic Learning',
-    icon: <MdPsychology className="w-5 h-5" />,
-    description: 'AI learning preferences',
+    label: 'Learning',
+    icon: <MdPsychology className="w-4 h-4" />,
   },
   {
     id: 'appearance',
     label: 'Appearance',
-    icon: <FiMoon className="w-5 h-5" />,
-    description: 'Theme and display settings',
+    icon: <FiSun className="w-4 h-4" />,
+  },
+  {
+    id: 'usage',
+    label: 'Usage',
+    icon: <FiActivity className="w-4 h-4" />,
   },
 ];
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { user } = useAuth();
   
   // Conversations state for MainLayout sidebar
   const [conversationsList, setConversationsList] = useState<LocalConversation[]>(() => {
@@ -49,10 +59,10 @@ export const SettingsPage: React.FC = () => {
     }
   });
 
-  // Get active section from URL hash or default to 'learning'
+  // Get active section from URL hash or default to 'general'
   const getActiveSection = () => {
     const hash = location.hash.replace('#', '');
-    return SETTINGS_NAV_ITEMS.find(item => item.id === hash)?.id || 'learning';
+    return SETTINGS_NAV_ITEMS.find(item => item.id === hash)?.id || 'general';
   };
   
   const [activeSection, setActiveSection] = useState(getActiveSection);
@@ -61,6 +71,7 @@ export const SettingsPage: React.FC = () => {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [rateLimitRefresh, setRateLimitRefresh] = useState(0);
 
   // Load conversations for sidebar
   const loadConversations = useCallback(async () => {
@@ -207,9 +218,9 @@ export const SettingsPage: React.FC = () => {
       };
       const updated = await authService.updateUserPreferences(payload);
       setPreferences(updated);
-      setSuccess('Preferences updated successfully!');
+      setSuccess('Preferences saved successfully!');
     } catch (err) {
-      setError('Failed to update preferences');
+      setError('Failed to save preferences');
       console.error(err);
     } finally {
       setSaving(false);
@@ -235,12 +246,22 @@ export const SettingsPage: React.FC = () => {
     }
   };
 
-  // Render the Automatic Learning section
-  const renderLearningSection = () => {
+  // Get user initials for avatar
+  const getUserInitials = () => {
+    if (!user?.full_name) return 'U';
+    const names = user.full_name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return names[0][0].toUpperCase();
+  };
+
+  // Render the General section (Profile + Learning + Appearance)
+  const renderGeneralSection = () => {
     if (loading) {
       return (
-        <div className="flex flex-col items-center justify-center py-12 gap-3">
-          <BiLoaderAlt className="w-8 h-8 text-emerald-600 animate-spin" />
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <BiLoaderAlt className="w-6 h-6 text-emerald-600 animate-spin" />
           <p className="text-sm text-gray-500">Loading preferences...</p>
         </div>
       );
@@ -248,12 +269,13 @@ export const SettingsPage: React.FC = () => {
 
     if (!preferences) {
       return (
-        <div className="text-center py-12">
-          <p className="text-gray-500">Failed to load preferences</p>
+        <div className="text-center py-16">
+          <p className="text-gray-500 text-sm">Failed to load preferences</p>
           <Button
             variant="secondary"
             onClick={fetchPreferences}
             className="mt-4"
+            size="sm"
           >
             Try Again
           </Button>
@@ -265,253 +287,243 @@ export const SettingsPage: React.FC = () => {
       <div className="space-y-6">
         {/* Success/Error Notifications */}
         {success && (
-          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-4 flex items-center gap-3">
-            <MdCheckCircle className="w-5 h-5 text-green-600" />
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-center gap-2">
+            <MdCheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
             <p className="text-sm text-green-700 dark:text-green-400">{success}</p>
           </div>
         )}
 
         {error && (
-          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-4 flex items-center gap-3">
-            <MdError className="w-5 h-5 text-red-600" />
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2">
+            <MdError className="w-4 h-4 text-red-600 flex-shrink-0" />
+            <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
+          </div>
+        )}
+
+        {/* Profile Section */}
+        <section>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Profile</h2>
+          
+          <div className="space-y-4">
+            {/* Full Name */}
+            <div>
+              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Full name</label>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium">
+                  {getUserInitials()}
+                </div>
+                <div className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-gray-100">
+                  {user?.full_name || 'User'}
+                </div>
+              </div>
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="block text-sm text-gray-600 dark:text-gray-400 mb-2">Email</label>
+              <div className="px-4 py-2.5 bg-gray-100 dark:bg-gray-800 rounded-lg text-sm text-gray-900 dark:text-gray-100">
+                {user?.email || '—'}
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  };
+
+  // Render the Learning section
+  const renderLearningSection = () => {
+    if (loading) {
+      return (
+        <div className="flex flex-col items-center justify-center py-16 gap-3">
+          <BiLoaderAlt className="w-6 h-6 text-emerald-600 animate-spin" />
+          <p className="text-sm text-gray-500">Loading preferences...</p>
+        </div>
+      );
+    }
+
+    if (!preferences) {
+      return (
+        <div className="text-center py-16">
+          <p className="text-gray-500 text-sm">Failed to load preferences</p>
+          <Button
+            variant="secondary"
+            onClick={fetchPreferences}
+            className="mt-4"
+            size="sm"
+          >
+            Try Again
+          </Button>
+        </div>
+      );
+    }
+
+    return (
+      <div className="space-y-6">
+        {/* Success/Error Notifications */}
+        {success && (
+          <div className="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-3 flex items-center gap-2">
+            <MdCheckCircle className="w-4 h-4 text-green-600 flex-shrink-0" />
+            <p className="text-sm text-green-700 dark:text-green-400">{success}</p>
+          </div>
+        )}
+
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg p-3 flex items-center gap-2">
+            <MdError className="w-4 h-4 text-red-600 flex-shrink-0" />
             <p className="text-sm text-red-700 dark:text-red-400">{error}</p>
           </div>
         )}
 
         {/* Automatic Learning Toggle */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <div className="flex items-center justify-between">
-            <div className="flex-1">
-              <div className="flex items-center gap-2">
-                <label className="text-base font-medium text-gray-900 dark:text-gray-100">
-                  Enable Automatic Learning
-                </label>
-                {preferences.auto_learn && (
-                  <span className="px-2 py-0.5 bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-400 text-xs rounded-full">
-                    Active
-                  </span>
-                )}
-              </div>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                AI automatically detects and learns from signals in your prompts to better understand your preferences
-              </p>
-            </div>
-            <label className="relative inline-flex items-center cursor-pointer">
-              <input
-                type="checkbox"
-                checked={preferences.auto_learn}
-                onChange={(e) => handlePreferenceChange('auto_learn', e.target.checked)}
-                className="sr-only peer"
-              />
-              <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
-            </label>
+        <div className="flex items-start justify-between py-4 border-b border-gray-200 dark:border-gray-700">
+          <div className="flex-1 pr-4">
+            <p className="text-sm font-medium text-gray-900 dark:text-gray-100">Automatic learning</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              AI learns from signals in your prompts to better understand your preferences
+            </p>
           </div>
+          <label className="relative inline-flex items-center cursor-pointer">
+            <input
+              type="checkbox"
+              checked={preferences.auto_learn}
+              onChange={(e) => handlePreferenceChange('auto_learn', e.target.checked)}
+              className="sr-only peer"
+            />
+            <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-emerald-300 dark:peer-focus:ring-emerald-800 rounded-full peer dark:bg-gray-700 peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all dark:border-gray-600 peer-checked:bg-emerald-600"></div>
+          </label>
         </div>
 
         {/* Communication Style */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <label className="block text-base font-medium text-gray-900 dark:text-gray-100 mb-4">
-            Communication Style
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="py-4 border-b border-gray-200 dark:border-gray-700">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Communication style</p>
+          <div className="flex flex-wrap gap-2">
             {[
-              { value: 'simple', label: 'Simple', desc: 'Everyday language' },
-              { value: 'conversational', label: 'Conversational', desc: 'Friendly, balanced tone' },
-              { value: 'technical', label: 'Technical', desc: 'Scientific terminology' },
+              { value: 'simple', label: 'Simple' },
+              { value: 'conversational', label: 'Conversational' },
+              { value: 'technical', label: 'Technical' },
             ].map((option) => (
               <button
                 key={option.value}
                 onClick={() => handlePreferenceChange('communication_style', option.value)}
                 className={cn(
-                  'p-4 rounded-lg border-2 transition-all text-left cursor-pointer',
+                  'px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer',
                   preferences.communication_style === option.value
-                    ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className={cn(
-                      'w-5 h-5 rounded-full border-2 flex items-center justify-center',
-                      preferences.communication_style === option.value
-                        ? 'border-emerald-600 bg-emerald-600'
-                        : 'border-gray-300 dark:border-gray-600'
-                    )}
-                  >
-                    {preferences.communication_style === option.value && (
-                      <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                    )}
-                  </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {option.label}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 ml-7">{option.desc}</p>
+                {option.label}
               </button>
             ))}
           </div>
         </div>
 
         {/* Answer Length */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <label className="block text-base font-medium text-gray-900 dark:text-gray-100 mb-4">
-            Answer Length
-          </label>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="py-4 border-b border-gray-200 dark:border-gray-700">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-3">Answer length</p>
+          <div className="flex flex-wrap gap-2">
             {[
-              { value: 'brief', label: 'Brief', desc: 'Concise, key points' },
-              { value: 'balanced', label: 'Balanced', desc: 'Neither too brief nor too long' },
-              { value: 'detailed', label: 'Detailed', desc: 'Comprehensive explanations' },
+              { value: 'brief', label: 'Brief' },
+              { value: 'balanced', label: 'Balanced' },
+              { value: 'detailed', label: 'Detailed' },
             ].map((option) => (
               <button
                 key={option.value}
                 onClick={() => handlePreferenceChange('answer_length', option.value)}
                 className={cn(
-                  'p-4 rounded-lg border-2 transition-all text-left cursor-pointer',
+                  'px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer',
                   preferences.answer_length === option.value
-                    ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className={cn(
-                      'w-5 h-5 rounded-full border-2 flex items-center justify-center',
-                      preferences.answer_length === option.value
-                        ? 'border-emerald-600 bg-emerald-600'
-                        : 'border-gray-300 dark:border-gray-600'
-                    )}
-                  >
-                    {preferences.answer_length === option.value && (
-                      <div className="w-2.5 h-2.5 rounded-full bg-white"></div>
-                    )}
-                  </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {option.label}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 ml-7">{option.desc}</p>
+                {option.label}
               </button>
             ))}
           </div>
         </div>
 
         {/* Teaching Aids */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <label className="block text-base font-medium text-gray-900 dark:text-gray-100 mb-1">
-            Teaching Aids
-          </label>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Select multiple</p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="py-4 border-b border-gray-200 dark:border-gray-700">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Teaching aids</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Select all that apply</p>
+          <div className="flex flex-wrap gap-2">
             {[
-              { value: 'examples', label: 'Examples', desc: 'Include practical examples' },
-              { value: 'real_world', label: 'Real-World', desc: 'Real-world applications' },
-              { value: 'analogies', label: 'Analogies', desc: 'Use comparisons' },
-              { value: 'step_by_step', label: 'Step-by-Step', desc: 'Break down processes' },
+              { value: 'examples', label: 'Examples' },
+              { value: 'real_world', label: 'Real-world' },
+              { value: 'analogies', label: 'Analogies' },
+              { value: 'step_by_step', label: 'Step-by-step' },
             ].map((option) => (
               <button
                 key={option.value}
                 onClick={() => handlePreferenceArrayToggle('teaching_aids', option.value)}
                 className={cn(
-                  'p-4 rounded-lg border-2 transition-all text-left cursor-pointer',
+                  'px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer',
                   preferences.teaching_aids?.includes(option.value)
-                    ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className={cn(
-                      'w-5 h-5 rounded border-2 flex items-center justify-center',
-                      preferences.teaching_aids?.includes(option.value)
-                        ? 'border-emerald-600 bg-emerald-600'
-                        : 'border-gray-300 dark:border-gray-600'
-                    )}
-                  >
-                    {preferences.teaching_aids?.includes(option.value) && (
-                      <MdCheckCircle className="w-3.5 h-3.5 text-white" />
-                    )}
-                  </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {option.label}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 ml-7">{option.desc}</p>
+                {option.label}
               </button>
             ))}
           </div>
         </div>
 
         {/* Visual Aids */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <label className="block text-base font-medium text-gray-900 dark:text-gray-100 mb-1">
-            Visual Aids
-          </label>
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Select multiple</p>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="py-4">
+          <p className="text-sm font-medium text-gray-900 dark:text-gray-100 mb-1">Visual aids</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">Select all that apply</p>
+          <div className="flex flex-wrap gap-2">
             {[
-              { value: 'lists', label: 'Lists', desc: 'Bullet points' },
-              { value: 'tables', label: 'Tables', desc: 'Structured data' },
-              { value: 'diagrams', label: 'Diagrams', desc: 'Visual representations' },
+              { value: 'lists', label: 'Lists' },
+              { value: 'tables', label: 'Tables' },
+              { value: 'diagrams', label: 'Diagrams' },
             ].map((option) => (
               <button
                 key={option.value}
                 onClick={() => handlePreferenceArrayToggle('visual_aids', option.value)}
                 className={cn(
-                  'p-4 rounded-lg border-2 transition-all text-left cursor-pointer',
+                  'px-4 py-2 rounded-full text-sm font-medium transition-all cursor-pointer',
                   preferences.visual_aids?.includes(option.value)
-                    ? 'border-emerald-600 bg-emerald-50 dark:bg-emerald-900/20'
-                    : 'border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600'
+                    ? 'bg-emerald-600 text-white'
+                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
                 )}
               >
-                <div className="flex items-center gap-2 mb-2">
-                  <div
-                    className={cn(
-                      'w-5 h-5 rounded border-2 flex items-center justify-center',
-                      preferences.visual_aids?.includes(option.value)
-                        ? 'border-emerald-600 bg-emerald-600'
-                        : 'border-gray-300 dark:border-gray-600'
-                    )}
-                  >
-                    {preferences.visual_aids?.includes(option.value) && (
-                      <MdCheckCircle className="w-3.5 h-3.5 text-white" />
-                    )}
-                  </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white">
-                    {option.label}
-                  </span>
-                </div>
-                <p className="text-xs text-gray-500 ml-7">{option.desc}</p>
+                {option.label}
               </button>
             ))}
           </div>
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-between gap-4 pt-4">
-          <Button
-            variant="secondary"
-            leftIcon={<MdRefresh />}
-            onClick={handleReset}
-            disabled={saving || loading}
-            className="cursor-pointer"
-          >
-            Reset to Defaults
-          </Button>
+        <div className="flex items-center gap-3 pt-4 border-t border-gray-200 dark:border-gray-700">
           <Button
             variant="primary"
             onClick={handleSave}
-            disabled={saving || loading || !preferences}
+            disabled={saving || loading}
             className="!bg-emerald-600 hover:!bg-emerald-700 cursor-pointer"
+            size="sm"
           >
             {saving ? (
               <>
-                <BiLoaderAlt className="w-4 h-4 animate-spin mr-2" />
+                <BiLoaderAlt className="w-3 h-3 animate-spin mr-1" />
                 Saving...
               </>
             ) : (
-              'Save Preferences'
+              'Save changes'
             )}
+          </Button>
+          <Button
+            variant="secondary"
+            leftIcon={<MdRefresh className="w-3.5 h-3.5" />}
+            onClick={handleReset}
+            disabled={saving || loading}
+            className="cursor-pointer"
+            size="sm"
+          >
+            Reset
           </Button>
         </div>
       </div>
@@ -522,24 +534,64 @@ export const SettingsPage: React.FC = () => {
   const renderAppearanceSection = () => {
     return (
       <div className="space-y-6">
-        {/* Color Mode */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
-          <div className="mb-4">
-            <h3 className="text-base font-medium text-gray-900 dark:text-white">Color mode</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Choose your preferred color scheme for the interface
-            </p>
+        <section>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Color mode</h2>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Choose your preferred color scheme for the interface
+          </p>
+          <ThemeSwitcher variant="cards" />
+        </section>
+      </div>
+    );
+  };
+
+  // Render the Usage section with Rate Limit
+  const renderUsageSection = () => {
+    return (
+      <div className="space-y-8">
+        {/* Usage Stats Section */}
+        <section>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Token Usage</h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
+            Track your AI usage and remaining tokens for this session
+          </p>
+          
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+            <RateLimitIndicator
+              refreshTrigger={rateLimitRefresh}
+              onRateLimitChange={() => {}}
+            />
           </div>
           
-          <ThemeSwitcher variant="cards" />
-        </div>
+          <button
+            onClick={() => setRateLimitRefresh(prev => prev + 1)}
+            className="mt-3 text-xs text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
+          >
+            Refresh usage data
+          </button>
+        </section>
 
-        {/* Future appearance settings can be added here */}
-        <div className="bg-gray-50 dark:bg-gray-800/50 rounded-xl border border-dashed border-gray-300 dark:border-gray-700 p-6 text-center">
-          <p className="text-sm text-gray-500 dark:text-gray-400">
-            More appearance options coming soon...
-          </p>
-        </div>
+        {/* Usage Info */}
+        <section>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">About Usage Limits</h2>
+          
+          <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+            <p>
+              Token limits help ensure fair usage across all users. Each message you send and receive consumes tokens.
+            </p>
+            <p>
+              Your token allocation resets periodically. When you reach the limit, you'll need to wait for the cooldown period to end before continuing.
+            </p>
+            <p>
+              Tips to optimize token usage:
+            </p>
+            <ul className="list-disc list-inside space-y-1 ml-2">
+              <li>Be concise in your prompts</li>
+              <li>Request "brief" answers for simple questions</li>
+              <li>Avoid repetitive follow-up messages</li>
+            </ul>
+          </div>
+        </section>
       </div>
     );
   };
@@ -547,12 +599,16 @@ export const SettingsPage: React.FC = () => {
   // Render the content based on active section
   const renderContent = () => {
     switch (activeSection) {
+      case 'general':
+        return renderGeneralSection();
       case 'learning':
         return renderLearningSection();
       case 'appearance':
         return renderAppearanceSection();
+      case 'usage':
+        return renderUsageSection();
       default:
-        return renderLearningSection();
+        return renderGeneralSection();
     }
   };
 
@@ -566,66 +622,36 @@ export const SettingsPage: React.FC = () => {
       onRenameConversation={handleRenameConversation}
       onPinConversation={handlePinConversation}
     >
-      <div className="h-full overflow-y-auto bg-gray-50 dark:bg-gray-900">
-        {/* Settings Header */}
-        <div className="bg-white dark:bg-gray-900 border-b border-gray-200 dark:border-gray-800 sticky top-0 z-10">
-          <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Settings</h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-              Manage your AI preferences and appearance
-            </p>
-          </div>
-        </div>
+      <div className="h-full overflow-y-auto bg-white dark:bg-gray-900">
+        <div className="max-w-5xl mx-auto px-8 py-8">
+          {/* Page Title */}
+          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-8">Settings</h1>
 
-        {/* Main Content with Settings Sidebar */}
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-          <div className="flex flex-col lg:flex-row gap-6">
+          {/* Content with Settings Sidebar */}
+          <div className="flex gap-16">
             {/* Settings Sidebar Navigation */}
-            <nav className="lg:w-56 flex-shrink-0">
-              <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden sticky top-24">
+            <nav className="w-40 flex-shrink-0">
+              <div className="space-y-1">
                 {SETTINGS_NAV_ITEMS.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => handleSectionChange(item.id)}
                     className={cn(
-                      'w-full flex items-center gap-3 px-4 py-3 text-left transition-colors cursor-pointer',
-                      'border-l-4',
+                      'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer',
                       activeSection === item.id
-                        ? 'bg-emerald-50 dark:bg-emerald-900/20 border-l-emerald-600 text-emerald-700 dark:text-emerald-400'
-                        : 'border-l-transparent text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700/50'
+                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-medium'
+                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
                     )}
                   >
-                    <span className={cn(
-                      activeSection === item.id
-                        ? 'text-emerald-600 dark:text-emerald-400'
-                        : 'text-gray-500 dark:text-gray-400'
-                    )}>
-                      {item.icon}
-                    </span>
-                    <span className="flex-1 text-sm font-medium">{item.label}</span>
-                    <FiChevronRight className={cn(
-                      'w-4 h-4 transition-opacity',
-                      activeSection === item.id ? 'opacity-100' : 'opacity-0'
-                    )} />
+                    {item.icon}
+                    {item.label}
                   </button>
                 ))}
               </div>
             </nav>
 
             {/* Content Area */}
-            <div className="flex-1 min-w-0">
-              {/* Section Header */}
-              <div className="mb-6">
-                <h2 className="text-xl font-semibold text-gray-900 dark:text-white">
-                  {SETTINGS_NAV_ITEMS.find(item => item.id === activeSection)?.label}
-                </h2>
-                <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                  {activeSection === 'learning' 
-                    ? 'Configure how Zygotrix AI learns and adapts to your preferences'
-                    : 'Customize how Zygotrix AI looks and feels'}
-                </p>
-              </div>
-              
+            <div className="flex-1 max-w-2xl">
               {renderContent()}
             </div>
           </div>

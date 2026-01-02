@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout';
-import { MessageList, ChatInput, RateLimitIndicator, RateLimitModal, RateLimitBanner } from '../components/chat';
+import { MessageList, ChatInput, RateLimitModal, RateLimitBanner } from '../components/chat';
 import { useChat } from '../hooks';
 import { chatService } from '../services';
 import type { LocalConversation } from '../types';
@@ -20,12 +20,8 @@ export const Chat: React.FC = () => {
       return [];
     }
   });
-  const [rateLimitRefresh, setRateLimitRefresh] = useState(0);
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
-
-  // Rate limit state - can be set from API or from error messages
-  const [isRateLimitedFromAPI, setIsRateLimitedFromAPI] = useState(false);
   const [resetTime, setResetTime] = useState<string | null>(null);
 
   // Persist conversationsList changes to localStorage
@@ -47,31 +43,16 @@ export const Chat: React.FC = () => {
   } = useChat();
 
   // Parse error to check for rate limit - check multiple patterns
-  const isRateLimitedFromError = error ? (
+  const isRateLimited = error ? (
     error.includes('429') ||
     error.toLowerCase().includes('rate limit') ||
     error.toLowerCase().includes('too many requests') ||
     error.toLowerCase().includes('cooldown')
   ) : false;
 
-  // Combined rate limit status (from API or from error)
-  const isRateLimited = isRateLimitedFromAPI || isRateLimitedFromError;
-
-  // Handle rate limit status change from RateLimitIndicator
-  const handleRateLimitChange = useCallback((limited: boolean, apiResetTime: string | null) => {
-    setIsRateLimitedFromAPI(limited);
-    if (apiResetTime) {
-      setResetTime(apiResetTime);
-    }
-    // Show modal automatically when first rate limited
-    if (limited && !isRateLimitedFromAPI) {
-      setShowRateLimitModal(true);
-    }
-  }, [isRateLimitedFromAPI]);
-
   // Parse rate limit error details (when error comes from API response)
   useEffect(() => {
-    if (isRateLimitedFromError && error) {
+    if (isRateLimited && error) {
       try {
         // Try to extract JSON from error message
         const jsonMatch = error.match(/\{[\s\S]*\}/);
@@ -88,7 +69,7 @@ export const Chat: React.FC = () => {
         setShowRateLimitModal(true);
       }
     }
-  }, [error, isRateLimitedFromError]);
+  }, [error, isRateLimited]);
 
   // Load conversations list from API
   const loadConversations = useCallback(async () => {
@@ -203,9 +184,6 @@ export const Chat: React.FC = () => {
 
   const handleSendMessage = async (content: string, attachments?: import('../types').MessageAttachment[], enabledTools?: string[]) => {
     await sendMessage(content, attachments, enabledTools);
-    setTimeout(() => {
-      setRateLimitRefresh(prev => prev + 1);
-    }, 1000);
   };
 
   return (
@@ -238,13 +216,6 @@ export const Chat: React.FC = () => {
               </div>
             )}
 
-            {/* Horizontal Rate Limit Indicator - Mobile/Tablet only */}
-            <div className="xl:hidden border-b border-gray-200 dark:border-gray-800 px-4 py-2 bg-gray-50 dark:bg-gray-900">
-              <RateLimitIndicator
-                refreshTrigger={rateLimitRefresh}
-                onRateLimitChange={handleRateLimitChange}
-              />
-            </div>
 
             <MessageList
               messages={messages}
@@ -270,15 +241,6 @@ export const Chat: React.FC = () => {
                 disabled={isLoading || isRateLimited}
               />
             )}
-          </div>
-
-          {/* Vertical Rate Limit Indicator - Right Side (desktop only) */}
-          <div className="hidden xl:flex w-16 border-l border-gray-200 dark:border-gray-800 bg-gray-50 dark:bg-gray-900">
-            <RateLimitIndicator
-              refreshTrigger={rateLimitRefresh}
-              vertical
-              onRateLimitChange={handleRateLimitChange}
-            />
           </div>
         </div>
       </>

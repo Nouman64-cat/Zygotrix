@@ -1,10 +1,11 @@
 import React, { useState } from 'react';
-import { FiMenu, FiPlus, FiLogOut } from 'react-icons/fi';
+import { FiMenu, FiPlus, FiLogOut, FiMic } from 'react-icons/fi';
 import { MdPsychology } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts';
 import { Logo, IconButton, ThemeSwitcher, PreferencesModal } from '../common';
 import { LOGO_URL } from '../../config';
+import { useVoiceControl } from '../../contexts';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -21,6 +22,7 @@ export const Header: React.FC<HeaderProps> = ({
   const { user, logout } = useAuth();
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showPreferences, setShowPreferences] = useState(false);
+  const { toggleListening, isListening } = useVoiceControl();
 
   const handleLogout = async () => {
     await logout();
@@ -74,6 +76,13 @@ export const Header: React.FC<HeaderProps> = ({
             tooltip="New chat"
             variant="ghost"
           />
+          <IconButton
+  icon={<FiMic className={isListening ? "text-red-500 animate-pulse" : ""} />}
+  onClick={toggleListening}
+  tooltip={isListening ? "Stop Listening" : "Start Voice Control"}
+  variant="ghost"
+  className={isListening ? "bg-red-50 dark:bg-red-900/20" : ""}
+/>
 
           <div className="relative">
             <button

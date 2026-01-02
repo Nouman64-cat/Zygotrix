@@ -1,5 +1,5 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, ThemeProvider } from './contexts';
+import { AuthProvider, ThemeProvider, VoiceControlProvider } from './contexts';
 import { ProtectedRoute } from './components/common';
 import { Chat, Login, Register, ForgotPassword, SettingsPage } from './pages';
 
@@ -8,6 +8,7 @@ const App = () => {
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
+          <VoiceControlProvider>
           <Routes>
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
@@ -39,6 +40,7 @@ const App = () => {
             <Route path="/" element={<Navigate to="/chat" replace />} />
             <Route path="*" element={<Navigate to="/chat" replace />} />
           </Routes>
+          </VoiceControlProvider>
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

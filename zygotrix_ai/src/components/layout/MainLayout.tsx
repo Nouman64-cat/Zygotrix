@@ -1,11 +1,12 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiSettings, FiExternalLink, FiLogOut } from 'react-icons/fi';
+import { FiMenu, FiSettings, FiExternalLink, FiLogOut, FiMic } from 'react-icons/fi';
 import { Sidebar } from './Sidebar';
 import { IconButton, Logo } from '../common';
-import { useAuth } from '../../contexts';
+import { useAuth, useVoiceControl } from '../../contexts';
 import { LOGO_URL } from '../../config';
 import type { LocalConversation } from '../../types';
+import { VoiceStatus } from '../common/VoiceStatus'; // Add this
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -30,6 +31,37 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const { toggleListening, isListening, registerCommand } = useVoiceControl();
+
+  useEffect(() => {
+    // Command 1: Go to Settings
+    const unregisterSettings = registerCommand(
+      'open settings', 
+      () => navigate('/settings'), 
+      'Navigates to the settings page'
+    );
+
+    // Command 2: Go to Chat
+    const unregisterChat = registerCommand(
+      'go to chat', 
+      () => navigate('/chat'), 
+      'Navigates to the main chat interface'
+    );
+    
+    // Command 3: Create New Chat
+    const unregisterNew = registerCommand(
+      'create new chat',
+      onNewConversation,
+      'Starts a new empty conversation'
+    );
+
+    // Cleanup
+    return () => {
+      unregisterSettings();
+      unregisterChat();
+      unregisterNew();
+    };
+  }, [registerCommand, navigate, onNewConversation]);
   
   // State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -155,14 +187,24 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
           <Logo size="sm" showText={true} />
           
-          <div className="relative" ref={desktopAvatarRef}>
-            <button
-              onClick={() => setIsDesktopAvatarOpen(!isDesktopAvatarOpen)}
-              className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium cursor-pointer transition-transform hover:scale-105"
-            >
-              {getUserInitials()}
-            </button>
-            {isDesktopAvatarOpen && renderAvatarMenu(() => setIsDesktopAvatarOpen(false))}
+          <div className="flex items-center gap-2">
+            <IconButton
+              icon={<FiMic className={isListening ? "text-red-500 animate-pulse" : ""} />}
+              onClick={toggleListening}
+              tooltip={isListening ? "Stop Listening" : "Start Voice Control"}
+              variant="ghost"
+              className={isListening ? "bg-red-50 dark:bg-red-900/20" : ""}
+            />
+
+            <div className="relative" ref={desktopAvatarRef}>
+              <button
+                onClick={() => setIsDesktopAvatarOpen(!isDesktopAvatarOpen)}
+                className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium cursor-pointer transition-transform hover:scale-105"
+              >
+                {getUserInitials()}
+              </button>
+              {isDesktopAvatarOpen && renderAvatarMenu(() => setIsDesktopAvatarOpen(false))}
+            </div>
           </div>
         </div>
 
@@ -185,21 +227,32 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
           
           {/* User Avatar with Dropdown */}
-          <div className="relative" ref={mobileAvatarRef}>
-            <button
-              onClick={() => setIsMobileAvatarOpen(!isMobileAvatarOpen)}
-              className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium cursor-pointer"
-            >
-              {getUserInitials()}
-            </button>
+          <div className="flex items-center gap-2">
+            <IconButton
+              icon={<FiMic className={isListening ? "text-red-500 animate-pulse" : ""} />}
+              onClick={toggleListening}
+              tooltip={isListening ? "Stop Listening" : "Start Voice Control"}
+              variant="ghost"
+              className={isListening ? "bg-red-50 dark:bg-red-900/20" : ""}
+            />
+            
+            <div className="relative" ref={mobileAvatarRef}>
+              <button
+                onClick={() => setIsMobileAvatarOpen(!isMobileAvatarOpen)}
+                className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium cursor-pointer"
+              >
+                {getUserInitials()}
+              </button>
 
-            {isMobileAvatarOpen && renderAvatarMenu(() => setIsMobileAvatarOpen(false))}
+              {isMobileAvatarOpen && renderAvatarMenu(() => setIsMobileAvatarOpen(false))}
+            </div>
           </div>
         </div>
 
         <main className="flex-1 overflow-hidden">
           {children}
         </main>
+        <VoiceStatus />
       </div>
     </div>
   );

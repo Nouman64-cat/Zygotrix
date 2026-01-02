@@ -42,6 +42,15 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
   
   // The Registry of all active buttons/actions
   const [commands, setCommands] = useState<Record<string, { action: () => void; description: string }>>({});
+  
+  // The Dictation Receiver (e.g. ChatInput)
+  const [dictationCallback, setDictationCallbackState] = useState<((text: string, isFinal: boolean) => void) | null>(null);
+  
+  // Ref for dictation callback to access in async onresult
+  const dictationCallbackRef = useRef(dictationCallback);
+  useEffect(() => {
+    dictationCallbackRef.current = dictationCallback;
+  }, [dictationCallback]);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   
@@ -139,9 +148,15 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
         setTranscript(currentTranscript);
 
-        // 🧠 TRIGGER THE BRAIN
-        // Only process if it's a "Final" result (user stopped speaking)
-        if (isFinal) {
+        // 🧠 TRIGGER THE BRAIN or DICTATION
+        
+        // If we have a Dictation Receiver (like ChatInput is focused)
+        if (dictationCallbackRef.current) {
+           dictationCallbackRef.current(currentTranscript, isFinal);
+           // We do NOT call processVoiceCommand here, because we are typing!
+        } 
+        else if (isFinal) {
+          // Only process if it's a "Final" result (user stopped speaking) AND no dictation is active
           processVoiceCommand(currentTranscript);
         }
       };
@@ -194,6 +209,10 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
     };
   }, []);
 
+  const setDictationCallback = useCallback((callback: ((text: string, isFinal: boolean) => void) | null) => {
+    setDictationCallbackState(() => callback);
+  }, []);
+
   return (
     <VoiceControlContext.Provider value={{ 
       isListening, 
@@ -201,7 +220,9 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       transcript, 
       toggleListening,
       registerCommand,
-      availableCommands: commands
+      availableCommands: commands,
+      setDictationCallback,
+      isDictating: !!dictationCallback
     }}>
       {children}
     </VoiceControlContext.Provider>

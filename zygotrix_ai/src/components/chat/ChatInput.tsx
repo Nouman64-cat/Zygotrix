@@ -93,6 +93,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
+  const { registerCommand, setDictationCallback, toggleListening, isListening } = useVoiceControl();
+  const [isFocused, setIsFocused] = useState(false);
+
   // Check if speech recognition is supported
   const isSpeechSupported = typeof window !== 'undefined' &&
     ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
@@ -145,44 +148,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     return () => clearInterval(interval);
   }, [isRecording]);
 
-  // Initialize speech recognition
-  const startRecording = useCallback(() => {
-    if (!isSpeechSupported) {
-      alert('Voice input is not supported in your browser. Please try Chrome or Edge.');
-      return;
-    }
+  // Handle Dictation from VoiceControlContext
+  const handleDictation = useCallback((speechTranscript: string, isFinal: boolean) => {
+      // NOTE: We don't have access to "initialValue" here easily unless we use a ref for 'value'
+      // But we can just append to the current value state if we are careful.
+      // Better: Use functional state update or a ref.
+      
+      if (!isFinal) return; // For now only handle final to avoid complex cursor management
 
-    const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
-    const recognition = new SpeechRecognitionAPI();
-
-    recognition.continuous = true;
-    recognition.interimResults = true;
-    recognition.lang = 'en-US';
-
-    // Store the current value before recording starts so we can append speech to it
-    const initialValue = textareaRef.current?.value || '';
-
-    recognition.onstart = () => {
-      setIsRecording(true);
-      setRecordingPlaceholder(RECORDING_PROMPTS[0]);
-    };
-
-    recognition.onresult = (event: SpeechRecognitionEvent) => {
-      let speechTranscript = '';
-
-      // Reconstruct the full transcript from the current session
-      for (let i = 0; i < event.results.length; i++) {
-        speechTranscript += event.results[i][0].transcript;
-      }
-
-      // Update input with (Initial Text + Current Speech)
-      const newValue = initialValue + (initialValue && speechTranscript ? ' ' : '') + speechTranscript;
-      setValue(newValue);
-
-      // Check for send commands
-      // Only check if we have a final result to avoid accidental sending on partial matches
-      const isFinal = event.results[event.results.length - 1]?.isFinal;
-      if (isFinal) {
+      setValue(prev => {
+        const newValue = prev + (prev ? ' ' : '') + speechTranscript;
+        
+        // Check for send commands
         const lowerTranscript = speechTranscript.toLowerCase().trim();
         const sendCommands = ['send message', 'please send', 'send this', 'send it', 'submit message'];
 
@@ -192,57 +169,52 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         );
 
         if (matchedCommand) {
-          // Remove the command from the text
-          // We need to be careful to remove it from the end of newValue
-          // Construct the final message content
-          let messageContent = newValue;
-
-          // Regex to match the command at the end, case insensitive, with optional punctuation
-          const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
-          messageContent = messageContent.replace(commandRegex, '').trim();
-
-          if (messageContent) {
-            // Stop recording
-            recognition.stop();
-            setIsRecording(false);
-
-            // Send the message
-            setValue(''); // Clear input
-            onSend(messageContent, attachments, enabledTools);
-          }
+          // Send command detected!
+          // We need to trigger send.
+          // Since we are in a state update, we can't trigger send immediately with the new value easily.
+          // We will use a useEffect or a timeout?
+          // Or just cheat:
+          setTimeout(() => {
+             // Remove command from text
+             const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
+             const messageContent = newValue.replace(commandRegex, '').trim();
+             if (messageContent) {
+               onSend(messageContent, attachments, enabledTools);
+               setValue('');
+               setAttachments([]);
+             }
+          }, 0);
+          return newValue; // Update visually briefly
         }
-      }
-    };
+        
+        return newValue;
+      });
+  }, [onSend, attachments, enabledTools]);
 
-    recognition.onerror = () => {
-      setIsRecording(false);
-      recognitionRef.current = null;
-    };
+  // Register dictation when focused
+  const handleDictationRef = useRef(handleDictation);
+  useEffect(() => {
+    handleDictationRef.current = handleDictation;
+  }, [handleDictation]);
 
-    recognition.onend = () => {
-      setIsRecording(false);
-      recognitionRef.current = null;
-    };
-
-    recognitionRef.current = recognition;
-    recognition.start();
-  }, [isSpeechSupported, onSend, attachments, enabledTools]);
-
-  const stopRecording = useCallback(() => {
-    if (recognitionRef.current) {
-      recognitionRef.current.stop();
-      recognitionRef.current = null;
+  useEffect(() => {
+    if (isFocused && isListening) {
+      setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
+    } else if (!isFocused) {
+      setDictationCallback(null);
     }
-    setIsRecording(false);
-  }, []);
+    return () => setDictationCallback(null);
+  }, [isFocused, isListening, setDictationCallback]);
 
+  // Sync local recording state with global listener for UI
+  useEffect(() => {
+    setIsRecording(isListening);
+  }, [isListening]);
+
+  // Use global toggle
   const toggleRecording = useCallback(() => {
-    if (isRecording) {
-      stopRecording();
-    } else {
-      startRecording();
-    }
-  }, [isRecording, startRecording, stopRecording]);
+    toggleListening();
+  }, [toggleListening]);
 
   const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
@@ -323,8 +295,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     }
   };
 
-  const { registerCommand } = useVoiceControl();
-  
   // Keep ref to handleSend to avoid re-registering commands on every specific state change
   const handleSendRef = useRef(handleSend);
   useEffect(() => {
@@ -335,12 +305,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     const unregisterFocus = registerCommand(
       'focus input',
       () => {
-         // Focus the textarea
+         // Focus the textarea AND enable dictation immediately
          if (textareaRef.current) {
             textareaRef.current.focus();
+            setIsFocused(true);
+            // Immediately enable dictation to avoid race condition
+            setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
          }
       },
-      'Focuses the chat input box'
+      'Focuses the chat input box and enables dictation'
     );
 
     const unregisterClear = registerCommand(
@@ -437,6 +410,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
+              onFocus={() => setIsFocused(true)}
+              onBlur={() => setIsFocused(false)}
               placeholder={isRecording ? recordingPlaceholder : placeholder}
               disabled={disabled || isRecording}
               rows={1}

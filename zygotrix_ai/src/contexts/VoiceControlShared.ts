@@ -8,6 +8,8 @@ export interface VoiceControlContextType {
     toggleListening: () => void;
     registerCommand: (trigger: string, action: () => void, description: string) => () => void;
     availableCommands: Record<string, { action: () => void; description: string }>;
+    setDictationCallback: (callback: ((text: string, isFinal: boolean) => void) | null) => void;
+    isDictating: boolean;
 }
 
 export const VoiceControlContext = createContext<VoiceControlContextType | undefined>(undefined);

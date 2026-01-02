@@ -5,10 +5,11 @@ import { useVoiceControl } from '../../contexts';
 import { cn } from '../../utils';
 
 export const VoiceStatus: React.FC = () => {
-  const { isListening, transcript } = useVoiceControl();
+  const { isListening, transcript, isDictating } = useVoiceControl();
 
-  // Only render if listening or if there is a transcript being processed
-  if (!isListening && !transcript) return null;
+  // Hide if dictating (ChatInput is handling the mic)
+  // Also hide if not listening and no transcript
+  if (isDictating || (!isListening && !transcript)) return null;
 
   return (
     <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none">

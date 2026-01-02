@@ -31,7 +31,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { toggleListening, isListening, registerCommand } = useVoiceControl();
+  const { toggleListening, isListening, registerCommand, isDictating } = useVoiceControl();
 
   useEffect(() => {
     // Command 1: Go to Settings
@@ -189,12 +189,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           
           <div className="flex items-center gap-2">
             <IconButton
-              icon={<FiMic className={isListening ? "text-red-500 animate-pulse" : ""} />}
+              icon={<FiMic className={isListening && !isDictating ? "text-red-500 animate-pulse" : ""} />}
               onClick={toggleListening}
-              tooltip={isListening ? "Stop Listening" : "Start Voice Control"}
+              tooltip={isDictating ? "Dictating to input..." : (isListening ? "Stop Listening" : "Start Voice Control")}
               variant="ghost"
-              className={isListening ? "bg-red-50 dark:bg-red-900/20" : ""}
+              className={isListening && !isDictating ? "bg-red-50 dark:bg-red-900/20" : ""}
             />
+
 
             <div className="relative" ref={desktopAvatarRef}>
               <button

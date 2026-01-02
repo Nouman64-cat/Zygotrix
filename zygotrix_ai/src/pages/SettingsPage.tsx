@@ -629,52 +629,30 @@ export const SettingsPage: React.FC = () => {
       onPinConversation={handlePinConversation}
     >
       <div className="h-full overflow-y-auto bg-white dark:bg-gray-900">
-        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
-          {/* Page Title */}
-          <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 lg:mb-8">Settings</h1>
+        <div className="w-full min-h-full flex items-start justify-center">
+          <div className="w-full max-w-4xl px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 mx-auto">
+            {/* Page Title */}
+            <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 lg:mb-8">Settings</h1>
 
-          {/* Mobile: Horizontal Tab Navigation */}
-          <div className="lg:hidden mb-6 -mx-4 px-4 sm:-mx-6 sm:px-6">
-            <div 
-              className="flex gap-2 overflow-x-auto scrollbar-hide"
-              style={{ 
-                scrollbarWidth: 'none', 
-                msOverflowStyle: 'none',
-                WebkitOverflowScrolling: 'touch'
-              }}
-            >
-              {SETTINGS_NAV_ITEMS.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => handleSectionChange(item.id)}
-                  className={cn(
-                    'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors cursor-pointer flex-shrink-0',
-                    activeSection === item.id
-                      ? 'bg-emerald-600 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-                  )}
-                >
-                  {item.icon}
-                  {item.label}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          {/* Content with Settings Sidebar */}
-          <div className="lg:flex lg:gap-12 xl:gap-16">
-            {/* Desktop: Settings Sidebar Navigation */}
-            <nav className="hidden lg:block w-40 flex-shrink-0">
-              <div className="space-y-1 sticky top-8">
+            {/* Mobile: Horizontal Tab Navigation */}
+            <div className="lg:hidden mb-6 -mx-4 px-4 sm:-mx-6 sm:px-6">
+              <div 
+                className="flex gap-2 overflow-x-auto scrollbar-hide"
+                style={{ 
+                  scrollbarWidth: 'none', 
+                  msOverflowStyle: 'none',
+                  WebkitOverflowScrolling: 'touch'
+                }}
+              >
                 {SETTINGS_NAV_ITEMS.map((item) => (
                   <button
                     key={item.id}
                     onClick={() => handleSectionChange(item.id)}
                     className={cn(
-                      'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer',
+                      'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors cursor-pointer flex-shrink-0',
                       activeSection === item.id
-                        ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-medium'
-                        : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        ? 'bg-emerald-600 text-white'
+                        : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
                     )}
                   >
                     {item.icon}
@@ -682,11 +660,35 @@ export const SettingsPage: React.FC = () => {
                   </button>
                 ))}
               </div>
-            </nav>
+            </div>
 
-            {/* Content Area */}
-            <div className="flex-1 lg:max-w-2xl">
-              {renderContent()}
+            {/* Content with Settings Sidebar */}
+            <div className="lg:flex lg:gap-12 xl:gap-16">
+              {/* Desktop: Settings Sidebar Navigation */}
+              <nav className="hidden lg:block w-40 flex-shrink-0">
+                <div className="space-y-1 sticky top-8">
+                  {SETTINGS_NAV_ITEMS.map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => handleSectionChange(item.id)}
+                      className={cn(
+                        'w-full flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer',
+                        activeSection === item.id
+                          ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 font-medium'
+                          : 'text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-800'
+                      )}
+                    >
+                      {item.icon}
+                      {item.label}
+                    </button>
+                  ))}
+                </div>
+              </nav>
+
+              {/* Content Area */}
+              <div className="flex-1 lg:max-w-2xl">
+                {renderContent()}
+              </div>
             </div>
           </div>
         </div>

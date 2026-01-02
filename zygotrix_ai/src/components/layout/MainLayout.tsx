@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiSettings, FiExternalLink, FiLogOut, FiMic } from 'react-icons/fi';
 import { Sidebar } from './Sidebar';
 import { IconButton, Logo } from '../common';
-import { useAuth, useVoiceControl } from '../../contexts';
+import { useAuth, useVoiceControl, useTheme } from '../../contexts';
 import { LOGO_URL } from '../../config';
 import type { LocalConversation } from '../../types';
 import { VoiceStatus } from '../common/VoiceStatus'; // Add this
@@ -32,6 +32,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { toggleListening, isListening, registerCommand, isDictating } = useVoiceControl();
+  const { toggleTheme } = useTheme();
 
   useEffect(() => {
     // Command 1: Go to Settings
@@ -55,13 +56,29 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       'Starts a new empty conversation'
     );
 
+    // Command 4: Toggle Theme
+    const unregisterTheme = registerCommand(
+      'change theme',
+      toggleTheme,
+      'Toggles between light and dark theme'
+    );
+
+    // Command 5: Show Usage
+    const unregisterUsage = registerCommand(
+      'show usage',
+      () => navigate('/settings#usage'),
+      'Shows your AI token usage statistics'
+    );
+
     // Cleanup
     return () => {
       unregisterSettings();
       unregisterChat();
       unregisterNew();
+      unregisterTheme();
+      unregisterUsage();
     };
-  }, [registerCommand, navigate, onNewConversation]);
+  }, [registerCommand, navigate, onNewConversation, toggleTheme]);
   
   // State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

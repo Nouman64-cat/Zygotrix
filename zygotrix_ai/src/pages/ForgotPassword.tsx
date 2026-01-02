@@ -94,6 +94,7 @@ export const ForgotPassword = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [_expiresAt, setExpiresAt] = useState<string | null>(null);
+  console.log(_expiresAt)
   const otpRefs = useRef<(HTMLInputElement | null)[]>([]);
 
   useEffect(() => {
@@ -228,13 +229,13 @@ export const ForgotPassword = () => {
                 <FaDna className="relative w-12 h-12 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
-            <h1 className="text-3xl font-bold text-center bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl font-bold text-center bg-gradient-to-r from-emerald-600 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent mb-2">
               {step === 'email' && 'Reset Password'}
               {step === 'otp' && 'Verify Code'}
               {step === 'password' && 'New Password'}
               {step === 'success' && 'Success!'}
             </h1>
-            <p className="text-center text-gray-600 dark:text-gray-400 text-sm">
+            <p className="text-center text-gray-600 dark:text-gray-400 text-xs">
               {step === 'email' && 'Enter your email to receive a reset code'}
               {step === 'otp' && 'Enter the 6-digit code sent to your email'}
               {step === 'password' && 'Create a new password for your account'}
@@ -244,14 +245,14 @@ export const ForgotPassword = () => {
 
           {/* Error Message */}
           {error && (
-            <div className="mx-8 mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-sm">
+            <div className="mx-8 mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg text-red-600 dark:text-red-400 text-xs">
               {error}
             </div>
           )}
 
           {/* Success Message */}
           {message && step !== 'success' && (
-            <div className="mx-8 mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-600 dark:text-emerald-400 text-sm">
+            <div className="mx-8 mb-4 p-3 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-lg text-emerald-600 dark:text-emerald-400 text-xs">
               {message}
             </div>
           )}
@@ -260,7 +261,7 @@ export const ForgotPassword = () => {
           {step === 'email' && (
             <form onSubmit={handleEmailSubmit} className="p-8 pt-0 space-y-6">
               <div className="space-y-2">
-                <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                   Email Address
                 </label>
                 <div className="relative">
@@ -271,7 +272,7 @@ export const ForgotPassword = () => {
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="your.email@example.com"
                     required
-                    className="w-full pl-12 pr-4 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400"
+                    className="w-full pl-10 pr-4 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500 dark:focus:ring-emerald-400"
                   />
                 </div>
               </div>
@@ -279,14 +280,14 @@ export const ForgotPassword = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isLoading ? 'Sending...' : 'Send Reset Code'}
               </button>
 
-              <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+              <div className="text-center text-xs text-gray-600 dark:text-gray-400">
                 Remember your password?{' '}
-                <Link to="/login" className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline">
+                <Link to="/login" className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline cursor-pointer">
                   Sign in
                 </Link>
               </div>
@@ -297,7 +298,7 @@ export const ForgotPassword = () => {
           {step === 'otp' && (
             <form onSubmit={handleOtpSubmit} className="p-8 pt-0 space-y-6">
               <div className="space-y-4">
-                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-center text-xs text-gray-600 dark:text-gray-400">
                   Code sent to <span className="font-semibold text-emerald-600 dark:text-emerald-400">{email}</span>
                 </div>
 
@@ -312,7 +313,7 @@ export const ForgotPassword = () => {
                       value={digit}
                       onChange={(e) => handleOtpChange(index, e.target.value)}
                       onKeyDown={(e) => handleOtpKeyDown(index, e)}
-                      className="w-12 h-14 text-center text-xl font-bold rounded-xl bg-gray-50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 transition-colors"
+                      className="w-10 h-12 text-center text-lg font-bold rounded-xl bg-gray-50 dark:bg-gray-800/50 border-2 border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white focus:outline-none focus:border-emerald-500 dark:focus:border-emerald-400 transition-colors"
                     />
                   ))}
                 </div>
@@ -321,7 +322,7 @@ export const ForgotPassword = () => {
               <button
                 type="submit"
                 disabled={otp.join('').length !== 6}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
                 Continue
               </button>
@@ -331,17 +332,17 @@ export const ForgotPassword = () => {
                   type="button"
                   onClick={handleResendOtp}
                   disabled={isLoading}
-                  className="w-full py-3 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 font-medium hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+                  className="w-full py-2.5 rounded-xl border border-gray-200 dark:border-gray-700 text-gray-700 dark:text-gray-300 text-xs font-medium hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors cursor-pointer"
                 >
                   {isLoading ? 'Sending...' : 'Resend Code'}
                 </button>
 
-                <div className="text-center text-sm text-gray-600 dark:text-gray-400">
+                <div className="text-center text-xs text-gray-600 dark:text-gray-400">
                   Wrong email?{' '}
                   <button
                     type="button"
                     onClick={() => setStep('email')}
-                    className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline"
+                    className="text-emerald-600 dark:text-emerald-400 font-medium hover:underline cursor-pointer"
                   >
                     Change email
                   </button>
@@ -355,7 +356,7 @@ export const ForgotPassword = () => {
             <form onSubmit={handlePasswordSubmit} className="p-8 pt-0 space-y-6">
               <div className="space-y-4">
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                     New Password
                   </label>
                   <div className="relative">
@@ -366,12 +367,12 @@ export const ForgotPassword = () => {
                       onChange={(e) => setNewPassword(e.target.value)}
                       placeholder="Minimum 8 characters"
                       required
-                      className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
                     >
                       {showPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
                     </button>
@@ -379,7 +380,7 @@ export const ForgotPassword = () => {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Confirm Password
                   </label>
                   <div className="relative">
@@ -390,12 +391,12 @@ export const ForgotPassword = () => {
                       onChange={(e) => setConfirmPassword(e.target.value)}
                       placeholder="Re-enter your password"
                       required
-                      className="w-full pl-12 pr-12 py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
+                      className="w-full pl-10 pr-10 py-2.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-emerald-500"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
                     >
                       {showConfirmPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
                     </button>
@@ -406,7 +407,7 @@ export const ForgotPassword = () => {
               <button
                 type="submit"
                 disabled={isLoading}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300 disabled:opacity-70 disabled:cursor-not-allowed cursor-pointer"
               >
                 {isLoading ? 'Resetting...' : 'Reset Password'}
               </button>
@@ -435,7 +436,7 @@ export const ForgotPassword = () => {
 
               <button
                 onClick={() => navigate('/login')}
-                className="w-full py-4 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300"
+                className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 text-white text-sm font-semibold shadow-lg shadow-emerald-500/30 hover:shadow-emerald-500/50 hover:scale-[1.02] transition-all duration-300 cursor-pointer"
               >
                 Continue to Sign In
               </button>

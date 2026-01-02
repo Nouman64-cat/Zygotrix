@@ -7,6 +7,13 @@ import { useAuth } from '../contexts';
 import { Logo } from '../components/common';
 
 // Floating DNA Bases Animation
+// Helper function for deterministic pseudo-random numbers
+const pseudoRandom = (seed: number) => {
+  const x = Math.sin(seed) * 10000;
+  return x - Math.floor(x);
+};
+
+// Floating DNA Bases Animation
 const FloatingDNABases: React.FC = () => {
   const bases = ['A', 'T', 'G', 'C', 'A', 'T', 'G', 'C', 'A', 'G', 'C', 'T'];
   return (
@@ -16,10 +23,10 @@ const FloatingDNABases: React.FC = () => {
           key={i}
           className="absolute font-mono font-bold text-emerald-500/10 dark:text-emerald-400/10 select-none"
           style={{
-            fontSize: `${20 + Math.random() * 30}px`,
-            left: `${Math.random() * 100}%`,
-            top: `${Math.random() * 100}%`,
-            animation: `float ${12 + Math.random() * 8}s ease-in-out infinite`,
+            fontSize: `${20 + pseudoRandom(i * 13.5 + 1) * 30}px`,
+            left: `${pseudoRandom(i * 37.2 + 2) * 100}%`,
+            top: `${pseudoRandom(i * 19.8 + 3) * 100}%`,
+            animation: `float ${12 + pseudoRandom(i * 41.4 + 4) * 8}s ease-in-out infinite`,
             animationDelay: `${i * 0.4}s`,
           }}
         >
@@ -135,14 +142,14 @@ export const Login: React.FC = () => {
             </div>
           </div>
 
-          <h2 className="text-4xl xl:text-5xl font-bold mb-6">
+          <h2 className="text-3xl xl:text-4xl font-bold mb-6">
             <span className="text-gray-800 dark:text-white">Welcome to</span>
             <span className="block mt-2 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
               Zygotrix AI
             </span>
           </h2>
 
-          <p className="text-lg text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-12 leading-relaxed">
+          <p className="text-base text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-12 leading-relaxed">
             Your intelligent genetics companion for research, analysis, and discovery.
           </p>
 
@@ -176,23 +183,11 @@ export const Login: React.FC = () => {
             <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/50 dark:border-gray-700/50 shadow-2xl shadow-gray-300/20 dark:shadow-black/30 p-5 sm:p-8 lg:p-10">
               {/* Header */}
               <div className="text-center mb-5 sm:mb-8">
-                <div className="flex justify-center mb-4 sm:mb-6">
-                  <div className="relative">
-                    <div className="absolute -inset-2 sm:-inset-3 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full opacity-20 blur-xl animate-pulse" style={{ animationDuration: '3s' }} />
-                    <Logo size="md" showText={false} className="sm:scale-110" />
-                  </div>
-                </div>
-
-                <div className="inline-flex items-center gap-1.5 sm:gap-2 px-3 sm:px-4 py-1 sm:py-1.5 rounded-full bg-gradient-to-r from-emerald-100 to-teal-100 dark:from-emerald-900/30 dark:to-teal-900/30 text-[10px] sm:text-xs font-semibold text-emerald-700 dark:text-emerald-300 mb-3 sm:mb-4">
-                  <span className="w-1.5 sm:w-2 h-1.5 sm:h-2 rounded-full bg-emerald-500 animate-pulse" />
-                  Secure Login
-                </div>
-
-                <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
+                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
                   Welcome Back
                 </h1>
-                <p className="text-sm sm:text-base text-gray-600 dark:text-gray-400">
-                  Sign in to continue to Zygotrix AI
+                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
+                  Sign in to continue to <span className="font-bold text-emerald-600 dark:text-emerald-400">Zygotrix AI</span>
                 </p>
               </div>
 
@@ -211,14 +206,15 @@ export const Login: React.FC = () => {
               {/* Form */}
               <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
                 {/* Email */}
+                {/* Email */}
                 <div className="space-y-1.5 sm:space-y-2">
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Email Address
                   </label>
                   <div className={`relative transition-transform duration-200 ${focusedField === 'email' ? 'scale-[1.02]' : ''}`}>
                     <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 blur transition-opacity duration-300 ${focusedField === 'email' ? 'opacity-40' : ''}`} />
                     <div className="relative flex items-center">
-                      <FiMail className="absolute left-4 text-gray-400 dark:text-gray-500 w-5 h-5" />
+                      <FiMail className="absolute left-3 text-gray-400 dark:text-gray-500 w-4 h-4" />
                       <input
                         type="email"
                         value={email}
@@ -229,21 +225,22 @@ export const Login: React.FC = () => {
                         disabled={isLoading}
                         autoComplete="email"
                         required
-                        className="w-full pl-10 sm:pl-12 pr-4 py-3 sm:py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
+                        className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Password */}
+                {/* Password */}
                 <div className="space-y-1.5 sm:space-y-2">
-                  <label className="block text-xs sm:text-sm font-semibold text-gray-700 dark:text-gray-300">
+                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
                     Password
                   </label>
                   <div className={`relative transition-transform duration-200 ${focusedField === 'password' ? 'scale-[1.02]' : ''}`}>
                     <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 blur transition-opacity duration-300 ${focusedField === 'password' ? 'opacity-40' : ''}`} />
                     <div className="relative flex items-center">
-                      <FiLock className="absolute left-4 text-gray-400 dark:text-gray-500 w-5 h-5" />
+                      <FiLock className="absolute left-3 text-gray-400 dark:text-gray-500 w-4 h-4" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={password}
@@ -254,14 +251,14 @@ export const Login: React.FC = () => {
                         disabled={isLoading}
                         autoComplete="current-password"
                         required
-                        className="w-full pl-10 sm:pl-12 pr-10 sm:pr-12 py-3 sm:py-3.5 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm sm:text-base text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
+                        className="w-full pl-9 sm:pl-10 pr-10 sm:pr-12 py-2.5 sm:py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+                        className="absolute right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
                       >
-                        {showPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
+                        {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
                       </button>
                     </div>
                   </div>
@@ -272,7 +269,7 @@ export const Login: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => navigate('/forgot-password')}
-                    className="text-sm text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors"
+                    className="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -282,7 +279,7 @@ export const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-5 sm:px-6 py-3 sm:py-4 text-sm sm:text-base font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100"
+                  className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 sm:px-5 py-2.5 sm:py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
                 >
                   {/* Shine Effect */}
                   <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
@@ -290,12 +287,12 @@ export const Login: React.FC = () => {
                   <span className="relative flex items-center justify-center gap-2">
                     {isLoading ? (
                       <>
-                        <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                         Signing in...
                       </>
                     ) : (
                       <>
-                        <FaDna className="w-5 h-5" />
+                        <FaDna className="w-4 h-4" />
                         Sign In
                       </>
                     )}
@@ -303,32 +300,32 @@ export const Login: React.FC = () => {
                 </button>
               </form>
 
-              {/* Divider */}
-              <div className="relative my-5 sm:my-8">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200 dark:border-gray-700" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="px-4 bg-white dark:bg-gray-900 text-sm text-gray-500 dark:text-gray-400">
-                    New to Zygotrix AI?
-                  </span>
-                </div>
-              </div>
-
               {/* Sign Up Link */}
-              <button
-                type="button"
-                onClick={() => navigate('/register')}
-                className="w-full py-3 sm:py-3.5 rounded-xl border-2 border-gray-200 dark:border-gray-700 text-sm sm:text-base text-gray-700 dark:text-gray-300 font-semibold hover:border-emerald-500 hover:text-emerald-600 dark:hover:border-emerald-400 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 transition-all duration-300"
-              >
-                Create an Account
-              </button>
+              <div className="text-center pt-3 border-t border-gray-200 dark:border-gray-700 mt-4 sm:mt-5">
+                  <p className="text-xs text-gray-600 dark:text-gray-400">
+                      New to Zygotrix AI?{' '}
+                      <button
+                          type="button"
+                          onClick={() => navigate('/register')}
+                          className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-semibold cursor-pointer"
+                      >
+                          Create Account
+                      </button>
+                  </p>
+              </div>
             </div>
           </div>
 
           {/* Terms */}
-          <p className="text-center text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-4 sm:mt-6">
-            By signing in, you agree to our Terms of Service and Privacy Policy
+          <p className="text-center text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-3 sm:mt-4">
+            By signing in, you agree to our{' '}
+            <a href="https://zygotrix.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer">
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href="https://zygotrix.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer">
+              Privacy Policy
+            </a>
           </p>
 
           {/* Mobile DNA Icon */}

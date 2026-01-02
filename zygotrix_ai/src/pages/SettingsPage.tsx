@@ -551,11 +551,11 @@ export const SettingsPage: React.FC = () => {
       <div className="space-y-8">
         {/* Usage Stats Section */}
         <section>
-          <div className="flex items-center justify-between mb-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
             <div>
               <h2 className="text-base font-semibold text-gray-900 dark:text-white">Token Usage</h2>
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
-                Track your AI usage and remaining tokens for this session
+                Track your AI usage and remaining tokens
               </p>
             </div>
             <Button
@@ -563,7 +563,7 @@ export const SettingsPage: React.FC = () => {
               size="sm"
               leftIcon={<MdRefresh className="w-4 h-4" />}
               onClick={() => setRateLimitRefresh(prev => prev + 1)}
-              className="cursor-pointer"
+              className="cursor-pointer w-full sm:w-auto"
             >
               Refresh
             </Button>
@@ -629,15 +629,43 @@ export const SettingsPage: React.FC = () => {
       onPinConversation={handlePinConversation}
     >
       <div className="h-full overflow-y-auto bg-white dark:bg-gray-900">
-        <div className="max-w-5xl mx-auto px-8 py-12">
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12">
           {/* Page Title */}
-          <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-8">Settings</h1>
+          <h1 className="text-lg sm:text-xl font-semibold text-gray-900 dark:text-white mb-4 sm:mb-6 lg:mb-8">Settings</h1>
+
+          {/* Mobile: Horizontal Tab Navigation */}
+          <div className="lg:hidden mb-6 -mx-4 px-4 sm:-mx-6 sm:px-6">
+            <div 
+              className="flex gap-2 overflow-x-auto scrollbar-hide"
+              style={{ 
+                scrollbarWidth: 'none', 
+                msOverflowStyle: 'none',
+                WebkitOverflowScrolling: 'touch'
+              }}
+            >
+              {SETTINGS_NAV_ITEMS.map((item) => (
+                <button
+                  key={item.id}
+                  onClick={() => handleSectionChange(item.id)}
+                  className={cn(
+                    'flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium whitespace-nowrap transition-colors cursor-pointer flex-shrink-0',
+                    activeSection === item.id
+                      ? 'bg-emerald-600 text-white'
+                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
+                  )}
+                >
+                  {item.icon}
+                  {item.label}
+                </button>
+              ))}
+            </div>
+          </div>
 
           {/* Content with Settings Sidebar */}
-          <div className="flex gap-16">
-            {/* Settings Sidebar Navigation */}
-            <nav className="w-40 flex-shrink-0">
-              <div className="space-y-1">
+          <div className="lg:flex lg:gap-12 xl:gap-16">
+            {/* Desktop: Settings Sidebar Navigation */}
+            <nav className="hidden lg:block w-40 flex-shrink-0">
+              <div className="space-y-1 sticky top-8">
                 {SETTINGS_NAV_ITEMS.map((item) => (
                   <button
                     key={item.id}
@@ -657,7 +685,7 @@ export const SettingsPage: React.FC = () => {
             </nav>
 
             {/* Content Area */}
-            <div className="flex-1 max-w-2xl">
+            <div className="flex-1 lg:max-w-2xl">
               {renderContent()}
             </div>
           </div>

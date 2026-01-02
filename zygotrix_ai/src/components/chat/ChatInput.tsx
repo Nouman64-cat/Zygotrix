@@ -64,6 +64,12 @@ const AVAILABLE_TOOLS: AiTool[] = [
   },
 ];
 
+const RECORDING_PROMPTS = [
+  'Listening... Say "send message"',
+  'Listening... Say "send it"',
+  'Listening... Say "submit message"'
+];
+
 interface ChatInputProps {
   onSend: (message: string, attachments?: MessageAttachment[], enabledTools?: string[]) => void;
   disabled?: boolean;
@@ -80,7 +86,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const [enabledTools, setEnabledTools] = useState<string[]>([]);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingPlaceholder, setRecordingPlaceholder] = useState('Listening...');
+  const [recordingPlaceholder, setRecordingPlaceholder] = useState(RECORDING_PROMPTS[0]);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
@@ -126,17 +132,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   useEffect(() => {
     let interval: ReturnType<typeof setInterval>;
     if (isRecording) {
-      const prompts = [
-        'Listening... Say "send message"',
-        'Listening... Say "send it"',
-        'Listening... Say "submit message"'
-      ];
       let index = 0;
-      setRecordingPlaceholder(prompts[0]);
+      // Initial placeholder is set in startRecording/onstart to avoid
+      // "setState synchronously within an effect" warning
 
       interval = setInterval(() => {
-        index = (index + 1) % prompts.length;
-        setRecordingPlaceholder(prompts[index]);
+        index = (index + 1) % RECORDING_PROMPTS.length;
+        setRecordingPlaceholder(RECORDING_PROMPTS[index]);
       }, 2000);
     }
     return () => clearInterval(interval);
@@ -161,6 +163,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
     recognition.onstart = () => {
       setIsRecording(true);
+      setRecordingPlaceholder(RECORDING_PROMPTS[0]);
     };
 
     recognition.onresult = (event: SpeechRecognitionEvent) => {
@@ -222,7 +225,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
     recognitionRef.current = recognition;
     recognition.start();
-  }, [isSpeechSupported]);
+  }, [isSpeechSupported, onSend, attachments, enabledTools]);
 
   const stopRecording = useCallback(() => {
     if (recognitionRef.current) {
@@ -363,7 +366,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 </div>
                 <button
                   onClick={() => handleRemoveAttachment(attachment.id)}
-                  className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700/50 hover:bg-red-100 dark:hover:bg-red-500/30 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200"
+                  className="w-6 h-6 rounded-full bg-gray-200 dark:bg-gray-700/50 hover:bg-red-100 dark:hover:bg-red-500/30 flex items-center justify-center text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-all duration-200 cursor-pointer"
                   disabled={disabled}
                 >
                   <FiX className="text-xs" />
@@ -423,7 +426,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 disabled={disabled}
                 className={cn(
                   "w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200",
-                  "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50",
+                  "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 cursor-pointer",
                   "disabled:opacity-40 disabled:cursor-not-allowed"
                 )}
                 title="Attach genomic files"
@@ -438,7 +441,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   disabled={disabled}
                   className={cn(
                     "h-8 sm:h-9 px-2 sm:px-3 rounded-lg sm:rounded-xl flex items-center gap-1.5 sm:gap-2 transition-all duration-200",
-                    "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50",
+                    "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 cursor-pointer",
                     "disabled:opacity-40 disabled:cursor-not-allowed"
                   )}
                   title="Analysis Tools"
@@ -458,7 +461,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                             key={tool.id}
                             onClick={() => handleToggleTool(tool.id)}
                             className={cn(
-                              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 cursor-pointer",
                               isEnabled
                                 ? "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
                                 : "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"
@@ -497,7 +500,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     <span className="text-emerald-700 dark:text-emerald-300 font-medium hidden sm:inline">{tool.name}</span>
                     <button
                       onClick={() => handleToggleTool(toolId)}
-                      className="text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400 transition-colors"
+                      className="text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer"
                       title="Disable tool"
                     >
                       <FiX className="text-xs" />
@@ -519,7 +522,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     "w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200",
                     isRecording
                       ? "bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30"
-                      : "bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600/50",
+                      : "bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600/50 cursor-pointer",
                     "disabled:opacity-40 disabled:cursor-not-allowed"
                   )}
                   title={isRecording ? "Stop recording" : "Voice input"}
@@ -535,7 +538,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 className={cn(
                   "w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200",
                   canSend
-                    ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 active:scale-95"
+                    ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 cursor-pointer"
                     : "bg-gray-100 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed"
                 )}
                 title="Send message (Enter)"

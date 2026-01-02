@@ -16,11 +16,12 @@ interface MessageListProps {
 }
 
 // Quick action suggestions for genetics/genomics
+// Quick action suggestions for genetics/genomics
 const QUICK_ACTIONS = [
-  { icon: '🧬', label: 'Analyze DNA' },
-  { icon: '🔬', label: 'Run GWAS' },
-  { icon: '🧪', label: 'Genetic crosses' },
-  { icon: '📊', label: 'Trait analysis' },
+  { label: 'Analyze DNA' },
+  { label: 'Run GWAS' },
+  { label: 'Genetic crosses' },
+  { label: 'Trait analysis' },
 ];
 
 // Get greeting based on time of day
@@ -70,7 +71,7 @@ const MessageListComponent: React.FC<MessageListProps> = ({
       <div className="flex-1 flex flex-col">
         {/* Welcome content - centered vertically on desktop, top-aligned on mobile to leave room for bottom input */}
         <div className="flex-1 flex flex-col items-center justify-start sm:justify-center px-4 pt-8 sm:pt-0">
-          <div className="text-center max-w-2xl w-full">
+          <div className="text-center max-w-4xl w-full">
             {/* Personalized greeting */}
             <div className="flex items-center justify-center gap-2 mb-3">
               <span className="text-xl sm:text-2xl">✨</span>
@@ -101,9 +102,8 @@ const MessageListComponent: React.FC<MessageListProps> = ({
                   <button
                     key={action.label}
                     onClick={() => onQuickAction(action.label)}
-                    className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 shadow-sm hover:shadow"
+                    className="flex items-center gap-1.5 sm:gap-2 px-3 sm:px-5 py-2 sm:py-2.5 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-full text-xs sm:text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 hover:border-gray-300 dark:hover:border-gray-600 transition-all duration-200 shadow-sm hover:shadow cursor-pointer"
                   >
-                    <span>{action.icon}</span>
                     <span>{action.label}</span>
                   </button>
                 ))}

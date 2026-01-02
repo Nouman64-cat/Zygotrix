@@ -168,7 +168,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           ) : (
             <Button
               variant="ghost"
-              className="w-full justify-start text-left hover:!bg-gray-50 dark:hover:!bg-gray-800 text-gray-700 dark:text-gray-200 shadow-none transition-colors cursor-pointer"
+              className="w-full justify-start text-left hover:!bg-gray-100 dark:hover:!bg-gray-700/50 text-gray-700 dark:text-gray-200 shadow-none transition-colors cursor-pointer"
               leftIcon={<FiEdit className="text-gray-500" />}
               onClick={() => {
                 onNewConversation();

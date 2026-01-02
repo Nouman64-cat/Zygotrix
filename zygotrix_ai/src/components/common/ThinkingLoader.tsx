@@ -11,6 +11,10 @@ const DEFAULT_STATUSES = [
   'Analyzing',
   'Processing',
   'Crafting response',
+  'Reviewing context',
+  'Generating insights',
+  'Formulating answer',
+  'Verifying data',
 ];
 
 

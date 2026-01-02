@@ -17,7 +17,6 @@ interface SidebarProps {
   onPinConversation: (id: string, isPinned: boolean) => void;
   isOpen: boolean;
   onClose: () => void;
-  onOpenSettings: () => void;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -30,7 +29,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onPinConversation,
   isOpen,
   onClose,
-  onOpenSettings,
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
@@ -304,19 +302,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <IconButton
                 icon={<FiSettings />}
                 onClick={() => {
-                  onOpenSettings();
+                  navigate('/settings');
                   onClose();
                 }}
                 tooltip="Settings"
-                className="w-full hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="w-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
               />
             ) : (
               <button
                 onClick={() => {
-                  onOpenSettings();
+                  navigate('/settings');
                   onClose();
                 }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200"
+                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
               >
                 <FiSettings size={18} />
                 Settings

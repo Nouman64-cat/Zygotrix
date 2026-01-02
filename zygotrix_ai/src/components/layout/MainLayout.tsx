@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiMenu } from 'react-icons/fi';
 import { Sidebar } from './Sidebar';
-import { IconButton, ThemeSwitcher, SettingsModal, Logo } from '../common';
+import { IconButton, ThemeSwitcher, Logo } from '../common';
 import { LOGO_URL } from '../../config';
 import type { LocalConversation } from '../../types';
 
@@ -27,7 +27,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   onPinConversation,
 }) => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   return (
     <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-900">
@@ -41,7 +40,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         onPinConversation={onPinConversation}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
-        onOpenSettings={() => setIsSettingsOpen(true)}
       />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
@@ -74,11 +72,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           {children}
         </main>
       </div>
-
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
-      />
     </div>
   );
 };
+

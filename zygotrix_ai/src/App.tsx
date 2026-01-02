@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, ThemeProvider } from './contexts';
 import { ProtectedRoute } from './components/common';
-import { Chat, Login, Register, ForgotPassword, Settings } from './pages';
+import { Chat, Login, Register, ForgotPassword, SettingsPage } from './pages';
 
 const App = () => {
   return (
@@ -32,7 +32,7 @@ const App = () => {
               path="/settings"
               element={
                 <ProtectedRoute>
-                  <Settings />
+                  <SettingsPage />
                 </ProtectedRoute>
               }
             />

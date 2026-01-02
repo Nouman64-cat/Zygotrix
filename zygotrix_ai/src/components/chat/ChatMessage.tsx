@@ -212,15 +212,15 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
           remarkPlugins={[remarkGfm]}
           components={{
             // Override default elements with custom styling - generous spacing for readability
-            p: ({ children }) => <p className="mb-6 last:mb-0 text-sm sm:text-base leading-relaxed">{children}</p>,
+            p: ({ children }) => <p className="mb-6 last:mb-0 text-sm leading-relaxed">{children}</p>,
             strong: ({ children }) => <strong className="font-bold">{children}</strong>,
             em: ({ children }) => <em className="italic">{children}</em>,
-            ul: ({ children }) => <ul className="list-disc list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm sm:text-base">{children}</ul>,
-            ol: ({ children }) => <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm sm:text-base">{children}</ol>,
+            ul: ({ children }) => <ul className="list-disc list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">{children}</ul>,
+            ol: ({ children }) => <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">{children}</ol>,
             li: ({ children }) => <li className="pl-1 leading-relaxed">{children}</li>,
-            h1: ({ children }) => <h1 className="text-base sm:text-lg font-bold mb-4 mt-6 first:mt-0">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-sm sm:text-base font-bold mb-4 mt-6 first:mt-0">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-xs sm:text-sm font-bold mb-3 mt-5 first:mt-0">{children}</h3>,
+            h1: ({ children }) => <h1 className="text-base font-bold mb-4 mt-6 first:mt-0">{children}</h1>,
+            h2: ({ children }) => <h2 className="text-sm font-bold mb-4 mt-6 first:mt-0">{children}</h2>,
+            h3: ({ children }) => <h3 className="text-xs font-bold mb-3 mt-5 first:mt-0">{children}</h3>,
             // Enhanced code block with copy functionality
             code: ({ children, className }) => {
               const match = /language-(\w+)/.exec(className || '');
@@ -355,7 +355,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
           {/* User messages have gray bubble like Gemini, AI messages are clean text */}
           {isUser ? (
             <div className="relative rounded-3xl px-4 py-2.5 sm:px-5 sm:py-3 bg-gray-100 dark:bg-gray-700 rounded-tr-lg shadow-sm min-w-[3rem]">
-              <div className="max-w-none break-words text-sm sm:text-base text-gray-800 dark:text-gray-200">
+              <div className="max-w-none break-words text-sm text-gray-800 dark:text-gray-200">
                 {renderContent()}
               </div>
               {/* Copy button - show on hover for user messages */}
@@ -368,7 +368,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
               </button>
             </div>
           ) : (
-            <div className="text-gray-800 dark:text-gray-200 text-sm sm:text-base leading-relaxed pt-1.5">
+            <div className="text-gray-800 dark:text-gray-200 text-sm leading-relaxed pt-1.5">
               {renderContent()}
               {/* Copy button - always visible for AI responses */}
               {!showLoader && message.content && (

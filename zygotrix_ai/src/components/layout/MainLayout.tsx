@@ -31,14 +31,17 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { toggleListening, isListening, registerCommand, isDictating } = useVoiceControl();
+  const { toggleListening, isListening, registerCommand, isDictating, speak } = useVoiceControl();
   const { toggleTheme } = useTheme();
 
   useEffect(() => {
     // Command 1: Go to Settings
     const unregisterSettings = registerCommand(
       'open settings',
-      () => navigate('/settings'),
+      () => {
+        speak('Opening settings');
+        navigate('/settings');
+      },
       'Navigates to the settings page'
     );
 
@@ -52,21 +55,30 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     // Command 3: Create New Chat
     const unregisterNew = registerCommand(
       'create new chat',
-      onNewConversation,
+      () => {
+        speak('Creating new chat, please wait');
+        onNewConversation();
+      },
       'Starts a new empty conversation'
     );
 
     // Command 4: Toggle Theme
     const unregisterTheme = registerCommand(
       'change theme',
-      toggleTheme,
+      () => {
+        speak('Changing theme');
+        toggleTheme();
+      },
       'Toggles between light and dark theme'
     );
 
     // Command 5: Show Usage
     const unregisterUsage = registerCommand(
       'show usage',
-      () => navigate('/settings#usage'),
+      () => {
+        speak('Showing usage statistics');
+        navigate('/settings#usage');
+      },
       'Shows your AI token usage statistics'
     );
 
@@ -74,8 +86,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     const unregisterOpenSidebar = registerCommand(
       'open sidebar',
       () => {
-        setIsSidebarOpen(true); // Open on mobile
-        setIsCollapsed(false);  // Expand on desktop
+        if (window.innerWidth < 1024) {
+          setIsSidebarOpen(true);
+          speak('Opening sidebar');
+        } else {
+          // On Desktop, expand
+          setIsCollapsed(false);
+          speak('Expanding sidebar');
+        }
       },
       'Opens/Expands the sidebar'
     );
@@ -83,9 +101,15 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     const unregisterCloseSidebar = registerCommand(
       'close sidebar',
       () => {
-        setIsSidebarOpen(false); // Close on mobile
-        setIsCollapsed(true);    // Collapse on desktop
-        setIsSearchOpen(false);  // Close search when collapsing
+        if (window.innerWidth < 1024) {
+          setIsSidebarOpen(false);
+          speak('Closing sidebar');
+        } else {
+          setIsCollapsed(true);
+          speak('Collapsing sidebar');
+          // Also close search if open
+          setIsSearchOpen(false);
+        }
       },
       'Closes/Collapses the sidebar'
     );
@@ -116,9 +140,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             const cleanQuery = extracted.replace(/[.!?]*$/, '');
             setSearchQuery(cleanQuery);
             console.log('🔍 Voice search query:', cleanQuery);
+            speak(`Searching for ${cleanQuery}`);
             return;
           }
         }
+
+        // Fallback if no query found but command matched
+        speak('Opening search');
       },
       'Searches conversations. Examples: "search chat for hello", "find my chats about biology"'
     );
@@ -126,7 +154,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     // Command 8: Clear Search
     const unregisterClearSearch = registerCommand(
       'clear search',
-      () => setSearchQuery(''),
+      () => {
+        setSearchQuery('');
+        speak('Search cleared');
+      },
       'Clears the search input field'
     );
 

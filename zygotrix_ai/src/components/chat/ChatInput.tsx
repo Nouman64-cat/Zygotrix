@@ -89,7 +89,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  const { registerCommand, setDictationCallback, isListening: isUniversalMicActive, toggleListening } = useVoiceControl();
+  const { registerCommand, setDictationCallback, isListening: isUniversalMicActive, toggleListening, speak, isDictating } = useVoiceControl();
   const [isFocused, setIsFocused] = useState(false);
 
   // Debounce to prevent double sends
@@ -158,26 +158,40 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     return () => clearInterval(interval);
   }, [isRecording]);
 
+  // Failsafe: Ensure global dictation is active if we are in recording mode
+  // This fixes the issue where the VoiceStatus pill reappears because dictation state was lost
+  useEffect(() => {
+    if (isRecording && !isDictating) {
+      console.log('🎤 Failsafe: Restoring dictation callback');
+      setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
+    }
+  }, [isRecording, isDictating, setDictationCallback]);
+
   // Handle Dictation (used by both local mic and universal mic when focused)
   const handleDictation = useCallback((speechTranscript: string, isFinal: boolean) => {
     // Real-time transcription:
     // - Interim results: show baseText + current interim text
     // - Final results: add to baseText and check for commands
 
+    // Safe access to base text
+    const safeBaseText = baseTextRef.current || '';
+
     if (!isFinal) {
       // Show interim results in real-time
-      const displayText = baseTextRef.current + (baseTextRef.current ? ' ' : '') + speechTranscript;
-      setValue(displayText);
+      const displayText = safeBaseText + (safeBaseText ? ' ' : '') + (speechTranscript || '');
+      // Schedule update to avoid "Cannot update while rendering" error
+      setTimeout(() => setValue(displayText), 0);
       return;
     }
 
     // Final result - add to base text
-    const finalText = speechTranscript.trim();
+    const finalText = (speechTranscript || '').trim();
     if (!finalText) return;
 
-    const newBaseText = baseTextRef.current + (baseTextRef.current ? ' ' : '') + finalText;
+    const newBaseText = safeBaseText + (safeBaseText ? ' ' : '') + finalText;
     baseTextRef.current = newBaseText;
-    setValue(newBaseText);
+    // Schedule update to avoid "Cannot update while rendering" error
+    setTimeout(() => setValue(newBaseText), 0);
 
     // Check for send commands
     const lowerTranscript = finalText.toLowerCase().trim();
@@ -494,27 +508,31 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     const unregisterFocus = registerCommand(
       'focus input',
       () => {
-        // Focus the textarea AND enable local mic dictation
-        if (textareaRef.current) {
-          textareaRef.current.focus();
-          setIsFocused(true);
+        // Wrap in setTimeout to avoid "Cannot update component while rendering" error
+        setTimeout(() => {
+          // Focus the textarea AND enable local mic dictation
+          if (textareaRef.current) {
+            textareaRef.current.focus();
+            setIsFocused(true);
 
-          // Instead of starting a separate local mic (which conflicts with universal mic),
-          // we use the universal mic's dictation mode by setting the callback.
-          // This way there's only ONE speech recognition active.
+            // Instead of starting a separate local mic (which conflicts with universal mic),
+            // we use the universal mic's dictation mode by setting the callback.
+            // This way there's only ONE speech recognition active.
 
-          // Initialize baseTextRef with current input value (preserve existing text)
-          baseTextRef.current = valueRef.current;
+            // Initialize baseTextRef with current input value (preserve existing text)
+            baseTextRef.current = valueRef.current || '';
+            speak('Sure, listening');
 
-          // Set up dictation callback for the universal mic to write to this input
-          setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
+            // Set up dictation callback for the universal mic to write to this input
+            setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
 
-          // Show the recording indicator (red mic button)
-          setIsRecording(true);
-          setRecordingPlaceholder(RECORDING_PROMPTS[0]);
+            // Show the recording indicator (red mic button)
+            setIsRecording(true);
+            setRecordingPlaceholder(RECORDING_PROMPTS[0]);
 
-          console.log('🎤 Focus input: Using universal mic for dictation');
-        }
+            console.log('🎤 Focus input: Using universal mic for dictation');
+          }
+        }, 0);
       },
       'Focuses the chat input box and enables dictation via universal mic'
     );
@@ -548,13 +566,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
     const unregisterOpenTools = registerCommand(
       'open tools',
-      () => setShowToolsMenu(true),
+      () => {
+        setShowToolsMenu(true);
+        speak('Opening tools');
+      },
       'Opens the tools menu'
     );
 
     const unregisterCloseTools = registerCommand(
       'close tools',
-      () => setShowToolsMenu(false),
+      () => {
+        setShowToolsMenu(false);
+        speak('Closing tools');
+      },
       'Closes the tools menu'
     );
 
@@ -569,6 +593,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           if (tool) {
             setEnabledTools(prev => prev.includes(tool.id) ? prev : [...prev, tool.id]);
             console.log(`🔧 Enabled tool: ${tool.name} via voice`);
+            speak(`Enabling ${tool.name}`);
+          } else {
+            speak(`Sorry, I couldn't find a tool named ${query}`);
           }
         }
       },
@@ -586,6 +613,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           if (tool) {
             setEnabledTools(prev => prev.filter(id => id !== tool.id));
             console.log(`🔧 Disabled tool: ${tool.name} via voice`);
+            speak(`Disabling ${tool.name}`);
+          } else {
+            speak(`Sorry, I couldn't find a tool named ${query}`);
           }
         }
       },

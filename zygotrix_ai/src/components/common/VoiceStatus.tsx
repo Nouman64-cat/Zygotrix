@@ -11,7 +11,16 @@ export const VoiceStatus: React.FC = () => {
   // - Dictating (universal mic is being used for text input)
   // - Paused (local input mic is active)
   // - Not listening and no transcript
-  if (isDictating || isPaused || (!isListening && !transcript)) return null;
+  // Hide if:
+  // - Dictating (universal mic is being used for text input)
+  // - Paused (local input mic is active)
+  // - Not listening and no transcript
+  if (isDictating || isPaused || (!isListening && !transcript)) {
+    // console.log('VoiceStatus Hidden:', { isDictating, isPaused, isListening, transcript });
+    return null;
+  }
+
+  // console.log('VoiceStatus Visible:', { isDictating, isPaused, isListening, transcript });
 
   return (
     <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50 flex flex-col items-center gap-2 pointer-events-none">

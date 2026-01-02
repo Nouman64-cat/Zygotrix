@@ -22,6 +22,7 @@ export interface VoiceControlContextType {
     callback: ((text: string, isFinal: boolean) => void) | null
   ) => void;
   isDictating: boolean;
+  speak: (text: string) => void;
 }
 
 export const VoiceControlContext = createContext<

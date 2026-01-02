@@ -46,9 +46,11 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
   // Ref to track if we were listening before pause (to know if we should resume)
   const wasListeningBeforePauseRef = useRef(false);
+  const isPausedForSpeakingRef = useRef(false);
 
   // The Registry of all active buttons/actions
   const [commands, setCommands] = useState<Record<string, { action: (text: string) => void; description: string }>>({});
+
 
   // The Dictation Receiver (e.g. ChatInput)
   const [dictationCallback, setDictationCallbackState] = useState<((text: string, isFinal: boolean) => void) | null>(null);
@@ -180,7 +182,8 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
         else if (isFinal) {
           // Only process if it's a "Final" result (user stopped speaking) AND no dictation is active
-          processVoiceCommand(currentTranscript);
+          // Defer processing to avoid blocking the event loop or causing synchronous update errors
+          setTimeout(() => processVoiceCommand(currentTranscript), 0);
         }
       };
 
@@ -207,8 +210,11 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
         }
       };
 
-      recognition.onerror = (event: Event) => {
-        console.warn('Speech recognition error:', event);
+      recognition.onerror = (event: any) => {
+        // Ignore 'aborted' error which happens during pause/resume or speech synthesis
+        if (event.error === 'aborted' || event.error === 'no-speech') return;
+
+        console.warn('Speech recognition error:', event.error, event);
         isRecognitionActiveRef.current = false;
         // On error, try to restart if still listening AND not paused
         if (isListeningRef.current && !isPausedRef.current) {
@@ -306,7 +312,7 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       setTranscript('');
     }
 
-    console.log('🎤 Dictation callback set:', callback ? 'ACTIVE' : 'NULL');
+    console.log('🎤 VoiceControlContext: setDictationCallback called. Active:', !!callback);
   }, []);
 
   // Pause the universal mic (temporarily stop without turning off)
@@ -325,6 +331,7 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       isRecognitionActiveRef.current = false;
     }
     setIsPaused(true);
+    isPausedRef.current = true; // Update ref immediately to prevent race conditions
     setTranscript('');
   }, []);
 
@@ -333,6 +340,7 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
     if (!recognitionRef.current) return;
 
     setIsPaused(false);
+    isPausedRef.current = false;
 
     // Only resume if we were listening before the pause
     if (wasListeningBeforePauseRef.current && !isRecognitionActiveRef.current) {
@@ -345,9 +353,36 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
             console.error('Failed to resume recognition:', e);
           }
         }
-      }, 100);
+      }, 300);
     }
   }, []);
+
+  // --- Text to Speech (Moved here to access pauseListening/resumeListening) ---
+  const speak = useCallback((text: string) => {
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+
+      // Pause mic to prevent self-hearing and OS errors
+      if (isListeningRef.current && !isPausedRef.current) {
+        pauseListening();
+        isPausedForSpeakingRef.current = true;
+      }
+
+      const utterance = new SpeechSynthesisUtterance(text);
+
+      const resume = () => {
+        if (isPausedForSpeakingRef.current) {
+          resumeListening();
+          isPausedForSpeakingRef.current = false;
+        }
+      };
+
+      utterance.onend = resume;
+      utterance.onerror = resume;
+
+      window.speechSynthesis.speak(utterance);
+    }
+  }, [pauseListening, resumeListening]);
 
   return (
     <VoiceControlContext.Provider value={{
@@ -360,8 +395,9 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       resumeListening,
       registerCommand,
       availableCommands: commands,
-      setDictationCallback,
-      isDictating: !!dictationCallback
+      setDictationCallback: setDictationCallback, // Use the WRAPPER, not the raw state setter
+      isDictating: !!dictationCallback,
+      speak
     }}>
       {children}
     </VoiceControlContext.Provider>

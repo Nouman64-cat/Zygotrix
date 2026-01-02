@@ -298,6 +298,13 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
     dictationCallbackRef.current = callback;
     // Also update state for React reactivity
     setDictationCallbackState(() => callback);
+
+    // When dictation ends (callback becomes null), clear the transcript
+    // This prevents the VoiceStatus from showing stale text like "send it"
+    if (callback === null) {
+      setTranscript('');
+    }
+
     console.log('🎤 Dictation callback set:', callback ? 'ACTIVE' : 'NULL');
   }, []);
 

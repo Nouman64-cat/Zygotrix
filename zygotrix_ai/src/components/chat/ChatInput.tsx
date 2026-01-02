@@ -95,6 +95,11 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   // Debounce to prevent double sends
   const lastSendTimeRef = useRef(0);
 
+  // Track finalized text for real-time dictation display
+  // baseTextRef holds text that has been finalized (user paused)
+  // Interim text is displayed in addition to this
+  const baseTextRef = useRef('');
+
   // Track universal mic state via ref to prevent useEffect re-runs
   const isUniversalMicActiveRef = useRef(isUniversalMicActive);
   useEffect(() => {
@@ -155,59 +160,64 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   // Handle Dictation (used by both local mic and universal mic when focused)
   const handleDictation = useCallback((speechTranscript: string, isFinal: boolean) => {
-    // NOTE: We don't have access to "initialValue" here easily unless we use a ref for 'value'
-    // But we can just append to the current value state if we are careful.
-    // Better: Use functional state update or a ref.
+    // Real-time transcription:
+    // - Interim results: show baseText + current interim text
+    // - Final results: add to baseText and check for commands
 
-    if (!isFinal) return; // For now only handle final to avoid complex cursor management
+    if (!isFinal) {
+      // Show interim results in real-time
+      const displayText = baseTextRef.current + (baseTextRef.current ? ' ' : '') + speechTranscript;
+      setValue(displayText);
+      return;
+    }
 
-    setValue(prev => {
-      const newValue = prev + (prev ? ' ' : '') + speechTranscript;
+    // Final result - add to base text
+    const finalText = speechTranscript.trim();
+    if (!finalText) return;
 
-      // Check for send commands
-      const lowerTranscript = speechTranscript.toLowerCase().trim();
-      const sendCommands = ['send message', 'please send', 'send this', 'send it', 'submit message'];
+    const newBaseText = baseTextRef.current + (baseTextRef.current ? ' ' : '') + finalText;
+    baseTextRef.current = newBaseText;
+    setValue(newBaseText);
 
-      // Check if the transcript ENDS with any of the commands
-      const matchedCommand = sendCommands.find(cmd =>
-        lowerTranscript.endsWith(cmd) || lowerTranscript.endsWith(cmd + '.') || lowerTranscript.endsWith(cmd + '!')
-      );
+    // Check for send commands
+    const lowerTranscript = finalText.toLowerCase().trim();
+    const sendCommands = ['send message', 'please send', 'send this', 'send it', 'submit message'];
 
-      if (matchedCommand) {
-        // Send command detected!
-        // Check debounce to prevent double sends
-        const now = Date.now();
-        if (now - lastSendTimeRef.current < 2000) {
-          console.log('🚫 Voice send blocked by debounce');
-          return newValue; // Just return the value, don't send
-        }
+    // Check if the transcript ENDS with any of the commands
+    const matchedCommand = sendCommands.find(cmd =>
+      lowerTranscript.endsWith(cmd) || lowerTranscript.endsWith(cmd + '.') || lowerTranscript.endsWith(cmd + '!')
+    );
 
-        // IMMEDIATELY mark the send time BEFORE setTimeout to prevent race conditions
-        // This way, if handleDictation is called again rapidly, it will see this timestamp
-        lastSendTimeRef.current = now;
-
-        // We need to trigger send.
-        // Since we are in a state update, we can't trigger send immediately with the new value easily.
-        setTimeout(() => {
-          // Remove command from text
-          const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
-          const messageContent = newValue.replace(commandRegex, '').trim();
-          if (messageContent) {
-            onSend(messageContent, attachments, enabledTools);
-            setValue('');
-            setAttachments([]);
-
-            // IMPORTANT: Also clear dictation mode and reset recording indicator
-            setDictationCallback(null);
-            setIsRecording(false);
-            console.log('🎤 Dictation ended after voice send command');
-          }
-        }, 0);
-        return newValue; // Update visually briefly
+    if (matchedCommand) {
+      // Send command detected!
+      // Check debounce to prevent double sends
+      const now = Date.now();
+      if (now - lastSendTimeRef.current < 2000) {
+        console.log('🚫 Voice send blocked by debounce');
+        return;
       }
 
-      return newValue;
-    });
+      // IMMEDIATELY mark the send time BEFORE setTimeout to prevent race conditions
+      lastSendTimeRef.current = now;
+
+      // We need to trigger send
+      setTimeout(() => {
+        // Remove command from text
+        const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
+        const messageContent = newBaseText.replace(commandRegex, '').trim();
+        if (messageContent) {
+          onSend(messageContent, attachments, enabledTools);
+          setValue('');
+          setAttachments([]);
+          baseTextRef.current = ''; // Reset base text after sending
+
+          // IMPORTANT: Also clear dictation mode and reset recording indicator
+          setDictationCallback(null);
+          setIsRecording(false);
+          console.log('🎤 Dictation ended after voice send command');
+        }
+      }, 0);
+    }
   }, [onSend, attachments, enabledTools, setDictationCallback]);
 
   // Register dictation only when focused AND universal mic is active (for universal mic dictation)
@@ -367,9 +377,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       // Stop recording - clear dictation callback
       setDictationCallback(null);
       setIsRecording(false);
+      baseTextRef.current = ''; // Reset base text when stopping
       console.log('🎤 Recording stopped via button');
     } else {
-      // Start recording - set dictation callback to write to input
+      // Start recording - initialize baseTextRef with current input value
+      baseTextRef.current = valueRef.current;
+      // Set dictation callback to write to input
       setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
       setIsRecording(true);
       setRecordingPlaceholder(RECORDING_PROMPTS[0]);
@@ -489,6 +502,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           // Instead of starting a separate local mic (which conflicts with universal mic),
           // we use the universal mic's dictation mode by setting the callback.
           // This way there's only ONE speech recognition active.
+
+          // Initialize baseTextRef with current input value (preserve existing text)
+          baseTextRef.current = valueRef.current;
 
           // Set up dictation callback for the universal mic to write to this input
           setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));

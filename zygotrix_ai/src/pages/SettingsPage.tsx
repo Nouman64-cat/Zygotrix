@@ -551,10 +551,23 @@ export const SettingsPage: React.FC = () => {
       <div className="space-y-8">
         {/* Usage Stats Section */}
         <section>
-          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Token Usage</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mb-4">
-            Track your AI usage and remaining tokens for this session
-          </p>
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h2 className="text-base font-semibold text-gray-900 dark:text-white">Token Usage</h2>
+              <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                Track your AI usage and remaining tokens for this session
+              </p>
+            </div>
+            <Button
+              variant="secondary"
+              size="sm"
+              leftIcon={<MdRefresh className="w-4 h-4" />}
+              onClick={() => setRateLimitRefresh(prev => prev + 1)}
+              className="cursor-pointer"
+            >
+              Refresh
+            </Button>
+          </div>
           
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <RateLimitIndicator
@@ -562,13 +575,6 @@ export const SettingsPage: React.FC = () => {
               onRateLimitChange={() => {}}
             />
           </div>
-          
-          <button
-            onClick={() => setRateLimitRefresh(prev => prev + 1)}
-            className="mt-3 text-xs text-emerald-600 dark:text-emerald-400 hover:underline cursor-pointer"
-          >
-            Refresh usage data
-          </button>
         </section>
 
         {/* Usage Info */}
@@ -623,7 +629,7 @@ export const SettingsPage: React.FC = () => {
       onPinConversation={handlePinConversation}
     >
       <div className="h-full overflow-y-auto bg-white dark:bg-gray-900">
-        <div className="max-w-5xl mx-auto px-8 py-8">
+        <div className="max-w-5xl mx-auto px-8 py-12">
           {/* Page Title */}
           <h1 className="text-xl font-semibold text-gray-900 dark:text-white mb-8">Settings</h1>
 

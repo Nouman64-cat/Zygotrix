@@ -1,11 +1,152 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiTrash2, FiSettings, FiMenu, FiX, FiSearch, FiEdit, FiMoreVertical, FiEdit2, FiLogOut } from 'react-icons/fi';
+import { FiTrash2, FiMenu, FiX, FiSearch, FiEdit, FiMoreVertical, FiEdit2, FiLogOut, FiSettings, FiExternalLink, FiChevronUp } from 'react-icons/fi';
 import { BsPinAngle, BsPinFill } from 'react-icons/bs';
 import { cn, truncateText } from '../../utils';
 import { IconButton, Button, Logo } from '../common';
 import { useAuth } from '../../contexts';
-import type { LocalConversation } from '../../types';
+import type { LocalConversation, UserProfile } from '../../types';
+
+// User Avatar Dropdown Component
+interface UserAvatarDropdownProps {
+  user: UserProfile | null;
+  isCollapsed: boolean;
+  onSettings: () => void;
+  onLogout: () => void;
+}
+
+const UserAvatarDropdown: React.FC<UserAvatarDropdownProps> = ({
+  user,
+  isCollapsed,
+  onSettings,
+  onLogout,
+}) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Get user initials
+  const getUserInitials = () => {
+    if (!user?.full_name) return 'U';
+    const names = user.full_name.split(' ');
+    if (names.length >= 2) {
+      return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
+    }
+    return names[0][0].toUpperCase();
+  };
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+
+    if (isOpen) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [isOpen]);
+
+  return (
+    <div className="relative" ref={dropdownRef}>
+      {/* Avatar Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className={cn(
+          'flex items-center gap-3 w-full rounded-lg transition-colors duration-200 cursor-pointer',
+          'hover:bg-gray-100 dark:hover:bg-gray-800',
+          isCollapsed ? 'justify-center p-2' : 'px-3 py-2'
+        )}
+      >
+        <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
+          {getUserInitials()}
+        </div>
+        {!isCollapsed && (
+          <>
+            <div className="flex-1 min-w-0 text-left">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {user?.full_name || 'User'}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {user?.email || ''}
+              </p>
+            </div>
+            <FiChevronUp
+              className={cn(
+                'w-4 h-4 text-gray-400 transition-transform duration-200 flex-shrink-0',
+                isOpen ? 'rotate-0' : 'rotate-180'
+              )}
+            />
+          </>
+        )}
+      </button>
+
+      {/* Dropdown Menu */}
+      {isOpen && (
+        <div
+          className={cn(
+            'absolute z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[180px]',
+            isCollapsed ? 'left-full ml-2 bottom-0' : 'bottom-full mb-2 left-0 right-0'
+          )}
+        >
+          {/* User info header (if collapsed) */}
+          {isCollapsed && user && (
+            <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {user.full_name || 'User'}
+              </p>
+              <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
+                {user.email}
+              </p>
+            </div>
+          )}
+
+          {/* Settings */}
+          <button
+            onClick={() => {
+              onSettings();
+              setIsOpen(false);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+          >
+            <FiSettings size={16} />
+            Settings
+          </button>
+
+          {/* Docs */}
+          <a
+            href="https://docs.zygotrix.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
+            onClick={() => setIsOpen(false)}
+          >
+            <FiExternalLink size={16} />
+            Documentation
+          </a>
+
+          {/* Divider */}
+          <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
+
+          {/* Logout */}
+          <button
+            onClick={() => {
+              onLogout();
+              setIsOpen(false);
+            }}
+            className="w-full flex items-center gap-3 px-3 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 cursor-pointer"
+          >
+            <FiLogOut size={16} />
+            Sign Out
+          </button>
+        </div>
+      )}
+    </div>
+  );
+};
 
 interface SidebarProps {
   conversations: LocalConversation[];
@@ -294,62 +435,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
         </div>
 
-        {/* Bottom Section: Settings, User Info & Logout */}
-        <div className="border-t border-gray-200 dark:border-gray-800">
-          {/* Settings */}
-          <div className="p-3 border-b border-gray-200 dark:border-gray-800">
-            {isCollapsed ? (
-              <IconButton
-                icon={<FiSettings />}
-                onClick={() => {
-                  navigate('/settings');
-                  onClose();
-                }}
-                tooltip="Settings"
-                className="w-full hover:bg-gray-100 dark:hover:bg-gray-800 cursor-pointer"
-              />
-            ) : (
-              <button
-                onClick={() => {
-                  navigate('/settings');
-                  onClose();
-                }}
-                className="w-full flex items-center gap-3 px-3 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition-colors duration-200 cursor-pointer"
-              >
-                <FiSettings size={18} />
-                Settings
-              </button>
-            )}
-          </div>
-
-          {/* User Info & Logout */}
-          <div className="p-3">
-            {user && !isCollapsed && (
-              <div className="mb-2 px-3 py-2">
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                  {user.full_name || 'User'}
-                </p>
-                <p className="text-xs text-gray-500 dark:text-gray-400 truncate">{user.email}</p>
-              </div>
-            )}
-
-            {isCollapsed ? (
-              <IconButton
-                icon={<FiLogOut />}
-                onClick={handleLogout}
-                tooltip="Sign out"
-                className="w-full text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20"
-              />
-            ) : (
-              <button
-                onClick={handleLogout}
-                className="w-full flex items-center justify-center gap-2 px-4 py-2.5 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors duration-200"
-              >
-                <FiLogOut size={16} />
-                Sign Out
-              </button>
-            )}
-          </div>
+        {/* Bottom Section: User Avatar with Dropdown */}
+        <div className="border-t border-gray-200 dark:border-gray-800 p-3">
+          <UserAvatarDropdown
+            user={user}
+            isCollapsed={isCollapsed}
+            onSettings={() => {
+              navigate('/settings');
+              onClose();
+            }}
+            onLogout={handleLogout}
+          />
         </div>
       </aside>
     </>

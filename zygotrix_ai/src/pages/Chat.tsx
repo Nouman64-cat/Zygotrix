@@ -1,35 +1,20 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { MainLayout } from '../components/layout';
 import { MessageList, ChatInput, RateLimitModal, RateLimitBanner } from '../components/chat';
 import { useChat } from '../hooks';
-import { chatService } from '../services';
-import type { LocalConversation } from '../types';
+import { useConversations } from '../contexts';
 
 export const Chat: React.FC = () => {
   const { conversationId: urlConversationId } = useParams<{ conversationId?: string }>();
   const navigate = useNavigate();
 
-  // Load initial state from localStorage if available
-  const [conversationsList, setConversationsList] = useState<LocalConversation[]>(() => {
-    try {
-      const cached = localStorage.getItem('zygotrix_conversations');
-      return cached ? JSON.parse(cached) : [];
-    } catch (e) {
-      console.warn('Failed to parse cached conversations', e);
-      return [];
-    }
-  });
   const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
   const [resetTime, setResetTime] = useState<string | null>(null);
 
-  // Persist conversationsList changes to localStorage
-  useEffect(() => {
-    if (conversationsList.length > 0) {
-      localStorage.setItem('zygotrix_conversations', JSON.stringify(conversationsList));
-    }
-  }, [conversationsList]);
+  // Access shared conversations context
+  const { conversations, refreshConversations } = useConversations();
 
   const {
     messages,
@@ -71,30 +56,6 @@ export const Chat: React.FC = () => {
     }
   }, [error, isRateLimited]);
 
-  // Load conversations list from API
-  const loadConversations = useCallback(async () => {
-    try {
-      const response = await chatService.getConversations({ page_size: 50 });
-      const localConversations: LocalConversation[] = response.conversations.map(conv => ({
-        id: conv.id,
-        title: conv.title,
-        messages: [],
-        createdAt: new Date(conv.created_at).getTime(),
-        updatedAt: new Date(conv.updated_at).getTime(),
-        isPinned: conv.is_pinned,
-      }));
-      setConversationsList(localConversations);
-      localStorage.setItem('zygotrix_conversations', JSON.stringify(localConversations));
-    } catch (err) {
-      console.error('Failed to load conversations:', err);
-    }
-  }, []);
-
-  // Load conversations on mount
-  useEffect(() => {
-    loadConversations();
-  }, [loadConversations]);
-
   // Load conversation from URL on initial mount
   useEffect(() => {
     if (!initialLoadDone && urlConversationId) {
@@ -114,88 +75,22 @@ export const Chat: React.FC = () => {
     }
   }, [conversationId, urlConversationId, navigate]);
 
-  // Refresh conversations list when a new message is sent
+  // Refresh conversations list when a new message is sent (if not already in list)
   useEffect(() => {
     if (messages.length > 0 && conversationId) {
-      const exists = conversationsList.some(c => c.id === conversationId);
+      const exists = conversations.some(c => c.id === conversationId);
       if (!exists) {
-        loadConversations();
+        refreshConversations();
       }
     }
-  }, [messages.length, conversationId, conversationsList, loadConversations]);
-
-  const handleNewConversation = () => {
-    startNewConversation();
-    navigate('/chat', { replace: true });
-  };
-
-  const handleSelectConversation = async (id: string) => {
-    await loadConversation(id);
-  };
-
-  const handleDeleteConversation = async (id: string) => {
-    try {
-      await chatService.deleteConversation(id);
-      setConversationsList(prev => prev.filter(c => c.id !== id));
-      if (conversationId === id) {
-        startNewConversation();
-        navigate('/chat', { replace: true });
-      }
-    } catch (err) {
-      console.error('Failed to delete conversation:', err);
-    }
-  };
-
-  const handleRenameConversation = async (id: string, newTitle: string) => {
-    try {
-      // Optimistic update
-      setConversationsList(prev => prev.map(c =>
-        c.id === id ? { ...c, title: newTitle } : c
-      ));
-
-      await chatService.updateConversation(id, { title: newTitle });
-    } catch (err) {
-      console.error('Failed to rename conversation:', err);
-      loadConversations(); // Revert on error
-    }
-  };
-
-  const handlePinConversation = async (id: string, isPinned: boolean) => {
-    try {
-      // Optimistic update
-      setConversationsList(prev => prev.map(c =>
-        c.id === id ? { ...c, isPinned } : c
-      ));
-
-      await chatService.updateConversation(id, { is_pinned: isPinned });
-    } catch (err) {
-      console.error('Failed to pin conversation:', err);
-      loadConversations(); // Revert
-    }
-  };
-
-  // Sort conversations: Pinned first, then by date
-  const sortedConversations = useMemo(() => {
-    return [...conversationsList].sort((a, b) => {
-      if (a.isPinned !== b.isPinned) return a.isPinned ? -1 : 1;
-      return b.updatedAt - a.updatedAt;
-    });
-  }, [conversationsList]);
+  }, [messages.length, conversationId, conversations, refreshConversations]);
 
   const handleSendMessage = async (content: string, attachments?: import('../types').MessageAttachment[], enabledTools?: string[]) => {
     await sendMessage(content, attachments, enabledTools);
   };
 
   return (
-    <MainLayout
-      conversations={sortedConversations}
-      currentConversationId={conversationId || undefined}
-      onSelectConversation={handleSelectConversation}
-      onNewConversation={handleNewConversation}
-      onDeleteConversation={handleDeleteConversation}
-      onRenameConversation={handleRenameConversation}
-      onPinConversation={handlePinConversation}
-    >
+    <MainLayout currentConversationId={conversationId || undefined}>
       <>
         {/* Rate Limit Modal */}
         <RateLimitModal

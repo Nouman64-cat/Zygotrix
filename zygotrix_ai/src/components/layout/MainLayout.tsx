@@ -5,34 +5,30 @@ import { Sidebar } from './Sidebar';
 import { IconButton, Logo } from '../common';
 import { useAuth, useVoiceControl, useTheme } from '../../contexts';
 import { LOGO_URL } from '../../config';
-import type { LocalConversation } from '../../types';
 import { VoiceStatus } from '../common/VoiceStatus'; // Add this
 
 interface MainLayoutProps {
   children: React.ReactNode;
-  conversations: LocalConversation[];
   currentConversationId?: string;
-  onSelectConversation: (id: string) => void;
-  onNewConversation: () => void;
-  onDeleteConversation: (id: string) => void;
-  onRenameConversation: (id: string, newTitle: string) => void;
-  onPinConversation: (id: string, isPinned: boolean) => void;
 }
 
 export const MainLayout: React.FC<MainLayoutProps> = ({
   children,
-  conversations,
   currentConversationId,
-  onSelectConversation,
-  onNewConversation,
-  onDeleteConversation,
-  onRenameConversation,
-  onPinConversation,
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const { toggleListening, isListening, registerCommand, isDictating, speak } = useVoiceControl();
   const { toggleTheme } = useTheme();
+
+
+  const handleSelectConversation = (id: string) => {
+    navigate(`/chat/${id}`);
+  };
+
+  const handleNewConversation = () => {
+    navigate('/chat');
+  };
 
   useEffect(() => {
     // Command 1: Go to Settings
@@ -57,7 +53,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       'create new chat',
       () => {
         speak('Creating new chat, please wait');
-        onNewConversation();
+        handleNewConversation();
       },
       'Starts a new empty conversation'
     );
@@ -211,7 +207,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       unregisterSearch();
       unregisterClearSearch();
     };
-  }, [registerCommand, navigate, onNewConversation, toggleTheme, toggleListening]);
+  }, [registerCommand, navigate, toggleTheme, toggleListening]);
 
   // State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -328,13 +324,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   return (
     <div className="flex h-screen overflow-hidden bg-white dark:bg-gray-900">
       <Sidebar
-        conversations={conversations}
         currentConversationId={currentConversationId}
-        onSelectConversation={onSelectConversation}
-        onNewConversation={onNewConversation}
-        onDeleteConversation={onDeleteConversation}
-        onRenameConversation={onRenameConversation}
-        onPinConversation={onPinConversation}
+        onSelectConversation={handleSelectConversation}
+        onNewConversation={handleNewConversation}
         isOpen={isSidebarOpen}
         onClose={() => setIsSidebarOpen(false)}
         isCollapsed={isCollapsed}

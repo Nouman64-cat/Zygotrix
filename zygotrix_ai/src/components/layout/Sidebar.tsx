@@ -4,8 +4,8 @@ import { FiTrash2, FiMenu, FiX, FiSearch, FiEdit, FiMoreVertical, FiEdit2, FiLog
 import { BsPinAngle, BsPinFill } from 'react-icons/bs';
 import { cn, truncateText } from '../../utils';
 import { IconButton, Button, Logo } from '../common';
-import { useAuth } from '../../contexts';
-import type { LocalConversation, UserProfile } from '../../types';
+import { useAuth, useConversations } from '../../contexts';
+import type { UserProfile } from '../../types';
 
 // User Avatar Dropdown Component
 interface UserAvatarDropdownProps {
@@ -149,13 +149,9 @@ const UserAvatarDropdown: React.FC<UserAvatarDropdownProps> = ({
 };
 
 interface SidebarProps {
-  conversations: LocalConversation[];
   currentConversationId?: string;
   onSelectConversation: (id: string) => void;
   onNewConversation: () => void;
-  onDeleteConversation: (id: string) => void;
-  onRenameConversation: (id: string, newTitle: string) => void;
-  onPinConversation: (id: string, isPinned: boolean) => void;
   isOpen: boolean;
   onClose: () => void;
   isCollapsed: boolean;
@@ -167,13 +163,9 @@ interface SidebarProps {
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  conversations,
   currentConversationId,
   onSelectConversation,
   onNewConversation,
-  onDeleteConversation,
-  onRenameConversation,
-  onPinConversation,
   isOpen,
   onClose,
   isCollapsed,
@@ -185,6 +177,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
+  const {
+    conversations,
+    deleteConversation: onDeleteConversation,
+    renameConversation: onRenameConversation,
+    pinConversation: onPinConversation
+  } = useConversations();
 
   const handleLogout = async () => {
     await logout();

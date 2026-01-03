@@ -187,6 +187,7 @@ class Conversation(BaseModel):
     created_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     updated_at: str = Field(default_factory=lambda: datetime.utcnow().isoformat())
     last_message_at: Optional[str] = None
+    last_message_preview: Optional[str] = None
 
 
 class ConversationCreate(BaseModel):

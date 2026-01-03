@@ -357,6 +357,7 @@ class ConversationService:
             "tags": 1,
             "message_count": 1,
             "last_message_at": 1,
+            "last_message_preview": 1, # Fetch stored preview
             "created_at": 1,
             "updated_at": 1,
         }
@@ -370,9 +371,11 @@ class ConversationService:
 
         summaries = []
         for doc in docs:
-            # Get last message preview with projection
-            last_message_preview = None
-            if messages_collection is not None:
+            # Get last message preview (prioritize stored field)
+            last_message_preview = doc.get("last_message_preview")
+            
+            # Fallback: query messages collection if not stored
+            if last_message_preview is None and messages_collection is not None:
                 # PERFORMANCE: Only fetch content field for preview
                 last_msg = messages_collection.find_one(
                     {"conversation_id": doc["id"]},
@@ -448,7 +451,8 @@ class ConversationService:
     def update_conversation_stats(
         conversation_id: str,
         tokens_used: int = 0,
-        increment_messages: bool = False
+        increment_messages: bool = False,
+        last_message_preview: Optional[str] = None
     ):
         """Update conversation statistics."""
         collection = get_conversations_collection()
@@ -461,6 +465,9 @@ class ConversationService:
                 "last_message_at": datetime.utcnow().isoformat()
             }
         }
+        
+        if last_message_preview is not None:
+             update["$set"]["last_message_preview"] = last_message_preview
 
         if tokens_used > 0:
             update["$inc"] = {"total_tokens_used": tokens_used}
@@ -508,7 +515,8 @@ class MessageService:
         ConversationService.update_conversation_stats(
             conversation_id,
             tokens_used=metadata.total_tokens if metadata else 0,
-            increment_messages=True
+            increment_messages=True,
+            last_message_preview=content[:100] if content else None
         )
 
         logger.info(f"Created message {message.id} in conversation {conversation_id}")

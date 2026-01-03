@@ -81,7 +81,7 @@ export const Chat: React.FC = () => {
     prevConversationIdRef.current = conversationId;
   }, [conversationId, urlConversationId, navigate]);
 
-  // Refresh conversations list when a new message is sent (if not already in list)
+  // Refresh conversations list if current conversation is missing (e.g. just created)
   useEffect(() => {
     if (messages.length > 0 && conversationId) {
       const exists = conversations.some(c => c.id === conversationId);
@@ -90,6 +90,17 @@ export const Chat: React.FC = () => {
       }
     }
   }, [messages.length, conversationId, conversations, refreshConversations]);
+
+  // Trigger delayed refresh to pick up SMART TITLE for new chats
+  // Separated to avoid infinite loop (removes 'conversations' dependency)
+  useEffect(() => {
+    if (messages.length > 0 && messages.length <= 2 && conversationId) {
+      const timer = setTimeout(() => {
+        refreshConversations();
+      }, 3500);
+      return () => clearTimeout(timer);
+    }
+  }, [messages.length, conversationId, refreshConversations]);
 
   const handleSendMessage = async (content: string, attachments?: import('../types').MessageAttachment[], enabledTools?: string[]) => {
     await sendMessage(content, attachments, enabledTools);

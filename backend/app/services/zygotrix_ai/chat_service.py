@@ -846,6 +846,41 @@ Question: {user_message.content}"""
             cache_read_input_tokens=cache_read_tokens
         )
 
+    async def _generate_and_save_title(self, conversation_id: str, user_id: str, user_message: str, assistant_message: str):
+        """Generate a short title using LLM and save it."""
+        try:
+            # Construct a simple prompt for title generation
+            messages = [
+                {
+                    "role": "user", 
+                    "content": f"User: {user_message}\nAssistant: {assistant_message}\n\nSummarize the above interaction into a concise, 3-5 word title. Do not use quotes."
+                }
+            ]
+            
+            # Call Claude for a quick title (using Haiku for speed/cost if available, or just the current model)
+            # We use a small max_tokens to ensure brevity
+            title, _ = await self.claude_service.generate_response(
+                messages, 
+                system_prompt="You are a helpful assistant that generates short, concise titles for conversations.",
+                model="claude-3-haiku-20240307", # Use fast model
+                max_tokens=20,
+                temperature=0.3
+            )
+            
+            # Clean up title
+            title = title.strip().strip('"')
+            
+            # Update conversation
+            ConversationService.update_conversation(
+                conversation_id,
+                user_id,
+                ConversationUpdate(title=title)
+            )
+            logger.info(f"✨ Generated smart title for conservation {conversation_id}: {title}")
+            
+        except Exception as e:
+            logger.error(f"Failed to generate title for conversation {conversation_id}: {e}")
+
     async def _handle_streaming_chat(
         self,
         claude_messages: list,
@@ -905,11 +940,13 @@ Question: {user_message.content}"""
 
                         # Update conversation title if first message
                         if conversation.message_count <= 2:
-                            ConversationService.update_conversation(
-                                conversation.id,
-                                user_id,
-                                ConversationUpdate(title=chat_request.message[:50] + ("..." if len(chat_request.message) > 50 else ""))
-                            )
+                            # Trigger async title generation
+                            asyncio.create_task(self._generate_and_save_title(
+                                conversation.id, 
+                                user_id, 
+                                chat_request.message, 
+                                assistant_content
+                            ))
 
                         # Record token usage
                         self._record_token_usage(
@@ -1028,11 +1065,13 @@ Question: {user_message.content}"""
         # Update conversation title if first message
         if conversation.message_count <= 2:
             perf.start("update_title")
-            ConversationService.update_conversation(
-                conversation.id,
-                user_id,
-                ConversationUpdate(title=chat_request.message[:50] + ("..." if len(chat_request.message) > 50 else ""))
-            )
+            # Trigger async title generation
+            asyncio.create_task(self._generate_and_save_title(
+                conversation.id, 
+                user_id, 
+                chat_request.message, 
+                content
+            ))
             perf.stop("update_title")
 
         # Record token usage

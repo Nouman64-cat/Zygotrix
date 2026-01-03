@@ -105,10 +105,11 @@ class DatabaseConnectionManager:
 
             client = MongoClient(
                 settings.mongodb_uri,
-                # Connection Pool Settings
-                maxPoolSize=50,           # Maximum connections in pool
-                minPoolSize=10,            # Minimum connections to maintain
-                maxIdleTimeMS=30000,       # Close idle connections after 30s
+                # Connection Pool Settings - OPTIMIZED for high concurrency
+                maxPoolSize=100,           # Increased from 50 for better concurrency
+                minPoolSize=20,            # Increased from 10 to maintain more warm connections
+                maxIdleTimeMS=45000,       # Increased to 45s - keep connections warm longer
+                waitQueueTimeoutMS=5000,   # Fail fast if pool exhausted (5s max wait)
 
                 # Timeout Settings
                 serverSelectionTimeoutMS=5000,    # 5 seconds to select server

@@ -69,6 +69,22 @@ async def lifespan(app: FastAPI):
             except gwas_dataset.DatasetLoadError as e:
                 logger.warning(f"⚠️ GWAS dataset unavailable: {e}")
         
+        # Create Zygotrix AI indexes at startup (performance optimization)
+        try:
+            from .services.zygotrix_ai_service import ensure_ai_indexes_created
+            ensure_ai_indexes_created()
+        except Exception as e:
+            logger.warning(f"⚠️ Could not create Zygotrix AI indexes: {e}")
+        
+        # Pre-warm RAG service at startup (eliminates cold start delay)
+        try:
+            from .services.chatbot.rag_service import get_rag_service
+            rag_service = get_rag_service()
+            if rag_service:
+                logger.info("✅ RAG Service pre-warmed (OpenAI + Pinecone ready)")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not pre-warm RAG service: {e}")
+        
         logger.info("✅ Zygotrix Backend started successfully")
         
         yield  # Application runs here

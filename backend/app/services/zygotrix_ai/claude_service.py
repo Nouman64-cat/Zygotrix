@@ -54,8 +54,19 @@ class ZygotrixClaudeService:
         self.api_url = CLAUDE_API_URL
         self.anthropic_version = ANTHROPIC_VERSION
         
+        # Cache for tool schemas (lazy-loaded)
+        self._cached_tools_schema: Optional[list] = None
+        
         if not self.api_key:
             logger.warning("CLAUDE_API_KEY not configured")
+    
+    def _get_tools_schema(self) -> list:
+        """Get cached tool schema, loading if necessary."""
+        if self._cached_tools_schema is None:
+            self._cached_tools_schema = get_claude_tools_schema()
+            tool_names = [t.get("name") for t in self._cached_tools_schema]
+            logger.info(f"Cached {len(self._cached_tools_schema)} MCP tools: {tool_names}")
+        return self._cached_tools_schema
     
     def _get_headers(self, enable_caching: bool = False) -> dict:
         """Get headers for Claude API requests."""
@@ -220,6 +231,69 @@ class ZygotrixClaudeService:
             logger.error(f"HTTP error: {e}")
             raise HTTPException(status_code=500, detail="Failed to connect to AI service")
     
+    def calculate_smart_max_tokens(
+        self,
+        message: str,
+        history_length: int,
+        default_max_tokens: int = 4096
+    ) -> int:
+        """
+        Dynamically calculate max_tokens based on message characteristics.
+        
+        This optimization reduces response latency for simple queries by
+        limiting the token budget, while allowing detailed responses when needed.
+        
+        Args:
+            message: The user's message
+            history_length: Number of messages in conversation history
+            default_max_tokens: The default max tokens from settings
+            
+        Returns:
+            Optimized max_tokens value
+        """
+        message_lower = message.lower()
+        message_len = len(message)
+        
+        # Keywords indicating user wants a detailed response
+        detail_keywords = [
+            "explain", "detail", "elaborate", "comprehensive", "thorough",
+            "in depth", "step by step", "walk me through", "full analysis",
+            "describe", "breakdown", "example", "examples"
+        ]
+        
+        # Keywords indicating user wants a brief response
+        brief_keywords = [
+            "briefly", "short", "quick", "simple", "just", "only",
+            "yes or no", "one word", "summary", "tldr", "tl;dr"
+        ]
+        
+        # Check for detailed response indicators
+        wants_detail = any(keyword in message_lower for keyword in detail_keywords)
+        wants_brief = any(keyword in message_lower for keyword in brief_keywords)
+        
+        # Short messages in new conversations likely expect shorter responses
+        is_short_query = message_len < 50 and history_length < 3
+        
+        # Determine token budget
+        if wants_brief:
+            # User explicitly wants brief - use minimal tokens
+            max_tokens = min(500, default_max_tokens)
+            logger.debug(f"Smart tokens: BRIEF mode -> {max_tokens} tokens")
+        elif wants_detail:
+            # User wants detailed response - use higher budget
+            max_tokens = min(4096, default_max_tokens)
+            logger.debug(f"Smart tokens: DETAILED mode -> {max_tokens} tokens")
+        elif is_short_query:
+            # Short query, likely expects moderate response
+            max_tokens = min(1000, default_max_tokens)
+            logger.debug(f"Smart tokens: SHORT QUERY mode -> {max_tokens} tokens")
+        else:
+            # Default case - use standard budget
+            max_tokens = min(2048, default_max_tokens)
+            logger.debug(f"Smart tokens: DEFAULT mode -> {max_tokens} tokens")
+        
+        return max_tokens
+    
     async def generate_response_with_tools(
         self,
         messages: list,
@@ -250,7 +324,8 @@ class ZygotrixClaudeService:
         Returns:
             Tuple of (final_content, metadata)
         """
-        tools = get_claude_tools_schema() if use_tools else []
+        # Use cached tools schema for better performance
+        tools = self._get_tools_schema() if use_tools else []
         total_input_tokens = 0
         total_output_tokens = 0
         total_cache_creation_tokens = 0
@@ -260,17 +335,18 @@ class ZygotrixClaudeService:
         dna_rna_widget_data = None  # Track DNA/RNA visualization data if tool is used
         gwas_widget_data = None  # Track GWAS analysis data if tool is used
 
-        # Log tool availability for debugging
+        # Log tool availability for debugging (only on first request or when debugging)
         if tools:
-            tool_names = [t.get("name") for t in tools]
-            logger.info(f"MCP tools enabled: {len(tools)} tools available: {tool_names}")
+            logger.debug(f"MCP tools enabled: {len(tools)} tools available")
         else:
-            logger.info("MCP tools disabled for this request")
+            logger.debug("MCP tools disabled for this request")
         
         working_messages = messages.copy()
         
         for iteration in range(max_tool_iterations):
-            logger.info(f"Claude API iteration {iteration + 1}/{max_tool_iterations}")
+            import time
+            iter_start = time.perf_counter()
+            logger.info(f"🔄 Claude API iteration {iteration + 1}/{max_tool_iterations}")
             try:
                 async with httpx.AsyncClient(timeout=120.0) as client:
                     # Prepare system prompt with caching if enabled
@@ -352,6 +428,15 @@ class ZygotrixClaudeService:
                     total_output_tokens += usage.get("output_tokens", 0)
                     total_cache_creation_tokens += usage.get("cache_creation_input_tokens", 0)
                     total_cache_read_tokens += usage.get("cache_read_input_tokens", 0)
+                    
+                    # Log iteration timing
+                    iter_ms = (time.perf_counter() - iter_start) * 1000
+                    iter_in = usage.get("input_tokens", 0)
+                    iter_out = usage.get("output_tokens", 0)
+                    logger.info(
+                        f"⚡ Iteration {iteration + 1} complete: {iter_ms:.0f}ms | "
+                        f"Tokens: {iter_in}in/{iter_out}out | Stop: {stop_reason}"
+                    )
 
                     # Log cache metrics if present
                     if enable_caching:

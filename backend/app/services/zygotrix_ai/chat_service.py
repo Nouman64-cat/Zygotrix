@@ -26,7 +26,9 @@ from ..chatbot.rate_limiting_service import get_rate_limiter
 from ..chatbot.token_analytics_service import get_token_analytics_service
 from ..chatbot.rag_service import get_rag_service
 from ..chatbot.traits_enrichment_service import get_traits_service
+from ..chatbot.response_cache_service import get_response_cache
 from .claude_service import get_zygotrix_claude_service
+from app.core.performance import PerformanceTracker
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +42,7 @@ class ZygotrixChatService:
         self.token_analytics = get_token_analytics_service()
         self.rag_service = get_rag_service()
         self.traits_service = get_traits_service()
+        self.response_cache = get_response_cache()
 
     async def process_chat_request(
         self,
@@ -53,12 +56,19 @@ class ZygotrixChatService:
             Tuple of (response, conversation_id, message_id) where response is either
             StreamingResponse or ChatResponse
         """
+        # Initialize performance tracking for this request
+        perf = PerformanceTracker("chat_request")
+        perf.start("total")
+        
         user_id = current_user.id
         user_name = current_user.name if hasattr(current_user, 'name') else None
         is_admin = hasattr(current_user, 'user_role') and current_user.user_role in ["admin", "super_admin"]
 
         # Check rate limit
+        perf.start("rate_limit_check")
         allowed, usage = self.rate_limiter.check_limit(user_id, is_admin=is_admin)
+        perf.stop("rate_limit_check")
+        
         if not allowed:
             raise HTTPException(
                 status_code=429,
@@ -72,26 +82,41 @@ class ZygotrixChatService:
             )
 
         # Get or create conversation
+        perf.start("conversation_lookup")
         conversation = await self._get_or_create_conversation(chat_request, user_id)
+        perf.stop("conversation_lookup")
 
         # Get conversation settings
+        perf.start("token_budgeting")
         conv_settings = conversation.settings
         model = chat_request.model or conv_settings.model
         temperature = chat_request.temperature if chat_request.temperature is not None else conv_settings.temperature
-        max_tokens = chat_request.max_tokens or conv_settings.max_tokens
+        default_max_tokens = chat_request.max_tokens or conv_settings.max_tokens
+        
+        # Apply smart token budgeting for faster responses on simple queries
+        max_tokens = self.claude_service.calculate_smart_max_tokens(
+            message=chat_request.message,
+            history_length=conversation.message_count,
+            default_max_tokens=default_max_tokens
+        )
+        perf.stop("token_budgeting")
 
         # Fetch user preferences for response customization
+        perf.start("preferences_fetch")
         user_preferences = self._get_user_preferences(user_id)
+        perf.stop("preferences_fetch")
 
         # Handle file attachments FIRST (for GWAS datasets)
         # This uploads files to cloud storage before we save the message
         # GWAS processing only happens if 'gwas_analysis' tool is enabled
+        perf.start("file_attachments")
         upload_results = await self._handle_file_attachments(
             chat_request.attachments,
             chat_request.message,
             user_id,
             enabled_tools=chat_request.enabled_tools or []
         )
+        perf.stop("file_attachments")
 
         # Strip file content from attachments before storing in MongoDB
         # MongoDB has a 16MB document limit, so we only store metadata
@@ -111,6 +136,7 @@ class ZygotrixChatService:
                 safe_attachments.append(safe_attachment)
 
         # Save user message (with metadata only, no file content)
+        perf.start("save_user_message")
         user_message = MessageService.create_message(
             conversation_id=conversation.id,
             role=MessageRole.USER,
@@ -118,6 +144,7 @@ class ZygotrixChatService:
             parent_message_id=chat_request.parent_message_id,
             attachments=safe_attachments
         )
+        perf.stop("save_user_message")
 
         # Analyze message for preference signals (asynchronous, non-blocking)
         asyncio.create_task(self._analyze_and_update_preferences(
@@ -127,17 +154,20 @@ class ZygotrixChatService:
         ))
 
         # Build context (include upload results if any)
+        perf.start("context_building")
         combined_context = await self._build_context(
             chat_request.message,
             user_id=user_id,
             user_name=user_name
         )
+        perf.stop("context_building")
 
         # Add upload results to context
         if upload_results:
             combined_context = f"{upload_results}\n\n{combined_context}" if combined_context else upload_results
 
         # Get conversation history and build Claude messages
+        perf.start("message_formatting")
         claude_messages = self._build_claude_messages(
             conversation.id,
             conv_settings.context_window_messages,
@@ -148,6 +178,15 @@ class ZygotrixChatService:
 
         # Get system prompt (with user preferences)
         system_prompt = self._get_system_prompt(chat_request.page_context, combined_context, user_preferences)
+        perf.stop("message_formatting")
+
+        # Stop total timer before response generation (streaming continues after)
+        perf.stop("total")
+        
+        # Log performance breakdown for non-streaming (streaming logs on completion)
+        if not chat_request.stream:
+            perf.log_summary()
+            logger.info(f"📊 Pre-LLM overhead: {perf.get_total_ms():.0f}ms | Model: {model} | Tokens budget: {max_tokens}")
 
         # Handle streaming vs non-streaming
         if chat_request.stream:
@@ -557,6 +596,7 @@ The C++ GWAS engine will analyze all {dataset_info.get('num_snps', 0):,} SNPs an
     ) -> str:
         """Build combined context from traits and RAG."""
         import os
+        import time
 
         # Check if intelligent routing is enabled
         use_intelligent_routing = os.getenv("ENABLE_INTELLIGENT_ROUTING", "true").lower() == "true"
@@ -566,20 +606,28 @@ The C++ GWAS engine will analyze all {dataset_info.get('num_snps', 0):,} SNPs an
             from ..chatbot.query_classifier import get_query_classifier, QueryType
             import logging
 
-            logger = logging.getLogger(__name__)
+            ctx_logger = logging.getLogger(__name__)
             classifier = get_query_classifier()
+            
+            # Time the classification
+            classify_start = time.perf_counter()
             query_type, confidence = await classifier.classify(message, user_id, user_name)
+            classify_ms = (time.perf_counter() - classify_start) * 1000
 
-            logger.info(f"🧠 Zygotrix AI using intelligent routing: {query_type.value} (confidence: {confidence:.2f})")
+            ctx_logger.info(
+                f"🧠 Intelligent routing: {query_type.value} | "
+                f"Confidence: {confidence:.2f} | "
+                f"Classify time: {classify_ms:.1f}ms"
+            )
 
             if query_type == QueryType.CONVERSATIONAL:
                 # No context needed for conversational queries
-                logger.debug("Routing: CONVERSATIONAL (no context)")
+                ctx_logger.debug("Routing: CONVERSATIONAL (no context)")
                 return ""
 
             elif query_type == QueryType.KNOWLEDGE:
                 # Only RAG context needed
-                logger.debug("Routing: KNOWLEDGE (RAG only)")
+                ctx_logger.debug("Routing: KNOWLEDGE (RAG only)")
                 llama_context = await self.rag_service.retrieve_context(
                     message,
                     user_id=user_id,
@@ -589,37 +637,74 @@ The C++ GWAS engine will analyze all {dataset_info.get('num_snps', 0):,} SNPs an
 
             elif query_type == QueryType.GENETICS_TOOLS:
                 # Only traits context needed
-                logger.debug("Routing: GENETICS_TOOLS (traits only)")
+                ctx_logger.debug("Routing: GENETICS_TOOLS (traits only)")
                 traits_context = self.traits_service.get_traits_context(message)
                 return traits_context
 
             else:  # HYBRID
-                # Full context (both RAG and traits)
-                logger.debug("Routing: HYBRID (RAG + traits)")
-                traits_context = self.traits_service.get_traits_context(message)
-                llama_context = await self.rag_service.retrieve_context(
+                # Full context (both RAG and traits) - OPTIMIZED: Run in parallel
+                ctx_logger.info("Routing: HYBRID (RAG + traits) - Starting parallel execution")
+                hybrid_start = time.perf_counter()
+                
+                # Run traits lookup in thread pool (it's synchronous) and RAG lookup concurrently
+                async def get_traits_async():
+                    t_start = time.perf_counter()
+                    result = await asyncio.get_event_loop().run_in_executor(
+                        None, self.traits_service.get_traits_context, message
+                    )
+                    t_ms = (time.perf_counter() - t_start) * 1000
+                    ctx_logger.info(f"  📋 Traits lookup complete: {t_ms:.0f}ms | Length: {len(result) if result else 0} chars")
+                    return result
+                
+                async def get_rag_async():
+                    r_start = time.perf_counter()
+                    result = await self.rag_service.retrieve_context(
+                        message,
+                        user_id=user_id,
+                        user_name=user_name
+                    )
+                    r_ms = (time.perf_counter() - r_start) * 1000
+                    ctx_logger.info(f"  🔍 RAG lookup complete: {r_ms:.0f}ms | Length: {len(result) if result else 0} chars")
+                    return result
+                
+                # Execute both in parallel for ~40-60% speedup
+                traits_task = asyncio.create_task(get_traits_async())
+                rag_task = asyncio.create_task(get_rag_async())
+                
+                traits_context, llama_context = await asyncio.gather(traits_task, rag_task)
+                
+                hybrid_ms = (time.perf_counter() - hybrid_start) * 1000
+                ctx_logger.info(f"📊 HYBRID context complete: {hybrid_ms:.0f}ms total (parallel)")
+                
+                if llama_context:
+                    return f"{traits_context}\n\n{llama_context}" if traits_context else llama_context
+                return traits_context or ""
+        else:
+            # Traditional flow: always use both - OPTIMIZED: Run in parallel
+            logger = logging.getLogger(__name__)
+            logger.info("🔧 Zygotrix AI using traditional routing (parallel execution)")
+
+            # Run traits lookup in thread pool (it's synchronous) and RAG lookup concurrently
+            async def get_traits_async():
+                return await asyncio.get_event_loop().run_in_executor(
+                    None, self.traits_service.get_traits_context, message
+                )
+            
+            # Execute both in parallel for ~40-60% speedup
+            traits_task = asyncio.create_task(get_traits_async())
+            rag_task = asyncio.create_task(
+                self.rag_service.retrieve_context(
                     message,
                     user_id=user_id,
                     user_name=user_name
                 )
-                if llama_context:
-                    return f"{traits_context}\n\n{llama_context}" if traits_context else llama_context
-                return traits_context
-        else:
-            # Traditional flow: always use both
-            logger = logging.getLogger(__name__)
-            logger.info("🔧 Zygotrix AI using traditional routing (always full context)")
-
-            traits_context = self.traits_service.get_traits_context(message)
-            llama_context = await self.rag_service.retrieve_context(
-                message,
-                user_id=user_id,
-                user_name=user_name
             )
+            
+            traits_context, llama_context = await asyncio.gather(traits_task, rag_task)
 
             if llama_context:
                 return f"{traits_context}\n\n{llama_context}" if traits_context else llama_context
-            return traits_context
+            return traits_context or ""
 
     def _build_claude_messages(
         self,
@@ -856,20 +941,68 @@ Question: {user_message.content}"""
         user_id: str,
         user_name: Optional[str]
     ) -> Tuple[ChatResponse, str, str]:
-        """Handle non-streaming chat response with tool support."""
-        logger.info("Using NON-STREAMING mode with MCP tools enabled")
+        """Handle non-streaming chat response with tool support and caching."""
+        # Initialize performance tracker for this response
+        perf = PerformanceTracker("llm_response")
+        perf.start("total_response")
+        
+        logger.info("🤖 Using NON-STREAMING mode with MCP tools enabled")
 
-        # Non-streaming response with tool support
-        content, metadata = await self.claude_service.generate_response_with_tools(
-            claude_messages, system_prompt, model, max_tokens, temperature,
-            use_tools=True,
-        )
+        # Check if we have tools enabled - only cache if no tools (tools have dynamic results)
+        has_tools_enabled = bool(chat_request.enabled_tools)
+        cache_key = chat_request.message.lower().strip()
+        cached_response = None
+        cache_hit = False
+        
+        # Try to get cached response (only for non-tool queries)
+        perf.start("cache_lookup")
+        if not has_tools_enabled:
+            cached_response = self.response_cache.get(
+                cache_key, 
+                page_name=chat_request.page_context or ""
+            )
+        perf.stop("cache_lookup")
+        
+        if cached_response:
+            # Cache HIT - return cached response with minimal latency
+            cache_hit = True
+            logger.info(f"🚀 CACHE HIT! Returning cached response (saved ~2-5s)")
+            content = cached_response
+            metadata = {
+                "input_tokens": 0,
+                "output_tokens": 0,
+                "total_tokens": 0,
+                "cached": True,
+                "cache_hit": True,
+            }
+        else:
+            # Cache MISS or tools enabled - call Claude API
+            perf.start("llm_api_call")
+            content, metadata = await self.claude_service.generate_response_with_tools(
+                claude_messages, system_prompt, model, max_tokens, temperature,
+                use_tools=True,
+            )
+            perf.stop("llm_api_call")
+            
+            # Cache the response for future use (only if no tools were used)
+            tools_used = metadata.get("tools_used", [])
+            if not tools_used and not has_tools_enabled:
+                perf.start("cache_store")
+                self.response_cache.set(
+                    cache_key, 
+                    content, 
+                    page_name=chat_request.page_context or ""
+                )
+                perf.stop("cache_store")
+                logger.info(f"📦 Cached response for future use")
 
         # Log tool usage if any tools were used
         tools_used = metadata.get("tools_used", [])
         if tools_used:
-            logger.info(f"Tools used in response: {[t['name'] for t in tools_used]}")
+            tool_names = [t['name'] for t in tools_used]
+            logger.info(f"🔧 Tools used: {tool_names}")
 
+        # Create response metadata
         msg_metadata = MessageMetadata(
             input_tokens=metadata.get("input_tokens", 0),
             output_tokens=metadata.get("output_tokens", 0),
@@ -881,6 +1014,8 @@ Question: {user_message.content}"""
             gwas_data=metadata.get("gwas_data"),
         )
 
+        # Save assistant message
+        perf.start("save_assistant_message")
         assistant_message = MessageService.create_message(
             conversation_id=conversation.id,
             role=MessageRole.ASSISTANT,
@@ -888,18 +1023,43 @@ Question: {user_message.content}"""
             metadata=msg_metadata,
             parent_message_id=user_message.id,
         )
+        perf.stop("save_assistant_message")
 
         # Update conversation title if first message
         if conversation.message_count <= 2:
+            perf.start("update_title")
             ConversationService.update_conversation(
                 conversation.id,
                 user_id,
                 ConversationUpdate(title=chat_request.message[:50] + ("..." if len(chat_request.message) > 50 else ""))
             )
+            perf.stop("update_title")
 
         # Record token usage
+        perf.start("record_usage")
         self._record_token_usage(
             user_id, user_name, metadata, chat_request.message, model
+        )
+        perf.stop("record_usage")
+        
+        # Stop total timer
+        perf.stop("total_response")
+        
+        # Log comprehensive performance summary
+        perf.log_summary()
+        
+        # Log final summary with key metrics
+        total_ms = perf.get_total_ms()
+        input_tokens = metadata.get("input_tokens", 0)
+        output_tokens = metadata.get("output_tokens", 0)
+        response_length = len(content) if content else 0
+        
+        logger.info(
+            f"✅ Response complete | "
+            f"Total: {total_ms:.0f}ms | "
+            f"Cache: {'HIT' if cache_hit else 'MISS'} | "
+            f"Tokens: {input_tokens}in/{output_tokens}out | "
+            f"Response: {response_length} chars"
         )
 
         return ChatResponse(

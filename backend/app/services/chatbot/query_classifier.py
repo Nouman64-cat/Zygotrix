@@ -323,7 +323,9 @@ def get_query_classifier() -> HybridClassifier:
     global _query_classifier
     if _query_classifier is None:
         use_llm = os.getenv("ENABLE_LLM_CLASSIFIER", "true").lower() == "true"
-        threshold = float(os.getenv("CLASSIFIER_CONFIDENCE_THRESHOLD", "0.85"))
+        # Lowered default from 0.85 to 0.75 for better performance
+        # This means more queries use fast rule-based classification
+        threshold = float(os.getenv("CLASSIFIER_CONFIDENCE_THRESHOLD", "0.75"))
 
         _query_classifier = HybridClassifier(
             confidence_threshold=threshold,

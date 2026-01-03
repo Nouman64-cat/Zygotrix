@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, Suspense } from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import { FaCheck } from 'react-icons/fa';
@@ -7,11 +7,30 @@ import { FiFile } from 'react-icons/fi';
 import { cn } from '../../utils';
 import { useTypingEffect } from '../../hooks';
 import { ThinkingLoader } from '../common/ThinkingLoader';
-import { BreedingLabWidget } from '../breeding';
-import { DnaRnaWidget } from '../dna';
-import { GwasWidget } from '../gwas';
 import { LOGO_URL } from '../../config';
 import type { Message } from '../../types';
+
+// PERFORMANCE: Lazy load heavy widget components to reduce initial bundle size
+// These components are only loaded when actually needed in a message
+const BreedingLabWidget = React.lazy(() =>
+  import('../breeding').then(module => ({ default: module.BreedingLabWidget }))
+);
+const DnaRnaWidget = React.lazy(() =>
+  import('../dna').then(module => ({ default: module.DnaRnaWidget }))
+);
+const GwasWidget = React.lazy(() =>
+  import('../gwas').then(module => ({ default: module.GwasWidget }))
+);
+
+// Widget loading fallback
+const WidgetLoadingFallback: React.FC = () => (
+  <div className="flex items-center justify-center p-8 bg-gray-50 dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700">
+    <div className="flex items-center gap-2 text-gray-500 dark:text-gray-400">
+      <div className="w-4 h-4 border-2 border-current border-t-transparent rounded-full animate-spin" />
+      <span className="text-sm">Loading widget...</span>
+    </div>
+  </div>
+);
 
 interface ChatMessageProps {
   message: Message;
@@ -292,28 +311,34 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
         {showCursor && (
           <span className="inline-block w-0.5 h-4 ml-0.5 bg-gray-600 dark:bg-gray-300 animate-pulse" />
         )}
-        {/* Render breeding widget if present */}
+        {/* Render breeding widget if present - lazy loaded */}
         {hasBreedingWidget && message.metadata?.breeding_data && (
-          <BreedingLabWidget
-            initialParentA={message.metadata.breeding_data.parent1}
-            initialParentB={message.metadata.breeding_data.parent2}
-            traitIds={message.metadata.breeding_data.traits}
-          />
+          <Suspense fallback={<WidgetLoadingFallback />}>
+            <BreedingLabWidget
+              initialParentA={message.metadata.breeding_data.parent1}
+              initialParentB={message.metadata.breeding_data.parent2}
+              traitIds={message.metadata.breeding_data.traits}
+            />
+          </Suspense>
         )}
 
-        {/* Render DNA/RNA widget if present */}
+        {/* Render DNA/RNA widget if present - lazy loaded */}
         {hasDnaRnaWidget && message.metadata?.dna_rna_data && (
-          <DnaRnaWidget
-            dnaSequence={message.metadata.dna_rna_data.dna_sequence || ''}
-            mrnaSequence={message.metadata.dna_rna_data.mrna_sequence || ''}
-            operation={message.metadata.dna_rna_data.operation}
-            metadata={message.metadata.dna_rna_data.metadata}
-          />
+          <Suspense fallback={<WidgetLoadingFallback />}>
+            <DnaRnaWidget
+              dnaSequence={message.metadata.dna_rna_data.dna_sequence || ''}
+              mrnaSequence={message.metadata.dna_rna_data.mrna_sequence || ''}
+              operation={message.metadata.dna_rna_data.operation}
+              metadata={message.metadata.dna_rna_data.metadata}
+            />
+          </Suspense>
         )}
 
-        {/* Render GWAS widget if present */}
+        {/* Render GWAS widget if present - lazy loaded */}
         {hasGwasWidget && message.metadata?.gwas_data && (
-          <GwasWidget gwasData={message.metadata.gwas_data} />
+          <Suspense fallback={<WidgetLoadingFallback />}>
+            <GwasWidget gwasData={message.metadata.gwas_data} />
+          </Suspense>
         )}
       </>
     );

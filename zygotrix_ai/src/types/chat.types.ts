@@ -88,6 +88,10 @@ export interface MessageMetadata {
       genomic_inflation_lambda: number;
     };
   };
+  // Performance optimization: estimated wait time for UX feedback
+  estimatedWaitMs?: number;
+  // Cache hit indicator from backend
+  cache_hit?: boolean;
 }
 
 // Message from the API

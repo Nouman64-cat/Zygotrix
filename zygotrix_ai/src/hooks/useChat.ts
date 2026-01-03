@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useRef } from "react";
 import { chatService } from "../services";
 import { generateMessageId } from "../utils";
 import type { Message, ChatRequest, MessageAttachment } from "../types";
@@ -21,6 +21,9 @@ interface UseChatReturn {
   startNewConversation: () => void;
 }
 
+// Debounce delay in milliseconds - prevents duplicate rapid submissions
+const SEND_DEBOUNCE_MS = 300;
+
 export const useChat = (initialConversationId?: string): UseChatReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
@@ -31,6 +34,10 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
   );
   const [conversationTitle, setConversationTitle] =
     useState<string>("New Conversation");
+
+  // Ref to track pending request and prevent duplicates
+  const pendingRequestRef = useRef<string | null>(null);
+  const lastSendTimeRef = useRef<number>(0);
 
   // Persist messages to localStorage
   useEffect(() => {
@@ -46,6 +53,11 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
   const loadConversation = useCallback(async (convId: string) => {
     setIsLoading(true);
     setError(null);
+
+    // Performance mark for monitoring
+    if (typeof performance !== "undefined") {
+      performance.mark("load-conversation-start");
+    }
 
     // Try loading from cache first to avoid empty state
     try {
@@ -72,6 +84,16 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
         timestamp: new Date(msg.created_at || Date.now()).getTime(),
       }));
       setMessages(fetchedMessages);
+
+      // Performance measure
+      if (typeof performance !== "undefined") {
+        performance.mark("load-conversation-end");
+        performance.measure(
+          "load-conversation",
+          "load-conversation-start",
+          "load-conversation-end"
+        );
+      }
     } catch (err) {
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load conversation";
@@ -94,6 +116,7 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
     setConversationId(null);
     setConversationTitle("New Conversation");
     setError(null);
+    pendingRequestRef.current = null;
   }, []);
 
   const sendMessage = useCallback(
@@ -104,11 +127,34 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
     ) => {
       if (!content.trim() && (!attachments || attachments.length === 0)) return;
 
+      const trimmedContent = content.trim();
+
+      // Debounce: prevent duplicate rapid submissions
+      const now = Date.now();
+      if (now - lastSendTimeRef.current < SEND_DEBOUNCE_MS) {
+        console.log("[useChat] Debounced - too fast");
+        return;
+      }
+      lastSendTimeRef.current = now;
+
+      // Prevent duplicate requests for same content
+      const requestKey = `${trimmedContent}-${conversationId}`;
+      if (pendingRequestRef.current === requestKey) {
+        console.log("[useChat] Duplicate request prevented");
+        return;
+      }
+      pendingRequestRef.current = requestKey;
+
+      // Performance mark for monitoring
+      if (typeof performance !== "undefined") {
+        performance.mark("chat-request-start");
+      }
+
       // Create optimistic user message
       const userMessage: Message = {
         id: generateMessageId(),
         role: "user",
-        content: content.trim(),
+        content: trimmedContent,
         attachments,
         timestamp: Date.now(),
       };
@@ -117,30 +163,52 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
       setIsLoading(true);
       setError(null);
 
-      // Create placeholder for assistant message (shows loading state)
+      // Create enhanced placeholder for assistant message
       const tempMessageId = generateMessageId();
       const placeholderMessage: Message = {
         id: tempMessageId,
         role: "assistant",
         content: "",
         timestamp: Date.now(),
-        isStreaming: true, // Used for loading indicator
+        isStreaming: true,
+        // Enhanced: add estimated wait time for better UX
+        metadata: {
+          input_tokens: 0,
+          output_tokens: 0,
+          total_tokens: 0,
+          estimatedWaitMs: enabledTools?.length ? 5000 : 3000,
+        },
       };
 
       setMessages((prev) => [...prev, placeholderMessage]);
 
       const chatRequest: ChatRequest = {
         conversation_id: conversationId || undefined,
-        message: content.trim(),
+        message: trimmedContent,
         attachments,
         page_context: "Chat Interface",
-        stream: false, // Disable streaming to enable MCP tools (tools only work in non-streaming mode)
+        stream: false,
         enabled_tools: enabledTools || [],
       };
 
       try {
-        // Use non-streaming API for MCP tool support
         const response = await chatService.sendMessage(chatRequest);
+
+        // Performance measure
+        if (typeof performance !== "undefined") {
+          performance.mark("chat-request-end");
+          performance.measure(
+            "chat-request",
+            "chat-request-start",
+            "chat-request-end"
+          );
+          const measure = performance.getEntriesByName("chat-request").pop();
+          if (measure) {
+            console.log(
+              `[useChat] Request completed in ${measure.duration.toFixed(0)}ms`
+            );
+          }
+        }
 
         // Update conversation ID if this was a new conversation
         if (!conversationId && response.conversation_id) {
@@ -178,6 +246,7 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
       } finally {
         setIsLoading(false);
         setIsStreaming(false);
+        pendingRequestRef.current = null;
       }
     },
     [conversationId]
@@ -186,6 +255,7 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
   const clearMessages = useCallback(() => {
     setMessages([]);
     setError(null);
+    pendingRequestRef.current = null;
   }, []);
 
   return {

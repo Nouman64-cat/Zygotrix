@@ -8,7 +8,7 @@ import { ThemeSwitcher } from '../components/common/ThemeSwitcher';
 import { RateLimitIndicator } from '../components/chat';
 import authService from '../services/auth/auth.service';
 import { chatService } from '../services';
-import { useAuth } from '../contexts';
+import { useAuth, useVoiceControl } from '../contexts';
 import type { ChatPreferences, UserPreferencesUpdate, LocalConversation } from '../types';
 import { Button } from '../components/common';
 import { cn } from '../utils';
@@ -25,6 +25,11 @@ const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     id: 'general',
     label: 'General',
     icon: <FiUser className="w-4 h-4" />,
+  },
+  {
+    id: 'voice',
+    label: 'Voice',
+    icon: <MdMic className="w-4 h-4" />,
   },
   {
     id: 'learning',
@@ -340,7 +345,139 @@ export const SettingsPage: React.FC = () => {
     );
   };
 
-  // Render the Learning section
+  // Render the Voice section
+  const renderVoiceSection = () => {
+    const { voiceSettings, setVoiceSettings, speak } = useVoiceControl();
+    const [availableVoices, setAvailableVoices] = useState<SpeechSynthesisVoice[]>([]);
+
+    // Load available voices
+    useEffect(() => {
+      const loadVoices = () => {
+        const voices = window.speechSynthesis.getVoices();
+        setAvailableVoices(voices);
+      };
+
+      loadVoices();
+      window.speechSynthesis.onvoiceschanged = loadVoices;
+
+      return () => {
+        window.speechSynthesis.onvoiceschanged = null;
+      };
+    }, []);
+
+    const testVoice = () => {
+      speak("Hello! This is how I sound with your current settings. I'm your Zygotrix voice assistant.");
+    };
+
+    return (
+      <div className="space-y-6">
+        {/* Voice Selection */}
+        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Voice Character
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Choose the voice for your AI assistant
+          </p>
+          <select
+            value={voiceSettings.voiceIndex}
+            onChange={(e) => setVoiceSettings(prev => ({ ...prev, voiceIndex: parseInt(e.target.value) }))}
+            className="w-full px-4 py-3 rounded-lg border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:ring-2 focus:ring-emerald-500 focus:border-transparent"
+          >
+            {availableVoices.map((voice, index) => (
+              <option key={index} value={index}>
+                {voice.name} ({voice.lang})
+              </option>
+            ))}
+          </select>
+        </section>
+
+        {/* Speed Control */}
+        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Speaking Speed
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Adjust how fast the assistant speaks
+          </p>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500 w-12">Slow</span>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={voiceSettings.rate}
+              onChange={(e) => setVoiceSettings(prev => ({ ...prev, rate: parseFloat(e.target.value) }))}
+              className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+            />
+            <span className="text-sm text-gray-500 w-12">Fast</span>
+            <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 w-12 text-right">
+              {voiceSettings.rate.toFixed(1)}x
+            </span>
+          </div>
+        </section>
+
+        {/* Pitch Control */}
+        <section className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 p-6">
+          <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2">
+            Voice Pitch
+          </h3>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">
+            Adjust the tone of the voice
+          </p>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-gray-500 w-12">Low</span>
+            <input
+              type="range"
+              min="0.5"
+              max="2"
+              step="0.1"
+              value={voiceSettings.pitch}
+              onChange={(e) => setVoiceSettings(prev => ({ ...prev, pitch: parseFloat(e.target.value) }))}
+              className="flex-1 h-2 bg-gray-200 dark:bg-gray-700 rounded-lg appearance-none cursor-pointer accent-emerald-500"
+            />
+            <span className="text-sm text-gray-500 w-12">High</span>
+            <span className="text-sm font-medium text-emerald-600 dark:text-emerald-400 w-12 text-right">
+              {voiceSettings.pitch.toFixed(1)}
+            </span>
+          </div>
+        </section>
+
+        {/* Preview Button */}
+        <section className="bg-gradient-to-r from-emerald-50 to-cyan-50 dark:from-emerald-900/20 dark:to-cyan-900/20 rounded-xl border border-emerald-200 dark:border-emerald-700 p-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-1">
+                Test Your Voice Settings
+              </h3>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
+                Click to hear a preview with your current settings
+              </p>
+            </div>
+            <Button
+              onClick={testVoice}
+              className="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-3 rounded-lg flex items-center gap-2"
+            >
+              <MdMic className="w-5 h-5" />
+              Preview Voice
+            </Button>
+          </div>
+        </section>
+
+        {/* Reset to Default */}
+        <div className="flex justify-end">
+          <button
+            onClick={() => setVoiceSettings({ rate: 1.2, pitch: 1.0, voiceIndex: 0 })}
+            className="text-sm text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 underline"
+          >
+            Reset to defaults
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderLearningSection = () => {
     if (loading) {
       return (
@@ -727,6 +864,8 @@ export const SettingsPage: React.FC = () => {
     switch (activeSection) {
       case 'general':
         return renderGeneralSection();
+      case 'voice':
+        return renderVoiceSection();
       case 'learning':
         return renderLearningSection();
       case 'usage':

@@ -1,6 +1,6 @@
 // src/contexts/VoiceControlContext.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { VoiceControlContext } from './VoiceControlShared';
+import { VoiceControlContext, type VoiceSettings } from './VoiceControlShared';
 
 // --- Web Speech API Types ---
 interface SpeechRecognitionEvent extends Event {
@@ -43,6 +43,21 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isPaused, setIsPaused] = useState(false); // True when paused for local mic
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
+
+  // Voice Settings (persisted to localStorage)
+  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(() => {
+    const saved = localStorage.getItem('voiceSettings');
+    return saved ? JSON.parse(saved) : {
+      rate: 1.2,      // Speed: 0.5 to 2.0 (default 1.2 for natural flow)
+      pitch: 1.0,     // Pitch: 0.5 to 2.0
+      voiceIndex: 0,  // Index of selected voice
+    };
+  });
+
+  // Save voice settings to localStorage when they change
+  useEffect(() => {
+    localStorage.setItem('voiceSettings', JSON.stringify(voiceSettings));
+  }, [voiceSettings]);
 
   // Ref to track if we were listening before pause (to know if we should resume)
   const wasListeningBeforePauseRef = useRef(false);
@@ -429,6 +444,16 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       const utterance = new SpeechSynthesisUtterance(text);
 
+      // Apply voice settings
+      utterance.rate = voiceSettings.rate;
+      utterance.pitch = voiceSettings.pitch;
+
+      // Set selected voice
+      const voices = window.speechSynthesis.getVoices();
+      if (voices.length > 0 && voiceSettings.voiceIndex < voices.length) {
+        utterance.voice = voices[voiceSettings.voiceIndex];
+      }
+
       const resume = () => {
         if (isPausedForSpeakingRef.current) {
           resumeListening();
@@ -441,7 +466,7 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       window.speechSynthesis.speak(utterance);
     }
-  }, [pauseListening, resumeListening]);
+  }, [pauseListening, resumeListening, voiceSettings]);
 
   // Keep speakRef updated so async functions can use it
   useEffect(() => {
@@ -461,7 +486,9 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       availableCommands: commands,
       setDictationCallback: setDictationCallback, // Use the WRAPPER, not the raw state setter
       isDictating: !!dictationCallback,
-      speak
+      speak,
+      voiceSettings,
+      setVoiceSettings,
     }}>
       {children}
     </VoiceControlContext.Provider>

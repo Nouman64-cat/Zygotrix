@@ -91,6 +91,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   const { registerCommand, setDictationCallback, isListening: isUniversalMicActive, toggleListening, speak, isDictating } = useVoiceControl();
   const [isFocused, setIsFocused] = useState(false);
+  console.log(isFocused);
 
   // Debounce to prevent double sends
   const lastSendTimeRef = useRef(0);

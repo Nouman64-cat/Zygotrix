@@ -9,7 +9,6 @@ export const Chat: React.FC = () => {
   const { conversationId: urlConversationId } = useParams<{ conversationId?: string }>();
   const navigate = useNavigate();
 
-  const [initialLoadDone, setInitialLoadDone] = useState(false);
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
   const [resetTime, setResetTime] = useState<string | null>(null);
 
@@ -56,23 +55,30 @@ export const Chat: React.FC = () => {
     }
   }, [error, isRateLimited]);
 
-  // Load conversation from URL on initial mount
+  // Handle URL changes and initial load
   useEffect(() => {
-    if (!initialLoadDone && urlConversationId) {
+    // If URL has an ID and it differs from current loaded conversation
+    if (urlConversationId && urlConversationId !== conversationId) {
       loadConversation(urlConversationId);
-      setInitialLoadDone(true);
-    } else if (!initialLoadDone) {
-      setInitialLoadDone(true);
     }
-  }, [urlConversationId, loadConversation, initialLoadDone]);
+    // If URL is empty (New Chat) but we have a conversation loaded
+    else if (!urlConversationId && conversationId) {
+      startNewConversation();
+    }
+  }, [urlConversationId, conversationId, loadConversation, startNewConversation]);
 
-  // Update URL when conversation changes
+
+  // Track previous conversation ID to detect ONLY fresh creations
+  const prevConversationIdRef = React.useRef(conversationId);
+
+  // Update URL ONLY when we have a conversation ID but no URL ID (i.e. just created a new chat)
+  // This prevents race conditions where navigating to a new URL would cause the old state to push the old URL back
   useEffect(() => {
-    if (conversationId && conversationId !== urlConversationId) {
+    // Only navigate if conversationId CHANGED and is now truthy (fresh creation)
+    if (conversationId && conversationId !== prevConversationIdRef.current && !urlConversationId) {
       navigate(`/chat/${conversationId}`, { replace: true });
-    } else if (!conversationId && urlConversationId) {
-      navigate('/chat', { replace: true });
     }
+    prevConversationIdRef.current = conversationId;
   }, [conversationId, urlConversationId, navigate]);
 
   // Refresh conversations list when a new message is sent (if not already in list)

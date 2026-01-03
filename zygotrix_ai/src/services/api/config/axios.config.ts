@@ -26,7 +26,7 @@ const axiosInstance: AxiosInstance = axios.create({
   headers: {
     "Content-Type": "application/json",
     // PERFORMANCE: Signal HTTP/2 support for connection multiplexing
-    "Accept-Encoding": "gzip, deflate, br",
+    // Browser automatically handles Accept-Encoding, setting it manually is unsafe and blocked by some browsers
   },
 });
 

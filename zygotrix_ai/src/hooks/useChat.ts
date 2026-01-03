@@ -49,8 +49,16 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
     }
   }, [messages, conversationId]);
 
+  // Ref to track the current active conversation ID to prevent race conditions
+  const activeConversationIdRef = useRef<string | null>(
+    initialConversationId || null
+  );
+
   // Load an existing conversation
   const loadConversation = useCallback(async (convId: string) => {
+    // Update active ref immediately
+    activeConversationIdRef.current = convId;
+
     setIsLoading(true);
     setError(null);
 
@@ -59,23 +67,19 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
       performance.mark("load-conversation-start");
     }
 
-    // Try loading from cache first to avoid empty state
-    try {
-      const cached = localStorage.getItem(`zygotrix_msg_cache_${convId}`);
-      if (cached) {
-        setMessages(JSON.parse(cached));
-      } else {
-        setMessages([]);
-      }
-    } catch (e) {
-      setMessages([]);
-    }
-
     try {
       const [conversation, messagesResponse] = await Promise.all([
         chatService.getConversation(convId),
         chatService.getMessages(convId),
       ]);
+
+      // Check if we are still on the same conversation
+      if (activeConversationIdRef.current !== convId) {
+        console.log(
+          `[useChat] Ignoring stale response for ${convId}, active is ${activeConversationIdRef.current}`
+        );
+        return;
+      }
 
       setConversationId(convId);
       setConversationTitle(conversation.title);
@@ -95,11 +99,17 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
         );
       }
     } catch (err) {
+      // Ignore errors for stale requests too
+      if (activeConversationIdRef.current !== convId) return;
+
       const errorMessage =
         err instanceof Error ? err.message : "Failed to load conversation";
       setError(errorMessage);
     } finally {
-      setIsLoading(false);
+      // Only turn off loading if we are still on the same conversation
+      if (activeConversationIdRef.current === convId) {
+        setIsLoading(false);
+      }
     }
   }, []);
 
@@ -112,6 +122,9 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
 
   // Start a new conversation
   const startNewConversation = useCallback(() => {
+    // Clear the active conversation ref to prevent race conditions from pending loads
+    activeConversationIdRef.current = null;
+
     setMessages([]);
     setConversationId(null);
     setConversationTitle("New Conversation");

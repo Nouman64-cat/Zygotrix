@@ -90,8 +90,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const { registerCommand, setDictationCallback, isListening: isUniversalMicActive, toggleListening, speak, isDictating } = useVoiceControl();
-  const [isFocused, setIsFocused] = useState(false);
-  console.log(isFocused);
+
+
 
   // Debounce to prevent double sends
   const lastSendTimeRef = useRef(0);
@@ -514,7 +514,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           // Focus the textarea AND enable local mic dictation
           if (textareaRef.current) {
             textareaRef.current.focus();
-            setIsFocused(true);
+            textareaRef.current.focus();
 
             // Instead of starting a separate local mic (which conflicts with universal mic),
             // we use the universal mic's dictation mode by setting the callback.
@@ -707,8 +707,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              onFocus={() => setIsFocused(true)}
-              onBlur={() => setIsFocused(false)}
+              onFocus={() => { }}
+              onBlur={() => { }}
               placeholder={isRecording ? recordingPlaceholder : placeholder}
               disabled={disabled || isRecording}
               rows={1}

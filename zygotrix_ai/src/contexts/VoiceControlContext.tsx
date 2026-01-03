@@ -84,6 +84,52 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
     commandsRef.current = commands;
   }, [commands]);
 
+  // Ref for speak function to use in async callbacks defined before speak
+  const speakRef = useRef<(text: string) => void>(() => { });
+
+  // --- AI Response Generator ---
+  const generateAIResponse = async (prompt: string, context: string = ''): Promise<string> => {
+    try {
+      const response = await fetch('https://api.openai.com/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
+        },
+        body: JSON.stringify({
+          model: "gpt-4o-mini",
+          messages: [
+            {
+              role: "system",
+              content: `You are a friendly AI voice assistant for Zygotrix, a genetics and DNA analysis application. 
+              Keep responses brief (1-2 sentences max), warm, and professional. 
+              Speak naturally as if having a conversation.
+              ${context}`
+            },
+            { role: "user", content: prompt }
+          ],
+          temperature: 0.7,
+          max_tokens: 100
+        })
+      });
+
+      const data = await response.json();
+      return data.choices[0]?.message?.content?.trim() || '';
+    } catch (error) {
+      console.error("Error generating AI response:", error);
+      return '';
+    }
+  };
+
+  // --- Welcome Message when mic activates ---
+  const speakWelcome = async () => {
+    const welcomePrompt = "The user just activated voice control. Generate a brief, friendly welcome greeting introducing yourself as their voice assistant for Zygotrix. Ask how you can help.";
+    const message = await generateAIResponse(welcomePrompt);
+    if (message) {
+      speakRef.current(message);
+    }
+  };
+
   // --- The Brain: LLM Router ---
   const processVoiceCommand = async (userText: string) => {
     if (!userText.trim()) return;
@@ -127,20 +173,31 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
 
       const data = await response.json();
       const rawId = data.choices[0]?.message?.content?.trim();
-      const matchedId = rawId?.replace(/^['"`]+|['"`]+$/g, ''); // Strip quotes
+      const matchedId = rawId?.replace(/^['"\`]+|['"\`]+$/g, ''); // Strip quotes
 
       console.log("🤖 AI Decided:", matchedId);
 
-      // 3. Execute the command
-      if (matchedId && commandsRef.current[matchedId]) {
+      // 3. Execute the command or provide fallback
+      if (matchedId && matchedId !== 'NO_MATCH' && commandsRef.current[matchedId]) {
         commandsRef.current[matchedId].action(userText);
         setTranscript(`Executed: ${matchedId}`); // visual feedback
       } else {
-        console.warn("No matching command found.");
+        // No matching command - generate a helpful fallback response
+        console.warn("No matching command found, generating fallback response.");
+        const fallbackPrompt = `The user said: "${userText}". You don't have a command that matches this request. Politely explain that you don't have this ability yet and offer to help with something else you can do (like navigation, voice control, settings, etc).`;
+        const fallbackMessage = await generateAIResponse(fallbackPrompt,
+          `Available commands include: ${toolsList.map(t => t.description).join(', ')}`
+        );
+        if (fallbackMessage) {
+          speakRef.current(fallbackMessage);
+        } else {
+          speakRef.current("I'm not sure how to help with that. Would you like me to do something else?");
+        }
       }
 
     } catch (error) {
       console.error("Error processing voice command:", error);
+      speakRef.current("I encountered an error processing your request. Please try again.");
     } finally {
       setIsProcessing(false);
       // Optional: Clear transcript after a delay so the UI looks clean
@@ -271,6 +328,8 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
             recognitionRef.current.start();
             isRecognitionActiveRef.current = true;
             setIsListening(true);
+            // Greet the user with an AI-generated welcome message
+            speakWelcome();
           } catch (e) {
             console.error('Failed to start recognition:', e);
             setIsListening(false);
@@ -383,6 +442,11 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       window.speechSynthesis.speak(utterance);
     }
   }, [pauseListening, resumeListening]);
+
+  // Keep speakRef updated so async functions can use it
+  useEffect(() => {
+    speakRef.current = speak;
+  }, [speak]);
 
   return (
     <VoiceControlContext.Provider value={{

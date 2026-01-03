@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { FiUser, FiActivity } from 'react-icons/fi';
-import { MdCheckCircle, MdError, MdRefresh, MdPsychology } from 'react-icons/md';
+import { FiUser, FiActivity, FiCreditCard } from 'react-icons/fi';
+import { MdCheckCircle, MdError, MdRefresh, MdPsychology, MdStar, MdMic, MdBolt, MdAnalytics } from 'react-icons/md';
 import { BiLoaderAlt } from 'react-icons/bi';
 import { MainLayout } from '../components/layout';
 import { ThemeSwitcher } from '../components/common/ThemeSwitcher';
@@ -28,7 +28,7 @@ const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
   },
   {
     id: 'learning',
-    label: 'Learning',
+    label: 'AI Learning',
     icon: <MdPsychology className="w-4 h-4" />,
   },
   {
@@ -36,13 +36,18 @@ const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     label: 'Usage',
     icon: <FiActivity className="w-4 h-4" />,
   },
+  {
+    id: 'billing',
+    label: 'Billing',
+    icon: <FiCreditCard className="w-4 h-4" />,
+  },
 ];
 
 export const SettingsPage: React.FC = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { user } = useAuth();
-  
+
   // Conversations state for MainLayout sidebar
   const [conversationsList, setConversationsList] = useState<LocalConversation[]>(() => {
     try {
@@ -59,7 +64,7 @@ export const SettingsPage: React.FC = () => {
     const hash = location.hash.replace('#', '');
     return SETTINGS_NAV_ITEMS.find(item => item.id === hash)?.id || 'general';
   };
-  
+
   const [activeSection, setActiveSection] = useState(getActiveSection);
   const [preferences, setPreferences] = useState<ChatPreferences | null>(null);
   const [loading, setLoading] = useState(false);
@@ -298,7 +303,7 @@ export const SettingsPage: React.FC = () => {
         {/* Profile Section */}
         <section>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Profile</h2>
-          
+
           <div className="space-y-4">
             {/* Full Name */}
             <div>
@@ -558,11 +563,11 @@ export const SettingsPage: React.FC = () => {
               Refresh
             </Button>
           </div>
-          
+
           <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
             <RateLimitIndicator
               refreshTrigger={rateLimitRefresh}
-              onRateLimitChange={() => {}}
+              onRateLimitChange={() => { }}
             />
           </div>
         </section>
@@ -570,7 +575,7 @@ export const SettingsPage: React.FC = () => {
         {/* Usage Info */}
         <section>
           <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">About Usage Limits</h2>
-          
+
           <div className="space-y-3 text-sm text-gray-600 dark:text-gray-400">
             <p>
               Token limits help ensure fair usage across all users. Each message you send and receive consumes tokens.
@@ -592,6 +597,131 @@ export const SettingsPage: React.FC = () => {
     );
   };
 
+  // Render the Billing section
+  const renderBillingSection = () => {
+    return (
+      <div className="space-y-8">
+        {/* Current Plan */}
+        <section>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Current Plan</h2>
+          <div className="bg-gray-50 dark:bg-gray-800 rounded-xl p-5 border border-gray-200 dark:border-gray-700">
+            <div className="flex items-center justify-between">
+              <div>
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300">
+                  Free Tier
+                </span>
+                <p className="text-sm text-gray-500 dark:text-gray-400 mt-2">
+                  Basic access with standard rate limits
+                </p>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        {/* Premium Plan */}
+        <section>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Upgrade to Premium</h2>
+
+          {/* Premium Card */}
+          <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-[1px]">
+            <div className="relative bg-white dark:bg-gray-900 rounded-2xl p-6 sm:p-8">
+              {/* Badge */}
+              <div className="absolute top-4 right-4">
+                <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-xs font-bold bg-yellow-400/20 text-yellow-400 border border-yellow-400/30">
+                  <MdStar className="w-3 h-3" />
+                  RECOMMENDED
+                </span>
+              </div>
+
+              {/* Plan Name */}
+              <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Zygotrix Premium</h3>
+
+              {/* Price */}
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white">Rs. 3,000</span>
+                <span className="text-gray-500 dark:text-gray-400">/month</span>
+              </div>
+
+              {/* Features */}
+              <div className="space-y-4 mb-8">
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                    <MdBolt className="w-4 h-4 text-emerald-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Generous Usage Limits</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">10x more tokens per day for extended conversations</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-cyan-500/20 flex items-center justify-center flex-shrink-0">
+                    <MdMic className="w-4 h-4 text-cyan-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Advanced Voice Features</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Voice commands, dictation, and AI voice responses</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                    <MdAnalytics className="w-4 h-4 text-purple-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Advanced Analysis Tools</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">GWAS analysis, protein structure prediction, and more</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-3">
+                  <div className="w-8 h-8 rounded-lg bg-yellow-500/20 flex items-center justify-center flex-shrink-0">
+                    <MdStar className="w-4 h-4 text-yellow-400" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-medium text-gray-900 dark:text-white">Priority Support</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-400">Get help faster with dedicated support channels</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* CTA Button */}
+              <button
+                className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold text-sm transition-all duration-200 shadow-lg shadow-emerald-500/25 cursor-pointer"
+                onClick={() => alert('Payment integration coming soon!')}
+              >
+                Upgrade Now
+              </button>
+
+              <p className="text-xs text-gray-500 text-center mt-4">
+                Cancel anytime. No questions asked.
+              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* FAQ */}
+        <section>
+          <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Frequently Asked</h2>
+          <div className="space-y-3">
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">What payment methods are accepted?</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">We accept all major credit/debit cards, JazzCash, Easypaisa, and bank transfers.</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">Can I cancel my subscription?</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Yes, you can cancel anytime from this page. Your access continues until the billing period ends.</p>
+            </div>
+            <div className="bg-gray-50 dark:bg-gray-800 rounded-lg p-4 border border-gray-200 dark:border-gray-700">
+              <p className="text-sm font-medium text-gray-900 dark:text-white mb-1">What happens if I exceed my limits?</p>
+              <p className="text-sm text-gray-500 dark:text-gray-400">With Premium, you get much higher limits. If exceeded, you'll simply wait for a brief cooldown.</p>
+            </div>
+          </div>
+        </section>
+      </div>
+    );
+  };
+
   // Render the content based on active section
   const renderContent = () => {
     switch (activeSection) {
@@ -601,6 +731,8 @@ export const SettingsPage: React.FC = () => {
         return renderLearningSection();
       case 'usage':
         return renderUsageSection();
+      case 'billing':
+        return renderBillingSection();
       default:
         return renderGeneralSection();
     }

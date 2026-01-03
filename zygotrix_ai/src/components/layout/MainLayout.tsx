@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiSettings, FiExternalLink, FiLogOut, FiMic } from 'react-icons/fi';
+import { FiMenu, FiSettings, FiExternalLink, FiLogOut } from 'react-icons/fi';
 import { Sidebar } from './Sidebar';
 import { IconButton, Logo } from '../common';
 import { useAuth, useVoiceControl, useTheme } from '../../contexts';
@@ -82,6 +82,42 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       'Shows your AI token usage statistics'
     );
 
+    // Command: Greeting Response
+    const unregisterGreeting = registerCommand(
+      'greeting',
+      () => {
+        const greetings = [
+          'Hello! How can I help you analyze genetics today?',
+          'Hi there! Ready to explore some DNA sequences?',
+          'Hey! What would you like to discover today?',
+          'Greetings! I\'m here to assist with your genetic analysis.',
+        ];
+        const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
+        speak(randomGreeting);
+      },
+      'Responds to greetings like hi, hello, hey, greetings, good morning, good afternoon, good evening'
+    );
+
+    // Command: Goodbye/Exit Voice Control
+    const unregisterGoodbye = registerCommand(
+      'goodbye',
+      () => {
+        const farewells = [
+          'Happy to help! Goodbye!',
+          'Glad I could assist. Take care!',
+          'It was my pleasure! See you next time!',
+          'Bye bye! Have a great day!',
+          'Happy to help! Until next time!',
+        ];
+        const randomFarewell = farewells[Math.floor(Math.random() * farewells.length)];
+        speak(randomFarewell);
+        // Turn off voice control after speaking
+        setTimeout(() => {
+          toggleListening();
+        }, 2000); // Wait 2 seconds for the farewell to finish
+      },
+      'Closes voice control. Examples: bye, bye bye, exit, quit, goodbye, close yourself, stop listening'
+    );
     // Command 6: Toggle Sidebar (Open/Close/Expand/Collapse)
     const unregisterOpenSidebar = registerCommand(
       'open sidebar',
@@ -168,12 +204,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       unregisterNew();
       unregisterTheme();
       unregisterUsage();
+      unregisterGreeting();
+      unregisterGoodbye();
       unregisterOpenSidebar();
       unregisterCloseSidebar();
       unregisterSearch();
       unregisterClearSearch();
     };
-  }, [registerCommand, navigate, onNewConversation, toggleTheme]);
+  }, [registerCommand, navigate, onNewConversation, toggleTheme, toggleListening]);
 
   // State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
@@ -314,13 +352,39 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           <Logo size="sm" showText={true} />
 
           <div className="flex items-center gap-2">
-            <IconButton
-              icon={<FiMic className={isListening && !isDictating ? "text-red-500 animate-pulse" : ""} />}
+            {/* Magic Wand Voice Control Button */}
+            <button
               onClick={toggleListening}
-              tooltip={isDictating ? "Dictating to input..." : (isListening ? "Stop Listening" : "Start Voice Control")}
-              variant="ghost"
-              className={isListening && !isDictating ? "bg-red-50 dark:bg-red-900/20" : ""}
-            />
+              title={isDictating ? "Dictating to input..." : (isListening ? "Stop Listening" : "Start Voice Control")}
+              className="relative cursor-pointer group"
+            >
+              {/* Subtle sparkle when active */}
+              {isListening && !isDictating && (
+                <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-75" />
+              )}
+
+              {/* Main button - Circle */}
+              <div className={`
+                relative w-10 h-10 rounded-full flex items-center justify-center
+                transition-all duration-300 group-hover:scale-105
+                ${isListening && !isDictating
+                  ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
+                  : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                }
+              `}>
+
+                <svg
+                  className={`w-5 h-5 transition-all duration-300 ${isListening && !isDictating
+                    ? 'text-white'
+                    : 'text-gray-600 dark:text-gray-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-400'
+                    }`}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 00-1.41 0L1.29 18.96a.996.996 0 000 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 000-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z" />
+                </svg>
+              </div>
+            </button>
 
 
             <div className="relative" ref={desktopAvatarRef}>
@@ -355,13 +419,35 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
           {/* User Avatar with Dropdown */}
           <div className="flex items-center gap-2">
-            <IconButton
-              icon={<FiMic className={isListening ? "text-red-500 animate-pulse" : ""} />}
+            {/* Magic Wand Voice Control Button - Mobile */}
+            <button
               onClick={toggleListening}
-              tooltip={isListening ? "Stop Listening" : "Start Voice Control"}
-              variant="ghost"
-              className={isListening ? "bg-red-50 dark:bg-red-900/20" : ""}
-            />
+              title={isListening ? "Stop Listening" : "Start Voice Control"}
+              className="relative cursor-pointer group"
+            >
+              {/* Subtle sparkle when active */}
+              {isListening && !isDictating && (
+                <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping opacity-75" />
+              )}
+
+              {/* Main button - Circle */}
+              <div className={`
+                relative w-9 h-9 rounded-full flex items-center justify-center
+                transition-all duration-300
+                ${isListening && !isDictating
+                  ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
+                  : 'bg-gray-100 dark:bg-gray-800'
+                }
+              `}>
+                <svg
+                  className={`w-4 h-4 transition-colors duration-300 ${isListening && !isDictating ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                  viewBox="0 0 24 24"
+                  fill="currentColor"
+                >
+                  <path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 00-1.41 0L1.29 18.96a.996.996 0 000 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 000-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z" />
+                </svg>
+              </div>
+            </button>
 
             <div className="relative" ref={mobileAvatarRef}>
               <button
@@ -380,6 +466,23 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           {children}
         </main>
         <VoiceStatus />
+
+        {/* CSS for AI voice animations */}
+        <style>{`
+          @keyframes aiDots {
+            0%, 100% { transform: translateY(0); opacity: 0.5; }
+            50% { transform: translateY(-4px); opacity: 1; }
+          }
+          @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          @keyframes subtleWave {
+            0%, 100% { transform: scaleY(1); }
+            50% { transform: scaleY(0.7); }
+          }
+        `}</style>
       </div>
     </div>
   );

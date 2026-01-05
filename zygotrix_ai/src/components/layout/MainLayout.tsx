@@ -3,9 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { FiMenu, FiSettings, FiExternalLink, FiLogOut } from 'react-icons/fi';
 import { Sidebar } from './Sidebar';
 import { IconButton, Logo } from '../common';
-import { useAuth, useVoiceControl, useTheme } from '../../contexts';
+import { useAuth, useVoiceControl, useTheme, useVoiceCommand } from '../../contexts';
 import { LOGO_URL } from '../../config';
-import { VoiceStatus } from '../common/VoiceStatus'; // Add this
+import { VoiceStatus } from '../common/VoiceStatus';
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -18,9 +18,14 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { toggleListening, isListening, registerCommand, isDictating } = useVoiceControl();
+  const { toggleListening, isListening, isDictating } = useVoiceControl();
   const { toggleTheme } = useTheme();
 
+  // State
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isSearchOpen, setIsSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
   const handleSelectConversation = (id: string) => {
     navigate(`/chat/${id}`);
@@ -30,190 +35,116 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     navigate('/chat');
   };
 
-  useEffect(() => {
-    // Command 1: Go to Settings
-    const unregisterSettings = registerCommand(
-      'open settings',
-      () => {
-        console.log('🎯 Opening settings');
-        navigate('/settings');
-      },
-      'Navigates to the settings page'
-    );
+  // Voice Commands using package's useVoiceCommand hook
+  useVoiceCommand({
+    id: 'open-settings',
+    description: 'Navigates to the settings page',
+    action: () => {
+      console.log('🎯 Opening settings');
+      navigate('/settings');
+    }
+  });
 
-    // Command 2: Go to Chat
-    const unregisterChat = registerCommand(
-      'go to chat',
-      () => navigate('/chat'),
-      'Navigates to the main chat interface'
-    );
+  useVoiceCommand({
+    id: 'go-to-chat',
+    description: 'Navigates to the main chat interface',
+    action: () => navigate('/chat')
+  });
 
-    // Command 3: Create New Chat
-    const unregisterNew = registerCommand(
-      'create new chat',
-      () => {
-        console.log('🎯 Creating new chat');
-        handleNewConversation();
-      },
-      'Starts a new empty conversation'
-    );
+  useVoiceCommand({
+    id: 'create-new-chat',
+    description: 'Starts a new empty conversation',
+    action: () => {
+      console.log('🎯 Creating new chat');
+      handleNewConversation();
+    }
+  });
 
-    // Command 4: Toggle Theme
-    const unregisterTheme = registerCommand(
-      'change theme',
-      () => {
-        console.log('🎨 Changing theme');
-        toggleTheme();
-      },
-      'Toggles between light and dark theme'
-    );
+  useVoiceCommand({
+    id: 'change-theme',
+    description: 'Toggles between light and dark theme',
+    action: () => {
+      console.log('🎨 Changing theme');
+      toggleTheme();
+    }
+  });
 
-    // Command 5: Show Usage
-    const unregisterUsage = registerCommand(
-      'show usage',
-      () => {
-        console.log('📊 Showing usage statistics');
-        navigate('/settings#usage');
-      },
-      'Shows your AI token usage statistics'
-    );
+  useVoiceCommand({
+    id: 'show-usage',
+    description: 'Shows your AI token usage statistics',
+    action: () => {
+      console.log('📊 Showing usage statistics');
+      navigate('/settings#usage');
+    }
+  });
 
-    // Command: Greeting Response
-    const unregisterGreeting = registerCommand(
-      'greeting',
-      () => {
-        const greetings = [
-          'Hello! How can I help you analyze genetics today?',
-          'Hi there! Ready to explore some DNA sequences?',
-          'Hey! What would you like to discover today?',
-          'Greetings! I\'m here to assist with your genetic analysis.',
-        ];
-        const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-        console.log('👋 Greeting:', randomGreeting);
-      },
-      'Responds to greetings like hi, hello, hey, greetings, good morning, good afternoon, good evening'
-    );
+  useVoiceCommand({
+    id: 'greeting',
+    description: 'Responds to greetings like hi, hello, hey',
+    action: () => {
+      const greetings = [
+        'Hello! How can I help you analyze genetics today?',
+        'Hi there! Ready to explore some DNA sequences?',
+      ];
+      console.log('👋 Greeting:', greetings[Math.floor(Math.random() * greetings.length)]);
+    }
+  });
 
-    // Command: Goodbye/Exit Voice Control
-    const unregisterGoodbye = registerCommand(
-      'goodbye',
-      () => {
-        const farewells = [
-          'Happy to help! Goodbye!',
-          'Glad I could assist. Take care!',
-          'It was my pleasure! See you next time!',
-          'Bye bye! Have a great day!',
-          'Happy to help! Until next time!',
-        ];
-        const randomFarewell = farewells[Math.floor(Math.random() * farewells.length)];
-        console.log('👋 Goodbye:', randomFarewell);
-        // Turn off voice control after speaking
-        setTimeout(() => {
-          toggleListening();
-        }, 2000); // Wait 2 seconds for the farewell to finish
-      },
-      'Closes voice control. Examples: bye, bye bye, exit, quit, goodbye, close yourself, stop listening'
-    );
-    // Command 6: Toggle Sidebar (Open/Close/Expand/Collapse)
-    const unregisterOpenSidebar = registerCommand(
-      'open sidebar',
-      () => {
-        if (window.innerWidth < 1024) {
-          setIsSidebarOpen(true);
-          console.log('📁 Opening sidebar');
-        } else {
-          // On Desktop, expand
-          setIsCollapsed(false);
-          console.log('📁 Expanding sidebar');
-        }
-      },
-      'Opens/Expands the sidebar'
-    );
+  useVoiceCommand({
+    id: 'goodbye',
+    description: 'Closes voice control. Examples: bye, exit, quit, goodbye',
+    action: () => {
+      console.log('👋 Goodbye!');
+      setTimeout(() => toggleListening(), 1000);
+    }
+  });
 
-    const unregisterCloseSidebar = registerCommand(
-      'close sidebar',
-      () => {
-        if (window.innerWidth < 1024) {
-          setIsSidebarOpen(false);
-          console.log('📁 Closing sidebar');
-        } else {
-          setIsCollapsed(true);
-          console.log('📁 Collapsing sidebar');
-          // Also close search if open
-          setIsSearchOpen(false);
-        }
-      },
-      'Closes/Collapses the sidebar'
-    );
-
-    // Command 7: Search Chat (with optional query)
-    const unregisterSearch = registerCommand(
-      'search chat',
-      (text: string) => {
+  useVoiceCommand({
+    id: 'open-sidebar',
+    description: 'Opens or expands the sidebar',
+    action: () => {
+      if (window.innerWidth < 1024) {
         setIsSidebarOpen(true);
+      } else {
         setIsCollapsed(false);
-        setIsSearchOpen(true);
+      }
+      console.log('📁 Opening sidebar');
+    }
+  });
 
-        // Parse query: "search chat for hello" -> "hello"
-        // Also handle "search for chat hello", "find chat hello"
+  useVoiceCommand({
+    id: 'close-sidebar',
+    description: 'Closes or collapses the sidebar',
+    action: () => {
+      if (window.innerWidth < 1024) {
+        setIsSidebarOpen(false);
+      } else {
+        setIsCollapsed(true);
+        setIsSearchOpen(false);
+      }
+      console.log('📁 Closing sidebar');
+    }
+  });
 
-        // Common patterns - consolidated and broader
-        const patterns = [
-          /(?:search|find)\s+(?:for\s+)?(?:my\s+|the\s+)?chats?\s+(?:like\s+|for\s+|about\s+)?(.+)/i,
-          /search\s+(?:like\s+|for\s+)?(.+)/i // Fallback
-        ];
+  useVoiceCommand({
+    id: 'search-chat',
+    description: 'Searches conversations. Examples: search chat for hello',
+    action: () => {
+      setIsSidebarOpen(true);
+      setIsCollapsed(false);
+      setIsSearchOpen(true);
+      console.log('🔍 Opening search');
+    }
+  });
 
-        for (const pattern of patterns) {
-          const match = text.match(pattern);
-          if (match && match[1]) {
-            // Found a query!
-            const extracted = match[1].trim();
-            // Remove trailing punctuation
-            const cleanQuery = extracted.replace(/[.!?]*$/, '');
-            setSearchQuery(cleanQuery);
-            console.log('🔍 Voice search query:', cleanQuery);
-            console.log(`🔍 Searching for ${cleanQuery}`);
-            return;
-          }
-        }
-
-        // Fallback if no query found but command matched
-        console.log('🔍 Opening search');
-      },
-      'Searches conversations. Examples: "search chat for hello", "find my chats about biology"'
-    );
-
-    // Command 8: Clear Search
-    const unregisterClearSearch = registerCommand(
-      'clear search',
-      () => {
-        setSearchQuery('');
-        console.log('🔍 Search cleared');
-      },
-      'Clears the search input field'
-    );
-
-    // Cleanup
-    return () => {
-      unregisterSettings();
-      unregisterChat();
-      unregisterNew();
-      unregisterTheme();
-      unregisterUsage();
-      unregisterGreeting();
-      unregisterGoodbye();
-      unregisterOpenSidebar();
-      unregisterCloseSidebar();
-      unregisterSearch();
-      unregisterClearSearch();
-    };
-  }, [registerCommand, navigate, toggleTheme, toggleListening]);
-
-  // State
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  const [isCollapsed, setIsCollapsed] = useState(false);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  useVoiceCommand({
+    id: 'clear-search',
+    description: 'Clears the search input field',
+    action: () => {
+      setSearchQuery('');
+      console.log('🔍 Search cleared');
+    }
+  });
 
   // Auto-clear search when closed
   useEffect(() => {
@@ -247,11 +178,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Mobile
       if (mobileAvatarRef.current && !mobileAvatarRef.current.contains(event.target as Node)) {
         setIsMobileAvatarOpen(false);
       }
-      // Desktop
       if (desktopAvatarRef.current && !desktopAvatarRef.current.contains(event.target as Node)) {
         setIsDesktopAvatarOpen(false);
       }
@@ -268,7 +197,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   // Render Avatar Menu Content
   const renderAvatarMenu = (closeFn: () => void) => (
     <div className="absolute right-0 top-full mt-2 z-50 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-1 min-w-[180px]">
-      {/* User info */}
       {user && (
         <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
@@ -280,7 +208,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </div>
       )}
 
-      {/* Settings */}
       <button
         onClick={() => {
           navigate('/settings');
@@ -292,7 +219,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         Settings
       </button>
 
-      {/* Docs */}
       <a
         href="https://docs.zygotrix.com"
         target="_blank"
@@ -304,10 +230,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         Documentation
       </a>
 
-      {/* Divider */}
       <div className="my-1 border-t border-gray-200 dark:border-gray-700" />
 
-      {/* Logout */}
       <button
         onClick={() => {
           handleLogout();
@@ -350,12 +274,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               title={isDictating ? "Dictating to input..." : (isListening ? "Stop Listening" : "Start Voice Control")}
               className="relative cursor-pointer group"
             >
-              {/* Subtle sparkle when active */}
               {isListening && !isDictating && (
                 <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-75" />
               )}
 
-              {/* Main button - Circle */}
               <div className={`
                 relative w-10 h-10 rounded-full flex items-center justify-center
                 transition-all duration-300 group-hover:scale-105
@@ -409,20 +331,16 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             </span>
           </div>
 
-          {/* User Avatar with Dropdown */}
           <div className="flex items-center gap-2">
-            {/* Magic Wand Voice Control Button - Mobile */}
             <button
               onClick={toggleListening}
               title={isListening ? "Stop Listening" : "Start Voice Control"}
               className="relative cursor-pointer group"
             >
-              {/* Subtle sparkle when active */}
               {isListening && !isDictating && (
                 <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping opacity-75" />
               )}
 
-              {/* Main button - Circle */}
               <div className={`
                 relative w-9 h-9 rounded-full flex items-center justify-center
                 transition-all duration-300
@@ -459,20 +377,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         </main>
         <VoiceStatus />
 
-        {/* CSS for AI voice animations */}
         <style>{`
           @keyframes aiDots {
             0%, 100% { transform: translateY(0); opacity: 0.5; }
             50% { transform: translateY(-4px); opacity: 1; }
-          }
-          @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-          @keyframes subtleWave {
-            0%, 100% { transform: scaleY(1); }
-            50% { transform: scaleY(0.7); }
           }
         `}</style>
       </div>

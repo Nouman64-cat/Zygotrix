@@ -1,38 +1,37 @@
+// src/contexts/VoiceControlShared.ts
+// Re-export from package + custom dictation types
 import { createContext, useContext } from "react";
 
-// Types for the Context
-export interface VoiceControlContextType {
-  isListening: boolean;
-  isPaused: boolean; // True when universal mic is paused (e.g., local input mic is active)
-  isProcessing: boolean; // New state for "Thinking"
-  transcript: string; // The live words being spoken
-  toggleListening: () => void;
-  pauseListening: () => void; // Temporarily pause the universal mic
-  resumeListening: () => void; // Resume the universal mic after pause
-  registerCommand: (
-    trigger: string,
-    action: (text: string) => void,
-    description: string
-  ) => () => void;
-  availableCommands: Record<
-    string,
-    { action: (text: string) => void; description: string }
-  >;
+// Re-export package utilities
+export { useVoiceCommand, useVoiceContext } from "react-voice-action-router";
+
+// Custom types for dictation mode (not in package)
+export interface DictationContextType {
   setDictationCallback: (
     callback: ((text: string, isFinal: boolean) => void) | null
   ) => void;
   isDictating: boolean;
+  isListening: boolean;
+  isPaused: boolean;
+  transcript: string;
+  toggleListening: () => void;
+  pauseListening: () => void;
+  resumeListening: () => void;
 }
 
-export const VoiceControlContext = createContext<
-  VoiceControlContextType | undefined
->(undefined);
+export const DictationContext = createContext<DictationContextType | undefined>(
+  undefined
+);
 
-export const useVoiceControl = () => {
-  const context = useContext(VoiceControlContext);
+export const useDictation = () => {
+  const context = useContext(DictationContext);
   if (!context)
-    throw new Error(
-      "useVoiceControl must be used within a VoiceControlProvider"
-    );
+    throw new Error("useDictation must be used within a DictationProvider");
   return context;
+};
+
+// Combined hook for backwards compatibility
+export const useVoiceControl = () => {
+  const dictation = useDictation();
+  return dictation;
 };

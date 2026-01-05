@@ -74,14 +74,6 @@ export const Chat: React.FC = () => {
     const justCreatedId = sessionStorage.getItem(JUST_CREATED_KEY);
     const prevUrlId = prevUrlConversationIdRef.current;
 
-    console.log('[Chat] URL effect:', {
-      urlConversationId,
-      prevUrlId,
-      conversationId,
-      justCreatedId,
-      messagesLength: messages.length
-    });
-
     // Update the ref for next render
     prevUrlConversationIdRef.current = urlConversationId;
 
@@ -89,20 +81,14 @@ export const Chat: React.FC = () => {
     if (urlConversationId && urlConversationId !== conversationId) {
       // Skip refetch if this is the conversation we just created
       if (urlConversationId === justCreatedId) {
-        console.log('[Chat] Skipping refetch - just created this conversation');
-        // Clear the sessionStorage flag since we've handled it
         sessionStorage.removeItem(JUST_CREATED_KEY);
         return;
       }
-      console.log('[Chat] Loading conversation from URL');
-      // Clear the flag when loading a different conversation
       sessionStorage.removeItem(JUST_CREATED_KEY);
       loadConversation(urlConversationId);
     }
     // If URL is empty (New Chat) and user NAVIGATED here (prevUrlId was truthy)
-    // This handles: user clicks "New Chat" or says "create new chat" while on existing chat
     else if (!urlConversationId && prevUrlId && conversationId) {
-      console.log('[Chat] User navigated to /chat - starting fresh');
       sessionStorage.removeItem(JUST_CREATED_KEY);
       startNewConversation();
     }

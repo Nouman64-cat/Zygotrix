@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect, useCallback, type KeyboardEvent } from 'react';
 import { FiSend, FiPlus, FiX, FiFile, FiSliders, FiCheck, FiMic } from 'react-icons/fi';
 import { cn } from '../../utils';
-import { useVoiceControl } from '../../contexts';
+import { useVoiceControl, useVoiceCommand } from '../../contexts';
 import type { MessageAttachment } from '../../types';
 
 // TypeScript declarations for Web Speech API
@@ -89,7 +89,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  const { registerCommand, setDictationCallback, isListening: isUniversalMicActive, toggleListening, isDictating } = useVoiceControl();
+  const { setDictationCallback, isListening: isUniversalMicActive, toggleListening, isDictating } = useVoiceControl();
 
 
 
@@ -505,135 +505,93 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     handleSendRef.current = handleSend;
   });
 
-  useEffect(() => {
-    const unregisterFocus = registerCommand(
-      'focus input',
-      () => {
-        // Wrap in setTimeout to avoid "Cannot update component while rendering" error
-        setTimeout(() => {
-          // Focus the textarea AND enable local mic dictation
-          if (textareaRef.current) {
-            textareaRef.current.focus();
-            textareaRef.current.focus();
-
-            // Instead of starting a separate local mic (which conflicts with universal mic),
-            // we use the universal mic's dictation mode by setting the callback.
-            // This way there's only ONE speech recognition active.
-
-            // Initialize baseTextRef with current input value (preserve existing text)
-            baseTextRef.current = valueRef.current || '';
-            console.log('🎤 Focus input: Dictation enabled');
-
-            // Set up dictation callback for the universal mic to write to this input
-            setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
-
-            // Show the recording indicator (red mic button)
-            setIsRecording(true);
-            setRecordingPlaceholder(RECORDING_PROMPTS[0]);
-
-            console.log('🎤 Focus input: Using universal mic for dictation');
-          }
-        }, 0);
-      },
-      'Focuses the chat input box and enables dictation via universal mic'
-    );
-
-    const unregisterClear = registerCommand(
-      'clear input',
-      () => {
-        setValue('');
-        setAttachments([]);
-      },
-      'Clears the text and attachments'
-    );
-
-    const unregisterSend = registerCommand(
-      'send message',
-      () => handleSendRef.current(),
-      'Sends the current message'
-    );
-
-    // Add stop listening command for words like bye, goodbye, quit, stop
-    const unregisterStop = registerCommand(
-      'stop listening',
-      () => {
-        console.log('🎤 Stop listening command received');
-        if (isUniversalMicActiveRef.current) {
-          toggleListening(); // Turn off universal mic
+  // Voice Commands using package's useVoiceCommand hook
+  useVoiceCommand({
+    id: 'focus-input',
+    description: 'Focuses the chat input box and enables dictation via universal mic',
+    action: () => {
+      setTimeout(() => {
+        if (textareaRef.current) {
+          textareaRef.current.focus();
+          baseTextRef.current = valueRef.current || '';
+          console.log('🎤 Focus input: Dictation enabled');
+          setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
+          setIsRecording(true);
+          setRecordingPlaceholder(RECORDING_PROMPTS[0]);
+          console.log('🎤 Focus input: Using universal mic for dictation');
         }
-      },
-      'Stops voice control when user says bye, goodbye, quit, stop listening, etc.'
-    );
+      }, 0);
+    }
+  });
 
-    const unregisterOpenTools = registerCommand(
-      'open tools',
-      () => {
-        setShowToolsMenu(true);
-        console.log('🔧 Opening tools');
-      },
-      'Opens the tools menu'
-    );
+  useVoiceCommand({
+    id: 'clear-input',
+    description: 'Clears the text and attachments',
+    action: () => {
+      setValue('');
+      setAttachments([]);
+    }
+  });
 
-    const unregisterCloseTools = registerCommand(
-      'close tools',
-      () => {
-        setShowToolsMenu(false);
-        console.log('🔧 Closing tools');
-      },
-      'Closes the tools menu'
-    );
+  useVoiceCommand({
+    id: 'send-message',
+    description: 'Sends the current message',
+    action: () => handleSendRef.current()
+  });
 
-    const unregisterEnableTool = registerCommand(
-      'enable tool',
-      (text: string) => {
-        const lower = text.toLowerCase();
-        const match = lower.match(/(?:enable|use|add)\s+(?:tool\s+)?(.+)/i);
-        if (match && match[1]) {
-          const query = match[1].trim();
-          const tool = AVAILABLE_TOOLS.find(t => t.name.toLowerCase().includes(query) || t.id.includes(query));
-          if (tool) {
-            setEnabledTools(prev => prev.includes(tool.id) ? prev : [...prev, tool.id]);
-            console.log(`🔧 Enabled tool: ${tool.name} via voice`);
-            console.log(`🔧 Enabled tool: ${tool.name}`);
-          } else {
-            console.log(`🔧 Tool not found: ${query}`);
-          }
-        }
-      },
-      'Enables a specific tool (e.g. "enable gwas")'
-    );
+  useVoiceCommand({
+    id: 'stop-listening',
+    description: 'Stops voice control when user says bye, goodbye, quit, stop listening',
+    action: () => {
+      console.log('🎤 Stop listening command received');
+      if (isUniversalMicActiveRef.current) {
+        toggleListening();
+      }
+    }
+  });
 
-    const unregisterDisableTool = registerCommand(
-      'disable tool',
-      (text: string) => {
-        const lower = text.toLowerCase();
-        const match = lower.match(/(?:disable|remove)\s+(?:tool\s+)?(.+)/i);
-        if (match && match[1]) {
-          const query = match[1].trim();
-          const tool = AVAILABLE_TOOLS.find(t => t.name.toLowerCase().includes(query) || t.id.includes(query));
-          if (tool) {
-            setEnabledTools(prev => prev.filter(id => id !== tool.id));
-            console.log(`🔧 Disabled tool: ${tool.name} via voice`);
-            console.log(`🔧 Disabled tool: ${tool.name}`);
-          } else {
-            console.log(`🔧 Tool not found: ${query}`);
-          }
-        }
-      },
-      'Disables a specific tool (e.g. "disable gwas")'
-    );
+  useVoiceCommand({
+    id: 'open-tools',
+    description: 'Opens the tools menu',
+    action: () => {
+      setShowToolsMenu(true);
+      console.log('🔧 Opening tools');
+    }
+  });
 
-    return () => {
-      unregisterFocus();
-      unregisterClear();
-      unregisterSend();
-      unregisterStop();
-      unregisterOpenTools();
-      unregisterCloseTools();
-      unregisterEnableTool();
-      unregisterDisableTool();
-    };
-  }, [registerCommand, toggleListening, setDictationCallback]);
+  useVoiceCommand({
+    id: 'close-tools',
+    description: 'Closes the tools menu',
+    action: () => {
+      setShowToolsMenu(false);
+      console.log('🔧 Closing tools');
+    }
+  });
+
+  useVoiceCommand({
+    id: 'enable-tool',
+    description: 'Enables a specific tool (e.g. enable gwas)',
+    action: () => {
+      // Enable GWAS by default when this command is triggered
+      const tool = AVAILABLE_TOOLS[0];
+      if (tool) {
+        setEnabledTools(prev => prev.includes(tool.id) ? prev : [...prev, tool.id]);
+        console.log(`🔧 Enabled tool: ${tool.name}`);
+      }
+    }
+  });
+
+  useVoiceCommand({
+    id: 'disable-tool',
+    description: 'Disables a specific tool (e.g. disable gwas)',
+    action: () => {
+      const tool = AVAILABLE_TOOLS[0];
+      if (tool) {
+        setEnabledTools(prev => prev.filter(id => id !== tool.id));
+        console.log(`🔧 Disabled tool: ${tool.name}`);
+      }
+    }
+  });
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {

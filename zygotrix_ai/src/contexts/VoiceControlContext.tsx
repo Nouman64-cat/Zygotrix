@@ -1,6 +1,6 @@
 // src/contexts/VoiceControlContext.tsx
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { VoiceControlContext, type VoiceSettings } from './VoiceControlShared';
+import { VoiceControlContext } from './VoiceControlShared';
 
 // --- Web Speech API Types ---
 interface SpeechRecognitionEvent extends Event {
@@ -44,24 +44,8 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
   const [isProcessing, setIsProcessing] = useState(false);
   const [transcript, setTranscript] = useState('');
 
-  // Voice Settings (persisted to localStorage)
-  const [voiceSettings, setVoiceSettings] = useState<VoiceSettings>(() => {
-    const saved = localStorage.getItem('voiceSettings');
-    return saved ? JSON.parse(saved) : {
-      rate: 1.2,      // Speed: 0.5 to 2.0 (default 1.2 for natural flow)
-      pitch: 1.0,     // Pitch: 0.5 to 2.0
-      voiceIndex: 0,  // Index of selected voice
-    };
-  });
-
-  // Save voice settings to localStorage when they change
-  useEffect(() => {
-    localStorage.setItem('voiceSettings', JSON.stringify(voiceSettings));
-  }, [voiceSettings]);
-
   // Ref to track if we were listening before pause (to know if we should resume)
   const wasListeningBeforePauseRef = useRef(false);
-  const isPausedForSpeakingRef = useRef(false);
 
   // The Registry of all active buttons/actions
   const [commands, setCommands] = useState<Record<string, { action: (text: string) => void; description: string }>>({});
@@ -98,52 +82,6 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
   useEffect(() => {
     commandsRef.current = commands;
   }, [commands]);
-
-  // Ref for speak function to use in async callbacks defined before speak
-  const speakRef = useRef<(text: string) => void>(() => { });
-
-  // --- AI Response Generator ---
-  const generateAIResponse = async (prompt: string, context: string = ''): Promise<string> => {
-    try {
-      const response = await fetch('https://api.openai.com/v1/chat/completions', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${import.meta.env.VITE_OPENAI_API_KEY}`
-        },
-        body: JSON.stringify({
-          model: "gpt-4o-mini",
-          messages: [
-            {
-              role: "system",
-              content: `You are a friendly AI voice assistant for Zygotrix, a genetics and DNA analysis application. 
-              Keep responses brief (1-2 sentences max), warm, and professional. 
-              Speak naturally as if having a conversation.
-              ${context}`
-            },
-            { role: "user", content: prompt }
-          ],
-          temperature: 0.7,
-          max_tokens: 100
-        })
-      });
-
-      const data = await response.json();
-      return data.choices[0]?.message?.content?.trim() || '';
-    } catch (error) {
-      console.error("Error generating AI response:", error);
-      return '';
-    }
-  };
-
-  // --- Welcome Message when mic activates ---
-  const speakWelcome = async () => {
-    const welcomePrompt = "The user just activated voice control. Generate a brief, friendly welcome greeting introducing yourself as their voice assistant for Zygotrix. Ask how you can help.";
-    const message = await generateAIResponse(welcomePrompt);
-    if (message) {
-      speakRef.current(message);
-    }
-  };
 
   // --- The Brain: LLM Router ---
   const processVoiceCommand = async (userText: string) => {
@@ -187,32 +125,46 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       });
 
       const data = await response.json();
-      const rawId = data.choices[0]?.message?.content?.trim();
-      const matchedId = rawId?.replace(/^['"\`]+|['"\`]+$/g, ''); // Strip quotes
+      const rawContent = data.choices[0]?.message?.content?.trim();
+
+      console.log("🔍 Raw AI response:", rawContent);
+
+      // Handle both plain string ("focus input") and JSON object ({"id":"focus input"}) formats
+      let matchedId: string | undefined;
+
+      // Try to parse as JSON first
+      if (rawContent?.startsWith('{')) {
+        try {
+          const parsed = JSON.parse(rawContent);
+          console.log("🔍 Parsed as JSON:", parsed);
+          matchedId = parsed.id || parsed.command || parsed.tool;
+        } catch (e) {
+          console.log("🔍 Failed to parse as JSON, treating as string");
+          // Not valid JSON, treat as plain string
+          matchedId = rawContent?.replace(/^['"\`]+|['"\`]+$/g, '');
+        }
+      } else {
+        // Plain string, just strip quotes
+        matchedId = rawContent?.replace(/^['"\`]+|['"\`]+$/g, '');
+      }
 
       console.log("🤖 AI Decided:", matchedId);
+      console.log("🔍 Available commands:", Object.keys(commandsRef.current));
+      console.log("🔍 Command exists?", !!commandsRef.current[matchedId || '']);
 
-      // 3. Execute the command or provide fallback
+      // 3. Execute the command or log no match
       if (matchedId && matchedId !== 'NO_MATCH' && commandsRef.current[matchedId]) {
         commandsRef.current[matchedId].action(userText);
         setTranscript(`Executed: ${matchedId}`); // visual feedback
       } else {
-        // No matching command - generate a helpful fallback response
-        console.warn("No matching command found, generating fallback response.");
-        const fallbackPrompt = `The user said: "${userText}". You don't have a command that matches this request. Politely explain that you don't have this ability yet and offer to help with something else you can do (like navigation, voice control, settings, etc).`;
-        const fallbackMessage = await generateAIResponse(fallbackPrompt,
-          `Available commands include: ${toolsList.map(t => t.description).join(', ')}`
-        );
-        if (fallbackMessage) {
-          speakRef.current(fallbackMessage);
-        } else {
-          speakRef.current("I'm not sure how to help with that. Would you like me to do something else?");
-        }
+        // No matching command found
+        console.warn("No matching command found for:", userText, "| matchedId:", matchedId);
+        setTranscript('No matching command');
       }
 
     } catch (error) {
       console.error("Error processing voice command:", error);
-      speakRef.current("I encountered an error processing your request. Please try again.");
+      setTranscript('Error processing command');
     } finally {
       setIsProcessing(false);
       // Optional: Clear transcript after a delay so the UI looks clean
@@ -283,7 +235,7 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       };
 
       recognition.onerror = (event: any) => {
-        // Ignore 'aborted' error which happens during pause/resume or speech synthesis
+        // Ignore 'aborted' error which happens during pause/resume
         if (event.error === 'aborted' || event.error === 'no-speech') return;
 
         console.warn('Speech recognition error:', event.error, event);
@@ -343,8 +295,6 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
             recognitionRef.current.start();
             isRecognitionActiveRef.current = true;
             setIsListening(true);
-            // Greet the user with an AI-generated welcome message
-            speakWelcome();
           } catch (e) {
             console.error('Failed to start recognition:', e);
             setIsListening(false);
@@ -431,48 +381,6 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
     }
   }, []);
 
-  // --- Text to Speech (Moved here to access pauseListening/resumeListening) ---
-  const speak = useCallback((text: string) => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
-
-      // Pause mic to prevent self-hearing and OS errors
-      if (isListeningRef.current && !isPausedRef.current) {
-        pauseListening();
-        isPausedForSpeakingRef.current = true;
-      }
-
-      const utterance = new SpeechSynthesisUtterance(text);
-
-      // Apply voice settings
-      utterance.rate = voiceSettings.rate;
-      utterance.pitch = voiceSettings.pitch;
-
-      // Set selected voice
-      const voices = window.speechSynthesis.getVoices();
-      if (voices.length > 0 && voiceSettings.voiceIndex < voices.length) {
-        utterance.voice = voices[voiceSettings.voiceIndex];
-      }
-
-      const resume = () => {
-        if (isPausedForSpeakingRef.current) {
-          resumeListening();
-          isPausedForSpeakingRef.current = false;
-        }
-      };
-
-      utterance.onend = resume;
-      utterance.onerror = resume;
-
-      window.speechSynthesis.speak(utterance);
-    }
-  }, [pauseListening, resumeListening, voiceSettings]);
-
-  // Keep speakRef updated so async functions can use it
-  useEffect(() => {
-    speakRef.current = speak;
-  }, [speak]);
-
   return (
     <VoiceControlContext.Provider value={{
       isListening,
@@ -484,11 +392,8 @@ export const VoiceControlProvider: React.FC<{ children: React.ReactNode }> = ({ 
       resumeListening,
       registerCommand,
       availableCommands: commands,
-      setDictationCallback: setDictationCallback, // Use the WRAPPER, not the raw state setter
+      setDictationCallback: setDictationCallback,
       isDictating: !!dictationCallback,
-      speak,
-      voiceSettings,
-      setVoiceSettings,
     }}>
       {children}
     </VoiceControlContext.Provider>

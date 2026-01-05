@@ -18,7 +18,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { toggleListening, isListening, registerCommand, isDictating, speak } = useVoiceControl();
+  const { toggleListening, isListening, registerCommand, isDictating } = useVoiceControl();
   const { toggleTheme } = useTheme();
 
 
@@ -35,7 +35,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     const unregisterSettings = registerCommand(
       'open settings',
       () => {
-        speak('Opening settings');
+        console.log('🎯 Opening settings');
         navigate('/settings');
       },
       'Navigates to the settings page'
@@ -52,7 +52,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     const unregisterNew = registerCommand(
       'create new chat',
       () => {
-        speak('Creating new chat, please wait');
+        console.log('🎯 Creating new chat');
         handleNewConversation();
       },
       'Starts a new empty conversation'
@@ -62,7 +62,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     const unregisterTheme = registerCommand(
       'change theme',
       () => {
-        speak('Changing theme');
+        console.log('🎨 Changing theme');
         toggleTheme();
       },
       'Toggles between light and dark theme'
@@ -72,7 +72,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
     const unregisterUsage = registerCommand(
       'show usage',
       () => {
-        speak('Showing usage statistics');
+        console.log('📊 Showing usage statistics');
         navigate('/settings#usage');
       },
       'Shows your AI token usage statistics'
@@ -89,7 +89,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           'Greetings! I\'m here to assist with your genetic analysis.',
         ];
         const randomGreeting = greetings[Math.floor(Math.random() * greetings.length)];
-        speak(randomGreeting);
+        console.log('👋 Greeting:', randomGreeting);
       },
       'Responds to greetings like hi, hello, hey, greetings, good morning, good afternoon, good evening'
     );
@@ -106,7 +106,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           'Happy to help! Until next time!',
         ];
         const randomFarewell = farewells[Math.floor(Math.random() * farewells.length)];
-        speak(randomFarewell);
+        console.log('👋 Goodbye:', randomFarewell);
         // Turn off voice control after speaking
         setTimeout(() => {
           toggleListening();
@@ -120,11 +120,11 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       () => {
         if (window.innerWidth < 1024) {
           setIsSidebarOpen(true);
-          speak('Opening sidebar');
+          console.log('📁 Opening sidebar');
         } else {
           // On Desktop, expand
           setIsCollapsed(false);
-          speak('Expanding sidebar');
+          console.log('📁 Expanding sidebar');
         }
       },
       'Opens/Expands the sidebar'
@@ -135,10 +135,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       () => {
         if (window.innerWidth < 1024) {
           setIsSidebarOpen(false);
-          speak('Closing sidebar');
+          console.log('📁 Closing sidebar');
         } else {
           setIsCollapsed(true);
-          speak('Collapsing sidebar');
+          console.log('📁 Collapsing sidebar');
           // Also close search if open
           setIsSearchOpen(false);
         }
@@ -172,13 +172,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             const cleanQuery = extracted.replace(/[.!?]*$/, '');
             setSearchQuery(cleanQuery);
             console.log('🔍 Voice search query:', cleanQuery);
-            speak(`Searching for ${cleanQuery}`);
+            console.log(`🔍 Searching for ${cleanQuery}`);
             return;
           }
         }
 
         // Fallback if no query found but command matched
-        speak('Opening search');
+        console.log('🔍 Opening search');
       },
       'Searches conversations. Examples: "search chat for hello", "find my chats about biology"'
     );
@@ -188,7 +188,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       'clear search',
       () => {
         setSearchQuery('');
-        speak('Search cleared');
+        console.log('🔍 Search cleared');
       },
       'Clears the search input field'
     );

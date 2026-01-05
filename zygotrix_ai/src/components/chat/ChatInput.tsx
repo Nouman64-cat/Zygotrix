@@ -89,7 +89,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  const { registerCommand, setDictationCallback, isListening: isUniversalMicActive, toggleListening, speak, isDictating } = useVoiceControl();
+  const { registerCommand, setDictationCallback, isListening: isUniversalMicActive, toggleListening, isDictating } = useVoiceControl();
 
 
 
@@ -522,7 +522,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
             // Initialize baseTextRef with current input value (preserve existing text)
             baseTextRef.current = valueRef.current || '';
-            speak('Sure, listening');
+            console.log('🎤 Focus input: Dictation enabled');
 
             // Set up dictation callback for the universal mic to write to this input
             setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
@@ -569,7 +569,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       'open tools',
       () => {
         setShowToolsMenu(true);
-        speak('Opening tools');
+        console.log('🔧 Opening tools');
       },
       'Opens the tools menu'
     );
@@ -578,7 +578,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       'close tools',
       () => {
         setShowToolsMenu(false);
-        speak('Closing tools');
+        console.log('🔧 Closing tools');
       },
       'Closes the tools menu'
     );
@@ -594,9 +594,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           if (tool) {
             setEnabledTools(prev => prev.includes(tool.id) ? prev : [...prev, tool.id]);
             console.log(`🔧 Enabled tool: ${tool.name} via voice`);
-            speak(`Enabling ${tool.name}`);
+            console.log(`🔧 Enabled tool: ${tool.name}`);
           } else {
-            speak(`Sorry, I couldn't find a tool named ${query}`);
+            console.log(`🔧 Tool not found: ${query}`);
           }
         }
       },
@@ -614,9 +614,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           if (tool) {
             setEnabledTools(prev => prev.filter(id => id !== tool.id));
             console.log(`🔧 Disabled tool: ${tool.name} via voice`);
-            speak(`Disabling ${tool.name}`);
+            console.log(`🔧 Disabled tool: ${tool.name}`);
           } else {
-            speak(`Sorry, I couldn't find a tool named ${query}`);
+            console.log(`🔧 Tool not found: ${query}`);
           }
         }
       },

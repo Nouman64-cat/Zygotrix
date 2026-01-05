@@ -1,12 +1,6 @@
 import { createContext, useContext } from "react";
 
 // Types for the Context
-export interface VoiceSettings {
-  rate: number; // Speed: 0.5 to 2.0
-  pitch: number; // Pitch: 0.5 to 2.0
-  voiceIndex: number; // Index of selected voice
-}
-
 export interface VoiceControlContextType {
   isListening: boolean;
   isPaused: boolean; // True when universal mic is paused (e.g., local input mic is active)
@@ -28,9 +22,6 @@ export interface VoiceControlContextType {
     callback: ((text: string, isFinal: boolean) => void) | null
   ) => void;
   isDictating: boolean;
-  speak: (text: string) => void;
-  voiceSettings: VoiceSettings;
-  setVoiceSettings: React.Dispatch<React.SetStateAction<VoiceSettings>>;
 }
 
 export const VoiceControlContext = createContext<

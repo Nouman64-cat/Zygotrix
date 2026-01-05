@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { FiUser, FiActivity, FiCreditCard } from 'react-icons/fi';
-import { MdPsychology, MdMic } from 'react-icons/md';
+import { MdPsychology } from 'react-icons/md';
 import { BiLoaderAlt } from 'react-icons/bi';
 import { MainLayout } from '../components/layout';
 import { usePreferences } from '../contexts';
@@ -22,11 +22,6 @@ const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
     icon: <FiUser className="w-4 h-4" />,
   },
   {
-    id: 'voice',
-    label: 'Voice',
-    icon: <MdMic className="w-4 h-4" />,
-  },
-  {
     id: 'learning',
     label: 'AI Learning',
     icon: <MdPsychology className="w-4 h-4" />,
@@ -45,7 +40,6 @@ const SETTINGS_NAV_ITEMS: SettingsNavItem[] = [
 
 // Lazy load settings sections - P1 Optimization (2.3)
 const GeneralSection = React.lazy(() => import('../components/settings/GeneralSection').then(module => ({ default: module.GeneralSection })));
-const VoiceSection = React.lazy(() => import('../components/settings/VoiceSection').then(module => ({ default: module.VoiceSection })));
 const LearningSection = React.lazy(() => import('../components/settings/LearningSection').then(module => ({ default: module.LearningSection })));
 const UsageSection = React.lazy(() => import('../components/settings/UsageSection').then(module => ({ default: module.UsageSection })));
 const BillingSection = React.lazy(() => import('../components/settings/BillingSection').then(module => ({ default: module.BillingSection })));
@@ -207,7 +201,6 @@ export const SettingsPage: React.FC = () => {
             onRefresh={fetchPreferences}
           />
         )}
-        {activeSection === 'voice' && <VoiceSection />}
         {activeSection === 'learning' && (
           <LearningSection
             loading={loading}

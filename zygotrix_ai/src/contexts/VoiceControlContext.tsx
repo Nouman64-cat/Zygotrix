@@ -48,7 +48,7 @@ const aiAdapter = createOpenAIAdapter({
 
 // Inner component that uses the package's context
 const DictationProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { processTranscript, isProcessing } = useVoiceContext();
+  const { processTranscript } = useVoiceContext();
 
   const [isListening, setIsListening] = useState(false);
   const [isPaused, setIsPaused] = useState(false);

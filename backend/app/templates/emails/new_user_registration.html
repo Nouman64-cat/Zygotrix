@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>New User Registration</title>
+  </head>
+  <body
+    style="
+      margin: 0;
+      padding: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #0f172a;
+    "
+  >
+    <table
+      role="presentation"
+      style="width: 100%; background-color: #0f172a; padding: 40px 20px"
+    >
+      <tr>
+        <td align="center">
+          <table
+            role="presentation"
+            style="
+              max-width: 600px;
+              width: 100%;
+              background-color: #ffffff;
+              border-radius: 16px;
+              overflow: hidden;
+              box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            "
+          >
+            <!-- Header -->
+            <tr>
+              <td
+                style="
+                  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+                  padding: 32px 40px;
+                  text-align: center;
+                "
+              >
+                <h1
+                  style="
+                    color: #ffffff;
+                    font-size: 24px;
+                    margin: 0;
+                    font-weight: 600;
+                  "
+                >
+                  🎉 New User Registration
+                </h1>
+              </td>
+            </tr>
+
+            <!-- Content -->
+            <tr>
+              <td style="padding: 40px">
+                <p
+                  style="
+                    color: #1f2937;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    margin: 0 0 24px;
+                  "
+                >
+                  Hello Admin,
+                </p>
+                <p
+                  style="
+                    color: #1f2937;
+                    font-size: 16px;
+                    line-height: 1.6;
+                    margin: 0 0 24px;
+                  "
+                >
+                  A new user has just registered on Zygotrix. Here are the
+                  details:
+                </p>
+
+                <!-- User Details Card -->
+                <table
+                  role="presentation"
+                  style="
+                    width: 100%;
+                    background-color: #f8fafc;
+                    border-radius: 12px;
+                    padding: 24px;
+                    border: 1px solid #e2e8f0;
+                  "
+                >
+                  <tr>
+                    <td>
+                      <table role="presentation" style="width: 100%">
+                        <tr>
+                          <td style="padding: 8px 0">
+                            <span
+                              style="
+                                color: #64748b;
+                                font-size: 14px;
+                                font-weight: 500;
+                              "
+                              >Full Name</span
+                            >
+                          </td>
+                          <td style="padding: 8px 0; text-align: right">
+                            <span
+                              style="
+                                color: #1e293b;
+                                font-size: 14px;
+                                font-weight: 600;
+                              "
+                              >{{ user_name }}</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                color: #64748b;
+                                font-size: 14px;
+                                font-weight: 500;
+                              "
+                              >Email Address</span
+                            >
+                          </td>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              text-align: right;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                color: #6366f1;
+                                font-size: 14px;
+                                font-weight: 600;
+                              "
+                              >{{ user_email }}</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                color: #64748b;
+                                font-size: 14px;
+                                font-weight: 500;
+                              "
+                              >Registered At</span
+                            >
+                          </td>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              text-align: right;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                color: #1e293b;
+                                font-size: 14px;
+                                font-weight: 600;
+                              "
+                              >{{ timestamp }}</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                color: #64748b;
+                                font-size: 14px;
+                                font-weight: 500;
+                              "
+                              >User Role</span
+                            >
+                          </td>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              text-align: right;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                display: inline-block;
+                                background-color: #dbeafe;
+                                color: #1e40af;
+                                font-size: 12px;
+                                font-weight: 600;
+                                padding: 4px 12px;
+                                border-radius: 20px;
+                              "
+                              >{{ user_role }}</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                color: #64748b;
+                                font-size: 14px;
+                                font-weight: 500;
+                              "
+                              >IP Address</span
+                            >
+                          </td>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              text-align: right;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                color: #1e293b;
+                                font-size: 14px;
+                                font-weight: 600;
+                                font-family: monospace;
+                              "
+                              >{{ ip_address }}</span
+                            >
+                          </td>
+                        </tr>
+                        <tr>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                color: #64748b;
+                                font-size: 14px;
+                                font-weight: 500;
+                              "
+                              >Location</span
+                            >
+                          </td>
+                          <td
+                            style="
+                              padding: 8px 0;
+                              text-align: right;
+                              border-top: 1px solid #e2e8f0;
+                            "
+                          >
+                            <span
+                              style="
+                                color: #1e293b;
+                                font-size: 14px;
+                                font-weight: 600;
+                              "
+                              >{{ location }}</span
+                            >
+                          </td>
+                        </tr>
+                      </table>
+                    </td>
+                  </tr>
+                </table>
+
+                <!-- Action Button -->
+                <table
+                  role="presentation"
+                  style="width: 100%; margin-top: 32px"
+                >
+                  <tr>
+                    <td align="center">
+                      <a
+                        href="{{ admin_url }}/studio/admin/users"
+                        style="
+                          display: inline-block;
+                          background: linear-gradient(
+                            135deg,
+                            #6366f1 0%,
+                            #8b5cf6 100%
+                          );
+                          color: #ffffff;
+                          text-decoration: none;
+                          padding: 14px 32px;
+                          border-radius: 8px;
+                          font-size: 14px;
+                          font-weight: 600;
+                        "
+                      >
+                        View in Admin Panel
+                      </a>
+                    </td>
+                  </tr>
+                </table>
+
+                <p
+                  style="
+                    color: #64748b;
+                    font-size: 14px;
+                    line-height: 1.6;
+                    margin: 32px 0 0;
+                    text-align: center;
+                  "
+                >
+                  This is an automated notification from Zygotrix.
+                </p>
+              </td>
+            </tr>
+
+            <!-- Footer -->
+            <tr>
+              <td
+                style="
+                  background-color: #f8fafc;
+                  padding: 24px 40px;
+                  text-align: center;
+                  border-top: 1px solid #e2e8f0;
+                "
+              >
+                <p style="color: #94a3b8; font-size: 12px; margin: 0">
+                  © {{ year }} Zygotrix - Advanced Genetics Intelligence
+                </p>
+                <p style="color: #94a3b8; font-size: 12px; margin: 8px 0 0">
+                  You can disable these notifications in the Admin Panel → Users
+                  → Settings
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html>

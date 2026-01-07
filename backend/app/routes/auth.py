@@ -31,14 +31,18 @@ router = APIRouter(prefix="/api/auth", tags=["Auth"])
 
 
 @router.post("/signup", response_model=SignupInitiateResponse, status_code=202)
-def signup(payload: SignupInitiateRequest) -> SignupInitiateResponse:
+def signup(payload: SignupInitiateRequest, request: Request) -> SignupInitiateResponse:
     signup_service = get_signup_service()
     settings = get_settings()
+    
+    # Extract IP address for notification
+    ip_address = ClientInfoExtractor.get_ip_address(request)
 
     expires_at = signup_service.request_signup_otp(
         email=payload.email,
         password=payload.password.get_secret_value(),
         full_name=payload.full_name,
+        ip_address=ip_address,
     )
 
     message = (
@@ -50,9 +54,17 @@ def signup(payload: SignupInitiateRequest) -> SignupInitiateResponse:
 
 
 @router.post("/signup/verify", response_model=MessageResponse)
-def verify_signup(payload: SignupVerifyRequest) -> MessageResponse:
+def verify_signup(payload: SignupVerifyRequest, request: Request) -> MessageResponse:
     signup_service = get_signup_service()
-    signup_service.verify_signup_otp(email=payload.email, otp=payload.otp)
+    
+    # Extract IP address for notification
+    ip_address = ClientInfoExtractor.get_ip_address(request)
+    
+    signup_service.verify_signup_otp(
+        email=payload.email, 
+        otp=payload.otp,
+        ip_address=ip_address
+    )
     return MessageResponse(message="Account created successfully. You can now sign in.")
 
 

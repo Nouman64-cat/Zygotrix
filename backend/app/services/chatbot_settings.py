@@ -78,6 +78,7 @@ def get_default_settings() -> ChatbotSettings:
         enabled=True,
         response_caching=True,
         admin_unlimited_tokens=False,
+        new_user_registration_email_enabled=True,
         created_at=datetime.utcnow().isoformat(),
         updated_at=datetime.utcnow().isoformat(),
         updated_by=None

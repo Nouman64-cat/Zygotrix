@@ -47,6 +47,10 @@ class ChatbotSettings(BaseModel):
         default=False,
         description="Whether admins have unlimited token usage (bypass token limits)"
     )
+    new_user_registration_email_enabled: bool = Field(
+        default=True,
+        description="Whether to send email notifications to super admin when new users register"
+    )
     created_at: Optional[str] = None
     updated_at: Optional[str] = None
     updated_by: Optional[str] = None
@@ -79,6 +83,7 @@ class ChatbotSettingsUpdate(BaseModel):
     enabled: Optional[bool] = None
     response_caching: Optional[bool] = None
     admin_unlimited_tokens: Optional[bool] = None
+    new_user_registration_email_enabled: Optional[bool] = None
 
 
 class ChatbotSettingsResponse(BaseModel):

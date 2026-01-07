@@ -45,6 +45,12 @@ const AdminUsersPage: React.FC = () => {
   const [deactivateReason, setDeactivateReason] = useState("");
   const [newRole, setNewRole] = useState<UserRole>("user");
 
+  // Notification settings state
+  const [notificationSettings, setNotificationSettings] = useState<{
+    new_user_registration_email_enabled: boolean;
+  } | null>(null);
+  const [settingsLoading, setSettingsLoading] = useState(false);
+
   const isSuperAdmin = currentUser?.user_role === "super_admin";
   const isAdmin = currentUser?.user_role === "admin" || isSuperAdmin;
 
@@ -84,12 +90,54 @@ const AdminUsersPage: React.FC = () => {
     }
   }, []);
 
+  const fetchNotificationSettings = useCallback(async () => {
+    try {
+      const settings = await adminApi.fetchChatbotSettings();
+      setNotificationSettings({
+        new_user_registration_email_enabled:
+          settings.new_user_registration_email_enabled,
+      });
+    } catch (err) {
+      console.error("Failed to fetch notification settings:", err);
+    }
+  }, []);
+
+  const handleToggleRegistrationEmail = async () => {
+    if (!notificationSettings) return;
+
+    try {
+      setSettingsLoading(true);
+      const newValue =
+        !notificationSettings.new_user_registration_email_enabled;
+      await adminApi.updateChatbotSettings({
+        new_user_registration_email_enabled: newValue,
+      });
+      setNotificationSettings({
+        new_user_registration_email_enabled: newValue,
+      });
+      setSuccessMessage(
+        `New user registration email notifications ${
+          newValue ? "enabled" : "disabled"
+        }.`
+      );
+    } catch (err: unknown) {
+      const errorMessage =
+        err instanceof Error
+          ? err.message
+          : "Failed to update notification settings";
+      setError(errorMessage);
+    } finally {
+      setSettingsLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (isAdmin) {
       fetchUsers();
       fetchStats();
+      fetchNotificationSettings();
     }
-  }, [isAdmin, fetchUsers, fetchStats]);
+  }, [isAdmin, fetchUsers, fetchStats, fetchNotificationSettings]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -302,6 +350,50 @@ const AdminUsersPage: React.FC = () => {
               <p className="mt-1 text-2xl font-semibold text-purple-600 dark:text-purple-400">
                 {stats.by_role.admin} / {stats.by_role.super_admin}
               </p>
+            </div>
+          </div>
+        )}
+
+        {/* Notification Settings */}
+        {isSuperAdmin && notificationSettings && (
+          <div className="p-4 bg-white rounded-lg shadow dark:bg-gray-800">
+            <div className="flex items-center justify-between">
+              <div>
+                <h3 className="text-lg font-medium text-gray-900 dark:text-white">
+                  Email Notification Settings
+                </h3>
+                <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">
+                  Receive email notifications when new users register
+                </p>
+              </div>
+              <div className="flex items-center">
+                <button
+                  onClick={handleToggleRegistrationEmail}
+                  disabled={settingsLoading}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer ${
+                    notificationSettings.new_user_registration_email_enabled
+                      ? "bg-indigo-600"
+                      : "bg-gray-200 dark:bg-gray-600"
+                  } ${settingsLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  role="switch"
+                  aria-checked={
+                    notificationSettings.new_user_registration_email_enabled
+                  }
+                >
+                  <span
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                      notificationSettings.new_user_registration_email_enabled
+                        ? "translate-x-6"
+                        : "translate-x-1"
+                    }`}
+                  />
+                </button>
+                <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
+                  {notificationSettings.new_user_registration_email_enabled
+                    ? "Enabled"
+                    : "Disabled"}
+                </span>
+              </div>
             </div>
           </div>
         )}
@@ -847,7 +939,9 @@ const AdminUsersPage: React.FC = () => {
                         onChange={(e) => setNewRole(e.target.value as UserRole)}
                         className="block w-full px-3 py-2 text-gray-900 bg-white border border-gray-300 rounded-md shadow-sm dark:border-gray-600 dark:bg-gray-700 dark:text-white focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm cursor-pointer"
                       >
-                        <option className="cursor-pointer" value="user">User</option>
+                        <option className="cursor-pointer" value="user">
+                          User
+                        </option>
                         <option value="admin">Admin</option>
                         <option value="super_admin">Super Admin</option>
                       </select>

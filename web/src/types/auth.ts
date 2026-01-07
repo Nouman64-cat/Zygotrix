@@ -200,6 +200,7 @@ export type ChatbotSettings = {
   enabled: boolean;
   response_caching: boolean;
   admin_unlimited_tokens: boolean;
+  new_user_registration_email_enabled: boolean;
   created_at?: string;
   updated_at?: string;
   updated_by?: string;

@@ -141,3 +141,8 @@ def send_custom_whatsapp_notification(
     except Exception as e:
         logger.error(f"Unexpected error: {e}")
         return False
+
+
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        return False

@@ -37,7 +37,8 @@ class SignupService:
         self,
         otp_service=None,
         user_service=None,
-        password_service=None
+        password_service=None,
+        email_service=None
     ):
         """
         Initialize signup service.
@@ -46,11 +47,99 @@ class SignupService:
             otp_service: OTPService instance (optional)
             user_service: UserService instance (optional)
             password_service: PasswordService instance (optional)
+            email_service: EmailService instance (optional)
         """
+        self._settings = get_settings()
         self._otp_service = otp_service or get_otp_service()
         self._user_service = user_service or get_user_service()
         self._password_service = password_service or get_password_service()
-        self._settings = get_settings()
+        
+        # Instantiate EmailService if not provided
+        if email_service:
+            self._email_service = email_service
+        else:
+            from app.services.email_service import EmailService
+            self._email_service = EmailService(self._settings)
+
+    def _get_location_from_ip(self, ip_address: str) -> str:
+        """
+        Get location from IP address using ip-api.com (free, no API key required).
+        Returns a formatted location string or 'Unknown' on failure.
+        """
+        if not ip_address or ip_address in ("127.0.0.1", "localhost", "::1"):
+            return "Local Development"
+        
+        try:
+            import urllib.request
+            import json
+            
+            # ip-api.com provides free geolocation (no API key needed, 45 requests/minute limit)
+            url = f"http://ip-api.com/json/{ip_address}?fields=status,country,regionName,city"
+            
+            with urllib.request.urlopen(url, timeout=5) as response:
+                data = json.loads(response.read().decode())
+                
+            if data.get("status") == "success":
+                city = data.get("city", "")
+                region = data.get("regionName", "")
+                country = data.get("country", "")
+                
+                # Build location string
+                parts = [p for p in [city, region, country] if p]
+                return ", ".join(parts) if parts else "Unknown"
+            else:
+                return "Unknown"
+                
+        except Exception as e:
+            logger.debug(f"Could not get location for IP {ip_address}: {e}")
+            return "Unknown"
+
+    def _notify_super_admin(self, user: Dict[str, Any], ip_address: Optional[str] = None) -> None:
+        """
+        Send notification to super admin about new user registration.
+        Checks settings before sending.
+        
+        Args:
+            user: User data dictionary
+            ip_address: IP address of the user (optional)
+        """
+        try:
+            # Check if feature is enabled
+            from app.services.chatbot_settings import get_chatbot_settings
+            try:
+                chatbot_settings = get_chatbot_settings()
+                if not chatbot_settings.new_user_registration_email_enabled:
+                    logger.info("New user registration email skipped: feature disabled in settings")
+                    return
+            except Exception as e:
+                logger.warning(f"Could not check chatbot settings, attempting to send email: {e}")
+
+            # Check if super admin email is configured
+            if not self._settings.super_admin_email:
+                logger.info("New user registration email skipped: SUPER_ADMIN_EMAIL not configured")
+                return
+
+            # Get location from IP
+            location = self._get_location_from_ip(ip_address) if ip_address else "Unknown"
+
+            # Send email via EmailService
+            from datetime import datetime, timezone
+            timestamp = datetime.now(timezone.utc).strftime("%B %d, %Y at %I:%M %p UTC")
+            year = datetime.now(timezone.utc).year
+            
+            self._email_service.send_new_user_registration_email(
+                super_admin_email=self._settings.super_admin_email,
+                user_email=user["email"],
+                full_name=user.get("full_name"),
+                user_role=user.get("user_role", "user"),
+                timestamp=timestamp,
+                year=year,
+                ip_address=ip_address or "Unknown",
+                location=location
+            )
+            
+        except Exception as e:
+            logger.warning(f"Failed to send new user registration email: {e}")
 
     def _send_signup_otp_email(
         self,
@@ -69,93 +158,29 @@ class SignupService:
         Raises:
             DatabaseError: If email service is not configured or sending fails
         """
-        if not self._settings.aws_ses_username or not self._settings.aws_ses_password:
-            raise DatabaseError(
-                "Email service is not configured. Please set AWS_SES_USERNAME and AWS_SES_PASSWORD."
-            )
-
-        import smtplib
-        import ssl
-        from email.mime.text import MIMEText
-        from email.mime.multipart import MIMEMultipart
-
-        smtp_host = f"email-smtp.{self._settings.aws_ses_region}.amazonaws.com"
-        smtp_port = self._settings.aws_smtp_port
-
-        subject = "Your Zygotrix verification code"
-        greeting = full_name or "there"
-        minutes = self._settings.signup_otp_ttl_minutes
-
-        html_content = f"""
-        <table role='presentation' style='width:100%;background-color:#0f172a;padding:24px;font-family:Segoe UI,Roboto,"Helvetica Neue",Arial,sans-serif;'>
-          <tr>
-            <td align='center'>
-              <table role='presentation' style='max-width:520px;width:100%;background-color:#ffffff;border-radius:16px;padding:32px;text-align:left;'>
-                <tr>
-                  <td>
-                    <p style='color:#0f172a;font-size:13px;margin:0 0 12px;text-transform:uppercase;letter-spacing:0.28em;'>Email Verification</p>
-                    <h1 style='color:#0f172a;font-size:26px;margin:0 0 18px;'>Hi {greeting},</h1>
-                    <p style='color:#1f2937;font-size:15px;line-height:1.6;margin:0 0 20px;'>Use the one-time code below to finish setting up your Zygotrix portal account.</p>
-                    <div style='display:inline-block;padding:14px 24px;background-color:#0f172a;color:#f8fafc;border-radius:12px;font-size:28px;letter-spacing:0.35em;font-weight:700;'>
-                      {otp_code}
-                    </div>
-                    <p style='color:#475569;font-size:14px;line-height:1.6;margin:24px 0 12px;'>This code expires in {minutes} minutes. Enter it on the verification screen to continue.</p>
-                    <p style='color:#94a3b8;font-size:13px;line-height:1.6;margin:0;'>Didn't request this? You can safely ignore this email and your account will remain unchanged.</p>
-                  </td>
-                </tr>
-              </table>
-              <p style='color:#94a3b8;font-size:12px;margin:18px 0 0;'>Zygotrix - Advanced Genetics Intelligence</p>
-            </td>
-          </tr>
-        </table>
-        """
-
-        text_content = (
-            f"Hi {greeting},\n\n"
-            f"Your Zygotrix verification code is {otp_code}.\n"
-            f"This code expires in {minutes} minutes.\n\n"
-            "If you didn't request this email, you can ignore it."
-        )
-
         try:
-            msg = MIMEMultipart('alternative')
-            msg['Subject'] = subject
-            msg['From'] = self._settings.aws_ses_from_email
-            msg['To'] = recipient
-
-            text_part = MIMEText(text_content, 'plain', 'utf-8')
-            html_part = MIMEText(html_content, 'html', 'utf-8')
-            msg.attach(text_part)
-            msg.attach(html_part)
-
-            context = ssl.create_default_context()
-
-            if smtp_port in (587, 2587):
-                # Use STARTTLS for port 587/2587
-                with smtplib.SMTP(smtp_host, smtp_port, timeout=30) as server:
-                    server.starttls(context=context)
-                    server.login(self._settings.aws_ses_username, self._settings.aws_ses_password)
-                    server.send_message(msg)
-            else:
-                # Use SMTP_SSL for port 465
-                with smtplib.SMTP_SSL(smtp_host, smtp_port, context=context, timeout=30) as server:
-                    server.login(self._settings.aws_ses_username, self._settings.aws_ses_password)
-                    server.send_message(msg)
-
-            logger.info(f"Sent signup OTP email to {recipient}")
-
-        except smtplib.SMTPException as e:
-            logger.error(f"SMTP error sending OTP email: {e}", exc_info=True)
-            raise DatabaseError(f"Failed to send OTP email: {str(e)}")
+            minutes = self._settings.signup_otp_ttl_minutes
+            success = self._email_service.send_signup_otp_email(
+                user_email=recipient,
+                user_name=full_name,
+                otp_code=otp_code,
+                minutes=minutes
+            )
+            
+            if not success:
+               logger.error("EmailService returned False for OTP email")
+               raise DatabaseError("Failed to send OTP email: Email service failed")
+               
         except Exception as e:
-            logger.error(f"Unexpected error sending OTP email: {e}", exc_info=True)
+            logger.error(f"Error sending OTP email: {e}", exc_info=True)
             raise DatabaseError(f"Failed to send OTP email: {str(e)}")
 
     def request_signup_otp(
         self,
         email: str,
         password: str,
-        full_name: Optional[str]
+        full_name: Optional[str],
+        ip_address: Optional[str] = None
     ) -> datetime:
         """
         Request a signup OTP.
@@ -167,6 +192,7 @@ class SignupService:
             email: User's email address
             password: User's plain text password
             full_name: User's full name (optional)
+            ip_address: User's IP address (optional)
 
         Returns:
             OTP expiration datetime
@@ -186,11 +212,15 @@ class SignupService:
         # Development mode: create account immediately
         if self._settings.is_development:
             logger.info(f"Development mode: creating account immediately for {email}")
-            self._user_service.create_user(
+            user = self._user_service.create_user(
                 email=email,
                 password=password,
                 full_name=full_name
             )
+            
+            # Send email notification to super admin
+            self._notify_super_admin(user, ip_address=ip_address)
+            
             return datetime.now(timezone.utc)
 
         # Production mode: create pending signup with OTP
@@ -213,7 +243,8 @@ class SignupService:
     def verify_signup_otp(
         self,
         email: str,
-        otp: str
+        otp: str,
+        ip_address: Optional[str] = None
     ) -> Dict[str, Any]:
         """
         Verify signup OTP and create user account.
@@ -221,6 +252,7 @@ class SignupService:
         Args:
             email: User's email address
             otp: OTP code to verify
+            ip_address: User's IP address (optional)
 
         Returns:
             Serialized user dictionary
@@ -269,6 +301,9 @@ class SignupService:
             )
         except Exception as e:
             logger.warning(f"Failed to send WhatsApp notification: {e}")
+
+        # Send email notification to super admin
+        self._notify_super_admin(user, ip_address=ip_address)
 
         logger.info(f"User account created successfully: {email}")
         return user

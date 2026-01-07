@@ -56,16 +56,43 @@ export const Chat: React.FC = () => {
   }, [error, isRateLimited]);
 
   // Handle URL changes and initial load
+  // Use sessionStorage to persist across component remounts (caused by route changes)
+  const JUST_CREATED_KEY = 'zygotrix_just_created_conv_id';
+
+  // Update sessionStorage when conversationId changes from null to something (new chat created)
   useEffect(() => {
+    if (conversationId) {
+      // We got a conversation ID - save it to sessionStorage
+      sessionStorage.setItem(JUST_CREATED_KEY, conversationId);
+    }
+  }, [conversationId]);
+
+  // Track previous URL to detect intentional navigation to /chat
+  const prevUrlConversationIdRef = React.useRef(urlConversationId);
+
+  useEffect(() => {
+    const justCreatedId = sessionStorage.getItem(JUST_CREATED_KEY);
+    const prevUrlId = prevUrlConversationIdRef.current;
+
+    // Update the ref for next render
+    prevUrlConversationIdRef.current = urlConversationId;
+
     // If URL has an ID and it differs from current loaded conversation
     if (urlConversationId && urlConversationId !== conversationId) {
+      // Skip refetch if this is the conversation we just created
+      if (urlConversationId === justCreatedId) {
+        sessionStorage.removeItem(JUST_CREATED_KEY);
+        return;
+      }
+      sessionStorage.removeItem(JUST_CREATED_KEY);
       loadConversation(urlConversationId);
     }
-    // If URL is empty (New Chat) but we have a conversation loaded
-    else if (!urlConversationId && conversationId) {
+    // If URL is empty (New Chat) and user NAVIGATED here (prevUrlId was truthy)
+    else if (!urlConversationId && prevUrlId && conversationId) {
+      sessionStorage.removeItem(JUST_CREATED_KEY);
       startNewConversation();
     }
-  }, [urlConversationId, conversationId, loadConversation, startNewConversation]);
+  }, [urlConversationId, conversationId, loadConversation, startNewConversation, messages.length]);
 
 
   // Track previous conversation ID to detect ONLY fresh creations

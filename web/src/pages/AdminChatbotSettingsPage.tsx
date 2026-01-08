@@ -66,6 +66,7 @@ const AdminChatbotSettingsPage: React.FC = () => {
     enabled: true,
     response_caching: true,
     admin_unlimited_tokens: false,
+    new_user_registration_email_enabled: true,
   });
 
   const isAdmin =
@@ -106,6 +107,7 @@ const AdminChatbotSettingsPage: React.FC = () => {
         enabled: true,
         response_caching: true,
         admin_unlimited_tokens: false,
+        new_user_registration_email_enabled: true,
       });
     } finally {
       setLoading(false);
@@ -1004,18 +1006,16 @@ const AdminChatbotSettingsPage: React.FC = () => {
                           key={option.value}
                           type="button"
                           onClick={() => handlePreferenceChange("communication_style", option.value)}
-                          className={`p-3 rounded-lg border-2 text-left transition-all ${
-                            preferences.communication_style === option.value
+                          className={`p-3 rounded-lg border-2 text-left transition-all ${preferences.communication_style === option.value
                               ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
                               : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                              preferences.communication_style === option.value
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${preferences.communication_style === option.value
                                 ? "border-indigo-600 bg-indigo-600"
                                 : "border-gray-300 dark:border-gray-600"
-                            }`}>
+                              }`}>
                               {preferences.communication_style === option.value && (
                                 <div className="w-2 h-2 rounded-full bg-white"></div>
                               )}
@@ -1047,18 +1047,16 @@ const AdminChatbotSettingsPage: React.FC = () => {
                           key={option.value}
                           type="button"
                           onClick={() => handlePreferenceChange("answer_length", option.value)}
-                          className={`p-3 rounded-lg border-2 text-left transition-all ${
-                            preferences.answer_length === option.value
+                          className={`p-3 rounded-lg border-2 text-left transition-all ${preferences.answer_length === option.value
                               ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
                               : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${
-                              preferences.answer_length === option.value
+                            <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${preferences.answer_length === option.value
                                 ? "border-indigo-600 bg-indigo-600"
                                 : "border-gray-300 dark:border-gray-600"
-                            }`}>
+                              }`}>
                               {preferences.answer_length === option.value && (
                                 <div className="w-2 h-2 rounded-full bg-white"></div>
                               )}
@@ -1092,18 +1090,16 @@ const AdminChatbotSettingsPage: React.FC = () => {
                           key={option.value}
                           type="button"
                           onClick={() => handlePreferenceArrayToggle("teaching_aids", option.value)}
-                          className={`p-3 rounded-lg border-2 text-left transition-all ${
-                            (preferences.teaching_aids || []).includes(option.value)
+                          className={`p-3 rounded-lg border-2 text-left transition-all ${(preferences.teaching_aids || []).includes(option.value)
                               ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
                               : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                              (preferences.teaching_aids || []).includes(option.value)
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${(preferences.teaching_aids || []).includes(option.value)
                                 ? "border-indigo-600 bg-indigo-600"
                                 : "border-gray-300 dark:border-gray-600"
-                            }`}>
+                              }`}>
                               {(preferences.teaching_aids || []).includes(option.value) && (
                                 <MdCheckCircle className="w-3 h-3 text-white" />
                               )}
@@ -1136,18 +1132,16 @@ const AdminChatbotSettingsPage: React.FC = () => {
                           key={option.value}
                           type="button"
                           onClick={() => handlePreferenceArrayToggle("visual_aids", option.value)}
-                          className={`p-3 rounded-lg border-2 text-left transition-all ${
-                            (preferences.visual_aids || []).includes(option.value)
+                          className={`p-3 rounded-lg border-2 text-left transition-all ${(preferences.visual_aids || []).includes(option.value)
                               ? "border-indigo-500 bg-indigo-50 dark:bg-indigo-900/20"
                               : "border-gray-200 dark:border-gray-700 hover:border-gray-300 dark:hover:border-gray-600"
-                          }`}
+                            }`}
                         >
                           <div className="flex items-center gap-2 mb-1">
-                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
-                              (preferences.visual_aids || []).includes(option.value)
+                            <div className={`w-4 h-4 rounded border-2 flex items-center justify-center ${(preferences.visual_aids || []).includes(option.value)
                                 ? "border-indigo-600 bg-indigo-600"
                                 : "border-gray-300 dark:border-gray-600"
-                            }`}>
+                              }`}>
                               {(preferences.visual_aids || []).includes(option.value) && (
                                 <MdCheckCircle className="w-3 h-3 text-white" />
                               )}

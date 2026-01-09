@@ -164,11 +164,15 @@ class TokenAnalyticsService:
                 return {"error": "MongoDB not available", "users": []}
             
             # Aggregate token usage by user
+            # First sort by timestamp to ensure $last gives us the most recent values
             pipeline = [
+                {"$sort": {"timestamp": 1}},  # Sort by timestamp ascending so $last gets most recent
                 {
                     "$group": {
                         "_id": "$user_id",
-                        "user_name": {"$last": "$user_name"},
+                        # Collect all user names to filter later
+                        "all_user_names": {"$push": "$user_name"},
+                        "latest_user_name": {"$last": "$user_name"},
                         "total_input_tokens": {"$sum": "$input_tokens"},
                         "total_output_tokens": {"$sum": "$output_tokens"},
                         "total_tokens": {"$sum": "$total_tokens"},
@@ -181,6 +185,41 @@ class TokenAnalyticsService:
                         "last_request": {"$max": "$timestamp"},
                     }
                 },
+                {
+                    # Add a field to pick the best user_name (prefer non-Unknown names)
+                    "$addFields": {
+                        "user_name": {
+                            "$let": {
+                                "vars": {
+                                    # Filter to get only valid names (not Unknown, not null, not empty)
+                                    "valid_names": {
+                                        "$filter": {
+                                            "input": "$all_user_names",
+                                            "as": "name",
+                                            "cond": {
+                                                "$and": [
+                                                    {"$ne": ["$$name", "Unknown"]},
+                                                    {"$ne": ["$$name", None]},
+                                                    {"$ne": ["$$name", ""]},
+                                                    {"$ne": ["$$name", "anonymous"]}
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "in": {
+                                    # Use the last valid name, or fall back to latest_user_name
+                                    "$cond": {
+                                        "if": {"$gt": [{"$size": "$$valid_names"}, 0]},
+                                        "then": {"$arrayElemAt": ["$$valid_names", -1]},  # Last valid name
+                                        "else": "$latest_user_name"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                {"$project": {"all_user_names": 0, "latest_user_name": 0}},  # Remove helper fields
                 {"$sort": {"total_tokens": -1}}
             ]
             

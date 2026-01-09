@@ -12,12 +12,7 @@ import {
 } from "../services/chatbotService";
 import { fetchChatbotSettings } from "../services/admin.api";
 import type { ChatbotSettings } from "../types/auth";
-import {
-  MdError,
-  MdRefresh,
-  MdAutorenew,
-  MdTrendingUp,
-} from "react-icons/md";
+import { MdError, MdRefresh, MdAutorenew, MdTrendingUp } from "react-icons/md";
 import { FaRobot, FaDatabase, FaChartLine, FaUsers } from "react-icons/fa";
 import { BiLoaderAlt } from "react-icons/bi";
 import { HiSparkles } from "react-icons/hi";
@@ -87,15 +82,25 @@ const AdminTokenUsagePage: React.FC = () => {
   const { user: currentUser } = useAuth();
   const [stats, setStats] = useState<TokenUsageStats | null>(null);
   const [dailyData, setDailyData] = useState<DailyUsageResponse | null>(null);
-  const [embeddingStats, setEmbeddingStats] = useState<EmbeddingStats | null>(null);
-  const [embeddingDailyData, setEmbeddingDailyData] = useState<EmbeddingDailyUsageResponse | null>(null);
-  const [chatbotSettings, setChatbotSettings] = useState<ChatbotSettings | null>(null);
+  const [embeddingStats, setEmbeddingStats] = useState<EmbeddingStats | null>(
+    null
+  );
+  const [embeddingDailyData, setEmbeddingDailyData] =
+    useState<EmbeddingDailyUsageResponse | null>(null);
+  const [chatbotSettings, setChatbotSettings] =
+    useState<ChatbotSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chartDays, setChartDays] = useState(30);
-  const [activeTab, setActiveTab] = useState<"overview" | "cache" | "embeddings">("overview");
+  const [activeTab, setActiveTab] = useState<
+    "overview" | "cache" | "embeddings"
+  >("overview");
+  const [userCurrentPage, setUserCurrentPage] = useState(1);
+  const USERS_PER_PAGE = 10;
 
-  const hasAdminAccess = currentUser?.user_role === "super_admin" || currentUser?.user_role === "admin";
+  const hasAdminAccess =
+    currentUser?.user_role === "super_admin" ||
+    currentUser?.user_role === "admin";
 
   useEffect(() => {
     if (hasAdminAccess) {
@@ -190,18 +195,47 @@ const AdminTokenUsagePage: React.FC = () => {
     return num.toString();
   };
 
-
-
   // Claude API Pricing (updated 2025) - per million tokens
-  const MODEL_PRICING: Record<string, { input: number; output: number; name: string }> = {
-    "claude-3-haiku-20240307": { input: 0.25, output: 1.25, name: "Claude 3 Haiku" },
-    "claude-3-sonnet-20240229": { input: 3, output: 15, name: "Claude 3 Sonnet" },
+  const MODEL_PRICING: Record<
+    string,
+    { input: number; output: number; name: string }
+  > = {
+    "claude-3-haiku-20240307": {
+      input: 0.25,
+      output: 1.25,
+      name: "Claude 3 Haiku",
+    },
+    "claude-3-sonnet-20240229": {
+      input: 3,
+      output: 15,
+      name: "Claude 3 Sonnet",
+    },
     "claude-3-opus-20240229": { input: 15, output: 75, name: "Claude 3 Opus" },
-    "claude-3-5-sonnet-20241022": { input: 3, output: 15, name: "Claude 3.5 Sonnet" },
-    "claude-3-5-haiku-20241022": { input: 0.80, output: 4, name: "Claude 3.5 Haiku" },
-    "claude-sonnet-4-5-20250514": { input: 3, output: 15, name: "Claude Sonnet 4.5" },
-    "claude-opus-4-5-20251101": { input: 5, output: 25, name: "Claude Opus 4.5" },
-    "claude-haiku-4-5-20250514": { input: 1, output: 5, name: "Claude Haiku 4.5" },
+    "claude-3-5-sonnet-20241022": {
+      input: 3,
+      output: 15,
+      name: "Claude 3.5 Sonnet",
+    },
+    "claude-3-5-haiku-20241022": {
+      input: 0.8,
+      output: 4,
+      name: "Claude 3.5 Haiku",
+    },
+    "claude-sonnet-4-5-20250514": {
+      input: 3,
+      output: 15,
+      name: "Claude Sonnet 4.5",
+    },
+    "claude-opus-4-5-20251101": {
+      input: 5,
+      output: 25,
+      name: "Claude Opus 4.5",
+    },
+    "claude-haiku-4-5-20250514": {
+      input: 1,
+      output: 5,
+      name: "Claude Haiku 4.5",
+    },
   };
 
   const getModelInfo = (modelId: string) => {
@@ -291,7 +325,10 @@ const AdminTokenUsagePage: React.FC = () => {
     datasets: [
       {
         label: "Prompt Cache Savings",
-        data: dailyData?.daily_usage.map((d) => (d.prompt_cache_savings || 0) * 100) || [], // Convert to cents
+        data:
+          dailyData?.daily_usage.map(
+            (d) => (d.prompt_cache_savings || 0) * 100
+          ) || [], // Convert to cents
         borderColor: "rgb(16, 185, 129)",
         backgroundColor: "rgba(16, 185, 129, 0.2)",
         fill: true,
@@ -302,7 +339,10 @@ const AdminTokenUsagePage: React.FC = () => {
       },
       {
         label: "Response Cache Savings",
-        data: dailyData?.daily_usage.map((d) => (d.response_cache_savings || 0) * 100) || [], // Convert to cents
+        data:
+          dailyData?.daily_usage.map(
+            (d) => (d.response_cache_savings || 0) * 100
+          ) || [], // Convert to cents
         borderColor: "rgb(6, 182, 212)",
         backgroundColor: "rgba(6, 182, 212, 0.2)",
         fill: true,
@@ -522,7 +562,8 @@ const AdminTokenUsagePage: React.FC = () => {
                       {getModelInfo(chatbotSettings.model).name}
                     </span>
                     <span className="text-[10px] sm:text-xs text-indigo-600/70 dark:text-indigo-400/70">
-                      (${getModelInfo(chatbotSettings.model).input} / ${getModelInfo(chatbotSettings.model).output} per MTok)
+                      (${getModelInfo(chatbotSettings.model).input} / $
+                      {getModelInfo(chatbotSettings.model).output} per MTok)
                     </span>
                   </div>
                 )}
@@ -548,30 +589,33 @@ const AdminTokenUsagePage: React.FC = () => {
           <nav className="flex space-x-8" aria-label="Tabs">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`${activeTab === "overview"
+              className={`${
+                activeTab === "overview"
                   ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
             >
               <MdTrendingUp className="w-5 h-5" />
               Token Usage
             </button>
             <button
               onClick={() => setActiveTab("cache")}
-              className={`${activeTab === "cache"
+              className={`${
+                activeTab === "cache"
                   ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
             >
               <FaDatabase className="w-5 h-5" />
               Cache Analytics
             </button>
             <button
               onClick={() => setActiveTab("embeddings")}
-              className={`${activeTab === "embeddings"
+              className={`${
+                activeTab === "embeddings"
                   ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
                   : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
             >
               <HiSparkles className="w-5 h-5" />
               Embeddings
@@ -779,12 +823,23 @@ const AdminTokenUsagePage: React.FC = () => {
                           </div>
                           <div className="text-lg font-bold text-blue-600 dark:text-blue-300">
                             $
-                            {((stats.total_input_tokens / 1000000) *
-                              getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").input
+                            {(
+                              (stats.total_input_tokens / 1000000) *
+                              getModelInfo(
+                                chatbotSettings?.model ||
+                                  "claude-3-haiku-20240307"
+                              ).input
                             ).toFixed(4)}
                           </div>
                           <div className="text-[10px] text-gray-400 dark:text-slate-500">
-                            @ ${getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").input}/MTok
+                            @ $
+                            {
+                              getModelInfo(
+                                chatbotSettings?.model ||
+                                  "claude-3-haiku-20240307"
+                              ).input
+                            }
+                            /MTok
                           </div>
                         </div>
                       </div>
@@ -813,12 +868,23 @@ const AdminTokenUsagePage: React.FC = () => {
                           </div>
                           <div className="text-lg font-bold text-green-600 dark:text-green-300">
                             $
-                            {((stats.total_output_tokens / 1000000) *
-                              getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").output
+                            {(
+                              (stats.total_output_tokens / 1000000) *
+                              getModelInfo(
+                                chatbotSettings?.model ||
+                                  "claude-3-haiku-20240307"
+                              ).output
                             ).toFixed(4)}
                           </div>
                           <div className="text-[10px] text-gray-400 dark:text-slate-500">
-                            @ ${getModelInfo(chatbotSettings?.model || "claude-3-haiku-20240307").output}/MTok
+                            @ $
+                            {
+                              getModelInfo(
+                                chatbotSettings?.model ||
+                                  "claude-3-haiku-20240307"
+                              ).output
+                            }
+                            /MTok
                           </div>
                         </div>
                       </div>
@@ -838,7 +904,8 @@ const AdminTokenUsagePage: React.FC = () => {
                             {formatNumber(stats.total_cache_read_tokens || 0)}
                           </div>
                           <div className="text-xs text-gray-400 dark:text-slate-500 mt-1">
-                            {stats.prompt_cache_hit_rate || "0.0%"} cache hit rate
+                            {stats.prompt_cache_hit_rate || "0.0%"} cache hit
+                            rate
                           </div>
                         </div>
                         <div className="text-right pl-4 border-l border-gray-200 dark:border-slate-600">
@@ -907,71 +974,132 @@ const AdminTokenUsagePage: React.FC = () => {
                             </td>
                           </tr>
                         ) : (
-                          stats.users.map((user) => (
-                            <tr
-                              key={user.user_id}
-                              className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
-                            >
-                              <td className="px-4 py-3">
-                                <div className="flex items-center gap-3">
-                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
-                                    <span className="text-white text-xs font-bold">
-                                      {user.user_name.charAt(0).toUpperCase()}
-                                    </span>
-                                  </div>
-                                  <div>
-                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
-                                      {user.user_name}
+                          (() => {
+                            const startIndex =
+                              (userCurrentPage - 1) * USERS_PER_PAGE;
+                            const paginatedUsers = stats.users.slice(
+                              startIndex,
+                              startIndex + USERS_PER_PAGE
+                            );
+
+                            return paginatedUsers.map((user) => (
+                              <tr
+                                key={user.user_id}
+                                className="hover:bg-gray-50 dark:hover:bg-slate-700/30 transition-colors"
+                              >
+                                <td className="px-4 py-3">
+                                  <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center">
+                                      <span className="text-white text-xs font-bold">
+                                        {user.user_name.charAt(0).toUpperCase()}
+                                      </span>
                                     </div>
-                                    <div className="text-xs text-gray-400 dark:text-slate-500">
-                                      {user.user_id}
+                                    <div>
+                                      <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                        {user.user_name}
+                                      </div>
+                                      <div className="text-xs text-gray-400 dark:text-slate-500">
+                                        {user.user_id}
+                                      </div>
                                     </div>
                                   </div>
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="text-sm font-semibold text-gray-900 dark:text-white">
-                                  {formatNumber(user.total_tokens)}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-right hidden sm:table-cell">
-                                <div className="text-sm text-gray-600 dark:text-slate-400">
-                                  {formatNumber(user.input_tokens)}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-right hidden sm:table-cell">
-                                <div className="text-sm text-gray-600 dark:text-slate-400">
-                                  {formatNumber(user.output_tokens)}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="text-sm text-gray-600 dark:text-slate-400">
-                                  {user.request_count}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-right hidden md:table-cell">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300">
-                                  {user.cache_hit_rate}
-                                </span>
-                              </td>
-                              <td className="px-4 py-3 text-right hidden lg:table-cell">
-                                <div className="text-xs text-gray-500 dark:text-slate-500">
-                                  {user.last_request
-                                    ? new Date(user.last_request).toLocaleDateString()
-                                    : "N/A"}
-                                </div>
-                              </td>
-                              <td className="px-4 py-3 text-right">
-                                <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
-                                  ${estimateCost(user.input_tokens, user.output_tokens)}
-                                </div>
-                              </td>
-                            </tr>
-                          ))
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                                    {formatNumber(user.total_tokens)}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right hidden sm:table-cell">
+                                  <div className="text-sm text-gray-600 dark:text-slate-400">
+                                    {formatNumber(user.input_tokens)}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right hidden sm:table-cell">
+                                  <div className="text-sm text-gray-600 dark:text-slate-400">
+                                    {formatNumber(user.output_tokens)}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <div className="text-sm text-gray-600 dark:text-slate-400">
+                                    {user.request_count}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right hidden md:table-cell">
+                                  <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-cyan-100 dark:bg-cyan-900/30 text-cyan-700 dark:text-cyan-300">
+                                    {user.cache_hit_rate}
+                                  </span>
+                                </td>
+                                <td className="px-4 py-3 text-right hidden lg:table-cell">
+                                  <div className="text-xs text-gray-500 dark:text-slate-500">
+                                    {user.last_request
+                                      ? new Date(
+                                          user.last_request
+                                        ).toLocaleDateString()
+                                      : "N/A"}
+                                  </div>
+                                </td>
+                                <td className="px-4 py-3 text-right">
+                                  <div className="text-sm font-semibold text-indigo-600 dark:text-indigo-400">
+                                    $
+                                    {estimateCost(
+                                      user.input_tokens,
+                                      user.output_tokens
+                                    )}
+                                  </div>
+                                </td>
+                              </tr>
+                            ));
+                          })()
                         )}
                       </tbody>
                     </table>
                   </div>
+
+                  {/* Pagination Controls */}
+                  {stats.users.length > USERS_PER_PAGE && (
+                    <div className="px-4 py-3 border-t border-gray-200 dark:border-slate-700 flex items-center justify-between">
+                      <div className="text-sm text-gray-500 dark:text-slate-400">
+                        Showing {(userCurrentPage - 1) * USERS_PER_PAGE + 1} to{" "}
+                        {Math.min(
+                          userCurrentPage * USERS_PER_PAGE,
+                          stats.users.length
+                        )}{" "}
+                        of {stats.users.length} users
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() =>
+                            setUserCurrentPage((p) => Math.max(1, p - 1))
+                          }
+                          disabled={userCurrentPage === 1}
+                          className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                        >
+                          Previous
+                        </button>
+                        <span className="px-3 py-1.5 text-sm font-medium text-gray-700 dark:text-slate-300">
+                          Page {userCurrentPage} of{" "}
+                          {Math.ceil(stats.users.length / USERS_PER_PAGE)}
+                        </span>
+                        <button
+                          onClick={() =>
+                            setUserCurrentPage((p) =>
+                              Math.min(
+                                Math.ceil(stats.users.length / USERS_PER_PAGE),
+                                p + 1
+                              )
+                            )
+                          }
+                          disabled={
+                            userCurrentPage >=
+                            Math.ceil(stats.users.length / USERS_PER_PAGE)
+                          }
+                          className="px-3 py-1.5 text-sm font-medium rounded-lg border border-gray-300 dark:border-slate-600 bg-white dark:bg-slate-800 text-gray-700 dark:text-slate-300 hover:bg-gray-50 dark:hover:bg-slate-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors cursor-pointer"
+                        >
+                          Next
+                        </button>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </>
             )}
@@ -1073,7 +1201,10 @@ const AdminTokenUsagePage: React.FC = () => {
 
                   {dailyData && dailyData.daily_usage.length > 0 ? (
                     <div className="h-[200px] sm:h-[250px]">
-                      <Line data={cacheSavingsChartData} options={cacheSavingsChartOptions} />
+                      <Line
+                        data={cacheSavingsChartData}
+                        options={cacheSavingsChartOptions}
+                      />
                     </div>
                   ) : (
                     <div className="h-[200px] sm:h-[250px] flex items-center justify-center">
@@ -1092,7 +1223,10 @@ const AdminTokenUsagePage: React.FC = () => {
                         </span>
                       </div>
                       <span className="text-emerald-600 dark:text-emerald-400 font-bold">
-                        ${dailyData?.summary?.total_prompt_cache_savings?.toFixed(2) || "0.00"}
+                        $
+                        {dailyData?.summary?.total_prompt_cache_savings?.toFixed(
+                          2
+                        ) || "0.00"}
                       </span>
                     </div>
                     <div className="flex items-center justify-between text-xs mb-2">
@@ -1103,7 +1237,10 @@ const AdminTokenUsagePage: React.FC = () => {
                         </span>
                       </div>
                       <span className="text-cyan-600 dark:text-cyan-400 font-bold">
-                        ${dailyData?.summary?.total_response_cache_savings?.toFixed(2) || "0.00"}
+                        $
+                        {dailyData?.summary?.total_response_cache_savings?.toFixed(
+                          2
+                        ) || "0.00"}
                       </span>
                     </div>
                     <div className="pt-2 border-t border-emerald-300 dark:border-emerald-700">
@@ -1115,7 +1252,8 @@ const AdminTokenUsagePage: React.FC = () => {
                           </span>
                         </div>
                         <span className="text-red-600 dark:text-red-400 font-bold">
-                          ${dailyData?.summary?.total_cost?.toFixed(2) || "0.00"}
+                          $
+                          {dailyData?.summary?.total_cost?.toFixed(2) || "0.00"}
                         </span>
                       </div>
                     </div>
@@ -1137,9 +1275,13 @@ const AdminTokenUsagePage: React.FC = () => {
                           1. Response Cache (In-Memory)
                         </h4>
                         <p className="text-xs text-gray-600 dark:text-slate-400">
-                          Stores complete LLM responses for <strong>1 hour</strong>. When the same question is asked,
-                          returns instantly with <strong className="text-emerald-600 dark:text-emerald-400">100% cost savings</strong> (zero API calls).
-                          Controlled via admin settings.
+                          Stores complete LLM responses for{" "}
+                          <strong>1 hour</strong>. When the same question is
+                          asked, returns instantly with{" "}
+                          <strong className="text-emerald-600 dark:text-emerald-400">
+                            100% cost savings
+                          </strong>{" "}
+                          (zero API calls). Controlled via admin settings.
                         </p>
                       </div>
 
@@ -1149,19 +1291,28 @@ const AdminTokenUsagePage: React.FC = () => {
                           2. Prompt Cache (Claude API)
                         </h4>
                         <p className="text-xs text-gray-600 dark:text-slate-400">
-                          Caches conversation history and system prompts for <strong>5 minutes</strong>.
-                          Cache reads cost <strong className="text-emerald-600 dark:text-emerald-400">90% less</strong> than regular input tokens.
-                          Always enabled on every request.
+                          Caches conversation history and system prompts for{" "}
+                          <strong>5 minutes</strong>. Cache reads cost{" "}
+                          <strong className="text-emerald-600 dark:text-emerald-400">
+                            90% less
+                          </strong>{" "}
+                          than regular input tokens. Always enabled on every
+                          request.
                         </p>
                       </div>
 
                       {/* Pricing Example */}
                       <div className="mt-2 p-2 bg-white/50 dark:bg-slate-800/50 rounded-lg">
                         <p className="text-xs text-gray-700 dark:text-slate-300">
-                          <strong className="text-indigo-600 dark:text-indigo-300">Pricing (Haiku):</strong>{" "}
+                          <strong className="text-indigo-600 dark:text-indigo-300">
+                            Pricing (Haiku):
+                          </strong>{" "}
                           Input $0.25/MTok • Cache write $0.30/MTok •
-                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold"> Cache read $0.03/MTok (90% off!)</span> •
-                          Output $1.25/MTok
+                          <span className="text-emerald-600 dark:text-emerald-400 font-semibold">
+                            {" "}
+                            Cache read $0.03/MTok (90% off!)
+                          </span>{" "}
+                          • Output $1.25/MTok
                         </p>
                       </div>
                     </div>
@@ -1224,7 +1375,9 @@ const AdminTokenUsagePage: React.FC = () => {
                     <div className="text-xl sm:text-3xl font-bold text-amber-600 dark:text-amber-400 mb-1">
                       $
                       {embeddingDailyData?.summary
-                        ? embeddingDailyData.summary.projected_monthly_cost.toFixed(6)
+                        ? embeddingDailyData.summary.projected_monthly_cost.toFixed(
+                            6
+                          )
                         : "0.000000"}
                     </div>
                     <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
@@ -1246,7 +1399,8 @@ const AdminTokenUsagePage: React.FC = () => {
                       {formatNumber(embeddingStats.total_requests)}
                     </div>
                     <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
-                      {embeddingStats.avg_tokens_per_request.toFixed(0)} tokens/req
+                      {embeddingStats.avg_tokens_per_request.toFixed(0)}{" "}
+                      tokens/req
                     </div>
                   </div>
                 </div>
@@ -1273,7 +1427,8 @@ const AdminTokenUsagePage: React.FC = () => {
                     </select>
                   </div>
 
-                  {embeddingDailyData && embeddingDailyData.daily_usage.length > 0 ? (
+                  {embeddingDailyData &&
+                  embeddingDailyData.daily_usage.length > 0 ? (
                     <div className="h-[200px] sm:h-[300px]">
                       <Line
                         data={{
@@ -1287,7 +1442,9 @@ const AdminTokenUsagePage: React.FC = () => {
                           datasets: [
                             {
                               label: "Tokens",
-                              data: embeddingDailyData.daily_usage.map((d) => d.total_tokens),
+                              data: embeddingDailyData.daily_usage.map(
+                                (d) => d.total_tokens
+                              ),
                               borderColor: "rgb(168, 85, 247)",
                               backgroundColor: "rgba(168, 85, 247, 0.1)",
                               fill: true,
@@ -1298,7 +1455,9 @@ const AdminTokenUsagePage: React.FC = () => {
                             },
                             {
                               label: "Cost (cents)",
-                              data: embeddingDailyData.daily_usage.map((d) => d.total_cost * 100),
+                              data: embeddingDailyData.daily_usage.map(
+                                (d) => d.total_cost * 100
+                              ),
                               borderColor: "rgb(16, 185, 129)",
                               backgroundColor: "rgba(16, 185, 129, 0.05)",
                               fill: false,
@@ -1367,7 +1526,10 @@ const AdminTokenUsagePage: React.FC = () => {
                               },
                               ticks: {
                                 callback: function (value: number | string) {
-                                  const num = typeof value === "string" ? parseFloat(value) : value;
+                                  const num =
+                                    typeof value === "string"
+                                      ? parseFloat(value)
+                                      : value;
                                   return formatNumber(num);
                                 },
                               },
@@ -1385,7 +1547,10 @@ const AdminTokenUsagePage: React.FC = () => {
                               },
                               ticks: {
                                 callback: function (value: number | string) {
-                                  const num = typeof value === "string" ? parseFloat(value) : value;
+                                  const num =
+                                    typeof value === "string"
+                                      ? parseFloat(value)
+                                      : value;
                                   return `${num.toFixed(2)}¢`;
                                 },
                               },
@@ -1411,7 +1576,12 @@ const AdminTokenUsagePage: React.FC = () => {
                       </h4>
                     </div>
                     <p className="text-xs text-gray-600 dark:text-slate-400">
-                      Pricing: <strong className="text-purple-600 dark:text-purple-400">$0.02 per 1M tokens</strong> - Used for semantic search and context retrieval from Pinecone vector database
+                      Pricing:{" "}
+                      <strong className="text-purple-600 dark:text-purple-400">
+                        $0.02 per 1M tokens
+                      </strong>{" "}
+                      - Used for semantic search and context retrieval from
+                      Pinecone vector database
                     </p>
                   </div>
                 </div>
@@ -1499,7 +1669,9 @@ const AdminTokenUsagePage: React.FC = () => {
                               <td className="px-4 py-3 text-right hidden lg:table-cell">
                                 <div className="text-xs text-gray-500 dark:text-slate-500">
                                   {user.last_request
-                                    ? new Date(user.last_request).toLocaleDateString()
+                                    ? new Date(
+                                        user.last_request
+                                      ).toLocaleDateString()
                                     : "N/A"}
                                 </div>
                               </td>

@@ -144,6 +144,9 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
         # Get user ID for rate limiting
         user_id = request.userId or "anonymous"
+        
+        # DEBUG: Log received userName from frontend request
+        logger.info(f"🔍 DEBUG chatbot.py - user_id: {user_id}, userName from request: '{request.userName}'")
 
         # Check if user is admin or super admin
         is_admin = request.userRole in ["admin", "super_admin"] if request.userRole else False

@@ -345,7 +345,7 @@ const SignUpPage: React.FC = () => {
                       <div className="space-y-4">
                         <div className="group">
                           <label className="block text-sm font-semibold text-slate-700 dark:text-slate-300 mb-2">
-                            Full Name (Optional)
+                            Full Name
                           </label>
                           <div className="relative">
                             <input
@@ -353,6 +353,7 @@ const SignUpPage: React.FC = () => {
                               name="full_name"
                               value={form.full_name}
                               onChange={handleChange}
+                              required
                               placeholder="Dr. Amina Farooq"
                               className="w-full rounded-2xl border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900/50 px-4 py-3 text-sm text-slate-900 dark:text-white shadow-inner transition-all duration-300 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:bg-white dark:focus:bg-slate-900 group-hover:border-slate-400 dark:group-hover:border-slate-500 placeholder-slate-400 dark:placeholder-slate-500"
                             />

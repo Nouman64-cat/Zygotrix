@@ -61,7 +61,7 @@ class ZygotrixChatService:
         perf.start("total")
         
         user_id = current_user.id
-        user_name = current_user.name if hasattr(current_user, 'name') else None
+        user_name = current_user.full_name if hasattr(current_user, 'full_name') else None
         is_admin = hasattr(current_user, 'user_role') and current_user.user_role in ["admin", "super_admin"]
 
         # Check rate limit
@@ -208,7 +208,7 @@ class ZygotrixChatService:
     ) -> ChatResponse:
         """Regenerate a response for a specific message."""
         user_id = current_user.id
-        user_name = current_user.name if hasattr(current_user, 'name') else None
+        user_name = current_user.full_name if hasattr(current_user, 'full_name') else None
 
         conversation = ConversationService.get_conversation(conversation_id, user_id)
         if not conversation:

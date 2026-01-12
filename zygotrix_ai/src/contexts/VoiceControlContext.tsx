@@ -78,10 +78,16 @@ const DictationProvider: React.FC<{ children: React.ReactNode }> = ({
   const isListeningRef = useRef(isListening);
   const wasListeningBeforePauseRef = useRef(false);
   const isRecognitionActiveRef = useRef(false);
+  const isPausedRef = useRef(isPaused);
 
   useEffect(() => {
     isListeningRef.current = isListening;
   }, [isListening]);
+
+  // Keep isPausedRef in sync with isPaused state
+  useEffect(() => {
+    isPausedRef.current = isPaused;
+  }, [isPaused]);
 
   // Initialize Speech Recognition
   useEffect(() => {
@@ -124,15 +130,30 @@ const DictationProvider: React.FC<{ children: React.ReactNode }> = ({
 
       recognition.onend = () => {
         isRecognitionActiveRef.current = false;
-        if (isListeningRef.current && !isPaused) {
+        const isDictating = !!dictationCallbackRef.current;
+        console.log(
+          "🎤 Recognition onend, isListening:",
+          isListeningRef.current,
+          "isPaused:",
+          isPausedRef.current,
+          "isDictating:",
+          isDictating
+        );
+        // Restart recognition if:
+        // 1. isListening is true (universal mic is on), AND
+        // 2. Either: not paused (command mode) OR in dictation mode (text goes to callback)
+        const shouldRestart =
+          isListeningRef.current && (!isPausedRef.current || isDictating);
+        if (shouldRestart) {
           setTimeout(() => {
             if (
               isListeningRef.current &&
-              !isPaused &&
+              (!isPausedRef.current || !!dictationCallbackRef.current) &&
               recognitionRef.current &&
               !isRecognitionActiveRef.current
             ) {
               try {
+                console.log("🎤 Restarting recognition after onend");
                 recognitionRef.current.start();
                 isRecognitionActiveRef.current = true;
               } catch (err) {

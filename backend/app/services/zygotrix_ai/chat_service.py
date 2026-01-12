@@ -61,7 +61,19 @@ class ZygotrixChatService:
         perf.start("total")
         
         user_id = current_user.id
+        
+        # DEBUG: Log all available attributes on current_user to trace user_name issue
+        logger.info(f"🔍 DEBUG user_name trace - user_id: {user_id}")
+        logger.info(f"🔍 DEBUG current_user type: {type(current_user)}")
+        logger.info(f"🔍 DEBUG current_user.__dict__: {getattr(current_user, '__dict__', 'N/A')}")
+        logger.info(f"🔍 DEBUG hasattr(current_user, 'full_name'): {hasattr(current_user, 'full_name')}")
+        logger.info(f"🔍 DEBUG hasattr(current_user, 'name'): {hasattr(current_user, 'name')}")
+        logger.info(f"🔍 DEBUG current_user.full_name: {getattr(current_user, 'full_name', 'ATTR_NOT_FOUND')}")
+        logger.info(f"🔍 DEBUG current_user.email: {getattr(current_user, 'email', 'ATTR_NOT_FOUND')}")
+        
         user_name = current_user.full_name if hasattr(current_user, 'full_name') else None
+        logger.info(f"🔍 DEBUG final user_name value: '{user_name}'")
+        
         is_admin = hasattr(current_user, 'user_role') and current_user.user_role in ["admin", "super_admin"]
 
         # Check rate limit

@@ -128,6 +128,9 @@ class TokenAnalyticsService:
         cache_read_input_tokens: int = 0
     ) -> None:
         """Log token usage to MongoDB for admin tracking with prompt caching metrics."""
+        # DEBUG: Log received user_name value
+        logger.info(f"🔍 DEBUG log_usage called - user_id: {user_id}, user_name: '{user_name}', type: {type(user_name)}")
+        
         try:
             from ..common import get_token_usage_collection
 

@@ -1,11 +1,16 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { FiMenu, FiSettings, FiExternalLink, FiLogOut } from 'react-icons/fi';
-import { Sidebar } from './Sidebar';
-import { IconButton, Logo } from '../common';
-import { useAuth, useVoiceControl, useTheme, useVoiceCommand } from '../../contexts';
-import { LOGO_URL } from '../../config';
-import { VoiceStatus } from '../common/VoiceStatus';
+import React, { useState, useRef, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { FiMenu, FiSettings, FiExternalLink, FiLogOut } from "react-icons/fi";
+import { Sidebar } from "./Sidebar";
+import { IconButton, Logo } from "../common";
+import {
+  useAuth,
+  useVoiceControl,
+  useTheme,
+  useVoiceCommand,
+} from "../../contexts";
+import { LOGO_URL } from "../../config";
+import { VoiceStatus } from "../common/VoiceStatus";
 
 interface MainLayoutProps {
   children: React.ReactNode;
@@ -25,96 +30,100 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState("");
 
   const handleSelectConversation = (id: string) => {
     navigate(`/chat/${id}`);
   };
 
   const handleNewConversation = () => {
-    navigate('/chat');
+    navigate("/chat");
   };
 
   // Voice Commands using package's useVoiceCommand hook
   useVoiceCommand({
-    id: 'open-settings',
-    description: 'Navigates to the settings page',
+    id: "open-settings",
+    description: "Navigates to the settings page",
     action: () => {
-      console.log('🎯 Opening settings');
-      navigate('/settings');
-    }
+      console.log("🎯 Opening settings");
+      navigate("/settings");
+    },
   });
 
   useVoiceCommand({
-    id: 'go-to-chat',
-    description: 'Navigates to the main chat interface',
-    action: () => navigate('/chat')
+    id: "go-to-chat",
+    description: "Navigates to the main chat interface",
+    action: () => navigate("/chat"),
   });
 
   useVoiceCommand({
-    id: 'create-new-chat',
-    description: 'Starts a new empty conversation',
+    id: "create-new-chat",
+    description: "Starts a new empty conversation",
     action: () => {
-      console.log('🎯 Creating new chat');
+      console.log("🎯 Creating new chat");
       handleNewConversation();
-    }
+    },
   });
 
   useVoiceCommand({
-    id: 'change-theme',
-    description: 'Toggles between light and dark theme',
+    id: "change-theme",
+    description: "Toggles between light and dark theme",
     action: () => {
-      console.log('🎨 Changing theme');
+      console.log("🎨 Changing theme");
       toggleTheme();
-    }
+    },
   });
 
   useVoiceCommand({
-    id: 'show-usage',
-    description: 'Shows your AI token usage statistics',
+    id: "show-usage",
+    description: "Shows your AI token usage statistics",
     action: () => {
-      console.log('📊 Showing usage statistics');
-      navigate('/settings#usage');
-    }
+      console.log("📊 Showing usage statistics");
+      navigate("/settings#usage");
+    },
   });
 
   useVoiceCommand({
-    id: 'greeting',
-    description: 'Responds to greetings like hi, hello, hey',
+    id: "greeting",
+    description: "Responds to greetings like hi, hello, hey",
     action: () => {
       const greetings = [
-        'Hello! How can I help you analyze genetics today?',
-        'Hi there! Ready to explore some DNA sequences?',
+        "Hello! How can I help you analyze genetics today?",
+        "Hi there! Ready to explore some DNA sequences?",
       ];
-      console.log('👋 Greeting:', greetings[Math.floor(Math.random() * greetings.length)]);
-    }
+      console.log(
+        "👋 Greeting:",
+        greetings[Math.floor(Math.random() * greetings.length)]
+      );
+    },
   });
 
   useVoiceCommand({
-    id: 'goodbye',
-    description: 'Closes voice control. Examples: bye, exit, quit, goodbye',
+    id: "goodbye",
+    description:
+      "Closes voice control. Examples: bye, bye bye, exit, quit, goodbye, see you later",
     action: () => {
-      console.log('👋 Goodbye!');
+      console.log("👋 Goodbye!");
       setTimeout(() => toggleListening(), 1000);
-    }
+    },
   });
 
   useVoiceCommand({
-    id: 'open-sidebar',
-    description: 'Opens or expands the sidebar',
+    id: "open-sidebar",
+    description: "Opens or expands the sidebar",
     action: () => {
       if (window.innerWidth < 1024) {
         setIsSidebarOpen(true);
       } else {
         setIsCollapsed(false);
       }
-      console.log('📁 Opening sidebar');
-    }
+      console.log("📁 Opening sidebar");
+    },
   });
 
   useVoiceCommand({
-    id: 'close-sidebar',
-    description: 'Closes or collapses the sidebar',
+    id: "close-sidebar",
+    description: "Closes or collapses the sidebar",
     action: () => {
       if (window.innerWidth < 1024) {
         setIsSidebarOpen(false);
@@ -122,33 +131,33 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
         setIsCollapsed(true);
         setIsSearchOpen(false);
       }
-      console.log('📁 Closing sidebar');
-    }
+      console.log("📁 Closing sidebar");
+    },
   });
 
   useVoiceCommand({
-    id: 'search-chat',
-    description: 'Searches conversations. Examples: search chat for hello',
+    id: "search-chat",
+    description: "Searches conversations. Examples: search chat for hello",
     action: () => {
       setIsSidebarOpen(true);
       setIsCollapsed(false);
       setIsSearchOpen(true);
-      console.log('🔍 Opening search');
-    }
+      console.log("🔍 Opening search");
+    },
   });
 
   useVoiceCommand({
-    id: 'clear-search',
-    description: 'Clears the search input field',
+    id: "clear-search",
+    description: "Clears the search input field",
     action: () => {
-      setSearchQuery('');
-      console.log('🔍 Search cleared');
-    }
+      setSearchQuery("");
+      console.log("🔍 Search cleared");
+    },
   });
 
   // Auto-clear search when closed
   useEffect(() => {
-    if (!isSearchOpen) setSearchQuery('');
+    if (!isSearchOpen) setSearchQuery("");
   }, [isSearchOpen]);
 
   // Mobile Avatar Menu State
@@ -161,8 +170,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
   // Get user initials
   const getUserInitials = () => {
-    if (!user?.full_name) return 'U';
-    const names = user.full_name.split(' ');
+    if (!user?.full_name) return "U";
+    const names = user.full_name.split(" ");
     if (names.length >= 2) {
       return `${names[0][0]}${names[names.length - 1][0]}`.toUpperCase();
     }
@@ -172,25 +181,31 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   // Handle logout
   const handleLogout = async () => {
     await logout();
-    navigate('/login');
+    navigate("/login");
   };
 
   // Close menus when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (mobileAvatarRef.current && !mobileAvatarRef.current.contains(event.target as Node)) {
+      if (
+        mobileAvatarRef.current &&
+        !mobileAvatarRef.current.contains(event.target as Node)
+      ) {
         setIsMobileAvatarOpen(false);
       }
-      if (desktopAvatarRef.current && !desktopAvatarRef.current.contains(event.target as Node)) {
+      if (
+        desktopAvatarRef.current &&
+        !desktopAvatarRef.current.contains(event.target as Node)
+      ) {
         setIsDesktopAvatarOpen(false);
       }
     };
 
     if (isMobileAvatarOpen || isDesktopAvatarOpen) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [isMobileAvatarOpen, isDesktopAvatarOpen]);
 
@@ -200,7 +215,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       {user && (
         <div className="px-3 py-2 border-b border-gray-200 dark:border-gray-700">
           <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-            {user.full_name || 'User'}
+            {user.full_name || "User"}
           </p>
           <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
             {user.email}
@@ -210,7 +225,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
       <button
         onClick={() => {
-          navigate('/settings');
+          navigate("/settings");
           closeFn();
         }}
         className="w-full flex items-center gap-3 px-3 py-2 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer"
@@ -262,7 +277,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
       />
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
-
         {/* Desktop Header */}
         <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
           <Logo size="sm" showText={true} />
@@ -271,27 +285,36 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             {/* Magic Wand Voice Control Button */}
             <button
               onClick={toggleListening}
-              title={isDictating ? "Dictating to input..." : (isListening ? "Stop Listening" : "Start Voice Control")}
+              title={
+                isDictating
+                  ? "Dictating to input..."
+                  : isListening
+                  ? "Stop Listening"
+                  : "Start Voice Control"
+              }
               className="relative cursor-pointer group"
             >
               {isListening && !isDictating && (
                 <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-75" />
               )}
 
-              <div className={`
+              <div
+                className={`
                 relative w-10 h-10 rounded-full flex items-center justify-center
                 transition-all duration-300 group-hover:scale-105
-                ${isListening && !isDictating
-                  ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
-                  : 'bg-gray-100 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700'
+                ${
+                  isListening && !isDictating
+                    ? "bg-emerald-500 shadow-lg shadow-emerald-500/30"
+                    : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
                 }
-              `}>
-
+              `}
+              >
                 <svg
-                  className={`w-5 h-5 transition-all duration-300 ${isListening && !isDictating
-                    ? 'text-white'
-                    : 'text-gray-600 dark:text-gray-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-400'
-                    }`}
+                  className={`w-5 h-5 transition-all duration-300 ${
+                    isListening && !isDictating
+                      ? "text-white"
+                      : "text-gray-600 dark:text-gray-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-400"
+                  }`}
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
@@ -300,7 +323,6 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               </div>
             </button>
 
-
             <div className="relative" ref={desktopAvatarRef}>
               <button
                 onClick={() => setIsDesktopAvatarOpen(!isDesktopAvatarOpen)}
@@ -308,7 +330,8 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
               >
                 {getUserInitials()}
               </button>
-              {isDesktopAvatarOpen && renderAvatarMenu(() => setIsDesktopAvatarOpen(false))}
+              {isDesktopAvatarOpen &&
+                renderAvatarMenu(() => setIsDesktopAvatarOpen(false))}
             </div>
           </div>
         </div>
@@ -341,16 +364,23 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping opacity-75" />
               )}
 
-              <div className={`
+              <div
+                className={`
                 relative w-9 h-9 rounded-full flex items-center justify-center
                 transition-all duration-300
-                ${isListening && !isDictating
-                  ? 'bg-emerald-500 shadow-lg shadow-emerald-500/30'
-                  : 'bg-gray-100 dark:bg-gray-800'
+                ${
+                  isListening && !isDictating
+                    ? "bg-emerald-500 shadow-lg shadow-emerald-500/30"
+                    : "bg-gray-100 dark:bg-gray-800"
                 }
-              `}>
+              `}
+              >
                 <svg
-                  className={`w-4 h-4 transition-colors duration-300 ${isListening && !isDictating ? 'text-white' : 'text-gray-600 dark:text-gray-400'}`}
+                  className={`w-4 h-4 transition-colors duration-300 ${
+                    isListening && !isDictating
+                      ? "text-white"
+                      : "text-gray-600 dark:text-gray-400"
+                  }`}
                   viewBox="0 0 24 24"
                   fill="currentColor"
                 >
@@ -367,14 +397,13 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
                 {getUserInitials()}
               </button>
 
-              {isMobileAvatarOpen && renderAvatarMenu(() => setIsMobileAvatarOpen(false))}
+              {isMobileAvatarOpen &&
+                renderAvatarMenu(() => setIsMobileAvatarOpen(false))}
             </div>
           </div>
         </div>
 
-        <main className="flex-1 overflow-hidden">
-          {children}
-        </main>
+        <main className="flex-1 overflow-hidden">{children}</main>
         <VoiceStatus />
 
         <style>{`

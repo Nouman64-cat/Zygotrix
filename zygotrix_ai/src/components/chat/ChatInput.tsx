@@ -1,8 +1,22 @@
-import React, { useState, useRef, useEffect, useCallback, type KeyboardEvent } from 'react';
-import { FiSend, FiPlus, FiX, FiFile, FiSliders, FiCheck, FiMic } from 'react-icons/fi';
-import { cn } from '../../utils';
-import { useVoiceControl, useVoiceCommand } from '../../contexts';
-import type { MessageAttachment } from '../../types';
+import React, {
+  useState,
+  useRef,
+  useEffect,
+  useCallback,
+  type KeyboardEvent,
+} from "react";
+import {
+  FiSend,
+  FiPlus,
+  FiX,
+  FiFile,
+  FiSliders,
+  FiCheck,
+  FiMic,
+} from "react-icons/fi";
+import { cn } from "../../utils";
+import { useVoiceControl, useVoiceCommand } from "../../contexts";
+import type { MessageAttachment } from "../../types";
 
 // TypeScript declarations for Web Speech API
 interface SpeechRecognitionEvent extends Event {
@@ -54,21 +68,25 @@ interface AiTool {
 
 const AVAILABLE_TOOLS: AiTool[] = [
   {
-    id: 'gwas_analysis',
-    name: 'GWAS Analysis',
-    description: '',
-    icon: '🧬',
+    id: "gwas_analysis",
+    name: "GWAS Analysis",
+    description: "",
+    icon: "🧬",
   },
 ];
 
 const RECORDING_PROMPTS = [
   'Listening... Say "send message"',
   'Listening... Say "send it"',
-  'Listening... Say "submit message"'
+  'Listening... Say "submit message"',
 ];
 
 interface ChatInputProps {
-  onSend: (message: string, attachments?: MessageAttachment[], enabledTools?: string[]) => void;
+  onSend: (
+    message: string,
+    attachments?: MessageAttachment[],
+    enabledTools?: string[]
+  ) => void;
   disabled?: boolean;
   placeholder?: string;
 }
@@ -76,22 +94,27 @@ interface ChatInputProps {
 export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   disabled = false,
-  placeholder = 'Ask Zygotrix AI',
+  placeholder = "Ask Zygotrix AI",
 }) => {
-  const [value, setValue] = useState('');
+  const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
   const [enabledTools, setEnabledTools] = useState<string[]>([]);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
-  const [recordingPlaceholder, setRecordingPlaceholder] = useState(RECORDING_PROMPTS[0]);
+  const [recordingPlaceholder, setRecordingPlaceholder] = useState(
+    RECORDING_PROMPTS[0]
+  );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  const { setDictationCallback, isListening: isUniversalMicActive, toggleListening, isDictating } = useVoiceControl();
-
-
+  const {
+    setDictationCallback,
+    isListening: isUniversalMicActive,
+    toggleListening,
+    isDictating,
+  } = useVoiceControl();
 
   // Debounce to prevent double sends
   const lastSendTimeRef = useRef(0);
@@ -99,7 +122,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   // Track finalized text for real-time dictation display
   // baseTextRef holds text that has been finalized (user paused)
   // Interim text is displayed in addition to this
-  const baseTextRef = useRef('');
+  const baseTextRef = useRef("");
 
   // Track universal mic state via ref to prevent useEffect re-runs
   const isUniversalMicActiveRef = useRef(isUniversalMicActive);
@@ -108,17 +131,21 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   }, [isUniversalMicActive]);
 
   // Check if speech recognition is supported
-  const isSpeechSupported = typeof window !== 'undefined' &&
-    ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window);
+  const isSpeechSupported =
+    typeof window !== "undefined" &&
+    ("SpeechRecognition" in window || "webkitSpeechRecognition" in window);
 
   const adjustHeight = () => {
     const textarea = textareaRef.current;
     if (textarea) {
-      textarea.style.height = 'auto';
+      textarea.style.height = "auto";
       // Very compact on mobile (24px single line), taller on desktop (44px)
       const minHeight = window.innerWidth < 640 ? 24 : 44;
       const maxHeight = window.innerWidth < 640 ? 120 : 150;
-      const newHeight = Math.max(minHeight, Math.min(textarea.scrollHeight, maxHeight));
+      const newHeight = Math.max(
+        minHeight,
+        Math.min(textarea.scrollHeight, maxHeight)
+      );
       textarea.style.height = `${newHeight}px`;
     }
   };
@@ -130,16 +157,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   // Close tools menu when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (toolsMenuRef.current && !toolsMenuRef.current.contains(event.target as Node)) {
+      if (
+        toolsMenuRef.current &&
+        !toolsMenuRef.current.contains(event.target as Node)
+      ) {
         setShowToolsMenu(false);
       }
     };
 
     if (showToolsMenu) {
-      document.addEventListener('mousedown', handleClickOutside);
+      document.addEventListener("mousedown", handleClickOutside);
     }
     return () => {
-      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener("mousedown", handleClickOutside);
     };
   }, [showToolsMenu]);
 
@@ -163,77 +193,95 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   // This fixes the issue where the VoiceStatus pill reappears because dictation state was lost
   useEffect(() => {
     if (isRecording && !isDictating) {
-      console.log('🎤 Failsafe: Restoring dictation callback');
-      setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
+      console.log("🎤 Failsafe: Restoring dictation callback");
+      setDictationCallback((text, isFinal) =>
+        handleDictationRef.current(text, isFinal)
+      );
     }
   }, [isRecording, isDictating, setDictationCallback]);
 
   // Handle Dictation (used by both local mic and universal mic when focused)
-  const handleDictation = useCallback((speechTranscript: string, isFinal: boolean) => {
-    // Real-time transcription:
-    // - Interim results: show baseText + current interim text
-    // - Final results: add to baseText and check for commands
+  const handleDictation = useCallback(
+    (speechTranscript: string, isFinal: boolean) => {
+      // Real-time transcription:
+      // - Interim results: show baseText + current interim text
+      // - Final results: add to baseText and check for commands
 
-    // Safe access to base text
-    const safeBaseText = baseTextRef.current || '';
+      // Safe access to base text
+      const safeBaseText = baseTextRef.current || "";
 
-    if (!isFinal) {
-      // Show interim results in real-time
-      const displayText = safeBaseText + (safeBaseText ? ' ' : '') + (speechTranscript || '');
-      // Schedule update to avoid "Cannot update while rendering" error
-      setTimeout(() => setValue(displayText), 0);
-      return;
-    }
-
-    // Final result - add to base text
-    const finalText = (speechTranscript || '').trim();
-    if (!finalText) return;
-
-    const newBaseText = safeBaseText + (safeBaseText ? ' ' : '') + finalText;
-    baseTextRef.current = newBaseText;
-    // Schedule update to avoid "Cannot update while rendering" error
-    setTimeout(() => setValue(newBaseText), 0);
-
-    // Check for send commands
-    const lowerTranscript = finalText.toLowerCase().trim();
-    const sendCommands = ['send message', 'please send', 'send this', 'send it', 'submit message'];
-
-    // Check if the transcript ENDS with any of the commands
-    const matchedCommand = sendCommands.find(cmd =>
-      lowerTranscript.endsWith(cmd) || lowerTranscript.endsWith(cmd + '.') || lowerTranscript.endsWith(cmd + '!')
-    );
-
-    if (matchedCommand) {
-      // Send command detected!
-      // Check debounce to prevent double sends
-      const now = Date.now();
-      if (now - lastSendTimeRef.current < 2000) {
-        console.log('🚫 Voice send blocked by debounce');
+      if (!isFinal) {
+        // Show interim results in real-time
+        const displayText =
+          safeBaseText + (safeBaseText ? " " : "") + (speechTranscript || "");
+        // Schedule update to avoid "Cannot update while rendering" error
+        setTimeout(() => setValue(displayText), 0);
         return;
       }
 
-      // IMMEDIATELY mark the send time BEFORE setTimeout to prevent race conditions
-      lastSendTimeRef.current = now;
+      // Final result - add to base text
+      const finalText = (speechTranscript || "").trim();
+      if (!finalText) return;
 
-      // We need to trigger send
-      setTimeout(() => {
-        // Remove command from text
-        const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
-        const messageContent = newBaseText.replace(commandRegex, '').trim();
-        if (messageContent) {
-          onSend(messageContent, attachments, enabledTools);
-          setValue('');
-          setAttachments([]);
-          baseTextRef.current = ''; // Reset base text after sending
+      const newBaseText = safeBaseText + (safeBaseText ? " " : "") + finalText;
+      baseTextRef.current = newBaseText;
+      // Schedule update to avoid "Cannot update while rendering" error
+      setTimeout(() => setValue(newBaseText), 0);
 
-          // IMPORTANT: Also clear dictation mode and reset recording indicator
-          setDictationCallback(null);
-          setIsRecording(false);
-          console.log('🎤 Dictation ended after voice send command');
+      // Check for send commands
+      const lowerTranscript = finalText.toLowerCase().trim();
+      const sendCommands = [
+        "send message",
+        "please send",
+        "send this",
+        "send it",
+        "submit message",
+      ];
+
+      // Check if the transcript ENDS with any of the commands
+      const matchedCommand = sendCommands.find(
+        (cmd) =>
+          lowerTranscript.endsWith(cmd) ||
+          lowerTranscript.endsWith(cmd + ".") ||
+          lowerTranscript.endsWith(cmd + "!")
+      );
+
+      if (matchedCommand) {
+        // Send command detected!
+        // Check debounce to prevent double sends
+        const now = Date.now();
+        if (now - lastSendTimeRef.current < 2000) {
+          console.log("🚫 Voice send blocked by debounce");
+          return;
         }
-      }, 0);
-    }
-  }, [onSend, attachments, enabledTools, setDictationCallback]);
+
+        // IMMEDIATELY mark the send time BEFORE setTimeout to prevent race conditions
+        lastSendTimeRef.current = now;
+
+        // We need to trigger send
+        setTimeout(() => {
+          // Remove command from text
+          const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, "i");
+          const messageContent = newBaseText.replace(commandRegex, "").trim();
+          if (messageContent) {
+            onSend(messageContent, attachments, enabledTools);
+            setValue("");
+            setAttachments([]);
+            baseTextRef.current = ""; // Reset base text after sending
+
+            // End dictation mode - control returns to universal mic command mode
+            // User can say "focus input" again to start dictating next message
+            setDictationCallback(null);
+            setIsRecording(false);
+            console.log(
+              "🎤 Dictation ended after voice send - returning to command mode"
+            );
+          }
+        }, 0);
+      }
+    },
+    [onSend, attachments, enabledTools, setDictationCallback]
+  );
 
   // Register dictation only when focused AND universal mic is active (for universal mic dictation)
   const handleDictationRef = useRef(handleDictation);
@@ -259,25 +307,29 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     valueRef.current = value;
   }, [value]);
   // Store the value at the time recording started
-  const initialValueOnStartRef = useRef('');
+  const initialValueOnStartRef = useRef("");
 
   // Initialize local speech recognition for ChatInput (independent from universal mic)
   useEffect(() => {
-    if (typeof window !== 'undefined' && (window.SpeechRecognition || window.webkitSpeechRecognition)) {
-      const SpeechRecognitionAPI = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (
+      typeof window !== "undefined" &&
+      (window.SpeechRecognition || window.webkitSpeechRecognition)
+    ) {
+      const SpeechRecognitionAPI =
+        window.SpeechRecognition || window.webkitSpeechRecognition;
       const recognition = new SpeechRecognitionAPI();
 
       recognition.continuous = true;
       recognition.interimResults = true;
-      recognition.lang = 'en-US';
+      recognition.lang = "en-US";
 
       // Track the finalized text so we can append interim text to it (use ref to persist across restarts)
-      const baseTextRef = { current: '' };
+      const baseTextRef = { current: "" };
       // Track if this is the first start (not a restart)
       let isFirstStart = true;
 
       recognition.onstart = () => {
-        console.log('🎤 Local recognition onstart fired');
+        console.log("🎤 Local recognition onstart fired");
         isLocalRecognitionActiveRef.current = true;
         setIsRecording(true);
         setRecordingPlaceholder(RECORDING_PROMPTS[0]);
@@ -292,8 +344,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       };
 
       recognition.onresult = (event: SpeechRecognitionEvent) => {
-        let interimTranscript = '';
-        let finalTranscript = '';
+        let interimTranscript = "";
+        let finalTranscript = "";
 
         for (let i = event.resultIndex || 0; i < event.results.length; ++i) {
           const transcript = event.results[i][0].transcript;
@@ -306,21 +358,38 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
         // If we got final text, add it to the base and update the input
         if (finalTranscript) {
-          baseTextRef.current = baseTextRef.current + (baseTextRef.current ? ' ' : '') + finalTranscript.trim();
+          baseTextRef.current =
+            baseTextRef.current +
+            (baseTextRef.current ? " " : "") +
+            finalTranscript.trim();
           setValue(baseTextRef.current);
 
           // Check for send commands (inline, don't call handleDictation which duplicates text)
           const lowerTranscript = finalTranscript.toLowerCase().trim();
-          const sendCommands = ['send message', 'please send', 'send this', 'send it', 'submit message'];
-          const matchedCommand = sendCommands.find(cmd =>
-            lowerTranscript.endsWith(cmd) || lowerTranscript.endsWith(cmd + '.') || lowerTranscript.endsWith(cmd + '!')
+          const sendCommands = [
+            "send message",
+            "please send",
+            "send this",
+            "send it",
+            "submit message",
+          ];
+          const matchedCommand = sendCommands.find(
+            (cmd) =>
+              lowerTranscript.endsWith(cmd) ||
+              lowerTranscript.endsWith(cmd + ".") ||
+              lowerTranscript.endsWith(cmd + "!")
           );
 
           if (matchedCommand) {
             // Remove command from text and send
             setTimeout(() => {
-              const commandRegex = new RegExp(`\\s*${matchedCommand}[.!?]*$`, 'i');
-              const messageContent = baseTextRef.current.replace(commandRegex, '').trim();
+              const commandRegex = new RegExp(
+                `\\s*${matchedCommand}[.!?]*$`,
+                "i"
+              );
+              const messageContent = baseTextRef.current
+                .replace(commandRegex, "")
+                .trim();
               if (messageContent) {
                 // Use the handleSendRef to send the message
                 setValue(messageContent);
@@ -332,24 +401,34 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
         // Show interim text in real-time (appended to base text)
         if (interimTranscript) {
-          const displayText = baseTextRef.current + (baseTextRef.current ? ' ' : '') + interimTranscript;
+          const displayText =
+            baseTextRef.current +
+            (baseTextRef.current ? " " : "") +
+            interimTranscript;
           setValue(displayText);
         }
       };
 
       recognition.onend = () => {
-        console.log('🎤 Local recognition onend fired, shouldBeRecording:', shouldBeRecordingRef.current);
+        console.log(
+          "🎤 Local recognition onend fired, shouldBeRecording:",
+          shouldBeRecordingRef.current
+        );
         isLocalRecognitionActiveRef.current = false;
 
         // If we're supposed to be recording, restart (handles browser quirks)
         if (shouldBeRecordingRef.current && recognitionRef.current) {
-          console.log('🎤 Restarting local recognition...');
+          console.log("🎤 Restarting local recognition...");
           setTimeout(() => {
-            if (shouldBeRecordingRef.current && recognitionRef.current && !isLocalRecognitionActiveRef.current) {
+            if (
+              shouldBeRecordingRef.current &&
+              recognitionRef.current &&
+              !isLocalRecognitionActiveRef.current
+            ) {
               try {
                 recognitionRef.current.start();
               } catch (e) {
-                console.warn('Failed to restart local recognition:', e);
+                console.warn("Failed to restart local recognition:", e);
                 shouldBeRecordingRef.current = false;
                 setIsRecording(false);
               }
@@ -358,17 +437,17 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         } else {
           setIsRecording(false);
           // Reset base text when stopping
-          baseTextRef.current = '';
+          baseTextRef.current = "";
         }
       };
 
       recognition.onerror = (event: Event) => {
-        console.warn('ChatInput speech recognition error:', event);
+        console.warn("ChatInput speech recognition error:", event);
         isLocalRecognitionActiveRef.current = false;
         // Only stop if we're not supposed to be recording
         if (!shouldBeRecordingRef.current) {
           setIsRecording(false);
-          baseTextRef.current = '';
+          baseTextRef.current = "";
         }
       };
 
@@ -381,7 +460,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       if (recognitionRef.current) {
         try {
           recognitionRef.current.abort();
-        } catch (e) { /* ignore */ }
+        } catch (e) {
+          /* ignore */
+        }
       }
     };
   }, []);
@@ -392,16 +473,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       // Stop recording - clear dictation callback
       setDictationCallback(null);
       setIsRecording(false);
-      baseTextRef.current = ''; // Reset base text when stopping
-      console.log('🎤 Recording stopped via button');
+      baseTextRef.current = ""; // Reset base text when stopping
+      console.log("🎤 Recording stopped via button");
     } else {
       // Start recording - initialize baseTextRef with current input value
       baseTextRef.current = valueRef.current;
       // Set dictation callback to write to input
-      setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
+      setDictationCallback((text, isFinal) =>
+        handleDictationRef.current(text, isFinal)
+      );
       setIsRecording(true);
       setRecordingPlaceholder(RECORDING_PROMPTS[0]);
-      console.log('🎤 Recording started via button (using universal mic)');
+      console.log("🎤 Recording started via button (using universal mic)");
     }
   }, [isRecording, setDictationCallback]);
 
@@ -427,7 +510,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           reader.onload = () => {
             const base64 = reader.result as string;
             // Remove the data URL prefix (e.g., "data:text/plain;base64,")
-            const base64Content = base64.split(',')[1] || base64;
+            const base64Content = base64.split(",")[1] || base64;
             resolve(base64Content);
           };
           reader.onerror = reject;
@@ -436,10 +519,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
         newAttachments.push({
           id: `attach_${Date.now()}_${i}`,
-          type: 'file',
+          type: "file",
           name: file.name,
           content,
-          mime_type: file.type || 'application/octet-stream',
+          mime_type: file.type || "application/octet-stream",
           size_bytes: file.size,
         });
       } catch (error) {
@@ -452,7 +535,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
     // Reset file input
     if (fileInputRef.current) {
-      fileInputRef.current.value = '';
+      fileInputRef.current.value = "";
     }
   };
 
@@ -472,7 +555,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     // Debounce: prevent double sends within 2 seconds
     const now = Date.now();
     if (now - lastSendTimeRef.current < 2000) {
-      console.log('🚫 Send blocked by debounce (sent recently)');
+      console.log("🚫 Send blocked by debounce (sent recently)");
       return;
     }
 
@@ -483,18 +566,19 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         attachments.length > 0 ? attachments : undefined,
         enabledTools.length > 0 ? enabledTools : undefined
       );
-      setValue('');
+      setValue("");
       setAttachments([]);
       // Don't reset enabled tools - keep them persistent for the session
       if (textareaRef.current) {
-        textareaRef.current.style.height = window.innerWidth < 640 ? '24px' : '44px';
+        textareaRef.current.style.height =
+          window.innerWidth < 640 ? "24px" : "44px";
       }
 
       // After sending, clear dictation mode and reset recording indicator
       if (isRecording) {
         setDictationCallback(null); // Clear dictation callback
         setIsRecording(false);
-        console.log('🎤 Dictation ended after send');
+        console.log("🎤 Dictation ended after send");
       }
     }
   };
@@ -507,94 +591,100 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   // Voice Commands using package's useVoiceCommand hook
   useVoiceCommand({
-    id: 'focus-input',
-    description: 'Focuses the chat input box and enables dictation via universal mic',
+    id: "focus-input",
+    description:
+      "Focuses the chat input box and enables dictation via universal mic",
     action: () => {
       setTimeout(() => {
         if (textareaRef.current) {
           textareaRef.current.focus();
-          baseTextRef.current = valueRef.current || '';
-          console.log('🎤 Focus input: Dictation enabled');
-          setDictationCallback((text, isFinal) => handleDictationRef.current(text, isFinal));
+          baseTextRef.current = valueRef.current || "";
+          console.log("🎤 Focus input: Dictation enabled");
+          setDictationCallback((text, isFinal) =>
+            handleDictationRef.current(text, isFinal)
+          );
           setIsRecording(true);
           setRecordingPlaceholder(RECORDING_PROMPTS[0]);
-          console.log('🎤 Focus input: Using universal mic for dictation');
+          console.log("🎤 Focus input: Using universal mic for dictation");
         }
       }, 0);
-    }
+    },
   });
 
   useVoiceCommand({
-    id: 'clear-input',
-    description: 'Clears the text and attachments',
+    id: "clear-input",
+    description: "Clears the text and attachments",
     action: () => {
-      setValue('');
+      setValue("");
       setAttachments([]);
-    }
+    },
   });
 
   useVoiceCommand({
-    id: 'send-message',
-    description: 'Sends the current message',
-    action: () => handleSendRef.current()
+    id: "send-message",
+    description: "Sends the current message",
+    action: () => handleSendRef.current(),
   });
 
   useVoiceCommand({
-    id: 'stop-listening',
-    description: 'Stops voice control when user says bye, goodbye, quit, stop listening',
+    id: "stop-listening",
+    description:
+      "Stops voice control when user says bye, bye bye, goodbye, quit, stop listening, see you",
     action: () => {
-      console.log('🎤 Stop listening command received');
+      console.log("🎤 Stop listening command received");
       if (isUniversalMicActiveRef.current) {
         toggleListening();
       }
-    }
+    },
   });
 
   useVoiceCommand({
-    id: 'open-tools',
-    description: 'Opens the tools menu',
+    id: "open-tools",
+    description: "Opens the tools menu",
     action: () => {
       setShowToolsMenu(true);
-      console.log('🔧 Opening tools');
-    }
+      console.log("🔧 Opening tools");
+    },
   });
 
   useVoiceCommand({
-    id: 'close-tools',
-    description: 'Closes the tools menu',
+    id: "close-tools",
+    description: "Closes the tools menu",
     action: () => {
       setShowToolsMenu(false);
-      console.log('🔧 Closing tools');
-    }
+      console.log("🔧 Closing tools");
+    },
   });
 
   useVoiceCommand({
-    id: 'enable-tool',
-    description: 'Enables a specific tool (e.g. enable gwas)',
+    id: "enable-tool",
+    description: "Enables a specific tool (e.g. enable gwas)",
     action: () => {
       // Enable GWAS by default when this command is triggered
       const tool = AVAILABLE_TOOLS[0];
       if (tool) {
-        setEnabledTools(prev => prev.includes(tool.id) ? prev : [...prev, tool.id]);
+        setEnabledTools((prev) =>
+          prev.includes(tool.id) ? prev : [...prev, tool.id]
+        );
         console.log(`🔧 Enabled tool: ${tool.name}`);
       }
-    }
+    },
   });
 
   useVoiceCommand({
-    id: 'disable-tool',
-    description: 'Disables a specific tool (e.g. disable gwas)',
+    id: "disable-tool",
+    description: "Disables a specific tool (e.g. disable gwas)",
     action: () => {
       const tool = AVAILABLE_TOOLS[0];
       if (tool) {
-        setEnabledTools(prev => prev.filter(id => id !== tool.id));
+        setEnabledTools((prev) => prev.filter((id) => id !== tool.id));
         console.log(`🔧 Disabled tool: ${tool.name}`);
       }
-    }
+    },
   });
 
   const handleKeyDown = (e: KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();
     }
@@ -609,9 +699,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const canSend = (value.trim() || attachments.length > 0) && !disabled;
 
   return (
-    <div
-      className="p-0 pb-6 sm:pb-0 sm:px-4 sm:py-2 md:px-6 md:py-2 lg:py-1"
-    >
+    <div className="p-0 pb-6 sm:pb-0 sm:px-4 sm:py-2 md:px-6 md:py-2 lg:py-1">
       <div className="max-w-5xl mx-auto">
         {/* File Attachments Preview */}
         {attachments.length > 0 && (
@@ -665,16 +753,16 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              onFocus={() => { }}
-              onBlur={() => { }}
+              onFocus={() => {}}
+              onBlur={() => {}}
               placeholder={isRecording ? recordingPlaceholder : placeholder}
               disabled={disabled || isRecording}
               rows={1}
               className={cn(
-                'w-full resize-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500',
-                'focus:outline-none disabled:cursor-not-allowed',
-                'text-sm sm:text-base leading-snug sm:leading-relaxed',
-                'min-h-[24px] sm:min-h-[44px] max-h-[120px] sm:max-h-[150px]'
+                "w-full resize-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500",
+                "focus:outline-none disabled:cursor-not-allowed",
+                "text-sm sm:text-base leading-snug sm:leading-relaxed",
+                "min-h-[24px] sm:min-h-[44px] max-h-[120px] sm:max-h-[150px]"
               )}
             />
           </div>
@@ -719,7 +807,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   title="Analysis Tools"
                 >
                   <FiSliders className="text-sm sm:text-base" />
-                  <span className="hidden sm:inline text-sm font-medium">Tools</span>
+                  <span className="hidden sm:inline text-sm font-medium">
+                    Tools
+                  </span>
                 </button>
 
                 {/* Tools Dropdown Menu */}
@@ -740,7 +830,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                             )}
                           >
                             <span className="text-lg">{tool.icon}</span>
-                            <p className="flex-1 text-left text-xs font-medium">{tool.name}</p>
+                            <p className="flex-1 text-left text-xs font-medium">
+                              {tool.name}
+                            </p>
                             <div
                               className={cn(
                                 "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
@@ -749,7 +841,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                   : "border-gray-300 dark:border-gray-600"
                               )}
                             >
-                              {isEnabled && <FiCheck className="text-white text-xs" />}
+                              {isEnabled && (
+                                <FiCheck className="text-white text-xs" />
+                              )}
                             </div>
                           </button>
                         );
@@ -769,7 +863,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     className="h-8 sm:h-9 flex items-center gap-1 sm:gap-1.5 bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 rounded-lg sm:rounded-xl px-2 sm:px-2.5 text-xs sm:text-sm"
                   >
                     <span className="text-sm">{tool.icon}</span>
-                    <span className="text-emerald-700 dark:text-emerald-300 font-medium hidden sm:inline">{tool.name}</span>
+                    <span className="text-emerald-700 dark:text-emerald-300 font-medium hidden sm:inline">
+                      {tool.name}
+                    </span>
                     <button
                       onClick={() => handleToggleTool(toolId)}
                       className="text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer"
@@ -784,7 +880,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
             {/* Right Actions */}
             <div className="flex items-center gap-1 sm:gap-1.5">
-
               {/* Voice Input Button */}
               {isSpeechSupported && (
                 <button
@@ -815,7 +910,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 )}
                 title="Send message (Enter)"
               >
-                <FiSend className={cn("text-base sm:text-lg", canSend && "-rotate-45")} />
+                <FiSend
+                  className={cn(
+                    "text-base sm:text-lg",
+                    canSend && "-rotate-45"
+                  )}
+                />
               </button>
             </div>
           </div>

@@ -130,32 +130,19 @@ const DictationProvider: React.FC<{ children: React.ReactNode }> = ({
 
       recognition.onend = () => {
         isRecognitionActiveRef.current = false;
-        const isDictating = !!dictationCallbackRef.current;
-        console.log(
-          "🎤 Recognition onend, isListening:",
-          isListeningRef.current,
-          "isPaused:",
-          isPausedRef.current,
-          "isDictating:",
-          isDictating
-        );
-        // Restart recognition if:
-        // 1. isListening is true (universal mic is on), AND
-        // 2. Either: not paused (command mode) OR in dictation mode (text goes to callback)
-        const shouldRestart =
-          isListeningRef.current && (!isPausedRef.current || isDictating);
-        if (shouldRestart) {
+        // Use ref to get current isPaused value (avoids stale closure)
+        if (isListeningRef.current && !isPausedRef.current) {
           setTimeout(() => {
             if (
               isListeningRef.current &&
-              (!isPausedRef.current || !!dictationCallbackRef.current) &&
+              !isPausedRef.current &&
               recognitionRef.current &&
               !isRecognitionActiveRef.current
             ) {
               try {
-                console.log("🎤 Restarting recognition after onend");
                 recognitionRef.current.start();
                 isRecognitionActiveRef.current = true;
+                console.log("🎤 Recognition restarted (onend)");
               } catch (err) {
                 console.warn("Failed to restart recognition:", err);
               }
@@ -182,7 +169,7 @@ const DictationProvider: React.FC<{ children: React.ReactNode }> = ({
         }
       }
     };
-  }, [processTranscript, isPaused]);
+  }, [processTranscript]); // Removed isPaused - using isPausedRef instead to prevent recreation
 
   const toggleListening = useCallback(() => {
     if (!recognitionRef.current) return;
@@ -229,6 +216,33 @@ const DictationProvider: React.FC<{ children: React.ReactNode }> = ({
 
       if (callback === null) {
         setTranscript("");
+
+        // When dictation ends, ensure recognition restarts if universal mic is still active
+        // This fixes the issue where mic shows active but isn't listening after voice send
+        if (
+          isListeningRef.current &&
+          !isRecognitionActiveRef.current &&
+          recognitionRef.current
+        ) {
+          setTimeout(() => {
+            if (
+              isListeningRef.current &&
+              !isRecognitionActiveRef.current &&
+              recognitionRef.current
+            ) {
+              try {
+                recognitionRef.current.start();
+                isRecognitionActiveRef.current = true;
+                console.log("🎤 Recognition restarted after dictation ended");
+              } catch (err) {
+                console.warn(
+                  "Failed to restart recognition after dictation:",
+                  err
+                );
+              }
+            }
+          }, 100);
+        }
       }
       console.log(
         "🎤 setDictationCallback called. Active:",

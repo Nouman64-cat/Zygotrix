@@ -1,19 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
-import { MainLayout } from '../components/layout';
-import { MessageList, ChatInput, RateLimitModal, RateLimitBanner } from '../components/chat';
-import { useChat } from '../hooks';
-import { useConversations } from '../contexts';
+import React, { useState, useEffect, useMemo } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { MainLayout } from "../components/layout";
+import {
+  MessageList,
+  ChatInput,
+  RateLimitModal,
+  RateLimitBanner,
+} from "../components/chat";
+import { useChat } from "../hooks";
+import { useConversations, useAuth } from "../contexts";
 
 export const Chat: React.FC = () => {
-  const { conversationId: urlConversationId } = useParams<{ conversationId?: string }>();
+  const { conversationId: urlConversationId } = useParams<{
+    conversationId?: string;
+  }>();
   const navigate = useNavigate();
 
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
   const [resetTime, setResetTime] = useState<string | null>(null);
 
+  // Access auth for user ID
+  const { user } = useAuth();
+
   // Access shared conversations context
-  const { conversations, refreshConversations } = useConversations();
+  const {
+    conversations,
+    refreshConversations,
+    addConversation,
+    updateConversationTitle,
+  } = useConversations();
+
+  // Memoize options to prevent unnecessary re-renders
+  const chatOptions = useMemo(
+    () => ({
+      onAddConversation: addConversation,
+      onUpdateTitle: updateConversationTitle,
+      userId: user?.id,
+    }),
+    [addConversation, updateConversationTitle, user?.id]
+  );
+
+  // Debug log
+  console.log("[Chat] chatOptions configured:", {
+    hasOnAddConversation: !!chatOptions.onAddConversation,
+    hasOnUpdateTitle: !!chatOptions.onUpdateTitle,
+    userId: chatOptions.userId,
+  });
 
   const {
     messages,
@@ -23,16 +55,16 @@ export const Chat: React.FC = () => {
     conversationId,
     sendMessage,
     loadConversation,
-    startNewConversation
-  } = useChat();
+    startNewConversation,
+  } = useChat(undefined, chatOptions);
 
   // Parse error to check for rate limit - check multiple patterns
-  const isRateLimited = error ? (
-    error.includes('429') ||
-    error.toLowerCase().includes('rate limit') ||
-    error.toLowerCase().includes('too many requests') ||
-    error.toLowerCase().includes('cooldown')
-  ) : false;
+  const isRateLimited = error
+    ? error.includes("429") ||
+      error.toLowerCase().includes("rate limit") ||
+      error.toLowerCase().includes("too many requests") ||
+      error.toLowerCase().includes("cooldown")
+    : false;
 
   // Parse rate limit error details (when error comes from API response)
   useEffect(() => {
@@ -49,7 +81,7 @@ export const Chat: React.FC = () => {
         }
         setShowRateLimitModal(true);
       } catch (e) {
-        console.error('[Chat] Failed to parse rate limit error:', e);
+        console.error("[Chat] Failed to parse rate limit error:", e);
         setShowRateLimitModal(true);
       }
     }
@@ -57,7 +89,7 @@ export const Chat: React.FC = () => {
 
   // Handle URL changes and initial load
   // Use sessionStorage to persist across component remounts (caused by route changes)
-  const JUST_CREATED_KEY = 'zygotrix_just_created_conv_id';
+  const JUST_CREATED_KEY = "zygotrix_just_created_conv_id";
 
   // Update sessionStorage when conversationId changes from null to something (new chat created)
   useEffect(() => {
@@ -92,8 +124,13 @@ export const Chat: React.FC = () => {
       sessionStorage.removeItem(JUST_CREATED_KEY);
       startNewConversation();
     }
-  }, [urlConversationId, conversationId, loadConversation, startNewConversation, messages.length]);
-
+  }, [
+    urlConversationId,
+    conversationId,
+    loadConversation,
+    startNewConversation,
+    messages.length,
+  ]);
 
   // Track previous conversation ID to detect ONLY fresh creations
   const prevConversationIdRef = React.useRef(conversationId);
@@ -102,7 +139,11 @@ export const Chat: React.FC = () => {
   // This prevents race conditions where navigating to a new URL would cause the old state to push the old URL back
   useEffect(() => {
     // Only navigate if conversationId CHANGED and is now truthy (fresh creation)
-    if (conversationId && conversationId !== prevConversationIdRef.current && !urlConversationId) {
+    if (
+      conversationId &&
+      conversationId !== prevConversationIdRef.current &&
+      !urlConversationId
+    ) {
       navigate(`/chat/${conversationId}`, { replace: true });
     }
     prevConversationIdRef.current = conversationId;
@@ -111,7 +152,7 @@ export const Chat: React.FC = () => {
   // Refresh conversations list if current conversation is missing (e.g. just created)
   useEffect(() => {
     if (messages.length > 0 && conversationId) {
-      const exists = conversations.some(c => c.id === conversationId);
+      const exists = conversations.some((c) => c.id === conversationId);
       if (!exists) {
         refreshConversations();
       }
@@ -129,7 +170,11 @@ export const Chat: React.FC = () => {
     }
   }, [messages.length, conversationId, refreshConversations]);
 
-  const handleSendMessage = async (content: string, attachments?: import('../types').MessageAttachment[], enabledTools?: string[]) => {
+  const handleSendMessage = async (
+    content: string,
+    attachments?: import("../types").MessageAttachment[],
+    enabledTools?: string[]
+  ) => {
     await sendMessage(content, attachments, enabledTools);
   };
 
@@ -155,12 +200,13 @@ export const Chat: React.FC = () => {
               </div>
             )}
 
-
             <MessageList
               messages={messages}
               isLoading={isLoading}
               isStreaming={isStreaming}
-              onQuickAction={(text) => handleSendMessage(`Help me with: ${text}`)}
+              onQuickAction={(text) =>
+                handleSendMessage(`Help me with: ${text}`)
+              }
               onSend={handleSendMessage}
               inputDisabled={isLoading || isRateLimited}
             />

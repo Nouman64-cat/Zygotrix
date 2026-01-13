@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { chatService } from "../services";
-import { generateMessageId } from "../utils";
-import type { Message, ChatRequest, MessageAttachment } from "../types";
+import { generateMessageId, truncateText } from "../utils";
+import type { Message, ChatRequest, MessageAttachment, ConversationSummary } from "../types";
 
 interface UseChatReturn {
   messages: Message[];
@@ -24,7 +24,16 @@ interface UseChatReturn {
 // Debounce delay in milliseconds - prevents duplicate rapid submissions
 const SEND_DEBOUNCE_MS = 300;
 
-export const useChat = (initialConversationId?: string): UseChatReturn => {
+interface UseChatOptions {
+  onAddConversation?: (conversation: ConversationSummary) => void;
+  onUpdateTitle?: (id: string, title: string) => void;
+  userId?: string;
+}
+
+export const useChat = (
+  initialConversationId?: string,
+  options?: UseChatOptions
+): UseChatReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
@@ -225,11 +234,44 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
 
         // Update conversation ID if this was a new conversation
         if (!conversationId && response.conversation_id) {
+          console.log('[useChat] New conversation created:', response.conversation_id);
           setConversationId(response.conversation_id);
+
+          // Immediately add the conversation to the sidebar with placeholder title
+          if (options?.onAddConversation && options?.userId) {
+            const now = new Date().toISOString();
+            const placeholderTitle = truncateText(trimmedContent, 50);
+            console.log('[useChat] Adding conversation to sidebar with placeholder:', {
+              id: response.conversation_id,
+              placeholderTitle,
+              is_generating_title: true
+            });
+            options.onAddConversation({
+              id: response.conversation_id,
+              user_id: options.userId,
+              title: placeholderTitle,
+              status: 'active',
+              is_pinned: false,
+              is_starred: false,
+              tags: [],
+              message_count: 1,
+              created_at: now,
+              updated_at: now,
+              is_generating_title: true // Mark as generating title
+            });
+          } else {
+            console.log('[useChat] Cannot add conversation - missing:', {
+              hasOnAddConversation: !!options?.onAddConversation,
+              hasUserId: !!options?.userId
+            });
+          }
         }
 
-        // Update conversation title
+        // Update conversation title (internal state only)
+        // Note: We don't update the sidebar here - the skeleton will remain visible
+        // until loadConversations brings in the real generated title from the backend
         if (response.conversation_title) {
+          console.log('[useChat] Backend returned title (not updating sidebar yet):', response.conversation_title);
           setConversationTitle(response.conversation_title);
         }
 
@@ -238,13 +280,13 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
           prev.map((msg) =>
             msg.id === tempMessageId
               ? {
-                  ...msg,
-                  id: response.message.id,
-                  content: response.message.content,
-                  isStreaming: false,
-                  metadata: response.message.metadata,
-                  created_at: response.message.created_at,
-                }
+                ...msg,
+                id: response.message.id,
+                content: response.message.content,
+                isStreaming: false,
+                metadata: response.message.metadata,
+                created_at: response.message.created_at,
+              }
               : msg
           )
         );
@@ -262,7 +304,7 @@ export const useChat = (initialConversationId?: string): UseChatReturn => {
         pendingRequestRef.current = null;
       }
     },
-    [conversationId]
+    [conversationId, options]
   );
 
   const clearMessages = useCallback(() => {

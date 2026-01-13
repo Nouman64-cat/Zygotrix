@@ -156,6 +156,8 @@ export interface ConversationSummary {
   last_message_at?: string;
   created_at: string;
   updated_at: string;
+  // Frontend-only: indicates title is being generated
+  is_generating_title?: boolean;
 }
 
 // Page context for chat

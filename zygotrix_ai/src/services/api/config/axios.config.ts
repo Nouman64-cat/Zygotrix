@@ -57,17 +57,17 @@ axiosInstance.interceptors.response.use(
     // PERFORMANCE: Log request duration for successful responses
     const config = response.config as TimedAxiosRequestConfig;
     if (config.metadata?.startTime) {
-      const duration = performance.now() - config.metadata.startTime;
-      const method = config.method?.toUpperCase() || "GET";
-      const url = config.url || "unknown";
+      // const duration = performance.now() - config.metadata.startTime;
+      // const method = config.method?.toUpperCase() || "GET";
+      // const url = config.url || "unknown";
 
       // Only log in development or for slow requests (> 1s in production)
-      if (import.meta.env.DEV || duration > 1000) {
-        console.log(
-          `[API] ${method} ${url} - ${duration.toFixed(0)}ms`,
-          response.status
-        );
-      }
+      // if (import.meta.env.DEV || duration > 1000) {
+      //   console.log(
+      //     `[API] ${method} ${url} - ${duration.toFixed(0)}ms`,
+      //     response.status
+      //   );
+      // }
     }
 
     return response;

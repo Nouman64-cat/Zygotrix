@@ -232,146 +232,132 @@ export const Sidebar: React.FC<SidebarProps> = ({
   );
 
   // Memoized item component to prevent unnecessary re-renders
+  // Memoized item component to prevent unnecessary re-renders
   const ConversationItem = React.memo(
     ({
       conversation,
     }: {
       conversation: import("../../types").ConversationSummary;
-    }) => {
-      // Log conversation state for debugging
-      console.log(
-        "[Sidebar] Rendering conversation:",
-        conversation.id.slice(0, 8),
-        "is_generating_title:",
-        conversation.is_generating_title,
-        "title:",
-        conversation.title?.slice(0, 30)
-      );
-      return (
-        <div
-          key={conversation.id}
-          className={cn(
-            "group relative flex items-center gap-2 p-3 rounded-lg cursor-pointer",
-            "hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200",
-            currentConversationId === conversation.id &&
-              "bg-gray-100 dark:bg-gray-800",
-            isCollapsed && "hidden"
-          )}
-          onClick={() => {
-            onSelectConversation(conversation.id);
-            onClose();
-          }}
-        >
-          {editingId === conversation.id ? (
-            <input
-              autoFocus
-              type="text"
-              className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 text-sm font-medium border-none outline-none focus:ring-0 p-0 m-0 w-full truncate"
-              value={editTitle}
-              onChange={(e) => setEditTitle(e.target.value)}
-              onBlur={handleRenameSubmit}
-              onKeyDown={(e) => {
-                if (e.key === "Enter") handleRenameSubmit();
-                if (e.key === "Escape") {
-                  setEditingId(null);
-                  setEditTitle("");
-                }
-              }}
-              onClick={(e) => e.stopPropagation()}
-            />
-          ) : (
-            <div className="flex-1 flex items-center min-w-0">
-              {conversation.is_pinned && (
-                <BsPinFill className="w-3 h-3 text-blue-500 mr-1.5 shrink-0" />
-              )}
-
-              {/* Skeleton Loading State: Show when title is being generated */}
-              {conversation.is_generating_title ? (
-                <div className="flex-1 flex items-center min-w-0 gap-2">
-                  {/* Skeleton shimmer animation */}
-                  <div className="flex-1 space-y-1.5">
-                    <div
-                      className="h-3.5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer bg-[length:200%_100%]"
-                      style={{ width: "85%" }}
-                    />
-                    <div
-                      className="h-2.5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer bg-[length:200%_100%]"
-                      style={{ width: "60%", animationDelay: "0.15s" }}
-                    />
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                  {editingId === conversation.id
-                    ? editTitle
-                    : truncateText(conversation.title, 35)}
-                </p>
-              )}
-            </div>
-          )}
-          <IconButton
-            icon={<FiMoreVertical />}
-            onClick={(e) => {
-              e.stopPropagation();
-              setActiveMenuId(
-                activeMenuId === conversation.id ? null : conversation.id
-              );
+    }) => (
+      <div
+        key={conversation.id}
+        className={cn(
+          "group relative flex items-center gap-2 p-3 rounded-lg cursor-pointer",
+          "hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200",
+          currentConversationId === conversation.id &&
+            "bg-gray-100 dark:bg-gray-800",
+          isCollapsed && "hidden"
+        )}
+        onClick={() => {
+          onSelectConversation(conversation.id);
+          onClose();
+        }}
+      >
+        {editingId === conversation.id ? (
+          <input
+            autoFocus
+            type="text"
+            className="flex-1 bg-transparent text-gray-900 dark:text-gray-100 text-sm font-medium border-none outline-none focus:ring-0 p-0 m-0 w-full truncate"
+            value={editTitle}
+            onChange={(e) => setEditTitle(e.target.value)}
+            onBlur={handleRenameSubmit}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") handleRenameSubmit();
+              if (e.key === "Escape") {
+                setEditingId(null);
+                setEditTitle("");
+              }
             }}
-            size="sm"
-            className={cn(
-              "opacity-0 group-hover:opacity-100 transition-opacity",
-              activeMenuId === conversation.id &&
-                "opacity-100 bg-gray-200 dark:bg-gray-700"
-            )}
-            tooltip="Options"
+            onClick={(e) => e.stopPropagation()}
           />
+        ) : (
+          <div className="flex-1 flex items-center min-w-0">
+            {conversation.is_pinned && (
+              <BsPinFill className="w-3 h-3 text-blue-500 mr-1.5 shrink-0" />
+            )}
 
-          {/* Options Menu */}
-          {activeMenuId === conversation.id && (
-            <div className="absolute right-2 top-10 w-36 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden py-1">
-              <button
-                className="w-full text-left px-3 py-2 text-sm hover:!bg-gray-50 dark:hover:!bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-200"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setEditingId(conversation.id);
-                  setEditTitle(conversation.title);
-                  setActiveMenuId(null);
-                }}
-              >
-                <FiEdit2 size={14} /> Rename
-              </button>
-              <button
-                className="w-full text-left px-3 py-2 text-sm hover:!bg-gray-50 dark:hover:!bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-200"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  onPinConversation(conversation.id, !conversation.is_pinned);
-                  setActiveMenuId(null);
-                }}
-              >
-                <BsPinAngle size={14} />
-                {conversation.is_pinned ? "Unpin" : "Pin"}
-              </button>
-              <div className="h-px bg-gray-100 dark:bg-gray-700 my-1" />
-              <button
-                className="w-full text-left px-3 py-2 text-sm hover:!bg-red-50 dark:hover:!bg-red-900/20 text-red-600 flex items-center gap-2"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  // Prevent infinite loops/API errors by navigating away first
-                  // if deleting the currently active conversation
-                  if (currentConversationId === conversation.id) {
-                    navigate("/chat");
-                  }
-                  onDeleteConversation(conversation.id);
-                  setActiveMenuId(null);
-                }}
-              >
-                <FiTrash2 size={14} /> Delete
-              </button>
-            </div>
+            {/* Skeleton Loading State: Show when title is being generated */}
+            {conversation.is_generating_title ? (
+              <div className="flex-1 flex items-center min-w-0 gap-2">
+                {/* Skeleton shimmer animation */}
+                <div className="flex-1">
+                  <div
+                    className="h-3.5 bg-gradient-to-r from-gray-200 via-gray-100 to-gray-200 dark:from-gray-700 dark:via-gray-600 dark:to-gray-700 rounded animate-shimmer bg-[length:200%_100%]"
+                    style={{ width: "70%" }}
+                  />
+                </div>
+              </div>
+            ) : (
+              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                {editingId === conversation.id
+                  ? editTitle
+                  : truncateText(conversation.title, 35)}
+              </p>
+            )}
+          </div>
+        )}
+        <IconButton
+          icon={<FiMoreVertical />}
+          onClick={(e) => {
+            e.stopPropagation();
+            setActiveMenuId(
+              activeMenuId === conversation.id ? null : conversation.id
+            );
+          }}
+          size="sm"
+          className={cn(
+            "opacity-0 group-hover:opacity-100 transition-opacity",
+            activeMenuId === conversation.id &&
+              "opacity-100 bg-gray-200 dark:bg-gray-700"
           )}
-        </div>
-      );
-    }
+          tooltip="Options"
+        />
+
+        {/* Options Menu */}
+        {activeMenuId === conversation.id && (
+          <div className="absolute right-2 top-10 w-36 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 z-50 overflow-hidden py-1">
+            <button
+              className="w-full text-left px-3 py-2 text-sm hover:!bg-gray-50 dark:hover:!bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                setEditingId(conversation.id);
+                setEditTitle(conversation.title);
+                setActiveMenuId(null);
+              }}
+            >
+              <FiEdit2 size={14} /> Rename
+            </button>
+            <button
+              className="w-full text-left px-3 py-2 text-sm hover:!bg-gray-50 dark:hover:!bg-gray-700 flex items-center gap-2 text-gray-700 dark:text-gray-200"
+              onClick={(e) => {
+                e.stopPropagation();
+                onPinConversation(conversation.id, !conversation.is_pinned);
+                setActiveMenuId(null);
+              }}
+            >
+              <BsPinAngle size={14} />
+              {conversation.is_pinned ? "Unpin" : "Pin"}
+            </button>
+            <div className="h-px bg-gray-100 dark:bg-gray-700 my-1" />
+            <button
+              className="w-full text-left px-3 py-2 text-sm hover:!bg-red-50 dark:hover:!bg-red-900/20 text-red-600 flex items-center gap-2"
+              onClick={(e) => {
+                e.stopPropagation();
+                // Prevent infinite loops/API errors by navigating away first
+                // if deleting the currently active conversation
+                if (currentConversationId === conversation.id) {
+                  navigate("/chat");
+                }
+                onDeleteConversation(conversation.id);
+                setActiveMenuId(null);
+              }}
+            >
+              <FiTrash2 size={14} /> Delete
+            </button>
+          </div>
+        )}
+      </div>
+    )
   );
 
   return (

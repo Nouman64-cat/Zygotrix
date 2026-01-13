@@ -85,7 +85,7 @@ export async function* streamChatResponse(
 
   const url = `${API_BASE_URL}${API_ENDPOINTS.ZYGOTRIX_AI.CHAT}`;
 
-  console.log("[Streaming] Starting request to:", url);
+
 
   const response = await fetch(url, {
     method: "POST",
@@ -107,13 +107,11 @@ export async function* streamChatResponse(
   }
 
   const contentType = response.headers.get("content-type") || "";
-  console.log("[Streaming] Response content-type:", contentType);
+
 
   // If the response is not SSE, handle it as a regular JSON response
   if (!contentType.includes("text/event-stream") && !contentType.includes("text/plain")) {
-    console.log("[Streaming] Non-SSE response detected, parsing as JSON");
     const text = await response.text();
-    console.log("[Streaming] Response text:", text.substring(0, 200));
 
     const chunk = tryParseDirectJSON(text);
     if (chunk) {
@@ -140,11 +138,8 @@ export async function* streamChatResponse(
       const { done, value } = await reader.read();
 
       if (done) {
-        console.log("[Streaming] Stream ended. Processed chunks:", processedChunks);
-
         // Process any remaining data in the buffer when stream ends
         if (buffer.trim()) {
-          console.log("[Streaming] Processing remaining buffer:", buffer.substring(0, 100));
           const remainingLines = buffer.split("\n");
           for (const line of remainingLines) {
             const chunk = parseSSELine(line);
@@ -157,7 +152,6 @@ export async function* streamChatResponse(
 
         // If no chunks were processed, try to parse all data as direct JSON
         if (processedChunks === 0 && allRawData.trim()) {
-          console.log("[Streaming] No SSE chunks found, trying direct JSON parse");
           const chunk = tryParseDirectJSON(allRawData);
           if (chunk) {
             yield chunk;
@@ -182,7 +176,6 @@ export async function* streamChatResponse(
       for (const line of lines) {
         // Check for [DONE] signal
         if (line.trim() === "data: [DONE]") {
-          console.log("[Streaming] Received [DONE] signal");
           return;
         }
 

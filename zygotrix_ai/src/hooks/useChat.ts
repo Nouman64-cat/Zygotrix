@@ -226,26 +226,20 @@ export const useChat = (
           );
           const measure = performance.getEntriesByName("chat-request").pop();
           if (measure) {
-            console.log(
-              `[useChat] Request completed in ${measure.duration.toFixed(0)}ms`
-            );
+            // Log commented out for production
+            // console.log(`[useChat] Request completed in ${measure.duration.toFixed(0)}ms`);
           }
         }
 
         // Update conversation ID if this was a new conversation
         if (!conversationId && response.conversation_id) {
-          console.log('[useChat] New conversation created:', response.conversation_id);
           setConversationId(response.conversation_id);
 
           // Immediately add the conversation to the sidebar with placeholder title
           if (options?.onAddConversation && options?.userId) {
             const now = new Date().toISOString();
             const placeholderTitle = truncateText(trimmedContent, 50);
-            console.log('[useChat] Adding conversation to sidebar with placeholder:', {
-              id: response.conversation_id,
-              placeholderTitle,
-              is_generating_title: true
-            });
+
             options.onAddConversation({
               id: response.conversation_id,
               user_id: options.userId,
@@ -259,19 +253,16 @@ export const useChat = (
               updated_at: now,
               is_generating_title: true // Mark as generating title
             });
-          } else {
-            console.log('[useChat] Cannot add conversation - missing:', {
-              hasOnAddConversation: !!options?.onAddConversation,
-              hasUserId: !!options?.userId
-            });
           }
         }
 
         // Update conversation title (internal state only)
         // Note: We don't update the sidebar here - the skeleton will remain visible
         // until loadConversations brings in the real generated title from the backend
+        // Update conversation title (internal state only)
+        // Note: We don't update the sidebar here - the skeleton will remain visible
+        // until loadConversations brings in the real generated title from the backend
         if (response.conversation_title) {
-          console.log('[useChat] Backend returned title (not updating sidebar yet):', response.conversation_title);
           setConversationTitle(response.conversation_title);
         }
 

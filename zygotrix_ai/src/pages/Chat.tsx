@@ -40,13 +40,6 @@ export const Chat: React.FC = () => {
     [addConversation, updateConversationTitle, user?.id]
   );
 
-  // Debug log
-  console.log("[Chat] chatOptions configured:", {
-    hasOnAddConversation: !!chatOptions.onAddConversation,
-    hasOnUpdateTitle: !!chatOptions.onUpdateTitle,
-    userId: chatOptions.userId,
-  });
-
   const {
     messages,
     isLoading,

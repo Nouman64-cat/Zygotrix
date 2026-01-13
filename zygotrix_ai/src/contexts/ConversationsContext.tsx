@@ -80,22 +80,9 @@ export const ConversationsProvider: React.FC<{ children: React.ReactNode }> = ({
           if (wasGenerating) {
             // Check if the title has changed (real title arrived from backend)
             const titleChanged = oldTitle !== conv.title;
-            console.log(
-              "[ConversationsContext] Checking title for:",
-              conv.id.slice(0, 8),
-              {
-                wasGenerating,
-                oldTitle: oldTitle?.slice(0, 30),
-                newTitle: conv.title?.slice(0, 30),
-                titleChanged,
-              }
-            );
 
             if (titleChanged) {
               // Title changed - real title arrived, clear the generating flag
-              console.log(
-                "[ConversationsContext] Real title arrived, clearing skeleton"
-              );
               return { ...conv, is_generating_title: false };
             } else {
               // Title still the same - keep the generating flag
@@ -173,21 +160,11 @@ export const ConversationsProvider: React.FC<{ children: React.ReactNode }> = ({
   // Helper to manually add a new conversation (e.g., when created in Chat)
   const addConversation = useCallback(
     (conversation: import("../types").ConversationSummary) => {
-      console.log("[ConversationsContext] addConversation called:", {
-        id: conversation.id,
-        title: conversation.title,
-        is_generating_title: conversation.is_generating_title,
-      });
       setConversationsList((prev) => {
         // Prevent duplicates
         if (prev.some((c) => c.id === conversation.id)) {
-          console.log(
-            "[ConversationsContext] Skipping duplicate:",
-            conversation.id
-          );
           return prev;
         }
-        console.log("[ConversationsContext] Adding new conversation to list");
         return [conversation, ...prev];
       });
     },
@@ -197,23 +174,13 @@ export const ConversationsProvider: React.FC<{ children: React.ReactNode }> = ({
   // Update a conversation's title locally (used when backend returns generated title)
   const updateConversationTitle = useCallback(
     (id: string, newTitle: string) => {
-      console.log("[ConversationsContext] updateConversationTitle called:", {
-        id,
-        newTitle,
-      });
-      setConversationsList((prev) => {
-        const found = prev.find((c) => c.id === id);
-        console.log(
-          "[ConversationsContext] Conversation found:",
-          !!found,
-          found?.is_generating_title
-        );
-        return prev.map((c) =>
+      setConversationsList((prev) =>
+        prev.map((c) =>
           c.id === id
             ? { ...c, title: newTitle, is_generating_title: false }
             : c
-        );
-      });
+        )
+      );
     },
     []
   );

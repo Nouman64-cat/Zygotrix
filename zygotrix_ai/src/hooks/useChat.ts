@@ -1,7 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from "react";
 import { chatService } from "../services";
 import { generateMessageId, truncateText } from "../utils";
-import type { Message, ChatRequest, MessageAttachment, ConversationSummary } from "../types";
+import type {
+  Message,
+  ChatRequest,
+  MessageAttachment,
+  ConversationSummary,
+} from "../types";
 
 interface UseChatReturn {
   messages: Message[];
@@ -19,6 +24,10 @@ interface UseChatReturn {
   setMessages: (messages: Message[]) => void;
   loadConversation: (conversationId: string) => Promise<void>;
   startNewConversation: () => void;
+  submitDeepResearchAnswers: (
+    originalQuery: string,
+    answers: Array<{ question_id: string; answer: string }>
+  ) => Promise<void>;
 }
 
 // Debounce delay in milliseconds - prevents duplicate rapid submissions
@@ -244,14 +253,14 @@ export const useChat = (
               id: response.conversation_id,
               user_id: options.userId,
               title: placeholderTitle,
-              status: 'active',
+              status: "active",
               is_pinned: false,
               is_starred: false,
               tags: [],
               message_count: 1,
               created_at: now,
               updated_at: now,
-              is_generating_title: true // Mark as generating title
+              is_generating_title: true, // Mark as generating title
             });
           }
         }
@@ -271,13 +280,13 @@ export const useChat = (
           prev.map((msg) =>
             msg.id === tempMessageId
               ? {
-                ...msg,
-                id: response.message.id,
-                content: response.message.content,
-                isStreaming: false,
-                metadata: response.message.metadata,
-                created_at: response.message.created_at,
-              }
+                  ...msg,
+                  id: response.message.id,
+                  content: response.message.content,
+                  isStreaming: false,
+                  metadata: response.message.metadata,
+                  created_at: response.message.created_at,
+                }
               : msg
           )
         );
@@ -304,6 +313,53 @@ export const useChat = (
     pendingRequestRef.current = null;
   }, []);
 
+  // Submit answers to deep research clarification questions
+  const submitDeepResearchAnswers = useCallback(
+    async (
+      originalQuery: string,
+      answers: Array<{ question_id: string; answer: string }>
+    ) => {
+      // Build a message that includes the original query and user's answers
+      // The deep_research tool will be enabled to continue the research
+      const answersText = answers
+        .map((a, i) => `Answer ${i + 1}: ${a.answer}`)
+        .join("\n");
+
+      const messageContent = `${originalQuery}\n\nClarification answers:\n${answersText}`;
+
+      // Send with deep_research tool enabled
+      await sendMessage(messageContent, undefined, ["deep_research"]);
+    },
+    [sendMessage]
+  );
+
+  // Listen for deep research submit events from the widget
+  useEffect(() => {
+    const handleDeepResearchSubmit = (event: Event) => {
+      const customEvent = event as CustomEvent<{
+        sessionId: string;
+        originalQuery: string;
+        answers: Array<{ question_id: string; answer: string }>;
+      }>;
+
+      if (customEvent.detail) {
+        submitDeepResearchAnswers(
+          customEvent.detail.originalQuery,
+          customEvent.detail.answers
+        );
+      }
+    };
+
+    window.addEventListener("deepResearchSubmit", handleDeepResearchSubmit);
+
+    return () => {
+      window.removeEventListener(
+        "deepResearchSubmit",
+        handleDeepResearchSubmit
+      );
+    };
+  }, [submitDeepResearchAnswers]);
+
   return {
     messages,
     isLoading,
@@ -316,5 +372,6 @@ export const useChat = (
     setMessages,
     loadConversation,
     startNewConversation,
+    submitDeepResearchAnswers,
   };
 };

@@ -42,6 +42,10 @@ interface SpeechRecognitionAlternative {
   confidence?: number;
 }
 
+interface SpeechRecognitionErrorEvent extends Event {
+  error: string;
+}
+
 interface SpeechRecognition extends EventTarget {
   continuous: boolean;
   interimResults: boolean;
@@ -50,7 +54,7 @@ interface SpeechRecognition extends EventTarget {
   stop(): void;
   abort(): void;
   onresult: ((event: SpeechRecognitionEvent) => void) | null;
-  onerror: ((event: Event) => void) | null;
+  onerror: ((event: SpeechRecognitionErrorEvent) => void) | null;
   onend: (() => void) | null;
   onstart: (() => void) | null;
 }
@@ -72,6 +76,12 @@ const AVAILABLE_TOOLS: AiTool[] = [
     name: "GWAS Analysis",
     description: "",
     icon: "🧬",
+  },
+  {
+    id: "deep_research",
+    name: "Deep Research",
+    description: "Multi-step research with AI clarification and source synthesis",
+    icon: "🔬",
   },
 ];
 
@@ -441,7 +451,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         }
       };
 
-      recognition.onerror = (event: Event) => {
+      recognition.onerror = (event: SpeechRecognitionErrorEvent) => {
         console.warn("ChatInput speech recognition error:", event);
         isLocalRecognitionActiveRef.current = false;
         // Only stop if we're not supposed to be recording
@@ -753,8 +763,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              onFocus={() => {}}
-              onBlur={() => {}}
+              onFocus={() => { }}
+              onBlur={() => { }}
               placeholder={isRecording ? recordingPlaceholder : placeholder}
               disabled={disabled || isRecording}
               rows={1}

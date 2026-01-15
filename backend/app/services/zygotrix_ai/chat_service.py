@@ -200,6 +200,15 @@ class ZygotrixChatService:
             perf.log_summary()
             logger.info(f"📊 Pre-LLM overhead: {perf.get_total_ms():.0f}ms | Model: {model} | Tokens budget: {max_tokens}")
 
+        # Check if Deep Research tool is enabled
+        deep_research_enabled = chat_request.enabled_tools and 'deep_research' in chat_request.enabled_tools
+        
+        if deep_research_enabled:
+            logger.info(f"🔬 Deep Research enabled - routing to LangGraph workflow")
+            return await self._handle_deep_research_chat(
+                chat_request, conversation, user_message, user_id, user_name
+            )
+
         # Handle streaming vs non-streaming
         if chat_request.stream:
             return await self._handle_streaming_chat(
@@ -1119,6 +1128,248 @@ Question: {user_message.content}"""
             conversation_title=conversation.title,
             usage=msg_metadata,
         ), conversation.id, assistant_message.id
+
+    async def _handle_deep_research_chat(
+        self,
+        chat_request: ChatRequest,
+        conversation,
+        user_message,
+        user_id: str,
+        user_name: Optional[str]
+    ):
+        """
+        Handle deep research chat using LangGraph workflow.
+        
+        This uses a multi-step research process:
+        1. Clarification (GPT-4o-mini) - Generate follow-up questions if needed
+        2. Retrieval (Pinecone) - Fetch relevant document chunks
+        3. Reranking (Cohere) - Improve precision of retrieved chunks
+        4. Synthesis (Claude) - Generate comprehensive response
+        
+        Returns:
+            Tuple of (ChatResponse, conversation_id, message_id)
+        """
+        from ..deep_research import get_deep_research_service, DeepResearchRequest
+        from ..deep_research.schemas import ResearchStatus, ClarificationAnswer
+        import re
+        
+        logger.info(f"🔬 Starting deep research for user {user_id}")
+        
+        try:
+            research_service = get_deep_research_service()
+            
+            # Check if the message contains clarification answers
+            # Format: "original query\n\nClarification answers:\nAnswer 1: ...\nAnswer 2: ..."
+            message = chat_request.message
+            original_query = message
+            clarification_answers = []
+            skip_clarification = False
+            
+            if "Clarification answers:" in message:
+                # Split into original query and answers section
+                parts = message.split("Clarification answers:")
+                original_query = parts[0].strip()
+                
+                if len(parts) > 1:
+                    answers_section = parts[1].strip()
+                    # Parse individual answers
+                    answer_pattern = re.compile(r'Answer\s+\d+:\s*(.+?)(?=Answer\s+\d+:|$)', re.DOTALL)
+                    matches = answer_pattern.findall(answers_section)
+                    
+                    for i, answer_text in enumerate(matches):
+                        answer_text = answer_text.strip()
+                        if answer_text:
+                            clarification_answers.append(ClarificationAnswer(
+                                question_id=f"q{i+1}",
+                                answer=answer_text
+                            ))
+                    
+                    if clarification_answers:
+                        skip_clarification = True
+                        logger.info(f"🔬 Detected {len(clarification_answers)} clarification answers - skipping clarification")
+            
+            # Create deep research request
+            research_request = DeepResearchRequest(
+                query=original_query,
+                conversation_id=conversation.id,
+                skip_clarification=skip_clarification,
+                clarification_answers=clarification_answers,
+                max_sources=10,
+                top_k_reranked=5
+            )
+            
+            # Execute research
+            research_response = await research_service.research(
+                request=research_request,
+                user_id=user_id,
+                user_name=user_name
+            )
+            
+            # Handle different research statuses
+            if research_response.status == ResearchStatus.NEEDS_CLARIFICATION:
+                # Return clarification as an interactive widget
+                content = "I need some additional information to conduct thorough research on your query. Please answer the questions below."
+                
+                # Prepare clarification questions for the widget
+                clarification_questions = []
+                for q in research_response.clarification_questions:
+                    clarification_questions.append({
+                        "id": q.id,
+                        "question": q.question,
+                        "context": q.context,
+                        "suggested_answers": q.suggested_answers,
+                    })
+                
+                # Calculate token usage from research response
+                total_input = sum(model_usage.get("input_tokens", 0) for model_usage in research_response.token_usage.values())
+                total_output = sum(model_usage.get("output_tokens", 0) for model_usage in research_response.token_usage.values())
+                
+                # Create message metadata with widget data
+                msg_metadata = MessageMetadata(
+                    input_tokens=total_input,
+                    output_tokens=total_output,
+                    total_tokens=total_input + total_output,
+                    model="deep_research",
+                    provider="multi-model",
+                    latency_ms=research_response.processing_time_ms,
+                    widget_type="deep_research_clarification",
+                    deep_research_data={
+                        "session_id": research_response.session_id,
+                        "original_query": chat_request.message,
+                        "questions": clarification_questions,
+                        "status": "needs_clarification",
+                    }
+                )
+                
+                # Save assistant message with widget
+                assistant_message = MessageService.create_message(
+                    conversation_id=conversation.id,
+                    role=MessageRole.ASSISTANT,
+                    content=content,
+                    metadata=msg_metadata,
+                    parent_message_id=user_message.id,
+                )
+                
+                # Update conversation stats
+                ConversationService.update_conversation_stats(
+                    conversation.id,
+                    tokens_used=total_input + total_output,
+                    increment_messages=True,
+                    last_message_preview="Deep Research - Awaiting clarification"
+                )
+                
+                logger.info(
+                    f"✅ Deep research clarification requested | "
+                    f"Questions: {len(clarification_questions)} | "
+                    f"Time: {research_response.processing_time_ms}ms"
+                )
+                
+                return ChatResponse(
+                    conversation_id=conversation.id,
+                    message=assistant_message,
+                    conversation_title=conversation.title,
+                    usage=msg_metadata,
+                ), conversation.id, assistant_message.id
+                
+            elif research_response.status == ResearchStatus.COMPLETED:
+                # Format successful research response with sources
+                content = research_response.response or ""
+                
+                # Add sources section
+                if research_response.sources:
+                    content += "\n\n---\n\n## 📚 Research Sources\n\n"
+                    for i, source in enumerate(research_response.sources, 1):
+                        score = source.rerank_score if source.rerank_score else source.relevance_score
+                        title = source.title or f"Source {i}"
+                        content += f"**[{i}] {title}** (relevance: {score:.2f})\n"
+                        content += f"> {source.content_preview[:200]}...\n\n"
+                
+                # Add metadata footer
+                content += f"\n---\n*Deep Research completed in {research_response.processing_time_ms}ms using {research_response.sources_used} sources*"
+                
+            elif research_response.status == ResearchStatus.FAILED:
+                # Handle error
+                error_msg = research_response.error_message or "Unknown error during research"
+                content = f"## ❌ Deep Research Error\n\nI encountered an error during the research process:\n\n> {error_msg}\n\nPlease try rephrasing your question or try again later."
+                logger.error(f"Deep research failed: {error_msg}")
+            
+            else:
+                # Pending or other status
+                content = f"## 🔄 Research In Progress\n\nYour research request is being processed. Current status: {research_response.status.value}"
+            
+            # Calculate token usage from research response
+            total_input = sum(model_usage.get("input_tokens", 0) for model_usage in research_response.token_usage.values())
+            total_output = sum(model_usage.get("output_tokens", 0) for model_usage in research_response.token_usage.values())
+            
+            # Create message metadata
+            msg_metadata = MessageMetadata(
+                input_tokens=total_input,
+                output_tokens=total_output,
+                total_tokens=total_input + total_output,
+                model="deep_research",
+                provider="multi-model",
+                latency_ms=research_response.processing_time_ms,
+            )
+            
+            # Save assistant message
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=content,
+                metadata=msg_metadata,
+                parent_message_id=user_message.id,
+            )
+            
+            # Update conversation stats
+            ConversationService.update_conversation_stats(
+                conversation.id,
+                tokens_used=total_input + total_output,
+                increment_messages=True,
+                last_message_preview=content[:100]
+            )
+            
+            logger.info(
+                f"✅ Deep research complete | "
+                f"Status: {research_response.status.value} | "
+                f"Sources: {research_response.sources_used} | "
+                f"Time: {research_response.processing_time_ms}ms"
+            )
+            
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=assistant_message,
+                conversation_title=conversation.title,
+                usage=msg_metadata,
+            ), conversation.id, assistant_message.id
+            
+        except Exception as e:
+            logger.error(f"Deep research error: {e}", exc_info=True)
+            
+            # Create error response
+            error_content = f"## ❌ Deep Research Error\n\nAn unexpected error occurred:\n\n> {str(e)}\n\nPlease try again or disable Deep Research to use standard chat."
+            
+            msg_metadata = MessageMetadata(
+                input_tokens=0,
+                output_tokens=0,
+                total_tokens=0,
+                model="deep_research",
+                provider="error",
+            )
+            
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=error_content,
+                metadata=msg_metadata,
+                parent_message_id=user_message.id,
+            )
+            
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=assistant_message,
+                conversation_title=conversation.title,
+                usage=msg_metadata,
+            ), conversation.id, assistant_message.id
 
 
 # Singleton instance

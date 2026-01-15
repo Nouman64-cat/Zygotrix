@@ -24,6 +24,7 @@ from .routes.newsletter import router as newsletter_router
 from .routes.contact import router as contact_router
 from .routes.chatbot import router as chatbot_router
 from .routes.zygotrix_ai import router as zygotrix_ai_router
+from .routes.deep_research import router as deep_research_router
 from .schema.auth import UserProfile
 from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.common import HealthResponse
@@ -84,6 +85,16 @@ async def lifespan(app: FastAPI):
                 logger.info("✅ RAG Service pre-warmed (OpenAI + Pinecone ready)")
         except Exception as e:
             logger.warning(f"⚠️ Could not pre-warm RAG service: {e}")
+        
+        # Pre-warm Deep Research service at startup
+        try:
+            from .services.deep_research import get_deep_research_service
+            research_service = get_deep_research_service()
+            # Build the graph at startup
+            _ = research_service.graph
+            logger.info("✅ Deep Research Service pre-warmed (LangGraph ready)")
+        except Exception as e:
+            logger.warning(f"⚠️ Could not pre-warm Deep Research service: {e}")
         
         logger.info("✅ Zygotrix Backend started successfully")
         
@@ -157,6 +168,7 @@ app.include_router(cpp_engine_router)
 app.include_router(protein_generator_router)
 app.include_router(university_router)
 app.include_router(traits_router)
+app.include_router(deep_research_router)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])

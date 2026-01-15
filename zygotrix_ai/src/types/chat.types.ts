@@ -32,12 +32,28 @@ export interface MessageMetadata {
   latency_ms?: number;
   cached?: boolean;
   // Widget data for interactive visualizations
-  widget_type?: "breeding_lab" | "dna_rna_visualizer" | "gwas_results";
+  widget_type?:
+    | "breeding_lab"
+    | "dna_rna_visualizer"
+    | "gwas_results"
+    | "deep_research_clarification";
   breeding_data?: {
     parent1?: any;
     parent2?: any;
     traits?: string[];
     results?: any;
+  };
+  // Deep research clarification widget data
+  deep_research_data?: {
+    session_id: string;
+    original_query: string;
+    questions: Array<{
+      id: string;
+      question: string;
+      context?: string;
+      suggested_answers: string[];
+    }>;
+    status: string;
   };
   dna_rna_data?: {
     dna_sequence?: string;

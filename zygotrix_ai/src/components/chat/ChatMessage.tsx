@@ -21,6 +21,9 @@ const DnaRnaWidget = React.lazy(() =>
 const GwasWidget = React.lazy(() =>
   import('../gwas').then(module => ({ default: module.GwasWidget }))
 );
+const DeepResearchClarification = React.lazy(() =>
+  import('../widgets/DeepResearchClarification').then(module => ({ default: module.DeepResearchClarification }))
+);
 
 // Widget loading fallback
 const WidgetLoadingFallback: React.FC = () => (
@@ -34,6 +37,7 @@ const WidgetLoadingFallback: React.FC = () => (
 
 interface ChatMessageProps {
   message: Message;
+  onDeepResearchSubmit?: (sessionId: string, answers: Array<{ question_id: string; answer: string }>) => void;
 }
 
 // Sequence type labels and colors
@@ -187,6 +191,9 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   // Check if message has GWAS widget data
   const hasGwasWidget = message.metadata?.widget_type === 'gwas_results' && message.metadata?.gwas_data;
 
+  // Check if message has deep research clarification widget
+  const hasDeepResearchWidget = message.metadata?.widget_type === 'deep_research_clarification' && message.metadata?.deep_research_data;
+
   // Render content - use markdown for AI messages, plain text for user
   const renderContent = () => {
     if (showLoader) {
@@ -338,6 +345,27 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
         {hasGwasWidget && message.metadata?.gwas_data && (
           <Suspense fallback={<WidgetLoadingFallback />}>
             <GwasWidget gwasData={message.metadata.gwas_data} />
+          </Suspense>
+        )}
+
+        {/* Render Deep Research clarification widget if present - lazy loaded */}
+        {hasDeepResearchWidget && message.metadata?.deep_research_data && (
+          <Suspense fallback={<WidgetLoadingFallback />}>
+            <DeepResearchClarification
+              sessionId={message.metadata.deep_research_data.session_id}
+              questions={message.metadata.deep_research_data.questions}
+              onSubmit={(answers) => {
+                // Dispatch a custom event that the chat context can listen to
+                const event = new CustomEvent('deepResearchSubmit', {
+                  detail: {
+                    sessionId: message.metadata?.deep_research_data?.session_id,
+                    originalQuery: message.metadata?.deep_research_data?.original_query,
+                    answers,
+                  },
+                });
+                window.dispatchEvent(event);
+              }}
+            />
           </Suspense>
         )}
       </>

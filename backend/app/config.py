@@ -135,6 +135,16 @@ class Settings:
     admin_whatsapp_to: str = os.getenv("ADMIN_WHATSAPP_TO", "")
     # Frontend URL for chatbot links
     frontend_url: str = os.getenv("FRONTEND_URL", "http://localhost:5173")
+    
+    # Cohere API configuration (for Deep Research reranking)
+    cohere_api_key: str = os.getenv("COHERE_API_KEY", "")
+    cohere_model: str = os.getenv("COHERE_MODEL", "rerank-v4.0-fast")
+    
+    # Deep Research configuration
+    deep_research_max_depth: int = _get_int("DEEP_RESEARCH_MAX_DEPTH", 10)
+    deep_research_max_chunks: int = _get_int("DEEP_RESEARCH_MAX_CHUNKS", 20)
+    deep_research_top_k: int = _get_int("DEEP_RESEARCH_TOP_K", 5)
+    clarification_model: str = os.getenv("CLARIFICATION_MODEL", "gpt-4o-mini")
 
     @property
     def is_development(self) -> bool:

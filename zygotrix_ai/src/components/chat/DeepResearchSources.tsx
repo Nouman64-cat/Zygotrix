@@ -1,6 +1,5 @@
 import React from 'react';
 import { FiExternalLink, FiFileText } from 'react-icons/fi';
-import { cn } from '../../utils';
 
 interface Source {
     title: string;

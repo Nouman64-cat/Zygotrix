@@ -235,7 +235,7 @@ const renderWithCitations = (children: React.ReactNode, sources?: any[]) => {
   });
 };
 
-const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message, onDeepResearchSubmit }) => {
+const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === 'user';
 
   // Only enable typing effect for AI messages that are CURRENTLY streaming

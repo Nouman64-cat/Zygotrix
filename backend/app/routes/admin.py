@@ -151,6 +151,44 @@ def get_user_stats(
     return admin_services.get_user_stats()
 
 
+# Subscription Management Endpoints
+@router.patch("/users/{user_id}/subscription", response_model=AdminUserActionResponse)
+def update_user_subscription(
+    user_id: str,
+    subscription_status: str = Query(..., description="New subscription status (free/pro)"),
+    current_admin: UserProfile = Depends(get_current_admin),
+) -> AdminUserActionResponse:
+    """
+    Update a user's subscription status.
+    
+    Valid values:
+    - 'free': Basic access, no deep research
+    - 'pro': Premium access, deep research (3/day limit)
+    """
+    from ..services.auth.subscription_service import get_subscription_service
+    
+    # Validate subscription status
+    if subscription_status not in ["free", "pro"]:
+        raise HTTPException(
+            status_code=400,
+            detail="Invalid subscription status. Must be 'free' or 'pro'."
+        )
+    
+    subscription_service = get_subscription_service()
+    success, error_message = subscription_service.update_subscription_status(user_id, subscription_status)
+    
+    if not success:
+        raise HTTPException(status_code=404, detail=error_message or "User not found")
+    
+    # Get updated user
+    user = admin_services.get_user_by_id_admin(user_id)
+    
+    return AdminUserActionResponse(
+        message=f"User subscription updated to '{subscription_status}'.",
+        user=UserProfile(**user),
+    )
+
+
 # Chatbot Settings Endpoints
 @router.get("/chatbot/settings", response_model=ChatbotSettings)
 def get_chatbot_settings(

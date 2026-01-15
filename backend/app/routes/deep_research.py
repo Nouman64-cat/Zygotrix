@@ -23,6 +23,7 @@ from ..services.deep_research.schemas import (
     ResearchPhase,
     StreamingResearchChunk,
 )
+from ..services.auth.subscription_service import get_subscription_service, SubscriptionService
 
 logger = logging.getLogger(__name__)
 
@@ -35,6 +36,10 @@ router = APIRouter(prefix="/deep-research", tags=["Deep Research"])
     summary="Execute Deep Research",
     description="""
     Execute deep research on a query using the LangGraph workflow.
+    
+    **Subscription Requirements:**
+    - FREE users: No access (returns 403)
+    - PRO users: 3 deep research queries per 24-hour period
     
     The workflow consists of:
     1. **Clarification** (GPT-4o-mini) - Analyzes query and may ask clarifying questions
@@ -49,7 +54,8 @@ router = APIRouter(prefix="/deep-research", tags=["Deep Research"])
 async def execute_research(
     request: DeepResearchRequest,
     current_user: UserProfile = Depends(get_current_user),
-    service: DeepResearchService = Depends(get_deep_research_service)
+    service: DeepResearchService = Depends(get_deep_research_service),
+    subscription_service: SubscriptionService = Depends(get_subscription_service)
 ) -> DeepResearchResponse:
     """
     Execute deep research on a query.
@@ -58,14 +64,30 @@ async def execute_research(
     - Clarification questions if the query needs refinement
     - Complete research results with synthesized response and sources
     """
+    # Check subscription and usage limits
+    can_access, reason, remaining = subscription_service.check_deep_research_access(current_user.id)
+    if not can_access:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "subscription_required",
+                "message": reason,
+                "remaining_uses": remaining
+            }
+        )
+    
     try:
         logger.info(f"Deep research request from user {current_user.id}: {request.query[:100]}...")
         
         response = await service.research(
             request=request,
             user_id=current_user.id,
-            user_name=current_user.name
+            user_name=current_user.full_name
         )
+        
+        # Record usage only for completed research (not clarification questions)
+        if response.status != ResearchStatus.NEEDS_CLARIFICATION:
+            subscription_service.record_deep_research_usage(current_user.id)
         
         logger.info(
             f"Deep research completed: status={response.status}, "
@@ -88,6 +110,10 @@ async def execute_research(
     description="""
     Execute deep research with streaming updates.
     
+    **Subscription Requirements:**
+    - FREE users: No access (returns 403)
+    - PRO users: 3 deep research queries per 24-hour period
+    
     Returns a Server-Sent Events (SSE) stream with updates as the research progresses.
     Each event is a JSON object with a 'type' field indicating the update type:
     - 'phase_update': Research phase changed
@@ -101,13 +127,26 @@ async def execute_research(
 async def execute_research_stream(
     request: DeepResearchRequest,
     current_user: UserProfile = Depends(get_current_user),
-    service: DeepResearchService = Depends(get_deep_research_service)
+    service: DeepResearchService = Depends(get_deep_research_service),
+    subscription_service: SubscriptionService = Depends(get_subscription_service)
 ) -> StreamingResponse:
     """
     Execute deep research with streaming updates.
     
     Returns SSE stream with real-time progress updates.
     """
+    # Check subscription and usage limits
+    can_access, reason, remaining = subscription_service.check_deep_research_access(current_user.id)
+    if not can_access:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail={
+                "error": "subscription_required",
+                "message": reason,
+                "remaining_uses": remaining
+            }
+        )
+    
     logger.info(f"Streaming deep research request from user {current_user.id}")
     
     async def generate():
@@ -115,11 +154,15 @@ async def execute_research_stream(
             async for chunk in service.research_stream(
                 request=request,
                 user_id=current_user.id,
-                user_name=current_user.name
+                user_name=current_user.full_name
             ):
                 # Convert to JSON and format as SSE
                 data = chunk.model_dump_json()
                 yield f"data: {data}\n\n"
+                
+                # Record usage when done (not for clarification)
+                if chunk.type == "done" and not chunk.needs_clarification:
+                    subscription_service.record_deep_research_usage(current_user.id)
                 
         except Exception as e:
             logger.error(f"Streaming error: {e}", exc_info=True)

@@ -105,6 +105,21 @@ const formatText = (text: string) => {
     return clean;
 };
 
+// Helper to format date nicely
+const formatDate = (dateString: string) => {
+    if (!dateString) return '';
+    try {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+    } catch (e) {
+        return dateString;
+    }
+};
+
 export const DeepResearchReport: React.FC<DeepResearchReportProps> = ({ content, sources, timestamp }) => {
     // Simple parser to separate content into chunks
     // This is a naive implementation; a full markdown-to-pdf parser is complex
@@ -125,7 +140,7 @@ export const DeepResearchReport: React.FC<DeepResearchReportProps> = ({ content,
                 but user requested logo. Let's try to include text at least. */}
                     <View>
                         <Text style={styles.headerTitle}>Zygotrix AI</Text>
-                        <Text style={styles.subHeader}>Deep Research Report • Generated on {timestamp}</Text>
+                        <Text style={styles.subHeader}>Deep Research Report • Generated on {formatDate(timestamp)}</Text>
                     </View>
                 </View>
 

@@ -76,15 +76,36 @@ const UserAvatarDropdown: React.FC<UserAvatarDropdownProps> = ({
           isCollapsed ? "justify-center p-2" : "px-3 py-2"
         )}
       >
-        <div className="w-9 h-9 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium flex-shrink-0">
-          {getUserInitials()}
+        {/* Avatar with PRO badge */}
+        <div className="relative flex-shrink-0">
+          <div className={cn(
+            "w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium",
+            user?.subscription_status === "pro"
+              ? "bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 shadow-lg shadow-amber-500/30"
+              : "bg-emerald-600"
+          )}>
+            {getUserInitials()}
+          </div>
+          {/* PRO Badge */}
+          {user?.subscription_status === "pro" && (
+            <span className="absolute -bottom-1 -right-1 flex items-center justify-center w-4 h-4 text-[8px] font-bold text-white bg-gradient-to-r from-amber-400 to-orange-500 rounded-full ring-2 ring-white dark:ring-gray-900 shadow-sm">
+              ★
+            </span>
+          )}
         </div>
         {!isCollapsed && (
           <>
             <div className="flex-1 min-w-0 text-left">
-              <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
-                {user?.full_name || "User"}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
+                  {user?.full_name || "User"}
+                </p>
+                {user?.subscription_status === "pro" && (
+                  <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/50 dark:text-amber-300 rounded-md">
+                    PRO
+                  </span>
+                )}
+              </div>
               <p className="text-xs text-gray-500 dark:text-gray-400 truncate">
                 {user?.email || ""}
               </p>
@@ -245,7 +266,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           "group relative flex items-center gap-2 p-3 rounded-lg cursor-pointer",
           "hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200",
           currentConversationId === conversation.id &&
-            "bg-gray-100 dark:bg-gray-800",
+          "bg-gray-100 dark:bg-gray-800",
           isCollapsed && "hidden"
         )}
         onClick={() => {
@@ -308,7 +329,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           className={cn(
             "opacity-0 group-hover:opacity-100 transition-opacity",
             activeMenuId === conversation.id &&
-              "opacity-100 bg-gray-200 dark:bg-gray-700"
+            "opacity-100 bg-gray-200 dark:bg-gray-700"
           )}
           tooltip="Options"
         />
@@ -396,8 +417,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             isCollapsed && !isSearchOpen
               ? "justify-center"
               : isSearchOpen
-              ? "bg-gray-50 dark:bg-gray-800/50 rounded-lg mx-2"
-              : "justify-between"
+                ? "bg-gray-50 dark:bg-gray-800/50 rounded-lg mx-2"
+                : "justify-between"
           )}
         >
           {!isCollapsed && isSearchOpen ? (
@@ -493,48 +514,48 @@ export const Sidebar: React.FC<SidebarProps> = ({
           )}
           {filteredConversations.length === 0
             ? !isCollapsed && (
-                <div className="text-center py-8 px-4">
-                  {loading ? (
-                    <div className="flex flex-col items-center gap-2">
-                      <svg
-                        className="animate-spin h-5 w-5 text-blue-500"
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                      >
-                        <circle
-                          className="opacity-25"
-                          cx="12"
-                          cy="12"
-                          r="10"
-                          stroke="currentColor"
-                          strokeWidth="4"
-                        ></circle>
-                        <path
-                          className="opacity-75"
-                          fill="currentColor"
-                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
-                        ></path>
-                      </svg>
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        Loading conversations...
-                      </p>
-                    </div>
-                  ) : (
+              <div className="text-center py-8 px-4">
+                {loading ? (
+                  <div className="flex flex-col items-center gap-2">
+                    <svg
+                      className="animate-spin h-5 w-5 text-blue-500"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        className="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        strokeWidth="4"
+                      ></circle>
+                      <path
+                        className="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
                     <p className="text-sm text-gray-500 dark:text-gray-400">
-                      {searchQuery
-                        ? "No matching conversations"
-                        : "No conversations yet"}
+                      Loading conversations...
                     </p>
-                  )}
-                </div>
-              )
+                  </div>
+                ) : (
+                  <p className="text-sm text-gray-500 dark:text-gray-400">
+                    {searchQuery
+                      ? "No matching conversations"
+                      : "No conversations yet"}
+                  </p>
+                )}
+              </div>
+            )
             : filteredConversations.map((conversation) => (
-                <ConversationItem
-                  key={conversation.id}
-                  conversation={conversation}
-                />
-              ))}
+              <ConversationItem
+                key={conversation.id}
+                conversation={conversation}
+              />
+            ))}
         </div>
 
         {/* Bottom Section: User Avatar with Dropdown */}

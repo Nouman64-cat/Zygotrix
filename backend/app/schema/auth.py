@@ -14,6 +14,18 @@ class UserRole(str, Enum):
     SUPER_ADMIN = "super_admin"
 
 
+class SubscriptionStatus(str, Enum):
+    """User subscription status enumeration."""
+    FREE = "free"
+    PRO = "pro"
+
+
+class DeepResearchUsage(BaseModel):
+    """Tracks deep research usage for rate limiting."""
+    count: int = 0
+    last_reset: Optional[datetime] = None
+
+
 class UserProfile(BaseModel):
     """Authenticated user profile surfaced to clients."""
 
@@ -57,6 +69,9 @@ class UserProfile(BaseModel):
     last_location: Optional[str] = None
     last_browser: Optional[str] = None
     password_changed_at: Optional[str] = None
+    # Subscription fields
+    subscription_status: Optional[str] = SubscriptionStatus.FREE.value
+    deep_research_usage: Optional[DeepResearchUsage] = None
 
 
 class UpdateProfileRequest(BaseModel):
@@ -201,6 +216,8 @@ class AdminUserListItem(BaseModel):
     last_location: Optional[str] = None
     last_browser: Optional[str] = None
     login_history: Optional[List[LoginHistoryEntry]] = None
+    # Subscription status
+    subscription_status: str = SubscriptionStatus.FREE.value
 
 
 class AdminUserListResponse(BaseModel):

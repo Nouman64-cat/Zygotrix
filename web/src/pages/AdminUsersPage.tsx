@@ -116,8 +116,7 @@ const AdminUsersPage: React.FC = () => {
         new_user_registration_email_enabled: newValue,
       });
       setSuccessMessage(
-        `New user registration email notifications ${
-          newValue ? "enabled" : "disabled"
+        `New user registration email notifications ${newValue ? "enabled" : "disabled"
         }.`
       );
     } catch (err: unknown) {
@@ -370,22 +369,20 @@ const AdminUsersPage: React.FC = () => {
                 <button
                   onClick={handleToggleRegistrationEmail}
                   disabled={settingsLoading}
-                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer ${
-                    notificationSettings.new_user_registration_email_enabled
-                      ? "bg-indigo-600"
-                      : "bg-gray-200 dark:bg-gray-600"
-                  } ${settingsLoading ? "opacity-50 cursor-not-allowed" : ""}`}
+                  className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 cursor-pointer ${notificationSettings.new_user_registration_email_enabled
+                    ? "bg-indigo-600"
+                    : "bg-gray-200 dark:bg-gray-600"
+                    } ${settingsLoading ? "opacity-50 cursor-not-allowed" : ""}`}
                   role="switch"
                   aria-checked={
                     notificationSettings.new_user_registration_email_enabled
                   }
                 >
                   <span
-                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
-                      notificationSettings.new_user_registration_email_enabled
-                        ? "translate-x-6"
-                        : "translate-x-1"
-                    }`}
+                    className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${notificationSettings.new_user_registration_email_enabled
+                      ? "translate-x-6"
+                      : "translate-x-1"
+                      }`}
                   />
                 </button>
                 <span className="ml-3 text-sm font-medium text-gray-700 dark:text-gray-300">
@@ -491,6 +488,9 @@ const AdminUsersPage: React.FC = () => {
                       Status
                     </th>
                     <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
+                      Plan
+                    </th>
+                    <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
                       Last Accessed
                     </th>
                     <th className="px-6 py-3 text-xs font-medium tracking-wider text-left text-gray-500 uppercase dark:text-gray-400">
@@ -542,6 +542,41 @@ const AdminUsersPage: React.FC = () => {
                         >
                           {user.is_active ? "Active" : "Inactive"}
                         </span>
+                      </td>
+                      <td className="px-6 py-4 whitespace-nowrap">
+                        <button
+                          onClick={async () => {
+                            try {
+                              setActionLoading(user.id);
+                              const newStatus = user.subscription_status === "pro" ? "free" : "pro";
+                              await adminApi.updateUserSubscription(user.id, newStatus);
+                              setSuccessMessage(`User subscription updated to ${newStatus.toUpperCase()}`);
+                              fetchUsers();
+                            } catch (err) {
+                              const errorMessage = err instanceof Error ? err.message : "Failed to update subscription";
+                              setError(errorMessage);
+                            } finally {
+                              setActionLoading(null);
+                            }
+                          }}
+                          disabled={actionLoading === user.id}
+                          className={`inline-flex items-center px-2.5 py-1 text-xs font-semibold rounded-full transition-colors ${user.subscription_status === "pro"
+                              ? "bg-gradient-to-r from-amber-400 to-orange-500 text-white hover:from-amber-500 hover:to-orange-600"
+                              : "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-600"
+                            } disabled:opacity-50`}
+                          title={`Click to switch to ${user.subscription_status === "pro" ? "Free" : "Pro"}`}
+                        >
+                          {user.subscription_status === "pro" ? (
+                            <>
+                              <svg className="w-3 h-3 mr-1" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z" />
+                              </svg>
+                              PRO
+                            </>
+                          ) : (
+                            "Free"
+                          )}
+                        </button>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <div>
@@ -1010,7 +1045,7 @@ const AdminUsersPage: React.FC = () => {
                   </div>
                   <div className="mt-4 max-h-80 overflow-y-auto">
                     {selectedUser.login_history &&
-                    selectedUser.login_history.length > 0 ? (
+                      selectedUser.login_history.length > 0 ? (
                       <div className="space-y-3">
                         {selectedUser.login_history.map((entry, idx) => (
                           <div

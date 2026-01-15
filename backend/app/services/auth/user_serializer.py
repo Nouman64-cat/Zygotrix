@@ -169,6 +169,10 @@ class UserSerializer:
             "last_location": document.get("last_location"),
             "last_browser": document.get("last_browser"),
             "login_history": self._serialize_login_history(document.get("login_history")),
+            
+            # Subscription fields
+            "subscription_status": document.get("subscription_status", "free"),
+            "deep_research_usage": document.get("deep_research_usage"),
         }
 
         logger.debug(f"Serialized user: {user_dict.get('email')}")

@@ -96,6 +96,19 @@ export const fetchAdminStats = async (): Promise<AdminUserStats> => {
   return response.data;
 };
 
+// Subscription management
+export const updateUserSubscription = async (
+  userId: string,
+  subscriptionStatus: "free" | "pro"
+): Promise<AdminUserActionResponse> => {
+  const response = await API.patch<AdminUserActionResponse>(
+    `${API_ROUTES.admin.userDetail(
+      userId
+    )}/subscription?subscription_status=${subscriptionStatus}`
+  );
+  return response.data;
+};
+
 // Chatbot settings functions
 export const fetchChatbotSettings = async (): Promise<ChatbotSettings> => {
   const response = await API.get<ChatbotSettings>(

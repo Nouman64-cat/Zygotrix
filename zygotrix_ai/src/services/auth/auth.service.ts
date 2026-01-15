@@ -89,6 +89,26 @@ class AuthService {
     return !!this.getStoredToken();
   }
 
+  /**
+   * Fetch the current user profile from the server.
+   * This is useful for refreshing user data after admin updates (e.g., subscription changes).
+   */
+  async getCurrentUser(): Promise<UserProfile | null> {
+    try {
+      const response = await axiosInstance.get<UserProfile>(
+        API_ENDPOINTS.AUTH.ME
+      );
+
+      // Update stored user profile with fresh data
+      storage.set(STORAGE_KEYS.USER_PROFILE, response.data);
+
+      return response.data;
+    } catch (error) {
+      console.error("Failed to fetch current user:", error);
+      return null;
+    }
+  }
+
   async requestPasswordReset(email: string): Promise<SignupResponse> {
     const response = await axiosInstance.post<SignupResponse>(
       API_ENDPOINTS.AUTH.PASSWORD_RESET_REQUEST,

@@ -37,6 +37,8 @@ def serialize_admin_user_list_item(user_doc: Dict[str, Any]) -> AdminUserListIte
         last_location=user_doc.get("last_location"),
         last_browser=user_doc.get("last_browser"),
         login_history=user_doc.get("login_history"),
+        # Subscription status
+        subscription_status=user_doc.get("subscription_status", "free"),
     )
 
 

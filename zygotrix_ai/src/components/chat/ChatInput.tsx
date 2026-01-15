@@ -15,7 +15,7 @@ import {
   FiMic,
 } from "react-icons/fi";
 import { cn } from "../../utils";
-import { useVoiceControl, useVoiceCommand } from "../../contexts";
+import { useVoiceControl, useVoiceCommand, useAuth } from "../../contexts";
 import type { MessageAttachment } from "../../types";
 
 // TypeScript declarations for Web Speech API
@@ -141,6 +141,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  const { user } = useAuth();
+  const isPro = user?.subscription_status === 'pro';
 
   const {
     setDictationCallback,
@@ -851,33 +854,54 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     <div className="p-1">
                       {AVAILABLE_TOOLS.map((tool) => {
                         const isEnabled = enabledTools.includes(tool.id);
+                        const isDeepResearch = tool.id === 'deep_research';
+                        const isLocked = isDeepResearch && !isPro;
+
                         return (
                           <button
                             key={tool.id}
-                            onClick={() => handleToggleTool(tool.id)}
+                            onClick={() => !isLocked && handleToggleTool(tool.id)}
+                            disabled={isLocked}
                             className={cn(
-                              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200 cursor-pointer",
-                              isEnabled
+                              "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
+                              isLocked
+                                ? "opacity-60 cursor-not-allowed bg-gray-50 dark:bg-gray-700/30"
+                                : "cursor-pointer",
+                              isEnabled && !isLocked
                                 ? "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                                : "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"
+                                : !isLocked && "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"
                             )}
+                            title={isLocked ? "Upgrade to PRO to use Deep Research" : undefined}
                           >
                             <span className="text-lg">{tool.icon}</span>
-                            <p className="flex-1 text-left text-xs font-medium">
-                              {tool.name}
-                            </p>
-                            <div
-                              className={cn(
-                                "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
-                                isEnabled
-                                  ? "bg-emerald-500 border-emerald-500"
-                                  : "border-gray-300 dark:border-gray-600"
-                              )}
-                            >
-                              {isEnabled && (
-                                <FiCheck className="text-white text-xs" />
+                            <div className="flex-1 text-left">
+                              <p className="text-xs font-medium">
+                                {tool.name}
+                              </p>
+                              {isLocked && (
+                                <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
+                                  PRO Feature ★
+                                </span>
                               )}
                             </div>
+                            {isLocked ? (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 rounded font-bold">
+                                PRO
+                              </span>
+                            ) : (
+                              <div
+                                className={cn(
+                                  "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
+                                  isEnabled
+                                    ? "bg-emerald-500 border-emerald-500"
+                                    : "border-gray-300 dark:border-gray-600"
+                                )}
+                              >
+                                {isEnabled && (
+                                  <FiCheck className="text-white text-xs" />
+                                )}
+                              </div>
+                            )}
                           </button>
                         );
                       })}

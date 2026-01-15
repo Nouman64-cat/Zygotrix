@@ -159,6 +159,8 @@ export type AdminUserListItem = {
   last_location?: string | null;
   last_browser?: string | null;
   login_history?: LoginHistoryEntry[] | null;
+  // Subscription status
+  subscription_status?: "free" | "pro";
 };
 
 export type AdminUserListResponse = {

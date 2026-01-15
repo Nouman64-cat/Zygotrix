@@ -1281,20 +1281,11 @@ Question: {user_message.content}"""
                 ), conversation.id, assistant_message.id
                 
             elif research_response.status == ResearchStatus.COMPLETED:
-                # Format successful research response with sources
+                # Format successful research response (without appending sources text)
                 content = research_response.response or ""
                 
-                # Add sources section
-                if research_response.sources:
-                    content += "\n\n---\n\n## 📚 Research Sources\n\n"
-                    for i, source in enumerate(research_response.sources, 1):
-                        score = source.rerank_score if source.rerank_score else source.relevance_score
-                        title = source.title or f"Source {i}"
-                        content += f"**[{i}] {title}** (relevance: {score:.2f})\n"
-                        content += f"> {source.content_preview[:200]}...\n\n"
-                
-                # Add metadata footer
-                content += f"\n---\n*Deep Research completed in {research_response.processing_time_ms}ms using {research_response.sources_used} sources*"
+                # Add simple footer
+                content += f"\n\n---\n*Deep Research completed in {research_response.processing_time_ms}ms using {research_response.sources_used} sources*"
                 
             elif research_response.status == ResearchStatus.FAILED:
                 # Handle error
@@ -1310,6 +1301,17 @@ Question: {user_message.content}"""
             total_input = sum(model_usage.get("input_tokens", 0) for model_usage in research_response.token_usage.values())
             total_output = sum(model_usage.get("output_tokens", 0) for model_usage in research_response.token_usage.values())
             
+            # Prepare deep research metadata with sources
+            deep_research_data = None
+            if research_response.sources:
+                deep_research_data = {
+                    "sources": [source.dict() for source in research_response.sources],
+                    "stats": {
+                        "time_ms": research_response.processing_time_ms,
+                        "sources_count": research_response.sources_used
+                    }
+                }
+            
             # Create message metadata
             msg_metadata = MessageMetadata(
                 input_tokens=total_input,
@@ -1318,6 +1320,7 @@ Question: {user_message.content}"""
                 model="deep_research",
                 provider="multi-model",
                 latency_ms=research_response.processing_time_ms,
+                deep_research_data=deep_research_data
             )
             
             # Save assistant message

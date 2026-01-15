@@ -43,17 +43,33 @@ export interface MessageMetadata {
     traits?: string[];
     results?: any;
   };
-  // Deep research clarification widget data
+  // Deep research data (handles both clarification and results)
   deep_research_data?: {
-    session_id: string;
-    original_query: string;
-    questions: Array<{
+    // Clarification fields
+    session_id?: string;
+    original_query?: string;
+    questions?: Array<{
       id: string;
       question: string;
       context?: string;
       suggested_answers: string[];
     }>;
-    status: string;
+    status?: string;
+
+    // Result fields
+    sources?: Array<{
+      title: string;
+      url?: string;
+      content_preview?: string;
+      relevance_score?: number;
+      rerank_score?: number;
+      author?: string;
+      published_date?: string;
+    }>;
+    stats?: {
+      time_ms: number;
+      sources_count: number;
+    };
   };
   dna_rna_data?: {
     dna_sequence?: string;

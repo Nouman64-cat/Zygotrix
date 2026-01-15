@@ -11,6 +11,7 @@
     "deploy": "scp -i ~/.ssh/id_ed25519_do -r dist/* root@164.92.190.232:/var/www/site_zyg_ai/"
   },
   "dependencies": {
+    "@react-pdf/renderer": "^4.3.2",
     "@tailwindcss/typography": "^0.5.19",
     "@tailwindcss/vite": "^4.1.18",
     "axios": "^1.13.2",

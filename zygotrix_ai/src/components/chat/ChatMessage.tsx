@@ -24,6 +24,12 @@ const GwasWidget = React.lazy(() =>
 const DeepResearchClarification = React.lazy(() =>
   import('../widgets/DeepResearchClarification').then(module => ({ default: module.DeepResearchClarification }))
 );
+// Lazy load sources carousel
+const DeepResearchSources = React.lazy(() =>
+  import('./DeepResearchSources').then(module => ({ default: module.DeepResearchSources }))
+);
+// Lazy load PDF button to avoid loading heavy PDF library on initial load
+const DeepResearchDownloadButton = React.lazy(() => import('./DeepResearchDownloadButton'));
 
 // Widget loading fallback
 const WidgetLoadingFallback: React.FC = () => (
@@ -159,7 +165,77 @@ const formatFileSize = (bytes: number): string => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
-const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
+// Citation Badge Component
+// Citation Badge Component
+const CitationBadge: React.FC<{ index: number; source?: any }> = ({ index, source }) => {
+  return (
+    <span
+      className="relative inline-flex group/citation align-baseline mx-0.5"
+      style={{ verticalAlign: 'super' }}
+    >
+      <span className="
+          inline-flex items-center justify-center 
+          w-4 h-4 rounded-full 
+          bg-emerald-100 dark:bg-emerald-900/40 
+          text-[9px] font-bold text-emerald-700 dark:text-emerald-400
+          border border-emerald-200 dark:border-emerald-800
+          cursor-help select-none transition-transform hover:scale-110
+       ">
+        {index}
+      </span>
+
+      {/* Tooltip */}
+      {source && (
+        <span className="
+             absolute bottom-full left-1/2 -translate-x-1/2 mb-2
+             w-72 p-3 bg-gray-900 dark:bg-gray-800 text-white dark:text-gray-100 text-xs rounded-xl shadow-xl shadow-black/20
+             opacity-0 group-hover/citation:opacity-100 transition-opacity duration-200 pointer-events-none 
+             z-[100] text-left border border-gray-700 whitespace-normal hidden sm:block
+          ">
+          <span className="font-semibold block mb-1.5 text-emerald-400 line-clamp-2">{source.title}</span>
+          <span className="block opacity-90 line-clamp-4 text-[10px] leading-relaxed text-gray-300 font-normal">{source.content_preview}</span>
+
+          {/* Simple arrow */}
+          <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></span>
+        </span>
+      )}
+    </span>
+  );
+};
+
+// Helper: Parse text to find [Source X] or [X, Y] and swap with CitationBadge in React nodes
+const renderWithCitations = (children: React.ReactNode, sources?: any[]) => {
+  if (typeof children !== 'string') return children;
+
+  // Match [Source X], [Sources X, Y], or [X, Y] patterns
+  // Split by brackets that contain source keywords or just digits/commas
+  const parts = children.split(/(\[(?:Source|Sources)?\s*[\d,\s]+\])/g);
+
+  if (parts.length === 1) return children;
+
+  return parts.map((part, i) => {
+    // Check if this part looks like a citation block
+    // e.g. [1], [1, 2], [Source 1], [Sources 1, 2]
+    if (/^\[(?:Source|Sources)?\s*[\d,\s]+\]$/.test(part)) {
+      const numbers = part.match(/\d+/g);
+
+      if (numbers) {
+        return (
+          <span key={i} className="whitespace-nowrap">
+            {numbers.map((numStr, idx) => {
+              const index = parseInt(numStr, 10);
+              const source = sources ? sources[index - 1] : undefined;
+              return <CitationBadge key={idx} index={index} source={source} />;
+            })}
+          </span>
+        );
+      }
+    }
+    return part;
+  });
+};
+
+const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message, onDeepResearchSubmit }) => {
   const isUser = message.role === 'user';
 
   // Only enable typing effect for AI messages that are CURRENTLY streaming
@@ -238,12 +314,12 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
           remarkPlugins={[remarkGfm]}
           components={{
             // Override default elements with custom styling - generous spacing for readability
-            p: ({ children }) => <p className="mb-6 last:mb-0 text-sm leading-relaxed">{children}</p>,
+            p: ({ children }) => <p className="mb-6 last:mb-0 text-sm leading-relaxed">{renderWithCitations(children, message.metadata?.deep_research_data?.sources)}</p>,
             strong: ({ children }) => <strong className="font-bold">{children}</strong>,
             em: ({ children }) => <em className="italic">{children}</em>,
             ul: ({ children }) => <ul className="list-disc list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">{children}</ul>,
             ol: ({ children }) => <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">{children}</ol>,
-            li: ({ children }) => <li className="pl-1 leading-relaxed">{children}</li>,
+            li: ({ children }) => <li className="pl-1 leading-relaxed">{renderWithCitations(children, message.metadata?.deep_research_data?.sources)}</li>,
             h1: ({ children }) => <h1 className="text-base font-bold mb-4 mt-6 first:mt-0">{children}</h1>,
             h2: ({ children }) => <h2 className="text-sm font-bold mb-4 mt-6 first:mt-0">{children}</h2>,
             h3: ({ children }) => <h3 className="text-xs font-bold mb-3 mt-5 first:mt-0">{children}</h3>,
@@ -352,8 +428,8 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
         {hasDeepResearchWidget && message.metadata?.deep_research_data && (
           <Suspense fallback={<WidgetLoadingFallback />}>
             <DeepResearchClarification
-              sessionId={message.metadata.deep_research_data.session_id}
-              questions={message.metadata.deep_research_data.questions}
+              sessionId={message.metadata.deep_research_data.session_id || ''}
+              questions={message.metadata.deep_research_data.questions || []}
               onSubmit={(answers) => {
                 // Dispatch a custom event that the chat context can listen to
                 const event = new CustomEvent('deepResearchSubmit', {
@@ -443,9 +519,26 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
                       </>
                     )}
                   </button>
+
+                  {/* Deep Research Download Button - Only show for completed research, not clarification */}
+                  {message.metadata?.model === 'deep_research' && message.metadata?.widget_type !== 'deep_research_clarification' && (
+                    <Suspense fallback={<div className="h-6 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />}>
+                      <DeepResearchDownloadButton
+                        content={message.content}
+                        timestamp={message.created_at}
+                      />
+                    </Suspense>
+                  )}
                 </div>
               )}
             </div>
+          )}
+
+          {/* Deep Research Sources Carousel - Render below the message bubble for AI */}
+          {!isUser && message.metadata?.model === 'deep_research' && message.metadata?.deep_research_data?.sources && (
+            <Suspense fallback={<div className="h-24 w-full bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse mt-4" />}>
+              <DeepResearchSources sources={message.metadata.deep_research_data.sources} />
+            </Suspense>
           )}
         </div>
       </div>

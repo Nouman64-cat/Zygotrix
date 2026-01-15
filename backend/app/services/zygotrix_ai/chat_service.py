@@ -1264,6 +1264,15 @@ Question: {user_message.content}"""
                     f"Time: {research_response.processing_time_ms}ms"
                 )
                 
+                # Generate smart title for new conversations (runs in background)
+                if conversation.message_count <= 2:  # First exchange
+                    asyncio.create_task(self._generate_and_save_title(
+                        conversation.id,
+                        user_id,
+                        chat_request.message,
+                        "Deep Research: " + chat_request.message[:100]
+                    ))
+                
                 return ChatResponse(
                     conversation_id=conversation.id,
                     message=assistant_message,
@@ -1334,6 +1343,15 @@ Question: {user_message.content}"""
                 f"Sources: {research_response.sources_used} | "
                 f"Time: {research_response.processing_time_ms}ms"
             )
+            
+            # Generate smart title for new conversations (runs in background)
+            if conversation.message_count <= 2:  # First exchange
+                asyncio.create_task(self._generate_and_save_title(
+                    conversation.id,
+                    user_id,
+                    chat_request.message,
+                    content[:500]  # Use first 500 chars of response for title generation
+                ))
             
             return ChatResponse(
                 conversation_id=conversation.id,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout";
 import {
@@ -18,6 +18,9 @@ export const Chat: React.FC = () => {
 
   const [showRateLimitModal, setShowRateLimitModal] = useState(false);
   const [resetTime, setResetTime] = useState<string | null>(null);
+
+  // State for enabled tools - lifted to page level for persistence
+  const [enabledTools, setEnabledTools] = useState<string[]>([]);
 
   // Access auth for user ID
   const { user } = useAuth();
@@ -54,9 +57,9 @@ export const Chat: React.FC = () => {
   // Parse error to check for rate limit - check multiple patterns
   const isRateLimited = error
     ? error.includes("429") ||
-      error.toLowerCase().includes("rate limit") ||
-      error.toLowerCase().includes("too many requests") ||
-      error.toLowerCase().includes("cooldown")
+    error.toLowerCase().includes("rate limit") ||
+    error.toLowerCase().includes("too many requests") ||
+    error.toLowerCase().includes("cooldown")
     : false;
 
   // Parse rate limit error details (when error comes from API response)
@@ -163,12 +166,33 @@ export const Chat: React.FC = () => {
     }
   }, [messages.length, conversationId, refreshConversations]);
 
+  // Auto-enable deep_research tool when a clarification widget is present
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      // If the last message has a deep research clarification widget, keep the tool enabled
+      if (
+        lastMessage.metadata?.widget_type === 'deep_research_clarification' &&
+        !enabledTools.includes('deep_research')
+      ) {
+        setEnabledTools(prev => [...prev, 'deep_research']);
+      }
+    }
+  }, [messages, enabledTools]);
+
+  // Handler for enabled tools changes
+  const handleEnabledToolsChange = useCallback((tools: string[]) => {
+    setEnabledTools(tools);
+  }, []);
+
   const handleSendMessage = async (
     content: string,
     attachments?: import("../types").MessageAttachment[],
-    enabledTools?: string[]
+    toolsFromInput?: string[]
   ) => {
-    await sendMessage(content, attachments, enabledTools);
+    // Use tools from input if provided, otherwise use page-level state
+    const toolsToUse = toolsFromInput ?? enabledTools;
+    await sendMessage(content, attachments, toolsToUse.length > 0 ? toolsToUse : undefined);
   };
 
   return (
@@ -217,6 +241,8 @@ export const Chat: React.FC = () => {
               <ChatInput
                 onSend={handleSendMessage}
                 disabled={isLoading || isRateLimited}
+                enabledTools={enabledTools}
+                onEnabledToolsChange={handleEnabledToolsChange}
               />
             )}
           </div>

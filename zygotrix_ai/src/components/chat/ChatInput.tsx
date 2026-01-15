@@ -99,16 +99,39 @@ interface ChatInputProps {
   ) => void;
   disabled?: boolean;
   placeholder?: string;
+  // Optional controlled mode for enabled tools (for persistence)
+  enabledTools?: string[];
+  onEnabledToolsChange?: (tools: string[]) => void;
 }
 
 export const ChatInput: React.FC<ChatInputProps> = ({
   onSend,
   disabled = false,
   placeholder = "Ask Zygotrix AI",
+  enabledTools: controlledEnabledTools,
+  onEnabledToolsChange,
 }) => {
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
-  const [enabledTools, setEnabledTools] = useState<string[]>([]);
+  // Use controlled mode if props are provided, otherwise internal state
+  const [internalEnabledTools, setInternalEnabledTools] = useState<string[]>([]);
+  const enabledTools = controlledEnabledTools ?? internalEnabledTools;
+
+  // Wrapper function for setEnabledTools that works in both controlled and uncontrolled modes
+  const setEnabledTools = useCallback((value: string[] | ((prev: string[]) => string[])) => {
+    if (onEnabledToolsChange) {
+      // Controlled mode - compute new value if function is passed
+      if (typeof value === 'function') {
+        const newValue = value(controlledEnabledTools ?? []);
+        onEnabledToolsChange(newValue);
+      } else {
+        onEnabledToolsChange(value);
+      }
+    } else {
+      // Uncontrolled mode - use internal setter directly
+      setInternalEnabledTools(value);
+    }
+  }, [onEnabledToolsChange, controlledEnabledTools]);
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingPlaceholder, setRecordingPlaceholder] = useState(

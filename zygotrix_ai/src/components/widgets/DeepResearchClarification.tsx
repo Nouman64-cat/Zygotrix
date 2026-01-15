@@ -83,9 +83,9 @@ export const DeepResearchClarification: React.FC<
     }, [allAnswered, isLoading, questions, answers, onSubmit]);
 
     return (
-        <div className="bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-900/20 dark:to-indigo-900/20 rounded-2xl border border-blue-200 dark:border-blue-700/50 overflow-hidden">
+        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-700/50 overflow-hidden mt-4">
             {/* Header */}
-            <div className="px-5 py-4 bg-gradient-to-r from-blue-500 to-indigo-500 dark:from-blue-600 dark:to-indigo-600">
+            <div className="px-5 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-600 dark:to-teal-600">
                 <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
                         <FiSearch className="text-white text-lg" />
@@ -94,7 +94,7 @@ export const DeepResearchClarification: React.FC<
                         <h3 className="text-white font-semibold text-lg">
                             Deep Research - Clarification
                         </h3>
-                        <p className="text-blue-100 text-sm">
+                        <p className="text-emerald-100 text-sm">
                             Answer the questions below to refine your research
                         </p>
                     </div>
@@ -112,7 +112,7 @@ export const DeepResearchClarification: React.FC<
                                     "w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0",
                                     answers[question.id]
                                         ? "bg-emerald-500 text-white"
-                                        : "bg-blue-100 dark:bg-blue-800 text-blue-600 dark:text-blue-300"
+                                        : "bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300"
                                 )}
                             >
                                 {answers[question.id] ? (
@@ -148,8 +148,8 @@ export const DeepResearchClarification: React.FC<
                                                 className={cn(
                                                     "px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
                                                     answers[question.id] === suggestion
-                                                        ? "bg-blue-500 text-white shadow-md"
-                                                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-blue-300 dark:hover:border-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/30"
+                                                        ? "bg-emerald-500 text-white shadow-md"
+                                                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
                                                 )}
                                             >
                                                 {suggestion}
@@ -157,7 +157,7 @@ export const DeepResearchClarification: React.FC<
                                         ))}
                                         <button
                                             onClick={() => handleToggleCustom(question.id)}
-                                            className="px-4 py-2 rounded-xl text-sm font-medium bg-transparent text-blue-500 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/30 border border-dashed border-blue-300 dark:border-blue-600 transition-all duration-200"
+                                            className="px-4 py-2 rounded-xl text-sm font-medium bg-transparent text-emerald-500 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 border border-dashed border-emerald-300 dark:border-emerald-600 transition-all duration-200"
                                         >
                                             Custom answer...
                                         </button>
@@ -175,12 +175,12 @@ export const DeepResearchClarification: React.FC<
                                                 handleCustomAnswer(question.id, e.target.value)
                                             }
                                             placeholder="Type your answer..."
-                                            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+                                            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
                                         />
                                         {question.suggested_answers.length > 0 && (
                                             <button
                                                 onClick={() => handleToggleCustom(question.id)}
-                                                className="text-sm text-blue-500 dark:text-blue-400 hover:underline"
+                                                className="text-sm text-emerald-500 dark:text-emerald-400 hover:underline"
                                             >
                                                 ← Back to suggestions
                                             </button>
@@ -219,7 +219,7 @@ export const DeepResearchClarification: React.FC<
                         className={cn(
                             "px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2",
                             allAnswered && !isLoading
-                                ? "bg-gradient-to-r from-blue-500 to-indigo-500 hover:from-blue-600 hover:to-indigo-600 text-white shadow-lg shadow-blue-500/30 cursor-pointer"
+                                ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30 cursor-pointer"
                                 : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
                         )}
                     >

@@ -1151,9 +1151,50 @@ Question: {user_message.content}"""
         """
         from ..deep_research import get_deep_research_service, DeepResearchRequest
         from ..deep_research.schemas import ResearchStatus, ClarificationAnswer
+        from ..auth.subscription_service import get_subscription_service
+        from ..zygotrix_ai_service import MessageService, MessageRole
         import re
         
         logger.info(f"🔬 Starting deep research for user {user_id}")
+        
+        # Check subscription and usage limits
+        subscription_service = get_subscription_service()
+        can_access, reason, remaining = subscription_service.check_deep_research_access(user_id)
+        
+        if not can_access:
+            logger.warning(f"🔬 Deep research denied for user {user_id}: {reason}")
+            # Return a helpful message about subscription requirement
+            
+            error_content = f"⚠️ **Deep Research Access Denied**\n\n{reason}"
+            
+            if "PRO feature" in reason:
+                error_content += "\n\n💡 **Tip:** Upgrade to PRO to unlock powerful Deep Research capabilities including multi-source synthesis and comprehensive analysis."
+            elif "used all" in reason:
+                error_content += f"\n\n📊 You can use Deep Research again tomorrow when your daily limit resets."
+                
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=error_content,
+            )
+            
+            # Create proper Message object for response
+            from app.schema.zygotrix_ai import Message
+            message_obj = Message(
+                id=assistant_message.id,
+                conversation_id=conversation.id,
+                role="assistant",
+                content=error_content,
+                created_at=assistant_message.created_at,
+            )
+            
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=message_obj,
+                conversation_title=conversation.title,
+            ), conversation.id, assistant_message.id
+        
+        logger.info(f"🔬 Deep research access granted for user {user_id}: {remaining} uses remaining")
         
         try:
             research_service = get_deep_research_service()
@@ -1204,6 +1245,11 @@ Question: {user_message.content}"""
                 user_id=user_id,
                 user_name=user_name
             )
+            
+            # Record usage only for completed research (not clarification questions)
+            if research_response.status != ResearchStatus.NEEDS_CLARIFICATION:
+                subscription_service.record_deep_research_usage(user_id)
+                logger.info(f"🔬 Recorded deep research usage for user {user_id}")
             
             # Handle different research statuses
             if research_response.status == ResearchStatus.NEEDS_CLARIFICATION:

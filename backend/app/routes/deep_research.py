@@ -161,8 +161,14 @@ async def execute_research_stream(
                 yield f"data: {data}\n\n"
                 
                 # Record usage when done (not for clarification)
-                if chunk.type == "done" and not chunk.needs_clarification:
-                    subscription_service.record_deep_research_usage(current_user.id)
+                if chunk.type == "done":
+                    # Check if this was a clarification response (shouldn't count usage)
+                    is_clarification = getattr(chunk, 'needs_clarification', False) or False
+                    logger.info(f"Stream done for user {current_user.id}: is_clarification={is_clarification}")
+                    
+                    if not is_clarification:
+                        logger.info(f"Recording deep research usage for user {current_user.id}")
+                        subscription_service.record_deep_research_usage(current_user.id)
                 
         except Exception as e:
             logger.error(f"Streaming error: {e}", exc_info=True)

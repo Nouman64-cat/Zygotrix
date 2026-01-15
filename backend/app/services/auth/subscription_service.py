@@ -46,31 +46,43 @@ class SubscriptionService:
                 return False, "User not found", None
 
             subscription_status = user.get("subscription_status", "free")
+            logger.info(f"Checking deep research access for user {user_id}: subscription={subscription_status}")
             
             # Free users cannot access deep research
             if subscription_status == SubscriptionStatus.FREE.value:
                 return False, "Deep Research is a PRO feature. Upgrade to PRO to access comprehensive research capabilities.", None
 
             # Pro users - check usage limits
-            usage = user.get("deep_research_usage", {})
-            usage_count = usage.get("count", 0)
-            last_reset = usage.get("last_reset")
+            usage = user.get("deep_research_usage") or {}  # Handle None explicitly
+            usage_count = usage.get("count", 0) if isinstance(usage, dict) else 0
+            last_reset = usage.get("last_reset") if isinstance(usage, dict) else None
+            
+            logger.info(f"Deep research usage for user {user_id}: count={usage_count}, last_reset={last_reset}")
             
             # Check if we need to reset the counter (24 hours passed)
             now = datetime.now(timezone.utc)
             if last_reset:
                 if isinstance(last_reset, str):
                     last_reset = datetime.fromisoformat(last_reset.replace('Z', '+00:00'))
+                elif isinstance(last_reset, datetime):
+                    # Ensure datetime is timezone-aware
+                    if last_reset.tzinfo is None:
+                        last_reset = last_reset.replace(tzinfo=timezone.utc)
                 
                 time_since_reset = now - last_reset
+                logger.info(f"Time since last reset: {time_since_reset}")
+                
                 if time_since_reset >= timedelta(hours=24):
                     # Reset the counter
+                    logger.info(f"Resetting usage counter for user {user_id} (24 hours passed)")
                     usage_count = 0
                     self._reset_usage_counter(user_id)
             
             remaining = DEEP_RESEARCH_DAILY_LIMIT_PRO - usage_count
+            logger.info(f"Remaining deep research uses for user {user_id}: {remaining}")
             
             if remaining <= 0:
+                logger.warning(f"User {user_id} has exhausted deep research limit: {usage_count}/{DEEP_RESEARCH_DAILY_LIMIT_PRO}")
                 return False, f"You've used all {DEEP_RESEARCH_DAILY_LIMIT_PRO} deep research queries for today. Counter resets in 24 hours from your first query.", 0
 
             return True, "Access granted", remaining
@@ -98,9 +110,9 @@ class SubscriptionService:
             if not user:
                 return False
 
-            usage = user.get("deep_research_usage", {})
-            usage_count = usage.get("count", 0)
-            last_reset = usage.get("last_reset")
+            usage = user.get("deep_research_usage") or {}  # Handle None explicitly
+            usage_count = usage.get("count", 0) if isinstance(usage, dict) else 0
+            last_reset = usage.get("last_reset") if isinstance(usage, dict) else None
             
             now = datetime.now(timezone.utc)
             
@@ -108,6 +120,10 @@ class SubscriptionService:
             if last_reset:
                 if isinstance(last_reset, str):
                     last_reset = datetime.fromisoformat(last_reset.replace('Z', '+00:00'))
+                elif isinstance(last_reset, datetime):
+                    # Ensure datetime is timezone-aware
+                    if last_reset.tzinfo is None:
+                        last_reset = last_reset.replace(tzinfo=timezone.utc)
                 
                 if (now - last_reset) >= timedelta(hours=24):
                     usage_count = 0

@@ -596,12 +596,12 @@ class DeepResearchService:
 Your task is to synthesize information from multiple sources to provide a comprehensive, accurate answer to the user's research query.
 
 GUIDELINES:
-1. Synthesize information from all provided sources
-2. Present a coherent, well-structured response
-3. Cite sources when making specific claims (e.g., [Source 1])
+1. Synthesize information from all provided sources into a detailed research report
+2. Structure the response with clear headings, subheadings, and bullet points
+3. Cite sources frequently when making specific claims (e.g., [Source 1])
 4. Acknowledge any limitations or conflicting information
 5. Focus on genetics, genomics, and life sciences topics
-6. Be thorough but concise
+6. Be comprehensive and extensive - favor depth over brevity
 7. Use markdown formatting for readability
 
 If the sources don't contain relevant information, acknowledge this and provide what general knowledge you can while being clear about the limitations."""

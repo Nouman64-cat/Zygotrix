@@ -6,9 +6,13 @@ import {
   getDailyTokenUsage,
   getEmbeddingUsageStats,
   getDailyEmbeddingUsage,
+  getDeepResearchStats,
+  getDailyDeepResearchUsage,
   type DailyUsageResponse,
   type EmbeddingUsageStats as EmbeddingStats,
   type EmbeddingDailyUsageResponse,
+  type DeepResearchStats as DeepResearchStatsType,
+  type DeepResearchDailyResponse,
 } from "../services/chatbotService";
 import { fetchChatbotSettings } from "../services/admin.api";
 import type { ChatbotSettings } from "../types/auth";
@@ -87,13 +91,15 @@ const AdminTokenUsagePage: React.FC = () => {
   );
   const [embeddingDailyData, setEmbeddingDailyData] =
     useState<EmbeddingDailyUsageResponse | null>(null);
+  const [deepResearchStats, setDeepResearchStats] = useState<DeepResearchStatsType | null>(null);
+  const [deepResearchDailyData, setDeepResearchDailyData] = useState<DeepResearchDailyResponse | null>(null);
   const [chatbotSettings, setChatbotSettings] =
     useState<ChatbotSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chartDays, setChartDays] = useState(30);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "cache" | "embeddings"
+    "overview" | "cache" | "embeddings" | "deep_research"
   >("overview");
   const [userCurrentPage, setUserCurrentPage] = useState(1);
   const USERS_PER_PAGE = 10;
@@ -106,6 +112,7 @@ const AdminTokenUsagePage: React.FC = () => {
     if (hasAdminAccess) {
       fetchStats();
       fetchEmbeddingStats();
+      fetchDeepResearchStatsData();
       fetchSettings();
     }
   }, [hasAdminAccess]);
@@ -114,6 +121,7 @@ const AdminTokenUsagePage: React.FC = () => {
     if (hasAdminAccess) {
       fetchDailyData();
       fetchEmbeddingDailyData();
+      fetchDeepResearchDailyData();
     }
   }, [hasAdminAccess, chartDays]);
 
@@ -178,11 +186,35 @@ const AdminTokenUsagePage: React.FC = () => {
     }
   };
 
+  const fetchDeepResearchStatsData = async () => {
+    try {
+      const data = await getDeepResearchStats();
+      if (data) {
+        setDeepResearchStats(data);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to fetch deep research stats:", err);
+    }
+  };
+
+  const fetchDeepResearchDailyData = async () => {
+    try {
+      const data = await getDailyDeepResearchUsage(chartDays);
+      if (data) {
+        setDeepResearchDailyData(data);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to fetch deep research daily data:", err);
+    }
+  };
+
   const handleRefresh = () => {
     fetchStats();
     fetchDailyData();
     fetchEmbeddingStats();
     fetchEmbeddingDailyData();
+    fetchDeepResearchStatsData();
+    fetchDeepResearchDailyData();
     fetchSettings();
   };
 
@@ -589,36 +621,43 @@ const AdminTokenUsagePage: React.FC = () => {
           <nav className="flex space-x-8" aria-label="Tabs">
             <button
               onClick={() => setActiveTab("overview")}
-              className={`${
-                activeTab === "overview"
-                  ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+              className={`${activeTab === "overview"
+                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
             >
               <MdTrendingUp className="w-5 h-5" />
               Token Usage
             </button>
             <button
               onClick={() => setActiveTab("cache")}
-              className={`${
-                activeTab === "cache"
-                  ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+              className={`${activeTab === "cache"
+                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
             >
               <FaDatabase className="w-5 h-5" />
               Cache Analytics
             </button>
             <button
               onClick={() => setActiveTab("embeddings")}
-              className={`${
-                activeTab === "embeddings"
-                  ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
-                  : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
-              } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+              className={`${activeTab === "embeddings"
+                ? "border-indigo-500 text-indigo-600 dark:text-indigo-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
             >
               <HiSparkles className="w-5 h-5" />
               Embeddings
+            </button>
+            <button
+              onClick={() => setActiveTab("deep_research")}
+              className={`${activeTab === "deep_research"
+                ? "border-emerald-500 text-emerald-600 dark:text-emerald-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+            >
+              <span className="text-lg">🔬</span>
+              Deep Research
             </button>
           </nav>
         </div>
@@ -827,7 +866,7 @@ const AdminTokenUsagePage: React.FC = () => {
                               (stats.total_input_tokens / 1000000) *
                               getModelInfo(
                                 chatbotSettings?.model ||
-                                  "claude-3-haiku-20240307"
+                                "claude-3-haiku-20240307"
                               ).input
                             ).toFixed(4)}
                           </div>
@@ -836,7 +875,7 @@ const AdminTokenUsagePage: React.FC = () => {
                             {
                               getModelInfo(
                                 chatbotSettings?.model ||
-                                  "claude-3-haiku-20240307"
+                                "claude-3-haiku-20240307"
                               ).input
                             }
                             /MTok
@@ -872,7 +911,7 @@ const AdminTokenUsagePage: React.FC = () => {
                               (stats.total_output_tokens / 1000000) *
                               getModelInfo(
                                 chatbotSettings?.model ||
-                                  "claude-3-haiku-20240307"
+                                "claude-3-haiku-20240307"
                               ).output
                             ).toFixed(4)}
                           </div>
@@ -881,7 +920,7 @@ const AdminTokenUsagePage: React.FC = () => {
                             {
                               getModelInfo(
                                 chatbotSettings?.model ||
-                                  "claude-3-haiku-20240307"
+                                "claude-3-haiku-20240307"
                               ).output
                             }
                             /MTok
@@ -1033,8 +1072,8 @@ const AdminTokenUsagePage: React.FC = () => {
                                   <div className="text-xs text-gray-500 dark:text-slate-500">
                                     {user.last_request
                                       ? new Date(
-                                          user.last_request
-                                        ).toLocaleDateString()
+                                        user.last_request
+                                      ).toLocaleDateString()
                                       : "N/A"}
                                   </div>
                                 </td>
@@ -1376,8 +1415,8 @@ const AdminTokenUsagePage: React.FC = () => {
                       $
                       {embeddingDailyData?.summary
                         ? embeddingDailyData.summary.projected_monthly_cost.toFixed(
-                            6
-                          )
+                          6
+                        )
                         : "0.000000"}
                     </div>
                     <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
@@ -1428,7 +1467,7 @@ const AdminTokenUsagePage: React.FC = () => {
                   </div>
 
                   {embeddingDailyData &&
-                  embeddingDailyData.daily_usage.length > 0 ? (
+                    embeddingDailyData.daily_usage.length > 0 ? (
                     <div className="h-[200px] sm:h-[300px]">
                       <Line
                         data={{
@@ -1670,14 +1709,256 @@ const AdminTokenUsagePage: React.FC = () => {
                                 <div className="text-xs text-gray-500 dark:text-slate-500">
                                   {user.last_request
                                     ? new Date(
-                                        user.last_request
-                                      ).toLocaleDateString()
+                                      user.last_request
+                                    ).toLocaleDateString()
                                     : "N/A"}
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-right">
                                 <div className="text-sm font-semibold text-purple-600 dark:text-purple-400">
                                   ${user.total_cost.toFixed(6)}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Deep Research Tab */}
+            {activeTab === "deep_research" && (
+              <>
+                {/* Deep Research Stats Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
+                  {/* Total Queries */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-emerald-100 dark:bg-emerald-500/20">
+                        <span className="text-lg">🔬</span>
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Total Queries
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {deepResearchStats?.total_queries || 0}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {deepResearchStats?.success_rate || "0%"} success rate
+                    </div>
+                  </div>
+
+                  {/* Total Cost */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-red-100 dark:bg-red-500/20">
+                        <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 dark:text-red-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Total Cost
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1">
+                      ${deepResearchStats?.total_cost?.toFixed(4) || "0.0000"}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      All deep research
+                    </div>
+                  </div>
+
+                  {/* OpenAI (Clarification) */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20">
+                        <span className="text-xs font-bold text-green-600 dark:text-green-400">GPT</span>
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        OpenAI
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {formatNumber((deepResearchStats?.total_openai_input_tokens || 0) + (deepResearchStats?.total_openai_output_tokens || 0))}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500 mb-1">
+                      {formatNumber(deepResearchStats?.total_openai_input_tokens || 0)} in / {formatNumber(deepResearchStats?.total_openai_output_tokens || 0)} out
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-green-600 dark:text-green-400">
+                      ${deepResearchStats?.total_openai_cost?.toFixed(4) || "0.0000"}
+                    </div>
+                  </div>
+
+                  {/* Claude (Synthesis) */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-orange-100 dark:bg-orange-500/20">
+                        <span className="text-xs font-bold text-orange-600 dark:text-orange-400">CL</span>
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Claude
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {formatNumber((deepResearchStats?.total_claude_input_tokens || 0) + (deepResearchStats?.total_claude_output_tokens || 0))}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500 mb-1">
+                      {formatNumber(deepResearchStats?.total_claude_input_tokens || 0)} in / {formatNumber(deepResearchStats?.total_claude_output_tokens || 0)} out
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-orange-600 dark:text-orange-400">
+                      ${deepResearchStats?.total_claude_cost?.toFixed(4) || "0.0000"}
+                    </div>
+                  </div>
+
+                  {/* Cohere (Reranking) */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-500/20">
+                        <span className="text-xs font-bold text-purple-600 dark:text-purple-400">CO</span>
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Cohere
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {deepResearchStats?.total_cohere_searches || 0}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-purple-600 dark:text-purple-400">
+                      ${deepResearchStats?.total_cohere_cost?.toFixed(4) || "0.0000"} ($2/1k)
+                    </div>
+                  </div>
+
+                  {/* Users */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                        <FaUsers className="w-4 h-4 sm:w-5 sm:h-5 text-blue-500 dark:text-blue-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Users
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {deepResearchStats?.user_count || 0}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {deepResearchStats?.total_sources_retrieved || 0} sources used
+                    </div>
+                  </div>
+                </div>
+
+                {/* Monthly Projection */}
+                {deepResearchDailyData && (
+                  <div className="bg-gradient-to-r from-emerald-500 to-teal-600 rounded-xl p-4 sm:p-6 text-white">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <h3 className="text-lg font-semibold">Deep Research Cost Projection</h3>
+                        <p className="text-emerald-100 text-sm">Based on last {deepResearchDailyData.period_days} days</p>
+                      </div>
+                      <div className="flex gap-6">
+                        <div>
+                          <p className="text-emerald-100 text-xs">Avg Daily Cost</p>
+                          <p className="text-2xl font-bold">${deepResearchDailyData.avg_daily_cost?.toFixed(4) || "0.00"}</p>
+                        </div>
+                        <div>
+                          <p className="text-emerald-100 text-xs">Projected Monthly</p>
+                          <p className="text-2xl font-bold">${deepResearchDailyData.projected_monthly_cost?.toFixed(2) || "0.00"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Users Table */}
+                <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
+                  <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <span>🔬</span>
+                      Deep Research Usage by User
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-slate-900/50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+                            User
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+                            Queries
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
+                            OpenAI Tokens
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
+                            Claude Tokens
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">
+                            Cohere Searches
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+                            Cost
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+                        {!deepResearchStats?.users?.length ? (
+                          <tr>
+                            <td
+                              colSpan={6}
+                              className="px-4 py-8 text-center text-gray-500 dark:text-slate-400"
+                            >
+                              No deep research usage data yet
+                            </td>
+                          </tr>
+                        ) : (
+                          deepResearchStats.users.map((user) => (
+                            <tr
+                              key={user.user_id}
+                              className="hover:bg-gray-50 dark:hover:bg-slate-700/30"
+                            >
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-emerald-400 to-teal-500 flex items-center justify-center text-white font-semibold text-xs">
+                                    {user.user_name?.charAt(0).toUpperCase() || "?"}
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {user.user_name || "Unknown"}
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-slate-500">
+                                      {user.last_query
+                                        ? `Last: ${new Date(user.last_query).toLocaleDateString()}`
+                                        : "No recent activity"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                                  {user.total_queries}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden sm:table-cell">
+                                <div className="text-sm text-green-600 dark:text-green-400">
+                                  {formatNumber(user.openai_tokens)}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden sm:table-cell">
+                                <div className="text-sm text-orange-600 dark:text-orange-400">
+                                  {formatNumber(user.claude_tokens)}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden lg:table-cell">
+                                <div className="text-sm text-purple-600 dark:text-purple-400">
+                                  {user.cohere_searches}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm font-semibold text-red-600 dark:text-red-400">
+                                  ${user.total_cost?.toFixed(4) || "0.0000"}
                                 </div>
                               </td>
                             </tr>

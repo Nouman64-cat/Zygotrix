@@ -50,7 +50,7 @@ DEFAULT_TOP_K_RERANKED = int(os.getenv("DEEP_RESEARCH_TOP_K", "5"))
 
 # Claude configuration
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-sonnet-4-20250514")
+CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-3-haiku-20240307")
 
 
 class DeepResearchService:
@@ -779,9 +779,52 @@ Please synthesize the information from these sources to answer the research quer
                 metadata=s.get("metadata", {})
             ))
         
+        processing_time_ms = int((time.time() - start_time) * 1000)
+        status_value = state.get("status", ResearchStatus.PENDING.value)
+        
+        # Log analytics for completed, failed, or clarification-needed research
+        if status_value in (ResearchStatus.COMPLETED.value, ResearchStatus.FAILED.value, ResearchStatus.NEEDS_CLARIFICATION.value):
+            try:
+                from .analytics_service import get_deep_research_analytics_service
+                analytics_service = get_deep_research_analytics_service()
+                
+                # Map model_usage to the expected format
+                model_usage = state.get("model_usage", {})
+                token_usage = {
+                    "openai": {
+                        "input_tokens": model_usage.get("gpt-4o-mini", {}).get("input_tokens", 0),
+                        "output_tokens": model_usage.get("gpt-4o-mini", {}).get("output_tokens", 0)
+                    },
+                    "claude": {
+                        "input_tokens": sum(
+                            v.get("input_tokens", 0) for k, v in model_usage.items() 
+                            if "claude" in k.lower()
+                        ),
+                        "output_tokens": sum(
+                            v.get("output_tokens", 0) for k, v in model_usage.items() 
+                            if "claude" in k.lower()
+                        )
+                    }
+                }
+                
+                analytics_service.log_usage(
+                    user_id=state.get("user_id", ""),
+                    user_name=state.get("user_name"),
+                    session_id=session_id,
+                    query=state.get("original_query", ""),
+                    status=status_value,
+                    token_usage=token_usage,
+                    sources_used=len(sources),
+                    processing_time_ms=processing_time_ms,
+                    phase=state.get("phase", ""),
+                    claude_model=CLAUDE_MODEL
+                )
+            except Exception as e:
+                logger.error(f"Failed to log deep research analytics: {e}")
+        
         return DeepResearchResponse(
             session_id=session_id,
-            status=ResearchStatus(state.get("status", ResearchStatus.PENDING.value)),
+            status=ResearchStatus(status_value),
             phase=ResearchPhase(state.get("phase", ResearchPhase.CLARIFICATION.value)),
             clarification_questions=clarification_questions,
             response=state.get("final_response") or None,
@@ -789,7 +832,7 @@ Please synthesize the information from these sources to answer the research quer
             total_sources_found=len(state.get("retrieved_chunks", [])),
             sources_used=len(sources),
             token_usage=state.get("model_usage", {}),
-            processing_time_ms=int((time.time() - start_time) * 1000),
+            processing_time_ms=processing_time_ms,
             error_message=state.get("error_message")
         )
     

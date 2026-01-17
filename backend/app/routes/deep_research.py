@@ -27,7 +27,7 @@ from ..services.auth.subscription_service import get_subscription_service, Subsc
 
 logger = logging.getLogger(__name__)
 
-router = APIRouter(prefix="/deep-research", tags=["Deep Research"])
+router = APIRouter(prefix="/api/deep-research", tags=["Deep Research"])
 
 
 @router.post(
@@ -329,3 +329,47 @@ async def get_capabilities() -> dict:
             "Token usage tracking"
         ]
     }
+
+
+@router.get(
+    "/analytics",
+    summary="Get Deep Research Analytics (Admin)",
+    description="Get aggregate deep research usage statistics for all users."
+)
+async def get_analytics() -> dict:
+    """
+    Get aggregate deep research analytics for all users.
+    Returns stats on queries, token usage per model, and costs.
+    """
+    try:
+        from ..services.deep_research.analytics_service import get_deep_research_analytics_service
+        analytics_service = get_deep_research_analytics_service()
+        return analytics_service.get_aggregate_stats()
+    except Exception as e:
+        logger.error(f"Failed to get deep research analytics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get analytics: {str(e)}"
+        )
+
+
+@router.get(
+    "/analytics/daily",
+    summary="Get Daily Deep Research Analytics (Admin)",
+    description="Get daily deep research usage statistics for the last N days."
+)
+async def get_daily_analytics(days: int = 30) -> dict:
+    """
+    Get daily deep research analytics.
+    Returns daily breakdown of queries, tokens, and costs.
+    """
+    try:
+        from ..services.deep_research.analytics_service import get_deep_research_analytics_service
+        analytics_service = get_deep_research_analytics_service()
+        return analytics_service.get_daily_stats(days=min(days, 90))  # Cap at 90 days
+    except Exception as e:
+        logger.error(f"Failed to get daily deep research analytics: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to get daily analytics: {str(e)}"
+        )

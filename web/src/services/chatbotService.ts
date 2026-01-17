@@ -285,11 +285,14 @@ export interface EmbeddingDailyUsage {
   request_count: number;
   unique_users: number;
   avg_tokens_per_request: number;
-  models: Record<string, {
-    tokens: number;
-    cost: number;
-    requests: number;
-  }>;
+  models: Record<
+    string,
+    {
+      tokens: number;
+      cost: number;
+      requests: number;
+    }
+  >;
 }
 
 export interface EmbeddingDailyUsageSummary {
@@ -341,6 +344,98 @@ export async function getDailyEmbeddingUsage(
     return await response.json();
   } catch (error) {
     console.error("Error fetching daily embedding usage:", error);
+    return null;
+  }
+}
+
+// ==================== DEEP RESEARCH ANALYTICS ====================
+
+export interface DeepResearchUser {
+  user_id: string;
+  user_name: string;
+  total_queries: number;
+  openai_tokens: number;
+  claude_tokens: number;
+  cohere_searches: number;
+  total_cost: number;
+  last_query: string | null;
+}
+
+export interface DeepResearchStats {
+  total_queries: number;
+  completed_queries: number;
+  failed_queries: number;
+  success_rate: string;
+  total_openai_input_tokens: number;
+  total_openai_output_tokens: number;
+  total_claude_input_tokens: number;
+  total_claude_output_tokens: number;
+  total_cohere_searches: number;
+  total_sources_retrieved: number;
+  total_openai_cost: number;
+  total_claude_cost: number;
+  total_cohere_cost: number;
+  total_cost: number;
+  avg_processing_time_ms: number;
+  user_count: number;
+  users: DeepResearchUser[];
+  error?: string;
+}
+
+export interface DeepResearchDailyUsage {
+  date: string;
+  queries: number;
+  completed: number;
+  openai_tokens: number;
+  claude_tokens: number;
+  cohere_searches: number;
+  openai_cost: number;
+  claude_cost: number;
+  cohere_cost: number;
+  total_cost: number;
+  avg_time_ms: number;
+}
+
+export interface DeepResearchDailyResponse {
+  period_days: number;
+  total_queries: number;
+  total_cost: number;
+  avg_daily_cost: number;
+  projected_monthly_cost: number;
+  daily_usage: DeepResearchDailyUsage[];
+  error?: string;
+}
+
+// Fetch deep research analytics stats for admin dashboard
+export async function getDeepResearchStats(): Promise<DeepResearchStats | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/deep-research/analytics`);
+    if (!response.ok) {
+      console.error("Failed to fetch deep research stats");
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching deep research stats:", error);
+    return null;
+  }
+}
+
+// Fetch daily deep research analytics for line chart
+export async function getDailyDeepResearchUsage(
+  days: number = 30
+): Promise<DeepResearchDailyResponse | null> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/deep-research/analytics/daily?days=${days}`
+    );
+    if (!response.ok) {
+      console.error("Failed to fetch daily deep research usage");
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching daily deep research usage:", error);
     return null;
   }
 }

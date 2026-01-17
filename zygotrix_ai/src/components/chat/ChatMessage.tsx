@@ -320,9 +320,9 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
             ul: ({ children }) => <ul className="list-disc list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">{children}</ul>,
             ol: ({ children }) => <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">{children}</ol>,
             li: ({ children }) => <li className="pl-1 leading-relaxed">{renderWithCitations(children, message.metadata?.deep_research_data?.sources)}</li>,
-            h1: ({ children }) => <h1 className="text-base font-bold mb-4 mt-6 first:mt-0">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-sm font-bold mb-4 mt-6 first:mt-0">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-xs font-bold mb-3 mt-5 first:mt-0">{children}</h3>,
+            h1: ({ children }) => <h1 className="text-4xl font-extrabold mb-4 mt-6 first:mt-0 text-gray-700 dark:text-gray-300">{children}</h1>,
+            h2: ({ children }) => <h2 className="text-2xl font-extrabold mb-3 mt-5 first:mt-0 text-gray-700 dark:text-gray-300">{children}</h2>,
+            h3: ({ children }) => <h3 className="text-xl font-extrabold mb-2 mt-4 first:mt-0 text-gray-700 dark:text-gray-300">{children}</h3>,
             // Enhanced code block with copy functionality
             code: ({ children, className }) => {
               const match = /language-(\w+)/.exec(className || '');

@@ -166,6 +166,24 @@ body {
   font-display: swap;
 }
 
+@font-face {
+  font-family: "Axiforma";
+  src: url("https://zygotrix.fra1.cdn.digitaloceanspaces.com/cdn/fonts/Axiforma-ExtraBold.ttf")
+    format("truetype");
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Axiforma";
+  src: url("https://zygotrix.fra1.cdn.digitaloceanspaces.com/cdn/fonts/Axiforma-Black.ttf")
+    format("truetype");
+  font-weight: 900;
+  font-style: normal;
+  font-display: swap;
+}
+
 /* Custom animations for thinking loader */
 @keyframes typing-bar {
   0%,

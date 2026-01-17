@@ -102,8 +102,12 @@ const formatText = (text: string) => {
     let clean = text.replace(/\*\*/g, '').replace(/\*/g, '');
     // Remove links [text](url) -> text
     clean = clean.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+    // Remove source citations [Source 1], [Source 1, 2]
+    clean = clean.replace(/\[Source\s+[\d,\s]+\]/g, '');
     return clean;
 };
+
+// ... (rest of the file until the sources section) ...
 
 // Helper to format date nicely
 const formatDate = (dateString: string) => {
@@ -120,12 +124,24 @@ const formatDate = (dateString: string) => {
     }
 };
 
-export const DeepResearchReport: React.FC<DeepResearchReportProps> = ({ content, sources, timestamp }) => {
+export const DeepResearchReport: React.FC<DeepResearchReportProps> = ({ content, timestamp }) => {
     // Simple parser to separate content into chunks
     // This is a naive implementation; a full markdown-to-pdf parser is complex
     // We'll split by single newlines to handle headers vs lists correctly
     // Splitting by \n\n caused headers to swallow lists if they weren't separated by a blank line
-    const paragraphs = content.split('\n').filter(p => p.trim());
+    const paragraphs = content.split('\n').filter(p => {
+        const trimmed = p.trim();
+        if (!trimmed) return false;
+
+        // Remove the Deep Research stats footer
+        // Matches: *Deep Research completed in 9315ms using 10 sources*
+        if (trimmed.includes("Deep Research completed in") && trimmed.includes("sources")) return false;
+
+        // Remove horizontal rules often used before the footer
+        if (/^[-*_]{3,}$/.test(trimmed)) return false;
+
+        return true;
+    });
 
     return (
         <Document>
@@ -161,7 +177,8 @@ export const DeepResearchReport: React.FC<DeepResearchReportProps> = ({ content,
                     return <Text key={index} style={styles.content}>{formatText(para)}</Text>;
                 })}
 
-                {/* Sources */}
+                {/* Sources - REMOVED per user request */}
+                {/* 
                 {sources && sources.length > 0 && (
                     <View style={styles.sourcesSection}>
                         <Text style={styles.sourcesTitle}>Research Sources</Text>
@@ -178,7 +195,8 @@ export const DeepResearchReport: React.FC<DeepResearchReportProps> = ({ content,
                             </View>
                         ))}
                     </View>
-                )}
+                )} 
+                */}
 
                 {/* Footer */}
                 <Text style={styles.footer} render={({ pageNumber, totalPages }) => (

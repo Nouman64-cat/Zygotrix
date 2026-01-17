@@ -67,6 +67,13 @@ export interface UserProfile {
   login_history?: LoginHistoryEntry[] | null;
   // Subscription status
   subscription_status?: "free" | "pro";
+  // Deep research usage for PRO users
+  deep_research_usage?: DeepResearchUsage | null;
+}
+
+export interface DeepResearchUsage {
+  count: number;
+  last_reset?: string | null;
 }
 
 export interface LoginRequest {

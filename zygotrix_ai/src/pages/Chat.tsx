@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { MainLayout } from "../components/layout";
 import {
@@ -22,8 +22,8 @@ export const Chat: React.FC = () => {
   // State for enabled tools - lifted to page level for persistence
   const [enabledTools, setEnabledTools] = useState<string[]>([]);
 
-  // Access auth for user ID
-  const { user } = useAuth();
+  // Access auth for user ID and refreshUser
+  const { user, refreshUser } = useAuth();
 
   // Access shared conversations context
   const {
@@ -179,6 +179,28 @@ export const Chat: React.FC = () => {
       }
     }
   }, [messages, enabledTools]);
+
+  // Ref to track the last deep research message ID to prevent duplicate refreshes
+  const lastDeepResearchMsgIdRef = useRef<string | null>(null);
+
+  // Refresh user data after deep research completes (to update usage count)
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      // Check if it's a completed deep research response (not clarification)
+      if (
+        lastMessage.role === 'assistant' &&
+        lastMessage.metadata?.model === 'deep_research' &&
+        lastMessage.metadata?.widget_type !== 'deep_research_clarification' &&
+        lastMessage.id !== lastDeepResearchMsgIdRef.current
+      ) {
+        // Mark this message as processed
+        lastDeepResearchMsgIdRef.current = lastMessage.id;
+        // Refresh user to get updated usage count
+        refreshUser();
+      }
+    }
+  }, [messages, refreshUser]);
 
   // Handler for enabled tools changes
   const handleEnabledToolsChange = useCallback((tools: string[]) => {

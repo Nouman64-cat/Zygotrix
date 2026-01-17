@@ -145,6 +145,33 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const { user } = useAuth();
   const isPro = user?.subscription_status === 'pro';
 
+  // Deep Research usage tracking for PRO users
+  const DEEP_RESEARCH_DAILY_LIMIT = 3;
+  const deepResearchUsed = user?.deep_research_usage?.count ?? 0;
+  const isDeepResearchLimitExhausted = isPro && deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT;
+
+  // Calculate reset time (24 hours from last_reset)
+  const getDeepResearchResetTime = (): string | null => {
+    const lastReset = user?.deep_research_usage?.last_reset;
+    if (!lastReset) return null;
+
+    const resetDate = new Date(lastReset);
+    resetDate.setHours(resetDate.getHours() + 24);
+
+    const now = new Date();
+    const diffMs = resetDate.getTime() - now.getTime();
+
+    if (diffMs <= 0) return "soon";
+
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
   const {
     setDictationCallback,
     isListening: isUniversalMicActive,
@@ -850,12 +877,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
                 {/* Tools Dropdown Menu */}
                 {showToolsMenu && (
-                  <div className="absolute bottom-full left-0 mb-2 w-56 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
+                  <div className="absolute bottom-full left-0 mb-2 w-64 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-xl shadow-xl overflow-hidden z-50">
                     <div className="p-1">
                       {AVAILABLE_TOOLS.map((tool) => {
                         const isEnabled = enabledTools.includes(tool.id);
                         const isDeepResearch = tool.id === 'deep_research';
-                        const isLocked = isDeepResearch && !isPro;
+                        const isLockedForFree = isDeepResearch && !isPro;
+                        const isLockedForLimit = isDeepResearch && isDeepResearchLimitExhausted;
+                        const isLocked = isLockedForFree || isLockedForLimit;
 
                         return (
                           <button
@@ -871,22 +900,44 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                 ? "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
                                 : !isLocked && "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"
                             )}
-                            title={isLocked ? "Upgrade to PRO to use Deep Research" : undefined}
+                            title={
+                              isLockedForFree
+                                ? "Upgrade to PRO to use Deep Research"
+                                : isLockedForLimit
+                                  ? `Daily limit reached. Resets in ${getDeepResearchResetTime() || "24h"}`
+                                  : undefined
+                            }
                           >
                             <span className="text-lg">{tool.icon}</span>
                             <div className="flex-1 text-left">
                               <p className="text-xs font-medium">
                                 {tool.name}
                               </p>
-                              {isLocked && (
+                              {isLockedForFree && (
                                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
                                   PRO Feature ★
                                 </span>
                               )}
+                              {/* Show usage count for Deep Research if user is PRO */}
+                              {isDeepResearch && isPro && !isLockedForLimit && (
+                                <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                                  {deepResearchUsed}/{DEEP_RESEARCH_DAILY_LIMIT} used today
+                                </span>
+                              )}
+                              {/* Show limit reached message with reset time */}
+                              {isLockedForLimit && (
+                                <span className="text-[10px] text-red-500 dark:text-red-400 font-medium whitespace-nowrap">
+                                  3/3 used • Resets: {getDeepResearchResetTime() || "~24h"}
+                                </span>
+                              )}
                             </div>
-                            {isLocked ? (
+                            {isLockedForFree ? (
                               <span className="text-[10px] px-1.5 py-0.5 bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300 rounded font-bold">
                                 PRO
+                              </span>
+                            ) : isLockedForLimit ? (
+                              <span className="text-[10px] px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded font-bold">
+                                3/3
                               </span>
                             ) : (
                               <div
@@ -914,18 +965,49 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               {enabledTools.map((toolId) => {
                 const tool = AVAILABLE_TOOLS.find((t) => t.id === toolId);
                 if (!tool) return null;
+
+                // Check if this deep research is exhausted
+                const isDeepResearchExhausted = toolId === 'deep_research' && isDeepResearchLimitExhausted;
+
                 return (
                   <div
                     key={toolId}
-                    className="h-8 sm:h-9 flex items-center gap-1 sm:gap-1.5 bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30 rounded-lg sm:rounded-xl px-2 sm:px-2.5 text-xs sm:text-sm"
+                    className={cn(
+                      "h-8 sm:h-9 flex items-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl px-2 sm:px-2.5 text-xs sm:text-sm",
+                      isDeepResearchExhausted
+                        ? "bg-red-50 dark:bg-red-500/15 border border-red-200 dark:border-red-500/30"
+                        : "bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30"
+                    )}
                   >
                     <span className="text-sm">{tool.icon}</span>
-                    <span className="text-emerald-700 dark:text-emerald-300 font-medium hidden sm:inline">
+                    <span className={cn(
+                      "font-medium hidden sm:inline",
+                      isDeepResearchExhausted
+                        ? "text-red-700 dark:text-red-300"
+                        : "text-emerald-700 dark:text-emerald-300"
+                    )}>
                       {tool.name}
                     </span>
+                    {/* Show usage count in pill for Deep Research */}
+                    {toolId === 'deep_research' && isPro && !isDeepResearchExhausted && (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                        ({deepResearchUsed}/{DEEP_RESEARCH_DAILY_LIMIT})
+                      </span>
+                    )}
+                    {/* Show limit exhausted message */}
+                    {isDeepResearchExhausted && (
+                      <span className="text-[10px] text-red-500 dark:text-red-400 font-medium">
+                        (Resets in {getDeepResearchResetTime() || "~24h"})
+                      </span>
+                    )}
                     <button
                       onClick={() => handleToggleTool(toolId)}
-                      className="text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400 transition-colors cursor-pointer"
+                      className={cn(
+                        "transition-colors cursor-pointer",
+                        isDeepResearchExhausted
+                          ? "text-red-400 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
+                          : "text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400"
+                      )}
                       title="Disable tool"
                     >
                       <FiX className="text-xs" />

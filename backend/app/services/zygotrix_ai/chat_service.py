@@ -1178,6 +1178,15 @@ Question: {user_message.content}"""
                 content=error_content,
             )
             
+            # Generate title for new conversations (runs in background)
+            if conversation.message_count <= 2:
+                asyncio.create_task(self._generate_and_save_title(
+                    conversation.id,
+                    user_id,
+                    chat_request.message,
+                    error_content[:200]
+                ))
+            
             # Create proper Message object for response
             from app.schema.zygotrix_ai import Message
             message_obj = Message(

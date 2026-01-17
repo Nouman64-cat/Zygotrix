@@ -228,6 +228,57 @@ async def check_status(
 
 
 @router.get(
+    "/usage",
+    summary="Get Deep Research Usage",
+    description="Get the current user's deep research usage statistics including used and remaining counts."
+)
+async def get_usage(
+    current_user: UserProfile = Depends(get_current_user),
+    subscription_service: SubscriptionService = Depends(get_subscription_service)
+) -> dict:
+    """
+    Get deep research usage for the current user.
+    
+    Returns:
+        - used: Number of deep research queries used today
+        - remaining: Number of queries remaining today
+        - limit: Daily limit for the user's subscription tier
+        - can_access: Whether the user can use deep research
+        - reset_time: Approximate time when the limit resets
+    """
+    try:
+        can_access, reason, remaining = subscription_service.check_deep_research_access(current_user.id)
+        
+        # Get daily limit based on subscription
+        from ..services.auth.subscription_service import DEEP_RESEARCH_DAILY_LIMIT_PRO, DEEP_RESEARCH_DAILY_LIMIT_FREE
+        
+        is_pro = current_user.subscription_status == "pro"
+        daily_limit = DEEP_RESEARCH_DAILY_LIMIT_PRO if is_pro else DEEP_RESEARCH_DAILY_LIMIT_FREE
+        
+        # Calculate used count
+        used = daily_limit - (remaining or 0) if remaining is not None else 0
+        
+        return {
+            "used": used,
+            "remaining": remaining or 0,
+            "limit": daily_limit,
+            "can_access": can_access,
+            "is_pro": is_pro,
+            "message": reason if not can_access else None
+        }
+    except Exception as e:
+        logger.error(f"Usage check error: {e}")
+        return {
+            "used": 0,
+            "remaining": 0,
+            "limit": 0,
+            "can_access": False,
+            "is_pro": False,
+            "error": str(e)
+        }
+
+
+@router.get(
     "/capabilities",
     summary="Get Deep Research Capabilities",
     description="Get information about the deep research feature and its capabilities."

@@ -11,6 +11,7 @@ import type {
   StreamingResearchChunk,
   DeepResearchServiceStatus,
   DeepResearchCapabilities,
+  DeepResearchUsageInfo,
 } from "../../types/research.types";
 
 // API base URL
@@ -146,6 +147,22 @@ export async function getDeepResearchCapabilities(): Promise<DeepResearchCapabil
 
   if (!response.ok) {
     throw new Error(`Capabilities fetch failed: ${response.status}`);
+  }
+
+  return response.json();
+}
+
+/**
+ * Get deep research usage statistics for the current user
+ */
+export async function getDeepResearchUsage(): Promise<DeepResearchUsageInfo> {
+  const response = await fetch(`${API_BASE}/deep-research/usage`, {
+    method: "GET",
+    headers: getHeaders(),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Usage fetch failed: ${response.status}`);
   }
 
   return response.json();

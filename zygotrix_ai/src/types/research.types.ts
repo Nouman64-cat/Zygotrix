@@ -104,6 +104,17 @@ export interface DeepResearchServiceStatus {
   error?: string;
 }
 
+// Deep research usage info (for PRO users)
+export interface DeepResearchUsageInfo {
+  used: number;
+  remaining: number;
+  limit: number;
+  can_access: boolean;
+  is_pro: boolean;
+  message?: string | null;
+  error?: string;
+}
+
 // Deep research capabilities
 export interface DeepResearchCapabilities {
   feature: string;

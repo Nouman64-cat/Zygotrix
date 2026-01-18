@@ -1,5 +1,5 @@
 import React from 'react';
-import { Document, Page, Text, View, StyleSheet, Font, Link } from '@react-pdf/renderer';
+import { Document, Page, Text, View, StyleSheet, Font } from '@react-pdf/renderer';
 import type { ResearchSource } from '../../types/research.types';
 
 // Register Roboto font to ensure consistent rendering across all PDF viewers
@@ -74,11 +74,13 @@ const styles = StyleSheet.create({
         fontWeight: 'bold',
         color: '#059669',
     },
-    sourceUrl: {
+    sourcePreview: {
         fontSize: 9,
         color: '#6B7280',
+        fontStyle: 'italic',
         marginLeft: 20,
         marginTop: 2,
+        lineHeight: 1.4,
     },
     footer: {
         position: 'absolute',
@@ -106,10 +108,17 @@ const formatText = (text: string) => {
     let clean = text.replace(/\*\*/g, '').replace(/\*/g, '');
     // Remove links [text](url) -> text
     clean = clean.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-    // Convert [Source X] or [Source X, Y] to just [X] or [X, Y]
-    clean = clean.replace(/\[Source\s+([\d,\s]+)\]/gi, '[$1]');
-    // Also handle [Sources X, Y] (plural)
-    clean = clean.replace(/\[Sources\s+([\d,\s]+)\]/gi, '[$1]');
+
+    // Handle various source citation formats:
+    // [Source 1, Source 5] -> [1, 5]
+    // [Source 1] -> [1]
+    // [Sources 1, 2, 3] -> [1, 2, 3]
+    clean = clean.replace(/\[(Sources?\s*[\d,\s]+(?:,?\s*Sources?\s*\d+)*)\]/gi, (_match, content) => {
+        // Remove all "Source" or "Sources" words and clean up
+        const numbers = content.replace(/Sources?\s*/gi, '').replace(/\s+/g, ' ').trim();
+        return `[${numbers}]`;
+    });
+
     return clean;
 };
 
@@ -173,24 +182,28 @@ export const DeepResearchReport: React.FC<DeepResearchReportProps> = ({ content,
                     return <Text key={index} style={styles.content}>{formatText(para)}</Text>;
                 })}
 
-                {/* Sources Section - Simple Numbered List */}
+                {/* Sources Section - With Content Preview */}
                 {validSources.length > 0 && (
                     <View style={styles.sourcesSection}>
                         <Text style={styles.sourcesTitle}>Sources</Text>
 
                         {validSources.map((source, idx) => {
                             const title = source.title || (source.metadata?.title as string | undefined) || 'Untitled Source';
-                            const sourceUrl = source.url || (source.metadata?.url as string | undefined);
+                            const preview = source.content_preview || '';
+                            // Truncate preview to ~120 chars for readability
+                            const shortPreview = preview.length > 120
+                                ? preview.substring(0, 120).trim() + '...'
+                                : preview;
 
                             return (
-                                <View key={idx}>
+                                <View key={idx} style={{ marginBottom: 10 }}>
                                     <Text style={styles.sourceItem}>
                                         <Text style={styles.sourceNumber}>[{idx + 1}]</Text> {title}
                                     </Text>
-                                    {sourceUrl && (
-                                        <Link src={sourceUrl} style={styles.sourceUrl}>
-                                            {sourceUrl}
-                                        </Link>
+                                    {shortPreview && (
+                                        <Text style={styles.sourcePreview}>
+                                            "{shortPreview}"
+                                        </Text>
                                     )}
                                 </View>
                             );

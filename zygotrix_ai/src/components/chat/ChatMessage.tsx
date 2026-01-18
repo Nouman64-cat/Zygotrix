@@ -207,16 +207,17 @@ const CitationBadge: React.FC<{ index: number; source?: any }> = ({ index, sourc
 const renderWithCitations = (children: React.ReactNode, sources?: any[]) => {
   if (typeof children !== 'string') return children;
 
-  // Match [Source X], [Sources X, Y], or [X, Y] patterns
-  // Split by brackets that contain source keywords or just digits/commas
-  const parts = children.split(/(\[(?:Source|Sources)?\s*[\d,\s]+\])/g);
+  // Match various citation formats:
+  // [Source 1], [Sources 1, 2], [1, 2], [Source 1, Source 5]
+  // This regex captures bracket contents with Source/Sources keywords and/or numbers
+  const parts = children.split(/(\[[^\]]*(?:Source|Sources|\d)[^\]]*\])/gi);
 
   if (parts.length === 1) return children;
 
   return parts.map((part, i) => {
     // Check if this part looks like a citation block
-    // e.g. [1], [1, 2], [Source 1], [Sources 1, 2]
-    if (/^\[(?:Source|Sources)?\s*[\d,\s]+\]$/.test(part)) {
+    // Should contain at least one number and possibly Source/Sources keywords
+    if (/^\[.*\d.*\]$/.test(part) && /source|\d/i.test(part)) {
       const numbers = part.match(/\d+/g);
 
       if (numbers) {

@@ -466,11 +466,14 @@ class DeepResearchService:
                     context_parts.append(f"[Source {i+1}]\n{text}")
                     metadata = chunk.get("metadata", {})
                     
+                    # Clean up text for preview - remove reference noise and normalize whitespace
+                    preview_text = self._clean_content_preview(text)
+                    
                     # Extract citation-relevant fields for Harvard referencing
                     sources.append({
                         "id": chunk.get("id", f"source_{i}"),
-                        "title": metadata.get("title"),
-                        "content_preview": text[:200] + "..." if len(text) > 200 else text,
+                        "title": metadata.get("title") or metadata.get("source", "Untitled"),
+                        "content_preview": preview_text,
                         "relevance_score": chunk.get("score", 0),
                         "rerank_score": chunk.get("rerank_score"),
                         # Citation fields for Harvard-style referencing
@@ -563,6 +566,62 @@ class DeepResearchService:
     # =========================================================================
     # HELPER METHODS
     # =========================================================================
+    
+    def _clean_content_preview(self, text: str, max_length: int = 150) -> str:
+        """
+        Clean up raw chunk text for a more readable content preview.
+        
+        - Removes reference citations like [99], [1-5], etc.
+        - Normalizes whitespace and line breaks
+        - Removes bibliography/reference entries
+        - Tries to extract complete sentences
+        """
+        import re
+        
+        if not text:
+            return ""
+        
+        # Normalize whitespace - replace multiple spaces/newlines with single space
+        clean = re.sub(r'\s+', ' ', text).strip()
+        
+        # Remove citation brackets like [1], [99], [1-5], [1, 2, 3]
+        clean = re.sub(r'\[\d+(?:[-–,\s]\d+)*\]', '', clean)
+        
+        # Remove bibliographic patterns like "vol. 18, no. 10, pp. 1990"
+        clean = re.sub(r'vol\.\s*\d+,?\s*(?:no\.\s*\d+,?\s*)?(?:pp?\.\s*[\d–-]+)?', '', clean, flags=re.IGNORECASE)
+        
+        # Remove year patterns in parentheses that look like citations: (2018), (2019)
+        clean = re.sub(r'\(\d{4}\)', '', clean)
+        
+        # Remove author citation patterns: "H. Ledford," or "D. Baltimore,"
+        clean = re.sub(r'[A-Z]\.\s*[A-Z][a-z]+,', '', clean)
+        
+        # Remove DOI patterns
+        clean = re.sub(r'doi:\s*[\S]+', '', clean, flags=re.IGNORECASE)
+        
+        # Clean up any resulting double spaces
+        clean = re.sub(r'\s+', ' ', clean).strip()
+        
+        # Skip if the text looks like a reference list (contains many commas and periods in short span)
+        if clean.count(',') > 5 and len(clean) < 300:
+            # Try to find the first meaningful sentence
+            sentences = re.split(r'(?<=[.!?])\s+', clean)
+            for sent in sentences:
+                # Skip very short sentences or ones that look like citations
+                if len(sent) > 30 and not re.match(r'^[\[\d]', sent):
+                    clean = sent
+                    break
+        
+        # Truncate to max length, trying to end at a word boundary
+        if len(clean) > max_length:
+            truncated = clean[:max_length]
+            # Try to end at a space
+            last_space = truncated.rfind(' ')
+            if last_space > max_length * 0.7:
+                truncated = truncated[:last_space]
+            clean = truncated.strip() + "..."
+        
+        return clean
     
     def _check_cycle(self, state: ResearchState, node_name: str) -> bool:
         """

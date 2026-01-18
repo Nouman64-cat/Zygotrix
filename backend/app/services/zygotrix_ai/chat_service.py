@@ -1244,8 +1244,8 @@ Question: {user_message.content}"""
                 conversation_id=conversation.id,
                 skip_clarification=skip_clarification,
                 clarification_answers=clarification_answers,
-                max_sources=25,
-                top_k_reranked=10
+                max_sources=100,      # Pinecone retrieval
+                top_k_reranked=20     # Cohere rerank output
             )
             
             # Execute research

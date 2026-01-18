@@ -45,8 +45,8 @@ logger = logging.getLogger(__name__)
 
 # Configuration
 MAX_RECURSION_DEPTH = int(os.getenv("DEEP_RESEARCH_MAX_DEPTH", "10"))
-MAX_RETRIEVAL_CHUNKS = int(os.getenv("DEEP_RESEARCH_MAX_CHUNKS", "20"))
-DEFAULT_TOP_K_RERANKED = int(os.getenv("DEEP_RESEARCH_TOP_K", "5"))
+MAX_RETRIEVAL_CHUNKS = int(os.getenv("DEEP_RESEARCH_MAX_CHUNKS", "100"))  # Pinecone retrieval
+DEFAULT_TOP_K_RERANKED = int(os.getenv("DEEP_RESEARCH_TOP_K", "20"))  # Cohere rerank output
 
 # Claude configuration
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")

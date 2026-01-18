@@ -115,8 +115,8 @@ class DeepResearchRequest(BaseModel):
     clarification_answers: List[ClarificationAnswer] = Field(default_factory=list)
     
     # Research parameters
-    max_sources: int = Field(default=25, ge=1, le=50)
-    top_k_reranked: int = Field(default=10, ge=1, le=20)
+    max_sources: int = Field(default=100, ge=1, le=150)  # Pinecone retrieval
+    top_k_reranked: int = Field(default=20, ge=1, le=30)  # Cohere rerank output
     
     # Force skip clarification (for simple queries)
     skip_clarification: bool = False

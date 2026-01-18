@@ -2,6 +2,7 @@ import React from 'react';
 import { FiExternalLink, FiFileText } from 'react-icons/fi';
 
 interface Source {
+    id?: string;
     title: string;
     url?: string;
     content_preview?: string;
@@ -9,6 +10,11 @@ interface Source {
     rerank_score?: number;
     author?: string;
     published_date?: string;
+    publication_year?: string | number;
+    publisher?: string;
+    journal?: string;
+    source_type?: 'book' | 'journal' | 'website' | 'paper' | 'other';
+    metadata?: Record<string, unknown>;
 }
 
 interface DeepResearchSourcesProps {

@@ -526,6 +526,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
                       <DeepResearchDownloadButton
                         content={message.content}
                         timestamp={message.created_at}
+                        sources={message.metadata?.deep_research_data?.sources}
                       />
                     </Suspense>
                   )}

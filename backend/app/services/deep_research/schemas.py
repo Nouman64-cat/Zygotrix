@@ -123,13 +123,26 @@ class DeepResearchRequest(BaseModel):
 
 
 class ResearchSource(BaseModel):
-    """A source used in the research."""
+    """A source used in the research with Harvard citation support."""
     id: str
     title: Optional[str] = None
     content_preview: str
     relevance_score: float
     rerank_score: Optional[float] = None
     metadata: Dict[str, Any] = Field(default_factory=dict)
+    
+    # Harvard-style citation fields
+    author: Optional[str] = None
+    publication_year: Optional[str] = None  # String to handle various year formats
+    publisher: Optional[str] = None
+    journal: Optional[str] = None
+    doi: Optional[str] = None
+    isbn: Optional[str] = None
+    url: Optional[str] = None
+    source_type: Optional[str] = "other"  # 'book', 'journal', 'website', 'paper', 'other'
+    page_numbers: Optional[str] = None
+    edition: Optional[str] = None
+    place_of_publication: Optional[str] = None
 
 
 class DeepResearchResponse(BaseModel):

@@ -37,12 +37,26 @@ export interface ClarificationAnswer {
 
 // A source used in the research
 export interface ResearchSource {
-  id: string;
+  id?: string;
   title?: string;
-  content_preview: string;
-  relevance_score: number;
+  content_preview?: string;
+  relevance_score?: number;
   rerank_score?: number;
-  metadata: Record<string, unknown>;
+  metadata?: Record<string, unknown>;
+  // Citation fields for Harvard-style referencing
+  author?: string;
+  publication_year?: string | number;
+  publisher?: string;
+  journal?: string;
+  doi?: string;
+  isbn?: string;
+  url?: string;
+  source_type?: "book" | "journal" | "website" | "paper" | "other";
+  page_numbers?: string;
+  edition?: string;
+  place_of_publication?: string;
+  // Legacy fields for backward compatibility
+  published_date?: string;
 }
 
 // Request to start/continue deep research

@@ -142,13 +142,34 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const toolsMenuRef = useRef<HTMLDivElement>(null);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
-  const { user } = useAuth();
+  const { user, refreshUser } = useAuth();
   const isPro = user?.subscription_status === 'pro';
 
   // Deep Research usage tracking for PRO users
   const DEEP_RESEARCH_DAILY_LIMIT = 3;
   const deepResearchUsed = user?.deep_research_usage?.count ?? 0;
-  const isDeepResearchLimitExhausted = isPro && deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT;
+
+  // Check if reset period has passed (24 hours since last_reset)
+  const hasResetPeriodPassed = useCallback((): boolean => {
+    const lastReset = user?.deep_research_usage?.last_reset;
+    if (!lastReset) return false;
+
+    const resetDate = new Date(lastReset);
+    resetDate.setHours(resetDate.getHours() + 24);
+
+    return new Date() >= resetDate;
+  }, [user?.deep_research_usage?.last_reset]);
+
+  // Auto-refresh user data when reset period has passed and limit was exhausted
+  useEffect(() => {
+    if (isPro && deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT && hasResetPeriodPassed()) {
+      console.log('🔄 Deep Research reset period passed, refreshing user data...');
+      refreshUser();
+    }
+  }, [isPro, deepResearchUsed, hasResetPeriodPassed, refreshUser]);
+
+  // Consider limit exhausted only if reset period hasn't passed
+  const isDeepResearchLimitExhausted = isPro && deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT && !hasResetPeriodPassed();
 
   // Calculate reset time (24 hours from last_reset)
   const getDeepResearchResetTime = (): string | null => {
@@ -161,7 +182,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     const now = new Date();
     const diffMs = resetDate.getTime() - now.getTime();
 
-    if (diffMs <= 0) return "soon";
+    if (diffMs <= 0) return "now"; // Reset should have happened
 
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));

@@ -464,13 +464,29 @@ class DeepResearchService:
                 text = chunk.get("text", "")
                 if text:
                     context_parts.append(f"[Source {i+1}]\n{text}")
+                    metadata = chunk.get("metadata", {})
+                    
+                    # Extract citation-relevant fields for Harvard referencing
                     sources.append({
                         "id": chunk.get("id", f"source_{i}"),
-                        "title": chunk.get("metadata", {}).get("title"),
+                        "title": metadata.get("title"),
                         "content_preview": text[:200] + "..." if len(text) > 200 else text,
                         "relevance_score": chunk.get("score", 0),
                         "rerank_score": chunk.get("rerank_score"),
-                        "metadata": chunk.get("metadata", {})
+                        # Citation fields for Harvard-style referencing
+                        "author": metadata.get("author"),
+                        "publication_year": metadata.get("publication_year") or metadata.get("year"),
+                        "publisher": metadata.get("publisher"),
+                        "journal": metadata.get("journal"),
+                        "doi": metadata.get("doi"),
+                        "isbn": metadata.get("isbn"),
+                        "url": metadata.get("url") or metadata.get("source_url"),
+                        "source_type": metadata.get("source_type", "other"),
+                        "page_numbers": metadata.get("page_numbers") or metadata.get("pages"),
+                        "edition": metadata.get("edition"),
+                        "place_of_publication": metadata.get("place_of_publication") or metadata.get("location"),
+                        # Keep full metadata for any additional fields
+                        "metadata": metadata
                     })
             
             context = "\n\n".join(context_parts)
@@ -767,7 +783,7 @@ Please synthesize the information from these sources to answer the research quer
                 suggested_answers=q.get("suggested_answers", [])
             ))
         
-        # Convert sources
+        # Convert sources with Harvard citation fields
         sources = []
         for s in state.get("sources", []):
             sources.append(ResearchSource(
@@ -776,7 +792,19 @@ Please synthesize the information from these sources to answer the research quer
                 content_preview=s.get("content_preview", ""),
                 relevance_score=s.get("relevance_score", 0),
                 rerank_score=s.get("rerank_score"),
-                metadata=s.get("metadata", {})
+                metadata=s.get("metadata", {}),
+                # Harvard citation fields
+                author=s.get("author"),
+                publication_year=str(s.get("publication_year")) if s.get("publication_year") else None,
+                publisher=s.get("publisher"),
+                journal=s.get("journal"),
+                doi=s.get("doi"),
+                isbn=s.get("isbn"),
+                url=s.get("url"),
+                source_type=s.get("source_type", "other"),
+                page_numbers=s.get("page_numbers"),
+                edition=s.get("edition"),
+                place_of_publication=s.get("place_of_publication")
             ))
         
         processing_time_ms = int((time.time() - start_time) * 1000)

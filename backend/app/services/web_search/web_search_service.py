@@ -11,6 +11,7 @@ import os
 import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, Tuple
+from bson import ObjectId
 
 import httpx
 from dotenv import load_dotenv, find_dotenv
@@ -51,8 +52,8 @@ class WebSearchService:
         self.model = WEB_SEARCH_MODEL
         
         if db is None:
-            from ...db import get_db
-            self._db = get_db()
+            from ..common import get_database
+            self._db = get_database()
         else:
             self._db = db
         
@@ -89,7 +90,15 @@ class WebSearchService:
         subscription_service = get_subscription_service()
         
         # Check if user is PRO
-        user = self._db.users.find_one({"_id": user_id})
+        # Check if user is PRO
+        try:
+            # Try to query with ObjectId if possible
+            query_id = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
+            user = self._db.users.find_one({"_id": query_id})
+        except Exception:
+            # Fallback to string query
+            user = self._db.users.find_one({"_id": user_id})
+            
         if not user:
             return False, "User not found", 0
         
@@ -140,7 +149,7 @@ class WebSearchService:
                     "temperature": temperature,
                     "tools": [
                         {
-                            "type": "web_search",
+                            "type": "web_search_20250305",
                             "name": "web_search",
                             "max_uses": 5  # Allow up to 5 searches per request
                         }
@@ -293,8 +302,13 @@ class WebSearchService:
             self._db.web_search_usage.insert_one(usage_record)
             
             # Also update user's aggregate usage
+            try:
+                query_id = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
+            except Exception:
+                query_id = user_id
+                
             self._db.users.update_one(
-                {"_id": user_id},
+                {"_id": query_id},
                 {
                     "$inc": {
                         "web_search_usage.total_searches": search_count,

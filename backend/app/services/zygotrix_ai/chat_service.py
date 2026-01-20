@@ -62,6 +62,9 @@ class ZygotrixChatService:
         
         user_id = current_user.id
         
+        # DEBUG: Log enabled_tools to trace web search routing
+        logger.info(f"🔧 DEBUG enabled_tools received: {chat_request.enabled_tools}")
+        
         # DEBUG: Log all available attributes on current_user to trace user_name issue
         logger.info(f"🔍 DEBUG user_name trace - user_id: {user_id}")
         logger.info(f"🔍 DEBUG current_user type: {type(current_user)}")

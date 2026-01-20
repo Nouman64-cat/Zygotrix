@@ -8,7 +8,7 @@ import logging
 from datetime import datetime, timezone, timedelta
 from typing import Dict, List, Any, Optional
 
-from ...db import get_db
+from ..common import get_database
 
 logger = logging.getLogger(__name__)
 
@@ -19,7 +19,7 @@ class WebSearchAnalyticsService:
     def __init__(self, db=None):
         """Initialize the analytics service."""
         if db is None:
-            self._db = get_db()
+            self._db = get_database()
         else:
             self._db = db
     

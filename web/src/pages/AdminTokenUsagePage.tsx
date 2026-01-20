@@ -216,6 +216,28 @@ const AdminTokenUsagePage: React.FC = () => {
     }
   };
 
+  const fetchWebSearchStatsData = async () => {
+    try {
+      const data = await getWebSearchStats();
+      if (data) {
+        setWebSearchStats(data);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to fetch web search stats:", err);
+    }
+  };
+
+  const fetchWebSearchDailyData = async () => {
+    try {
+      const data = await getDailyWebSearchUsage(chartDays);
+      if (data) {
+        setWebSearchDailyData(data);
+      }
+    } catch (err: unknown) {
+      console.error("Failed to fetch web search daily data:", err);
+    }
+  };
+
   const handleRefresh = () => {
     fetchStats();
     fetchDailyData();
@@ -223,6 +245,8 @@ const AdminTokenUsagePage: React.FC = () => {
     fetchEmbeddingDailyData();
     fetchDeepResearchStatsData();
     fetchDeepResearchDailyData();
+    fetchWebSearchStatsData();
+    fetchWebSearchDailyData();
     fetchSettings();
   };
 
@@ -666,6 +690,16 @@ const AdminTokenUsagePage: React.FC = () => {
             >
               <span className="text-lg">🔬</span>
               Deep Research
+            </button>
+            <button
+              onClick={() => setActiveTab("web_search")}
+              className={`${activeTab === "web_search"
+                ? "border-blue-500 text-blue-600 dark:text-blue-400"
+                : "border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300 dark:text-gray-400 dark:hover:text-gray-300"
+                } whitespace-nowrap py-4 px-1 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors`}
+            >
+              <span className="text-lg">🌐</span>
+              Web Search
             </button>
           </nav>
         </div>
@@ -1962,6 +1996,242 @@ const AdminTokenUsagePage: React.FC = () => {
                               <td className="px-4 py-3 text-right hidden lg:table-cell">
                                 <div className="text-sm text-purple-600 dark:text-purple-400">
                                   {user.cohere_searches}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm font-semibold text-red-600 dark:text-red-400">
+                                  ${user.total_cost?.toFixed(4) || "0.0000"}
+                                </div>
+                              </td>
+                            </tr>
+                          ))
+                        )}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
+
+            {/* Web Search Tab */}
+            {activeTab === "web_search" && (
+              <>
+                {/* Web Search Stats Cards */}
+                <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
+                  {/* Total Searches */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-blue-100 dark:bg-blue-500/20">
+                        <span className="text-lg">🌐</span>
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Total Searches
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {webSearchStats?.total_searches || 0}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {webSearchStats?.total_requests || 0} requests
+                    </div>
+                  </div>
+
+                  {/* Search API Cost */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-cyan-100 dark:bg-cyan-500/20">
+                        <span className="text-xs font-bold text-cyan-600 dark:text-cyan-400">API</span>
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Search Cost
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-cyan-600 dark:text-cyan-400 mb-1">
+                      ${webSearchStats?.total_search_cost?.toFixed(4) || "0.0000"}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      $10/1k searches
+                    </div>
+                  </div>
+
+                  {/* Claude Token Cost */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-orange-100 dark:bg-orange-500/20">
+                        <span className="text-xs font-bold text-orange-600 dark:text-orange-400">CL</span>
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Token Cost
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-orange-600 dark:text-orange-400 mb-1">
+                      ${webSearchStats?.total_token_cost?.toFixed(4) || "0.0000"}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {formatNumber(webSearchStats?.total_input_tokens || 0)} in / {formatNumber(webSearchStats?.total_output_tokens || 0)} out
+                    </div>
+                  </div>
+
+                  {/* Total Cost */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-red-100 dark:bg-red-500/20">
+                        <FaChartLine className="w-4 h-4 sm:w-5 sm:h-5 text-red-500 dark:text-red-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Total Cost
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-red-600 dark:text-red-400 mb-1">
+                      ${webSearchStats?.total_cost?.toFixed(4) || "0.0000"}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      All web searches
+                    </div>
+                  </div>
+
+                  {/* Avg Cost per Search */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-purple-100 dark:bg-purple-500/20">
+                        <MdTrendingUp className="w-4 h-4 sm:w-5 sm:h-5 text-purple-500 dark:text-purple-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Avg/Search
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-purple-600 dark:text-purple-400 mb-1">
+                      ${webSearchStats?.avg_cost_per_search?.toFixed(4) || "0.0000"}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      {webSearchStats?.avg_searches_per_request?.toFixed(1) || "0"} searches/req
+                    </div>
+                  </div>
+
+                  {/* Users */}
+                  <div className="bg-white dark:bg-gradient-to-br dark:from-slate-800 dark:to-slate-900 border border-gray-200 dark:border-slate-700 rounded-xl p-3 sm:p-5 shadow-sm">
+                    <div className="flex items-center gap-2 sm:gap-3 mb-2 sm:mb-4">
+                      <div className="p-1.5 sm:p-2 rounded-lg bg-green-100 dark:bg-green-500/20">
+                        <FaUsers className="w-4 h-4 sm:w-5 sm:h-5 text-green-500 dark:text-green-400" />
+                      </div>
+                      <span className="text-xs sm:text-sm text-gray-500 dark:text-slate-400">
+                        Users
+                      </span>
+                    </div>
+                    <div className="text-xl sm:text-3xl font-bold text-gray-900 dark:text-white mb-1">
+                      {webSearchStats?.user_count || 0}
+                    </div>
+                    <div className="text-[10px] sm:text-xs text-gray-400 dark:text-slate-500">
+                      PRO users only
+                    </div>
+                  </div>
+                </div>
+
+                {/* Monthly Projection */}
+                {webSearchDailyData && (
+                  <div className="bg-gradient-to-r from-blue-500 to-cyan-600 rounded-xl p-4 sm:p-6 text-white">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                      <div>
+                        <h3 className="text-lg font-semibold">Web Search Cost Projection</h3>
+                        <p className="text-blue-100 text-sm">Based on last {webSearchDailyData.period_days} days</p>
+                      </div>
+                      <div className="flex gap-6">
+                        <div>
+                          <p className="text-blue-100 text-xs">Avg Daily Cost</p>
+                          <p className="text-2xl font-bold">${webSearchDailyData.avg_daily_cost?.toFixed(4) || "0.00"}</p>
+                        </div>
+                        <div>
+                          <p className="text-blue-100 text-xs">Projected Monthly</p>
+                          <p className="text-2xl font-bold">${webSearchDailyData.projected_monthly_cost?.toFixed(2) || "0.00"}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Users Table */}
+                <div className="bg-white dark:bg-slate-800/50 border border-gray-200 dark:border-slate-700 rounded-xl shadow-sm overflow-hidden">
+                  <div className="p-4 border-b border-gray-200 dark:border-slate-700">
+                    <h3 className="text-lg font-semibold text-gray-900 dark:text-white flex items-center gap-2">
+                      <span>🌐</span>
+                      Web Search Usage by User
+                    </h3>
+                  </div>
+                  <div className="overflow-x-auto">
+                    <table className="w-full">
+                      <thead className="bg-gray-50 dark:bg-slate-900/50">
+                        <tr>
+                          <th className="px-4 py-3 text-left text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+                            User
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+                            Searches
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
+                            Requests
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider hidden sm:table-cell">
+                            Tokens
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider hidden lg:table-cell">
+                            Search Cost
+                          </th>
+                          <th className="px-4 py-3 text-right text-xs font-semibold text-gray-600 dark:text-slate-400 uppercase tracking-wider">
+                            Total Cost
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-gray-200 dark:divide-slate-700">
+                        {!webSearchStats?.users?.length ? (
+                          <tr>
+                            <td
+                              colSpan={6}
+                              className="px-4 py-8 text-center text-gray-500 dark:text-slate-400"
+                            >
+                              No web search usage data yet
+                            </td>
+                          </tr>
+                        ) : (
+                          webSearchStats.users.map((user) => (
+                            <tr
+                              key={user.user_id}
+                              className="hover:bg-gray-50 dark:hover:bg-slate-700/30"
+                            >
+                              <td className="px-4 py-3">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-cyan-500 flex items-center justify-center text-white font-semibold text-xs">
+                                    {user.user_name?.charAt(0).toUpperCase() || "?"}
+                                  </div>
+                                  <div>
+                                    <div className="text-sm font-medium text-gray-900 dark:text-white">
+                                      {user.user_name || "Unknown"}
+                                    </div>
+                                    <div className="text-xs text-gray-500 dark:text-slate-500">
+                                      {user.last_search
+                                        ? `Last: ${new Date(user.last_search).toLocaleDateString()}`
+                                        : "No recent activity"}
+                                    </div>
+                                  </div>
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <div className="text-sm font-semibold text-gray-900 dark:text-white">
+                                  {user.total_searches}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden sm:table-cell">
+                                <div className="text-sm text-blue-600 dark:text-blue-400">
+                                  {user.request_count}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden sm:table-cell">
+                                <div className="text-sm text-orange-600 dark:text-orange-400">
+                                  {formatNumber((user.input_tokens || 0) + (user.output_tokens || 0))}
+                                </div>
+                              </td>
+                              <td className="px-4 py-3 text-right hidden lg:table-cell">
+                                <div className="text-sm text-cyan-600 dark:text-cyan-400">
+                                  ${user.search_cost?.toFixed(4) || "0.0000"}
                                 </div>
                               </td>
                               <td className="px-4 py-3 text-right">

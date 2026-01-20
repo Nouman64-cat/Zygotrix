@@ -439,3 +439,95 @@ export async function getDailyDeepResearchUsage(
     return null;
   }
 }
+
+// ==================== WEB SEARCH ANALYTICS ====================
+
+export interface WebSearchUser {
+  user_id: string;
+  user_name: string;
+  total_searches: number;
+  input_tokens: number;
+  output_tokens: number;
+  search_cost: number;
+  token_cost: number;
+  total_cost: number;
+  request_count: number;
+  last_search: string | null;
+}
+
+export interface WebSearchStats {
+  total_searches: number;
+  total_input_tokens: number;
+  total_output_tokens: number;
+  total_search_cost: number;
+  total_token_cost: number;
+  total_cost: number;
+  total_requests: number;
+  user_count: number;
+  avg_searches_per_request: number;
+  avg_cost_per_search: number;
+  cost_breakdown: {
+    search_api_cost: number;
+    claude_token_cost: number;
+    total: number;
+  };
+  users: WebSearchUser[];
+  error?: string;
+}
+
+export interface WebSearchDailyUsage {
+  date: string;
+  searches: number;
+  input_tokens: number;
+  output_tokens: number;
+  search_cost: number;
+  token_cost: number;
+  total_cost: number;
+  requests: number;
+  unique_users: number;
+}
+
+export interface WebSearchDailyResponse {
+  period_days: number;
+  total_searches: number;
+  total_cost: number;
+  avg_daily_cost: number;
+  projected_monthly_cost: number;
+  days_with_data: number;
+  daily_usage: WebSearchDailyUsage[];
+  error?: string;
+}
+
+// Fetch web search analytics stats for admin dashboard
+export async function getWebSearchStats(): Promise<WebSearchStats | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/web-search/analytics`);
+    if (!response.ok) {
+      console.error("Failed to fetch web search stats");
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching web search stats:", error);
+    return null;
+  }
+}
+
+// Fetch daily web search analytics for line chart
+export async function getDailyWebSearchUsage(
+  days: number = 30
+): Promise<WebSearchDailyResponse | null> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/web-search/analytics/daily?days=${days}`
+    );
+    if (!response.ok) {
+      console.error("Failed to fetch daily web search usage");
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching daily web search usage:", error);
+    return null;
+  }
+}

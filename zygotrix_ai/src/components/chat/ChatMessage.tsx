@@ -28,6 +28,10 @@ const DeepResearchClarification = React.lazy(() =>
 const DeepResearchSources = React.lazy(() =>
   import('./DeepResearchSources').then(module => ({ default: module.DeepResearchSources }))
 );
+// Lazy load web search sources
+const WebSearchSources = React.lazy(() =>
+  import('./WebSearchSources').then(module => ({ default: module.WebSearchSources }))
+);
 // Lazy load PDF button to avoid loading heavy PDF library on initial load
 const DeepResearchDownloadButton = React.lazy(() => import('./DeepResearchDownloadButton'));
 
@@ -540,6 +544,13 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
           {!isUser && message.metadata?.model === 'deep_research' && message.metadata?.deep_research_data?.sources && (
             <Suspense fallback={<div className="h-24 w-full bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse mt-4" />}>
               <DeepResearchSources sources={message.metadata.deep_research_data.sources} />
+            </Suspense>
+          )}
+
+          {/* Web Search Sources Carousel - Render below the message bubble for AI */}
+          {!isUser && message.metadata?.model === 'web_search' && message.metadata?.web_search_data?.sources && (
+            <Suspense fallback={<div className="h-24 w-full bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse mt-4" />}>
+              <WebSearchSources sources={message.metadata.web_search_data.sources} />
             </Suspense>
           )}
         </div>

@@ -8,11 +8,15 @@ import {
   getDailyEmbeddingUsage,
   getDeepResearchStats,
   getDailyDeepResearchUsage,
+  getWebSearchStats,
+  getDailyWebSearchUsage,
   type DailyUsageResponse,
   type EmbeddingUsageStats as EmbeddingStats,
   type EmbeddingDailyUsageResponse,
   type DeepResearchStats as DeepResearchStatsType,
   type DeepResearchDailyResponse,
+  type WebSearchStats as WebSearchStatsType,
+  type WebSearchDailyResponse,
 } from "../services/chatbotService";
 import { fetchChatbotSettings } from "../services/admin.api";
 import type { ChatbotSettings } from "../types/auth";
@@ -93,13 +97,15 @@ const AdminTokenUsagePage: React.FC = () => {
     useState<EmbeddingDailyUsageResponse | null>(null);
   const [deepResearchStats, setDeepResearchStats] = useState<DeepResearchStatsType | null>(null);
   const [deepResearchDailyData, setDeepResearchDailyData] = useState<DeepResearchDailyResponse | null>(null);
+  const [webSearchStats, setWebSearchStats] = useState<WebSearchStatsType | null>(null);
+  const [webSearchDailyData, setWebSearchDailyData] = useState<WebSearchDailyResponse | null>(null);
   const [chatbotSettings, setChatbotSettings] =
     useState<ChatbotSettings | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [chartDays, setChartDays] = useState(30);
   const [activeTab, setActiveTab] = useState<
-    "overview" | "cache" | "embeddings" | "deep_research"
+    "overview" | "cache" | "embeddings" | "deep_research" | "web_search"
   >("overview");
   const [userCurrentPage, setUserCurrentPage] = useState(1);
   const USERS_PER_PAGE = 10;
@@ -113,6 +119,7 @@ const AdminTokenUsagePage: React.FC = () => {
       fetchStats();
       fetchEmbeddingStats();
       fetchDeepResearchStatsData();
+      fetchWebSearchStatsData();
       fetchSettings();
     }
   }, [hasAdminAccess]);
@@ -122,6 +129,7 @@ const AdminTokenUsagePage: React.FC = () => {
       fetchDailyData();
       fetchEmbeddingDailyData();
       fetchDeepResearchDailyData();
+      fetchWebSearchDailyData();
     }
   }, [hasAdminAccess, chartDays]);
 

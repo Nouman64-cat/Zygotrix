@@ -25,6 +25,7 @@ from .routes.contact import router as contact_router
 from .routes.chatbot import router as chatbot_router
 from .routes.zygotrix_ai import router as zygotrix_ai_router
 from .routes.deep_research import router as deep_research_router
+from .routes.web_search import router as web_search_router
 from .schema.auth import UserProfile
 from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.common import HealthResponse
@@ -169,6 +170,7 @@ app.include_router(protein_generator_router)
 app.include_router(university_router)
 app.include_router(traits_router)
 app.include_router(deep_research_router)
+app.include_router(web_search_router)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])

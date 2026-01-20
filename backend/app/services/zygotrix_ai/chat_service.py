@@ -208,6 +208,15 @@ class ZygotrixChatService:
             return await self._handle_deep_research_chat(
                 chat_request, conversation, user_message, user_id, user_name
             )
+        
+        # Check if Web Search tool is enabled (PRO feature)
+        web_search_enabled = chat_request.enabled_tools and 'web_search' in chat_request.enabled_tools
+        
+        if web_search_enabled:
+            logger.info(f"🌐 Web Search enabled - routing to web search service")
+            return await self._handle_web_search_chat(
+                chat_request, conversation, user_message, user_id, user_name
+            )
 
         # Handle streaming vs non-streaming
         if chat_request.stream:
@@ -1429,6 +1438,210 @@ Question: {user_message.content}"""
                 output_tokens=0,
                 total_tokens=0,
                 model="deep_research",
+                provider="error",
+            )
+            
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=error_content,
+                metadata=msg_metadata,
+                parent_message_id=user_message.id,
+            )
+            
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=assistant_message,
+                conversation_title=conversation.title,
+                usage=msg_metadata,
+            ), conversation.id, assistant_message.id
+
+    async def _handle_web_search_chat(
+        self,
+        chat_request: ChatRequest,
+        conversation,
+        user_message,
+        user_id: str,
+        user_name: Optional[str]
+    ):
+        """
+        Handle web search chat using Claude's built-in web search tool.
+        
+        This is a PRO-only feature with usage tracking.
+        Pricing: $10 per 1,000 searches + standard token costs.
+        
+        Returns:
+            Tuple of (ChatResponse, conversation_id, message_id)
+        """
+        from ..web_search import get_web_search_service
+        from ..zygotrix_ai_service import MessageService, MessageRole
+        import time
+        
+        logger.info(f"🌐 Starting web search for user {user_id}")
+        start_time = time.perf_counter()
+        
+        # Get web search service
+        web_search_service = get_web_search_service()
+        
+        # Check access (PRO only)
+        can_access, reason, _ = await web_search_service.check_access(user_id)
+        
+        if not can_access:
+            logger.warning(f"🌐 Web search denied for user {user_id}: {reason}")
+            
+            error_content = f"⚠️ **Web Search Access Denied**\n\n{reason}"
+            error_content += "\n\n💡 **Tip:** Upgrade to PRO to unlock real-time web search capabilities for the latest information from the internet."
+            
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=error_content,
+            )
+            
+            # Generate title for new conversations
+            if conversation.message_count <= 2:
+                asyncio.create_task(self._generate_and_save_title(
+                    conversation.id,
+                    user_id,
+                    chat_request.message,
+                    error_content[:200]
+                ))
+            
+            from app.schema.zygotrix_ai import Message
+            message_obj = Message(
+                id=assistant_message.id,
+                conversation_id=conversation.id,
+                role="assistant",
+                content=error_content,
+                created_at=assistant_message.created_at,
+            )
+            
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=message_obj,
+                conversation_title=conversation.title,
+            ), conversation.id, assistant_message.id
+        
+        logger.info(f"🌐 Web search access granted for user {user_id}")
+        
+        try:
+            # Perform web search
+            response_content, search_metadata = await web_search_service.search(
+                query=chat_request.message,
+                user_id=user_id,
+                user_name=user_name
+            )
+            
+            processing_time_ms = int((time.perf_counter() - start_time) * 1000)
+            
+            # Check for errors
+            if search_metadata.get("error"):
+                error_content = f"## ❌ Web Search Error\n\n{response_content}\n\nPlease try again later."
+                
+                msg_metadata = MessageMetadata(
+                    input_tokens=0,
+                    output_tokens=0,
+                    total_tokens=0,
+                    model="web_search",
+                    provider="error",
+                    latency_ms=processing_time_ms
+                )
+                
+                assistant_message = MessageService.create_message(
+                    conversation_id=conversation.id,
+                    role=MessageRole.ASSISTANT,
+                    content=error_content,
+                    metadata=msg_metadata,
+                    parent_message_id=user_message.id,
+                )
+                
+                return ChatResponse(
+                    conversation_id=conversation.id,
+                    message=assistant_message,
+                    conversation_title=conversation.title,
+                    usage=msg_metadata,
+                ), conversation.id, assistant_message.id
+            
+            # Format successful response with sources
+            sources = search_metadata.get("sources", [])
+            sources_count = len(sources)
+            
+            # Add footer with stats
+            content = response_content
+            content += f"\n\n---\n*Web Search completed in {processing_time_ms}ms using {sources_count} sources*"
+            
+            # Prepare web search metadata for frontend
+            web_search_data = None
+            if sources:
+                web_search_data = {
+                    "sources": sources,
+                    "stats": {
+                        "time_ms": processing_time_ms,
+                        "sources_count": sources_count,
+                        "search_count": search_metadata.get("search_count", 1)
+                    }
+                }
+            
+            # Create message metadata
+            msg_metadata = MessageMetadata(
+                input_tokens=search_metadata.get("input_tokens", 0),
+                output_tokens=search_metadata.get("output_tokens", 0),
+                total_tokens=search_metadata.get("total_tokens", 0),
+                model="web_search",
+                provider="claude-web-search",
+                latency_ms=processing_time_ms,
+                web_search_data=web_search_data
+            )
+            
+            # Save assistant message
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=content,
+                metadata=msg_metadata,
+                parent_message_id=user_message.id,
+            )
+            
+            # Update conversation stats
+            ConversationService.update_conversation_stats(
+                conversation.id,
+                tokens_used=search_metadata.get("total_tokens", 0),
+                increment_messages=True,
+                last_message_preview=content[:100]
+            )
+            
+            logger.info(
+                f"✅ Web search complete | "
+                f"Sources: {sources_count} | "
+                f"Time: {processing_time_ms}ms"
+            )
+            
+            # Generate smart title for new conversations
+            if conversation.message_count <= 2:
+                asyncio.create_task(self._generate_and_save_title(
+                    conversation.id,
+                    user_id,
+                    chat_request.message,
+                    content[:500]
+                ))
+            
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=assistant_message,
+                conversation_title=conversation.title,
+                usage=msg_metadata,
+            ), conversation.id, assistant_message.id
+            
+        except Exception as e:
+            logger.error(f"Web search error: {e}", exc_info=True)
+            
+            error_content = f"## ❌ Web Search Error\n\nAn unexpected error occurred:\n\n> {str(e)}\n\nPlease try again or disable Web Search to use standard chat."
+            
+            msg_metadata = MessageMetadata(
+                input_tokens=0,
+                output_tokens=0,
+                total_tokens=0,
+                model="web_search",
                 provider="error",
             )
             

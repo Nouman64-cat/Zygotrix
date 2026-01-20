@@ -36,7 +36,8 @@ export interface MessageMetadata {
     | "breeding_lab"
     | "dna_rna_visualizer"
     | "gwas_results"
-    | "deep_research_clarification";
+    | "deep_research_clarification"
+    | "web_search";
   breeding_data?: {
     parent1?: any;
     parent2?: any;
@@ -69,6 +70,19 @@ export interface MessageMetadata {
     stats?: {
       time_ms: number;
       sources_count: number;
+    };
+  };
+  // Web search data with sources
+  web_search_data?: {
+    sources?: Array<{
+      title: string;
+      url: string;
+      snippet?: string;
+    }>;
+    stats?: {
+      time_ms: number;
+      sources_count: number;
+      search_count: number;
     };
   };
   dna_rna_data?: {

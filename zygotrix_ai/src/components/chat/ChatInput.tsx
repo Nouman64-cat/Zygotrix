@@ -83,6 +83,12 @@ const AVAILABLE_TOOLS: AiTool[] = [
     description: "Multi-step research with AI clarification and source synthesis",
     icon: "🔬",
   },
+  {
+    id: "web_search",
+    name: "Web Search",
+    description: "Real-time web search for the latest information",
+    icon: "🌐",
+  },
 ];
 
 const RECORDING_PROMPTS = [
@@ -903,7 +909,9 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                       {AVAILABLE_TOOLS.map((tool) => {
                         const isEnabled = enabledTools.includes(tool.id);
                         const isDeepResearch = tool.id === 'deep_research';
-                        const isLockedForFree = isDeepResearch && !isPro;
+                        const isWebSearch = tool.id === 'web_search';
+                        const isProFeature = isDeepResearch || isWebSearch;
+                        const isLockedForFree = isProFeature && !isPro;
                         const isLockedForLimit = isDeepResearch && isDeepResearchLimitExhausted;
                         const isLocked = isLockedForFree || isLockedForLimit;
 
@@ -923,7 +931,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                             )}
                             title={
                               isLockedForFree
-                                ? "Upgrade to PRO to use Deep Research"
+                                ? `Upgrade to PRO to use ${tool.name}`
                                 : isLockedForLimit
                                   ? `Daily limit reached. Resets in ${getDeepResearchResetTime() || "24h"}`
                                   : undefined
@@ -949,6 +957,12 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                               {isLockedForLimit && (
                                 <span className="text-[10px] text-red-500 dark:text-red-400 font-medium whitespace-nowrap">
                                   3/3 used • Resets: {getDeepResearchResetTime() || "~24h"}
+                                </span>
+                              )}
+                              {/* Show Web Search info for PRO users */}
+                              {isWebSearch && isPro && (
+                                <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                                  Real-time internet search
                                 </span>
                               )}
                             </div>
@@ -1090,6 +1104,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           Zygotrix AI can make mistakes. Please verify important information.
         </p>
       </div>
-    </div>
+    </div >
   );
 };

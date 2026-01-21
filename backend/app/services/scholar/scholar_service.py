@@ -143,10 +143,10 @@ class ScholarService:
         query: str,
         user_id: str,
         user_name: Optional[str] = None,
-        max_deep_research_sources: int = 50,
-        max_web_search_sources: int = 20,
-        top_k_reranked: int = 15,
-        max_tokens: int = 8192,
+        max_deep_research_sources: int = 10,  # Reduced from 50 to avoid rate limits
+        max_web_search_sources: int = 10,  # Reduced from 20 to avoid rate limits
+        top_k_reranked: int = 8,  # Reduced from 15 for faster synthesis
+        max_tokens: int = 4096,  # Reduced from 8192 for faster response
         temperature: float = 0.7
     ) -> ScholarResponse:
         """
@@ -288,7 +288,7 @@ class ScholarService:
                 source = ScholarSource(
                     title=chunk.get("metadata", {}).get("title", "Research Document"),
                     url=chunk.get("metadata", {}).get("url"),
-                    content_preview=chunk.get("text", "")[:500] if chunk.get("text") else None,
+                    content_preview=chunk.get("text", "")[:300] if chunk.get("text") else None,  # Reduced from 500
                     source_type="deep_research",
                     relevance_score=chunk.get("score"),
                     metadata=chunk.get("metadata", {})
@@ -333,7 +333,7 @@ class ScholarService:
                 source = ScholarSource(
                     title=raw_source.get("title", "Web Source"),
                     url=raw_source.get("url"),
-                    content_preview=raw_source.get("snippet", "")[:500] if raw_source.get("snippet") else None,
+                    content_preview=raw_source.get("snippet", "")[:300] if raw_source.get("snippet") else None,  # Reduced from 500
                     source_type="web_search",
                     metadata=raw_source
                 )
@@ -406,7 +406,7 @@ class ScholarService:
     ) -> Tuple[str, Dict[str, Any]]:
         """Synthesize the final response using Claude."""
         
-        # Build context from sources
+        # Build context from sources - truncate content to save tokens
         context_parts = []
         for i, source in enumerate(sources, 1):
             source_text = f"[Source {i}] {source.title}"
@@ -414,7 +414,9 @@ class ScholarService:
                 source_text += f" ({source.url})"
             source_text += f"\nType: {source.source_type}"
             if source.content_preview:
-                source_text += f"\nContent: {source.content_preview}"
+                # Truncate to first 200 chars to reduce token usage
+                preview = source.content_preview[:200]
+                source_text += f"\nContent: {preview}"
             context_parts.append(source_text)
         
         context = "\n\n".join(context_parts)

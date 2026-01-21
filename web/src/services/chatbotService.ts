@@ -531,3 +531,91 @@ export async function getDailyWebSearchUsage(
     return null;
   }
 }
+
+// ==================== SCHOLAR MODE ANALYTICS ====================
+
+export interface ScholarModeUser {
+  user_id: string;
+  user_name: string;
+  total_queries: number;
+  input_tokens: number;
+  output_tokens: number;
+  deep_research_sources: number;
+  web_search_sources: number;
+  total_cost: number;
+  last_query: string | null;
+}
+
+export interface ScholarModeStats {
+  total_queries: number;
+  total_input_tokens: number;
+  total_output_tokens: number;
+  total_deep_research_sources: number;
+  total_web_search_sources: number;
+  total_token_cost: number;
+  total_source_cost: number;
+  total_cost: number;
+  avg_tokens_per_query: number;
+  avg_cost_per_query: number;
+  user_count: number;
+  users: ScholarModeUser[];
+  error?: string;
+}
+
+export interface ScholarModeDailyUsage {
+  date: string;
+  queries: number;
+  input_tokens: number;
+  output_tokens: number;
+  deep_research_sources: number;
+  web_search_sources: number;
+  token_cost: number;
+  source_cost: number;
+  total_cost: number;
+  unique_users: number;
+}
+
+export interface ScholarModeDailyResponse {
+  period_days: number;
+  total_queries: number;
+  total_cost: number;
+  avg_daily_cost: number;
+  projected_monthly_cost: number;
+  days_with_data: number;
+  daily_usage: ScholarModeDailyUsage[];
+  error?: string;
+}
+
+// Fetch Scholar Mode analytics stats for admin dashboard
+export async function getScholarModeStats(): Promise<ScholarModeStats | null> {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/scholar/analytics`);
+    if (!response.ok) {
+      console.error("Failed to fetch scholar mode stats");
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching scholar mode stats:", error);
+    return null;
+  }
+}
+
+// Fetch daily Scholar Mode analytics for line chart
+export async function getDailyScholarModeUsage(
+  days: number = 30
+): Promise<ScholarModeDailyResponse | null> {
+  try {
+    const response = await fetch(
+      `${API_BASE_URL}/api/scholar/analytics/daily?days=${days}`
+    );
+    if (!response.ok) {
+      console.error("Failed to fetch daily scholar mode usage");
+      return null;
+    }
+    return await response.json();
+  } catch (error) {
+    console.error("Error fetching daily scholar mode usage:", error);
+    return null;
+  }
+}

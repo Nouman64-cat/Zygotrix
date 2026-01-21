@@ -1,39 +1,53 @@
-import React, { useState, Suspense } from 'react';
-import ReactMarkdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
-import { FaCheck } from 'react-icons/fa';
-import { MdContentCopy } from 'react-icons/md';
-import { FiFile } from 'react-icons/fi';
-import { cn } from '../../utils';
-import { useTypingEffect } from '../../hooks';
-import { ThinkingLoader } from '../common/ThinkingLoader';
-import { LOGO_URL } from '../../config';
-import type { Message } from '../../types';
+import React, { useState, Suspense } from "react";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { FaCheck } from "react-icons/fa";
+import { MdContentCopy } from "react-icons/md";
+import { FiFile } from "react-icons/fi";
+import { cn } from "../../utils";
+import { useTypingEffect } from "../../hooks";
+import { ThinkingLoader } from "../common/ThinkingLoader";
+import { LOGO_URL } from "../../config";
+import type { Message } from "../../types";
 
 // PERFORMANCE: Lazy load heavy widget components to reduce initial bundle size
 // These components are only loaded when actually needed in a message
 const BreedingLabWidget = React.lazy(() =>
-  import('../breeding').then(module => ({ default: module.BreedingLabWidget }))
+  import("../breeding").then((module) => ({
+    default: module.BreedingLabWidget,
+  })),
 );
 const DnaRnaWidget = React.lazy(() =>
-  import('../dna').then(module => ({ default: module.DnaRnaWidget }))
+  import("../dna").then((module) => ({ default: module.DnaRnaWidget })),
 );
 const GwasWidget = React.lazy(() =>
-  import('../gwas').then(module => ({ default: module.GwasWidget }))
+  import("../gwas").then((module) => ({ default: module.GwasWidget })),
 );
 const DeepResearchClarification = React.lazy(() =>
-  import('../widgets/DeepResearchClarification').then(module => ({ default: module.DeepResearchClarification }))
+  import("../widgets/DeepResearchClarification").then((module) => ({
+    default: module.DeepResearchClarification,
+  })),
 );
 // Lazy load sources carousel
 const DeepResearchSources = React.lazy(() =>
-  import('./DeepResearchSources').then(module => ({ default: module.DeepResearchSources }))
+  import("./DeepResearchSources").then((module) => ({
+    default: module.DeepResearchSources,
+  })),
 );
 // Lazy load web search sources
 const WebSearchSources = React.lazy(() =>
-  import('./WebSearchSources').then(module => ({ default: module.WebSearchSources }))
+  import("./WebSearchSources").then((module) => ({
+    default: module.WebSearchSources,
+  })),
 );
 // Lazy load PDF button to avoid loading heavy PDF library on initial load
-const DeepResearchDownloadButton = React.lazy(() => import('./DeepResearchDownloadButton'));
+const DeepResearchDownloadButton = React.lazy(
+  () => import("./DeepResearchDownloadButton"),
+);
+// Lazy load Scholar Mode PDF button
+const ScholarDownloadButton = React.lazy(
+  () => import("./ScholarDownloadButton"),
+);
 
 // Widget loading fallback
 const WidgetLoadingFallback: React.FC = () => (
@@ -47,16 +61,42 @@ const WidgetLoadingFallback: React.FC = () => (
 
 interface ChatMessageProps {
   message: Message;
-  onDeepResearchSubmit?: (sessionId: string, answers: Array<{ question_id: string; answer: string }>) => void;
+  onDeepResearchSubmit?: (
+    sessionId: string,
+    answers: Array<{ question_id: string; answer: string }>,
+  ) => void;
 }
 
 // Sequence type labels and colors
-const SEQUENCE_TYPES: Record<string, { label: string; color: string; bgColor: string }> = {
-  dna: { label: 'DNA', color: 'text-blue-600 dark:text-blue-400', bgColor: 'bg-blue-50 dark:bg-blue-900/30' },
-  rna: { label: 'RNA', color: 'text-purple-600 dark:text-purple-400', bgColor: 'bg-purple-50 dark:bg-purple-900/30' },
-  protein: { label: 'Protein', color: 'text-green-600 dark:text-green-400', bgColor: 'bg-green-50 dark:bg-green-900/30' },
-  codons: { label: 'Codons', color: 'text-orange-600 dark:text-orange-400', bgColor: 'bg-orange-50 dark:bg-orange-900/30' },
-  aminoacids: { label: 'Amino Acids', color: 'text-teal-600 dark:text-teal-400', bgColor: 'bg-teal-50 dark:bg-teal-900/30' },
+const SEQUENCE_TYPES: Record<
+  string,
+  { label: string; color: string; bgColor: string }
+> = {
+  dna: {
+    label: "DNA",
+    color: "text-blue-600 dark:text-blue-400",
+    bgColor: "bg-blue-50 dark:bg-blue-900/30",
+  },
+  rna: {
+    label: "RNA",
+    color: "text-purple-600 dark:text-purple-400",
+    bgColor: "bg-purple-50 dark:bg-purple-900/30",
+  },
+  protein: {
+    label: "Protein",
+    color: "text-green-600 dark:text-green-400",
+    bgColor: "bg-green-50 dark:bg-green-900/30",
+  },
+  codons: {
+    label: "Codons",
+    color: "text-orange-600 dark:text-orange-400",
+    bgColor: "bg-orange-50 dark:bg-orange-900/30",
+  },
+  aminoacids: {
+    label: "Amino Acids",
+    color: "text-teal-600 dark:text-teal-400",
+    bgColor: "bg-teal-50 dark:bg-teal-900/30",
+  },
 };
 
 // Sequence code block component with copy functionality
@@ -75,29 +115,38 @@ const SequenceCodeBlock: React.FC<{
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     } catch {
-      console.error('Failed to copy');
+      console.error("Failed to copy");
     }
   };
 
   // If it's a recognized sequence type, render with special styling
   if (sequenceType) {
     return (
-      <div className={cn(
-        'relative rounded-lg border my-2 overflow-hidden',
-        'border-gray-200 dark:border-gray-700',
-        sequenceType.bgColor
-      )}>
+      <div
+        className={cn(
+          "relative rounded-lg border my-2 overflow-hidden",
+          "border-gray-200 dark:border-gray-700",
+          sequenceType.bgColor,
+        )}
+      >
         {/* Header with label and copy button */}
         <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-700 bg-gray-100 dark:bg-gray-800">
-          <span className={cn('text-xs font-semibold uppercase tracking-wide', sequenceType.color)}>
+          <span
+            className={cn(
+              "text-xs font-semibold uppercase tracking-wide",
+              sequenceType.color,
+            )}
+          >
             {sequenceType.label}
           </span>
           <button
             onClick={handleCopy}
             className={cn(
-              'flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all',
-              'hover:bg-gray-200 dark:hover:bg-gray-700',
-              copied ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+              "flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all",
+              "hover:bg-gray-200 dark:hover:bg-gray-700",
+              copied
+                ? "text-green-600 dark:text-green-400"
+                : "text-gray-500 dark:text-gray-400",
             )}
             title="Copy to clipboard"
           >
@@ -129,14 +178,16 @@ const SequenceCodeBlock: React.FC<{
     <div className="relative rounded-lg border border-gray-200 dark:border-gray-700 my-2 overflow-hidden bg-gray-100 dark:bg-gray-800">
       <div className="flex items-center justify-between px-3 py-1.5 border-b border-gray-200 dark:border-gray-700">
         <span className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
-          {language || 'Code'}
+          {language || "Code"}
         </span>
         <button
           onClick={handleCopy}
           className={cn(
-            'flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all',
-            'hover:bg-gray-200 dark:hover:bg-gray-700',
-            copied ? 'text-green-600 dark:text-green-400' : 'text-gray-500 dark:text-gray-400'
+            "flex items-center gap-1 px-2 py-1 rounded text-xs font-medium transition-all",
+            "hover:bg-gray-200 dark:hover:bg-gray-700",
+            copied
+              ? "text-green-600 dark:text-green-400"
+              : "text-gray-500 dark:text-gray-400",
           )}
           title="Copy to clipboard"
         >
@@ -171,33 +222,44 @@ const formatFileSize = (bytes: number): string => {
 
 // Citation Badge Component
 // Citation Badge Component
-const CitationBadge: React.FC<{ index: number; source?: any }> = ({ index, source }) => {
+const CitationBadge: React.FC<{ index: number; source?: any }> = ({
+  index,
+  source,
+}) => {
   return (
     <span
       className="relative inline-flex group/citation align-baseline mx-0.5"
-      style={{ verticalAlign: 'super' }}
+      style={{ verticalAlign: "super" }}
     >
-      <span className="
+      <span
+        className="
           inline-flex items-center justify-center 
           w-4 h-4 rounded-full 
           bg-emerald-100 dark:bg-emerald-900/40 
           text-[9px] font-bold text-emerald-700 dark:text-emerald-400
           border border-emerald-200 dark:border-emerald-800
           cursor-help select-none transition-transform hover:scale-110
-       ">
+       "
+      >
         {index}
       </span>
 
       {/* Tooltip */}
       {source && (
-        <span className="
+        <span
+          className="
              absolute bottom-full left-1/2 -translate-x-1/2 mb-2
              w-72 p-3 bg-gray-900 dark:bg-gray-800 text-white dark:text-gray-100 text-xs rounded-xl shadow-xl shadow-black/20
              opacity-0 group-hover/citation:opacity-100 transition-opacity duration-200 pointer-events-none 
              z-[100] text-left border border-gray-700 whitespace-normal hidden sm:block
-          ">
-          <span className="font-semibold block mb-1.5 text-emerald-400 line-clamp-2">{source.title}</span>
-          <span className="block opacity-90 line-clamp-4 text-[10px] leading-relaxed text-gray-300 font-normal">{source.content_preview}</span>
+          "
+        >
+          <span className="font-semibold block mb-1.5 text-emerald-400 line-clamp-2">
+            {source.title}
+          </span>
+          <span className="block opacity-90 line-clamp-4 text-[10px] leading-relaxed text-gray-300 font-normal">
+            {source.content_preview}
+          </span>
 
           {/* Simple arrow */}
           <span className="absolute top-full left-1/2 -translate-x-1/2 -mt-px border-4 border-transparent border-t-gray-900 dark:border-t-gray-800"></span>
@@ -209,7 +271,7 @@ const CitationBadge: React.FC<{ index: number; source?: any }> = ({ index, sourc
 
 // Helper: Parse text to find [Source X] or [X, Y] and swap with CitationBadge in React nodes
 const renderWithCitations = (children: React.ReactNode, sources?: any[]) => {
-  if (typeof children !== 'string') return children;
+  if (typeof children !== "string") return children;
 
   // Match various citation formats:
   // [Source 1], [Sources 1, 2], [1, 2], [Source 1, Source 5]
@@ -241,16 +303,16 @@ const renderWithCitations = (children: React.ReactNode, sources?: any[]) => {
 };
 
 const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
-  const isUser = message.role === 'user';
+  const isUser = message.role === "user";
 
   // Only enable typing effect for AI messages that are CURRENTLY streaming
   // Historical messages (isStreaming is false/undefined) show immediately
   const shouldAnimate = !isUser && !!message.isStreaming;
 
-  const { displayedText, isTyping } = useTypingEffect(message.content || '', {
+  const { displayedText, isTyping } = useTypingEffect(message.content || "", {
     enabled: shouldAnimate,
-    charsPerTick: 4,      // Characters per tick
-    intervalMs: 15,        // Milliseconds between ticks
+    charsPerTick: 4, // Characters per tick
+    intervalMs: 15, // Milliseconds between ticks
   });
 
   // For user messages or non-streaming AI messages, show full content
@@ -264,16 +326,24 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   const showLoader = shouldAnimate && !message.content;
 
   // Check if message has breeding widget data
-  const hasBreedingWidget = message.metadata?.widget_type === 'breeding_lab' && message.metadata?.breeding_data;
+  const hasBreedingWidget =
+    message.metadata?.widget_type === "breeding_lab" &&
+    message.metadata?.breeding_data;
 
   // Check if message has DNA/RNA widget data
-  const hasDnaRnaWidget = message.metadata?.widget_type === 'dna_rna_visualizer' && message.metadata?.dna_rna_data;
+  const hasDnaRnaWidget =
+    message.metadata?.widget_type === "dna_rna_visualizer" &&
+    message.metadata?.dna_rna_data;
 
   // Check if message has GWAS widget data
-  const hasGwasWidget = message.metadata?.widget_type === 'gwas_results' && message.metadata?.gwas_data;
+  const hasGwasWidget =
+    message.metadata?.widget_type === "gwas_results" &&
+    message.metadata?.gwas_data;
 
   // Check if message has deep research clarification widget
-  const hasDeepResearchWidget = message.metadata?.widget_type === 'deep_research_clarification' && message.metadata?.deep_research_data;
+  const hasDeepResearchWidget =
+    message.metadata?.widget_type === "deep_research_clarification" &&
+    message.metadata?.deep_research_data;
 
   // Render content - use markdown for AI messages, plain text for user
   const renderContent = () => {
@@ -299,9 +369,13 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
                 >
                   <FiFile className="flex-shrink-0 text-sm" />
                   <div className="flex-1 min-w-0">
-                    <p className="truncate font-medium text-xs sm:text-sm">{attachment.name}</p>
+                    <p className="truncate font-medium text-xs sm:text-sm">
+                      {attachment.name}
+                    </p>
                     {attachment.size_bytes && (
-                      <p className="text-[10px] sm:text-xs opacity-80">{formatFileSize(attachment.size_bytes)}</p>
+                      <p className="text-[10px] sm:text-xs opacity-80">
+                        {formatFileSize(attachment.size_bytes)}
+                      </p>
                     )}
                   </div>
                 </div>
@@ -319,20 +393,56 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
           remarkPlugins={[remarkGfm]}
           components={{
             // Override default elements with custom styling - generous spacing for readability
-            p: ({ children }) => <p className="mb-6 last:mb-0 text-sm leading-relaxed">{renderWithCitations(children, message.metadata?.deep_research_data?.sources)}</p>,
-            strong: ({ children }) => <strong className="font-bold">{children}</strong>,
+            p: ({ children }) => (
+              <p className="mb-6 last:mb-0 text-sm leading-relaxed">
+                {renderWithCitations(
+                  children,
+                  message.metadata?.deep_research_data?.sources,
+                )}
+              </p>
+            ),
+            strong: ({ children }) => (
+              <strong className="font-bold">{children}</strong>
+            ),
             em: ({ children }) => <em className="italic">{children}</em>,
-            ul: ({ children }) => <ul className="list-disc list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">{children}</ul>,
-            ol: ({ children }) => <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">{children}</ol>,
-            li: ({ children }) => <li className="pl-1 leading-relaxed">{renderWithCitations(children, message.metadata?.deep_research_data?.sources)}</li>,
-            h1: ({ children }) => <h1 className="text-4xl font-semibold mb-4 mt-6 first:mt-0 text-gray-700 dark:text-gray-300">{children}</h1>,
-            h2: ({ children }) => <h2 className="text-xl font-semibold mb-3 mt-5 first:mt-0 text-gray-700 dark:text-gray-300">{children}</h2>,
-            h3: ({ children }) => <h3 className="text-lg font-semibold mb-2 mt-4 first:mt-0 text-gray-700 dark:text-gray-300">{children}</h3>,
+            ul: ({ children }) => (
+              <ul className="list-disc list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">
+                {children}
+              </ul>
+            ),
+            ol: ({ children }) => (
+              <ol className="list-decimal list-outside ml-4 sm:ml-5 mb-6 space-y-3 text-sm">
+                {children}
+              </ol>
+            ),
+            li: ({ children }) => (
+              <li className="pl-1 leading-relaxed">
+                {renderWithCitations(
+                  children,
+                  message.metadata?.deep_research_data?.sources,
+                )}
+              </li>
+            ),
+            h1: ({ children }) => (
+              <h1 className="text-4xl font-semibold mb-4 mt-6 first:mt-0 text-gray-700 dark:text-gray-300">
+                {children}
+              </h1>
+            ),
+            h2: ({ children }) => (
+              <h2 className="text-xl font-semibold mb-3 mt-5 first:mt-0 text-gray-700 dark:text-gray-300">
+                {children}
+              </h2>
+            ),
+            h3: ({ children }) => (
+              <h3 className="text-lg font-semibold mb-2 mt-4 first:mt-0 text-gray-700 dark:text-gray-300">
+                {children}
+              </h3>
+            ),
             // Enhanced code block with copy functionality
             code: ({ children, className }) => {
-              const match = /language-(\w+)/.exec(className || '');
-              const language = match ? match[1] : '';
-              const codeString = String(children).replace(/\n$/, '');
+              const match = /language-(\w+)/.exec(className || "");
+              const language = match ? match[1] : "";
+              const codeString = String(children).replace(/\n$/, "");
 
               // Check if it's a block code (has className) or inline
               const isBlock = !!className;
@@ -359,7 +469,12 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
               </blockquote>
             ),
             a: ({ href, children }) => (
-              <a href={href} target="_blank" rel="noopener noreferrer" className="text-emerald-600 dark:text-emerald-400 underline hover:no-underline">
+              <a
+                href={href}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-emerald-600 dark:text-emerald-400 underline hover:no-underline"
+              >
                 {children}
               </a>
             ),
@@ -372,9 +487,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
               </div>
             ),
             thead: ({ children }) => (
-              <thead className="bg-gray-200 dark:bg-gray-700">
-                {children}
-              </thead>
+              <thead className="bg-gray-200 dark:bg-gray-700">{children}</thead>
             ),
             tbody: ({ children }) => <tbody>{children}</tbody>,
             tr: ({ children }) => (
@@ -394,7 +507,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
             ),
           }}
         >
-          {textToShow || ''}
+          {textToShow || ""}
         </ReactMarkdown>
         {showCursor && (
           <span className="inline-block w-0.5 h-4 ml-0.5 bg-gray-600 dark:bg-gray-300 animate-pulse" />
@@ -414,8 +527,8 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
         {hasDnaRnaWidget && message.metadata?.dna_rna_data && (
           <Suspense fallback={<WidgetLoadingFallback />}>
             <DnaRnaWidget
-              dnaSequence={message.metadata.dna_rna_data.dna_sequence || ''}
-              mrnaSequence={message.metadata.dna_rna_data.mrna_sequence || ''}
+              dnaSequence={message.metadata.dna_rna_data.dna_sequence || ""}
+              mrnaSequence={message.metadata.dna_rna_data.mrna_sequence || ""}
               operation={message.metadata.dna_rna_data.operation}
               metadata={message.metadata.dna_rna_data.metadata}
             />
@@ -433,14 +546,15 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
         {hasDeepResearchWidget && message.metadata?.deep_research_data && (
           <Suspense fallback={<WidgetLoadingFallback />}>
             <DeepResearchClarification
-              sessionId={message.metadata.deep_research_data.session_id || ''}
+              sessionId={message.metadata.deep_research_data.session_id || ""}
               questions={message.metadata.deep_research_data.questions || []}
               onSubmit={(answers) => {
                 // Dispatch a custom event that the chat context can listen to
-                const event = new CustomEvent('deepResearchSubmit', {
+                const event = new CustomEvent("deepResearchSubmit", {
                   detail: {
                     sessionId: message.metadata?.deep_research_data?.session_id,
-                    originalQuery: message.metadata?.deep_research_data?.original_query,
+                    originalQuery:
+                      message.metadata?.deep_research_data?.original_query,
                     answers,
                   },
                 });
@@ -453,33 +567,45 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
     );
   };
 
-
   // State for copying message content
   const [messageCopied, setMessageCopied] = useState(false);
 
   // Copy message content to clipboard
   const handleCopyMessage = async () => {
     try {
-      await navigator.clipboard.writeText(message.content || '');
+      await navigator.clipboard.writeText(message.content || "");
       setMessageCopied(true);
       setTimeout(() => setMessageCopied(false), 2000);
     } catch {
-      console.error('Failed to copy message');
+      console.error("Failed to copy message");
     }
   };
 
   return (
-    <div className={cn('flex gap-2 sm:gap-3 px-2 sm:px-4 py-4 sm:py-5 md:px-6', isUser ? 'justify-end' : 'justify-start')}>
-      <div className={cn(
-        'group flex items-start gap-2 sm:gap-3',
-        // User messages have max-width, AI responses use full width
-        isUser ? 'max-w-full sm:max-w-[85%] md:max-w-3xl lg:max-w-4xl flex-row-reverse' : 'max-w-full'
-      )}>
+    <div
+      className={cn(
+        "flex gap-2 sm:gap-3 px-2 sm:px-4 py-4 sm:py-5 md:px-6",
+        isUser ? "justify-end" : "justify-start",
+      )}
+    >
+      <div
+        className={cn(
+          "group flex items-start gap-2 sm:gap-3",
+          // User messages have max-width, AI responses use full width
+          isUser
+            ? "max-w-full sm:max-w-[85%] md:max-w-3xl lg:max-w-4xl flex-row-reverse"
+            : "max-w-full",
+        )}
+      >
         {/* Avatar - only show for AI, hidden on mobile */}
         {!isUser && (
           <div className="hidden md:flex flex-shrink-0">
             <div className="w-8 h-8 flex items-center justify-center">
-              <img src={LOGO_URL} alt="Zygotrix AI" className="w-8 h-8 object-cover rounded-full" />
+              <img
+                src={LOGO_URL}
+                alt="Zygotrix AI"
+                className="w-8 h-8 object-cover rounded-full"
+              />
             </div>
           </div>
         )}
@@ -498,7 +624,11 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
                 className="absolute -left-10 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 p-1.5 rounded-lg text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all duration-200"
                 title="Copy message"
               >
-                {messageCopied ? <FaCheck className="w-3.5 h-3.5 text-emerald-500" /> : <MdContentCopy className="w-3.5 h-3.5" />}
+                {messageCopied ? (
+                  <FaCheck className="w-3.5 h-3.5 text-emerald-500" />
+                ) : (
+                  <MdContentCopy className="w-3.5 h-3.5" />
+                )}
               </button>
             </div>
           ) : (
@@ -526,12 +656,36 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
                   </button>
 
                   {/* Deep Research Download Button - Only show for completed research, not clarification */}
-                  {message.metadata?.model === 'deep_research' && message.metadata?.widget_type !== 'deep_research_clarification' && (
-                    <Suspense fallback={<div className="h-6 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />}>
-                      <DeepResearchDownloadButton
+                  {message.metadata?.model === "deep_research" &&
+                    message.metadata?.widget_type !==
+                      "deep_research_clarification" && (
+                      <Suspense
+                        fallback={
+                          <div className="h-6 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+                        }
+                      >
+                        <DeepResearchDownloadButton
+                          content={message.content}
+                          timestamp={message.created_at}
+                          sources={
+                            message.metadata?.deep_research_data?.sources
+                          }
+                        />
+                      </Suspense>
+                    )}
+
+                  {/* Scholar Mode Download Button - Uses Scholar-specific PDF component */}
+                  {message.metadata?.model === "scholar_mode" && (
+                    <Suspense
+                      fallback={
+                        <div className="h-6 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />
+                      }
+                    >
+                      <ScholarDownloadButton
                         content={message.content}
                         timestamp={message.created_at}
                         sources={message.metadata?.deep_research_data?.sources}
+                        stats={message.metadata?.deep_research_data?.stats}
                       />
                     </Suspense>
                   )}
@@ -541,18 +695,49 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
           )}
 
           {/* Deep Research Sources Carousel - Render below the message bubble for AI */}
-          {!isUser && message.metadata?.model === 'deep_research' && message.metadata?.deep_research_data?.sources && (
-            <Suspense fallback={<div className="h-24 w-full bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse mt-4" />}>
-              <DeepResearchSources sources={message.metadata.deep_research_data.sources} />
-            </Suspense>
-          )}
+          {!isUser &&
+            message.metadata?.model === "deep_research" &&
+            message.metadata?.deep_research_data?.sources && (
+              <Suspense
+                fallback={
+                  <div className="h-24 w-full bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse mt-4" />
+                }
+              >
+                <DeepResearchSources
+                  sources={message.metadata.deep_research_data.sources}
+                />
+              </Suspense>
+            )}
+
+          {/* Scholar Mode Sources Carousel - Uses DeepResearchSources since same format */}
+          {!isUser &&
+            message.metadata?.model === "scholar_mode" &&
+            message.metadata?.deep_research_data?.sources && (
+              <Suspense
+                fallback={
+                  <div className="h-24 w-full bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse mt-4" />
+                }
+              >
+                <DeepResearchSources
+                  sources={message.metadata.deep_research_data.sources}
+                />
+              </Suspense>
+            )}
 
           {/* Web Search Sources Carousel - Render below the message bubble for AI */}
-          {!isUser && message.metadata?.model === 'web_search' && message.metadata?.web_search_data?.sources && (
-            <Suspense fallback={<div className="h-24 w-full bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse mt-4" />}>
-              <WebSearchSources sources={message.metadata.web_search_data.sources} />
-            </Suspense>
-          )}
+          {!isUser &&
+            message.metadata?.model === "web_search" &&
+            message.metadata?.web_search_data?.sources && (
+              <Suspense
+                fallback={
+                  <div className="h-24 w-full bg-gray-50 dark:bg-gray-800/50 rounded-xl animate-pulse mt-4" />
+                }
+              >
+                <WebSearchSources
+                  sources={message.metadata.web_search_data.sources}
+                />
+              </Suspense>
+            )}
         </div>
       </div>
     </div>
@@ -568,5 +753,5 @@ export const ChatMessage = React.memo(
       prevProps.message.content === nextProps.message.content &&
       prevProps.message.isStreaming === nextProps.message.isStreaming
     );
-  }
+  },
 );

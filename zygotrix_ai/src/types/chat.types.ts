@@ -33,11 +33,12 @@ export interface MessageMetadata {
   cached?: boolean;
   // Widget data for interactive visualizations
   widget_type?:
-    | "breeding_lab"
-    | "dna_rna_visualizer"
-    | "gwas_results"
-    | "deep_research_clarification"
-    | "web_search";
+  | "breeding_lab"
+  | "dna_rna_visualizer"
+  | "gwas_results"
+  | "deep_research_clarification"
+  | "web_search"
+  | "scholar_mode";
   breeding_data?: {
     parent1?: any;
     parent2?: any;
@@ -66,10 +67,16 @@ export interface MessageMetadata {
       rerank_score?: number;
       author?: string;
       published_date?: string;
+      // Scholar Mode specific
+      source_type?: string; // 'deep_research' | 'web_search'
+      metadata?: Record<string, unknown>;
     }>;
     stats?: {
       time_ms: number;
       sources_count: number;
+      // Scholar Mode specific
+      deep_research_sources?: number;
+      web_search_sources?: number;
     };
   };
   // Web search data with sources

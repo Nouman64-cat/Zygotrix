@@ -138,6 +138,70 @@ class RAGService:
             logger.error(f"Error retrieving context: {e}")
             return ""
 
+    async def retrieve_chunks(
+        self,
+        query: str,
+        top_k: int = 50,
+        user_id: Optional[str] = None,
+        user_name: Optional[str] = None
+    ) -> List[Dict[str, Any]]:
+        """
+        Retrieve raw chunks from Pinecone with metadata (for Scholar Mode).
+
+        Args:
+            query: Search query
+            top_k: Number of results to retrieve
+            user_id: Optional user ID for usage tracking
+            user_name: Optional user name for usage tracking
+
+        Returns:
+            List of chunk dictionaries with 'text', 'score', and 'metadata'
+        """
+        try:
+            # Generate embedding for the query
+            query_embedding = await self.generate_embedding(query)
+
+            # Track embedding usage
+            from ..chatbot.token_analytics_service import get_token_analytics_service
+            estimated_tokens = len(query) // 4
+            get_token_analytics_service().log_embedding_usage(
+                user_id=user_id,
+                user_name=user_name,
+                tokens=estimated_tokens,
+                model=self.embedding_model,
+                query_preview=query[:100]
+            )
+
+            # Search Pinecone
+            logger.info(f"Querying Pinecone for raw chunks with top_k={top_k}")
+            results = self.index.query(
+                vector=query_embedding,
+                top_k=top_k,
+                include_metadata=True
+            )
+
+            # Return raw chunks with metadata
+            if not results.matches:
+                logger.info("No matches found in Pinecone")
+                return []
+
+            chunks = []
+            for match in results.matches:
+                metadata = match.metadata or {}
+                chunks.append({
+                    "id": match.id,
+                    "text": metadata.get("text", ""),
+                    "score": match.score,
+                    "metadata": metadata
+                })
+
+            logger.info(f"Retrieved {len(chunks)} raw chunks from Pinecone")
+            return chunks
+
+        except Exception as e:
+            logger.error(f"Error retrieving chunks: {e}")
+            return []
+
     async def upsert_documents(self, documents: List[Dict[str, Any]]) -> bool:
         """
         Upsert documents into Pinecone.

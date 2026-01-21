@@ -85,11 +85,11 @@ class MessageMetadata(BaseModel):
     cached: bool = False
 
     # Widget data for interactive visualizations
-    widget_type: Optional[str] = None  # 'breeding_lab', 'dna_rna_visualizer', 'gwas_results', 'deep_research_clarification', 'web_search'
+    widget_type: Optional[str] = None  # 'breeding_lab', 'dna_rna_visualizer', 'gwas_results', 'deep_research_clarification', 'web_search', 'scholar_mode'
     breeding_data: Optional[dict] = None  # For breeding simulations
     dna_rna_data: Optional[dict] = None  # For DNA/RNA visualizations
     gwas_data: Optional[dict] = None  # For GWAS analysis results
-    deep_research_data: Optional[dict] = None  # For deep research clarification widget
+    deep_research_data: Optional[dict] = None  # For deep research clarification widget and Scholar Mode
     web_search_data: Optional[dict] = None  # For web search results with sources
 
 

@@ -80,7 +80,8 @@ const AVAILABLE_TOOLS: AiTool[] = [
   {
     id: "deep_research",
     name: "Deep Research",
-    description: "Multi-step research with AI clarification and source synthesis",
+    description:
+      "Multi-step research with AI clarification and source synthesis",
     icon: "🔬",
   },
   {
@@ -88,6 +89,13 @@ const AVAILABLE_TOOLS: AiTool[] = [
     name: "Web Search",
     description: "Real-time web search for the latest information",
     icon: "🌐",
+  },
+  {
+    id: "scholar_mode",
+    name: "Scholar Mode",
+    description:
+      "Comprehensive research combining deep research, web search, and AI synthesis",
+    icon: "🎓",
   },
 ];
 
@@ -101,7 +109,7 @@ interface ChatInputProps {
   onSend: (
     message: string,
     attachments?: MessageAttachment[],
-    enabledTools?: string[]
+    enabledTools?: string[],
   ) => void;
   disabled?: boolean;
   placeholder?: string;
@@ -120,28 +128,33 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const [value, setValue] = useState("");
   const [attachments, setAttachments] = useState<MessageAttachment[]>([]);
   // Use controlled mode if props are provided, otherwise internal state
-  const [internalEnabledTools, setInternalEnabledTools] = useState<string[]>([]);
+  const [internalEnabledTools, setInternalEnabledTools] = useState<string[]>(
+    [],
+  );
   const enabledTools = controlledEnabledTools ?? internalEnabledTools;
 
   // Wrapper function for setEnabledTools that works in both controlled and uncontrolled modes
-  const setEnabledTools = useCallback((value: string[] | ((prev: string[]) => string[])) => {
-    if (onEnabledToolsChange) {
-      // Controlled mode - compute new value if function is passed
-      if (typeof value === 'function') {
-        const newValue = value(controlledEnabledTools ?? []);
-        onEnabledToolsChange(newValue);
+  const setEnabledTools = useCallback(
+    (value: string[] | ((prev: string[]) => string[])) => {
+      if (onEnabledToolsChange) {
+        // Controlled mode - compute new value if function is passed
+        if (typeof value === "function") {
+          const newValue = value(controlledEnabledTools ?? []);
+          onEnabledToolsChange(newValue);
+        } else {
+          onEnabledToolsChange(value);
+        }
       } else {
-        onEnabledToolsChange(value);
+        // Uncontrolled mode - use internal setter directly
+        setInternalEnabledTools(value);
       }
-    } else {
-      // Uncontrolled mode - use internal setter directly
-      setInternalEnabledTools(value);
-    }
-  }, [onEnabledToolsChange, controlledEnabledTools]);
+    },
+    [onEnabledToolsChange, controlledEnabledTools],
+  );
   const [showToolsMenu, setShowToolsMenu] = useState(false);
   const [isRecording, setIsRecording] = useState(false);
   const [recordingPlaceholder, setRecordingPlaceholder] = useState(
-    RECORDING_PROMPTS[0]
+    RECORDING_PROMPTS[0],
   );
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -149,7 +162,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const recognitionRef = useRef<SpeechRecognition | null>(null);
 
   const { user, refreshUser } = useAuth();
-  const isPro = user?.subscription_status === 'pro';
+  const isPro = user?.subscription_status === "pro";
 
   // Deep Research usage tracking for PRO users
   const DEEP_RESEARCH_DAILY_LIMIT = 3;
@@ -168,14 +181,23 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   // Auto-refresh user data when reset period has passed and limit was exhausted
   useEffect(() => {
-    if (isPro && deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT && hasResetPeriodPassed()) {
-      console.log('🔄 Deep Research reset period passed, refreshing user data...');
+    if (
+      isPro &&
+      deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT &&
+      hasResetPeriodPassed()
+    ) {
+      console.log(
+        "🔄 Deep Research reset period passed, refreshing user data...",
+      );
       refreshUser();
     }
   }, [isPro, deepResearchUsed, hasResetPeriodPassed, refreshUser]);
 
   // Consider limit exhausted only if reset period hasn't passed
-  const isDeepResearchLimitExhausted = isPro && deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT && !hasResetPeriodPassed();
+  const isDeepResearchLimitExhausted =
+    isPro &&
+    deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT &&
+    !hasResetPeriodPassed();
 
   // Calculate reset time (24 hours from last_reset)
   const getDeepResearchResetTime = (): string | null => {
@@ -234,7 +256,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       const maxHeight = window.innerWidth < 640 ? 120 : 150;
       const newHeight = Math.max(
         minHeight,
-        Math.min(textarea.scrollHeight, maxHeight)
+        Math.min(textarea.scrollHeight, maxHeight),
       );
       textarea.style.height = `${newHeight}px`;
     }
@@ -285,7 +307,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (isRecording && !isDictating) {
       console.log("🎤 Failsafe: Restoring dictation callback");
       setDictationCallback((text, isFinal) =>
-        handleDictationRef.current(text, isFinal)
+        handleDictationRef.current(text, isFinal),
       );
     }
   }, [isRecording, isDictating, setDictationCallback]);
@@ -333,7 +355,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
         (cmd) =>
           lowerTranscript.endsWith(cmd) ||
           lowerTranscript.endsWith(cmd + ".") ||
-          lowerTranscript.endsWith(cmd + "!")
+          lowerTranscript.endsWith(cmd + "!"),
       );
 
       if (matchedCommand) {
@@ -364,13 +386,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             setDictationCallback(null);
             setIsRecording(false);
             console.log(
-              "🎤 Dictation ended after voice send - returning to command mode"
+              "🎤 Dictation ended after voice send - returning to command mode",
             );
           }
         }, 0);
       }
     },
-    [onSend, attachments, enabledTools, setDictationCallback]
+    [onSend, attachments, enabledTools, setDictationCallback],
   );
 
   // Register dictation only when focused AND universal mic is active (for universal mic dictation)
@@ -467,7 +489,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             (cmd) =>
               lowerTranscript.endsWith(cmd) ||
               lowerTranscript.endsWith(cmd + ".") ||
-              lowerTranscript.endsWith(cmd + "!")
+              lowerTranscript.endsWith(cmd + "!"),
           );
 
           if (matchedCommand) {
@@ -475,7 +497,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             setTimeout(() => {
               const commandRegex = new RegExp(
                 `\\s*${matchedCommand}[.!?]*$`,
-                "i"
+                "i",
               );
               const messageContent = baseTextRef.current
                 .replace(commandRegex, "")
@@ -502,7 +524,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       recognition.onend = () => {
         console.log(
           "🎤 Local recognition onend fired, shouldBeRecording:",
-          shouldBeRecordingRef.current
+          shouldBeRecordingRef.current,
         );
         isLocalRecognitionActiveRef.current = false;
 
@@ -570,7 +592,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       baseTextRef.current = valueRef.current;
       // Set dictation callback to write to input
       setDictationCallback((text, isFinal) =>
-        handleDictationRef.current(text, isFinal)
+        handleDictationRef.current(text, isFinal),
       );
       setIsRecording(true);
       setRecordingPlaceholder(RECORDING_PROMPTS[0]);
@@ -637,7 +659,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     setEnabledTools((prev) =>
       prev.includes(toolId)
         ? prev.filter((id) => id !== toolId)
-        : [...prev, toolId]
+        : [...prev, toolId],
     );
   };
 
@@ -654,7 +676,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       onSend(
         value.trim(),
         attachments.length > 0 ? attachments : undefined,
-        enabledTools.length > 0 ? enabledTools : undefined
+        enabledTools.length > 0 ? enabledTools : undefined,
       );
       setValue("");
       setAttachments([]);
@@ -691,7 +713,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           baseTextRef.current = valueRef.current || "";
           console.log("🎤 Focus input: Dictation enabled");
           setDictationCallback((text, isFinal) =>
-            handleDictationRef.current(text, isFinal)
+            handleDictationRef.current(text, isFinal),
           );
           setIsRecording(true);
           setRecordingPlaceholder(RECORDING_PROMPTS[0]);
@@ -754,7 +776,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       const tool = AVAILABLE_TOOLS[0];
       if (tool) {
         setEnabledTools((prev) =>
-          prev.includes(tool.id) ? prev : [...prev, tool.id]
+          prev.includes(tool.id) ? prev : [...prev, tool.id],
         );
         console.log(`🔧 Enabled tool: ${tool.name}`);
       }
@@ -833,7 +855,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
             "border-t border-x sm:border border-gray-200 dark:border-gray-700/50",
             "sm:hover:border-gray-300 dark:sm:hover:border-gray-600/70",
             "focus-within:border-emerald-500 dark:focus-within:border-emerald-500/50 sm:focus-within:ring-1 focus-within:ring-emerald-500/20",
-            "shadow-[0_-15px_30px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-15px_30px_-5px_rgba(0,0,0,0.4)]"
+            "shadow-[0_-15px_30px_-5px_rgba(0,0,0,0.1)] dark:shadow-[0_-15px_30px_-5px_rgba(0,0,0,0.4)]",
           )}
         >
           {/* Text Input Area - Top */}
@@ -843,8 +865,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              onFocus={() => { }}
-              onBlur={() => { }}
+              onFocus={() => {}}
+              onBlur={() => {}}
               placeholder={isRecording ? recordingPlaceholder : placeholder}
               disabled={disabled || isRecording}
               rows={1}
@@ -852,7 +874,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 "w-full resize-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500",
                 "focus:outline-none disabled:cursor-not-allowed",
                 "text-sm sm:text-base leading-snug sm:leading-relaxed",
-                "min-h-[24px] sm:min-h-[44px] max-h-[120px] sm:max-h-[150px]"
+                "min-h-[24px] sm:min-h-[44px] max-h-[120px] sm:max-h-[150px]",
               )}
             />
           </div>
@@ -877,7 +899,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 className={cn(
                   "w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200",
                   "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 cursor-pointer",
-                  "disabled:opacity-40 disabled:cursor-not-allowed"
+                  "disabled:opacity-40 disabled:cursor-not-allowed",
                 )}
                 title="Attach genomic files"
               >
@@ -892,7 +914,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   className={cn(
                     "h-8 sm:h-9 px-2 sm:px-3 rounded-lg sm:rounded-xl flex items-center gap-1.5 sm:gap-2 transition-all duration-200",
                     "text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700/50 cursor-pointer",
-                    "disabled:opacity-40 disabled:cursor-not-allowed"
+                    "disabled:opacity-40 disabled:cursor-not-allowed",
                   )}
                   title="Analysis Tools"
                 >
@@ -908,17 +930,20 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     <div className="p-1">
                       {AVAILABLE_TOOLS.map((tool) => {
                         const isEnabled = enabledTools.includes(tool.id);
-                        const isDeepResearch = tool.id === 'deep_research';
-                        const isWebSearch = tool.id === 'web_search';
+                        const isDeepResearch = tool.id === "deep_research";
+                        const isWebSearch = tool.id === "web_search";
                         const isProFeature = isDeepResearch || isWebSearch;
                         const isLockedForFree = isProFeature && !isPro;
-                        const isLockedForLimit = isDeepResearch && isDeepResearchLimitExhausted;
+                        const isLockedForLimit =
+                          isDeepResearch && isDeepResearchLimitExhausted;
                         const isLocked = isLockedForFree || isLockedForLimit;
 
                         return (
                           <button
                             key={tool.id}
-                            onClick={() => !isLocked && handleToggleTool(tool.id)}
+                            onClick={() =>
+                              !isLocked && handleToggleTool(tool.id)
+                            }
                             disabled={isLocked}
                             className={cn(
                               "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all duration-200",
@@ -927,7 +952,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                 : "cursor-pointer",
                               isEnabled && !isLocked
                                 ? "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
-                                : !isLocked && "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300"
+                                : !isLocked &&
+                                    "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300",
                             )}
                             title={
                               isLockedForFree
@@ -939,9 +965,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                           >
                             <span className="text-lg">{tool.icon}</span>
                             <div className="flex-1 text-left">
-                              <p className="text-xs font-medium">
-                                {tool.name}
-                              </p>
+                              <p className="text-xs font-medium">{tool.name}</p>
                               {isLockedForFree && (
                                 <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold">
                                   PRO Feature ★
@@ -950,13 +974,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                               {/* Show usage count for Deep Research if user is PRO */}
                               {isDeepResearch && isPro && !isLockedForLimit && (
                                 <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                                  {deepResearchUsed}/{DEEP_RESEARCH_DAILY_LIMIT} used today
+                                  {deepResearchUsed}/{DEEP_RESEARCH_DAILY_LIMIT}{" "}
+                                  used today
                                 </span>
                               )}
                               {/* Show limit reached message with reset time */}
                               {isLockedForLimit && (
                                 <span className="text-[10px] text-red-500 dark:text-red-400 font-medium whitespace-nowrap">
-                                  3/3 used • Resets: {getDeepResearchResetTime() || "~24h"}
+                                  3/3 used • Resets:{" "}
+                                  {getDeepResearchResetTime() || "~24h"}
                                 </span>
                               )}
                               {/* Show Web Search info for PRO users */}
@@ -980,7 +1006,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                   "w-5 h-5 rounded border-2 flex items-center justify-center transition-all",
                                   isEnabled
                                     ? "bg-emerald-500 border-emerald-500"
-                                    : "border-gray-300 dark:border-gray-600"
+                                    : "border-gray-300 dark:border-gray-600",
                                 )}
                               >
                                 {isEnabled && (
@@ -1002,7 +1028,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 if (!tool) return null;
 
                 // Check if this deep research is exhausted
-                const isDeepResearchExhausted = toolId === 'deep_research' && isDeepResearchLimitExhausted;
+                const isDeepResearchExhausted =
+                  toolId === "deep_research" && isDeepResearchLimitExhausted;
 
                 return (
                   <div
@@ -1011,24 +1038,28 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                       "h-8 sm:h-9 flex items-center gap-1 sm:gap-1.5 rounded-lg sm:rounded-xl px-2 sm:px-2.5 text-xs sm:text-sm",
                       isDeepResearchExhausted
                         ? "bg-red-50 dark:bg-red-500/15 border border-red-200 dark:border-red-500/30"
-                        : "bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30"
+                        : "bg-emerald-50 dark:bg-emerald-500/15 border border-emerald-200 dark:border-emerald-500/30",
                     )}
                   >
                     <span className="text-sm">{tool.icon}</span>
-                    <span className={cn(
-                      "font-medium hidden sm:inline",
-                      isDeepResearchExhausted
-                        ? "text-red-700 dark:text-red-300"
-                        : "text-emerald-700 dark:text-emerald-300"
-                    )}>
+                    <span
+                      className={cn(
+                        "font-medium hidden sm:inline",
+                        isDeepResearchExhausted
+                          ? "text-red-700 dark:text-red-300"
+                          : "text-emerald-700 dark:text-emerald-300",
+                      )}
+                    >
                       {tool.name}
                     </span>
                     {/* Show usage count in pill for Deep Research */}
-                    {toolId === 'deep_research' && isPro && !isDeepResearchExhausted && (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                        ({deepResearchUsed}/{DEEP_RESEARCH_DAILY_LIMIT})
-                      </span>
-                    )}
+                    {toolId === "deep_research" &&
+                      isPro &&
+                      !isDeepResearchExhausted && (
+                        <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
+                          ({deepResearchUsed}/{DEEP_RESEARCH_DAILY_LIMIT})
+                        </span>
+                      )}
                     {/* Show limit exhausted message */}
                     {isDeepResearchExhausted && (
                       <span className="text-[10px] text-red-500 dark:text-red-400 font-medium">
@@ -1041,7 +1072,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                         "transition-colors cursor-pointer",
                         isDeepResearchExhausted
                           ? "text-red-400 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
-                          : "text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400"
+                          : "text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400",
                       )}
                       title="Disable tool"
                     >
@@ -1064,7 +1095,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     isRecording
                       ? "bg-red-500 text-white animate-pulse shadow-lg shadow-red-500/30"
                       : "bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600/50 cursor-pointer",
-                    "disabled:opacity-40 disabled:cursor-not-allowed"
+                    "disabled:opacity-40 disabled:cursor-not-allowed",
                   )}
                   title={isRecording ? "Stop recording" : "Voice input"}
                 >
@@ -1080,14 +1111,14 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                   "w-9 h-9 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center transition-all duration-200",
                   canSend
                     ? "bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-lg shadow-emerald-500/25 hover:shadow-emerald-500/40 hover:scale-105 active:scale-95 cursor-pointer"
-                    : "bg-gray-100 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    : "bg-gray-100 dark:bg-gray-700/50 text-gray-400 dark:text-gray-500 cursor-not-allowed",
                 )}
                 title="Send message (Enter)"
               >
                 <FiSend
                   className={cn(
                     "text-base sm:text-lg",
-                    canSend && "-rotate-45"
+                    canSend && "-rotate-45",
                   )}
                 />
               </button>
@@ -1104,6 +1135,6 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           Zygotrix AI can make mistakes. Please verify important information.
         </p>
       </div>
-    </div >
+    </div>
   );
 };

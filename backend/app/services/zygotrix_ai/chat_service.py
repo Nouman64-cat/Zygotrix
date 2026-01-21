@@ -221,6 +221,15 @@ class ZygotrixChatService:
                 chat_request, conversation, user_message, user_id, user_name
             )
 
+        # Check if Scholar Mode is enabled (PRO feature)
+        scholar_mode_enabled = chat_request.enabled_tools and 'scholar_mode' in chat_request.enabled_tools
+        
+        if scholar_mode_enabled:
+            logger.info(f"🎓 Scholar Mode enabled - routing to scholar service")
+            return await self._handle_scholar_mode_chat(
+                chat_request, conversation, user_message, user_id, user_name
+            )
+
         # Handle streaming vs non-streaming
         if chat_request.stream:
             return await self._handle_streaming_chat(
@@ -1645,6 +1654,208 @@ Question: {user_message.content}"""
                 output_tokens=0,
                 total_tokens=0,
                 model="web_search",
+                provider="error",
+            )
+            
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=error_content,
+                metadata=msg_metadata,
+                parent_message_id=user_message.id,
+            )
+            
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=assistant_message,
+                conversation_title=conversation.title,
+                usage=msg_metadata,
+            ), conversation.id, assistant_message.id
+
+    async def _handle_scholar_mode_chat(
+        self,
+        chat_request: ChatRequest,
+        conversation,
+        user_message,
+        user_id: str,
+        user_name: Optional[str]
+    ):
+        """
+        Handle Scholar Mode chat combining Deep Research, Web Search, and Cohere Reranking.
+        
+        This is a PRO-only feature with usage tracking.
+        
+        Returns:
+            Tuple of (ChatResponse, conversation_id, message_id)
+        """
+        from ..scholar import get_scholar_service
+        from ..zygotrix_ai_service import MessageService, MessageRole
+        import time
+        
+        logger.info(f"🎓 Starting Scholar Mode for user {user_id}")
+        start_time = time.perf_counter()
+        
+        # Get scholar service
+        scholar_service = get_scholar_service()
+        
+        # Check access (PRO only)
+        can_access, reason, _ = await scholar_service.check_access(user_id)
+        
+        if not can_access:
+            logger.warning(f"🎓 Scholar Mode denied for user {user_id}: {reason}")
+            
+            error_content = f"⚠️ **Scholar Mode Access Denied**\n\n{reason}"
+            error_content += "\n\n💡 **Tip:** Upgrade to PRO to unlock Scholar Mode which combines deep research, web search, and AI synthesis for comprehensive research responses."
+            
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=error_content,
+            )
+            
+            # Generate title for new conversations
+            if conversation.message_count <= 2:
+                asyncio.create_task(self._generate_and_save_title(
+                    conversation.id,
+                    user_id,
+                    chat_request.message,
+                    error_content[:200]
+                ))
+            
+            from app.schema.zygotrix_ai import Message
+            message_obj = Message(
+                id=assistant_message.id,
+                conversation_id=conversation.id,
+                role="assistant",
+                content=error_content,
+                created_at=assistant_message.created_at,
+            )
+            
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=message_obj,
+                conversation_title=conversation.title,
+            ), conversation.id, assistant_message.id
+        
+        logger.info(f"🎓 Scholar Mode access granted for user {user_id}")
+        
+        try:
+            # Perform Scholar Mode research
+            scholar_response = await scholar_service.research(
+                query=chat_request.message,
+                user_id=user_id,
+                user_name=user_name
+            )
+            
+            processing_time_ms = int((time.perf_counter() - start_time) * 1000)
+            
+            # Check for errors
+            if scholar_response.error_message:
+                error_content = f"## ❌ Scholar Mode Error\n\n{scholar_response.error_message}\n\nPlease try again later."
+                
+                msg_metadata = MessageMetadata(
+                    input_tokens=0,
+                    output_tokens=0,
+                    total_tokens=0,
+                    model="scholar_mode",
+                    provider="error",
+                    latency_ms=processing_time_ms
+                )
+                
+                assistant_message = MessageService.create_message(
+                    conversation_id=conversation.id,
+                    role=MessageRole.ASSISTANT,
+                    content=error_content,
+                    metadata=msg_metadata,
+                    parent_message_id=user_message.id,
+                )
+                
+                return ChatResponse(
+                    conversation_id=conversation.id,
+                    message=assistant_message,
+                    conversation_title=conversation.title,
+                    usage=msg_metadata,
+                ), conversation.id, assistant_message.id
+            
+            # Format successful response with source breakdown
+            content = scholar_response.response
+            content += f"\n\n---\n*Scholar Mode completed in {scholar_response.processing_time_ms}ms using {scholar_response.sources_used} sources ({scholar_response.deep_research_sources} from knowledge base, {scholar_response.web_search_sources} from web)*"
+            
+            # Prepare scholar mode metadata for frontend
+            scholar_data = None
+            if scholar_response.sources:
+                scholar_data = {
+                    "sources": [source.to_dict() for source in scholar_response.sources],
+                    "stats": {
+                        "time_ms": scholar_response.processing_time_ms,
+                        "sources_count": scholar_response.sources_used,
+                        "deep_research_sources": scholar_response.deep_research_sources,
+                        "web_search_sources": scholar_response.web_search_sources
+                    }
+                }
+            
+            # Create message metadata
+            token_usage = scholar_response.token_usage
+            msg_metadata = MessageMetadata(
+                input_tokens=token_usage.get("input_tokens", 0),
+                output_tokens=token_usage.get("output_tokens", 0),
+                total_tokens=token_usage.get("total_tokens", 0),
+                model="scholar_mode",
+                provider="multi-model",
+                latency_ms=scholar_response.processing_time_ms,
+                deep_research_data=scholar_data  # Reuse deep_research_data for sources display
+            )
+            
+            # Save assistant message
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=content,
+                metadata=msg_metadata,
+                parent_message_id=user_message.id,
+            )
+            
+            # Update conversation stats
+            ConversationService.update_conversation_stats(
+                conversation.id,
+                tokens_used=token_usage.get("total_tokens", 0),
+                increment_messages=True,
+                last_message_preview=content[:100]
+            )
+            
+            logger.info(
+                f"✅ Scholar Mode complete | "
+                f"Deep Research: {scholar_response.deep_research_sources} | "
+                f"Web Search: {scholar_response.web_search_sources} | "
+                f"Time: {scholar_response.processing_time_ms}ms"
+            )
+            
+            # Generate smart title for new conversations
+            if conversation.message_count <= 2:
+                asyncio.create_task(self._generate_and_save_title(
+                    conversation.id,
+                    user_id,
+                    chat_request.message,
+                    content[:500]
+                ))
+            
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=assistant_message,
+                conversation_title=conversation.title,
+                usage=msg_metadata,
+            ), conversation.id, assistant_message.id
+            
+        except Exception as e:
+            logger.error(f"Scholar Mode error: {e}", exc_info=True)
+            
+            error_content = f"## ❌ Scholar Mode Error\n\nAn unexpected error occurred:\n\n> {str(e)}\n\nPlease try again or disable Scholar Mode to use standard chat."
+            
+            msg_metadata = MessageMetadata(
+                input_tokens=0,
+                output_tokens=0,
+                total_tokens=0,
+                model="scholar_mode",
                 provider="error",
             )
             

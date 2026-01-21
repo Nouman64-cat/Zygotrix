@@ -1,4 +1,5 @@
 import type { TokenUsage } from "./auth.types";
+import type { ResearchSource } from "./research.types";
 
 // Message roles
 export type MessageRole = "user" | "assistant" | "system";
@@ -59,18 +60,7 @@ export interface MessageMetadata {
     status?: string;
 
     // Result fields
-    sources?: Array<{
-      title: string;
-      url?: string;
-      content_preview?: string;
-      relevance_score?: number;
-      rerank_score?: number;
-      author?: string;
-      published_date?: string;
-      // Scholar Mode specific
-      source_type?: string; // 'deep_research' | 'web_search'
-      metadata?: Record<string, unknown>;
-    }>;
+    sources?: ResearchSource[];
     stats?: {
       time_ms: number;
       sources_count: number;

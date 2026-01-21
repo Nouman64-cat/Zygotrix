@@ -510,8 +510,8 @@ Please provide a comprehensive, well-cited response to the research query based 
             input_cost = (input_tokens / 1_000_000) * 3.0
             output_cost = (output_tokens / 1_000_000) * 15.0
             
-            # Source costs (approximate for Cohere reranking: ~$1 per 1000 documents)
-            source_cost = ((deep_research_sources + web_search_sources) / 1000) * 1.0
+            # Source costs (Cohere reranking: ~$2 per 1000 documents)
+            source_cost = ((deep_research_sources + web_search_sources) / 1000) * 2.0
             
             total_cost = input_cost + output_cost + source_cost
             

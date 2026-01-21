@@ -1868,15 +1868,36 @@ const AdminTokenUsagePage: React.FC = () => {
                       <div className="flex items-center justify-center md:justify-end gap-4 mt-3 text-xs text-emerald-200">
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-green-300"></span>
-                          OpenAI (embed)
+                          OpenAI: $
+                          {deepResearchStats &&
+                          deepResearchStats.total_queries > 0
+                            ? (
+                                deepResearchStats.total_openai_cost /
+                                deepResearchStats.total_queries
+                              ).toFixed(4)
+                            : "0"}
                         </span>
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-indigo-300"></span>
-                          Claude (synth)
+                          Claude Sonnet 4: $
+                          {deepResearchStats &&
+                          deepResearchStats.total_queries > 0
+                            ? (
+                                deepResearchStats.total_claude_cost /
+                                deepResearchStats.total_queries
+                              ).toFixed(4)
+                            : "0"}
                         </span>
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-purple-300"></span>
-                          Cohere (rerank)
+                          Cohere: $
+                          {deepResearchStats &&
+                          deepResearchStats.total_queries > 0
+                            ? (
+                                deepResearchStats.total_cohere_cost /
+                                deepResearchStats.total_queries
+                              ).toFixed(4)
+                            : "0"}
                         </span>
                       </div>
                     </div>
@@ -2216,7 +2237,7 @@ const AdminTokenUsagePage: React.FC = () => {
                         </span>
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-indigo-300"></span>
-                          + Claude tokens
+                          + Claude Sonnet 4 tokens
                         </span>
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-orange-300"></span>
@@ -2537,7 +2558,7 @@ const AdminTokenUsagePage: React.FC = () => {
                       <div className="flex items-center justify-center md:justify-end gap-4 mt-3 text-xs text-purple-200">
                         <span className="flex items-center gap-1">
                           <span className="w-2 h-2 rounded-full bg-indigo-300"></span>
-                          Tokens: $
+                          Claude Sonnet 4 Tokens: $
                           {scholarModeStats.total_queries > 0
                             ? (
                                 scholarModeStats.total_token_cost /
@@ -2547,8 +2568,8 @@ const AdminTokenUsagePage: React.FC = () => {
                           /avg
                         </span>
                         <span className="flex items-center gap-1">
-                          <span className="w-2 h-2 rounded-full bg-cyan-300"></span>
-                          Sources: $
+                          <span className="w-2 h-2 rounded-full bg-purple-300"></span>
+                          Cohere (Rerank): $
                           {scholarModeStats.total_queries > 0
                             ? (
                                 scholarModeStats.total_source_cost /

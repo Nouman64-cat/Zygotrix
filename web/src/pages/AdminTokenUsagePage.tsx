@@ -1833,6 +1833,56 @@ const AdminTokenUsagePage: React.FC = () => {
             {/* Deep Research Tab */}
             {activeTab === "deep_research" && (
               <>
+                {/* HERO: Average Cost Per Request Card */}
+                <div className="bg-gradient-to-br from-emerald-500 via-emerald-600 to-teal-600 rounded-2xl p-6 sm:p-8 shadow-xl border border-emerald-400/30">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                          <span className="text-3xl">🔬</span>
+                        </div>
+                        <div>
+                          <h3 className="text-xl sm:text-2xl font-bold text-white">
+                            Average Cost Per Request
+                          </h3>
+                          <p className="text-emerald-100 text-sm">
+                            Deep Research (including all token consumption)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-center md:text-right">
+                      <div className="text-4xl sm:text-5xl font-black text-white tracking-tight">
+                        $
+                        {deepResearchStats?.total_queries &&
+                        deepResearchStats.total_queries > 0
+                          ? (
+                              deepResearchStats.total_cost /
+                              deepResearchStats.total_queries
+                            ).toFixed(4)
+                          : "0.0000"}
+                      </div>
+                      <div className="text-emerald-100 text-sm mt-1">
+                        per research session
+                      </div>
+                      <div className="flex items-center justify-center md:justify-end gap-4 mt-3 text-xs text-emerald-200">
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-green-300"></span>
+                          OpenAI (embed)
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-indigo-300"></span>
+                          Claude (synth)
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-purple-300"></span>
+                          Cohere (rerank)
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Deep Research Stats Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
                   {/* Total Queries */}
@@ -2127,6 +2177,66 @@ const AdminTokenUsagePage: React.FC = () => {
             {/* Web Search Tab */}
             {activeTab === "web_search" && (
               <>
+                {/* HERO: Average Cost Per Request Card */}
+                <div className="bg-gradient-to-br from-blue-500 via-blue-600 to-cyan-600 rounded-2xl p-6 sm:p-8 shadow-xl border border-blue-400/30">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                          <span className="text-3xl">🌐</span>
+                        </div>
+                        <div>
+                          <h3 className="text-xl sm:text-2xl font-bold text-white">
+                            Average Cost Per Request
+                          </h3>
+                          <p className="text-blue-100 text-sm">
+                            Web Search (including all token consumption)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-center md:text-right">
+                      <div className="text-4xl sm:text-5xl font-black text-white tracking-tight">
+                        $
+                        {webSearchStats?.total_requests &&
+                        webSearchStats.total_requests > 0
+                          ? (
+                              webSearchStats.total_cost /
+                              webSearchStats.total_requests
+                            ).toFixed(4)
+                          : "0.0000"}
+                      </div>
+                      <div className="text-blue-100 text-sm mt-1">
+                        per web search request
+                      </div>
+                      <div className="flex items-center justify-center md:justify-end gap-4 mt-3 text-xs text-blue-200">
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-cyan-300"></span>
+                          Search API: $0.01/search
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-indigo-300"></span>
+                          + Claude tokens
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-orange-300"></span>
+                          Avg{" "}
+                          {formatNumber(
+                            webSearchStats?.total_requests
+                              ? Math.round(
+                                  (webSearchStats.total_input_tokens +
+                                    webSearchStats.total_output_tokens) /
+                                    webSearchStats.total_requests,
+                                )
+                              : 0,
+                          )}{" "}
+                          tok/req
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Web Search Stats Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2 sm:gap-4">
                   {/* Total Searches */}
@@ -2397,6 +2507,75 @@ const AdminTokenUsagePage: React.FC = () => {
             {/* Scholar Mode Tab */}
             {activeTab === "scholar_mode" && scholarModeStats && (
               <>
+                {/* HERO: Average Cost Per Request Card */}
+                <div className="bg-gradient-to-br from-purple-500 via-purple-600 to-violet-600 rounded-2xl p-6 sm:p-8 shadow-xl border border-purple-400/30">
+                  <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+                    <div>
+                      <div className="flex items-center gap-3 mb-2">
+                        <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
+                          <span className="text-3xl">🎓</span>
+                        </div>
+                        <div>
+                          <h3 className="text-xl sm:text-2xl font-bold text-white">
+                            Average Cost Per Request
+                          </h3>
+                          <p className="text-purple-100 text-sm">
+                            Scholar Mode (including all token consumption)
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="text-center md:text-right">
+                      <div className="text-4xl sm:text-5xl font-black text-white tracking-tight">
+                        $
+                        {scholarModeStats.avg_cost_per_query?.toFixed(4) ||
+                          "0.0000"}
+                      </div>
+                      <div className="text-purple-100 text-sm mt-1">
+                        per scholar research session
+                      </div>
+                      <div className="flex items-center justify-center md:justify-end gap-4 mt-3 text-xs text-purple-200">
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-indigo-300"></span>
+                          Tokens: $
+                          {scholarModeStats.total_queries > 0
+                            ? (
+                                scholarModeStats.total_token_cost /
+                                scholarModeStats.total_queries
+                              ).toFixed(4)
+                            : "0"}
+                          /avg
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-cyan-300"></span>
+                          Sources: $
+                          {scholarModeStats.total_queries > 0
+                            ? (
+                                scholarModeStats.total_source_cost /
+                                scholarModeStats.total_queries
+                              ).toFixed(4)
+                            : "0"}
+                          /avg
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <span className="w-2 h-2 rounded-full bg-emerald-300"></span>
+                          Avg{" "}
+                          {formatNumber(
+                            scholarModeStats.total_queries
+                              ? Math.round(
+                                  (scholarModeStats.total_input_tokens +
+                                    scholarModeStats.total_output_tokens) /
+                                    scholarModeStats.total_queries,
+                                )
+                              : 0,
+                          )}{" "}
+                          tok/req
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
                 {/* Stats Cards */}
                 <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-4 gap-2 sm:gap-4">
                   {/* Total Queries */}

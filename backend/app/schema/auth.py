@@ -29,14 +29,14 @@ class DeepResearchUsage(BaseModel):
 class WebSearchUsage(BaseModel):
     """Tracks web search usage for rate limiting (PRO feature)."""
     count: int = 0
-    last_reset: Optional[str] = None
+    last_reset: Optional[datetime] = None
     daily_limit: int = 5
 
 
 class ScholarModeUsage(BaseModel):
     """Tracks scholar mode usage for rate limiting (PRO feature, monthly reset)."""
     count: int = 0
-    last_reset: Optional[str] = None
+    last_reset: Optional[datetime] = None
     monthly_limit: int = 10
 
 

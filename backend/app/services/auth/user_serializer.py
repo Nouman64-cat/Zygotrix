@@ -173,6 +173,7 @@ class UserSerializer:
             # Subscription fields
             "subscription_status": document.get("subscription_status", "free"),
             "deep_research_usage": document.get("deep_research_usage"),
+            "web_search_usage": document.get("web_search_usage"),
         }
 
         logger.debug(f"Serialized user: {user_dict.get('email')}")

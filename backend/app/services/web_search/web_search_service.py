@@ -8,9 +8,13 @@ Pricing: $10 per 1,000 searches (plus standard Claude token costs)
 """
 
 import os
+import time
+import json
+import hashlib
 import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, Tuple
+from collections import OrderedDict
 from bson import ObjectId
 
 import httpx
@@ -29,6 +33,55 @@ ANTHROPIC_VERSION = "2023-06-01"
 WEB_SEARCH_MODEL = os.getenv("WEB_SEARCH_MODEL", "claude-sonnet-4-20250514")
 
 
+class WebSearchCache:
+    """
+    Review: Simple in-memory TTL cache for web search results to reduce costs.
+    Stores complete response (text + metadata) for repeated queries.
+    """
+    
+    def __init__(self, max_size: int = 500, ttl_seconds: int = 3600):
+        self.max_size = max_size
+        self.ttl_seconds = ttl_seconds
+        self.cache: OrderedDict[str, dict] = OrderedDict()
+    
+    def _generate_key(self, query: str) -> str:
+        """Generate a consistent key for the query."""
+        normalized = query.lower().strip()[:200]  # Limit key length and normalize
+        return hashlib.md5(normalized.encode()).hexdigest()
+    
+    def get(self, query: str) -> Optional[Dict[str, Any]]:
+        """Get cached result if available and fresh."""
+        key = self._generate_key(query)
+        if key in self.cache:
+            entry = self.cache[key]
+            if time.time() - entry["timestamp"] < self.ttl_seconds:
+                self.cache.move_to_end(key)
+                return entry["data"]
+            else:
+                del self.cache[key]
+        return None
+    
+    def set(self, query: str, response_text: str, metadata: Dict[str, Any]):
+        """Store result in cache."""
+        key = self._generate_key(query)
+        
+        # Evict LRU if full
+        if len(self.cache) >= self.max_size:
+            self.cache.popitem(last=False)
+            
+        self.cache[key] = {
+            "timestamp": time.time(),
+            "data": {
+                "response_text": response_text,
+                "metadata": metadata
+            }
+        }
+
+
+# Global cache instance
+_search_cache = WebSearchCache(max_size=500, ttl_seconds=3600 * 4)  # Cache for 4 hours to maximize savings
+
+
 class WebSearchService:
     """
     Service for handling web search requests using Claude's built-in web search tool.
@@ -38,6 +91,7 @@ class WebSearchService:
     - Usage tracking for billing ($10/1k searches)
     - Source extraction for citations
     - Token usage tracking
+    - COST REDUCTION: Caching & Optimized Search Limits
     """
     
     def __init__(self, db=None):
@@ -90,7 +144,6 @@ class WebSearchService:
         subscription_service = get_subscription_service()
         
         # Check if user is PRO
-        # Check if user is PRO
         try:
             # Try to query with ObjectId if possible
             query_id = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
@@ -107,8 +160,21 @@ class WebSearchService:
         if subscription_status != "pro":
             return False, "Web Search is a PRO feature. Upgrade to access real-time web information.", 0
         
-        # PRO users have unlimited web searches (billed per usage)
-        return True, "Access granted", -1
+        # Enforce daily limit of 5 searches
+        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+        
+        usage_today = self._db.web_search_usage.count_documents({
+            "user_id": user_id,
+            "timestamp": {"$gte": today_start},
+            "is_cached": False  # Only count actual API calls against the limit (cached are free)
+        })
+        
+        daily_limit = 5
+        if usage_today >= daily_limit:
+            return False, f"Daily web search limit reached ({daily_limit}/{daily_limit}). Please try again tomorrow.", 0
+            
+        remaining = daily_limit - usage_today
+        return True, "Access granted", remaining
     
     async def search(
         self,
@@ -140,18 +206,38 @@ class WebSearchService:
         
         logger.info(f"🌐 Web search request from user {user_id}: {query[:100]}...")
         
+        # COST REDUCTION: Check cache first
+        cached = _search_cache.get(query)
+        if cached:
+            logger.info(f"💰 Cache HIT for query: {query[:50]}... (Cost saved)")
+            
+            # Record zero-cost usage for stats visibility
+            await self._record_usage(
+                user_id=user_id,
+                user_name=user_name,
+                search_count=0,
+                input_tokens=0,
+                output_tokens=0,
+                query_preview=query[:100],
+                is_cached=True
+            )
+            
+            return cached["response_text"], cached["metadata"]
+        
         try:
             async with httpx.AsyncClient(timeout=120.0) as client:
                 # Build request with web search tool
                 request_body = {
                     "model": self.model,
-                    "max_tokens": max_tokens,
+                    "max_tokens": min(max_tokens, 2048),  # Cap output tokens to 2k (~$0.03)
                     "temperature": temperature,
                     "tools": [
                         {
                             "type": "web_search_20250305",
                             "name": "web_search",
-                            "max_uses": 5  # Allow up to 5 searches per request
+                            # DEEP COST REDUCTION: Limit max searches to 1.
+                            # Keeps input tokens lowest possible (~15k context) for single-shot answers.
+                            "max_uses": 1
                         }
                     ],
                     "messages": [
@@ -225,8 +311,12 @@ class WebSearchService:
                     "model": self.model,
                     "search_count": search_count,
                     "sources": sources,
-                    "sources_count": len(sources)
+                    "sources_count": len(sources),
+                    "cached": False
                 }
+                
+                # COST REDUCTION: Store success response in cache
+                _search_cache.set(query, response_text, {**metadata, "cached": True})
                 
                 logger.info(
                     f"✅ Web search complete | "
@@ -259,12 +349,14 @@ class WebSearchService:
         search_count: int,
         input_tokens: int,
         output_tokens: int,
-        query_preview: str
+        query_preview: str,
+        is_cached: bool = False
     ):
         """
         Record web search usage for billing.
         
         Pricing: $10 per 1,000 searches + token costs
+        If cached, cost is 0.
         
         Args:
             user_id: User ID
@@ -273,16 +365,23 @@ class WebSearchService:
             input_tokens: Input tokens used
             output_tokens: Output tokens used
             query_preview: First 100 chars of query
+            is_cached: Whether valid cache result was used
         """
         try:
-            # Calculate cost
-            # $10 per 1,000 searches = $0.01 per search
-            search_cost = search_count * 0.01
-            
-            # Token costs (Claude Sonnet pricing: $3/1M input, $15/1M output)
-            input_cost = (input_tokens / 1_000_000) * 3.0
-            output_cost = (output_tokens / 1_000_000) * 15.0
-            total_cost = search_cost + input_cost + output_cost
+            if is_cached:
+                search_cost = 0.0
+                input_cost = 0.0
+                output_cost = 0.0
+                total_cost = 0.0
+            else:
+                # Calculate cost
+                # $10 per 1,000 searches = $0.01 per search
+                search_cost = search_count * 0.01
+                
+                # Token costs (Claude Sonnet pricing: $3/1M input, $15/1M output)
+                input_cost = (input_tokens / 1_000_000) * 3.0
+                output_cost = (output_tokens / 1_000_000) * 15.0
+                total_cost = search_cost + input_cost + output_cost
             
             # Record in web_search_usage collection
             usage_record = {
@@ -296,7 +395,8 @@ class WebSearchService:
                 "search_cost": search_cost,
                 "token_cost": input_cost + output_cost,
                 "total_cost": total_cost,
-                "model": self.model
+                "model": self.model,
+                "is_cached": is_cached
             }
             
             self._db.web_search_usage.insert_one(usage_record)
@@ -320,8 +420,17 @@ class WebSearchService:
                 }
             )
             
+            # Invalidate user cache to ensure frontend gets fresh daily limit stats
+            try:
+                from ..auth.user_service import get_user_service
+                # Use string ID as cache uses string keys
+                get_user_service()._clear_user_cache(str(query_id))
+            except Exception as e:
+                logger.warning(f"Failed to invalidate user cache after web search usage: {e}")
+            
+            log_prefix = "💰 Cached" if is_cached else "📊 New"
             logger.info(
-                f"📊 Web search usage recorded | "
+                f"{log_prefix} web search usage recorded | "
                 f"User: {user_id} | "
                 f"Searches: {search_count} | "
                 f"Cost: ${total_cost:.4f}"

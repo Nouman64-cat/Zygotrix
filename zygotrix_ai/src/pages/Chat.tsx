@@ -180,23 +180,24 @@ export const Chat: React.FC = () => {
     }
   }, [messages, enabledTools]);
 
-  // Ref to track the last deep research message ID to prevent duplicate refreshes
-  const lastDeepResearchMsgIdRef = useRef<string | null>(null);
+  // Ref to track the last assistant message ID to prevent duplicate refreshes
+  const lastAssistantMessageIdRef = useRef<string | null>(null);
 
-  // Refresh user data after deep research completes (to update usage count)
+  // Refresh user data after ANY assistant response completes (to update usage counts for tokens, web search, etc)
   useEffect(() => {
     if (messages.length > 0) {
       const lastMessage = messages[messages.length - 1];
-      // Check if it's a completed deep research response (not clarification)
+
       if (
         lastMessage.role === 'assistant' &&
-        lastMessage.metadata?.model === 'deep_research' &&
-        lastMessage.metadata?.widget_type !== 'deep_research_clarification' &&
-        lastMessage.id !== lastDeepResearchMsgIdRef.current
+        lastMessage.id !== lastAssistantMessageIdRef.current
       ) {
-        // Mark this message as processed
-        lastDeepResearchMsgIdRef.current = lastMessage.id;
-        // Refresh user to get updated usage count
+        // Skip refresh for intermediate clarification widgets
+        if (lastMessage.metadata?.widget_type === 'deep_research_clarification') {
+          return;
+        }
+
+        lastAssistantMessageIdRef.current = lastMessage.id;
         refreshUser();
       }
     }

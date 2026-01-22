@@ -87,7 +87,7 @@ const AVAILABLE_TOOLS: AiTool[] = [
   {
     id: "web_search",
     name: "Web Search",
-    description: "Real-time web search for the latest information",
+    description: "Real-time web search (Limited to 5 searches/day)",
     icon: "🌐",
   },
   {
@@ -168,6 +168,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const DEEP_RESEARCH_DAILY_LIMIT = 3;
   const deepResearchUsed = user?.deep_research_usage?.count ?? 0;
 
+  // Web Search usage tracking for PRO users
+  const WEB_SEARCH_DAILY_LIMIT = 5;
+  const webSearchUsed = (user as any)?.web_search_usage?.count ?? 0;
+
   // Check if reset period has passed (24 hours since last_reset)
   const hasResetPeriodPassed = useCallback((): boolean => {
     const lastReset = user?.deep_research_usage?.last_reset;
@@ -179,25 +183,40 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     return new Date() >= resetDate;
   }, [user?.deep_research_usage?.last_reset]);
 
+  const hasWebSearchResetPeriodPassed = useCallback((): boolean => {
+    const lastReset = (user as any)?.web_search_usage?.last_reset;
+    if (!lastReset) return false;
+
+    const resetDate = new Date(lastReset);
+    resetDate.setHours(resetDate.getHours() + 24);
+
+    return new Date() >= resetDate;
+  }, [(user as any)?.web_search_usage?.last_reset]);
+
   // Auto-refresh user data when reset period has passed and limit was exhausted
   useEffect(() => {
     if (
       isPro &&
-      deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT &&
-      hasResetPeriodPassed()
+      ((deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT && hasResetPeriodPassed()) ||
+        (webSearchUsed >= WEB_SEARCH_DAILY_LIMIT && hasWebSearchResetPeriodPassed()))
     ) {
       console.log(
-        "🔄 Deep Research reset period passed, refreshing user data...",
+        "🔄 Limit reset period passed, refreshing user data...",
       );
       refreshUser();
     }
-  }, [isPro, deepResearchUsed, hasResetPeriodPassed, refreshUser]);
+  }, [isPro, deepResearchUsed, webSearchUsed, hasResetPeriodPassed, hasWebSearchResetPeriodPassed, refreshUser]);
 
   // Consider limit exhausted only if reset period hasn't passed
   const isDeepResearchLimitExhausted =
     isPro &&
     deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT &&
     !hasResetPeriodPassed();
+
+  const isWebSearchLimitExhausted =
+    isPro &&
+    webSearchUsed >= WEB_SEARCH_DAILY_LIMIT &&
+    !hasWebSearchResetPeriodPassed();
 
   // Calculate reset time (24 hours from last_reset)
   const getDeepResearchResetTime = (): string | null => {
@@ -211,6 +230,27 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     const diffMs = resetDate.getTime() - now.getTime();
 
     if (diffMs <= 0) return "now"; // Reset should have happened
+
+    const hours = Math.floor(diffMs / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  };
+
+  const getWebSearchResetTime = (): string | null => {
+    const lastReset = (user as any)?.web_search_usage?.last_reset;
+    if (!lastReset) return null;
+
+    const resetDate = new Date(lastReset);
+    resetDate.setHours(resetDate.getHours() + 24);
+
+    const now = new Date();
+    const diffMs = resetDate.getTime() - now.getTime();
+
+    if (diffMs <= 0) return "now";
 
     const hours = Math.floor(diffMs / (1000 * 60 * 60));
     const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
@@ -865,8 +905,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
               value={value}
               onChange={(e) => setValue(e.target.value)}
               onKeyDown={handleKeyDown}
-              onFocus={() => {}}
-              onBlur={() => {}}
+              onFocus={() => { }}
+              onBlur={() => { }}
               placeholder={isRecording ? recordingPlaceholder : placeholder}
               disabled={disabled || isRecording}
               rows={1}
@@ -935,7 +975,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                         const isProFeature = isDeepResearch || isWebSearch;
                         const isLockedForFree = isProFeature && !isPro;
                         const isLockedForLimit =
-                          isDeepResearch && isDeepResearchLimitExhausted;
+                          (isDeepResearch && isDeepResearchLimitExhausted) ||
+                          (isWebSearch && isWebSearchLimitExhausted);
                         const isLocked = isLockedForFree || isLockedForLimit;
 
                         return (
@@ -953,13 +994,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                               isEnabled && !isLocked
                                 ? "bg-emerald-50 dark:bg-emerald-500/15 text-emerald-700 dark:text-emerald-300"
                                 : !isLocked &&
-                                    "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300",
+                                "hover:bg-gray-50 dark:hover:bg-gray-700/50 text-gray-700 dark:text-gray-300",
                             )}
                             title={
                               isLockedForFree
                                 ? `Upgrade to PRO to use ${tool.name}`
                                 : isLockedForLimit
-                                  ? `Daily limit reached. Resets in ${getDeepResearchResetTime() || "24h"}`
+                                  ? `Daily limit reached. Resets in ${isDeepResearch ? getDeepResearchResetTime() : getWebSearchResetTime() || "24h"}`
                                   : undefined
                             }
                           >
@@ -978,17 +1019,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                   used today
                                 </span>
                               )}
+                              {/* Show usage count for Web Search if user is PRO */}
+                              {isWebSearch && isPro && !isLockedForLimit && (
+                                <span className="text-[10px] text-gray-500 dark:text-gray-400">
+                                  {webSearchUsed}/{WEB_SEARCH_DAILY_LIMIT}{" "}
+                                  used today
+                                </span>
+                              )}
                               {/* Show limit reached message with reset time */}
                               {isLockedForLimit && (
                                 <span className="text-[10px] text-red-500 dark:text-red-400 font-medium whitespace-nowrap">
-                                  3/3 used • Resets:{" "}
-                                  {getDeepResearchResetTime() || "~24h"}
-                                </span>
-                              )}
-                              {/* Show Web Search info for PRO users */}
-                              {isWebSearch && isPro && (
-                                <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                                  Real-time internet search
+                                  {isDeepResearch ? `${DEEP_RESEARCH_DAILY_LIMIT}/${DEEP_RESEARCH_DAILY_LIMIT}` : `${WEB_SEARCH_DAILY_LIMIT}/${WEB_SEARCH_DAILY_LIMIT}`} used • Resets:{" "}
+                                  {isDeepResearch ? getDeepResearchResetTime() : getWebSearchResetTime() || "~24h"}
                                 </span>
                               )}
                             </div>
@@ -998,7 +1040,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                               </span>
                             ) : isLockedForLimit ? (
                               <span className="text-[10px] px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded font-bold">
-                                3/3
+                                {isDeepResearch ? `${DEEP_RESEARCH_DAILY_LIMIT}/${DEEP_RESEARCH_DAILY_LIMIT}` : `${WEB_SEARCH_DAILY_LIMIT}/${WEB_SEARCH_DAILY_LIMIT}`}
                               </span>
                             ) : (
                               <div

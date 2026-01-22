@@ -46,10 +46,10 @@ export const useWebSearchStats = (chartDays: number) => {
         fetchDaily();
     }, [fetchDaily]);
 
-    const refresh = () => {
+    const refresh = useCallback(() => {
         fetchStats();
         fetchDaily();
-    };
+    }, [fetchStats, fetchDaily]);
 
     return {
         stats,

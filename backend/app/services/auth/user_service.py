@@ -205,6 +205,27 @@ class UserService:
 
         # Serialize and cache
         user = self._serializer.serialize_user(document)
+        
+        # Inject Web Search today's usage (calculated on read)
+        try:
+            from app.services.common import get_database
+            db = get_database()
+            today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            
+            usage_today = db.web_search_usage.count_documents({
+                "user_id": user_id,
+                "timestamp": {"$gte": today_start},
+                "is_cached": False
+            })
+            
+            user["web_search_usage"] = {
+                "count": usage_today,
+                "last_reset": today_start.isoformat(),
+                "daily_limit": 5
+            }
+        except Exception as e:
+            logger.warning(f"Failed to inject web search usage: {e}")
+
         self._user_cache[user_id] = (user, datetime.now(timezone.utc))
 
         logger.debug(f"Retrieved and cached user {user_id}")

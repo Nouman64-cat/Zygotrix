@@ -1,7 +1,7 @@
 """
 Subscription Service.
 
-Handles user subscription status and deep research usage limits.
+Handles user subscription status and usage limits for PRO features.
 """
 from datetime import datetime, timedelta, timezone
 from typing import Dict, Any, Optional, Tuple
@@ -14,8 +14,12 @@ from app.schema.auth import SubscriptionStatus
 logger = logging.getLogger(__name__)
 
 # Deep research limits
-DEEP_RESEARCH_DAILY_LIMIT_PRO = 3  # Pro users get 3 per 24 hours
+DEEP_RESEARCH_DAILY_LIMIT_PRO = 10  # Pro users get 10 per 24 hours
 DEEP_RESEARCH_DAILY_LIMIT_FREE = 0  # Free users can't use it
+
+# Scholar mode limits
+SCHOLAR_MODE_MONTHLY_LIMIT_PRO = 10  # Pro users get 10 per month
+SCHOLAR_MODE_MONTHLY_LIMIT_FREE = 0  # Free users can't use it
 
 
 class SubscriptionService:
@@ -166,6 +170,151 @@ class SubscriptionService:
             logger.info(f"Reset deep research usage counter for user {user_id}")
         except Exception as e:
             logger.error(f"Error resetting usage counter: {e}")
+
+    # ==================== Scholar Mode Usage ====================
+
+    def check_scholar_mode_access(self, user_id: str) -> Tuple[bool, str, Optional[int]]:
+        """
+        Check if a user can use scholar mode.
+        
+        Args:
+            user_id: User's ID
+            
+        Returns:
+            Tuple of (can_access, reason, remaining_uses)
+            - can_access: Whether the user can use scholar mode
+            - reason: Human-readable reason if access denied
+            - remaining_uses: Number of uses remaining (None for free users)
+        """
+        collection = get_users_collection()
+        if collection is None:
+            return False, "Database unavailable", None
+
+        try:
+            user = collection.find_one({"_id": ObjectId(user_id)})
+            if not user:
+                return False, "User not found", None
+
+            subscription_status = user.get("subscription_status", "free")
+            logger.info(f"Checking scholar mode access for user {user_id}: subscription={subscription_status}")
+            
+            # Free users cannot access scholar mode
+            if subscription_status == SubscriptionStatus.FREE.value:
+                return False, "Scholar Mode is a PRO feature. Upgrade to PRO to access comprehensive research combining deep research, web search, and AI synthesis.", None
+
+            # Pro users - check usage limits (monthly)
+            usage = user.get("scholar_mode_usage") or {}
+            usage_count = usage.get("count", 0) if isinstance(usage, dict) else 0
+            last_reset = usage.get("last_reset") if isinstance(usage, dict) else None
+            
+            logger.info(f"Scholar mode usage for user {user_id}: count={usage_count}, last_reset={last_reset}")
+            
+            # Check if we need to reset (new month)
+            now = datetime.now(timezone.utc)
+            if last_reset:
+                if isinstance(last_reset, str):
+                    last_reset = datetime.fromisoformat(last_reset.replace('Z', '+00:00'))
+                elif isinstance(last_reset, datetime):
+                    if last_reset.tzinfo is None:
+                        last_reset = last_reset.replace(tzinfo=timezone.utc)
+                
+                # Check if it's a new month
+                if now.year > last_reset.year or (now.year == last_reset.year and now.month > last_reset.month):
+                    logger.info(f"Resetting scholar mode counter for user {user_id} (new month)")
+                    usage_count = 0
+                    self._reset_scholar_mode_counter(user_id)
+            
+            remaining = SCHOLAR_MODE_MONTHLY_LIMIT_PRO - usage_count
+            logger.info(f"Remaining scholar mode uses for user {user_id}: {remaining}")
+            
+            if remaining <= 0:
+                logger.warning(f"User {user_id} has exhausted scholar mode limit: {usage_count}/{SCHOLAR_MODE_MONTHLY_LIMIT_PRO}")
+                return False, f"You've used all {SCHOLAR_MODE_MONTHLY_LIMIT_PRO} scholar mode queries this month. Counter resets on the 1st of next month.", 0
+
+            return True, "Access granted", remaining
+
+        except Exception as e:
+            logger.error(f"Error checking scholar mode access: {e}")
+            return False, f"Error checking access: {str(e)}", None
+
+    def record_scholar_mode_usage(self, user_id: str) -> bool:
+        """
+        Record a scholar mode usage for a user.
+        
+        Args:
+            user_id: User's ID
+            
+        Returns:
+            True if recorded successfully, False otherwise
+        """
+        collection = get_users_collection()
+        if collection is None:
+            return False
+
+        try:
+            user = collection.find_one({"_id": ObjectId(user_id)})
+            if not user:
+                return False
+
+            usage = user.get("scholar_mode_usage") or {}
+            usage_count = usage.get("count", 0) if isinstance(usage, dict) else 0
+            last_reset = usage.get("last_reset") if isinstance(usage, dict) else None
+            
+            now = datetime.now(timezone.utc)
+            
+            # Check if we need to reset (new month)
+            if last_reset:
+                if isinstance(last_reset, str):
+                    last_reset = datetime.fromisoformat(last_reset.replace('Z', '+00:00'))
+                elif isinstance(last_reset, datetime):
+                    if last_reset.tzinfo is None:
+                        last_reset = last_reset.replace(tzinfo=timezone.utc)
+                
+                if now.year > last_reset.year or (now.year == last_reset.year and now.month > last_reset.month):
+                    usage_count = 0
+                    last_reset = now
+            else:
+                last_reset = now
+            
+            # Increment usage
+            new_usage = {
+                "count": usage_count + 1,
+                "last_reset": last_reset
+            }
+            
+            collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": {"scholar_mode_usage": new_usage}}
+            )
+            
+            # Clear user cache
+            from .user_service import get_user_service
+            get_user_service()._clear_user_cache(user_id)
+            
+            logger.info(f"Recorded scholar mode usage for user {user_id}: {new_usage['count']}/{SCHOLAR_MODE_MONTHLY_LIMIT_PRO}")
+            return True
+
+        except Exception as e:
+            logger.error(f"Error recording scholar mode usage: {e}")
+            return False
+
+    def _reset_scholar_mode_counter(self, user_id: str) -> None:
+        """Reset the scholar mode usage counter for a user."""
+        collection = get_users_collection()
+        if collection is None:
+            return
+
+        try:
+            collection.update_one(
+                {"_id": ObjectId(user_id)},
+                {"$set": {"scholar_mode_usage": {
+                    "count": 0,
+                    "last_reset": datetime.now(timezone.utc)
+                }}}
+            )
+            logger.info(f"Reset scholar mode usage counter for user {user_id}")
+        except Exception as e:
+            logger.error(f"Error resetting scholar mode counter: {e}")
 
     def update_subscription_status(self, user_id: str, new_status: str) -> Tuple[bool, str]:
         """

@@ -26,6 +26,20 @@ class DeepResearchUsage(BaseModel):
     last_reset: Optional[datetime] = None
 
 
+class WebSearchUsage(BaseModel):
+    """Tracks web search usage for rate limiting (PRO feature)."""
+    count: int = 0
+    last_reset: Optional[str] = None
+    daily_limit: int = 5
+
+
+class ScholarModeUsage(BaseModel):
+    """Tracks scholar mode usage for rate limiting (PRO feature, monthly reset)."""
+    count: int = 0
+    last_reset: Optional[str] = None
+    monthly_limit: int = 10
+
+
 class UserProfile(BaseModel):
     """Authenticated user profile surfaced to clients."""
 
@@ -72,6 +86,8 @@ class UserProfile(BaseModel):
     # Subscription fields
     subscription_status: Optional[str] = SubscriptionStatus.FREE.value
     deep_research_usage: Optional[DeepResearchUsage] = None
+    web_search_usage: Optional[WebSearchUsage] = None
+    scholar_mode_usage: Optional[ScholarModeUsage] = None
 
 
 class UpdateProfileRequest(BaseModel):

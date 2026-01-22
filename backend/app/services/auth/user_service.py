@@ -226,6 +226,36 @@ class UserService:
         except Exception as e:
             logger.warning(f"Failed to inject web search usage: {e}")
 
+        # Inject Scholar Mode this month's usage (calculated on read)
+        try:
+            now = datetime.now(timezone.utc)
+            month_start = now.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+            
+            # Get scholar mode usage from user document
+            scholar_usage = document.get("scholar_mode_usage") or {}
+            scholar_count = scholar_usage.get("count", 0) if isinstance(scholar_usage, dict) else 0
+            scholar_last_reset = scholar_usage.get("last_reset") if isinstance(scholar_usage, dict) else None
+            
+            # Check if we need to reset (new month)
+            if scholar_last_reset:
+                if isinstance(scholar_last_reset, str):
+                    scholar_last_reset = datetime.fromisoformat(scholar_last_reset.replace('Z', '+00:00'))
+                elif isinstance(scholar_last_reset, datetime):
+                    if scholar_last_reset.tzinfo is None:
+                        scholar_last_reset = scholar_last_reset.replace(tzinfo=timezone.utc)
+                
+                # If it's a new month, reset the count
+                if now.year > scholar_last_reset.year or (now.year == scholar_last_reset.year and now.month > scholar_last_reset.month):
+                    scholar_count = 0
+            
+            user["scholar_mode_usage"] = {
+                "count": scholar_count,
+                "last_reset": month_start.isoformat(),
+                "monthly_limit": 10
+            }
+        except Exception as e:
+            logger.warning(f"Failed to inject scholar mode usage: {e}")
+
         self._user_cache[user_id] = (user, datetime.now(timezone.utc))
 
         logger.debug(f"Retrieved and cached user {user_id}")

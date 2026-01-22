@@ -69,11 +69,27 @@ export interface UserProfile {
   subscription_status?: "free" | "pro";
   // Deep research usage for PRO users
   deep_research_usage?: DeepResearchUsage | null;
+  // Web search usage for PRO users
+  web_search_usage?: WebSearchUsage | null;
+  // Scholar mode usage for PRO users
+  scholar_mode_usage?: ScholarModeUsage | null;
 }
 
 export interface DeepResearchUsage {
   count: number;
   last_reset?: string | null;
+}
+
+export interface WebSearchUsage {
+  count: number;
+  last_reset?: string | null;
+  daily_limit?: number;
+}
+
+export interface ScholarModeUsage {
+  count: number;
+  last_reset?: string | null;
+  monthly_limit?: number;
 }
 
 export interface LoginRequest {

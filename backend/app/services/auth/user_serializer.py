@@ -174,6 +174,7 @@ class UserSerializer:
             "subscription_status": document.get("subscription_status", "free"),
             "deep_research_usage": document.get("deep_research_usage"),
             "web_search_usage": document.get("web_search_usage"),
+            "scholar_mode_usage": document.get("scholar_mode_usage"),
         }
 
         logger.debug(f"Serialized user: {user_dict.get('email')}")

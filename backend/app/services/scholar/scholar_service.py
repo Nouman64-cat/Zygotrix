@@ -111,7 +111,7 @@ class ScholarService:
     
     async def check_access(self, user_id: str) -> Tuple[bool, str, int]:
         """
-        Check if user has access to scholar mode (PRO feature).
+        Check if user has access to scholar mode (PRO feature with monthly limit).
         
         Args:
             user_id: The user's ID
@@ -119,24 +119,10 @@ class ScholarService:
         Returns:
             Tuple of (can_access, reason, remaining_count or -1 if unlimited)
         """
-        try:
-            # Try to query with ObjectId if possible
-            query_id = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
-            user = self._db.users.find_one({"_id": query_id})
-        except Exception:
-            # Fallback to string query
-            user = self._db.users.find_one({"_id": user_id})
-            
-        if not user:
-            return False, "User not found", 0
+        from ..auth.subscription_service import get_subscription_service
         
-        subscription_status = user.get("subscription_status", "free")
-        
-        if subscription_status != "pro":
-            return False, "Scholar Mode is a PRO feature. Upgrade to access comprehensive research combining deep research, web search, and AI synthesis.", 0
-        
-        # PRO users have unlimited scholar mode (billed per usage)
-        return True, "Access granted", -1
+        subscription_service = get_subscription_service()
+        return subscription_service.check_scholar_mode_access(user_id)
     
     async def research(
         self,
@@ -530,7 +516,7 @@ Please provide a comprehensive, well-cited response to the research query based 
         web_search_sources: int,
         query_preview: str
     ):
-        """Record scholar mode usage for billing."""
+        """Record scholar mode usage for billing and monthly limit tracking."""
         try:
             # Calculate cost (Scholar Mode combines multiple services)
             # Token costs (Claude Sonnet pricing: $3/1M input, $15/1M output)
@@ -578,6 +564,11 @@ Please provide a comprehensive, well-cited response to the research query based 
                     }
                 }
             )
+            
+            # Record usage for monthly limit tracking via subscription service
+            from ..auth.subscription_service import get_subscription_service
+            subscription_service = get_subscription_service()
+            subscription_service.record_scholar_mode_usage(user_id)
             
             logger.info(
                 f"📊 Scholar Mode usage recorded | "

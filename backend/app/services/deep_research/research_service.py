@@ -460,38 +460,54 @@ class DeepResearchService:
             context_parts = []
             sources = []
             
+            MAX_CONTEXT_CHARS = 72000  # Approx 18k tokens (safe buffer for 30k TPM)
+            current_chars = 0
+            
             for i, chunk in enumerate(chunks):
                 text = chunk.get("text", "")
-                if text:
-                    context_parts.append(f"[Source {i+1}]\n{text}")
-                    metadata = chunk.get("metadata", {})
+                if not text:
+                    continue
+                
+                # Check length limit before adding
+                text_len = len(text)
+                if current_chars + text_len > MAX_CONTEXT_CHARS:
+                    logger.warning(
+                        f"[{node_name}] Context limit reached ({current_chars} chars). "
+                        f"Stopping at chunk {i}/{len(chunks)}."
+                    )
+                    break
                     
-                    # Clean up text for preview - remove reference noise and normalize whitespace
-                    preview_text = self._clean_content_preview(text)
-                    
-                    # Extract citation-relevant fields for Harvard referencing
-                    sources.append({
-                        "id": chunk.get("id", f"source_{i}"),
-                        "title": metadata.get("title") or metadata.get("source", "Untitled"),
-                        "content_preview": preview_text,
-                        "relevance_score": chunk.get("score", 0),
-                        "rerank_score": chunk.get("rerank_score"),
-                        # Citation fields for Harvard-style referencing
-                        "author": metadata.get("author"),
-                        "publication_year": metadata.get("publication_year") or metadata.get("year"),
-                        "publisher": metadata.get("publisher"),
-                        "journal": metadata.get("journal"),
-                        "doi": metadata.get("doi"),
-                        "isbn": metadata.get("isbn"),
-                        "url": metadata.get("url") or metadata.get("source_url"),
-                        "source_type": metadata.get("source_type", "other"),
-                        "page_numbers": metadata.get("page_numbers") or metadata.get("pages"),
-                        "edition": metadata.get("edition"),
-                        "place_of_publication": metadata.get("place_of_publication") or metadata.get("location"),
-                        # Keep full metadata for any additional fields
-                        "metadata": metadata
-                    })
-            
+                context_parts.append(f"[Source {i+1}]\n{text}")
+                current_chars += text_len
+                
+                metadata = chunk.get("metadata", {})
+                
+                # Clean up text for preview - remove reference noise and normalize whitespace
+                preview_text = self._clean_content_preview(text)
+                
+                # Extract citation-relevant fields for Harvard referencing
+                sources.append({
+                    "id": chunk.get("id", f"source_{i}"),
+                    "title": metadata.get("title") or metadata.get("source", "Untitled"),
+                    "content_preview": preview_text,
+                    "relevance_score": chunk.get("score", 0),
+                    "rerank_score": chunk.get("rerank_score"),
+                    # Citation fields for Harvard-style referencing
+                    "author": metadata.get("author"),
+                    "publication_year": metadata.get("publication_year") or metadata.get("year"),
+                    "publisher": metadata.get("publisher"),
+                    "journal": metadata.get("journal"),
+                    "doi": metadata.get("doi"),
+                    "isbn": metadata.get("isbn"),
+                    "url": metadata.get("url") or metadata.get("source_url"),
+                    "source_type": metadata.get("source_type", "other"),
+                    "page_numbers": metadata.get("page_numbers") or metadata.get("pages"),
+                    "edition": metadata.get("edition"),
+                    "place_of_publication": metadata.get("place_of_publication") or metadata.get("location"),
+                    # Keep full metadata for any additional fields
+                    "metadata": metadata
+                })
+
             context = "\n\n".join(context_parts)
             query = state.get("clarified_query") or state["original_query"]
             
@@ -703,13 +719,22 @@ Please synthesize the information from these sources to answer the research quer
         }
         
         async with httpx.AsyncClient(timeout=60.0) as client:
-            response = await client.post(
-                "https://api.anthropic.com/v1/messages",
-                headers=headers,
-                json=payload
-            )
-            response.raise_for_status()
-            data = response.json()
+            for attempt in range(3):
+                response = await client.post(
+                    "https://api.anthropic.com/v1/messages",
+                    headers=headers,
+                    json=payload
+                )
+                
+                if response.status_code == 429 and attempt < 2:
+                    wait_time = 2 * (2 ** attempt)
+                    logger.warning(f"Claude API rate limit (429) hit. Retrying in {wait_time}s...")
+                    await asyncio.sleep(wait_time)
+                    continue
+                
+                response.raise_for_status()
+                data = response.json()
+                break
         
         content = ""
         for block in data.get("content", []):

@@ -243,7 +243,7 @@ class WebSearchService:
                     "messages": [
                         {
                             "role": "user",
-                            "content": query
+                            "content": f"{query}\n\n[SYSTEM INSTRUCTION: PERFORM A FAST, SINGLE-STEP SEARCH. DO NOT BROWSE MORE THAN 2 PAGES. BE EXTREMELY CONCISE. STOP AS SOON AS YOU FIND THE ANSWER.]"
                         }
                     ]
                 }

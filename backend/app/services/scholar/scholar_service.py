@@ -32,7 +32,7 @@ logger = logging.getLogger(__name__)
 CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
 CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
 ANTHROPIC_VERSION = "2023-06-01"
-SCHOLAR_MODEL = os.getenv("SCHOLAR_MODEL", "claude-sonnet-4-20250514")
+SCHOLAR_MODEL = os.getenv("SCHOLAR_MODEL", "claude-3-5-haiku-latest")
 
 
 @dataclass
@@ -143,8 +143,8 @@ class ScholarService:
         query: str,
         user_id: str,
         user_name: Optional[str] = None,
-        max_deep_research_sources: int = 10,  # Reduced from 50 to avoid rate limits
-        max_web_search_sources: int = 10,  # Reduced from 20 to avoid rate limits
+        max_deep_research_sources: int = 10,   # Reduced for cost/speed
+        max_web_search_sources: int = 3,      # Reduced for cost/speed
         top_k_reranked: int = 8,  # Reduced from 15 for faster synthesis
         max_tokens: int = 4096,  # Reduced from 8192 for faster response
         temperature: float = 0.7
@@ -185,16 +185,30 @@ class ScholarService:
             all_sources.extend(deep_research_sources)
             logger.info(f"📚 Deep Research returned {deep_research_count} sources")
             
-            # Step 2: Perform Web Search
-            logger.info("🌐 Step 2: Starting Web Search...")
-            web_search_sources, web_metadata = await self._get_web_search_sources(
-                query, user_id, user_name
-            )
+            # Step 2: Perform Web Search (Conditional)
+            # Check if we have enough high-quality sources from Deep Research to skip expensive Web Search
+            # Threshold 0.82 implies very high relevance in vector space
+            high_quality_dr_sources = [s for s in deep_research_sources if (s.relevance_score or 0) > 0.82]
+            skip_web_search = len(high_quality_dr_sources) >= 4
+            
+            web_search_sources = []
+            web_metadata = {}
+            
+            if skip_web_search:
+                logger.info(f"🌐 Skipping Web Search: Found {len(high_quality_dr_sources)} high-quality knowledge base sources.")
+            else:
+                logger.info("🌐 Step 2: Starting Web Search (insufficient high-confidence internal sources)...")
+                web_search_sources, web_metadata = await self._get_web_search_sources(
+                    query, user_id, user_name
+                )
+            
             web_search_count = len(web_search_sources)
             all_sources.extend(web_search_sources)
             total_input_tokens += web_metadata.get("input_tokens", 0)
             total_output_tokens += web_metadata.get("output_tokens", 0)
-            logger.info(f"🌐 Web Search returned {web_search_count} sources")
+            
+            if not skip_web_search:
+                logger.info(f"🌐 Web Search returned {web_search_count} sources")
             
             # Step 3: Rerank all sources with Cohere
             logger.info("📊 Step 3: Reranking with Cohere...")
@@ -408,37 +422,50 @@ class ScholarService:
         
         # Build context from sources - truncate content to save tokens
         context_parts = []
+        MAX_CONTEXT_CHARS = 60000  # Approx 15k tokens safe limit
+        current_chars = 0
+        
         for i, source in enumerate(sources, 1):
             source_text = f"[Source {i}] {source.title}"
             if source.url:
                 source_text += f" ({source.url})"
             source_text += f"\nType: {source.source_type}"
             if source.content_preview:
-                # Truncate to first 200 chars to reduce token usage
-                preview = source.content_preview[:200]
+                # Truncate to first 400 chars to allow decent context but save space
+                preview = source.content_preview[:400]
                 source_text += f"\nContent: {preview}"
+            
+            # Check context size
+            if current_chars + len(source_text) > MAX_CONTEXT_CHARS:
+                logger.warning(f"Scholar synthesis context full ({current_chars}/{MAX_CONTEXT_CHARS}). Stopping at source {i}.")
+                break
+            
             context_parts.append(source_text)
+            current_chars += len(source_text)
         
         context = "\n\n".join(context_parts)
         
         # Build system prompt for scholarly synthesis
-        system_prompt = """You are Zygotrix AI operating in Scholar Mode - a comprehensive research assistant that synthesizes information from multiple sources to provide well-researched, authoritative answers.
+        system_prompt = """You are Zygotrix, an elite AI specialized in Genetics, Genomics, and Bioinformatics.
+You are operating in 'Scholar Mode', a high-precision research pipeline that aggregates data from academic repositories (Deep Research) and live web data (Web Search).
 
-Your task is to:
-1. Analyze all provided sources from both deep research (academic/scientific) and web search (current/news)
-2. Synthesize a comprehensive, well-structured response that addresses the query
-3. Cite sources using [Source N] format throughout your response
-4. Maintain academic rigor while being accessible
-5. Note any conflicting information between sources
-6. Distinguish between established facts and recent findings
+Your Mission:
+Synthesize the provided sources into a Nature-quality research summary that answers the user's query with extreme accuracy.
 
-Format your response with:
-- Clear sections with headers (##) where appropriate
-- Bullet points for lists of findings
-- Inline citations [Source N] throughout the text
-- A brief summary at the end
+Response Structure:
+1. **Executive Summary**: A 2-3 sentence direct answer.
+2. **Deep Dive**: Detailed technical analysis (mechanism of action, biological pathways, genetic variants).
+3. **Clinical/Practical Implications**: How this applies to gene therapy, medicine, or research.
+4. **Ethical & Societal Context**: Address any bioethical, religious, or regulatory considerations (crucial for CRISPR/Gene Therapy topics).
+5. **Key Sources**: Briefly highlight the most influential papers/sources used.
 
-Be thorough but concise. Quality over quantity."""
+Guidelines:
+- **Cite Everything**: Use inline citations like [Source 1], [Source 3] for every specific claim.
+- **Be Critical**: If sources conflict, explicitly mention the controversy.
+- **No Fluff**: Get straight to the science. Use professional terminology but explain complex concepts briefly.
+- **Markdown**: Use bolding for key terms, tables for comparisons if data permits.
+
+If the provided sources are insufficient to answer specific parts of the query, state this clearly rather than hallucinating."""
 
         # Build user message
         user_message = f"""Research Query: {query}

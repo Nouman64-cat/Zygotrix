@@ -171,7 +171,7 @@ const ScholarModeTab: React.FC<ScholarModeTabProps> = ({
                 gradient="from-purple-500 via-purple-600 to-violet-600"
                 borderColor="border-purple-400/30"
                 footerItems={[
-                    { color: "bg-indigo-300", label: `Claude Sonnet 4 Tokens: $${claudeCostAvg}/avg` },
+                    { color: "bg-indigo-300", label: `Claude (Sonnet + Haiku) Tokens: $${claudeCostAvg}/avg` },
                     { color: "bg-purple-300", label: `Cohere (Rerank): $${cohereCostAvg}/avg` },
                     { color: "bg-emerald-300", label: `Avg ${formatNumber(avgTokens)} tok/req` },
                 ]}

@@ -85,12 +85,6 @@ const AVAILABLE_TOOLS: AiTool[] = [
     icon: "🔬",
   },
   {
-    id: "web_search",
-    name: "Web Search",
-    description: "Real-time web search (5/day)",
-    icon: "🌐",
-  },
-  {
     id: "scholar_mode",
     name: "Scholar Mode",
     description:
@@ -164,38 +158,28 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const { user, refreshUser } = useAuth();
   const isPro = user?.subscription_status === "pro";
 
-  // Deep Research usage tracking for PRO users
-  const DEEP_RESEARCH_DAILY_LIMIT = 10;
+  // Deep Research usage tracking for PRO users (MONTHLY)
+  const DEEP_RESEARCH_MONTHLY_LIMIT = 200;
   const deepResearchUsed = user?.deep_research_usage?.count ?? 0;
 
-  // Web Search usage tracking for PRO users
-  const WEB_SEARCH_DAILY_LIMIT = 5;
-  const webSearchUsed = user?.web_search_usage?.count ?? 0;
-
-  // Scholar Mode usage tracking for PRO users
-  const SCHOLAR_MODE_MONTHLY_LIMIT = 10;
+  // Scholar Mode usage tracking for PRO users (MONTHLY)
+  const SCHOLAR_MODE_MONTHLY_LIMIT = 100;
   const scholarModeUsed = user?.scholar_mode_usage?.count ?? 0;
 
-  // Check if reset period has passed (24 hours since last_reset)
-  const hasResetPeriodPassed = useCallback((): boolean => {
+  // Check if reset period has passed (new month since last_reset)
+  const hasDeepResearchResetPeriodPassed = useCallback((): boolean => {
     const lastReset = user?.deep_research_usage?.last_reset;
     if (!lastReset) return false;
 
     const resetDate = new Date(lastReset);
-    resetDate.setHours(resetDate.getHours() + 24);
+    const now = new Date();
 
-    return new Date() >= resetDate;
+    // Reset happens on the 1st of every month
+    return (
+      now.getMonth() !== resetDate.getMonth() ||
+      now.getFullYear() !== resetDate.getFullYear()
+    );
   }, [user?.deep_research_usage?.last_reset]);
-
-  const hasWebSearchResetPeriodPassed = useCallback((): boolean => {
-    const lastReset = user?.web_search_usage?.last_reset;
-    if (!lastReset) return false;
-
-    const resetDate = new Date(lastReset);
-    resetDate.setHours(resetDate.getHours() + 24);
-
-    return new Date() >= resetDate;
-  }, [user?.web_search_usage?.last_reset]);
 
   const hasScholarModeResetPeriodPassed = useCallback((): boolean => {
     const lastReset = user?.scholar_mode_usage?.last_reset;
@@ -216,9 +200,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   useEffect(() => {
     if (
       isPro &&
-      ((deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT && hasResetPeriodPassed()) ||
-        (webSearchUsed >= WEB_SEARCH_DAILY_LIMIT &&
-          hasWebSearchResetPeriodPassed()) ||
+      ((deepResearchUsed >= DEEP_RESEARCH_MONTHLY_LIMIT &&
+        hasDeepResearchResetPeriodPassed()) ||
         (scholarModeUsed >= SCHOLAR_MODE_MONTHLY_LIMIT &&
           hasScholarModeResetPeriodPassed()))
     ) {
@@ -228,10 +211,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   }, [
     isPro,
     deepResearchUsed,
-    webSearchUsed,
     scholarModeUsed,
-    hasResetPeriodPassed,
-    hasWebSearchResetPeriodPassed,
+    hasDeepResearchResetPeriodPassed,
     hasScholarModeResetPeriodPassed,
     refreshUser,
   ]);
@@ -239,13 +220,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   // Consider limit exhausted only if reset period hasn't passed
   const isDeepResearchLimitExhausted =
     isPro &&
-    deepResearchUsed >= DEEP_RESEARCH_DAILY_LIMIT &&
-    !hasResetPeriodPassed();
-
-  const isWebSearchLimitExhausted =
-    isPro &&
-    webSearchUsed >= WEB_SEARCH_DAILY_LIMIT &&
-    !hasWebSearchResetPeriodPassed();
+    deepResearchUsed >= DEEP_RESEARCH_MONTHLY_LIMIT &&
+    !hasDeepResearchResetPeriodPassed();
 
   const isScholarModeLimitExhausted =
     isPro &&
@@ -253,47 +229,22 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     !hasScholarModeResetPeriodPassed();
 
   // Calculate reset time (24 hours from last_reset)
+  // Calculate reset time (1st of next month)
   const getDeepResearchResetTime = (): string | null => {
-    const lastReset = user?.deep_research_usage?.last_reset;
-    if (!lastReset) return null;
-
-    const resetDate = new Date(lastReset);
-    resetDate.setHours(resetDate.getHours() + 24);
-
     const now = new Date();
-    const diffMs = resetDate.getTime() - now.getTime();
+    const nextMonth = new Date(now.getFullYear(), now.getMonth() + 1, 1);
+    const diffMs = nextMonth.getTime() - now.getTime();
 
-    if (diffMs <= 0) return "now"; // Reset should have happened
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor(
+      (diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60),
+    );
 
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
+    if (days > 0) return `${days}d ${hours}h`;
+    return `${hours}h`;
   };
 
-  const getWebSearchResetTime = (): string | null => {
-    const lastReset = user?.web_search_usage?.last_reset;
-    if (!lastReset) return null;
 
-    const resetDate = new Date(lastReset);
-    resetDate.setHours(resetDate.getHours() + 24);
-
-    const now = new Date();
-    const diffMs = resetDate.getTime() - now.getTime();
-
-    if (diffMs <= 0) return "now";
-
-    const hours = Math.floor(diffMs / (1000 * 60 * 60));
-    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
-
-    if (hours > 0) {
-      return `${hours}h ${minutes}m`;
-    }
-    return `${minutes}m`;
-  };
 
   const getScholarModeResetTime = (): string | null => {
     // Resets on the 1st of next month
@@ -1020,22 +971,18 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                       {AVAILABLE_TOOLS.map((tool) => {
                         const isEnabled = enabledTools.includes(tool.id);
                         const isDeepResearch = tool.id === "deep_research";
-                        const isWebSearch = tool.id === "web_search";
                         const isScholarMode = tool.id === "scholar_mode";
 
-                        const isProFeature =
-                          isDeepResearch || isWebSearch || isScholarMode;
+                        const isProFeature = isDeepResearch || isScholarMode;
                         const isLockedForFree = isProFeature && !isPro;
                         const isLockedForLimit =
                           (isDeepResearch && isDeepResearchLimitExhausted) ||
-                          (isWebSearch && isWebSearchLimitExhausted) ||
                           (isScholarMode && isScholarModeLimitExhausted);
 
                         const isLocked = isLockedForFree || isLockedForLimit;
 
                         const getResetTime = () => {
                           if (isDeepResearch) return getDeepResearchResetTime();
-                          if (isWebSearch) return getWebSearchResetTime();
                           if (isScholarMode) return getScholarModeResetTime();
                           return "~24h";
                         };
@@ -1061,7 +1008,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                               isLockedForFree
                                 ? `Upgrade to PRO to use ${tool.name}`
                                 : isLockedForLimit
-                                  ? `${isScholarMode ? "Monthly" : "Daily"} limit reached. Resets in ${getResetTime()}`
+                                  ? `Monthly limit reached. Resets in ${getResetTime()}`
                                   : undefined
                             }
                           >
@@ -1073,44 +1020,10 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                                   PRO Feature ★
                                 </span>
                               )}
-                              {/* Show usage count for Deep Research if user is PRO */}
-                              {isDeepResearch &&
-                                isPro &&
-                                !isLockedForLimit && (
-                                  <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                                    {deepResearchUsed}/
-                                    {DEEP_RESEARCH_DAILY_LIMIT} used today
-                                  </span>
-                                )}
-                              {/* Show usage count for Web Search if user is PRO */}
-                              {isWebSearch && isPro && !isLockedForLimit && (
-                                <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                                  {webSearchUsed}/{WEB_SEARCH_DAILY_LIMIT} used
-                                  today
-                                </span>
-                              )}
-                              {/* Show usage count for Scholar Mode if user is PRO */}
-                              {isScholarMode && isPro && !isLockedForLimit && (
-                                <span className="text-[10px] text-gray-500 dark:text-gray-400">
-                                  {scholarModeUsed}/{SCHOLAR_MODE_MONTHLY_LIMIT}{" "}
-                                  used this month
-                                </span>
-                              )}
                               {/* Show limit reached message with reset time */}
                               {isLockedForLimit && (
                                 <span className="text-[10px] text-red-500 dark:text-red-400 font-medium whitespace-nowrap">
-                                  {isDeepResearch
-                                    ? deepResearchUsed
-                                    : isWebSearch
-                                      ? webSearchUsed
-                                      : scholarModeUsed}
-                                  /
-                                  {isDeepResearch
-                                    ? DEEP_RESEARCH_DAILY_LIMIT
-                                    : isWebSearch
-                                      ? WEB_SEARCH_DAILY_LIMIT
-                                      : SCHOLAR_MODE_MONTHLY_LIMIT}{" "}
-                                  used • Resets: {getResetTime()}
+                                  Limit reached • Resets: {getResetTime()}
                                 </span>
                               )}
                             </div>
@@ -1120,11 +1033,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                               </span>
                             ) : isLockedForLimit ? (
                               <span className="text-[10px] px-1.5 py-0.5 bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400 rounded font-bold">
-                                {isDeepResearch
-                                  ? `${DEEP_RESEARCH_DAILY_LIMIT}/${DEEP_RESEARCH_DAILY_LIMIT}`
-                                  : isWebSearch
-                                    ? `${WEB_SEARCH_DAILY_LIMIT}/${WEB_SEARCH_DAILY_LIMIT}`
-                                    : `${SCHOLAR_MODE_MONTHLY_LIMIT}/${SCHOLAR_MODE_MONTHLY_LIMIT}`}
+                                LIMIT
                               </span>
                             ) : (
                               <div
@@ -1188,18 +1097,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                     >
                       {tool.name}
                     </span>
-                    {/* Show usage count in pill for Deep Research */}
-                    {isDeepResearch && isPro && !isLimitExhausted && (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                        ({deepResearchUsed}/{DEEP_RESEARCH_DAILY_LIMIT})
-                      </span>
-                    )}
-                    {/* Show usage count in pill for Scholar Mode */}
-                    {isScholarMode && isPro && !isLimitExhausted && (
-                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-medium">
-                        ({scholarModeUsed}/{SCHOLAR_MODE_MONTHLY_LIMIT})
-                      </span>
-                    )}
+
                     {/* Show limit exhausted message */}
                     {isLimitExhausted && (
                       <span className="text-[10px] text-red-500 dark:text-red-400 font-medium">

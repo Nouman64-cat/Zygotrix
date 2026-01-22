@@ -63,7 +63,7 @@ const WebSearchTab: React.FC<WebSearchTabProps> = ({
                 borderColor="border-blue-400/30"
                 footerItems={[
                     { color: "bg-cyan-300", label: "Search API: $0.01/search" },
-                    { color: "bg-indigo-300", label: "+ Claude Sonnet 4 tokens" },
+                    { color: "bg-indigo-300", label: "+ Claude 3.5 Sonnet tokens" },
                     { color: "bg-orange-300", label: `Avg ${formatNumber(avgTokens)} tok/req` },
                 ]}
             />

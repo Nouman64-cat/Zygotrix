@@ -13,12 +13,12 @@ from app.schema.auth import SubscriptionStatus
 
 logger = logging.getLogger(__name__)
 
-# Deep research limits
-DEEP_RESEARCH_DAILY_LIMIT_PRO = 10  # Pro users get 10 per 24 hours
-DEEP_RESEARCH_DAILY_LIMIT_FREE = 0  # Free users can't use it
+# Deep research limits (MONTHLY)
+DEEP_RESEARCH_MONTHLY_LIMIT_PRO = 200  # Pro users get 200 per month
+DEEP_RESEARCH_MONTHLY_LIMIT_FREE = 0  # Free users can't use it
 
-# Scholar mode limits
-SCHOLAR_MODE_MONTHLY_LIMIT_PRO = 10  # Pro users get 10 per month
+# Scholar mode limits (MONTHLY)
+SCHOLAR_MODE_MONTHLY_LIMIT_PRO = 100  # Pro users get 100 per month
 SCHOLAR_MODE_MONTHLY_LIMIT_FREE = 0  # Free users can't use it
 
 
@@ -56,14 +56,14 @@ class SubscriptionService:
             if subscription_status == SubscriptionStatus.FREE.value:
                 return False, "Deep Research is a PRO feature. Upgrade to PRO to access comprehensive research capabilities.", None
 
-            # Pro users - check usage limits
+            # Pro users - check usage limits (MONTHLY)
             usage = user.get("deep_research_usage") or {}  # Handle None explicitly
             usage_count = usage.get("count", 0) if isinstance(usage, dict) else 0
             last_reset = usage.get("last_reset") if isinstance(usage, dict) else None
             
             logger.info(f"Deep research usage for user {user_id}: count={usage_count}, last_reset={last_reset}")
             
-            # Check if we need to reset the counter (24 hours passed)
+            # Check if we need to reset the counter (new month)
             now = datetime.now(timezone.utc)
             if last_reset:
                 if isinstance(last_reset, str):
@@ -73,21 +73,18 @@ class SubscriptionService:
                     if last_reset.tzinfo is None:
                         last_reset = last_reset.replace(tzinfo=timezone.utc)
                 
-                time_since_reset = now - last_reset
-                logger.info(f"Time since last reset: {time_since_reset}")
-                
-                if time_since_reset >= timedelta(hours=24):
-                    # Reset the counter
-                    logger.info(f"Resetting usage counter for user {user_id} (24 hours passed)")
+                # Check if it's a new month
+                if now.year > last_reset.year or (now.year == last_reset.year and now.month > last_reset.month):
+                    logger.info(f"Resetting deep research counter for user {user_id} (new month)")
                     usage_count = 0
-                    self._reset_usage_counter(user_id)
+                    self._reset_deep_research_counter(user_id)
             
-            remaining = DEEP_RESEARCH_DAILY_LIMIT_PRO - usage_count
+            remaining = DEEP_RESEARCH_MONTHLY_LIMIT_PRO - usage_count
             logger.info(f"Remaining deep research uses for user {user_id}: {remaining}")
             
             if remaining <= 0:
-                logger.warning(f"User {user_id} has exhausted deep research limit: {usage_count}/{DEEP_RESEARCH_DAILY_LIMIT_PRO}")
-                return False, f"You've used all {DEEP_RESEARCH_DAILY_LIMIT_PRO} deep research queries for today. Counter resets in 24 hours from your first query.", 0
+                logger.warning(f"User {user_id} has exhausted deep research limit: {usage_count}/{DEEP_RESEARCH_MONTHLY_LIMIT_PRO}")
+                return False, f"You've used all {DEEP_RESEARCH_MONTHLY_LIMIT_PRO} deep research queries this month. Counter resets on the 1st of next month.", 0
 
             return True, "Access granted", remaining
 
@@ -120,7 +117,7 @@ class SubscriptionService:
             
             now = datetime.now(timezone.utc)
             
-            # Check if we need to reset (24 hours passed)
+            # Check if we need to reset (new month)
             if last_reset:
                 if isinstance(last_reset, str):
                     last_reset = datetime.fromisoformat(last_reset.replace('Z', '+00:00'))
@@ -129,7 +126,7 @@ class SubscriptionService:
                     if last_reset.tzinfo is None:
                         last_reset = last_reset.replace(tzinfo=timezone.utc)
                 
-                if (now - last_reset) >= timedelta(hours=24):
+                if now.year > last_reset.year or (now.year == last_reset.year and now.month > last_reset.month):
                     usage_count = 0
                     last_reset = now
             else:
@@ -146,14 +143,18 @@ class SubscriptionService:
                 {"$set": {"deep_research_usage": new_usage}}
             )
             
-            logger.info(f"Recorded deep research usage for user {user_id}: {new_usage['count']}/{DEEP_RESEARCH_DAILY_LIMIT_PRO}")
+            # Clear user cache
+            from .user_service import get_user_service
+            get_user_service()._clear_user_cache(user_id)
+            
+            logger.info(f"Recorded deep research usage for user {user_id}: {new_usage['count']}/{DEEP_RESEARCH_MONTHLY_LIMIT_PRO}")
             return True
 
         except Exception as e:
             logger.error(f"Error recording deep research usage: {e}")
             return False
 
-    def _reset_usage_counter(self, user_id: str) -> None:
+    def _reset_deep_research_counter(self, user_id: str) -> None:
         """Reset the deep research usage counter for a user."""
         collection = get_users_collection()
         if collection is None:
@@ -169,7 +170,7 @@ class SubscriptionService:
             )
             logger.info(f"Reset deep research usage counter for user {user_id}")
         except Exception as e:
-            logger.error(f"Error resetting usage counter: {e}")
+            logger.error(f"Error resetting deep research counter: {e}")
 
     # ==================== Scholar Mode Usage ====================
 

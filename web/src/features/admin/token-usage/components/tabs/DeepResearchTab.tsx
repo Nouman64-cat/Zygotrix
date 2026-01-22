@@ -67,7 +67,7 @@ const DeepResearchTab: React.FC<DeepResearchTabProps> = ({
                 borderColor="border-emerald-400/30"
                 footerItems={[
                     { color: "bg-green-300", label: `OpenAI: $${openaiAvg}` },
-                    { color: "bg-indigo-300", label: `Claude Sonnet 4: $${claudeAvg}` },
+                    { color: "bg-indigo-300", label: `Claude 3 Haiku: $${claudeAvg}` },
                     { color: "bg-purple-300", label: `Cohere: $${cohereAvg}` },
                 ]}
             />

@@ -14,6 +14,7 @@ import {
   FiCheck,
   FiMic,
 } from "react-icons/fi";
+import { LuDna, LuMicroscope, LuGraduationCap } from "react-icons/lu";
 import { cn } from "../../utils";
 import { useVoiceControl, useVoiceCommand, useAuth } from "../../contexts";
 import type { MessageAttachment } from "../../types";
@@ -67,7 +68,7 @@ interface AiTool {
   id: string;
   name: string;
   description: string;
-  icon: string;
+  icon: React.ReactNode;
 }
 
 const AVAILABLE_TOOLS: AiTool[] = [
@@ -75,21 +76,21 @@ const AVAILABLE_TOOLS: AiTool[] = [
     id: "gwas_analysis",
     name: "GWAS Analysis",
     description: "",
-    icon: "🧬",
+    icon: <LuDna />,
   },
   {
     id: "deep_research",
     name: "Deep Research",
     description:
       "Multi-step research with AI clarification and source synthesis (10/day)",
-    icon: "🔬",
+    icon: <LuMicroscope />,
   },
   {
     id: "scholar_mode",
     name: "Scholar Mode",
     description:
       "Comprehensive research combining deep research, web search, and AI synthesis (10/month)",
-    icon: "🎓",
+    icon: <LuGraduationCap />,
   },
 ];
 
@@ -698,8 +699,8 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const handleToggleTool = (toolId: string) => {
     setEnabledTools((prev) =>
       prev.includes(toolId)
-        ? prev.filter((id) => id !== toolId)
-        : [...prev, toolId],
+        ? [] // Deselect if already active
+        : [toolId], // Select ONLY this tool (single selection)
     );
   };
 

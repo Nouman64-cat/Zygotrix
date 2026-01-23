@@ -1,5 +1,6 @@
 import React from 'react';
 import { MdStar, MdBolt, MdMic, MdAnalytics } from 'react-icons/md';
+import { FaMicroscope, FaGraduationCap } from 'react-icons/fa';
 
 export const BillingSection: React.FC = () => {
     return (
@@ -23,7 +24,7 @@ export const BillingSection: React.FC = () => {
 
             {/* Premium Plan */}
             <section>
-                <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Upgrade to Premium</h2>
+                <h2 className="text-base font-semibold text-gray-900 dark:text-white mb-4">Upgrade to PRO</h2>
 
                 {/* Premium Card */}
                 <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 p-[1px]">
@@ -37,7 +38,7 @@ export const BillingSection: React.FC = () => {
                         </div>
 
                         {/* Plan Name */}
-                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Zygotrix Premium</h3>
+                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">Zygotrix PRO</h3>
 
                         {/* Price */}
                         <div className="flex items-baseline gap-1 mb-6">
@@ -47,6 +48,26 @@ export const BillingSection: React.FC = () => {
 
                         {/* Features */}
                         <div className="space-y-4 mb-8">
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
+                                    <FaMicroscope className="w-4 h-4 text-blue-500" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Deep Research</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">200 queries/month - AI-powered research from your knowledge base</p>
+                                </div>
+                            </div>
+
+                            <div className="flex items-start gap-3">
+                                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
+                                    <FaGraduationCap className="w-4 h-4 text-purple-500" />
+                                </div>
+                                <div>
+                                    <p className="text-sm font-medium text-gray-900 dark:text-white">Scholar Mode</p>
+                                    <p className="text-xs text-gray-500 dark:text-gray-400">50 queries/month - Comprehensive research with web search & synthesis</p>
+                                </div>
+                            </div>
+
                             <div className="flex items-start gap-3">
                                 <div className="w-8 h-8 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
                                     <MdBolt className="w-4 h-4 text-emerald-400" />
@@ -68,8 +89,8 @@ export const BillingSection: React.FC = () => {
                             </div>
 
                             <div className="flex items-start gap-3">
-                                <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                                    <MdAnalytics className="w-4 h-4 text-purple-400" />
+                                <div className="w-8 h-8 rounded-lg bg-indigo-500/20 flex items-center justify-center flex-shrink-0">
+                                    <MdAnalytics className="w-4 h-4 text-indigo-400" />
                                 </div>
                                 <div>
                                     <p className="text-sm font-medium text-gray-900 dark:text-white">Advanced Analysis Tools</p>

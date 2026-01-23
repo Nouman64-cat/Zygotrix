@@ -18,7 +18,7 @@ DEEP_RESEARCH_MONTHLY_LIMIT_PRO = 200  # Pro users get 200 per month
 DEEP_RESEARCH_MONTHLY_LIMIT_FREE = 0  # Free users can't use it
 
 # Scholar mode limits (MONTHLY)
-SCHOLAR_MODE_MONTHLY_LIMIT_PRO = 100  # Pro users get 100 per month
+SCHOLAR_MODE_MONTHLY_LIMIT_PRO = 50  # Pro users get 50 per month
 SCHOLAR_MODE_MONTHLY_LIMIT_FREE = 0  # Free users can't use it
 
 

@@ -89,7 +89,7 @@ const AVAILABLE_TOOLS: AiTool[] = [
     id: "scholar_mode",
     name: "Scholar Mode",
     description:
-      "Comprehensive research combining deep research, web search, and AI synthesis (10/month)",
+      "Comprehensive research combining deep research, web search, and AI synthesis (50/month)",
     icon: <LuGraduationCap />,
   },
 ];
@@ -164,7 +164,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
   const deepResearchUsed = user?.deep_research_usage?.count ?? 0;
 
   // Scholar Mode usage tracking for PRO users (MONTHLY)
-  const SCHOLAR_MODE_MONTHLY_LIMIT = 100;
+  const SCHOLAR_MODE_MONTHLY_LIMIT = 50;
   const scholarModeUsed = user?.scholar_mode_usage?.count ?? 0;
 
   // Check if reset period has passed (new month since last_reset)

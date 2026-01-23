@@ -7,7 +7,7 @@ import { useAuth } from '../../contexts';
 
 // Monthly limits for PRO features
 const DEEP_RESEARCH_MONTHLY_LIMIT = 200;
-const SCHOLAR_MODE_MONTHLY_LIMIT = 100;
+const SCHOLAR_MODE_MONTHLY_LIMIT = 50;
 
 export const UsageSection: React.FC = () => {
     const [rateLimitRefresh, setRateLimitRefresh] = useState(0);
@@ -110,7 +110,7 @@ export const UsageSection: React.FC = () => {
                             Upgrade to PRO
                         </h2>
                         <p className="text-sm text-amber-700 dark:text-amber-300">
-                            PRO users get access to Deep Research (200/month) and Scholar Mode (100/month) for comprehensive AI-powered research capabilities.
+                            PRO users get access to Deep Research (200/month) and Scholar Mode (50/month) for comprehensive AI-powered research capabilities.
                         </p>
                     </div>
                 </section>
@@ -159,7 +159,7 @@ export const UsageSection: React.FC = () => {
                             </p>
                             <ul className="list-disc list-inside mt-2 space-y-1 text-emerald-600 dark:text-emerald-400">
                                 <li><strong>200</strong> Deep Research queries per month</li>
-                                <li><strong>100</strong> Scholar Mode queries per month</li>
+                                <li><strong>50</strong> Scholar Mode queries per month</li>
                             </ul>
                         </div>
                     )}

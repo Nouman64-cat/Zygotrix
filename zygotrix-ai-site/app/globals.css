@@ -2,7 +2,6 @@
 
 :root {
   font-family:
-    var(--font-inter),
     "Axiforma",
     -apple-system,
     BlinkMacSystemFont,
@@ -18,7 +17,7 @@ h3,
 h4,
 h5,
 h6 {
-  font-family: var(--font-outfit), var(--font-inter), sans-serif;
+  font-family: "Axiforma", sans-serif;
 }
 
 @font-face {
@@ -67,7 +66,7 @@ h6 {
 }
 
 body {
-  @apply text-slate-700 dark:text-slate-200 antialiased leading-snug bg-white dark:bg-slate-900 transition-colors duration-200;
+  @apply text-slate-700 antialiased leading-snug bg-white transition-colors duration-200;
 }
 
 html,
@@ -114,14 +113,14 @@ button:not(.btn-large) {
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: #10b981;
   cursor: pointer;
   border: 2px solid #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
 .slider::-webkit-slider-thumb:hover {
-  background: #2563eb;
+  background: #059669;
   transform: scale(1.1);
 }
 
@@ -136,7 +135,7 @@ button:not(.btn-large) {
   height: 16px;
   width: 16px;
   border-radius: 50%;
-  background: #3b82f6;
+  background: #10b981;
   cursor: pointer;
   border: 2px solid #ffffff;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
@@ -272,15 +271,15 @@ button:not(.btn-large) {
 
 @keyframes form-focus-glow {
   0% {
-    box-shadow: 0 0 0 0 rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 0 rgba(16, 185, 129, 0);
   }
 
   50% {
-    box-shadow: 0 0 0 10px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 0 0 10px rgba(16, 185, 129, 0.1);
   }
 
   100% {
-    box-shadow: 0 0 0 20px rgba(59, 130, 246, 0);
+    box-shadow: 0 0 0 20px rgba(16, 185, 129, 0);
   }
 }
 

@@ -36,16 +36,16 @@ const features = [
 
 const Features = () => {
     return (
-        <section id="features" className="py-24 bg-slate-50 dark:bg-slate-900/50 relative overflow-hidden">
+        <section id="features" className="py-24 bg-slate-50 relative overflow-hidden">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
                 <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-blue-600 dark:text-blue-400 font-semibold tracking-wide uppercase text-sm mb-3">
+                    <h2 className="text-emerald-600 font-semibold tracking-wide uppercase text-sm mb-3">
                         Core Technology
                     </h2>
-                    <h3 className="text-3xl md:text-4xl font-bold text-slate-900 dark:text-white mb-6">
-                        Intelligence That Adapts and <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-500 to-emerald-500">Expands</span>
+                    <h3 className="text-3xl md:text-4xl font-bold text-slate-800 mb-6">
+                        Intelligence That Adapts and <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">Expands</span>
                     </h3>
-                    <p className="text-lg text-slate-600 dark:text-slate-300">
+                    <p className="text-lg text-slate-600">
                         Zygotrix isn't just another AI. It's a living system that learns from its environment to provide unparalleled results.
                     </p>
                 </div>
@@ -54,15 +54,15 @@ const Features = () => {
                     {features.map((feature, index) => (
                         <div
                             key={index}
-                            className="group p-8 rounded-2xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-blue-500 dark:hover:border-blue-400 shadow-sm hover:shadow-xl transition-all duration-300"
+                            className="group p-8 rounded-2xl bg-white border border-slate-200 hover:border-emerald-500 shadow-sm hover:shadow-xl transition-all duration-300"
                         >
-                            <div className="w-12 h-12 rounded-lg bg-blue-50 dark:bg-slate-700 flex items-center justify-center text-2xl text-blue-600 dark:text-blue-400 mb-6 group-hover:scale-110 group-hover:bg-blue-600 group-hover:text-white transition-all duration-300">
+                            <div className="w-12 h-12 rounded-lg bg-emerald-50 flex items-center justify-center text-2xl text-emerald-600 mb-6 group-hover:scale-110 group-hover:bg-emerald-600 group-hover:text-white transition-all duration-300">
                                 {feature.icon}
                             </div>
-                            <h4 className="text-xl font-bold text-slate-900 dark:text-white mb-3">
+                            <h4 className="text-xl font-bold text-slate-800 mb-3">
                                 {feature.title}
                             </h4>
-                            <p className="text-slate-600 dark:text-slate-400 leading-relaxed">
+                            <p className="text-slate-600 leading-relaxed">
                                 {feature.description}
                             </p>
                         </div>

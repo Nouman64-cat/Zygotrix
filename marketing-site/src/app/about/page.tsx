@@ -7,6 +7,7 @@ export const metadata: Metadata = {
     openGraph: {
         title: "About Zygotrix",
         description: "Nouman Ejaz, Founder & Creator.",
+        type: "website",
         images: ["https://ap-south-1.graphassets.com/cmg0d4awz0abu07pfgv3s80hg/cmg0o8wb80r7d07pd9fu2aywz"],
     },
 };

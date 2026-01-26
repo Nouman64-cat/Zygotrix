@@ -1,25 +1,31 @@
 import type {
-    TeamMemberResponse,
-    TeamMembersResponse,
-    TeamMemberSummary,
+  TeamMemberResponse,
+  TeamMembersResponse,
+  TeamMemberSummary,
 } from "../types/teamMember";
 
-const HYGRAPH_ENDPOINT = process.env.NEXT_PUBLIC_HYGRAPH_ENDPOINT || "https://ap-south-1.cdn.hygraph.com/content/cmg0d4ao2013r08wb95es4c0w/master";
-const HYGRAPH_TOKEN = process.env.NEXT_PUBLIC_HYGRAPH_TOKEN || "";
+const HYGRAPH_ENDPOINT =
+  process.env.NEXT_PUBLIC_HYGRAPH_ENDPOINT ||
+  "https://ap-south-1.cdn.hygraph.com/content/cmg0d4ao2013r08wb95es4c0w/master";
+
+const HYGRAPH_TOKEN =
+  process.env.NEXT_PUBLIC_HYGRAPH_TOKEN ||
+  process.env.NEXT_PUBLIC_HYGRAPH_PERMANENT_AUTH_TOKEN ||
+  "";
 
 const ensureEndpoint = () => {
-    if (!HYGRAPH_ENDPOINT) {
-        throw new Error("HYGRAPH_ENDPOINT is not configured");
-    }
+  if (!HYGRAPH_ENDPOINT) {
+    throw new Error("HYGRAPH_ENDPOINT is not configured");
+  }
 };
 
 export const fetchTeamMember = async (
-    slug: string,
-    signal?: AbortSignal
+  slug: string,
+  signal?: AbortSignal
 ): Promise<TeamMemberResponse> => {
-    ensureEndpoint();
+  ensureEndpoint();
 
-    const query = `
+  const query = `
     query GetTeamMember($slug: String!) {
       teamMember(where: { slug: $slug }) {
         bio {
@@ -43,38 +49,38 @@ export const fetchTeamMember = async (
     }
   `;
 
-    const response = await fetch(HYGRAPH_ENDPOINT, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...(HYGRAPH_TOKEN ? { Authorization: `Bearer ${HYGRAPH_TOKEN}` } : {}),
-        },
-        body: JSON.stringify({
-            query,
-            variables: { slug },
-        }),
-        signal,
-    });
+  const response = await fetch(HYGRAPH_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(HYGRAPH_TOKEN ? { Authorization: `Bearer ${HYGRAPH_TOKEN}` } : {}),
+    },
+    body: JSON.stringify({
+      query,
+      variables: { slug },
+    }),
+    signal,
+  });
 
-    if (!response.ok) {
-        throw new Error(`Hygraph request failed with status ${response.status}`);
-    }
+  if (!response.ok) {
+    throw new Error(`Hygraph request failed with status ${response.status}`);
+  }
 
-    const payload = await response.json();
+  const payload = await response.json();
 
-    if (payload.errors && payload.errors.length > 0) {
-        throw new Error(payload.errors[0].message);
-    }
+  if (payload.errors && payload.errors.length > 0) {
+    throw new Error(payload.errors[0].message);
+  }
 
-    return payload;
+  return payload;
 };
 
 export const fetchTeamMembers = async (
-    signal?: AbortSignal
+  signal?: AbortSignal
 ): Promise<TeamMemberSummary[]> => {
-    ensureEndpoint();
+  ensureEndpoint();
 
-    const query = `
+  const query = `
     query GetTeamMembers {
       teamMembers {
         name
@@ -96,25 +102,25 @@ export const fetchTeamMembers = async (
     }
   `;
 
-    const response = await fetch(HYGRAPH_ENDPOINT, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            ...(HYGRAPH_TOKEN ? { Authorization: `Bearer ${HYGRAPH_TOKEN}` } : {}),
-        },
-        body: JSON.stringify({ query }),
-        signal,
-    });
+  const response = await fetch(HYGRAPH_ENDPOINT, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      ...(HYGRAPH_TOKEN ? { Authorization: `Bearer ${HYGRAPH_TOKEN}` } : {}),
+    },
+    body: JSON.stringify({ query }),
+    signal,
+  });
 
-    if (!response.ok) {
-        throw new Error(`Hygraph request failed with status ${response.status}`);
-    }
+  if (!response.ok) {
+    throw new Error(`Hygraph request failed with status ${response.status}`);
+  }
 
-    const payload: TeamMembersResponse = await response.json();
+  const payload: TeamMembersResponse = await response.json();
 
-    if (payload.errors && payload.errors.length > 0) {
-        throw new Error(payload.errors[0].message);
-    }
+  if (payload.errors && payload.errors.length > 0) {
+    throw new Error(payload.errors[0].message);
+  }
 
-    return payload.data?.teamMembers ?? [];
+  return payload.data?.teamMembers ?? [];
 };

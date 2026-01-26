@@ -21,9 +21,9 @@ const baseNavItems = [
 ];
 
 const toolsDropdownItems = [
-    { label: "DNA Generator", to: "/dna-generator", icon: PiDna },
-    { label: "Punnett Square", to: "/punnett-square", icon: TbGrid4X4 },
-    { label: "DNA to Protein", to: "/dna-to-protein", icon: FaDna },
+    { label: "DNA Generator", to: "/tools/dna-generator", icon: PiDna },
+    { label: "Punnett Square", to: "/tools/punnett-square", icon: TbGrid4X4 },
+    { label: "DNA to Protein", to: "/tools/dna-to-protein", icon: FaDna },
 ];
 
 const Navbar: React.FC = () => {

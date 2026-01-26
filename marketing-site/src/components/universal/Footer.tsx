@@ -11,7 +11,7 @@ const footerLinks = [
         heading: "Products",
         links: [
             { label: "DNA Generator", to: "/tools/dna-generator" },
-            { label: "Zygotrix AI", to: "#" }, // Coming soon
+            { label: "Zygotrix AI", to: "/product/ai" },
         ],
     },
     {
@@ -19,7 +19,7 @@ const footerLinks = [
         links: [
             { label: "Documentation", href: "https://docs.zygotrix.com/docs/" },
             { label: "Blogs", to: "/blogs" },
-            { label: "Community", to: "#" },
+            { label: "Community", href: "https://discord.gg/5qtEfusv" },
         ],
     },
     {
@@ -174,8 +174,8 @@ const Footer: React.FC = () => {
                 {/* Top Section - Newsletter CTA */}
                 <div className="mb-16 lg:mb-20">
                     <div className={`relative mx-auto max-w-2xl rounded-2xl border transition-all duration-500 ${isFocused
-                            ? "border-[#10B981]/40 bg-gradient-to-br from-[#10B981]/10 via-transparent to-[#3B82F6]/10"
-                            : "border-white/10 bg-white/[0.02]"
+                        ? "border-[#10B981]/40 bg-gradient-to-br from-[#10B981]/10 via-transparent to-[#3B82F6]/10"
+                        : "border-white/10 bg-white/[0.02]"
                         } p-8 lg:p-10 backdrop-blur-sm`}>
                         {/* Glassmorphism effect */}
                         <div className="absolute inset-0 rounded-2xl bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
@@ -202,8 +202,8 @@ const Footer: React.FC = () => {
 
                             <form className="mx-auto max-w-md" onSubmit={handleSubscribe}>
                                 <div className={`relative flex items-center gap-2 rounded-full p-1.5 transition-all duration-300 ${isFocused
-                                        ? "bg-white/10 ring-2 ring-[#10B981]/50 shadow-lg shadow-[#10B981]/20"
-                                        : "bg-white/5 ring-1 ring-white/10"
+                                    ? "bg-white/10 ring-2 ring-[#10B981]/50 shadow-lg shadow-[#10B981]/20"
+                                    : "bg-white/5 ring-1 ring-white/10"
                                     }`}>
                                     <div className="relative flex-1">
                                         <svg

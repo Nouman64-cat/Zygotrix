@@ -63,6 +63,16 @@ const DNAStrand: React.FC = () => {
         { id: "bp-20", left: "C", right: "G", color: "#3B82F6", bonds: 3 },
     ];
 
+    const [mounted, setMounted] = useState(false);
+
+    useEffect(() => {
+        setMounted(true);
+    }, []);
+
+    if (!mounted) {
+        return <div className="relative w-full max-w-2xl h-[700px] mx-auto overflow-hidden bg-transparent" />; // Show placeholder to prevent layout shift
+    }
+
     return (
         <div className="relative w-full max-w-2xl h-[700px] mx-auto overflow-hidden">
             {/* Subtle background glow effect */}

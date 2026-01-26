@@ -1,5 +1,9 @@
 import type { Metadata } from "next";
+import React from "react";
 import HeroSection from "../components/home/HeroSection";
+import PricingClient from "../components/pricing/PricingClient";
+import ZygoAISectionClient from "../components/home/ZygoAISectionClient";
+import CommunitySectionClient from "../components/home/CommunitySectionClient";
 
 export const metadata: Metadata = {
   title: "Zygotrix - Genetic Analysis & Simulation Platform",
@@ -13,14 +17,11 @@ export const metadata: Metadata = {
 
 export default function Home() {
   return (
-    <>
+    <main>
       <HeroSection />
-      {/* <FeatureHighlights cards={featureCards} /> */}
-      {/* <WorkflowSection steps={workflow} /> */}
-      {/* <ZygoAISection /> */}
-      {/* <PricingSection /> */}
-      {/* <CommunitySection /> */}
-      {/* <CTASection /> */}
-    </>
+      <ZygoAISectionClient />
+      <PricingClient />
+      <CommunitySectionClient />
+    </main>
   );
 }

@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy": "scp -i ~/.ssh/id_ed25519_do -r dist/* root@164.92.190.232:/var/www/site_zyg_ai_marketing/",
+    "windows:deploy": "scp -i C:/Users/Nouman.Ejaz/.ssh/id_ed25519_zyg_deploy -r dist/* root@164.92.190.232:/var/www/site_zyg_ai_marketing/"
   },
   "dependencies": {
     "next": "16.1.5",

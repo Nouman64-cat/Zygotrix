@@ -1,16 +1,9 @@
 import React, { useState, useMemo } from "react";
 import { TbGrid4X4 } from "react-icons/tb";
 import { HiInformationCircle } from "react-icons/hi";
-import useSEO from "../hooks/useSEO";
+import { Helmet } from "react-helmet-async";
 
 const PunnettSquarePage: React.FC = () => {
-  useSEO({
-    title: "Free Punnett Square Calculator - Genetics Cross Tool Online",
-    description: "Free online Punnett Square generator and calculator. Visualize genetic crosses, predict offspring genotypes and phenotypes, calculate inheritance ratios. Perfect for biology students and genetics education.",
-    keywords: "punnett square, punnett square generator, punnett square calculator, genetics calculator, genetic cross calculator, mendelian genetics, inheritance calculator, genotype calculator, phenotype predictor, biology tool, genetics education, free punnett square, online punnett square",
-    ogType: "website",
-  });
-
   // Parent gametes (editable headers)
   const [topLeft, setTopLeft] = useState("A");
   const [topRight, setTopRight] = useState("a");
@@ -59,7 +52,16 @@ const PunnettSquarePage: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50/30 dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
+      <Helmet>
+        <title>Free Punnett Square Calculator - Genetics Cross Tool Online | Zygotrix</title>
+        <meta name="description" content="Free online Punnett Square generator and calculator. Visualize genetic crosses, predict offspring genotypes and phenotypes, calculate inheritance ratios. Perfect for biology students and genetics education." />
+        <meta name="keywords" content="punnett square, punnett square generator, punnett square calculator, genetics calculator, genetic cross calculator, mendelian genetics, inheritance calculator, genotype calculator, phenotype predictor, biology tool, genetics education, free punnett square, online punnett square" />
+        <meta property="og:title" content="Free Punnett Square Calculator - Zygotrix" />
+        <meta property="og:description" content="Visualize genetic crosses and calculate inheritance ratios with our free Punnett Square tool." />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://ap-south-1.graphassets.com/cmg0d4awz0abu07pfgv3s80hg/cmg0o8wb80r7d07pd9fu2aywz" />
+      </Helmet>
       {/* JSON-LD for SEO */}
       <script
         type="application/ld+json"
@@ -77,11 +79,11 @@ const PunnettSquarePage: React.FC = () => {
       <div className="w-full max-w-2xl">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#3B82F6] to-[#10B981] px-4 py-1.5 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-1.5 mb-2">
             <TbGrid4X4 className="w-4 h-4 text-white" />
             <span className="text-xs font-semibold uppercase tracking-wider text-white">Free Genetics Tool</span>
           </div>
-          <h1 className="text-2xl font-bold bg-gradient-to-r from-[#1E3A8A] to-[#10B981] dark:from-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent">
+          <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
             Punnett Square Calculator
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Click the headers to edit parent alleles</p>
@@ -89,11 +91,11 @@ const PunnettSquarePage: React.FC = () => {
 
         {/* Main Card */}
         <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-200 dark:border-slate-700 shadow-xl p-6">
-          
+
           {/* Interactive Punnett Square */}
           <div className="flex justify-center mb-6">
             <div className="inline-block">
-              {/* Top Row - Parent 2 gametes */}
+              {/* Top Row - Parent 2 gametes (Emerald) */}
               <div className="flex">
                 <div className="w-16 h-16 flex items-center justify-center">
                   <span className="text-xs text-slate-400 dark:text-slate-500">×</span>
@@ -120,12 +122,13 @@ const PunnettSquarePage: React.FC = () => {
 
               {/* Row 1 */}
               <div className="flex">
+                {/* Parent 1 gametes (Cyan) */}
                 <div className="w-16 h-16 flex items-center justify-center">
                   <input
                     type="text"
                     value={leftTop}
                     onChange={(e) => handleInputChange(setLeftTop, e.target.value)}
-                    className="w-10 h-10 text-center text-xl font-bold rounded-lg bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    className="w-10 h-10 text-center text-xl font-bold rounded-lg bg-cyan-100 dark:bg-cyan-900/50 border-2 border-cyan-300 dark:border-cyan-600 text-cyan-700 dark:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer"
                     title="Parent 1 - Allele 1"
                   />
                 </div>
@@ -134,11 +137,10 @@ const PunnettSquarePage: React.FC = () => {
                   return (
                     <div
                       key={`0-${j}`}
-                      className={`w-16 h-16 flex items-center justify-center text-xl font-bold border-2 transition-all hover:scale-105 ${
-                        isDom
-                          ? "bg-purple-100 dark:bg-purple-900/50 border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-300"
-                          : "bg-amber-100 dark:bg-amber-900/50 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300"
-                      }`}
+                      className={`w-16 h-16 flex items-center justify-center text-xl font-bold border-2 transition-all hover:scale-105 ${isDom
+                        ? "bg-teal-100 dark:bg-teal-900/50 border-teal-300 dark:border-teal-600 text-teal-700 dark:text-teal-300"
+                        : "bg-amber-100 dark:bg-amber-900/50 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300"
+                        }`}
                     >
                       {genotype}
                     </div>
@@ -153,7 +155,7 @@ const PunnettSquarePage: React.FC = () => {
                     type="text"
                     value={leftBottom}
                     onChange={(e) => handleInputChange(setLeftBottom, e.target.value)}
-                    className="w-10 h-10 text-center text-xl font-bold rounded-lg bg-blue-100 dark:bg-blue-900/50 border-2 border-blue-300 dark:border-blue-600 text-blue-700 dark:text-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                    className="w-10 h-10 text-center text-xl font-bold rounded-lg bg-cyan-100 dark:bg-cyan-900/50 border-2 border-cyan-300 dark:border-cyan-600 text-cyan-700 dark:text-cyan-300 focus:outline-none focus:ring-2 focus:ring-cyan-500 cursor-pointer"
                     title="Parent 1 - Allele 2"
                   />
                 </div>
@@ -162,11 +164,10 @@ const PunnettSquarePage: React.FC = () => {
                   return (
                     <div
                       key={`1-${j}`}
-                      className={`w-16 h-16 flex items-center justify-center text-xl font-bold border-2 transition-all hover:scale-105 ${
-                        isDom
-                          ? "bg-purple-100 dark:bg-purple-900/50 border-purple-300 dark:border-purple-600 text-purple-700 dark:text-purple-300"
-                          : "bg-amber-100 dark:bg-amber-900/50 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300"
-                      }`}
+                      className={`w-16 h-16 flex items-center justify-center text-xl font-bold border-2 transition-all hover:scale-105 ${isDom
+                        ? "bg-teal-100 dark:bg-teal-900/50 border-teal-300 dark:border-teal-600 text-teal-700 dark:text-teal-300"
+                        : "bg-amber-100 dark:bg-amber-900/50 border-amber-300 dark:border-amber-600 text-amber-700 dark:text-amber-300"
+                        }`}
                     >
                       {genotype}
                     </div>
@@ -199,7 +200,7 @@ const PunnettSquarePage: React.FC = () => {
               <h3 className="text-xs font-semibold text-slate-500 dark:text-slate-400 uppercase tracking-wide mb-3">Phenotype Ratio</h3>
               <div className="space-y-2">
                 <div className="flex items-center gap-2">
-                  <div className="w-3 h-3 rounded-full bg-purple-500"></div>
+                  <div className="w-3 h-3 rounded-full bg-teal-500"></div>
                   <span className="text-sm text-slate-700 dark:text-slate-300">Dominant:</span>
                   <span className="font-bold text-slate-900 dark:text-white">{gridData.phenotypeCounts.dominant}/4</span>
                   <span className="text-xs text-slate-500">({(gridData.phenotypeCounts.dominant / 4 * 100)}%)</span>
@@ -215,8 +216,8 @@ const PunnettSquarePage: React.FC = () => {
           </div>
 
           {/* Info */}
-          <div className="mt-4 flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400 bg-blue-50 dark:bg-blue-900/20 rounded-lg p-3">
-            <HiInformationCircle className="w-4 h-4 text-blue-500 flex-shrink-0 mt-0.5" />
+          <div className="mt-4 flex items-start gap-2 text-xs text-slate-500 dark:text-slate-400 bg-cyan-50 dark:bg-cyan-900/20 rounded-lg p-3">
+            <HiInformationCircle className="w-4 h-4 text-cyan-500 flex-shrink-0 mt-0.5" />
             <p>
               <strong>Tip:</strong> Click any header cell to change the allele. Uppercase letters = dominant alleles, lowercase = recessive.
               The grid auto-computes offspring genotypes.
@@ -227,7 +228,7 @@ const PunnettSquarePage: React.FC = () => {
         {/* Legend */}
         <div className="mt-4 flex justify-center gap-6 text-xs text-slate-500 dark:text-slate-400">
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded bg-blue-100 dark:bg-blue-900/50 border border-blue-300 dark:border-blue-600"></div>
+            <div className="w-4 h-4 rounded bg-cyan-100 dark:bg-cyan-900/50 border border-cyan-300 dark:border-cyan-600"></div>
             <span>Parent 1</span>
           </div>
           <div className="flex items-center gap-1.5">
@@ -235,7 +236,7 @@ const PunnettSquarePage: React.FC = () => {
             <span>Parent 2</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-4 h-4 rounded bg-purple-100 dark:bg-purple-900/50 border border-purple-300 dark:border-purple-600"></div>
+            <div className="w-4 h-4 rounded bg-teal-100 dark:bg-teal-900/50 border border-teal-300 dark:border-teal-600"></div>
             <span>Dominant</span>
           </div>
           <div className="flex items-center gap-1.5">

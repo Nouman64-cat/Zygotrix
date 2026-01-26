@@ -15,6 +15,7 @@ import DnaEditorPage from "./pages/DnaEditorPage";
 import ZygoAIPage from "./pages/ZygoAIPage";
 import DataManagementPage from "./pages/DataManagementPage";
 import HomePage from "./pages/HomePage";
+import PricingPage from "./pages/PricingPage";
 import JointPhenotypePage from "./pages/JointPhenotypePage";
 import PortalPage from "./pages/PortalPage";
 import BlogsPage from "./pages/BlogsPage";
@@ -57,6 +58,7 @@ const AppContent: React.FC = () => {
       <Routes>
         <Route element={<MainLayout />}>
           <Route index element={<HomePage />} />
+          <Route path="pricing" element={<PricingPage />} />
           <Route path="about" element={<AboutPage />} />
           <Route path="dna-generator" element={<DnaGeneratorPage />} />
           <Route path="punnett-square" element={<PunnettSquarePage />} />

@@ -1,19 +1,12 @@
 import React, { useState, useMemo } from "react";
 import { FaDna } from "react-icons/fa";
 import { HiArrowRight, HiClipboardCopy, HiDownload, HiSwitchHorizontal } from "react-icons/hi";
-import useSEO from "../hooks/useSEO";
+import { Helmet } from "react-helmet-async";
 import { generateProteinSequence, type ProteinSequenceResponse } from "../services/proteinGenerator.api";
 
 const MAX_SEQUENCE_LENGTH = 100000; // 100k base pairs limit
 
 const DnaToProteinPage: React.FC = () => {
-  useSEO({
-    title: "Free DNA to Protein Translator - Codon to Amino Acid Converter",
-    description: "Free online DNA and RNA to protein sequence translator. Convert DNA to mRNA codons and amino acid sequences. See the Central Dogma in action - transcription and translation visualized.",
-    keywords: "DNA to protein, RNA to protein, codon translator, amino acid sequence, DNA translation, RNA transcription, central dogma, codon table, genetic code, protein synthesis, mRNA translator, free biology tool",
-    ogType: "website",
-  });
-
   const [inputSequence, setInputSequence] = useState("");
   const [copied, setCopied] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -55,7 +48,7 @@ const DnaToProteinPage: React.FC = () => {
     if (cleanSeq.length > MAX_SEQUENCE_LENGTH) {
       return { valid: false, error: `Sequence too long. Maximum ${MAX_SEQUENCE_LENGTH.toLocaleString()} base pairs allowed.` };
     }
-    
+
     // Check for invalid characters
     const invalidChars = cleanSeq.replace(/[ATGCU]/g, "");
     if (invalidChars.length > 0) {
@@ -78,7 +71,7 @@ const DnaToProteinPage: React.FC = () => {
 
   const handleTranslate = async () => {
     const cleaned = inputSequence.replace(/\s/g, "").toUpperCase();
-    
+
     const validation = validateSequence(cleaned);
     if (!validation.valid) {
       setError(validation.error || "Invalid sequence");
@@ -95,7 +88,7 @@ const DnaToProteinPage: React.FC = () => {
 
     try {
       const proteinResult = await generateProteinSequence({ rna_sequence: rnaSequence });
-      
+
       setResult({
         dna: dnaSequence,
         rna: rnaSequence,
@@ -149,7 +142,16 @@ const DnaToProteinPage: React.FC = () => {
   const cleanedLength = inputSequence.replace(/\s/g, "").length;
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-indigo-50/30 dark:from-slate-900 dark:to-slate-950">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-teal-50/30 dark:from-slate-900 dark:to-slate-950">
+      <Helmet>
+        <title>Free DNA to Protein Translator - Codon to Amino Acid Converter | Zygotrix</title>
+        <meta name="description" content="Free online DNA and RNA to protein sequence translator. Convert DNA to mRNA codons and amino acid sequences. See the Central Dogma in action - transcription and translation visualized." />
+        <meta name="keywords" content="DNA to protein, RNA to protein, codon translator, amino acid sequence, DNA translation, RNA transcription, central dogma, codon table, genetic code, protein synthesis, mRNA translator, free biology tool" />
+        <meta property="og:title" content="Free DNA to Protein Translator - Zygotrix" />
+        <meta property="og:description" content="Convert DNA and RNA to protein sequences and visualize the Central Dogma." />
+        <meta property="og:type" content="website" />
+        <meta property="og:image" content="https://ap-south-1.graphassets.com/cmg0d4awz0abu07pfgv3s80hg/cmg0o8wb80r7d07pd9fu2aywz" />
+      </Helmet>
       {/* JSON-LD for SEO */}
       <script
         type="application/ld+json"
@@ -168,11 +170,11 @@ const DnaToProteinPage: React.FC = () => {
       <div className="mx-auto max-w-4xl px-4 py-8">
         {/* Header */}
         <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 px-4 py-1.5 mb-2">
+          <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-500 to-emerald-500 px-4 py-1.5 mb-2">
             <FaDna className="w-4 h-4 text-white" />
             <span className="text-xs font-semibold uppercase tracking-wider text-white">Free Tool</span>
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+          <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-teal-600 to-emerald-600 dark:from-teal-400 dark:to-emerald-400 bg-clip-text text-transparent">
             DNA / RNA to Protein Translator
           </h1>
           <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
@@ -187,19 +189,18 @@ const DnaToProteinPage: React.FC = () => {
             <div className="flex items-center justify-between mb-3">
               <div className="flex items-center gap-3">
                 {cleanedLength > 0 && detectedType.type !== "unknown" && (
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${
-                    detectedType.type === "dna" 
-                      ? "bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400"
-                      : detectedType.type === "rna"
-                      ? "bg-green-100 dark:bg-green-900/50 text-green-600 dark:text-green-400"
+                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${detectedType.type === "dna"
+                    ? "bg-cyan-100 dark:bg-cyan-900/50 text-cyan-600 dark:text-cyan-400"
+                    : detectedType.type === "rna"
+                      ? "bg-emerald-100 dark:bg-emerald-900/50 text-emerald-600 dark:text-emerald-400"
                       : "bg-red-100 dark:bg-red-900/50 text-red-600 dark:text-red-400"
-                  }`}>
+                    }`}>
                     {detectedType.type === "dna" ? "🧬 DNA" : detectedType.type === "rna" ? "🔬 RNA" : "❌ Invalid"}
                   </span>
                 )}
                 <button
                   onClick={loadExample}
-                  className="text-xs text-indigo-600 dark:text-indigo-400 hover:underline cursor-pointer"
+                  className="text-xs text-teal-600 dark:text-teal-400 hover:underline cursor-pointer"
                 >
                   Load Example
                 </button>
@@ -213,14 +214,14 @@ const DnaToProteinPage: React.FC = () => {
                 </button>
               )}
             </div>
-            
+
             <textarea
               value={inputSequence}
               onChange={(e) => setInputSequence(e.target.value)}
               placeholder="Paste your DNA or RNA sequence here (e.g., ATGGCCATTGTAATG... or AUGGCCAUUGUAAUG...)"
-              className="w-full h-28 px-3 py-2 font-mono text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none"
+              className="w-full h-28 px-3 py-2 font-mono text-sm bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 resize-none"
             />
-            
+
             <div className="flex items-center justify-between mt-2">
               <div className="flex items-center gap-3">
                 <p className="text-xs text-slate-400">
@@ -235,7 +236,7 @@ const DnaToProteinPage: React.FC = () => {
               <button
                 onClick={handleTranslate}
                 disabled={loading || !inputSequence.trim() || detectedType.type === "invalid"}
-                className="px-4 py-2 bg-gradient-to-r from-indigo-500 to-purple-500 hover:from-indigo-600 hover:to-purple-600 text-white text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all flex items-center gap-2"
+                className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-600 hover:to-emerald-600 text-white text-sm font-medium rounded-lg disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-all flex items-center gap-2"
               >
                 {loading ? (
                   <>
@@ -272,14 +273,14 @@ const DnaToProteinPage: React.FC = () => {
                 {/* DNA */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                    <span className="text-xs font-semibold text-cyan-600 dark:text-cyan-400 uppercase tracking-wide">
                       DNA (5' → 3') {result.detectedType === "rna" && <span className="font-normal text-slate-400">(reverse-transcribed)</span>}
                     </span>
                     <button onClick={() => handleCopy(result.dna, "dna")} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded cursor-pointer">
-                      <HiClipboardCopy className={`w-4 h-4 ${copied === "dna" ? "text-green-500" : "text-slate-400"}`} />
+                      <HiClipboardCopy className={`w-4 h-4 ${copied === "dna" ? "text-emerald-500" : "text-slate-400"}`} />
                     </button>
                   </div>
-                  <div className="font-mono text-sm text-blue-700 dark:text-blue-300 bg-blue-50 dark:bg-blue-900/30 px-3 py-2 rounded-lg break-all max-h-24 overflow-y-auto">
+                  <div className="font-mono text-sm text-cyan-700 dark:text-cyan-300 bg-cyan-50 dark:bg-cyan-900/30 px-3 py-2 rounded-lg break-all max-h-24 overflow-y-auto">
                     {result.dna}
                   </div>
                 </div>
@@ -294,14 +295,14 @@ const DnaToProteinPage: React.FC = () => {
                 {/* RNA */}
                 <div>
                   <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-semibold text-green-600 dark:text-green-400 uppercase tracking-wide">
+                    <span className="text-xs font-semibold text-emerald-600 dark:text-emerald-400 uppercase tracking-wide">
                       mRNA Sequence {result.detectedType === "rna" && <span className="font-normal text-slate-400">(original input)</span>}
                     </span>
                     <button onClick={() => handleCopy(result.rna, "rna")} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-700 rounded cursor-pointer">
-                      <HiClipboardCopy className={`w-4 h-4 ${copied === "rna" ? "text-green-500" : "text-slate-400"}`} />
+                      <HiClipboardCopy className={`w-4 h-4 ${copied === "rna" ? "text-emerald-500" : "text-slate-400"}`} />
                     </button>
                   </div>
-                  <div className="font-mono text-sm text-green-700 dark:text-green-300 bg-green-50 dark:bg-green-900/30 px-3 py-2 rounded-lg break-all max-h-24 overflow-y-auto">
+                  <div className="font-mono text-sm text-emerald-700 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-900/30 px-3 py-2 rounded-lg break-all max-h-24 overflow-y-auto">
                     {result.rna}
                   </div>
                 </div>
@@ -317,29 +318,29 @@ const DnaToProteinPage: React.FC = () => {
                 {result.proteinResult.orfs.length > 0 ? (
                   <div className="space-y-3">
                     {result.proteinResult.orfs.slice(0, 5).map((orf, index) => (
-                      <div key={index} className="bg-purple-50 dark:bg-purple-900/20 rounded-lg p-3 border border-purple-200 dark:border-purple-800">
+                      <div key={index} className="bg-teal-50 dark:bg-teal-900/20 rounded-lg p-3 border border-teal-200 dark:border-teal-800">
                         <div className="flex items-center justify-between mb-2">
-                          <span className="text-xs font-semibold text-purple-600 dark:text-purple-400">
+                          <span className="text-xs font-semibold text-teal-600 dark:text-teal-400">
                             ORF {index + 1} (Position {orf.start_position + 1} - {orf.end_position}, {orf.length} aa)
                           </span>
                           <div className="flex gap-1">
-                            <button onClick={() => handleCopy(orf.protein_1letter, `orf-${index}`)} className="p-1 hover:bg-purple-100 dark:hover:bg-purple-800/50 rounded cursor-pointer">
-                              <HiClipboardCopy className={`w-4 h-4 ${copied === `orf-${index}` ? "text-green-500" : "text-purple-400"}`} />
+                            <button onClick={() => handleCopy(orf.protein_1letter, `orf-${index}`)} className="p-1 hover:bg-teal-100 dark:hover:bg-teal-800/50 rounded cursor-pointer">
+                              <HiClipboardCopy className={`w-4 h-4 ${copied === `orf-${index}` ? "text-emerald-500" : "text-teal-400"}`} />
                             </button>
-                            <button onClick={() => handleDownload(orf.protein_1letter, `orf_${index + 1}_protein.txt`)} className="p-1 hover:bg-purple-100 dark:hover:bg-purple-800/50 rounded cursor-pointer">
-                              <HiDownload className="w-4 h-4 text-purple-400" />
+                            <button onClick={() => handleDownload(orf.protein_1letter, `orf_${index + 1}_protein.txt`)} className="p-1 hover:bg-teal-100 dark:hover:bg-teal-800/50 rounded cursor-pointer">
+                              <HiDownload className="w-4 h-4 text-teal-400" />
                             </button>
                           </div>
                         </div>
-                        <div className="font-mono text-sm text-purple-700 dark:text-purple-300 break-all tracking-wider">
+                        <div className="font-mono text-sm text-teal-700 dark:text-teal-300 break-all tracking-wider">
                           {orf.protein_1letter}
                         </div>
-                        <div className="font-mono text-xs text-purple-500 dark:text-purple-400 mt-1 break-all">
+                        <div className="font-mono text-xs text-teal-500 dark:text-teal-400 mt-1 break-all">
                           {orf.protein_3letter}
                         </div>
                       </div>
                     ))}
-                    
+
                     {result.proteinResult.orfs.length > 5 && (
                       <p className="text-xs text-slate-500 text-center">
                         ... and {result.proteinResult.orfs.length - 5} more ORFs
@@ -378,77 +379,77 @@ const DnaToProteinPage: React.FC = () => {
         </div>
 
         {/* Info Card */}
-        <div className="mt-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-xl p-4 border border-indigo-200 dark:border-indigo-800">
-          <h3 className="text-sm font-semibold text-indigo-800 dark:text-indigo-300 mb-2 flex items-center gap-2">
+        <div className="mt-4 bg-cyan-50 dark:bg-cyan-900/20 rounded-xl p-4 border border-cyan-200 dark:border-cyan-800">
+          <h3 className="text-sm font-semibold text-cyan-800 dark:text-cyan-300 mb-2 flex items-center gap-2">
             <HiSwitchHorizontal className="w-4 h-4" />
             The Central Dogma
           </h3>
-          <p className="text-xs text-indigo-700 dark:text-indigo-400 leading-relaxed">
-            <strong>DNA → RNA → Protein</strong>: During transcription, DNA is converted to mRNA (T becomes U). 
-            During translation, each 3-nucleotide codon is read by ribosomes and matched to an amino acid. 
+          <p className="text-xs text-cyan-700 dark:text-cyan-400 leading-relaxed">
+            <strong>DNA → RNA → Protein</strong>: During transcription, DNA is converted to mRNA (T becomes U).
+            During translation, each 3-nucleotide codon is read by ribosomes and matched to an amino acid.
             This tool finds all Open Reading Frames (ORFs) - sequences that start with AUG (Methionine) and end with a stop codon (UAA, UAG, UGA).
           </p>
         </div>
 
         {/* Marketing CTA */}
-        <div className="mt-6 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-2xl p-6 text-white relative overflow-hidden">
+        <div className="mt-6 bg-gradient-to-r from-emerald-600 to-teal-600 rounded-2xl p-6 text-white relative overflow-hidden">
           {/* Background decoration */}
           <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-1/2 translate-x-1/2"></div>
           <div className="absolute bottom-0 left-0 w-24 h-24 bg-white/10 rounded-full translate-y-1/2 -translate-x-1/2"></div>
-          
+
           <div className="relative">
             <div className="flex items-center gap-2 mb-2">
-              <span className="text-xs font-semibold uppercase tracking-wider text-purple-200">Pro Features</span>
+              <span className="text-xs font-semibold uppercase tracking-wider text-emerald-200">Pro Features</span>
               <span className="px-2 py-0.5 bg-white/20 rounded-full text-[10px] font-bold">FREE</span>
             </div>
-            
+
             <h3 className="text-xl font-bold mb-2">
               Want Detailed Protein Analysis?
             </h3>
-            
-            <p className="text-sm text-purple-100 mb-4 max-w-lg">
-              Sign up for free to unlock advanced features including amino acid composition charts, 
+
+            <p className="text-sm text-emerald-100 mb-4 max-w-lg">
+              Sign up for free to unlock advanced features including amino acid composition charts,
               hydrophobicity analysis, molecular weight calculations, and sequence export options.
             </p>
-            
+
             <div className="flex flex-wrap gap-3 mb-4">
-              <div className="flex items-center gap-1.5 text-xs text-purple-200">
-                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-1.5 text-xs text-emerald-200">
+                <svg className="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span>Amino Acid Composition</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-purple-200">
-                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-1.5 text-xs text-emerald-200">
+                <svg className="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span>Hydrophobicity Plots</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-purple-200">
-                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-1.5 text-xs text-emerald-200">
+                <svg className="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span>Sequence Comparison</span>
               </div>
-              <div className="flex items-center gap-1.5 text-xs text-purple-200">
-                <svg className="w-4 h-4 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <div className="flex items-center gap-1.5 text-xs text-emerald-200">
+                <svg className="w-4 h-4 text-emerald-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                 </svg>
                 <span>Export to FASTA</span>
               </div>
             </div>
-            
+
             <div className="flex items-center gap-3">
               <a
                 href="/signup"
-                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-purple-600 font-semibold rounded-lg hover:bg-purple-50 transition-colors"
+                className="inline-flex items-center gap-2 px-5 py-2.5 bg-white text-emerald-600 font-semibold rounded-lg hover:bg-emerald-50 transition-colors"
               >
                 <span>Sign Up Free</span>
                 <HiArrowRight className="w-4 h-4" />
               </a>
               <a
                 href="/studio/protein-fold-generation"
-                className="text-sm text-purple-200 hover:text-white underline"
+                className="text-sm text-emerald-200 hover:text-white underline"
               >
                 Learn more →
               </a>

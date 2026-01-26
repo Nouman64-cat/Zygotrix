@@ -1,25 +1,20 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { FiLogOut, FiSun, FiMoon, FiChevronDown } from "react-icons/fi";
+import { FiSun, FiMoon, FiChevronDown } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
 import { LOGO_URL } from "../../config";
 
 import { PiDna } from "react-icons/pi";
-import { IoSchoolOutline } from "react-icons/io5";
-import { HiOutlineBeaker, HiSparkles } from "react-icons/hi";
 import { TbGrid4X4 } from "react-icons/tb";
 import { FaDna } from "react-icons/fa";
 
-const ZYGOTRIX_UNIVERSITY_URL = import.meta.env.VITE_ZYGOTRIX_UNIVERSITY_APP;
-const ZYGOTRIX_AI_URL = import.meta.env.VITE_ZYGOTRIX_AI_URL || "https://ai.zygotrix.com";
-
 const baseNavItems = [
-  { label: "Home", to: "/" },
-  { label: "About", to: "/about" },
-  { label: "Zygotrix AI", to: "/zygoai" },
-  { label: "Blogs", to: "/blogs" },
+  { label: "Platform", to: "/" },
+  { label: "Teams", to: "/about" },
+  { label: "Resources", to: "/blogs" },
+  { label: "Pricing", to: "/pricing" },
 ];
 
 const toolsDropdownItems = [
@@ -47,7 +42,6 @@ const Navbar: React.FC = () => {
     setMobileToolsOpen(false);
   }, [location]);
 
-  // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (toolsDropdownRef.current && !toolsDropdownRef.current.contains(event.target as Node)) {
@@ -61,12 +55,12 @@ const Navbar: React.FC = () => {
 
   const navItems = useMemo(() => {
     return baseNavItems;
-  }, [user]);
+  }, []);
 
   const linkClasses = ({ isActive }: { isActive: boolean }) =>
-    `relative px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg ${isActive
-      ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
-      : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
+    `text-sm font-normal transition-colors ${isActive
+      ? "text-gray-900 dark:text-white"
+      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
     }`;
 
   const isToolsActive = toolsDropdownItems.some(item => location.pathname === item.to);
@@ -76,239 +70,152 @@ const Navbar: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-50">
-      {/* Glassmorphism background */}
-      <div className="absolute inset-0 bg-white/80 dark:bg-slate-950/80 backdrop-blur-xl" />
-
-      {/* Subtle gradient border at bottom */}
-      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#1E3A8A]/20 dark:via-[#3B82F6]/30 to-transparent" />
-
-      <div className="relative mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-        {/* Logo */}
-        <Link to="/" className="group flex items-center gap-3">
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A] to-[#10B981] rounded-xl blur-lg opacity-0 group-hover:opacity-40 transition-opacity duration-300" />
-            <img src={LOGO_URL} alt="Zygotrix" className="relative w-10 h-10 object-contain" />
-          </div>
-          <div className="hidden sm:block">
-            <p className="text-base font-bold tracking-tight text-slate-900 dark:text-white">
+    <header className="sticky top-0 z-50 bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-800/50">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        <div className="flex h-16 items-center justify-between">
+          {/* Logo */}
+          <Link to="/" className="flex items-center gap-2">
+            <img src={LOGO_URL} alt="Zygotrix" className="w-6 h-6 object-contain" />
+            <span className="text-base font-semibold text-gray-900 dark:text-white">
               Zygotrix
-            </p>
-            <p className="text-[10px] font-medium text-slate-500 dark:text-slate-400 uppercase tracking-wider">
-              Genetics Intelligence
-            </p>
-          </div>
-        </Link>
+            </span>
+          </Link>
 
-        {/* Desktop Navigation */}
-        <nav className="hidden items-center gap-1 lg:flex">
-          {navItems.map((item) => (
-            <NavLink key={item.to} to={item.to} className={linkClasses}>
-              {item.label}
-            </NavLink>
-          ))}
+          {/* Desktop Navigation - Centered */}
+          <nav className="hidden lg:flex items-center gap-8 absolute left-1/2 transform -translate-x-1/2">
+            {navItems.map((item) => (
+              <NavLink key={item.to} to={item.to} className={linkClasses}>
+                {item.label}
+              </NavLink>
+            ))}
 
-          {/* Tools Dropdown */}
-          <div
-            className="relative"
-            ref={toolsDropdownRef}
-            onMouseEnter={() => setToolsDropdownOpen(true)}
-            onMouseLeave={() => setToolsDropdownOpen(false)}
-          >
-            <button
-              onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
-              className={`flex items-center gap-1 px-4 py-2 text-sm font-medium transition-all duration-200 rounded-lg cursor-pointer ${isToolsActive
-                ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
-                : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                }`}
+            {/* Tools Dropdown */}
+            <div
+              className="relative"
+              ref={toolsDropdownRef}
+              onMouseEnter={() => setToolsDropdownOpen(true)}
+              onMouseLeave={() => setToolsDropdownOpen(false)}
             >
-              <HiOutlineBeaker className="w-4 h-4" />
-              <span>Tools</span>
-              <FiChevronDown className={`w-4 h-4 transition-transform duration-200 ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
+              <button
+                onClick={() => setToolsDropdownOpen(!toolsDropdownOpen)}
+                className={`flex items-center gap-1 text-sm font-normal transition-colors ${isToolsActive
+                  ? "text-gray-900 dark:text-white"
+                  : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white"
+                  }`}
+              >
+                <span>Tools</span>
+                <FiChevronDown className={`w-3.5 h-3.5 transition-transform ${toolsDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+
+              {toolsDropdownOpen && (
+                <div className="absolute top-full left-0 pt-2 w-52 z-[100]">
+                  <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1">
+                    {toolsDropdownItems.map((item) => (
+                      <Link
+                        key={item.to}
+                        to={item.to}
+                        className={`flex items-center gap-3 px-4 py-2 text-sm transition-colors ${location.pathname === item.to
+                          ? "text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700"
+                          : "text-gray-600 dark:text-gray-400 hover:bg-gray-50 dark:hover:bg-gray-700"
+                          }`}
+                      >
+                        <item.icon className="w-4 h-4" />
+                        <span>{item.label}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </nav>
+
+          {/* Desktop Actions */}
+          <div className="hidden lg:flex items-center gap-4">
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+              aria-label="Toggle theme"
+            >
+              {theme === "dark" ? <FiSun className="w-4 h-4" /> : <FiMoon className="w-4 h-4" />}
             </button>
 
-            {/* Dropdown Menu */}
-            {toolsDropdownOpen && (
-              <div className="absolute top-full left-0 pt-2 w-56 z-50">
-                <div className="rounded-xl border border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 p-2">
-                  {toolsDropdownItems.map((item) => (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      className={`flex items-center gap-3 px-4 py-3 rounded-lg text-sm font-medium transition-all duration-200 ${location.pathname === item.to
-                        ? "text-[#1E3A8A] dark:text-[#3B82F6] bg-blue-50 dark:bg-blue-500/10"
-                        : "text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-50 dark:hover:bg-slate-800/50"
-                        }`}
-                    >
-                      <item.icon className="w-5 h-5" />
-                      <span>{item.label}</span>
-                    </Link>
-                  ))}
-                </div>
-              </div>
+            {user ? (
+              <>
+                <Link
+                  to="/studio"
+                  className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+                >
+                  Open Studio
+                </Link>
+                <button
+                  type="button"
+                  onClick={handleSignOut}
+                  className="text-sm font-normal text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 transition-colors"
+                >
+                  Sign out
+                </button>
+              </>
+            ) : (
+              <>
+                <Link
+                  to="/signin"
+                  state={{ from: { pathname: location.pathname } }}
+                  className="text-sm font-normal text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/studio"
+                  className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+                >
+                  Get started
+                </Link>
+              </>
             )}
           </div>
-        </nav>
 
-        {/* Desktop Actions */}
-        <div className="hidden items-center gap-2 lg:flex">
-          {/* Theme Toggle */}
+          {/* Mobile Menu Button */}
           <button
-            onClick={toggleTheme}
-            className="relative p-2.5 rounded-xl text-slate-500 dark:text-slate-400 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
-            aria-label="Toggle theme"
+            type="button"
+            className="p-2 text-gray-600 dark:text-gray-400 lg:hidden"
+            onClick={() => setMobileOpen((value) => !value)}
+            aria-label="Toggle navigation"
           >
-            {theme === "dark" ? (
-              <FiSun className="w-5 h-5" />
-            ) : (
-              <FiMoon className="w-5 h-5" />
-            )}
+            <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              {mobileOpen ? <path d="M6 6l12 12M6 18L18 6" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+            </svg>
           </button>
-
-          {/* University Link */}
-          <a
-            href={ZYGOTRIX_UNIVERSITY_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="p-2.5 rounded-xl text-[#10B981] dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-500/10 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all duration-200"
-            title="Zygotrix University"
-          >
-            <IoSchoolOutline className="h-5 w-5" />
-          </a>
-
-          {/* Zygotrix AI App Link */}
-          <a
-            href={ZYGOTRIX_AI_URL}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-[#3B82F6] dark:text-blue-400 bg-blue-50 dark:bg-blue-500/10 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all duration-200 text-sm font-medium"
-            title="Zygotrix AI - Standalone Agent App"
-          >
-            <HiSparkles className="h-4 w-4" />
-            <span className="hidden xl:inline">AI App</span>
-          </a>
-
-          {user ? (
-            <>
-              {/* Studio Button */}
-              <Link
-                to="/studio"
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] text-white font-medium text-sm shadow-lg shadow-[#1E3A8A]/25 dark:shadow-[#3B82F6]/25 hover:shadow-[#1E3A8A]/40 dark:hover:shadow-[#3B82F6]/40 hover:scale-[1.02] transition-all duration-200"
-              >
-                <PiDna className="h-4 w-4" />
-                <span>Studio</span>
-              </Link>
-
-              {/* Sign Out */}
-              <button
-                type="button"
-                onClick={handleSignOut}
-                className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-500/10 transition-all duration-200"
-              >
-                <FiLogOut className="h-4 w-4" />
-                <span className="text-sm font-medium">Sign out</span>
-              </button>
-            </>
-          ) : (
-            <>
-              {/* Sign In */}
-              <Link
-                to="/signin"
-                state={{ from: { pathname: location.pathname } }}
-                className="px-4 py-2.5 rounded-xl text-sm font-medium text-slate-600 dark:text-slate-300 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200"
-              >
-                Sign in
-              </Link>
-            </>
-          )}
         </div>
-
-        {/* Mobile Menu Button */}
-        <button
-          type="button"
-          className="relative p-2.5 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 transition-all duration-200 lg:hidden"
-          onClick={() => setMobileOpen((value) => !value)}
-          aria-label="Toggle navigation"
-        >
-          <svg
-            className="h-5 w-5"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-          >
-            {mobileOpen ? (
-              <path d="M6 6l12 12M6 18L18 6" />
-            ) : (
-              <path d="M4 7h16M4 12h16M4 17h16" />
-            )}
-          </svg>
-        </button>
       </div>
 
       {/* Mobile Menu */}
       {mobileOpen && (
-        <div className="relative lg:hidden">
-          <div className="absolute inset-x-0 top-0 mx-4 mt-1 rounded-2xl border border-slate-200/50 dark:border-slate-700/50 bg-white dark:bg-slate-900 shadow-xl shadow-slate-200/50 dark:shadow-slate-950/50 p-4 space-y-2">
-            {/* Theme Toggle Row */}
-            <div className="flex justify-end mb-2">
-              <button
-                onClick={toggleTheme}
-                className="p-2 rounded-lg text-slate-400 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] hover:bg-slate-100 dark:hover:bg-slate-800 transition-all"
-                aria-label="Toggle theme"
-              >
-                {theme === "dark" ? (
-                  <FiSun className="w-5 h-5" />
-                ) : (
-                  <FiMoon className="w-5 h-5" />
-                )}
-              </button>
-            </div>
-
-            {/* Nav Links */}
+        <div className="lg:hidden border-t border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900">
+          <div className="px-6 py-4 space-y-1">
             {navItems.map((item) => (
               <NavLink
                 key={item.to}
                 to={item.to}
                 className={({ isActive }) =>
-                  `block rounded-xl px-4 py-3 text-base font-medium transition-all ${isActive
-                    ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
-                    : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                  }`
+                  `block py-2 text-sm ${isActive ? "text-gray-900 dark:text-white" : "text-gray-600 dark:text-gray-400"}`
                 }
               >
                 {item.label}
               </NavLink>
             ))}
-
-            {/* Mobile Tools Dropdown */}
             <div>
               <button
                 onClick={() => setMobileToolsOpen(!mobileToolsOpen)}
-                className={`w-full flex items-center justify-between rounded-xl px-4 py-3 text-base font-medium transition-all cursor-pointer ${isToolsActive
-                  ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
-                  : "text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                  }`}
+                className="w-full flex items-center justify-between py-2 text-sm text-gray-600 dark:text-gray-400"
               >
-                <div className="flex items-center gap-2">
-                  <HiOutlineBeaker className="w-5 h-5" />
-                  <span>Tools</span>
-                </div>
-                <FiChevronDown className={`w-5 h-5 transition-transform duration-200 ${mobileToolsOpen ? 'rotate-180' : ''}`} />
+                <span>Tools</span>
+                <FiChevronDown className={`w-4 h-4 transition-transform ${mobileToolsOpen ? 'rotate-180' : ''}`} />
               </button>
-
               {mobileToolsOpen && (
-                <div className="mt-1 ml-4 space-y-1">
+                <div className="ml-4 space-y-1 mt-1">
                   {toolsDropdownItems.map((item) => (
-                    <Link
-                      key={item.to}
-                      to={item.to}
-                      className={`flex items-center gap-3 rounded-xl px-4 py-2.5 text-sm font-medium transition-all ${location.pathname === item.to
-                        ? "bg-blue-50 dark:bg-blue-500/10 text-[#1E3A8A] dark:text-[#3B82F6]"
-                        : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800"
-                        }`}
-                    >
+                    <Link key={item.to} to={item.to} className="flex items-center gap-2 py-2 text-sm text-gray-600 dark:text-gray-400">
                       <item.icon className="w-4 h-4" />
                       <span>{item.label}</span>
                     </Link>
@@ -316,59 +223,27 @@ const Navbar: React.FC = () => {
                 </div>
               )}
             </div>
-
-            {/* External Apps */}
-            <div className="flex gap-2">
-              <a
-                href={ZYGOTRIX_AI_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-medium bg-blue-50 dark:bg-blue-500/10 text-[#3B82F6] dark:text-blue-400 hover:bg-blue-100 dark:hover:bg-blue-500/20 transition-all"
-              >
-                <HiSparkles className="w-5 h-5" />
-                <span>AI App</span>
-              </a>
-              <a
-                href={ZYGOTRIX_UNIVERSITY_URL}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex-1 flex items-center justify-center gap-2 rounded-xl px-4 py-3 text-base font-medium bg-emerald-50 dark:bg-emerald-500/10 text-[#10B981] dark:text-emerald-400 hover:bg-emerald-100 dark:hover:bg-emerald-500/20 transition-all"
-              >
-                <IoSchoolOutline className="w-5 h-5" />
-                <span>University</span>
-              </a>
+            <div className="pt-4 space-y-2">
+              {user ? (
+                <>
+                  <Link to="/studio" className="block w-full px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium text-center">
+                    Open Studio
+                  </Link>
+                  <button onClick={handleSignOut} className="block w-full text-sm text-gray-600 dark:text-gray-400 text-center py-2">
+                    Sign out
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link to="/signin" className="block text-sm text-gray-600 dark:text-gray-400 text-center py-2">
+                    Sign in
+                  </Link>
+                  <Link to="/studio" className="block w-full px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium text-center">
+                    Get started
+                  </Link>
+                </>
+              )}
             </div>
-
-            {/* Divider */}
-            <div className="h-px bg-gradient-to-r from-transparent via-[#1E3A8A]/20 dark:via-[#3B82F6]/30 to-transparent my-3" />
-
-            {/* Auth Actions */}
-            {user ? (
-              <div className="space-y-2">
-                <Link
-                  to="/studio"
-                  className="flex items-center justify-center gap-2 w-full px-4 py-3 rounded-xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] text-white font-medium shadow-lg shadow-[#1E3A8A]/25 dark:shadow-[#3B82F6]/25"
-                >
-                  <PiDna className="h-5 w-5" />
-                  <span>Open Studio</span>
-                </Link>
-                <button
-                  type="button"
-                  onClick={handleSignOut}
-                  className="w-full rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-300 hover:text-red-500 dark:hover:text-red-400 hover:border-red-200 dark:hover:border-red-500/30 transition-all"
-                >
-                  Sign out
-                </button>
-              </div>
-            ) : (
-              <Link
-                to="/signin"
-                state={{ from: { pathname: location.pathname } }}
-                className="block rounded-xl border border-slate-200 dark:border-slate-700 px-4 py-3 text-center font-medium text-slate-600 dark:text-slate-300 hover:border-[#1E3A8A]/30 dark:hover:border-[#3B82F6]/50 hover:text-[#1E3A8A] dark:hover:text-[#3B82F6] transition-all"
-              >
-                Sign in
-              </Link>
-            )}
           </div>
         </div>
       )}
@@ -377,4 +252,3 @@ const Navbar: React.FC = () => {
 };
 
 export default Navbar;
-

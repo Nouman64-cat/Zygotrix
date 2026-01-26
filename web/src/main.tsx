@@ -7,17 +7,20 @@ import { ThemeProvider } from "./context/ThemeContext";
 import { ToastProvider } from "./context/ToastContext";
 import "./index.css";
 import App from "./App.tsx";
+import { HelmetProvider } from "react-helmet-async";
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <BrowserRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <ToastProvider>
-            <App />
-          </ToastProvider>
-        </ThemeProvider>
-      </AuthProvider>
-    </BrowserRouter>
-  </StrictMode>
+  <HelmetProvider>
+    <StrictMode>
+      <BrowserRouter>
+        <AuthProvider>
+          <ThemeProvider>
+            <ToastProvider>
+              <App />
+            </ToastProvider>
+          </ThemeProvider>
+        </AuthProvider>
+      </BrowserRouter>
+    </StrictMode>
+  </HelmetProvider>
 );

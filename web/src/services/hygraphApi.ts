@@ -20,7 +20,7 @@ type GraphQLResponse<T> = {
 };
 
 const BLOGS_QUERY = `query BlogsPageData {
-  blogs {
+  blogs(orderBy: date_DESC) {
     date
     excerpt
     image {
@@ -234,7 +234,7 @@ export const fetchBlogBySlug = async (
 };
 
 const BLOGS_BY_AUTHOR_QUERY = `query BlogsByAuthor($authorName: String!) {
-  blogs(where: { authors_some: { name: $authorName } }) {
+  blogs(where: { authors_some: { name: $authorName } }, orderBy: date_DESC) {
     date
     excerpt
     image {

@@ -25,9 +25,12 @@ const Navbar = () => {
 
     return (
         <nav
-            className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${scrolled
-                ? 'bg-white/80 backdrop-blur-md border-b border-slate-200 py-3'
-                : 'bg-transparent py-5'
+            className={`fixed z-50 transition-all duration-300
+                top-0 left-0 right-0 
+                md:top-6 md:left-1/2 md:-translate-x-1/2 md:right-auto md:w-[90%] md:max-w-6xl md:rounded-2xl md:border md:border-slate-200/50 md:shadow-lg md:backdrop-blur-xl
+                ${scrolled
+                    ? 'bg-white/80 backdrop-blur-md border-b border-slate-200 py-3 md:bg-white/90 md:py-3'
+                    : 'bg-transparent py-5 md:bg-white/70 md:py-4'
                 }`}
         >
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -40,7 +43,7 @@ const Navbar = () => {
                             height={32}
                             className="w-8 h-8 group-hover:animate-pulse-glow"
                         />
-                        <span className="text-2xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
+                        <span className="text-xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-slate-900 to-slate-700">
                             Zygotrix AI
                         </span>
                     </Link>

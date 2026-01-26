@@ -1,4 +1,4 @@
-import React from 'react';
+import Link from 'next/link';
 import Button from './Button';
 import { FaPlay, FaArrowRight } from 'react-icons/fa';
 
@@ -15,87 +15,140 @@ const Hero = () => {
             <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 grid lg:grid-cols-2 gap-12 items-center">
                 {/* Left Content */}
                 <div className="text-center lg:text-left space-y-8 animate-slide-in-left">
-                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-medium">
+                    <div className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-emerald-50 border border-emerald-100 text-emerald-700 text-sm font-medium">
                         <span className="relative flex h-2 w-2">
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        Next Generation AI Reasoning
+                        AI-Powered Comp Bio & Genomics
                     </div>
 
                     <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-800 leading-tight">
-                        Evolve Your <br />
+                        Research Faster with <br />
                         <span className="inline-block bg-gradient-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent animate-gradient-shift">
-                            Digital DNA
+                            Hands-Free AI
                         </span>
                     </h1>
 
                     <p className="text-xl text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed">
-                        Zygotrix harnesses the power of evolutionary algorithms and neural networks to create self-adapting AI solutions that grow with your business.
+                        Control your research with voice. Perform deep academic sweeps, run GWAS analyses, and access scholar mode without touching your keyboard.
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                        <Button variant="primary" size="lg" className="w-full sm:w-auto">
-                            Start Evolution <FaArrowRight />
-                        </Button>
-                        <Button variant="outline" size="lg" className="w-full sm:w-auto">
-                            <FaPlay className="text-sm mr-2" /> Watch Demo
-                        </Button>
+                        <Link href="https://chat.zygotrix.com/register" className="w-full sm:w-auto">
+                            <Button variant="primary" size="lg" className="w-full">
+                                Start Researching <FaArrowRight />
+                            </Button>
+                        </Link>
+                        <Link href="#demo" className="w-full sm:w-auto">
+                            <Button variant="outline" size="lg" className="w-full">
+                                <FaPlay className="text-sm mr-2" /> See Voice Demo
+                            </Button>
+                        </Link>
                     </div>
 
                     <div className="pt-8 flex items-center justify-center lg:justify-start gap-8 text-slate-400 text-sm font-medium">
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-green-500" />
-                            99.9% Uptime
+                            Deep Research
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-slate-500" />
-                            SOC2 Certified
+                            Scholar Mode
                         </div>
                         <div className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-purple-500" />
-                            Enterprise Ready
+                            Voice Control
                         </div>
                     </div>
                 </div>
 
-                {/* Right Content - Visual Representation */}
-                <div className="relative animate-slide-in-right hidden lg:block">
-                    {/* Abstract DNA Representation using CSS borders/animations */}
-                    <div className="relative w-full aspect-square flex items-center justify-center">
-                        <div className="absolute w-[400px] h-[400px] border border-slate-200 rounded-full animate-spin-slow opacity-30" />
-                        <div className="absolute w-[300px] h-[300px] border border-slate-300 rounded-full animate-spin-slow opacity-30" style={{ animationDirection: 'reverse', animationDuration: '15s' }} />
+                {/* Right Content - Modern Abstract Visualization */}
+                <div className="relative animate-slide-in-right hidden lg:flex items-center justify-end h-full min-h-[600px] w-full">
 
-                        {/* Central Glowing Core */}
-                        <div className="relative w-40 h-40 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full blur-xl animate-pulse-glow opacity-50" />
-                        <div className="absolute w-32 h-32 bg-slate-900 rounded-full flex items-center justify-center border border-slate-700 z-10 shadow-2xl">
-                            <span className="text-4xl">🧬</span>
-                        </div>
+                    {/* Main container for the 3D composition */}
+                    <div className="relative w-[500px] h-[500px] perspective-1000">
 
-                        {/* Floating Cards */}
-                        <div className="absolute top-20 right-20 bg-white p-4 rounded-xl shadow-xl border border-slate-100 animate-float-up" style={{ animationDelay: '0s' }}>
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
-                                    98%
-                                </div>
-                                <div>
-                                    <div className="text-xs text-slate-500">Optimization</div>
-                                    <div className="text-sm font-bold text-slate-800">Peak Efficiency</div>
+                        {/* Background Gradients/Glows */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-emerald-100/30 rounded-full blur-[100px]" />
+
+                        {/* Central "Deep Research" Hub */}
+                        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-80 h-80 relative z-10">
+                            {/* Rotating Rings */}
+                            <div className="absolute inset-0 border border-slate-200 rounded-full animate-[spin_10s_linear_infinite]" />
+                            <div className="absolute inset-4 border border-dashed border-slate-300 rounded-full animate-[spin_15s_linear_infinite_reverse]" />
+                            <div className="absolute inset-12 border border-emerald-100 rounded-full animate-pulse" />
+
+                            {/* Core Element */}
+                            <div className="absolute inset-0 flex items-center justify-center">
+                                <div className="w-32 h-32 bg-white rounded-full shadow-[0_0_50px_rgba(16,185,129,0.15)] flex items-center justify-center border border-slate-50 relative z-20">
+                                    <div className="text-4xl animate-bounce-slow">🧬</div>
+
+                                    {/* Scanning Beam effect */}
+                                    <div className="absolute inset-0 rounded-full overflow-hidden">
+                                        <div className="w-full h-1/2 bg-gradient-to-b from-transparent to-emerald-500/10 absolute top-0 animate-scan" />
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <div className="absolute bottom-20 left-10 bg-white p-4 rounded-xl shadow-xl border border-slate-100 animate-float-up" style={{ animationDelay: '1.5s' }}>
-                            <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 rounded-lg bg-emerald-100 flex items-center justify-center text-emerald-600">
-                                    <span className="text-lg">⚡</span>
-                                </div>
-                                <div>
-                                    <div className="text-xs text-slate-500">Speed</div>
-                                    <div className="text-sm font-bold text-slate-800">Real-time Processing</div>
+                            {/* Orbiting Satellite Cards */}
+
+                            {/* Card 1: Voice Control */}
+                            <div className="absolute -top-6 left-1/2 -translate-x-1/2 w-48 bg-white/90 backdrop-blur-md p-3 rounded-xl border border-white/50 shadow-xl animate-float" style={{ animationDelay: '0s' }}>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-red-50 flex items-center justify-center text-red-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path fillRule="evenodd" d="M7 4a3 3 0 016 0v6a3 3 0 11-6 0V4zM5.5 9.643a.75.75 0 00-1.5 0V10c0 3.06 2.29 5.585 5.25 5.954V17.5h-1.5a.75.75 0 000 1.5h4.5a.75.75 0 000-1.5h-1.5v-1.546A6.001 6.001 0 0016 10v-.357a.75.75 0 00-1.5 0V10a4.5 4.5 0 01-9 0v-.357z" clipRule="evenodd" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Voice Command</div>
+                                        <div className="text-xs font-semibold text-slate-700">"Run GWAS Analysis"</div>
+                                    </div>
                                 </div>
                             </div>
+
+                            {/* Card 2: Paper Analysis */}
+                            <div className="absolute top-1/2 -right-24 -translate-y-1/2 w-52 bg-white/90 backdrop-blur-md p-3 rounded-xl border border-white/50 shadow-xl animate-float" style={{ animationDelay: '1.5s' }}>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center text-emerald-500">
+                                        <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" viewBox="0 0 20 20" fill="currentColor">
+                                            <path d="M10.75 2.75a.75.75 0 00-1.5 0v8.614L6.295 8.235a.75.75 0 10-1.09 1.03l4.25 4.5a.75.75 0 001.09 0l4.25-4.5a.75.75 0 00-1.09-1.03l-2.965 3.129V2.75z" />
+                                            <path d="M3.5 12.75a.75.75 0 00-1.5 0v2.5A2.75 2.75 0 004.75 18h10.5A2.75 2.75 0 0018 15.25v-2.5a.75.75 0 00-1.5 0v2.5c0 .69-.56 1.25-1.25 1.25H4.75c-.69 0-1.25-.56-1.25-1.25v-2.5z" />
+                                        </svg>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Deep Research</div>
+                                        <div className="text-xs font-semibold text-slate-700">142 Papers Processed</div>
+                                        <div className="w-full bg-slate-100 h-1 mt-1.5 rounded-full overflow-hidden">
+                                            <div className="bg-emerald-500 w-3/4 h-full" />
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            {/* Card 3: Scholar Mode */}
+                            <div className="absolute -bottom-6 left-1/4 -translate-x-1/2 w-48 bg-white/90 backdrop-blur-md p-3 rounded-xl border border-white/50 shadow-xl animate-float" style={{ animationDelay: '0.8s' }}>
+                                <div className="flex items-center gap-3">
+                                    <div className="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center text-purple-500">
+                                        <span className="text-sm">🎓</span>
+                                    </div>
+                                    <div>
+                                        <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">Scholar Mode</div>
+                                        <div className="text-xs font-semibold text-slate-700">Citation Ready</div>
+                                    </div>
+                                </div>
+                            </div>
+
                         </div>
+
+                        {/* Connection Lines (SVG) */}
+                        <svg className="absolute inset-0 pointer-events-none opacity-20" style={{ zIndex: 0 }}>
+                            <path d="M250 250 L250 170" stroke="currentColor" strokeDasharray="4 4" className="text-slate-400" />
+                            <path d="M250 250 L380 250" stroke="currentColor" strokeDasharray="4 4" className="text-slate-400" />
+                            <path d="M250 250 L180 330" stroke="currentColor" strokeDasharray="4 4" className="text-slate-400" />
+                        </svg>
+
                     </div>
                 </div>
             </div>

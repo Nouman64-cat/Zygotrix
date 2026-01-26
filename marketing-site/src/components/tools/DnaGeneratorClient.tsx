@@ -200,29 +200,29 @@ const DnaGeneratorClient: React.FC = () => {
     ];
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 via-emerald-50/30 to-cyan-50/20 dark:from-slate-900 dark:via-emerald-950/20 dark:to-slate-950">
+        <div className="min-h-screen bg-white dark:bg-gray-950">
 
             {/* Hero Section */}
             <section className="relative pt-20 pb-16 overflow-hidden">
                 {/* Animated Background */}
                 <div className="absolute inset-0 overflow-hidden pointer-events-none">
                     <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
-                    <div className="absolute top-40 right-20 w-96 h-96 bg-cyan-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
-                    <div className="absolute bottom-20 left-1/3 w-64 h-64 bg-teal-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
+                    <div className="absolute top-40 right-20 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+                    <div className="absolute bottom-20 left-1/3 w-64 h-64 bg-emerald-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "2s" }}></div>
                 </div>
 
                 <div className="relative mx-auto max-w-7xl px-6">
                     {/* Header */}
                     <div className="text-center max-w-4xl mx-auto mb-12">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-600 to-teal-600 px-6 py-2.5 mb-8 shadow-lg shadow-emerald-500/25">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-2.5 mb-8 shadow-lg shadow-gray-900/25">
                             <GiDna2 className="w-5 h-5 text-white animate-spin" style={{ animationDuration: "3s" }} />
                             <span className="text-sm font-semibold uppercase tracking-[0.2em] text-white">
                                 Free DNA Generator Tool
                             </span>
                         </div>
 
-                        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 dark:from-emerald-400 dark:via-teal-400 dark:to-cyan-400 mb-6 leading-tight">
-                            Generate DNA Sequences
+                        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+                            Generate <span className="text-emerald-500 dark:text-emerald-400">DNA Sequences</span>
                         </h1>
 
                         <p className="text-xl text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
@@ -239,11 +239,11 @@ const DnaGeneratorClient: React.FC = () => {
                             <p className="text-sm text-slate-600 dark:text-slate-400">Max Base Pairs</p>
                         </div>
                         <div className="text-center px-6 border-l border-slate-200 dark:border-slate-700">
-                            <p className="text-4xl font-bold text-cyan-600 dark:text-cyan-400">&lt; 10s</p>
+                            <p className="text-4xl font-bold text-gray-900 dark:text-white">&lt; 10s</p>
                             <p className="text-sm text-slate-600 dark:text-slate-400">Generation Time</p>
                         </div>
                         <div className="text-center px-6 border-l border-slate-200 dark:border-slate-700">
-                            <p className="text-4xl font-bold text-teal-600 dark:text-teal-400">100%</p>
+                            <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">100%</p>
                             <p className="text-sm text-slate-600 dark:text-slate-400">Free to Use</p>
                         </div>
                     </div>
@@ -253,7 +253,7 @@ const DnaGeneratorClient: React.FC = () => {
             {/* Generator Section */}
             <section className="relative py-12">
                 <div className="mx-auto max-w-4xl px-6">
-                    <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 md:p-10 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-emerald-200/40 dark:shadow-emerald-950/40">
+                    <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 md:p-10 border border-slate-200 dark:border-slate-700 shadow-2xl shadow-gray-200/40 dark:shadow-gray-950/40">
 
                         {!result ? (
                             <>
@@ -311,7 +311,7 @@ const DnaGeneratorClient: React.FC = () => {
                                             step={0.01}
                                             value={gcContent}
                                             onChange={(e) => setGcContent(parseFloat(e.target.value))}
-                                            className="w-full h-4 bg-gradient-to-r from-cyan-400 via-emerald-500 to-teal-400 rounded-lg appearance-none cursor-pointer"
+                                            className="w-full h-4 bg-gray-200 rounded-lg appearance-none cursor-pointer accent-emerald-500"
                                             disabled={loading}
                                         />
                                         <div className="flex justify-between text-xs text-slate-500 dark:text-slate-400 mt-2">
@@ -329,7 +329,7 @@ const DnaGeneratorClient: React.FC = () => {
                                 {!loading ? (
                                     <button
                                         onClick={handleGenerate}
-                                        className="w-full bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-700 hover:via-teal-700 hover:to-cyan-700 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-3 text-lg cursor-pointer"
+                                        className="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-5 px-8 rounded-xl transition-all duration-300 shadow-xl hover:shadow-2xl hover:-translate-y-1 flex items-center justify-center gap-3 text-lg cursor-pointer"
                                     >
                                         <GiDna1 className="w-7 h-7" />
                                         <span>Generate DNA Sequence</span>
@@ -364,7 +364,7 @@ const DnaGeneratorClient: React.FC = () => {
                                             {/* Progress Bar */}
                                             <div className="relative h-3 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                                                 <div
-                                                    className="absolute inset-y-0 left-0 bg-gradient-to-r from-emerald-500 via-teal-500 to-cyan-500 rounded-full transition-all duration-300 ease-out"
+                                                    className="absolute inset-y-0 left-0 bg-emerald-500 rounded-full transition-all duration-300 ease-out"
                                                     style={{ width: `${progress}%` }}
                                                 >
                                                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
@@ -536,18 +536,18 @@ const DnaGeneratorClient: React.FC = () => {
             </section>
 
             {/* Studio Features Section */}
-            <section className="py-20 bg-gradient-to-b from-transparent via-slate-100/50 to-white dark:via-slate-900/50 dark:to-slate-900">
+            <section className="py-20 bg-white dark:bg-gray-950">
                 <div className="mx-auto max-w-7xl px-6">
                     <div className="text-center max-w-3xl mx-auto mb-16">
-                        <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-teal-100 to-emerald-100 dark:from-teal-900/50 dark:to-emerald-900/50 px-5 py-2 mb-6 border border-teal-200 dark:border-teal-800">
-                            <HiLockClosed className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-                            <span className="text-xs font-semibold uppercase tracking-wider text-teal-700 dark:text-teal-300">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-5 py-2 mb-6 border border-gray-800">
+                            <HiLockClosed className="w-4 h-4 text-emerald-400" />
+                            <span className="text-xs font-semibold uppercase tracking-wider text-white">
                                 Pro Features
                             </span>
                         </div>
 
                         <h2 className="text-4xl sm:text-5xl font-bold text-slate-900 dark:text-white mb-6">
-                            Unlock Powerful <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-600 to-cyan-600">Studio Tools</span>
+                            Unlock Powerful <span className="text-emerald-500 dark:text-emerald-400">Studio Tools</span>
                         </h2>
 
                         <p className="text-lg text-slate-600 dark:text-slate-400">
@@ -562,10 +562,10 @@ const DnaGeneratorClient: React.FC = () => {
                             <Link
                                 key={feature.title}
                                 href={feature.path}
-                                className="group relative bg-white dark:bg-slate-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
+                                className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-2xl hover:-translate-y-2 transition-all duration-300"
                             >
                                 {/* Icon */}
-                                <div className={`inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-br ${feature.gradient} text-white shadow-lg mb-5 group-hover:scale-110 transition-transform duration-300`}>
+                                <div className="inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gray-900 text-white shadow-lg mb-5 group-hover:scale-110 transition-transform duration-300">
                                     <feature.icon className="w-7 h-7" />
                                 </div>
 
@@ -584,9 +584,6 @@ const DnaGeneratorClient: React.FC = () => {
                                     <span>Try Now</span>
                                     <HiArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
                                 </div>
-
-                                {/* Hover Glow */}
-                                <div className={`absolute inset-0 rounded-2xl bg-gradient-to-br ${feature.gradient} opacity-0 group-hover:opacity-5 transition-opacity pointer-events-none`}></div>
                             </Link>
                         ))}
                     </div>
@@ -596,7 +593,7 @@ const DnaGeneratorClient: React.FC = () => {
                         <div className="inline-flex flex-col sm:flex-row items-center gap-4">
                             <Link
                                 href="/signup"
-                                className="inline-flex items-center gap-3 px-8 py-4 bg-gradient-to-r from-emerald-600 to-cyan-600 hover:from-emerald-700 hover:to-cyan-700 text-white rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                                className="inline-flex items-center gap-3 px-8 py-4 bg-gray-900 hover:bg-gray-800 text-white rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
                             >
                                 <FaBrain className="w-5 h-5" />
                                 <span>Create Free Account</span>

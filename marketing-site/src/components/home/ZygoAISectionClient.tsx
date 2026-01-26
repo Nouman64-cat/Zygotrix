@@ -41,7 +41,7 @@ const ZygoAISectionClient: React.FC = () => {
     ];
 
     return (
-        <section className="relative bg-gradient-to-br from-slate-50 via-blue-50/30 to-emerald-50/20 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 py-24 overflow-hidden">
+        <section className="relative bg-white dark:bg-gray-950 py-24 overflow-hidden">
             {/* Animated background elements */}
             <div className="absolute inset-0 overflow-hidden pointer-events-none">
                 <div className="absolute top-20 left-10 w-72 h-72 bg-[#1E3A8A]/10 dark:bg-[#3B82F6]/10 rounded-full blur-3xl animate-pulse"></div>
@@ -55,8 +55,8 @@ const ZygoAISectionClient: React.FC = () => {
             <div className="relative mx-auto max-w-7xl px-6">
                 {/* Header */}
                 <div className="text-center max-w-3xl mx-auto mb-16">
-                    <h2 className="text-4xl sm:text-5xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] dark:from-[#3B82F6] dark:via-[#10B981] dark:to-[#059669] mb-6">
-                        Meet {botName}
+                    <h2 className="text-4xl sm:text-5xl font-bold text-gray-900 dark:text-white mb-6">
+                        Meet <span className="text-emerald-500 dark:text-emerald-400">{botName}</span>
                     </h2>
 
                     <p className="text-lg text-slate-700 dark:text-slate-300 leading-relaxed">
@@ -74,7 +74,7 @@ const ZygoAISectionClient: React.FC = () => {
                             style={{ animationDelay: `${index * 100}ms` }}
                         >
                             {/* Icon */}
-                            <div className={`inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gradient-to-br ${feature.gradient} text-white shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300`}>
+                            <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gray-900 dark:bg-gray-700 text-white shadow-lg mb-4 group-hover:scale-110 transition-transform duration-300">
                                 <feature.icon className="w-6 h-6" />
                             </div>
 
@@ -96,20 +96,20 @@ const ZygoAISectionClient: React.FC = () => {
 
                 {/* CTA Card */}
                 <div className="relative max-w-4xl mx-auto">
-                    <div className="relative bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] rounded-3xl p-8 md:p-12 shadow-2xl shadow-[#1E3A8A]/20 dark:shadow-[#3B82F6]/20 overflow-hidden">
+                    <div className="relative bg-gray-900 rounded-3xl p-8 md:p-12 shadow-2xl shadow-gray-900/20 dark:shadow-black/40 overflow-hidden">
                         {/* Animated sparkles background */}
                         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                            <RiSparklingFill className="absolute top-4 right-8 w-8 h-8 text-white/20 animate-pulse" />
-                            <RiSparklingFill className="absolute bottom-8 left-12 w-6 h-6 text-white/20 animate-pulse" style={{ animationDelay: "0.5s" }} />
-                            <RiSparklingFill className="absolute top-1/2 right-20 w-4 h-4 text-white/20 animate-pulse" style={{ animationDelay: "1s" }} />
+                            <RiSparklingFill className="absolute top-4 right-8 w-8 h-8 text-white/5 animate-pulse" />
+                            <RiSparklingFill className="absolute bottom-8 left-12 w-6 h-6 text-white/5 animate-pulse" style={{ animationDelay: "0.5s" }} />
+                            <RiSparklingFill className="absolute top-1/2 right-20 w-4 h-4 text-white/5 animate-pulse" style={{ animationDelay: "1s" }} />
                         </div>
 
                         <div className="relative flex flex-col md:flex-row items-center justify-between gap-8">
                             <div className="flex-1 text-center md:text-left">
                                 <h3 className="text-2xl md:text-3xl font-bold text-white mb-3">
-                                    Experience {botName} in Action
+                                    Experience <span className="text-emerald-400">{botName}</span> in Action
                                 </h3>
-                                <p className="text-blue-100 text-base md:text-lg">
+                                <p className="text-gray-300 text-base md:text-lg">
                                     Discover how AI can transform your genetics research workflow.
                                     Explore all the features and capabilities of our intelligent assistant.
                                 </p>
@@ -117,10 +117,10 @@ const ZygoAISectionClient: React.FC = () => {
 
                             <a
                                 href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
-                                className="flex-shrink-0 group inline-flex items-center gap-3 px-8 py-4 bg-white text-[#1E3A8A] rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
+                                className="flex-shrink-0 group inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
                             >
                                 <span>Try {botName}</span>
-                                <HiOutlineSparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
+                                <HiOutlineSparkles className="w-5 h-5 text-emerald-600 group-hover:rotate-12 transition-transform" />
                             </a>
                         </div>
                     </div>

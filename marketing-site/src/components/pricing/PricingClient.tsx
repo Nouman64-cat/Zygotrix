@@ -73,7 +73,7 @@ const PricingClient: React.FC = () => {
                     </div>
 
                     {/* PRO Tier */}
-                    <div className="relative bg-gradient-to-br from-emerald-500 via-teal-500 to-cyan-500 rounded-2xl p-[2px] shadow-2xl hover:shadow-emerald-500/25 transition-all duration-300">
+                    <div className="relative bg-white dark:bg-gray-800 rounded-2xl shadow-xl border-2 border-emerald-500 p-8 hover:shadow-2xl transition-all duration-300">
                         {/* Recommended Badge */}
                         <div className="absolute -top-4 left-1/2 transform -translate-x-1/2 z-10">
                             <span className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-xs font-bold bg-yellow-400 text-gray-900 shadow-lg">
@@ -82,13 +82,13 @@ const PricingClient: React.FC = () => {
                             </span>
                         </div>
 
-                        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 h-full">
+                        <div className="h-full">
                             <div className="mb-6">
                                 <h3 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
                                     Zygotrix PRO
                                 </h3>
                                 <div className="flex items-baseline gap-2 mb-4">
-                                    <span className="text-5xl font-bold bg-gradient-to-r from-emerald-600 to-cyan-600 bg-clip-text text-transparent">
+                                    <span className="text-5xl font-bold text-emerald-500">
                                         Rs. 3,000
                                     </span>
                                     <span className="text-gray-500 dark:text-gray-400">/month</span>
@@ -100,8 +100,8 @@ const PricingClient: React.FC = () => {
 
                             <ul className="space-y-4 mb-8">
                                 <li className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
-                                        <FaMicroscope className="w-3.5 h-3.5 text-blue-500" />
+                                    <div className="w-6 h-6 rounded-lg bg-gray-900 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                                        <FaMicroscope className="w-3.5 h-3.5 text-white" />
                                     </div>
                                     <div>
                                         <span className="text-gray-900 dark:text-white font-semibold block">
@@ -113,8 +113,8 @@ const PricingClient: React.FC = () => {
                                     </div>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <div className="w-6 h-6 rounded-lg bg-purple-500/20 flex items-center justify-center flex-shrink-0">
-                                        <FaGraduationCap className="w-3.5 h-3.5 text-purple-500" />
+                                    <div className="w-6 h-6 rounded-lg bg-gray-900 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                                        <FaGraduationCap className="w-3.5 h-3.5 text-white" />
                                     </div>
                                     <div>
                                         <span className="text-gray-900 dark:text-white font-semibold block">
@@ -126,25 +126,33 @@ const PricingClient: React.FC = () => {
                                     </div>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <MdBolt className="w-6 h-6 text-emerald-500 flex-shrink-0 mt-0.5" />
+                                    <div className="w-6 h-6 rounded-lg bg-gray-900 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                                        <MdBolt className="w-3.5 h-3.5 text-white" />
+                                    </div>
                                     <span className="text-gray-700 dark:text-gray-300">
                                         <strong className="text-gray-900 dark:text-white">10x more tokens</strong> per day for extended conversations
                                     </span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <MdMic className="w-6 h-6 text-cyan-500 flex-shrink-0 mt-0.5" />
+                                    <div className="w-6 h-6 rounded-lg bg-gray-900 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                                        <MdMic className="w-3.5 h-3.5 text-white" />
+                                    </div>
                                     <span className="text-gray-700 dark:text-gray-300">
                                         Advanced voice features & AI responses
                                     </span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <MdAnalytics className="w-6 h-6 text-indigo-500 flex-shrink-0 mt-0.5" />
+                                    <div className="w-6 h-6 rounded-lg bg-gray-900 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                                        <MdAnalytics className="w-3.5 h-3.5 text-white" />
+                                    </div>
                                     <span className="text-gray-700 dark:text-gray-300">
                                         GWAS analysis & protein structure prediction
                                     </span>
                                 </li>
                                 <li className="flex items-start gap-3">
-                                    <FaStar className="w-6 h-6 text-yellow-500 flex-shrink-0 mt-0.5" />
+                                    <div className="w-6 h-6 rounded-lg bg-gray-900 dark:bg-gray-700 flex items-center justify-center flex-shrink-0">
+                                        <FaStar className="w-3.5 h-3.5 text-white" />
+                                    </div>
                                     <span className="text-gray-700 dark:text-gray-300">
                                         Priority support
                                     </span>
@@ -153,7 +161,7 @@ const PricingClient: React.FC = () => {
 
                             <a
                                 href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
-                                className="block w-full text-center py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold transition-all duration-200 shadow-lg shadow-emerald-500/25"
+                                className="block w-full text-center py-3.5 px-6 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-semibold transition-all duration-200 shadow-lg shadow-gray-900/25"
                             >
                                 Upgrade to PRO
                             </a>

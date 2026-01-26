@@ -53,16 +53,16 @@ const PunnettSquareClient: React.FC = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-50 to-emerald-50/30 dark:from-slate-900 dark:to-slate-950 flex items-center justify-center p-4">
+        <div className="min-h-screen bg-white dark:bg-gray-950 flex items-center justify-center p-4">
             <div className="w-full max-w-2xl">
                 {/* Header */}
                 <div className="text-center mb-6">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-4 py-1.5 mb-2">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-4 py-1.5 mb-2">
                         <TbGrid4X4 className="w-4 h-4 text-white" />
                         <span className="text-xs font-semibold uppercase tracking-wider text-white">Free Genetics Tool</span>
                     </div>
-                    <h1 className="text-2xl font-bold bg-gradient-to-r from-emerald-700 to-teal-600 dark:from-emerald-400 dark:to-teal-400 bg-clip-text text-transparent">
-                        Punnett Square Calculator
+                    <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
+                        Punnett Square <span className="text-emerald-500 dark:text-emerald-400">Calculator</span>
                     </h1>
                     <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">Click the headers to edit parent alleles</p>
                 </div>

@@ -140,19 +140,19 @@ const Navbar: React.FC = () => {
                     {/* Desktop Actions */}
                     <div className="hidden lg:flex items-center gap-4">
                         {/* Theme Toggle */}
-                        <button
+                        {/* <button
                             onClick={toggleTheme}
                             className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                             aria-label="Toggle theme"
                         >
                             {theme === "dark" ? <FiSun className="w-4 h-4" /> : <FiMoon className="w-4 h-4" />}
-                        </button>
+                        </button> */}
 
                         {user ? (
                             <>
                                 <a
                                     href={STUDIO_URL}
-                                    className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+                                    className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-all hover:ring-2 hover:ring-emerald-500/50 shadow-sm hover:shadow-emerald-500/20"
                                 >
                                     Open Studio
                                 </a>
@@ -174,7 +174,7 @@ const Navbar: React.FC = () => {
                                 </a>
                                 <a
                                     href={`${STUDIO_URL}/signup`}
-                                    className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+                                    className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-all hover:ring-2 hover:ring-emerald-500/50 shadow-sm hover:shadow-emerald-500/20"
                                 >
                                     Get started
                                 </a>

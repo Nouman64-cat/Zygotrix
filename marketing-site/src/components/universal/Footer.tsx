@@ -117,11 +117,11 @@ const Footer: React.FC = () => {
     };
 
     return (
-        <footer className="relative mt-[-1px] overflow-hidden bg-gradient-to-b from-slate-900 via-slate-950 to-black text-slate-200">
+        <footer className="relative mt-[-1px] overflow-hidden bg-gray-950 text-slate-200">
             {/* Animated Background Elements */}
             <div className="absolute inset-0 pointer-events-none">
                 {/* Top gradient border */}
-                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-[#10B981]/60 to-transparent" />
+                <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-emerald-500/60 to-transparent" />
 
                 {/* Molecular grid pattern */}
                 <div
@@ -138,7 +138,7 @@ const Footer: React.FC = () => {
                         <defs>
                             <linearGradient id="footerDnaGrad" x1="0%" y1="0%" x2="100%" y2="100%">
                                 <stop offset="0%" stopColor="#10B981" />
-                                <stop offset="100%" stopColor="#3B82F6" />
+                                <stop offset="100%" stopColor="#059669" />
                             </linearGradient>
                         </defs>
                         <circle cx="20" cy="20" r="3" fill="url(#footerDnaGrad)" />
@@ -158,15 +158,15 @@ const Footer: React.FC = () => {
 
                 <div className="absolute -right-16 bottom-20 w-48 h-48 opacity-[0.06] animate-float-up">
                     <svg viewBox="0 0 100 100" className="w-full h-full">
-                        <circle cx="50" cy="50" r="40" fill="none" stroke="#3B82F6" strokeWidth="0.5" />
-                        <circle cx="50" cy="50" r="30" fill="none" stroke="#10B981" strokeWidth="0.5" />
-                        <circle cx="50" cy="50" r="20" fill="none" stroke="#3B82F6" strokeWidth="0.5" />
+                        <circle cx="50" cy="50" r="40" fill="none" stroke="#10B981" strokeWidth="0.5" />
+                        <circle cx="50" cy="50" r="30" fill="none" stroke="#059669" strokeWidth="0.5" />
+                        <circle cx="50" cy="50" r="20" fill="none" stroke="#10B981" strokeWidth="0.5" />
                     </svg>
                 </div>
 
-                {/* Gradient overlays */}
-                <div className="absolute -left-40 -bottom-40 w-80 h-80 rounded-full bg-[#10B981]/10 blur-[100px]" />
-                <div className="absolute -right-40 -top-40 w-80 h-80 rounded-full bg-[#3B82F6]/10 blur-[100px]" />
+                {/* Graduate overlays */}
+                <div className="absolute -left-40 -bottom-40 w-80 h-80 rounded-full bg-emerald-500/10 blur-[100px]" />
+                <div className="absolute -right-40 -top-40 w-80 h-80 rounded-full bg-emerald-500/5 blur-[100px]" />
             </div>
 
             {/* Main Footer Content */}
@@ -174,7 +174,7 @@ const Footer: React.FC = () => {
                 {/* Top Section - Newsletter CTA */}
                 <div className="mb-16 lg:mb-20">
                     <div className={`relative mx-auto max-w-2xl rounded-2xl border transition-all duration-500 ${isFocused
-                        ? "border-[#10B981]/40 bg-gradient-to-br from-[#10B981]/10 via-transparent to-[#3B82F6]/10"
+                        ? "border-emerald-500/40 bg-gradient-to-br from-emerald-500/10 via-transparent to-emerald-500/5"
                         : "border-white/10 bg-white/[0.02]"
                         } p-8 lg:p-10 backdrop-blur-sm`}>
                         {/* Glassmorphism effect */}
@@ -183,10 +183,10 @@ const Footer: React.FC = () => {
                         <div className="relative text-center">
                             <div className="inline-flex items-center gap-2 mb-4">
                                 <span className="flex h-2 w-2">
-                                    <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-[#10B981] opacity-75"></span>
-                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-[#10B981]"></span>
+                                    <span className="animate-ping absolute inline-flex h-2 w-2 rounded-full bg-emerald-500 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                                 </span>
-                                <span className="text-xs font-semibold  text-[#10B981]">
+                                <span className="text-xs font-semibold  text-emerald-500">
                                     Stay Updated
                                 </span>
                             </div>
@@ -202,7 +202,7 @@ const Footer: React.FC = () => {
 
                             <form className="mx-auto max-w-md" onSubmit={handleSubscribe}>
                                 <div className={`relative flex items-center gap-2 rounded-full p-1.5 transition-all duration-300 ${isFocused
-                                    ? "bg-white/10 ring-2 ring-[#10B981]/50 shadow-lg shadow-[#10B981]/20"
+                                    ? "bg-white/10 ring-2 ring-emerald-500/50 shadow-lg shadow-emerald-500/20"
                                     : "bg-white/5 ring-1 ring-white/10"
                                     }`}>
                                     <div className="relative flex-1">
@@ -231,7 +231,7 @@ const Footer: React.FC = () => {
                                     <button
                                         type="submit"
                                         disabled={isSubmitting}
-                                        className="group relative inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#10B981]/25 transition-all duration-300 hover:shadow-xl hover:shadow-[#10B981]/30 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
+                                        className="group relative inline-flex items-center gap-2 rounded-full bg-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all duration-300 hover:bg-emerald-600 hover:shadow-xl hover:shadow-emerald-500/30 hover:scale-[1.02] disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
                                     >
                                         {isSubmitting ? (
                                             <>
@@ -260,7 +260,7 @@ const Footer: React.FC = () => {
                                 {/* Status Messages */}
                                 <div className="h-6 mt-3">
                                     {message && (
-                                        <p className={`text-sm flex items-center justify-center gap-2 animate-fade-in ${message.type === "success" ? "text-[#10B981]" : "text-red-400"
+                                        <p className={`text-sm flex items-center justify-center gap-2 animate-fade-in ${message.type === "success" ? "text-emerald-500" : "text-red-400"
                                             }`}>
                                             {message.type === "success" ? (
                                                 <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -286,17 +286,16 @@ const Footer: React.FC = () => {
                     <div className="lg:col-span-4">
                         <div className="group inline-flex items-center gap-3 mb-6">
                             <div className="relative">
-                                <div className="absolute inset-0 rounded-xl bg-gradient-to-br from-[#10B981]/20 to-[#3B82F6]/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
-                                {/* Replaced Image with stylized text or icon if logo missing, but trying to use a simple text or DNA icon */}
-                                <div className="relative w-12 h-12 flex items-center justify-center bg-gradient-to-br from-[#10B981] to-[#3B82F6] rounded-xl text-white font-bold text-xl">
-                                    Z
+                                <div className="absolute inset-0 rounded-xl bg-emerald-500/20 blur-lg opacity-0 group-hover:opacity-100 transition-opacity" />
+                                <div className="relative w-12 h-12 flex items-center justify-center bg-gray-900 border border-emerald-500/30 rounded-xl text-white font-bold text-xl shadow-lg group-hover:border-emerald-500 transition-colors">
+                                    <span className="text-emerald-500">Z</span>
                                 </div>
                             </div>
                             <div className="leading-tight">
                                 <p className="text-lg font-bold text-white">
                                     Zygotrix
                                 </p>
-                                <p className="text-xs font-medium bg-gradient-to-r from-[#10B981] to-[#3B82F6] bg-clip-text text-transparent">
+                                <p className="text-xs font-medium text-emerald-500">
                                     Genetics Intelligence Engine
                                 </p>
                             </div>
@@ -314,7 +313,7 @@ const Footer: React.FC = () => {
                                     key={social.name}
                                     href={social.href}
                                     aria-label={social.name}
-                                    className="group relative flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-slate-400 transition-all duration-300 hover:bg-gradient-to-br hover:from-[#10B981]/20 hover:to-[#3B82F6]/20 hover:border-[#10B981]/30 hover:text-white hover:scale-110"
+                                    className="group relative flex items-center justify-center w-10 h-10 rounded-xl bg-white/5 border border-white/10 text-slate-400 transition-all duration-300 hover:bg-emerald-500/10 hover:border-emerald-500/30 hover:text-white hover:scale-110"
                                 >
                                     {social.icon}
                                 </a>
@@ -339,7 +338,7 @@ const Footer: React.FC = () => {
                                                     rel="noopener noreferrer"
                                                     className="group inline-flex items-center gap-2 text-sm text-slate-400 transition-all duration-200 hover:text-white"
                                                 >
-                                                    <span className="w-0 h-px bg-gradient-to-r from-[#10B981] to-[#3B82F6] transition-all duration-300 group-hover:w-3" />
+                                                    <span className="w-0 h-px bg-emerald-500 transition-all duration-300 group-hover:w-3" />
                                                     {link.label}
                                                 </a>
                                             ) : (
@@ -347,7 +346,7 @@ const Footer: React.FC = () => {
                                                     href={link.to}
                                                     className="group inline-flex items-center gap-2 text-sm text-slate-400 transition-all duration-200 hover:text-white"
                                                 >
-                                                    <span className="w-0 h-px bg-gradient-to-r from-[#10B981] to-[#3B82F6] transition-all duration-300 group-hover:w-3" />
+                                                    <span className="w-0 h-px bg-emerald-500 transition-all duration-300 group-hover:w-3" />
                                                     {link.label}
                                                 </Link>
                                             )}
@@ -367,7 +366,7 @@ const Footer: React.FC = () => {
 
                     <div className="flex items-center gap-4">
                         <span className="inline-flex items-center gap-2 text-xs text-slate-500">
-                            <span className="flex h-1.5 w-1.5 rounded-full bg-[#10B981]" />
+                            <span className="flex h-1.5 w-1.5 rounded-full bg-emerald-500" />
                             All systems operational
                         </span>
                     </div>

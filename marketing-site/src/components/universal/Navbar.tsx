@@ -75,6 +75,8 @@ const Navbar: React.FC = () => {
         signOut();
     };
 
+    const STUDIO_URL = process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com";
+
     return (
         <header className="sticky top-0 z-50 bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-800/50">
             <div className="mx-auto max-w-7xl px-6 lg:px-8">
@@ -148,12 +150,12 @@ const Navbar: React.FC = () => {
 
                         {user ? (
                             <>
-                                <Link
-                                    href="/studio"
+                                <a
+                                    href={STUDIO_URL}
                                     className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
                                 >
                                     Open Studio
-                                </Link>
+                                </a>
                                 <button
                                     type="button"
                                     onClick={handleSignOut}
@@ -164,18 +166,18 @@ const Navbar: React.FC = () => {
                             </>
                         ) : (
                             <>
-                                <Link
-                                    href="/signin"
+                                <a
+                                    href={`${STUDIO_URL}/signin`}
                                     className="text-sm font-normal text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                                 >
                                     Sign in
-                                </Link>
-                                <Link
-                                    href="/studio"
+                                </a>
+                                <a
+                                    href={`${STUDIO_URL}/signup`}
                                     className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
                                 >
                                     Get started
-                                </Link>
+                                </a>
                             </>
                         )}
                     </div>
@@ -229,21 +231,21 @@ const Navbar: React.FC = () => {
                         <div className="pt-4 space-y-2">
                             {user ? (
                                 <>
-                                    <Link href="/studio" className="block w-full px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium text-center">
+                                    <a href={STUDIO_URL} className="block w-full px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium text-center">
                                         Open Studio
-                                    </Link>
+                                    </a>
                                     <button onClick={handleSignOut} className="block w-full text-sm text-gray-600 dark:text-gray-400 text-center py-2">
                                         Sign out
                                     </button>
                                 </>
                             ) : (
                                 <>
-                                    <Link href="/signin" className="block text-sm text-gray-600 dark:text-gray-400 text-center py-2">
+                                    <a href={`${STUDIO_URL}/signin`} className="block text-sm text-gray-600 dark:text-gray-400 text-center py-2">
                                         Sign in
-                                    </Link>
-                                    <Link href="/studio" className="block w-full px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium text-center">
+                                    </a>
+                                    <a href={`${STUDIO_URL}/signup`} className="block w-full px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium text-center">
                                         Get started
-                                    </Link>
+                                    </a>
                                 </>
                             )}
                         </div>

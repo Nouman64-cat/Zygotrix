@@ -64,9 +64,12 @@ const PricingClient: React.FC = () => {
                             </li>
                         </ul>
 
-                        <button className="w-full py-3 px-6 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold transition-colors duration-200">
+                        <a
+                            href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
+                            className="block w-full text-center py-3 px-6 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold transition-colors duration-200"
+                        >
                             Get Started Free
-                        </button>
+                        </a>
                     </div>
 
                     {/* PRO Tier */}
@@ -148,9 +151,12 @@ const PricingClient: React.FC = () => {
                                 </li>
                             </ul>
 
-                            <button className="w-full py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold transition-all duration-200 shadow-lg shadow-emerald-500/25">
+                            <a
+                                href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
+                                className="block w-full text-center py-3.5 px-6 rounded-xl bg-gradient-to-r from-emerald-500 to-cyan-500 hover:from-emerald-600 hover:to-cyan-600 text-white font-semibold transition-all duration-200 shadow-lg shadow-emerald-500/25"
+                            >
                                 Upgrade to PRO
-                            </button>
+                            </a>
 
                             <p className="text-xs text-gray-500 dark:text-gray-400 text-center mt-4">
                                 Cancel anytime. No questions asked.

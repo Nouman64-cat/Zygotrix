@@ -20,12 +20,12 @@ const HeroSection: React.FC = () => {
                         </p>
 
                         <div className="flex flex-wrap items-center gap-4 pt-2">
-                            <Link
-                                href="/studio"
+                            <a
+                                href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
                                 className="px-6 py-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
                             >
                                 Get started
-                            </Link>
+                            </a>
                             <a
                                 href="https://calendly.com/working-nouman-ejaz/zygotrix-demo"
                                 target="_blank"

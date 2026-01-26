@@ -115,13 +115,13 @@ const ZygoAISectionClient: React.FC = () => {
                                 </p>
                             </div>
 
-                            <Link
-                                href="/product/ai"
+                            <a
+                                href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
                                 className="flex-shrink-0 group inline-flex items-center gap-3 px-8 py-4 bg-white text-[#1E3A8A] rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
                             >
-                                <span>Explore {botName}</span>
+                                <span>Try {botName}</span>
                                 <HiOutlineSparkles className="w-5 h-5 group-hover:rotate-12 transition-transform" />
-                            </Link>
+                            </a>
                         </div>
                     </div>
                 </div>

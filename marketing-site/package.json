@@ -6,7 +6,9 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "deploy": "scp -i ~/.ssh/id_ed25519_do -r out/* root@164.92.190.232:/var/www/site_zyg_marketing/",
+    "windows:deploy": "scp -i C:/Users/Nouman.Ejaz/.ssh/id_ed25519_zyg_deploy -r out/* root@164.92.190.232:/var/www/site_zyg_marketing/"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.19",

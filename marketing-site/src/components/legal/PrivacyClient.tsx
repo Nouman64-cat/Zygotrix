@@ -132,21 +132,21 @@ const PrivacyClient: React.FC = () => {
 
             {/* Gradient Orbs */}
             <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-blue-400/10 to-purple-400/10 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-emerald-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
+                <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-emerald-400/10 to-teal-400/10 rounded-full blur-3xl animate-pulse" />
+                <div className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-teal-400/10 to-cyan-400/10 rounded-full blur-3xl animate-pulse delay-1000" />
             </div>
 
             <div className="relative z-10 mx-auto max-w-4xl px-6 pb-20 pt-24">
                 {/* Header */}
                 <div className="text-center mb-16">
-                    <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 px-6 py-3 backdrop-blur-sm border border-blue-500/20 dark:border-blue-500/30 mb-6">
-                        <div className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 animate-pulse" />
-                        <span className="text-sm font-semibold text-blue-600 dark:text-blue-300">
+                    <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-emerald-500/10 to-teal-500/10 dark:from-emerald-500/20 dark:to-teal-500/20 px-6 py-3 backdrop-blur-sm border border-emerald-500/20 dark:border-emerald-500/30 mb-6">
+                        <div className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-400 to-teal-400 animate-pulse" />
+                        <span className="text-sm font-semibold text-emerald-600 dark:text-emerald-300">
                             Legal
                         </span>
                     </div>
 
-                    <h1 className="text-4xl font-bold leading-tight bg-gradient-to-r from-slate-900 via-blue-800 to-purple-800 dark:from-white dark:via-blue-200 dark:to-purple-200 bg-clip-text text-transparent sm:text-5xl mb-4">
+                    <h1 className="text-4xl font-bold leading-tight bg-gradient-to-r from-slate-900 via-emerald-800 to-teal-800 dark:from-white dark:via-emerald-200 dark:to-teal-200 bg-clip-text text-transparent sm:text-5xl mb-4">
                         Privacy Policy
                     </h1>
 
@@ -165,18 +165,18 @@ const PrivacyClient: React.FC = () => {
                     {sections.map((section, index) => (
                         <div
                             key={section.title}
-                            className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-lg shadow-slate-200/50 dark:shadow-slate-500/10 backdrop-blur-sm transition-all hover:shadow-xl hover:border-blue-200 dark:hover:border-blue-500/30"
+                            className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-lg shadow-slate-200/50 dark:shadow-slate-500/10 backdrop-blur-sm transition-all hover:shadow-xl hover:border-emerald-200 dark:hover:border-emerald-500/30"
                             style={{ animationDelay: `${index * 100}ms` }}
                         >
                             {/* Hover gradient overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-br from-blue-400/5 via-transparent to-purple-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-400/5 via-transparent to-teal-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                             <div className="relative">
                                 <div className="flex items-start gap-4 mb-4">
-                                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-[#10B981] to-[#3B82F6] flex items-center justify-center text-white font-bold text-sm shadow-lg">
+                                    <div className="flex-shrink-0 w-8 h-8 rounded-lg bg-gradient-to-br from-emerald-500 to-teal-500 flex items-center justify-center text-white font-bold text-sm shadow-lg">
                                         {index + 1}
                                     </div>
-                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
+                                    <h2 className="text-xl font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">
                                         {section.title}
                                     </h2>
                                 </div>
@@ -196,13 +196,13 @@ const PrivacyClient: React.FC = () => {
                     <div className="inline-flex flex-wrap justify-center gap-4">
                         <Link
                             href="/terms"
-                            className="inline-flex items-center justify-center rounded-full border-2 border-blue-200 dark:border-blue-400/50 bg-white/50 dark:bg-slate-800/80 backdrop-blur-sm px-6 py-3 text-sm font-semibold text-blue-600 dark:text-blue-300 transition-all hover:border-blue-400 hover:bg-white dark:hover:bg-slate-700 hover:scale-105"
+                            className="inline-flex items-center justify-center rounded-full border-2 border-emerald-200 dark:border-emerald-400/50 bg-white/50 dark:bg-slate-800/80 backdrop-blur-sm px-6 py-3 text-sm font-semibold text-emerald-600 dark:text-emerald-300 transition-all hover:border-emerald-400 hover:bg-white dark:hover:bg-slate-700 hover:scale-105"
                         >
                             View Terms of Service
                         </Link>
                         <Link
                             href="/contact"
-                            className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-[#10B981]/25 transition-all hover:shadow-xl hover:shadow-[#10B981]/30 hover:scale-105"
+                            className="inline-flex items-center justify-center rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition-all hover:shadow-xl hover:shadow-emerald-500/30 hover:scale-105"
                         >
                             Contact Us
                         </Link>

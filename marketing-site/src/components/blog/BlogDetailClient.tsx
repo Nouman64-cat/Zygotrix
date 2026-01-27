@@ -22,48 +22,48 @@ const formatDate = (value: string): string => {
 
 const markdownComponents = {
     h1: ({ children }: any) => (
-        <h1 className="text-6xl font-bold text-slate-900 dark:text-white mt-8 mb-4 first:mt-0">
+        <h1 className="text-6xl font-bold text-gray-900 dark:text-white mt-8 mb-4 first:mt-0">
             {children}
         </h1>
     ),
     h2: ({ children }: any) => (
-        <h2 className="text-5xl font-bold text-slate-900 dark:text-white mt-8 mb-4">
+        <h2 className="text-5xl font-bold text-gray-900 dark:text-white mt-8 mb-4">
             {children}
         </h2>
     ),
     h3: ({ children }: any) => (
-        <h3 className="text-4xl font-bold text-slate-900 dark:text-white mt-6 mb-3">
+        <h3 className="text-4xl font-bold text-gray-900 dark:text-white mt-6 mb-3">
             {children}
         </h3>
     ),
     h4: ({ children }: any) => (
-        <h4 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mt-6 mb-3">
+        <h4 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mt-6 mb-3">
             {children}
         </h4>
     ),
     h5: ({ children }: any) => (
-        <h5 className="text-base font-semibold text-slate-700 dark:text-slate-300 mt-6 mb-3 uppercase tracking-wide">
+        <h5 className="text-base font-semibold text-gray-700 dark:text-gray-300 mt-6 mb-3 uppercase tracking-wide">
             {children}
         </h5>
     ),
     h6: ({ children }: any) => (
-        <h6 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-5 mb-3 uppercase tracking-[0.2em]">
+        <h6 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-5 mb-3 uppercase tracking-[0.2em]">
             {children}
         </h6>
     ),
     p: ({ children }: any) => (
-        <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed mb-6">
+        <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-6">
             {children}
         </p>
     ),
     ul: ({ children }: any) => (
-        <ul className="list-disc list-outside ml-6 text-base text-slate-600 dark:text-slate-300 mb-6 space-y-2">{children}</ul>
+        <ul className="list-disc list-outside ml-6 text-base text-gray-600 dark:text-gray-300 mb-6 space-y-2">{children}</ul>
     ),
     ol: ({ children }: any) => (
-        <ol className="list-decimal list-outside ml-6 text-base text-slate-600 dark:text-slate-300 mb-6 space-y-2">{children}</ol>
+        <ol className="list-decimal list-outside ml-6 text-base text-gray-600 dark:text-gray-300 mb-6 space-y-2">{children}</ol>
     ),
     blockquote: ({ children }: any) => (
-        <blockquote className="border-l-4 border-blue-500 pl-6 py-2 italic text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 rounded-r-lg mb-6">
+        <blockquote className="border-l-4 border-emerald-500 pl-6 py-2 italic text-gray-600 dark:text-gray-300 bg-gray-50 dark:bg-gray-800/50 rounded-r-lg mb-6">
             {children}
         </blockquote>
     ),
@@ -71,12 +71,12 @@ const markdownComponents = {
         // If it's an inline code block (no language class usually)
         const isInline = !className;
         if (isInline) {
-            return <code className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2 py-1 rounded text-sm font-mono border border-slate-200 dark:border-slate-700">{children}</code>
+            return <code className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono border border-gray-200 dark:border-gray-700">{children}</code>
         }
         return <code className={className}>{children}</code>;
     },
     pre: ({ children }: any) => (
-        <pre className="bg-slate-900 dark:bg-slate-900 text-slate-100 p-6 rounded-lg overflow-x-auto mb-6">
+        <pre className="bg-gray-900 dark:bg-gray-900 text-gray-100 p-6 rounded-lg overflow-x-auto mb-6">
             {children}
         </pre>
     ),
@@ -180,42 +180,17 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
     }, []);
 
     return (
-        <div className="relative bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 pb-24 transition-colors duration-300">
-            {/* DNA Helix Background Pattern */}
-            <div className="pointer-events-none fixed inset-0 opacity-[0.03]">
-                <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <pattern
-                            id="dna-helix"
-                            x="0"
-                            y="0"
-                            width="100"
-                            height="100"
-                            patternUnits="userSpaceOnUse"
-                        >
-                            <path
-                                d="M25,10 Q50,30 75,10 M25,90 Q50,70 75,90 M25,10 L25,90 M75,10 L75,90"
-                                stroke="currentColor"
-                                strokeWidth="1"
-                                fill="none"
-                            />
-                            <circle cx="25" cy="10" r="3" fill="currentColor" />
-                            <circle cx="75" cy="10" r="3" fill="currentColor" />
-                            <circle cx="25" cy="50" r="3" fill="currentColor" />
-                            <circle cx="75" cy="50" r="3" fill="currentColor" />
-                            <circle cx="25" cy="90" r="3" fill="currentColor" />
-                            <circle cx="75" cy="90" r="3" fill="currentColor" />
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#dna-helix)" />
-                </svg>
+        <div className="relative bg-white dark:bg-gray-950 pb-24 transition-colors duration-300">
+            {/* Background decoration */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-30">
+                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-gradient-to-bl from-emerald-50/40 via-teal-50/20 to-transparent dark:from-emerald-900/10 dark:via-teal-900/5 dark:to-transparent rounded-full blur-3xl opacity-50" />
             </div>
 
             {/* Hero Image */}
             <div>
                 {blog?.imageUrl && (
                     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 mb-8 mt-10">
-                        <div className="aspect-video rounded-2xl overflow-hidden ring-4 ring-blue-500/10 shadow-2xl shadow-blue-500/20">
+                        <div className="aspect-video rounded-2xl overflow-hidden ring-4 ring-emerald-500/10 shadow-2xl shadow-emerald-500/20">
                             <img
                                 src={blog?.imageUrl}
                                 alt={blog?.title}
@@ -228,13 +203,13 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
 
             <div className="mx-auto mt-8 w-full max-w-4xl relative z-20">
                 {isLoading && (
-                    <div className="rounded-3xl bg-white dark:bg-slate-800/60 p-8 shadow-xl">
-                        <div className="mb-4 h-4 w-1/3 animate-pulse rounded-full bg-slate-200 dark:bg-slate-200" />
+                    <div className="rounded-3xl bg-white dark:bg-gray-800/60 p-8 shadow-xl">
+                        <div className="mb-4 h-4 w-1/3 animate-pulse rounded-full bg-gray-200 dark:bg-gray-700" />
                         <div className="space-y-4">
                             {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => (
                                 <div
                                     key={`skeleton-${n}`}
-                                    className="h-4 w-full animate-pulse rounded-full bg-slate-200 dark:bg-slate-200"
+                                    className="h-4 w-full animate-pulse rounded-full bg-gray-200 dark:bg-gray-700"
                                 />
                             ))}
                         </div>
@@ -242,11 +217,11 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                 )}
 
                 {!isLoading && error && (
-                    <div className="rounded-3xl border border-red-400/50 bg-white dark:bg-slate-800/60 p-10 text-center text-red-600 dark:text-red-300">
+                    <div className="rounded-3xl border border-red-400/50 bg-white dark:bg-gray-800/60 p-10 text-center text-red-600 dark:text-red-300">
                         <h2 className="text-xl font-semibold">{error}</h2>
                         <p className="mt-4 text-sm text-red-400">
                             Return to the{" "}
-                            <Link href="/blogs" className="font-semibold text-blue-600 dark:text-blue-400">
+                            <Link href="/blogs" className="font-semibold text-emerald-600 dark:text-emerald-400">
                                 blog index
                             </Link>{" "}
                             for other stories.
@@ -256,7 +231,7 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                 {/* Blog Content */}
                 <article className=" px-4 sm:px-6 lg:px-8 pb-20">
                     {/* Meta Info + Share */}
-                    <div className="flex items-center justify-between text-sm text-slate-500 dark:text-slate-400 border-slate-200 dark:border-slate-700 pb-6">
+                    <div className="flex items-center justify-between text-sm text-gray-500 dark:text-gray-400 border-gray-200 dark:border-gray-700 pb-6">
                         <div className="flex items-center space-x-6">
                             <div className="flex items-center">
                                 <FiCalendar className="mr-2 h-4 w-4" />
@@ -275,7 +250,7 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                         <div className="flex items-center space-x-3">
                             <button
                                 onClick={handleShare}
-                                className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-700/50 px-3 py-1 text-sm text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-600/50 hover:border-blue-400 transition-all"
+                                className="inline-flex cursor-pointer items-center gap-2 rounded-md border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700/50 px-3 py-1 text-sm text-gray-600 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-600/50 hover:border-emerald-400 transition-all"
                             >
                                 <FiShare2 className="h-4 w-4" />
                                 <span>Share</span>
@@ -290,13 +265,13 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                         <div className="mb-4">
                             <Link
                                 href="/blogs"
-                                className="inline-flex items-center text-sm text-slate-500 dark:text-slate-400 hover:text-blue-600 dark:hover:text-blue-400 transition-colors"
+                                className="inline-flex items-center text-sm text-gray-500 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors"
                             >
                                 <FiArrowLeft className="mr-2 h-4 w-4" /> Back to all articles
                             </Link>
                         </div>
 
-                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-slate-900 via-blue-800 to-slate-900 dark:from-white dark:via-blue-200 dark:to-white bg-clip-text text-transparent mb-6 leading-tight">
+                        <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
                             {blog?.title}
                         </h1>
                     </header>
@@ -360,17 +335,17 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                                 </svg>
                             </div>
 
-                            <div className="relative bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-800/60 dark:via-slate-800/50 dark:to-slate-900/50 rounded-2xl p-6 border-2 border-blue-200 dark:border-blue-400/50 shadow-lg">
+                            <div className="relative bg-gradient-to-br from-white via-gray-50 to-gray-100 dark:from-gray-800/60 dark:via-gray-800/50 dark:to-gray-900/50 rounded-2xl p-6 border border-emerald-100 dark:border-emerald-900 shadow-lg">
                                 <div className="flex items-start gap-4">
                                     <div className="flex flex-wrap gap-4 flex-1">
                                         {blog.authors.map((author, idx) => (
                                             <div
                                                 key={idx}
-                                                className="flex items-start gap-4 bg-white/60 dark:bg-slate-700/60 backdrop-blur-sm rounded-xl p-4 flex-1 min-w-[250px] border border-blue-200 dark:border-blue-400/50 hover:border-blue-400 transition-all hover:shadow-md group"
+                                                className="flex items-start gap-4 bg-white/60 dark:bg-gray-800/60 backdrop-blur-sm rounded-xl p-4 flex-1 min-w-[250px] border border-gray-100 dark:border-gray-800 hover:border-emerald-400 transition-all hover:shadow-md group"
                                             >
                                                 {author.imageUrl && (
                                                     <div className="relative">
-                                                        <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-blue-400 group-hover:ring-blue-500 transition-all">
+                                                        <div className="w-16 h-16 rounded-full overflow-hidden ring-2 ring-emerald-400 group-hover:ring-emerald-500 transition-all">
                                                             <img
                                                                 src={author.imageUrl}
                                                                 alt={author.name}
@@ -378,7 +353,7 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                                                             />
                                                         </div>
                                                         {/* DNA strand decoration */}
-                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
+                                                        <div className="absolute -top-1 -right-1 w-5 h-5 bg-gradient-to-br from-emerald-500 to-teal-500 rounded-full flex items-center justify-center text-white text-xs font-bold shadow-lg">
                                                             <svg
                                                                 className="w-3 h-3"
                                                                 fill="currentColor"
@@ -391,17 +366,17 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                                                 )}
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center gap-2 mb-1">
-                                                        <span className="font-semibold text-slate-900 dark:text-white text-base">
+                                                        <span className="font-semibold text-gray-900 dark:text-white text-base">
                                                             {author.name}
                                                         </span>
                                                     </div>
                                                     {author.role && (
-                                                        <p className="text-xs text-blue-600 dark:text-blue-400 font-medium mb-2 uppercase tracking-wide">
+                                                        <p className="text-xs text-emerald-600 dark:text-emerald-400 font-medium mb-2 uppercase tracking-wide">
                                                             {author.role}
                                                         </p>
                                                     )}
                                                     {author.bio && (
-                                                        <p className="text-sm text-slate-600 dark:text-slate-300 line-clamp-2">
+                                                        <p className="text-sm text-gray-600 dark:text-gray-300 line-clamp-2">
                                                             {author.bio.substring(0, 120)}
                                                             {author.bio.length > 120 ? "..." : ""}
                                                         </p>
@@ -431,7 +406,7 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                             {blog.tags.map((tag) => (
                                 <span
                                     key={tag.slug}
-                                    className="rounded-full bg-gradient-to-r from-blue-500/10 to-purple-500/10 dark:from-blue-500/20 dark:to-purple-500/20 border border-blue-200 dark:border-blue-400/50 px-4 py-2 text-xs font-semibold text-blue-600 dark:text-blue-300 hover:border-blue-400 hover:shadow-md transition-all"
+                                    className="rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 px-4 py-2 text-xs font-semibold text-emerald-600 dark:text-emerald-400 hover:border-emerald-400 hover:shadow-md transition-all"
                                 >
                                     #{tag.title}
                                 </span>
@@ -439,10 +414,10 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                         </div>
                     )}
 
-                    <div className="mt-10 flex justify-between text-sm text-slate-500 dark:text-slate-400">
+                    <div className="mt-10 flex justify-between text-sm text-gray-500 dark:text-gray-400">
                         <Link
                             href="/blogs"
-                            className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors"
+                            className="font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 transition-colors"
                         >
                             Back to all articles
                         </Link>

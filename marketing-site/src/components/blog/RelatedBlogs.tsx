@@ -32,7 +32,7 @@ const RelatedBlogs: React.FC<RelatedBlogsProps> = ({
 
     return (
         <aside className="mt-12">
-            <h4 className="mb-4 text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <h4 className="mb-4 text-sm font-semibold text-gray-700 dark:text-gray-300">
                 Related posts
             </h4>
 
@@ -41,9 +41,9 @@ const RelatedBlogs: React.FC<RelatedBlogsProps> = ({
                     <Link
                         key={r.slug}
                         href={`/blogs/${r.slug}`}
-                        className="block overflow-hidden rounded-lg bg-white dark:bg-slate-800 shadow-sm hover:shadow-md transition-transform duration-150 ease-out dark:border dark:border-slate-700"
+                        className="block overflow-hidden rounded-lg bg-white dark:bg-gray-800 shadow-sm hover:shadow-md transition-transform duration-150 ease-out dark:border dark:border-gray-700 hover:ring-2 hover:ring-emerald-500/20"
                     >
-                        <div className="h-40 w-full overflow-hidden bg-slate-100 dark:bg-slate-700">
+                        <div className="h-40 w-full overflow-hidden bg-gray-100 dark:bg-gray-700">
                             {r.imageUrl ? (
                                 <img
                                     src={r.imageUrl}
@@ -51,19 +51,19 @@ const RelatedBlogs: React.FC<RelatedBlogsProps> = ({
                                     className="h-full w-full object-cover"
                                 />
                             ) : (
-                                <div className="flex h-full w-full items-center justify-center text-slate-500 dark:text-slate-400">
-                                    <span className="font-semibold text-lg">
+                                <div className="flex h-full w-full items-center justify-center text-gray-500 dark:text-gray-400 bg-gray-50 dark:bg-gray-800">
+                                    <span className="font-semibold text-lg text-emerald-600 dark:text-emerald-400">
                                         {r.title.charAt(0)}
                                     </span>
                                 </div>
                             )}
                         </div>
 
-                        <div className="p-3">
-                            <div className="text-sm font-semibold text-slate-900 dark:text-white leading-tight">
+                        <div className="p-3 bg-white dark:bg-gray-800">
+                            <div className="text-sm font-semibold text-gray-900 dark:text-white leading-tight">
                                 {r.title}
                             </div>
-                            <div className="mt-1 text-xs text-slate-500 dark:text-slate-400">
+                            <div className="mt-1 text-xs text-gray-500 dark:text-gray-400">
                                 {new Intl.DateTimeFormat("en-US", {
                                     dateStyle: "medium",
                                 }).format(new Date(r.date))}

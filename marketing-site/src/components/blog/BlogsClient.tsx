@@ -70,114 +70,52 @@ const BlogsClient: React.FC = () => {
     const hasAnyBlogs = blogs.length > 0;
 
     return (
-        <div className="relative bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 pb-24 pt-16 transition-colors duration-300">
-            {/* DNA Double Helix Background Pattern */}
-            <div className="pointer-events-none fixed inset-0 opacity-[0.03]">
-                <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <pattern
-                            id="genetic-pattern"
-                            x="0"
-                            y="0"
-                            width="120"
-                            height="120"
-                            patternUnits="userSpaceOnUse"
-                        >
-                            {/* DNA double helix structure */}
-                            <path
-                                d="M30,10 Q60,40 90,10 M30,110 Q60,80 90,110 M30,10 L30,110 M90,10 L90,110"
-                                stroke="currentColor"
-                                strokeWidth="1.5"
-                                fill="none"
-                            />
-                            {/* Base pairs */}
-                            <line
-                                x1="30"
-                                y1="30"
-                                x2="90"
-                                y2="30"
-                                stroke="currentColor"
-                                strokeWidth="1"
-                            />
-                            <line
-                                x1="30"
-                                y1="60"
-                                x2="90"
-                                y2="60"
-                                stroke="currentColor"
-                                strokeWidth="1"
-                            />
-                            <line
-                                x1="30"
-                                y1="90"
-                                x2="90"
-                                y2="90"
-                                stroke="currentColor"
-                                strokeWidth="1"
-                            />
-                            {/* Nucleotides */}
-                            <circle cx="30" cy="10" r="4" fill="currentColor" />
-                            <circle cx="90" cy="10" r="4" fill="currentColor" />
-                            <circle cx="30" cy="30" r="3" fill="currentColor" />
-                            <circle cx="90" cy="30" r="3" fill="currentColor" />
-                            <circle cx="30" cy="60" r="3" fill="currentColor" />
-                            <circle cx="90" cy="60" r="3" fill="currentColor" />
-                            <circle cx="30" cy="90" r="3" fill="currentColor" />
-                            <circle cx="90" cy="90" r="3" fill="currentColor" />
-                            <circle cx="30" cy="110" r="4" fill="currentColor" />
-                            <circle cx="90" cy="110" r="4" fill="currentColor" />
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#genetic-pattern)" />
-                </svg>
-            </div>
-
-            {/* Floating molecule decorations */}
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-[#1E3A8A]/10 to-[#3B82F6]/10 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-[#3B82F6]/10 to-[#10B981]/10 rounded-full blur-3xl animate-pulse delay-1000" />
-                <div className="absolute bottom-40 left-1/4 w-36 h-36 bg-gradient-to-br from-[#10B981]/10 to-[#059669]/10 rounded-full blur-3xl animate-pulse delay-2000" />
+        <div className="relative bg-white dark:bg-gray-950 pb-24 pt-16 transition-colors duration-300">
+            {/* Simple Emerald Glow Background */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-30">
+                <div className="absolute top-20 left-10 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl" />
+                <div className="absolute top-40 right-20 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl" />
             </div>
 
             <div className="relative z-10 mx-auto flex w-full max-w-6xl flex-col gap-12 px-4 sm:px-6 lg:px-8">
                 <header className="space-y-4 text-center">
-                    <div className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-[#1E3A8A]/10 to-[#10B981]/10 dark:from-[#1E3A8A]/20 dark:to-[#10B981]/20 px-4 py-2 mb-2">
+                    <div className="inline-flex items-center gap-2 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 mb-2 border border-emerald-100 dark:border-emerald-800">
                         <svg
-                            className="w-4 h-4 text-[#3B82F6]"
+                            className="w-4 h-4 text-emerald-600 dark:text-emerald-400"
                             fill="currentColor"
                             viewBox="0 0 20 20"
                         >
                             <path d="M10 2a8 8 0 100 16 8 8 0 000-16zm1 11H9v-2h2v2zm0-4H9V5h2v4z" />
                         </svg>
-                        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-[#1E3A8A] dark:text-[#3B82F6]">
+                        <p className="text-xs font-semibold uppercase tracking-[0.35em] text-emerald-600 dark:text-emerald-400">
                             Insights & Research
                         </p>
                     </div>
-                    <h1 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-slate-900 via-[#1E3A8A] to-[#3B82F6] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent sm:text-5xl">
+                    <h1 className="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">
                         Genetic Engineering Chronicles
                     </h1>
-                    <p className="mx-auto max-w-2xl text-base leading-relaxed text-slate-600 dark:text-slate-300">
+                    <p className="mx-auto max-w-2xl text-base leading-relaxed text-gray-600 dark:text-gray-400">
                         Deep dives into genomics, biotechnology, and the future of precision
                         medicine. Discover breakthrough research, cutting-edge analysis, and
                         expert insights from our genetic engineering research team.
                     </p>
-                    <div className="flex flex-wrap justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                    <div className="flex flex-wrap justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                         {categories.slice(0, 6).map((category) => (
                             <span
                                 key={category.slug}
-                                className="rounded-full border-2 border-[#1E3A8A]/30 dark:border-[#3B82F6]/50 bg-gradient-to-r from-[#1E3A8A]/10 to-[#10B981]/10 dark:from-[#1E3A8A]/20 dark:to-[#10B981]/20 px-4 py-2 font-semibold text-[#1E3A8A] dark:text-[#3B82F6] hover:border-[#1E3A8A] dark:hover:border-[#3B82F6] hover:shadow-md transition-all cursor-pointer"
+                                className="rounded-full border border-emerald-100 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 font-semibold text-emerald-700 dark:text-emerald-400 hover:border-emerald-300 dark:hover:border-emerald-600 hover:shadow-sm transition-all cursor-pointer"
                             >
                                 {category.title}
                             </span>
                         ))}
                         {categories.length > 6 && (
-                            <span className="rounded-full border-2 border-slate-200 dark:border-slate-600 bg-slate-100 dark:bg-slate-800/50 px-4 py-2 font-medium text-slate-500 dark:text-slate-400 hover:border-slate-400 dark:hover:border-slate-500 hover:shadow-md transition-all">
+                            <span className="rounded-full border border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 px-4 py-2 font-medium text-gray-500 dark:text-gray-400 hover:border-gray-300 dark:hover:border-gray-600 hover:shadow-sm transition-all">
                                 +{categories.length - 6} more
                             </span>
                         )}
                     </div>
                     {authors.length > 0 && (
-                        <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+                        <div className="mt-4 flex flex-wrap justify-center gap-2 text-xs text-gray-500 dark:text-gray-400">
                             {authors.map((author) => {
                                 const isActive = activeAuthor === author.name;
                                 return (
@@ -191,8 +129,8 @@ const BlogsClient: React.FC = () => {
                                         }
                                         aria-pressed={isActive}
                                         className={`inline-flex items-center gap-2 rounded-full border px-4 py-2 font-semibold transition-all ${isActive
-                                            ? "border-[#10B981] bg-gradient-to-r from-[#1E3A8A] to-[#10B981] text-white shadow-md shadow-[#10B981]/60"
-                                            : "border-slate-200 dark:border-slate-600 bg-white dark:bg-slate-800/50 text-slate-600 dark:text-slate-300 hover:border-[#3B82F6] hover:from-[#1E3A8A]/10 hover:to-[#10B981]/10 dark:hover:from-[#1E3A8A]/20 dark:hover:to-[#10B981]/20 hover:bg-gradient-to-r hover:text-[#1E3A8A] dark:hover:text-[#3B82F6]"
+                                            ? "border-emerald-500 bg-emerald-600 text-white shadow-md shadow-emerald-500/20"
+                                            : "border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800/50 text-gray-600 dark:text-gray-300 hover:border-emerald-500 hover:text-emerald-600 dark:hover:text-emerald-400"
                                             }`}
                                     >
                                         <span>{author.name}</span>
@@ -222,7 +160,7 @@ const BlogsClient: React.FC = () => {
                     <div className="space-y-6">
                         {/* Loading header */}
                         <div className="text-center">
-                            <div className="inline-flex items-center gap-2 text-blue-600 mb-4">
+                            <div className="inline-flex items-center gap-2 text-emerald-600 mb-4">
                                 <svg
                                     className="w-5 h-5 animate-spin"
                                     fill="none"
@@ -247,10 +185,10 @@ const BlogsClient: React.FC = () => {
                             {Array.from({ length: 6 }).map((_, index) => (
                                 <div
                                     key={index}
-                                    className="group relative overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-700/60 bg-white dark:bg-slate-800/60 shadow-sm"
+                                    className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shadow-sm"
                                 >
                                     {/* Image skeleton */}
-                                    <div className="aspect-[3/2] w-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-700 dark:to-slate-800 animate-pulse">
+                                    <div className="aspect-[3/2] w-full bg-gray-100 dark:bg-gray-800 animate-pulse">
                                         <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-shimmer" />
                                     </div>
 
@@ -258,29 +196,29 @@ const BlogsClient: React.FC = () => {
                                     <div className="p-6 space-y-4">
                                         {/* Date and share button skeleton */}
                                         <div className="flex items-center justify-between">
-                                            <div className="h-4 w-20 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-                                            <div className="h-6 w-16 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+                                            <div className="h-4 w-20 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+                                            <div className="h-6 w-16 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse" />
                                         </div>
 
                                         {/* Title skeleton */}
                                         <div className="space-y-2">
-                                            <div className="h-6 w-full bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-                                            <div className="h-6 w-3/4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
+                                            <div className="h-6 w-full bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+                                            <div className="h-6 w-3/4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
                                         </div>
 
                                         {/* Description skeleton */}
                                         <div className="space-y-2">
-                                            <div className="h-4 w-full bg-slate-100 dark:bg-slate-700/50 rounded animate-pulse" />
-                                            <div className="h-4 w-5/6 bg-slate-100 dark:bg-slate-700/50 rounded animate-pulse" />
-                                            <div className="h-4 w-2/3 bg-slate-100 dark:bg-slate-700/50 rounded animate-pulse" />
+                                            <div className="h-4 w-full bg-gray-100 dark:bg-gray-800/50 rounded animate-pulse" />
+                                            <div className="h-4 w-5/6 bg-gray-100 dark:bg-gray-800/50 rounded animate-pulse" />
+                                            <div className="h-4 w-2/3 bg-gray-100 dark:bg-gray-800/50 rounded animate-pulse" />
                                         </div>
 
                                         {/* Author skeleton */}
-                                        <div className="flex items-center gap-3 pt-4 border-t border-slate-100 dark:border-slate-700">
-                                            <div className="h-9 w-9 bg-slate-200 dark:bg-slate-700 rounded-full animate-pulse" />
+                                        <div className="flex items-center gap-3 pt-4 border-t border-gray-100 dark:border-gray-800">
+                                            <div className="h-9 w-9 bg-gray-200 dark:bg-gray-800 rounded-full animate-pulse" />
                                             <div className="space-y-1">
-                                                <div className="h-4 w-24 bg-slate-200 dark:bg-slate-700 rounded animate-pulse" />
-                                                <div className="h-3 w-16 bg-slate-100 dark:bg-slate-700/50 rounded animate-pulse" />
+                                                <div className="h-4 w-24 bg-gray-200 dark:bg-gray-800 rounded animate-pulse" />
+                                                <div className="h-3 w-16 bg-gray-100 dark:bg-gray-800/50 rounded animate-pulse" />
                                             </div>
                                         </div>
                                     </div>
@@ -341,10 +279,10 @@ const BlogsClient: React.FC = () => {
                 )}
 
                 {!isLoading && !error && !hasAnyBlogs && (
-                    <div className="mx-auto max-w-2xl rounded-2xl border-2 border-blue-200/60 dark:border-blue-200/60 bg-gradient-to-br from-blue-50/50 via-white to-purple-50/30 dark:from-blue-50/10 dark:via-slate-900 dark:to-purple-50/10 p-12 text-center shadow-xl backdrop-blur-sm">
-                        <div className="relative w-24 h-24 bg-gradient-to-br from-blue-100 to-purple-100 rounded-full flex items-center justify-center mx-auto mb-8 shadow-lg">
+                    <div className="mx-auto max-w-2xl rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-12 text-center shadow-sm">
+                        <div className="relative w-24 h-24 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-8">
                             <svg
-                                className="w-12 h-12 text-blue-600"
+                                className="w-12 h-12 text-gray-400"
                                 fill="none"
                                 stroke="currentColor"
                                 viewBox="0 0 24 24"
@@ -356,30 +294,11 @@ const BlogsClient: React.FC = () => {
                                     d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"
                                 />
                             </svg>
-                            {/* Floating DNA elements */}
-                            <div className="absolute -top-2 -right-2 w-6 h-6 bg-purple-200 rounded-full flex items-center justify-center animate-bounce delay-300">
-                                <svg
-                                    className="w-3 h-3 text-purple-600"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <circle cx="10" cy="10" r="3" />
-                                </svg>
-                            </div>
-                            <div className="absolute -bottom-2 -left-2 w-4 h-4 bg-blue-200 rounded-full flex items-center justify-center animate-bounce delay-700">
-                                <svg
-                                    className="w-2 h-2 text-blue-600"
-                                    fill="currentColor"
-                                    viewBox="0 0 20 20"
-                                >
-                                    <circle cx="10" cy="10" r="2" />
-                                </svg>
-                            </div>
                         </div>
-                        <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                        <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                             Research Library Coming Soon
                         </h2>
-                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed mb-6 max-w-md mx-auto">
+                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed mb-6 max-w-md mx-auto">
                             Our genetic engineering research team is preparing groundbreaking
                             content and insights. Be the first to explore cutting-edge
                             discoveries in genomics and biotechnology.
@@ -387,7 +306,7 @@ const BlogsClient: React.FC = () => {
                         <div className="flex flex-col sm:flex-row gap-3 justify-center items-center">
                             <Link
                                 href="/contact"
-                                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-sm hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 transition-all hover:scale-105"
+                                className="inline-flex items-center gap-2 rounded-lg bg-gray-900 dark:bg-white px-6 py-3 text-sm font-semibold text-white dark:text-gray-900 shadow-sm hover:bg-gray-800 dark:hover:bg-gray-100 transition-all"
                             >
                                 <svg
                                     className="w-4 h-4"
@@ -406,7 +325,7 @@ const BlogsClient: React.FC = () => {
                             </Link>
                             <Link
                                 href="/about"
-                                className="inline-flex items-center gap-2 rounded-lg border border-slate-300 bg-white px-6 py-3 text-sm font-semibold text-slate-700 shadow-sm hover:bg-slate-50 focus:outline-none focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 transition-all"
+                                className="inline-flex items-center gap-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent px-6 py-3 text-sm font-semibold text-gray-900 dark:text-white hover:bg-gray-50 dark:hover:bg-gray-800 transition-all"
                             >
                                 Learn More About Our Research
                             </Link>
@@ -417,8 +336,8 @@ const BlogsClient: React.FC = () => {
                 {!isLoading && !error && hasAnyBlogs && (
                     <div className="space-y-6">
                         {/* Results counter */}
-                        <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-700 pb-4">
-                            <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-slate-300">
+                        <div className="flex items-center justify-between border-b border-gray-200 dark:border-gray-800 pb-4">
+                            <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                                 <svg
                                     className="w-4 h-4"
                                     fill="currentColor"
@@ -436,12 +355,12 @@ const BlogsClient: React.FC = () => {
                                     {activeAuthor ? `by ${activeAuthor}` : ""} found
                                 </span>
                             </div>
-                            <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
+                            <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400">
                                 {activeAuthor && (
                                     <button
                                         type="button"
                                         onClick={() => setActiveAuthor(null)}
-                                        className="inline-flex items-center gap-1 rounded-full border border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-800/50 px-3 py-1 font-medium text-slate-600 dark:text-slate-300 transition hover:border-blue-400 hover:text-blue-600 dark:hover:text-blue-300"
+                                        className="inline-flex items-center gap-1 rounded-full border border-gray-300 dark:border-gray-600 bg-gray-100 dark:bg-gray-800/50 px-3 py-1 font-medium text-gray-600 dark:text-gray-300 transition hover:border-emerald-400 hover:text-emerald-600 dark:hover:text-emerald-300"
                                     >
                                         <svg
                                             className="h-3 w-3"
@@ -477,17 +396,17 @@ const BlogsClient: React.FC = () => {
                                 ))}
                             </div>
                         ) : (
-                            <div className="rounded-2xl border border-blue-200 dark:border-blue-400/50 bg-blue-50 dark:bg-blue-900/20 p-8 text-center text-sm text-slate-600 dark:text-slate-300 shadow-sm">
+                            <div className="rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 text-center text-sm text-gray-600 dark:text-gray-300 shadow-sm">
                                 <p>
                                     We couldn&apos;t find any articles for{" "}
-                                    <span className="font-semibold text-blue-600 dark:text-blue-400">
+                                    <span className="font-semibold text-emerald-600 dark:text-emerald-400">
                                         {activeAuthor}
                                     </span>{" "}
                                     just yet. Try another author or{" "}
                                     <button
                                         type="button"
                                         onClick={() => setActiveAuthor(null)}
-                                        className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 underline"
+                                        className="font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 underline"
                                     >
                                         clear the filter
                                     </button>
@@ -499,10 +418,10 @@ const BlogsClient: React.FC = () => {
                 )}
 
                 {!isLoading && !error && tags.length > 0 && (
-                    <footer className="rounded-3xl border-2 border-blue-200 dark:border-blue-400/50 bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-800/60 dark:via-slate-800/50 dark:to-slate-900/50 p-8 shadow-xl">
+                    <footer className="rounded-3xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-sm">
                         <div className="flex items-center gap-2 mb-4">
                             <svg
-                                className="w-5 h-5 text-blue-400"
+                                className="w-5 h-5 text-emerald-500"
                                 fill="currentColor"
                                 viewBox="0 0 20 20"
                             >
@@ -512,7 +431,7 @@ const BlogsClient: React.FC = () => {
                                     clipRule="evenodd"
                                 />
                             </svg>
-                            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-blue-600 dark:text-blue-300">
+                            <p className="text-xs font-semibold uppercase tracking-[0.3em] text-gray-500 dark:text-gray-400">
                                 Research Topics
                             </p>
                         </div>
@@ -520,7 +439,7 @@ const BlogsClient: React.FC = () => {
                             {tags.map((tag) => (
                                 <span
                                     key={tag.slug}
-                                    className="rounded-full bg-gradient-to-r from-slate-100 to-blue-50 dark:from-slate-700 dark:to-blue-900/50 border border-blue-200 dark:border-blue-400/50 px-4 py-2 text-xs font-medium text-slate-600 dark:text-slate-300 hover:border-blue-400 hover:shadow-md transition-all cursor-pointer hover:from-blue-100 hover:to-purple-100 dark:hover:from-blue-500/30 dark:hover:to-purple-500/30"
+                                    className="rounded-full bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-4 py-2 text-xs font-medium text-gray-600 dark:text-gray-300 hover:border-emerald-300 hover:text-emerald-600 dark:hover:text-emerald-400 transition-all cursor-pointer"
                                 >
                                     #{tag.title}
                                 </span>
@@ -530,11 +449,11 @@ const BlogsClient: React.FC = () => {
                 )}
 
                 {!isLoading && !error && (
-                    <div className="text-center text-sm text-slate-500 dark:text-slate-400">
+                    <div className="text-center text-sm text-gray-500 dark:text-gray-400">
                         Looking for something specific? Explore all research on our{" "}
                         <Link
                             href="/contact"
-                            className="font-semibold text-blue-600 dark:text-blue-400 hover:text-blue-500 dark:hover:text-blue-300 transition-colors underline"
+                            className="font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 transition-colors underline"
                         >
                             contact page
                         </Link>{" "}

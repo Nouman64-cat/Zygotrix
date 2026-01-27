@@ -22,30 +22,30 @@ const CONTACT_EMAIL = "contact@zygotrix.com";
 
 const cardPalettes = [
     {
-        cardClass: "bg-gradient-to-br from-white via-blue-50/30 to-purple-50/30",
+        cardClass: "bg-gradient-to-br from-white via-emerald-50/30 to-teal-50/30",
         overlayClass:
-            "bg-gradient-to-br from-blue-400/5 via-purple-400/5 to-pink-400/5",
-        glowGradient: "from-blue-400 to-purple-400",
-        titleGradient: "from-slate-900 to-blue-900 dark:from-white dark:to-blue-200",
-        hoverTitleGradient: "group-hover:from-blue-600 group-hover:to-purple-600 dark:group-hover:from-blue-300 dark:group-hover:to-purple-300",
-        arrowColor: "text-blue-600 dark:text-blue-400",
+            "bg-gradient-to-br from-emerald-400/5 via-teal-400/5 to-cyan-400/5",
+        glowGradient: "from-emerald-400 to-teal-400",
+        titleGradient: "from-gray-900 to-emerald-900 dark:from-white dark:to-emerald-200",
+        hoverTitleGradient: "group-hover:from-emerald-600 group-hover:to-teal-600 dark:group-hover:from-emerald-300 dark:group-hover:to-teal-300",
+        arrowColor: "text-emerald-600 dark:text-emerald-400",
     },
     {
-        cardClass: "bg-gradient-to-br from-white via-pink-50/30 to-purple-50/30",
+        cardClass: "bg-gradient-to-br from-white via-teal-50/30 to-emerald-50/30",
         overlayClass:
-            "bg-gradient-to-br from-pink-400/5 via-purple-400/5 to-blue-400/5",
-        glowGradient: "from-pink-400 to-purple-400",
-        titleGradient: "from-slate-900 to-pink-900 dark:from-white dark:to-pink-200",
-        hoverTitleGradient: "group-hover:from-pink-600 group-hover:to-purple-600 dark:group-hover:from-pink-300 dark:group-hover:to-purple-300",
-        arrowColor: "text-pink-600 dark:text-pink-400",
+            "bg-gradient-to-br from-teal-400/5 via-emerald-400/5 to-green-400/5",
+        glowGradient: "from-teal-400 to-emerald-400",
+        titleGradient: "from-gray-900 to-teal-900 dark:from-white dark:to-teal-200",
+        hoverTitleGradient: "group-hover:from-teal-600 group-hover:to-emerald-600 dark:group-hover:from-teal-300 dark:group-hover:to-emerald-300",
+        arrowColor: "text-teal-600 dark:text-teal-400",
     },
     {
-        cardClass: "bg-gradient-to-br from-white via-emerald-50/30 to-cyan-50/30",
+        cardClass: "bg-gradient-to-br from-white via-green-50/30 to-emerald-50/30",
         overlayClass:
-            "bg-gradient-to-br from-emerald-400/5 via-cyan-400/5 to-blue-400/5",
-        glowGradient: "from-emerald-400 to-cyan-400",
-        titleGradient: "from-slate-900 to-emerald-900 dark:from-white dark:to-emerald-200",
-        hoverTitleGradient: "group-hover:from-emerald-600 group-hover:to-cyan-600 dark:group-hover:from-emerald-300 dark:group-hover:to-cyan-300",
+            "bg-gradient-to-br from-green-400/5 via-emerald-400/5 to-teal-400/5",
+        glowGradient: "from-green-400 to-emerald-400",
+        titleGradient: "from-gray-900 to-green-900 dark:from-white dark:to-green-200",
+        hoverTitleGradient: "group-hover:from-green-600 group-hover:to-emerald-600 dark:group-hover:from-green-300 dark:group-hover:to-emerald-300",
         arrowColor: "text-emerald-600 dark:text-emerald-400",
     },
 ] as const;
@@ -225,63 +225,30 @@ const AboutClient: React.FC = () => {
     const handleRetry = () => setRetryKey((prev) => prev + 1);
 
     return (
-        <div className="bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-900/95 dark:to-slate-950 min-h-screen transition-colors duration-300">
-            <div className="pointer-events-none fixed inset-0 opacity-[0.02]">
-                <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <pattern
-                            id="dna-pattern"
-                            x="0"
-                            y="0"
-                            width="100"
-                            height="100"
-                            patternUnits="userSpaceOnUse"
-                        >
-                            <path
-                                d="M25,10 Q50,30 75,10 M25,90 Q50,70 75,90 M25,10 L25,90 M75,10 L75,90"
-                                stroke="currentColor"
-                                strokeWidth="1"
-                                fill="none"
-                            />
-                            <circle cx="25" cy="10" r="2" fill="currentColor" />
-                            <circle cx="75" cy="10" r="2" fill="currentColor" />
-                            <circle cx="25" cy="90" r="2" fill="currentColor" />
-                            <circle cx="75" cy="90" r="2" fill="currentColor" />
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#dna-pattern)" />
-                </svg>
-            </div>
-
-            <div className="pointer-events-none absolute inset-0 overflow-hidden">
-                <div className="absolute top-20 left-10 w-32 h-32 bg-gradient-to-br from-[#1E3A8A]/10 to-[#3B82F6]/10 rounded-full blur-3xl animate-pulse" />
-                <div className="absolute top-40 right-20 w-40 h-40 bg-gradient-to-br from-[#3B82F6]/10 to-[#10B981]/10 rounded-full blur-3xl animate-pulse delay-1000" />
-                <div className="absolute bottom-40 left-1/4 w-36 h-36 bg-gradient-to-br from-[#10B981]/10 to-[#059669]/10 rounded-full blur-3xl animate-pulse delay-2000" />
+        <div className="bg-white dark:bg-gray-950 min-h-screen transition-colors duration-300">
+            {/* Background decoration - optional, subtle */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-30">
+                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-gradient-to-bl from-emerald-50/40 via-teal-50/20 to-transparent dark:from-emerald-900/10 dark:via-teal-900/5 dark:to-transparent rounded-full blur-3xl opacity-50" />
             </div>
 
             <div className="relative z-10 mx-auto max-w-7xl px-6 pb-20 pt-24">
                 <div className="grid gap-16 lg:grid-cols-[1.2fr,1fr] lg:items-center">
                     <div className="space-y-8">
-                        <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#1E3A8A]/10 to-[#10B981]/10 dark:from-[#1E3A8A]/20 dark:to-[#10B981]/20 px-6 py-3 backdrop-blur-sm border border-[#1E3A8A]/20 dark:border-[#3B82F6]/30">
-                            <div className="h-2 w-2 rounded-full bg-gradient-to-r from-[#10B981] to-[#059669] animate-pulse" />
-                            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#1E3A8A] dark:text-[#3B82F6]">
+                        <div className="inline-flex items-center gap-3 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 border border-emerald-100 dark:border-emerald-800">
+                            <span className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                                 Our Story
                             </span>
                         </div>
 
-                        <h1 className="text-5xl font-bold leading-tight bg-gradient-to-r from-slate-900 via-[#1E3A8A] to-[#3B82F6] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent sm:text-6xl">
+                        <h1 className="text-5xl font-bold leading-tight text-gray-900 dark:text-white sm:text-6xl">
                             Zygotrix is crafted for teams who translate
-                            <span className="relative">
-                                <span className="bg-gradient-to-r from-[#3B82F6] to-[#10B981] bg-clip-text text-transparent">
-                                    {" "}
-                                    genetics{" "}
-                                </span>
-                                <div className="absolute -bottom-2 left-0 right-0 h-1 bg-gradient-to-r from-[#1E3A8A] to-[#10B981] rounded-full transform scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+                            <span className="relative whitespace-nowrap px-2">
+                                <span className="relative z-10 text-emerald-500">genetics</span>
                             </span>
                             into action.
                         </h1>
 
-                        <p className="text-lg leading-relaxed text-slate-600 dark:text-slate-300 max-w-2xl">
+                        <p className="text-lg leading-relaxed text-gray-600 dark:text-gray-400 max-w-2xl">
                             We believe that understanding inheritance patterns should feel
                             intuitive, whether you are prototyping in a notebook or running
                             production simulations. Zygotrix distills complex models into
@@ -292,7 +259,7 @@ const AboutClient: React.FC = () => {
                         <div className="flex flex-wrap gap-4 pt-4">
                             <a
                                 href={`mailto:${CONTACT_EMAIL}`}
-                                className="group inline-flex items-center justify-center rounded-2xl bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] dark:from-[#3B82F6] dark:to-[#10B981] px-8 py-4 text-sm font-semibold text-white shadow-xl shadow-[#1E3A8A]/25 dark:shadow-[#3B82F6]/25 transition-all hover:shadow-2xl hover:shadow-[#1E3A8A]/40 dark:hover:shadow-[#3B82F6]/40 hover:scale-105"
+                                className="group inline-flex items-center justify-center rounded-lg bg-gray-900 dark:bg-white px-8 py-3 text-sm font-semibold text-white dark:text-gray-900 transition-all hover:bg-gray-800 dark:hover:bg-gray-100"
                             >
                                 <span>Contact us</span>
                                 <svg
@@ -311,7 +278,7 @@ const AboutClient: React.FC = () => {
                             </a>
                             <a
                                 href="#team"
-                                className="inline-flex items-center justify-center rounded-2xl border-2 border-[#1E3A8A]/30 dark:border-[#3B82F6]/50 bg-white/50 dark:bg-slate-800/80 backdrop-blur-sm px-8 py-4 text-sm font-semibold text-[#1E3A8A] dark:text-[#3B82F6] transition-all hover:border-[#1E3A8A] dark:hover:border-[#3B82F6] hover:bg-white dark:hover:bg-slate-700 hover:scale-105"
+                                className="inline-flex items-center justify-center rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent px-8 py-3 text-sm font-semibold text-gray-900 dark:text-white transition-all hover:bg-gray-50 dark:hover:bg-gray-800"
                             >
                                 Meet the team
                             </a>
@@ -320,25 +287,22 @@ const AboutClient: React.FC = () => {
 
                     <div className="relative flex justify-center lg:justify-end">
                         <div className="relative w-full max-w-sm">
-                            <div className="absolute inset-0 rounded-3xl bg-gradient-to-tr from-[#1E3A8A]/20 via-[#3B82F6]/20 to-[#10B981]/20 blur-2xl animate-pulse" />
-                            <div className="relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg p-10 shadow-2xl shadow-[#1E3A8A]/10 dark:shadow-[#3B82F6]/20">
-                                <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] rounded-full animate-pulse" />
-                                <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-r from-[#10B981] to-[#059669] rounded-full animate-pulse delay-1000" />
+                            <div className="relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-10 shadow-xl">
 
                                 {/* Logo or placeholder */}
-                                <div className="mx-auto w-36 mb-6 flex items-center justify-center text-2xl font-bold bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] bg-clip-text text-transparent">
+                                <div className="mx-auto w-36 mb-6 flex items-center justify-center text-2xl font-bold text-gray-900 dark:text-white">
                                     ZYGOTRIX
                                 </div>
 
-                                <p className="text-center text-sm leading-relaxed text-slate-600 dark:text-slate-300">
+                                <p className="text-center text-sm leading-relaxed text-gray-600 dark:text-gray-400">
                                     Merging Mendelian logic, polygenic scoring, and thoughtful
                                     interaction design into a single learning platform.
                                 </p>
 
                                 <div className="mt-6 flex justify-center gap-2">
-                                    <div className="w-2 h-2 bg-[#1E3A8A] rounded-full animate-bounce" />
-                                    <div className="w-2 h-2 bg-[#3B82F6] rounded-full animate-bounce delay-100" />
-                                    <div className="w-2 h-2 bg-[#10B981] rounded-full animate-bounce delay-200" />
+                                    <div className="w-2 h-2 bg-emerald-500 rounded-full animate-bounce" />
+                                    <div className="w-2 h-2 bg-teal-500 rounded-full animate-bounce delay-100" />
+                                    <div className="w-2 h-2 bg-gray-500 rounded-full animate-bounce delay-200" />
                                 </div>
                             </div>
                         </div>
@@ -347,16 +311,16 @@ const AboutClient: React.FC = () => {
 
                 <div id="team" className="mt-20">
                     <div className="text-center mb-16">
-                        <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#3B82F6]/10 to-[#10B981]/10 dark:from-[#3B82F6]/20 dark:to-[#10B981]/20 px-6 py-3 backdrop-blur-sm border border-[#3B82F6]/20 dark:border-[#3B82F6]/30 mb-6">
-                            <FaUsers className="w-4 h-4 text-[#3B82F6]" />
-                            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#3B82F6] dark:text-[#3B82F6]">
+                        <div className="inline-flex items-center gap-3 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 border border-emerald-100 dark:border-emerald-800 mb-6">
+                            <FaUsers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                                 Our Team
                             </span>
                         </div>
-                        <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-[#1E3A8A] to-[#3B82F6] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent mb-4">
+                        <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
                             Meet the minds behind Zygotrix
                         </h2>
-                        <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                             Core contributors and collaborators who help guide Zygotrix
                             towards making genetics accessible for everyone.
                         </p>
@@ -418,27 +382,27 @@ const AboutClient: React.FC = () => {
                                                 router.push(`/team/${founder.slug}`);
                                             }
                                         }}
-                                        className="cursor-pointer group relative block overflow-hidden rounded-3xl border-2 border-[#1E3A8A]/30 dark:border-[#3B82F6]/40 bg-gradient-to-br from-white via-blue-50/50 to-emerald-50/50 dark:from-slate-800 dark:via-blue-900/20 dark:to-emerald-900/20 p-8 md:p-10 shadow-2xl shadow-blue-500/10 dark:shadow-blue-500/20 transition-all hover:shadow-2xl hover:shadow-blue-500/30 hover:scale-[1.01] mb-10 text-left"
+                                        className="cursor-pointer group relative block overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 md:p-10 shadow-lg hover:shadow-xl transition-all mb-10 text-left"
                                     >
                                         {/* Glow effect */}
-                                        <div className="absolute inset-0 bg-gradient-to-br from-[#1E3A8A]/5 via-[#3B82F6]/5 to-[#10B981]/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                        <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/50 via-teal-50/50 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                         {/* Decorative elements */}
-                                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-[#3B82F6]/10 to-[#10B981]/10 rounded-full blur-3xl" />
-                                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-[#1E3A8A]/10 to-[#3B82F6]/10 rounded-full blur-2xl" />
+                                        <div className="absolute top-0 right-0 w-32 h-32 bg-gradient-to-br from-emerald-100/20 to-teal-100/20 rounded-full blur-3xl" />
+                                        <div className="absolute bottom-0 left-0 w-24 h-24 bg-gradient-to-br from-teal-100/20 to-emerald-100/20 rounded-full blur-2xl" />
 
                                         <div className="relative flex flex-col md:flex-row items-center gap-6 md:gap-10">
                                             {/* Large Photo */}
                                             <div className="relative flex-shrink-0">
-                                                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-[#1E3A8A] via-[#3B82F6] to-[#10B981] blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
+                                                <div className="absolute inset-0 rounded-full bg-emerald-100 blur-xl opacity-30 group-hover:opacity-50 transition-opacity duration-300" />
                                                 {founder.photo?.url ? (
                                                     <img
                                                         src={founder.photo.url}
                                                         alt={`${founder.name} portrait`}
-                                                        className="relative h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-white dark:border-slate-700 object-cover shadow-2xl group-hover:scale-105 transition-transform duration-300"
+                                                        className="relative h-32 w-32 md:h-40 md:w-40 rounded-full border-4 border-white dark:border-gray-800 object-cover shadow-xl group-hover:scale-105 transition-transform duration-300"
                                                     />
                                                 ) : (
-                                                    <div className="relative flex h-32 w-32 md:h-40 md:w-40 items-center justify-center rounded-full border-4 border-white dark:border-slate-700 bg-gradient-to-br from-[#1E3A8A] to-[#3B82F6] text-4xl md:text-5xl font-bold text-white shadow-2xl group-hover:scale-105 transition-transform duration-300">
+                                                    <div className="relative flex h-32 w-32 md:h-40 md:w-40 items-center justify-center rounded-full border-4 border-white dark:border-gray-800 bg-gray-100 text-4xl md:text-5xl font-bold text-gray-500 shadow-xl group-hover:scale-105 transition-transform duration-300">
                                                         {getInitials(founder.name)}
                                                     </div>
                                                 )}
@@ -448,15 +412,15 @@ const AboutClient: React.FC = () => {
                                             <div className="flex-1 text-center md:text-left">
                                                 {/* Founder Badge */}
                                                 <div className="inline-flex items-center gap-2 mb-3">
-                                                    <span className="rounded-full px-5 py-2 text-sm font-bold bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] text-white shadow-lg">
-                                                        ✨ Founder & Creator
+                                                    <span className="rounded-full px-5 py-2 text-sm font-bold bg-emerald-500 text-white shadow-md">
+                                                        Founder & CEO
                                                     </span>
                                                 </div>
 
-                                                <h3 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-slate-900 via-[#1E3A8A] to-[#3B82F6] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent mb-2">
+                                                <h3 className="text-2xl md:text-3xl font-bold text-gray-900 dark:text-white mb-2">
                                                     {founder.name}
                                                 </h3>
-                                                <p className="text-base md:text-lg text-slate-600 dark:text-slate-300 mb-3">
+                                                <p className="text-base md:text-lg text-gray-600 dark:text-gray-400 mb-3">
                                                     {founder.role}
                                                 </p>
 
@@ -492,7 +456,7 @@ const AboutClient: React.FC = () => {
 
                                             {/* Arrow indicator */}
                                             <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <div className="rounded-full bg-gradient-to-r from-[#1E3A8A] to-[#3B82F6] p-3 shadow-lg">
+                                                <div className="rounded-full bg-emerald-500 p-2 shadow-md">
                                                     <svg className="h-5 w-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                                     </svg>
@@ -506,11 +470,11 @@ const AboutClient: React.FC = () => {
                                 {activeMembers.length > 0 && (
                                     <>
                                         <div className="mb-6">
-                                            <h3 className="text-xl font-bold text-slate-800 dark:text-slate-200 flex items-center gap-2">
-                                                <span className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 animate-pulse" />
+                                            <h3 className="text-xl font-bold text-gray-900 dark:text-gray-200 flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                                                 Active Contributors
                                             </h3>
-                                            <p className="text-sm text-slate-500 dark:text-slate-400 mt-1">
+                                            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
                                                 Currently contributing to the Zygotrix project
                                             </p>
                                         </div>
@@ -525,7 +489,7 @@ const AboutClient: React.FC = () => {
                                                     <Link
                                                         key={member.slug}
                                                         href={`/team/${member.slug}`}
-                                                        className="group relative overflow-hidden rounded-2xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-6 shadow-lg shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-xl hover:shadow-blue-500/15 hover:scale-[1.02]"
+                                                        className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-md transition-all hover:shadow-xl hover:scale-[1.02]"
                                                     >
                                                         <div
                                                             className={`absolute inset-0 ${palette.overlayClass} opacity-0 group-hover:opacity-100 transition-opacity duration-500`}
@@ -544,7 +508,7 @@ const AboutClient: React.FC = () => {
                                                                         className="relative h-16 w-16 rounded-full border-3 border-white object-cover shadow-md group-hover:scale-110 transition-transform duration-300"
                                                                     />
                                                                 ) : (
-                                                                    <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-3 border-white bg-gradient-to-br from-slate-100 to-slate-200 text-xl font-bold text-slate-600 shadow-md group-hover:scale-110 transition-transform duration-300">
+                                                                    <div className="relative flex h-16 w-16 items-center justify-center rounded-full border-2 border-white bg-gray-100 text-xl font-bold text-gray-600 shadow-md group-hover:scale-110 transition-transform duration-300">
                                                                         {getInitials(member.name)}
                                                                     </div>
                                                                 )}
@@ -557,10 +521,10 @@ const AboutClient: React.FC = () => {
                                                                 >
                                                                     {member.name}
                                                                 </h3>
-                                                                <p className="text-sm text-slate-500 dark:text-slate-400 truncate">
+                                                                <p className="text-sm text-gray-500 dark:text-gray-400 truncate">
                                                                     {member.role}
                                                                 </p>
-                                                                <span className="inline-block mt-2 rounded-full px-3 py-1 text-xs font-semibold bg-gradient-to-r from-emerald-100 to-cyan-100 dark:from-emerald-900/50 dark:to-cyan-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-700">
+                                                                <span className="inline-block mt-2 rounded-full px-3 py-1 text-xs font-semibold bg-emerald-50 dark:bg-emerald-900/50 text-emerald-700 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800">
                                                                     Contributor
                                                                 </span>
                                                             </div>
@@ -607,11 +571,11 @@ const AboutClient: React.FC = () => {
                                 {inactiveMembers.length > 0 && (
                                     <>
                                         <div className="mb-6 mt-8">
-                                            <h3 className="text-xl font-bold text-slate-600 dark:text-slate-400 flex items-center gap-2">
-                                                <span className="w-2 h-2 rounded-full bg-slate-400 dark:bg-slate-500" />
+                                            <h3 className="text-xl font-bold text-gray-600 dark:text-gray-400 flex items-center gap-2">
+                                                <span className="w-2 h-2 rounded-full bg-gray-400 dark:bg-gray-500" />
                                                 Past Contributors
                                             </h3>
-                                            <p className="text-sm text-slate-400 dark:text-slate-500 mt-1">
+                                            <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
                                                 Alumni who helped shape Zygotrix
                                             </p>
                                         </div>
@@ -625,9 +589,9 @@ const AboutClient: React.FC = () => {
                                                     <Link
                                                         key={member.slug}
                                                         href={`/team/${member.slug}`}
-                                                        className="group relative overflow-hidden rounded-2xl border-2 border-slate-200/70 dark:border-slate-700/40 bg-slate-50/60 dark:bg-slate-800/40 p-6 shadow-md shadow-slate-200/30 dark:shadow-slate-500/5 transition-all hover:shadow-lg hover:shadow-slate-400/20 hover:scale-[1.01] opacity-80 hover:opacity-100"
+                                                        className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-700 bg-gray-50/60 dark:bg-gray-800/40 p-6 shadow-sm shadow-gray-200/30 dark:shadow-gray-900/10 transition-all hover:shadow-lg hover:scale-[1.01] opacity-70 hover:opacity-100"
                                                     >
-                                                        <div className="absolute inset-0 bg-gradient-to-br from-slate-400/5 via-slate-300/5 to-slate-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                                        <div className="absolute inset-0 bg-gradient-to-br from-gray-100/30 via-gray-200/30 to-gray-100/30 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                                         <div className="relative flex items-center gap-4">
                                                             {/* Photo - slightly desaturated */}
@@ -636,10 +600,10 @@ const AboutClient: React.FC = () => {
                                                                     <img
                                                                         src={member.photo.url}
                                                                         alt={`${member.name} portrait`}
-                                                                        className="relative h-14 w-14 rounded-full border-2 border-slate-200 dark:border-slate-600 object-cover shadow-sm grayscale-[30%] group-hover:grayscale-0 transition-all duration-300"
+                                                                        className="relative h-14 w-14 rounded-full border-2 border-gray-200 dark:border-gray-600 object-cover shadow-sm grayscale-[30%] group-hover:grayscale-0 transition-all duration-300"
                                                                     />
                                                                 ) : (
-                                                                    <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-2 border-slate-200 dark:border-slate-600 bg-gradient-to-br from-slate-200 to-slate-300 dark:from-slate-600 dark:to-slate-700 text-lg font-bold text-slate-500 dark:text-slate-400 shadow-sm">
+                                                                    <div className="relative flex h-14 w-14 items-center justify-center rounded-full border-2 border-gray-200 dark:border-gray-600 bg-gray-100 dark:bg-gray-700 text-lg font-bold text-gray-500 dark:text-gray-400 shadow-sm">
                                                                         {getInitials(member.name)}
                                                                     </div>
                                                                 )}
@@ -647,13 +611,13 @@ const AboutClient: React.FC = () => {
 
                                                             {/* Info */}
                                                             <div className="flex-1 min-w-0">
-                                                                <h3 className="text-lg font-semibold text-slate-700 dark:text-slate-300 truncate group-hover:text-slate-900 dark:group-hover:text-slate-100 transition-colors">
+                                                                <h3 className="text-lg font-semibold text-gray-700 dark:text-gray-300 truncate group-hover:text-gray-900 dark:group-hover:text-gray-100 transition-colors">
                                                                     {member.name}
                                                                 </h3>
-                                                                <p className="text-sm text-slate-400 dark:text-slate-500 truncate">
+                                                                <p className="text-sm text-gray-400 dark:text-gray-500 truncate">
                                                                     {member.role}
                                                                 </p>
-                                                                <span className="inline-block mt-2 rounded-full px-3 py-1 text-xs font-medium bg-slate-100 dark:bg-slate-700/50 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-600">
+                                                                <span className="inline-block mt-2 rounded-full px-3 py-1 text-xs font-medium bg-gray-100 dark:bg-gray-700/50 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-600">
                                                                     Past Contributor
                                                                 </span>
                                                             </div>
@@ -670,7 +634,7 @@ const AboutClient: React.FC = () => {
                                                                             href={profile.url}
                                                                             target="_blank"
                                                                             rel="noopener noreferrer"
-                                                                            className="rounded-full bg-slate-100 dark:bg-slate-700 p-2 shadow-sm hover:shadow-md transition-all hover:scale-110 text-slate-500 hover:text-slate-700 dark:hover:text-slate-300"
+                                                                            className="rounded-full bg-gray-100 dark:bg-gray-700 p-2 shadow-sm hover:shadow-md transition-all hover:scale-110 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
                                                                             aria-label={`${member.name}'s ${getPlatformLabel(platform)} profile`}
                                                                             onClick={(event) => event.stopPropagation()}
                                                                         >
@@ -683,8 +647,8 @@ const AboutClient: React.FC = () => {
 
                                                         {/* Arrow */}
                                                         <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                            <div className="rounded-full bg-slate-200/90 dark:bg-slate-600/90 backdrop-blur-sm p-1.5 shadow-sm">
-                                                                <svg className="h-3 w-3 text-slate-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                            <div className="rounded-full bg-gray-200/90 dark:bg-gray-600/90 backdrop-blur-sm p-1.5 shadow-sm">
+                                                                <svg className="h-3 w-3 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                                                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 8l4 4m0 0l-4 4m4-4H3" />
                                                                 </svg>
                                                             </div>
@@ -700,11 +664,11 @@ const AboutClient: React.FC = () => {
                     })()}
 
                     {!teamLoading && teamMembers.length === 0 && !teamError && (
-                        <div className="mt-10 mx-auto max-w-3xl rounded-3xl border border-slate-200 dark:border-slate-700 bg-white/70 dark:bg-slate-800/70 p-8 text-center shadow-md">
-                            <h3 className="text-lg font-semibold text-slate-800 dark:text-slate-200 mb-2">
+                        <div className="mt-10 mx-auto max-w-3xl rounded-2xl border border-gray-200 dark:border-gray-700 bg-white/70 dark:bg-gray-800/70 p-8 text-center shadow-md">
+                            <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
                                 Team roster coming soon
                             </h3>
-                            <p className="text-slate-600 dark:text-slate-300">
+                            <p className="text-gray-600 dark:text-gray-300">
                                 Our Hygraph workspace does not have any published team members
                                 yet. Check back soon to learn more about the people building
                                 Zygotrix.
@@ -715,13 +679,13 @@ const AboutClient: React.FC = () => {
 
                 <div className="mt-20">
                     <div className="text-center mb-16">
-                        <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-emerald-500/10 to-cyan-500/10 dark:from-emerald-500/20 dark:to-cyan-500/20 px-6 py-3 backdrop-blur-sm border border-emerald-500/20 dark:border-emerald-500/30 mb-6">
-                            <div className="h-2 w-2 rounded-full bg-gradient-to-r from-emerald-400 to-cyan-400 animate-pulse" />
-                            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-emerald-600 dark:text-emerald-300">
+                        <div className="inline-flex items-center gap-3 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 border border-emerald-100 dark:border-emerald-800 mb-6">
+                            <div className="h-2 w-2 rounded-full bg-emerald-400 animate-pulse" />
+                            <span className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                                 Our Values
                             </span>
                         </div>
-                        <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-emerald-800 to-cyan-800 dark:from-white dark:via-emerald-200 dark:to-cyan-200 bg-clip-text text-transparent mb-4">
+                        <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
                             What guides us
                         </h2>
                     </div>
@@ -732,23 +696,23 @@ const AboutClient: React.FC = () => {
                             return (
                                 <div
                                     key={value.name}
-                                    className="group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-blue-500/20 hover:scale-[1.02]"
+                                    className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-lg transition-all hover:shadow-xl hover:scale-[1.02]"
                                     style={{ animationDelay: `${index * 200}ms` }}
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-br from-slate-400/5 via-blue-400/5 to-purple-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                                    <div className="absolute inset-0 bg-gradient-to-br from-emerald-50/20 via-blue-50/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                                     <div className="relative">
                                         <div
-                                            className={`inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-r ${value.color} text-white mb-6 shadow-lg group-hover:scale-110 transition-transform duration-300`}
+                                            className="inline-flex items-center justify-center w-16 h-16 rounded-xl bg-gray-900 dark:bg-gray-800 text-white mb-6 shadow-md group-hover:scale-110 transition-transform duration-300"
                                         >
                                             <Icon className="w-8 h-8" />
                                         </div>
 
-                                        <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-4 group-hover:text-blue-600 dark:group-hover:text-blue-300 transition-colors">
+                                        <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-4 group-hover:text-emerald-600 dark:group-hover:text-emerald-300 transition-colors">
                                             {value.name}
                                         </h3>
 
-                                        <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
+                                        <p className="text-gray-600 dark:text-gray-400 leading-relaxed">
                                             {value.description}
                                         </p>
                                     </div>
@@ -761,41 +725,41 @@ const AboutClient: React.FC = () => {
                 {/* Community Section */}
                 <div className="mt-20">
                     <div className="text-center mb-12">
-                        <div className="inline-flex items-center gap-3 rounded-full bg-gradient-to-r from-[#3B82F6]/10 to-[#10B981]/10 dark:from-[#3B82F6]/20 dark:to-[#10B981]/20 px-6 py-3 backdrop-blur-sm border border-[#3B82F6]/20 dark:border-[#3B82F6]/30 mb-6">
-                            <FaUsers className="w-4 h-4 text-[#3B82F6]" />
-                            <span className="text-sm font-semibold uppercase tracking-[0.3em] text-[#3B82F6] dark:text-[#3B82F6]">
+                        <div className="inline-flex items-center gap-3 rounded-full bg-emerald-50 dark:bg-emerald-900/20 px-4 py-2 border border-emerald-100 dark:border-emerald-800 mb-6">
+                            <FaUsers className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                            <span className="text-sm font-semibold uppercase tracking-wider text-emerald-600 dark:text-emerald-400">
                                 Our Community
                             </span>
                         </div>
-                        <h2 className="text-4xl font-bold bg-gradient-to-r from-slate-900 via-[#3B82F6] to-[#10B981] dark:from-white dark:via-[#3B82F6] dark:to-[#10B981] bg-clip-text text-transparent mb-4">
+                        <h2 className="text-4xl font-bold text-gray-900 dark:text-white mb-4">
                             Join the Zygotrix Community
                         </h2>
-                        <p className="text-lg text-slate-600 dark:text-slate-300 max-w-2xl mx-auto">
+                        <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
                             Connect with genetics enthusiasts, researchers, and developers. Share ideas, get support, and be part of our growing community.
                         </p>
                     </div>
 
                     <div className="grid gap-6 md:grid-cols-2 max-w-4xl mx-auto">
                         {/* Discord Card */}
-                        <div className="group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-indigo-500/20 hover:scale-[1.02]">
-                            <div className="absolute inset-0 bg-gradient-to-br from-indigo-400/5 via-purple-400/5 to-pink-400/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        <div className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-lg transition-all hover:shadow-xl hover:scale-[1.02]">
+                            <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 via-gray-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                             <div className="relative flex items-start gap-4">
-                                <div className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <div className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gray-900 dark:bg-gray-800 text-white shadow-md group-hover:scale-110 transition-transform duration-300">
                                     <FaDiscord className="w-7 h-7" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                                         Discord Server
                                     </h3>
-                                    <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                                         Join our Discord for real-time discussions, community events, and direct support from the team.
                                     </p>
                                     <a
                                         href="https://discord.gg/5qtEfusv"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 text-indigo-600 dark:text-indigo-400 font-semibold hover:gap-3 transition-all"
+                                        className="inline-flex items-center gap-2 text-gray-900 dark:text-white font-semibold hover:gap-3 transition-all"
                                     >
                                         Join Server <span aria-hidden="true">&rarr;</span>
                                     </a>
@@ -803,26 +767,26 @@ const AboutClient: React.FC = () => {
                             </div>
                         </div>
 
-                        {/* GitHub Card - assuming there might be one, or I'll just use the one I saw in code earlier or skip */}
-                        <div className="group relative overflow-hidden rounded-3xl border-2 border-slate-200 dark:border-slate-700/60 bg-white/60 dark:bg-slate-800/60 p-8 shadow-xl shadow-slate-200/50 dark:shadow-slate-500/10 transition-all hover:shadow-2xl hover:shadow-slate-500/20 hover:scale-[1.02]">
-                            <div className="absolute inset-0 bg-gradient-to-br from-slate-400/5 via-slate-500/5 to-slate-600/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+                        {/* GitHub Card */}
+                        <div className="group relative overflow-hidden rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-8 shadow-lg transition-all hover:shadow-xl hover:scale-[1.02]">
+                            <div className="absolute inset-0 bg-gradient-to-br from-gray-50/50 via-gray-100/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
 
                             <div className="relative flex items-start gap-4">
-                                <div className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-gradient-to-r from-slate-700 to-slate-900 text-white shadow-lg group-hover:scale-110 transition-transform duration-300">
+                                <div className="flex-shrink-0 inline-flex items-center justify-center w-14 h-14 rounded-xl bg-gradient-to-r from-gray-700 to-gray-900 text-white shadow-md group-hover:scale-110 transition-transform duration-300">
                                     <FaGithub className="w-7 h-7" />
                                 </div>
                                 <div className="flex-1">
-                                    <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-2">
+                                    <h3 className="text-xl font-bold text-gray-900 dark:text-white mb-2">
                                         GitHub
                                     </h3>
-                                    <p className="text-slate-600 dark:text-slate-300 text-sm mb-4">
+                                    <p className="text-gray-600 dark:text-gray-400 text-sm mb-4">
                                         Explore our open-source contributions, report issues, and contribute to the codebase.
                                     </p>
                                     <a
                                         href="https://github.com/Nouman64-cat/Zygotrix"
                                         target="_blank"
                                         rel="noopener noreferrer"
-                                        className="inline-flex items-center gap-2 text-slate-700 dark:text-slate-400 font-semibold hover:gap-3 transition-all"
+                                        className="inline-flex items-center gap-2 text-gray-700 dark:text-gray-400 font-semibold hover:gap-3 transition-all"
                                     >
                                         View Repository <span aria-hidden="true">&rarr;</span>
                                     </a>

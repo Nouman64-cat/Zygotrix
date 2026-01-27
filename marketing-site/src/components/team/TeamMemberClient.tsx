@@ -23,40 +23,40 @@ import type { BlogListEntry } from "../../types/blog";
 
 const markdownComponents = {
     h1: ({ children }: any) => (
-        <h1 className="text-6xl font-bold text-slate-900 dark:text-white mt-8 mb-4 first:mt-0">
+        <h1 className="text-6xl font-bold text-gray-900 dark:text-white mt-8 mb-4 first:mt-0">
             {children}
         </h1>
     ),
     h2: ({ children }: any) => (
-        <h2 className="text-5xl font-bold text-slate-900 dark:text-white mt-8 mb-4">{children}</h2>
+        <h2 className="text-5xl font-bold text-gray-900 dark:text-white mt-8 mb-4">{children}</h2>
     ),
     h3: ({ children }: any) => (
-        <h3 className="text-4xl font-bold text-slate-900 dark:text-white mt-6 mb-3">{children}</h3>
+        <h3 className="text-4xl font-bold text-gray-900 dark:text-white mt-6 mb-3">{children}</h3>
     ),
     h4: ({ children }: any) => (
-        <h4 className="text-3xl font-bold text-slate-800 dark:text-slate-200 mt-6 mb-3">{children}</h4>
+        <h4 className="text-3xl font-bold text-gray-800 dark:text-gray-200 mt-6 mb-3">{children}</h4>
     ),
     h5: ({ children }: any) => (
-        <h5 className="text-base font-semibold text-slate-700 dark:text-slate-300 mt-6 mb-3 uppercase tracking-wide">
+        <h5 className="text-base font-semibold text-gray-700 dark:text-gray-300 mt-6 mb-3 uppercase tracking-wide">
             {children}
         </h5>
     ),
     h6: ({ children }: any) => (
-        <h6 className="text-sm font-semibold text-slate-500 dark:text-slate-400 mt-5 mb-3 uppercase tracking-[0.2em]">
+        <h6 className="text-sm font-semibold text-gray-500 dark:text-gray-400 mt-5 mb-3 uppercase tracking-[0.2em]">
             {children}
         </h6>
     ),
     p: ({ children }: any) => (
-        <p className="text-slate-600 dark:text-slate-300 text-base leading-relaxed mb-6">{children}</p>
+        <p className="text-gray-600 dark:text-gray-300 text-base leading-relaxed mb-6">{children}</p>
     ),
     ul: ({ children }: any) => (
-        <ul className="list-disc list-outside ml-6 text-base text-slate-600 dark:text-slate-300 mb-6 space-y-2">{children}</ul>
+        <ul className="list-disc list-outside ml-6 text-base text-gray-600 dark:text-gray-300 mb-6 space-y-2">{children}</ul>
     ),
     ol: ({ children }: any) => (
-        <ol className="list-decimal list-outside ml-6 text-base text-slate-600 dark:text-slate-300 mb-6 space-y-2">{children}</ol>
+        <ol className="list-decimal list-outside ml-6 text-base text-gray-600 dark:text-gray-300 mb-6 space-y-2">{children}</ol>
     ),
     blockquote: ({ children }: any) => (
-        <blockquote className="border-l-4 border-blue-500 pl-6 py-2 italic text-slate-600 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/50 rounded-r-lg mb-6">
+        <blockquote className="border-l-4 border-emerald-500 pl-6 py-2 italic text-gray-600 dark:text-gray-300 bg-gray-100 dark:bg-gray-800/50 rounded-r-lg mb-6">
             {children}
         </blockquote>
     ),
@@ -64,12 +64,12 @@ const markdownComponents = {
         // If it's an inline code block (no language class usually)
         const isInline = !className;
         if (isInline) {
-            return <code className="bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 px-2 py-1 rounded text-sm font-mono border border-slate-200 dark:border-slate-700">{children}</code>
+            return <code className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 px-2 py-1 rounded text-sm font-mono border border-gray-200 dark:border-gray-700">{children}</code>
         }
         return <code className={className}>{children}</code>;
     },
     pre: ({ children }: any) => (
-        <pre className="bg-slate-900 dark:bg-slate-950 text-slate-100 p-6 rounded-lg overflow-x-auto mb-6 border border-slate-800">
+        <pre className="bg-gray-900 dark:bg-gray-950 text-gray-100 p-6 rounded-lg overflow-x-auto mb-6 border border-gray-800">
             {children}
         </pre>
     ),
@@ -172,30 +172,30 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
 
     if (loading) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+            <div className="min-h-screen bg-white dark:bg-gray-950">
                 <div className="mx-auto max-w-4xl px-6 py-24">
                     <div className="mb-8">
-                        <div className="h-10 w-32 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+                        <div className="h-10 w-32 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
                     </div>
                     <div className="grid gap-12 lg:grid-cols-[2fr,1fr]">
                         <div className="space-y-8">
                             <div className="space-y-4">
-                                <div className="h-12 w-3/4 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
-                                <div className="h-6 w-1/2 bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+                                <div className="h-12 w-3/4 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+                                <div className="h-6 w-1/2 bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
                             </div>
                             <div className="space-y-4">
-                                <div className="h-6 w-full bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-                                <div className="h-6 w-full bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-                                <div className="h-6 w-3/4 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-                                <div className="h-6 w-full bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
-                                <div className="h-6 w-2/3 bg-slate-200 dark:bg-slate-700 rounded animate-pulse"></div>
+                                <div className="h-6 w-full bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                                <div className="h-6 w-full bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                                <div className="h-6 w-3/4 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                                <div className="h-6 w-full bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
+                                <div className="h-6 w-2/3 bg-gray-200 dark:bg-gray-800 rounded animate-pulse"></div>
                             </div>
                         </div>
                         <div className="space-y-6">
-                            <div className="w-64 h-64 bg-slate-200 dark:bg-slate-700 rounded-2xl animate-pulse mx-auto"></div>
+                            <div className="w-64 h-64 bg-gray-200 dark:bg-gray-800 rounded-2xl animate-pulse mx-auto"></div>
                             <div className="space-y-3">
-                                <div className="h-10 w-full bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
-                                <div className="h-10 w-full bg-slate-200 dark:bg-slate-700 rounded-lg animate-pulse"></div>
+                                <div className="h-10 w-full bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
+                                <div className="h-10 w-full bg-gray-200 dark:bg-gray-800 rounded-lg animate-pulse"></div>
                             </div>
                         </div>
                     </div>
@@ -206,11 +206,11 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
 
     if (error || !teamMember) {
         return (
-            <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900">
+            <div className="min-h-screen bg-white dark:bg-gray-950">
                 <div className="mx-auto max-w-4xl px-6 py-24">
                     <Link
                         href="/about"
-                        className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700 mb-8"
+                        className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800 mb-8"
                     >
                         <FaArrowLeft className="h-4 w-4" />
                         Back to About
@@ -232,16 +232,16 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                                 />
                             </svg>
                         </div>
-                        <h1 className="text-2xl font-bold text-slate-900 dark:text-white mb-4">
+                        <h1 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
                             Team Member Not Found
                         </h1>
-                        <p className="text-slate-600 dark:text-slate-400 mb-8">
+                        <p className="text-gray-600 dark:text-gray-400 mb-8">
                             {error ||
                                 "The team member you're looking for doesn't exist or may have been removed."}
                         </p>
                         <Link
                             href="/about"
-                            className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-6 py-3 text-white font-medium transition hover:bg-blue-700"
+                            className="inline-flex items-center gap-2 rounded-lg bg-gray-900 px-6 py-3 text-white font-medium transition hover:bg-gray-800"
                         >
                             <FaArrowLeft className="h-4 w-4" />
                             Return to Team
@@ -253,40 +253,17 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 via-white to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 transition-colors duration-300">
-            {/* DNA Pattern Background */}
-            <div className="pointer-events-none fixed inset-0 opacity-[0.02]">
-                <svg className="h-full w-full" xmlns="http://www.w3.org/2000/svg">
-                    <defs>
-                        <pattern
-                            id="team-dna"
-                            x="0"
-                            y="0"
-                            width="100"
-                            height="100"
-                            patternUnits="userSpaceOnUse"
-                        >
-                            <path
-                                d="M25,10 Q50,30 75,10 M25,90 Q50,70 75,90 M25,10 L25,90 M75,10 L75,90"
-                                stroke="currentColor"
-                                strokeWidth="1"
-                                fill="none"
-                            />
-                            <circle cx="25" cy="30" r="2" fill="currentColor" />
-                            <circle cx="75" cy="30" r="2" fill="currentColor" />
-                            <circle cx="25" cy="60" r="2" fill="currentColor" />
-                            <circle cx="75" cy="60" r="2" fill="currentColor" />
-                        </pattern>
-                    </defs>
-                    <rect width="100%" height="100%" fill="url(#team-dna)" />
-                </svg>
+        <div className="min-h-screen bg-white dark:bg-gray-950 transition-colors duration-300">
+            {/* Background decoration */}
+            <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-30">
+                <div className="absolute top-0 right-0 -mr-20 -mt-20 w-[600px] h-[600px] bg-gradient-to-bl from-emerald-50/40 via-teal-50/20 to-transparent dark:from-emerald-900/10 dark:via-teal-900/5 dark:to-transparent rounded-full blur-3xl opacity-50" />
             </div>
 
             <div className="relative z-10 mx-auto max-w-6xl px-6 py-24">
                 {/* Back Button */}
                 <Link
                     href="/about"
-                    className="inline-flex items-center gap-2 rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-2 text-sm font-medium text-slate-600 dark:text-slate-300 transition hover:bg-slate-50 dark:hover:bg-slate-700 mb-8 shadow-sm hover:shadow-md"
+                    className="inline-flex items-center gap-2 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 px-4 py-2 text-sm font-medium text-gray-600 dark:text-gray-300 transition hover:bg-gray-50 dark:hover:bg-gray-800 mb-8 shadow-sm hover:shadow-md"
                 >
                     <FaArrowLeft className="h-4 w-4" />
                     Back to About
@@ -297,15 +274,15 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                     {/* Left Column (Scrollable) */}
                     <div className="space-y-4 overflow-y-auto pr-2 lg:pr-0">
                         {/* name */}
-                        <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-400 to-blue-600 bg-clip-text text-transparent lg:text-4xl">
+                        <h1 className="text-3xl font-bold bg-gradient-to-r from-emerald-600 to-teal-600 bg-clip-text text-transparent lg:text-4xl">
                             {teamMember.name}
                         </h1>
                         {/* role */}
-                        <span className="inline-block rounded-full bg-gradient-to-r from-blue-900/20 to-blue-600/20 border-2 border-blue-500/30 px-4 py-2 text-base font-semibold text-blue-400">
+                        <span className="inline-block rounded-full bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-100 dark:border-emerald-800 px-4 py-2 text-base font-semibold text-emerald-600 dark:text-emerald-400">
                             {teamMember.role}
                         </span>
                         {/* bio */}
-                        <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-blue-600 dark:prose-headings:text-blue-400 prose-strong:text-blue-600 dark:prose-strong:text-blue-400 prose-links:text-blue-600 dark:prose-links:text-blue-400 prose-links:no-underline hover:prose-links:underline prose-p:text-slate-600 dark:prose-p:text-slate-300 prose-p:leading-relaxed prose-p:mb-6 [&>p]:mb-6 [&>p:last-child]:mb-0">
+                        <div className="prose prose-lg max-w-none dark:prose-invert prose-headings:text-gray-900 dark:prose-headings:text-white prose-strong:text-emerald-600 dark:prose-strong:text-emerald-400 prose-links:text-emerald-600 dark:prose-links:text-emerald-400 prose-links:no-underline hover:prose-links:underline prose-p:text-gray-600 dark:prose-p:text-gray-300 prose-p:leading-relaxed prose-p:mb-6 [&>p]:mb-6 [&>p:last-child]:mb-0">
                             <ReactMarkdown
                                 remarkPlugins={[remarkGfm]}
                                 components={markdownComponents}
@@ -315,10 +292,10 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                         </div>
                     </div>
                     {/* Right Column (Sticky) */}
-                    <div className="space-y-6 lg:border-l lg:pl-8 lg:border-slate-200 dark:lg:border-slate-700 lg:sticky lg:top-24">
+                    <div className="space-y-6 lg:border-l lg:pl-8 lg:border-gray-200 dark:lg:border-gray-800 lg:sticky lg:top-24">
                         {/* image */}
-                        <div className="relative z-10 overflow-hidden rounded-2xl border-2 border-blue-200 dark:border-blue-500/30 bg-white dark:bg-slate-800/90 p-4 shadow-xl shadow-blue-500/10 max-w-sm mx-auto lg:mx-0">
-                            <div className="aspect-square overflow-hidden rounded-xl ring-2 ring-blue-200 dark:ring-blue-500/30 flex items-center justify-center bg-slate-50 dark:bg-slate-800">
+                        <div className="relative z-10 overflow-hidden rounded-2xl border-2 border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 p-4 shadow-xl max-w-sm mx-auto lg:mx-0">
+                            <div className="aspect-square overflow-hidden rounded-xl ring-1 ring-gray-100 dark:ring-gray-800 flex items-center justify-center bg-gray-50 dark:bg-gray-800">
                                 {teamMember.photo && teamMember.photo.url ? (
                                     <img
                                         src={teamMember.photo.url}
@@ -326,7 +303,7 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                                         className="h-full w-full object-cover transition duration-300 hover:scale-105"
                                     />
                                 ) : (
-                                    <span className="text-4xl font-bold text-slate-400 dark:text-slate-600 select-none">
+                                    <span className="text-4xl font-bold text-gray-400 dark:text-gray-600 select-none">
                                         {teamMember.name
                                             .split(" ")
                                             .filter(Boolean)
@@ -341,7 +318,7 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                         {teamMember.socialProfiles &&
                             teamMember.socialProfiles.length > 0 && (
                                 <div className="mt-4 space-y-3">
-                                    <h3 className="text-sm font-semibold text-blue-600 dark:text-blue-400 uppercase tracking-wide">
+                                    <h3 className="text-sm font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wide">
                                         Connect
                                     </h3>
                                     <div className="space-y-2">
@@ -351,22 +328,22 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                                                 href={profile.url}
                                                 target="_blank"
                                                 rel="noopener noreferrer"
-                                                className={`flex items-center gap-3 rounded-lg border border-slate-200 dark:border-slate-700 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm p-3 text-slate-600 dark:text-slate-300 transition ${getSocialColor(
+                                                className={`flex items-center gap-3 rounded-lg border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-3 text-gray-600 dark:text-gray-300 transition ${getSocialColor(
                                                     profile.platform
-                                                )} hover:border-transparent hover:shadow-md group hover:bg-slate-50 dark:hover:bg-slate-800`}
+                                                )} hover:border-transparent hover:shadow-md group hover:bg-gray-50 dark:hover:bg-gray-800`}
                                             >
-                                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-slate-100 dark:bg-slate-700 group-hover:bg-slate-200 dark:group-hover:bg-slate-700 transition-colors">
+                                                <div className="flex h-8 w-8 items-center justify-center rounded-md bg-gray-100 dark:bg-gray-800 group-hover:bg-white dark:group-hover:bg-gray-700 transition-colors">
                                                     {getSocialIcon(profile.platform)}
                                                 </div>
                                                 <div className="flex-1 min-w-0">
-                                                    <div className="text-sm font-medium text-slate-900 dark:text-white capitalize">
+                                                    <div className="text-sm font-medium text-gray-900 dark:text-white capitalize">
                                                         {profile.platform}
                                                     </div>
-                                                    <div className="text-xs text-slate-500 dark:text-slate-400 truncate">
+                                                    <div className="text-xs text-gray-500 dark:text-gray-400 truncate">
                                                         @{profile.username}
                                                     </div>
                                                 </div>
-                                                <FaExternalLinkAlt className="h-3 w-3 text-slate-400 dark:text-slate-500 group-hover:text-current transition-colors" />
+                                                <FaExternalLinkAlt className="h-3 w-3 text-gray-400 dark:text-gray-500 group-hover:text-current transition-colors" />
                                             </a>
                                         ))}
                                     </div>
@@ -381,17 +358,17 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                         <div className="mb-8">
                             <div className="flex items-center gap-3 mb-4">
                                 <svg
-                                    className="w-8 h-8 text-blue-600"
+                                    className="w-8 h-8 text-emerald-600"
                                     fill="currentColor"
                                     viewBox="0 0 20 20"
                                 >
                                     <path d="M9 4.804A7.968 7.968 0 005.5 4c-1.255 0-2.443.29-3.5.804v10A7.969 7.969 0 015.5 14c1.669 0 3.218.51 4.5 1.385A7.962 7.962 0 0114.5 14c1.255 0 2.443.29 3.5.804v-10A7.968 7.968 0 0014.5 4c-1.255 0-2.443.29-3.5.804V12a1 1 0 11-2 0V4.804z" />
                                 </svg>
-                                <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-600 dark:from-white dark:to-blue-400 bg-clip-text text-transparent">
+                                <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-emerald-600 dark:from-white dark:to-emerald-400 bg-clip-text text-transparent">
                                     Published Research & Articles
                                 </h2>
                             </div>
-                            <p className="text-slate-600 dark:text-slate-400">
+                            <p className="text-gray-600 dark:text-gray-400">
                                 Explore {authoredBlogs.length} research{" "}
                                 {authoredBlogs.length === 1 ? "article" : "articles"} published
                                 by {teamMember.name}
@@ -404,12 +381,12 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                                 <Link
                                     key={blog.slug}
                                     href={`/blogs/${blog.slug}`}
-                                    className="group relative overflow-hidden rounded-2xl border-2 border-blue-100 dark:border-blue-900/30 bg-gradient-to-br from-white to-blue-50 dark:from-slate-800 dark:to-blue-900/10 p-6 shadow-lg transition-all hover:shadow-2xl hover:border-blue-300 dark:hover:border-blue-500/50 hover:-translate-y-1"
+                                    className="group relative overflow-hidden rounded-xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 p-6 shadow-lg transition-all hover:shadow-xl hover:border-emerald-200 dark:hover:border-emerald-800 hover:-translate-y-1"
                                 >
                                     {/* Molecule decoration */}
                                     <div className="absolute top-0 right-0 w-32 h-32 opacity-5 group-hover:opacity-10 transition-opacity">
                                         <svg
-                                            className="w-full h-full text-blue-600"
+                                            className="w-full h-full text-emerald-600"
                                             viewBox="0 0 100 100"
                                             fill="currentColor"
                                         >
@@ -454,7 +431,7 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                                     </div>
 
                                     {blog.imageUrl && (
-                                        <div className="mb-4 aspect-video overflow-hidden rounded-xl ring-2 ring-blue-200 dark:ring-blue-500/30 group-hover:ring-blue-400 transition-all">
+                                        <div className="mb-4 aspect-video overflow-hidden rounded-lg ring-1 ring-gray-100 dark:ring-gray-800 group-hover:ring-emerald-200 dark:group-hover:ring-emerald-800 transition-all">
                                             <img
                                                 src={blog.imageUrl}
                                                 alt={blog.title}
@@ -464,20 +441,20 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                                     )}
 
                                     <div className="relative z-10">
-                                        <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-3 line-clamp-2 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                                        <h3 className="text-lg font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
                                             {blog.title}
                                         </h3>
 
-                                        <p className="text-sm text-slate-600 dark:text-slate-400 mb-4 line-clamp-3">
+                                        <p className="text-sm text-gray-600 dark:text-gray-400 mb-4 line-clamp-3">
                                             {blog.excerpt}
                                         </p>
 
-                                        <div className="flex items-center justify-between text-xs text-slate-500 dark:text-slate-500">
+                                        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-gray-500">
                                             <div className="flex items-center gap-2">
                                                 <FiCalendar className="h-3 w-3" />
                                                 <span>{formatDate(blog.date)}</span>
                                             </div>
-                                            <div className="flex items-center gap-1 text-blue-600 dark:text-blue-400 font-medium group-hover:gap-2 transition-all">
+                                            <div className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400 font-medium group-hover:gap-2 transition-all">
                                                 Read More
                                                 <FiArrowRight className="h-3 w-3" />
                                             </div>
@@ -489,7 +466,7 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                                                 {blog.categories.slice(0, 2).map((category) => (
                                                     <span
                                                         key={category.slug}
-                                                        className="rounded-full bg-blue-50 dark:bg-blue-900/30 border border-blue-200 dark:border-blue-500/30 px-3 py-1 text-xs font-medium text-blue-600 dark:text-blue-400"
+                                                        className="rounded-full bg-emerald-50 dark:bg-emerald-900/30 border border-emerald-100 dark:border-emerald-800 px-3 py-1 text-xs font-medium text-emerald-600 dark:text-emerald-400"
                                                     >
                                                         {category.title}
                                                     </span>
@@ -507,7 +484,7 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                 {blogsLoading && (
                     <div className="mt-16">
                         <div className="mb-8">
-                            <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-900 dark:from-white dark:to-blue-400 bg-clip-text text-transparent">
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-emerald-900 dark:from-white dark:to-emerald-400 bg-clip-text text-transparent">
                                 Published Research & Articles
                             </h2>
                         </div>
@@ -515,7 +492,7 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                             {[1, 2, 3].map((n) => (
                                 <div
                                     key={n}
-                                    className="h-80 animate-pulse rounded-2xl bg-slate-200 dark:bg-slate-800/60 shadow-lg"
+                                    className="h-80 animate-pulse rounded-2xl bg-gray-200 dark:bg-gray-800/60 shadow-lg"
                                 />
                             ))}
                         </div>
@@ -526,14 +503,14 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                 {!blogsLoading && authoredBlogs.length === 0 && (
                     <div className="mt-16">
                         <div className="mb-8">
-                            <h2 className="text-3xl font-bold bg-gradient-to-r from-slate-900 to-blue-600 dark:from-white dark:to-blue-400 bg-clip-text text-transparent">
+                            <h2 className="text-3xl font-bold bg-gradient-to-r from-gray-900 to-emerald-600 dark:from-white dark:to-emerald-400 bg-clip-text text-transparent">
                                 Published Research & Articles
                             </h2>
                         </div>
-                        <div className="text-center py-12 rounded-2xl border-2 border-slate-200 dark:border-slate-700 bg-gradient-to-br from-white to-slate-50 dark:from-slate-800 dark:to-slate-900">
-                            <div className="w-16 h-16 bg-slate-100 dark:bg-slate-700 rounded-full flex items-center justify-center mx-auto mb-4">
+                        <div className="text-center py-12 rounded-2xl border border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-950">
+                            <div className="w-16 h-16 bg-gray-100 dark:bg-gray-800 rounded-full flex items-center justify-center mx-auto mb-4">
                                 <svg
-                                    className="w-8 h-8 text-slate-400 dark:text-slate-400"
+                                    className="w-8 h-8 text-gray-400 dark:text-gray-400"
                                     fill="none"
                                     stroke="currentColor"
                                     viewBox="0 0 24 24"
@@ -546,7 +523,7 @@ const TeamMemberClient: React.FC<TeamMemberClientProps> = ({ slug }) => {
                                     />
                                 </svg>
                             </div>
-                            <p className="text-slate-500 dark:text-slate-400">
+                            <p className="text-gray-500 dark:text-gray-400">
                                 {teamMember.name} hasn't published any articles yet. Check back
                                 later for their research contributions!
                             </p>

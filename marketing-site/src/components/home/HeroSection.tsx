@@ -1,6 +1,7 @@
 import React from "react";
 import Link from "next/link";
 import DNAStrand from "./DNAStrand";
+import { FaBrain, FaDna } from 'react-icons/fa';
 
 const HeroSection: React.FC = () => {
     return (
@@ -10,29 +11,27 @@ const HeroSection: React.FC = () => {
                     {/* Left Column - Text Content */}
                     <div className="space-y-6 max-w-xl">
                         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight">
-                            <span className="text-gray-900 dark:text-white">the only solution you need to run </span>
-                            <span className="text-emerald-500 dark:text-emerald-400">a world-class genetics platform</span>
+                            <span className="text-gray-900 dark:text-white">The Complete Ecosystem for </span>
+                            <span className="text-emerald-500 dark:text-emerald-400">Genetic Discovery</span>
                         </h1>
 
                         <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed">
-                            Model complex genetic inheritance patterns, close deals, and watch your research
-                            grow with Zygotrix's end-to-end genetics solution, powered by AI.
+                            Seamlessly merge <strong>AI-driven research</strong> with <strong>advanced biological simulation</strong>.
+                            From literature review to phenotype prediction, Zygotrix powers your entire workflow.
                         </p>
 
                         <div className="flex flex-wrap items-center gap-4 pt-2">
+                            <Link
+                                href="https://ai.zygotrix.com/register"
+                                className="px-6 py-3 rounded-lg bg-emerald-600 text-white text-sm font-semibold hover:bg-emerald-500 hover:shadow-lg hover:shadow-emerald-500/30 transition-all duration-300 flex items-center gap-2"
+                            >
+                                <FaBrain className="w-5 h-5" /> Launch Zygotrix AI
+                            </Link>
                             <a
                                 href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
-                                className="px-6 py-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors"
+                                className="px-6 py-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors flex items-center gap-2"
                             >
-                                Get started
-                            </a>
-                            <a
-                                href="https://calendly.com/working-nouman-ejaz/zygotrix-demo"
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="px-6 py-3 rounded-lg border border-gray-300 dark:border-gray-700 text-gray-900 dark:text-white text-sm font-semibold hover:bg-gray-50 dark:hover:bg-gray-900 transition-colors"
-                            >
-                                Get a demo
+                                <FaDna className="w-5 h-5" /> Launch Studio
                             </a>
                         </div>
                     </div>

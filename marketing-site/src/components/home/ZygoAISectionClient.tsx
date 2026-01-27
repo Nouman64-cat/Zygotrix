@@ -116,7 +116,7 @@ const ZygoAISectionClient: React.FC = () => {
                             </div>
 
                             <a
-                                href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
+                                href="https://ai.zygotrix.com/register"
                                 className="flex-shrink-0 group inline-flex items-center gap-3 px-8 py-4 bg-white text-gray-900 rounded-full font-semibold shadow-xl hover:shadow-2xl hover:scale-105 transition-all duration-300"
                             >
                                 <span>Try {botName}</span>

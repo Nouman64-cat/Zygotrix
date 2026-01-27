@@ -216,11 +216,20 @@ export const ForgotPassword = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/30 dark:from-gray-900 dark:via-emerald-900/10 dark:to-teal-900/10 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-slate-50 flex items-center justify-center p-4 relative font-sans">
+      {/* New Subtle Background */}
+      <div
+        className="absolute inset-0 opacity-[0.4]"
+        style={{
+          backgroundImage:
+            "linear-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.1) 1px, transparent 1px)",
+          backgroundSize: "40px 40px",
+        }}
+      />
       <DNAHelix />
 
       <div className="relative z-10 w-full max-w-md">
-        <div className="bg-white/95 dark:bg-gray-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+        <div className="bg-white rounded-2xl shadow-xl border border-slate-200 overflow-hidden">
           {/* Header */}
           <div className="p-8 pb-6">
             <div className="flex items-center justify-center mb-6">

@@ -35,7 +35,7 @@ const Hero = () => {
                     </p>
 
                     <div className="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-4">
-                        <Link href="https://chat.zygotrix.com/register" className="w-full sm:w-auto">
+                        <Link href="https://ai.zygotrix.com/register" className="w-full sm:w-auto">
                             <Button variant="primary" size="lg" className="w-full">
                                 Start Researching <FaArrowRight />
                             </Button>

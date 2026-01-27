@@ -4,7 +4,6 @@ import { FiMail, FiLock, FiAlertCircle, FiEye, FiEyeOff } from 'react-icons/fi';
 import { GiDna2 } from 'react-icons/gi';
 import { FaDna } from 'react-icons/fa';
 import { useAuth } from '../contexts';
-import { Logo } from '../components/common';
 
 // Floating DNA Bases Animation
 // Helper function for deterministic pseudo-random numbers
@@ -21,7 +20,7 @@ const FloatingDNABases: React.FC = () => {
       {bases.map((base, i) => (
         <div
           key={i}
-          className="absolute font-mono font-bold text-emerald-500/10 dark:text-emerald-400/10 select-none"
+          className="absolute font-mono font-bold text-emerald-900/10 select-none"
           style={{
             fontSize: `${20 + pseudoRandom(i * 13.5 + 1) * 30}px`,
             left: `${pseudoRandom(i * 37.2 + 2) * 100}%`,
@@ -37,47 +36,7 @@ const FloatingDNABases: React.FC = () => {
   );
 };
 
-// DNA Double Helix Visualization
-const DNAHelix: React.FC = () => {
-  return (
-    <div className="relative w-40 h-80">
-      {[...Array(16)].map((_, i) => {
-        const rotation = i * 22.5;
-        const yPos = i * 5;
-        const colors = [
-          { left: 'from-red-400 to-red-600', right: 'from-green-400 to-green-600' },
-          { left: 'from-blue-400 to-blue-600', right: 'from-yellow-400 to-yellow-600' },
-          { left: 'from-green-400 to-green-600', right: 'from-red-400 to-red-600' },
-          { left: 'from-yellow-400 to-yellow-600', right: 'from-blue-400 to-blue-600' },
-        ];
-        const color = colors[i % 4];
 
-        return (
-          <div
-            key={i}
-            className="absolute left-1/2 w-full flex items-center justify-between px-2"
-            style={{
-              top: `${yPos}%`,
-              transform: `translateX(-50%) rotateY(${rotation}deg)`,
-              animation: `helixRotate 10s linear infinite`,
-              animationDelay: `${i * 0.1}s`,
-            }}
-          >
-            <div
-              className={`w-4 h-4 rounded-full bg-gradient-to-br ${color.left} shadow-lg`}
-              style={{ boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' }}
-            />
-            <div className="flex-1 h-0.5 mx-2 bg-gradient-to-r from-gray-300 via-gray-200 to-gray-300 dark:from-gray-600 dark:via-gray-500 dark:to-gray-600 opacity-60" />
-            <div
-              className={`w-4 h-4 rounded-full bg-gradient-to-br ${color.right} shadow-lg`}
-              style={{ boxShadow: '0 0 15px rgba(16, 185, 129, 0.4)' }}
-            />
-          </div>
-        );
-      })}
-    </div>
-  );
-};
 
 export const Login: React.FC = () => {
   const navigate = useNavigate();
@@ -113,63 +72,119 @@ export const Login: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex bg-gradient-to-br from-gray-50 via-emerald-50/30 to-teal-50/50 dark:from-gray-950 dark:via-gray-900 dark:to-emerald-950/20 overflow-hidden relative">
+    <div className="min-h-screen flex bg-slate-50 overflow-hidden relative font-sans">
       {/* Animated Background Elements */}
       <FloatingDNABases />
 
-      {/* Glowing Orbs */}
-      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-emerald-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
-      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-teal-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-radial from-emerald-500/5 to-transparent rounded-full" />
+      {/* Glowing Orbs - Simplified for light theme */}
+      <div className="absolute top-1/4 -left-32 w-96 h-96 bg-emerald-100/50 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '4s' }} />
+      <div className="absolute bottom-1/4 -right-32 w-96 h-96 bg-teal-100/50 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '5s', animationDelay: '1s' }} />
 
       {/* Grid Pattern */}
       <div
-        className="absolute inset-0 opacity-[0.03] dark:opacity-[0.02]"
+        className="absolute inset-0 opacity-[0.4]"
         style={{
-          backgroundImage: 'linear-gradient(rgba(16, 185, 129, 0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.3) 1px, transparent 1px)',
-          backgroundSize: '50px 50px',
+          backgroundImage: 'linear-gradient(rgba(16, 185, 129, 0.1) 1px, transparent 1px), linear-gradient(90deg, rgba(16, 185, 129, 0.1) 1px, transparent 1px)',
+          backgroundSize: '40px 40px',
         }}
       />
 
-      {/* Left Panel - DNA Visualization (Desktop) */}
-      <div className="hidden lg:flex lg:w-1/2 items-center justify-center relative z-10">
-        <div className="text-center px-8">
-          {/* Animated Logo */}
-          <div className="relative inline-flex mb-10">
-            <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-2xl opacity-30 animate-pulse" style={{ animationDuration: '3s' }} />
-            <div className="relative w-28 h-28 flex items-center justify-center">
-              <Logo size="lg" showText={false} />
+      {/* Left Panel - CSS Laptop Mockup */}
+      <div className="hidden lg:flex lg:w-1/2 relative z-10 bg-slate-900 flex-col items-center justify-center overflow-hidden p-8">
+        {/* Background Gradients */}
+        <div className="absolute top-0 -left-1/4 w-full h-full bg-emerald-500/10 blur-[120px] rounded-full pointer-events-none" />
+        <div className="absolute bottom-0 -right-1/4 w-full h-full bg-teal-500/10 blur-[120px] rounded-full pointer-events-none" />
+
+        {/* Text Content */}
+        <div className="relative z-20 text-center mb-12 max-w-md">
+          <h2 className="text-3xl font-bold text-white mb-4">
+            Scientific Intelligence <br />
+            <span className="text-emerald-400">Reimagined</span>
+          </h2>
+          <p className="text-slate-400 text-sm leading-relaxed">
+            Experience the next generation of genetic analysis with our advanced AI-powered workstation.
+          </p>
+        </div>
+
+        {/* Laptop Mockup */}
+        <div className="relative z-10 transform hover:scale-[1.02] transition-transform duration-700 ease-out">
+          {/* Screen Frame */}
+          <div className="relative mx-auto bg-slate-800 rounded-t-xl border-[4px] border-slate-700 w-[420px] h-[260px] shadow-2xl flex flex-col overflow-hidden ring-1 ring-white/10">
+            {/* Camera Notch Area */}
+            <div className="absolute top-0 inset-x-0 h-4 bg-slate-800 z-20 flex justify-center">
+              <div className="w-20 h-full bg-slate-900/50 rounded-b-md flex items-center justify-center gap-1">
+                <div className="w-1 h-1 rounded-full bg-slate-600"></div>
+                <div className="w-1.5 h-1.5 rounded-full bg-emerald-900/80 ring-1 ring-emerald-500/30"></div>
+              </div>
+            </div>
+
+            {/* Screen Content: Dashboard UI */}
+            <div className="flex-1 bg-slate-950 flex pt-4 relative overflow-hidden">
+              {/* Sidebar */}
+              <div className="w-12 border-r border-white/5 flex flex-col items-center py-3 gap-3">
+                <div className="w-6 h-6 rounded-md bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-[10px]">AI</div>
+                {[1, 2, 3].map(i => <div key={i} className="w-5 h-5 rounded-md bg-white/5 active:bg-white/10" />)}
+              </div>
+
+              {/* Main Content */}
+              <div className="flex-1 p-3 space-y-3 overflow-hidden">
+                {/* Header Row */}
+                <div className="flex justify-between items-center">
+                  <div className="h-2 w-24 bg-white/10 rounded-full" />
+                  <div className="flex gap-2">
+                    <div className="h-5 w-16 bg-emerald-500/10 rounded-full border border-emerald-500/20" />
+                  </div>
+                </div>
+
+                {/* Grid */}
+                <div className="grid grid-cols-3 gap-3 h-full pb-6">
+                  {/* Card 1: Gene Sequence */}
+                  <div className="col-span-2 bg-white/5 rounded-lg p-2 border border-white/5 overflow-hidden relative">
+                    <div className="flex justify-between items-center mb-2">
+                      <div className="h-1.5 w-12 bg-white/10 rounded-full" />
+                      <div className="h-1.5 w-6 bg-emerald-400/50 rounded-full" />
+                    </div>
+                    <div className="space-y-1.5 animate-pulse">
+                      {[...Array(5)].map((_, i) => (
+                        <div key={i} className="flex gap-1">
+                          <div className="h-1 rounded-full w-full bg-gradient-to-r from-emerald-500/40 to-teal-500/40" style={{ width: `${Math.random() * 50 + 40}%` }} />
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Card 2: Stats */}
+                  <div className="col-span-1 bg-white/5 rounded-lg p-2 border border-white/5 flex flex-col justify-between">
+                    <div className="h-8 w-8 rounded-full border-2 border-emerald-500/30 border-t-emerald-400 animate-spin mb-1" />
+                    <div className="h-1.5 w-10 bg-white/10 rounded-full" />
+                  </div>
+
+                  {/* Card 3: Chat/Analysis */}
+                  <div className="col-span-3 bg-white/5 rounded-lg p-2 border border-white/5 h-20 relative overflow-hidden">
+                    <div className="absolute top-2 left-2 right-2 space-y-2">
+                      <div className="flex gap-2 items-center">
+                        <div className="w-4 h-4 rounded-full bg-emerald-500/20" />
+                        <div className="h-1.5 w-3/4 bg-white/10 rounded-full" />
+                      </div>
+                      <div className="flex gap-2 items-center">
+                        <div className="w-4 h-4 rounded-full bg-purple-500/20" />
+                        <div className="h-1.5 w-1/2 bg-white/10 rounded-full" />
+                      </div>
+                    </div>
+                    {/* Scan line */}
+                    <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent h-1/2 animate-[scan_3s_ease-in-out_infinite]" />
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
 
-          <h2 className="text-3xl xl:text-4xl font-bold mb-6">
-            <span className="text-gray-800 dark:text-white">Welcome to</span>
-            <span className="block mt-2 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 bg-clip-text text-transparent">
-              Zygotrix AI
-            </span>
-          </h2>
-
-          <p className="text-base text-gray-600 dark:text-gray-400 max-w-md mx-auto mb-12 leading-relaxed">
-            Your intelligent genetics companion for research, analysis, and discovery.
-          </p>
-
-          {/* DNA Helix Animation */}
-          <div className="flex justify-center mb-10">
-            <DNAHelix />
-          </div>
-
-          {/* Feature Tags */}
-          <div className="flex flex-wrap justify-center gap-3">
-            {['AI-Powered', 'Genetics Insights', 'DNA Analysis', 'Research Tools'].map((tag) => (
-              <span
-                key={tag}
-                className="px-4 py-2 rounded-full text-sm font-medium bg-white/60 dark:bg-gray-800/60 text-gray-700 dark:text-gray-300 border border-white/50 dark:border-gray-700/50 backdrop-blur-sm shadow-sm"
-              >
-                {tag}
-              </span>
-            ))}
+          {/* Laptop Base */}
+          <div className="relative mx-auto bg-slate-700 rounded-b-xl h-[16px] w-[460px] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border-t border-slate-600">
+            <div className="absolute left-1/2 top-0 -translate-x-1/2 w-32 h-[4px] bg-slate-800 rounded-b-md shadow-inner"></div>
           </div>
         </div>
+
       </div>
 
       {/* Right Panel - Login Form */}
@@ -177,44 +192,40 @@ export const Login: React.FC = () => {
         <div className="w-full max-w-md">
           {/* Form Card */}
           <div className="relative group">
-            {/* Animated Gradient Border */}
-            <div className="absolute -inset-1 bg-gradient-to-r from-emerald-600 via-teal-500 to-emerald-600 rounded-3xl opacity-20 blur-lg group-hover:opacity-30 transition-opacity duration-500" style={{ animation: 'gradient-x 4s ease infinite', backgroundSize: '200% 200%' }} />
 
-            <div className="relative bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl rounded-2xl sm:rounded-3xl border border-white/50 dark:border-gray-700/50 shadow-2xl shadow-gray-300/20 dark:shadow-black/30 p-5 sm:p-8 lg:p-10">
+            <div className="relative bg-white rounded-2xl sm:rounded-3xl border border-slate-200 shadow-xl shadow-slate-200/50 p-6 sm:p-10 lg:p-12">
               {/* Header */}
-              <div className="text-center mb-5 sm:mb-8">
-                <h1 className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
+              <div className="text-center mb-8">
+                <h1 className="text-2xl font-bold text-slate-900 mb-2">
                   Welcome Back
                 </h1>
-                <p className="text-xs sm:text-sm text-gray-600 dark:text-gray-400">
-                  Sign in to continue to <span className="font-bold text-emerald-600 dark:text-emerald-400">Zygotrix AI</span>
+                <p className="text-sm text-slate-500">
+                  Sign in to continue to <span className="font-bold text-emerald-600">Zygotrix AI</span>
                 </p>
               </div>
 
               {/* Error Message */}
               {error && (
-                <div className="mb-6 p-4 rounded-2xl bg-gradient-to-r from-red-50 to-red-100/50 dark:from-red-900/20 dark:to-red-800/10 border border-red-200/50 dark:border-red-800/30" style={{ animation: 'shake 0.5s ease' }}>
+                <div className="mb-6 p-4 rounded-xl bg-red-50 border border-red-100" style={{ animation: 'shake 0.5s ease' }}>
                   <div className="flex items-center gap-3">
-                    <div className="w-8 h-8 rounded-full bg-red-500/20 flex items-center justify-center flex-shrink-0">
-                      <FiAlertCircle className="w-4 h-4 text-red-600 dark:text-red-400" />
+                    <div className="w-8 h-8 rounded-full bg-red-100 flex items-center justify-center flex-shrink-0">
+                      <FiAlertCircle className="w-4 h-4 text-red-600" />
                     </div>
-                    <p className="text-sm text-red-700 dark:text-red-300 font-medium">{error}</p>
+                    <p className="text-sm text-red-700 font-medium">{error}</p>
                   </div>
                 </div>
               )}
 
               {/* Form */}
-              <form onSubmit={handleSubmit} className="space-y-4 sm:space-y-5">
+              <form onSubmit={handleSubmit} className="space-y-5">
                 {/* Email */}
-                {/* Email */}
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
+                <div className="space-y-1.5">
+                  <label className="block text-sm font-semibold text-slate-700">
                     Email Address
                   </label>
-                  <div className={`relative transition-transform duration-200 ${focusedField === 'email' ? 'scale-[1.02]' : ''}`}>
-                    <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 blur transition-opacity duration-300 ${focusedField === 'email' ? 'opacity-40' : ''}`} />
+                  <div className={`relative transition-transform duration-200 ${focusedField === 'email' ? 'scale-[1.01]' : ''}`}>
                     <div className="relative flex items-center">
-                      <FiMail className="absolute left-3 text-gray-400 dark:text-gray-500 w-4 h-4" />
+                      <FiMail className="absolute left-3.5 text-slate-400 w-5 h-5" />
                       <input
                         type="email"
                         value={email}
@@ -225,22 +236,23 @@ export const Login: React.FC = () => {
                         disabled={isLoading}
                         autoComplete="email"
                         required
-                        className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
+                        className="w-full pl-11 pr-4 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-300"
                       />
                     </div>
                   </div>
                 </div>
 
                 {/* Password */}
-                {/* Password */}
-                <div className="space-y-1.5 sm:space-y-2">
-                  <label className="block text-xs font-semibold text-gray-700 dark:text-gray-300">
-                    Password
-                  </label>
-                  <div className={`relative transition-transform duration-200 ${focusedField === 'password' ? 'scale-[1.02]' : ''}`}>
-                    <div className={`absolute -inset-0.5 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-xl opacity-0 blur transition-opacity duration-300 ${focusedField === 'password' ? 'opacity-40' : ''}`} />
+                <div className="space-y-1.5">
+                  <div className="flex justify-between items-center">
+                    <label className="block text-sm font-semibold text-slate-700">
+                      Password
+                    </label>
+                  </div>
+
+                  <div className={`relative transition-transform duration-200 ${focusedField === 'password' ? 'scale-[1.01]' : ''}`}>
                     <div className="relative flex items-center">
-                      <FiLock className="absolute left-3 text-gray-400 dark:text-gray-500 w-4 h-4" />
+                      <FiLock className="absolute left-3.5 text-slate-400 w-5 h-5" />
                       <input
                         type={showPassword ? 'text' : 'password'}
                         value={password}
@@ -251,25 +263,24 @@ export const Login: React.FC = () => {
                         disabled={isLoading}
                         autoComplete="current-password"
                         required
-                        className="w-full pl-9 sm:pl-10 pr-10 sm:pr-12 py-2.5 sm:py-3 rounded-xl bg-gray-50 dark:bg-gray-800/50 border border-gray-200 dark:border-gray-700 text-sm text-gray-900 dark:text-white placeholder-gray-400 dark:placeholder-gray-500 focus:outline-none transition-all duration-300"
+                        className="w-full pl-11 pr-12 py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-300"
                       />
                       <button
                         type="button"
                         onClick={() => setShowPassword(!showPassword)}
-                        className="absolute right-4 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 transition-colors cursor-pointer"
+                        className="absolute right-4 text-slate-400 hover:text-slate-600 transition-colors cursor-pointer"
                       >
-                        {showPassword ? <FiEyeOff className="w-4 h-4" /> : <FiEye className="w-4 h-4" />}
+                        {showPassword ? <FiEyeOff className="w-5 h-5" /> : <FiEye className="w-5 h-5" />}
                       </button>
                     </div>
                   </div>
                 </div>
 
-                {/* Forgot Password Link */}
                 <div className="text-right">
                   <button
                     type="button"
                     onClick={() => navigate('/forgot-password')}
-                    className="text-xs text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-medium transition-colors cursor-pointer"
+                    className="text-xs font-semibold text-emerald-600 hover:text-emerald-700 cursor-pointer"
                   >
                     Forgot password?
                   </button>
@@ -279,11 +290,8 @@ export const Login: React.FC = () => {
                 <button
                   type="submit"
                   disabled={isLoading}
-                  className="relative w-full group overflow-hidden rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 px-4 sm:px-5 py-2.5 sm:py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/30 transition-all duration-300 hover:shadow-emerald-500/50 hover:scale-[1.02] active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
+                  className="relative w-full group overflow-hidden rounded-xl bg-slate-900 px-5 py-3.5 text-sm font-semibold text-white shadow-lg shadow-slate-900/20 transition-all duration-300 hover:shadow-slate-900/40 hover:scale-[1.01] active:scale-[0.99] disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:scale-100 cursor-pointer"
                 >
-                  {/* Shine Effect */}
-                  <div className="absolute inset-0 -translate-x-full group-hover:translate-x-full transition-transform duration-700 bg-gradient-to-r from-transparent via-white/20 to-transparent" />
-
                   <span className="relative flex items-center justify-center gap-2">
                     {isLoading ? (
                       <>
@@ -292,7 +300,7 @@ export const Login: React.FC = () => {
                       </>
                     ) : (
                       <>
-                        <FaDna className="w-4 h-4" />
+                        <FaDna className="w-4 h-4 text-emerald-400" />
                         Sign In
                       </>
                     )}
@@ -301,29 +309,29 @@ export const Login: React.FC = () => {
               </form>
 
               {/* Sign Up Link */}
-              <div className="text-center pt-3 border-t border-gray-200 dark:border-gray-700 mt-4 sm:mt-5">
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                      New to Zygotrix AI?{' '}
-                      <button
-                          type="button"
-                          onClick={() => navigate('/register')}
-                          className="text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300 font-semibold cursor-pointer"
-                      >
-                          Create Account
-                      </button>
-                  </p>
+              <div className="text-center pt-6 border-t border-slate-100 mt-6">
+                <p className="text-sm text-slate-500">
+                  New to Zygotrix AI?{' '}
+                  <button
+                    type="button"
+                    onClick={() => navigate('/register')}
+                    className="text-emerald-600 hover:text-emerald-700 font-bold cursor-pointer"
+                  >
+                    Create Account
+                  </button>
+                </p>
               </div>
             </div>
           </div>
 
           {/* Terms */}
-          <p className="text-center text-[10px] sm:text-xs text-gray-500 dark:text-gray-400 mt-3 sm:mt-4">
+          <p className="text-center text-xs text-slate-400 mt-6">
             By signing in, you agree to our{' '}
-            <a href="https://zygotrix.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer">
+            <a href="https://zygotrix.com/terms" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600 transition-colors cursor-pointer">
               Terms of Service
             </a>{' '}
             and{' '}
-            <a href="https://zygotrix.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors cursor-pointer">
+            <a href="https://zygotrix.com/privacy" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-600 transition-colors cursor-pointer">
               Privacy Policy
             </a>
           </p>
@@ -331,8 +339,8 @@ export const Login: React.FC = () => {
           {/* Mobile DNA Icon */}
           <div className="hidden sm:flex lg:hidden justify-center mt-6">
             <div className="relative">
-              <div className="absolute inset-0 bg-gradient-to-r from-emerald-500 to-teal-500 rounded-full blur-xl opacity-30" />
-              <GiDna2 className="relative w-10 h-10 text-emerald-600 dark:text-emerald-400" style={{ animation: 'spin 15s linear infinite' }} />
+              <div className="absolute inset-0 bg-emerald-100 rounded-full blur-xl opacity-50" />
+              <GiDna2 className="relative w-10 h-10 text-emerald-600" style={{ animation: 'spin 15s linear infinite' }} />
             </div>
           </div>
         </div>

@@ -36,6 +36,7 @@ const Navbar: React.FC = () => {
     const [toolsDropdownOpen, setToolsDropdownOpen] = useState(false);
     const [mobileAppsOpen, setMobileAppsOpen] = useState(false);
     const [mobileToolsOpen, setMobileToolsOpen] = useState(false);
+    const [mobileGetStartedOpen, setMobileGetStartedOpen] = useState(false);
     const appsDropdownRef = useRef<HTMLDivElement>(null);
     const toolsDropdownRef = useRef<HTMLDivElement>(null);
 
@@ -53,6 +54,7 @@ const Navbar: React.FC = () => {
         setToolsDropdownOpen(false);
         setMobileAppsOpen(false);
         setMobileToolsOpen(false);
+        setMobileGetStartedOpen(false);
     }, [pathname]);
 
     useEffect(() => {
@@ -218,18 +220,25 @@ const Navbar: React.FC = () => {
                             </>
                         ) : (
                             <>
-                                <a
-                                    href={`${STUDIO_URL}/signin`}
-                                    className="text-sm font-normal text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
-                                >
-                                    Sign in
-                                </a>
-                                <a
-                                    href={`${STUDIO_URL}/signup`}
-                                    className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-all hover:ring-2 hover:ring-emerald-500/50 shadow-sm hover:shadow-emerald-500/20"
-                                >
-                                    Get started
-                                </a>
+                                {/* Get Started Dropdown */}
+                                <div className="relative group">
+                                    <button className="px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium hover:bg-gray-800 dark:hover:bg-gray-100 transition-all shadow-sm flex items-center gap-2">
+                                        Get started <FiChevronDown className="w-3.5 h-3.5" />
+                                    </button>
+                                    <div className="absolute top-full right-0 pt-2 w-48 opacity-0 group-hover:opacity-100 invisible group-hover:visible transition-all duration-200">
+                                        <div className="rounded-lg border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 shadow-lg py-1 overflow-hidden">
+                                            <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-700">
+                                                <span className="text-xs font-semibold text-gray-500 uppercase">Choose product</span>
+                                            </div>
+                                            <a href="https://ai.zygotrix.com/register" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
+                                                <FiCpu className="w-4 h-4" /> Zygotrix AI
+                                            </a>
+                                            <a href={`${STUDIO_URL}/signup`} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
+                                                <FiLayout className="w-4 h-4" /> Zygotrix Studio
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
                             </>
                         )}
                     </div>
@@ -323,12 +332,28 @@ const Navbar: React.FC = () => {
                                 </>
                             ) : (
                                 <>
-                                    <a href={`${STUDIO_URL}/signin`} className="block text-sm text-gray-600 dark:text-gray-400 text-center py-2">
-                                        Sign in
-                                    </a>
-                                    <a href={`${STUDIO_URL}/signup`} className="block w-full px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium text-center">
-                                        Get started
-                                    </a>
+                                    {/* Mobile Get Started Dropdown */}
+                                    <div>
+                                        <button
+                                            onClick={() => setMobileGetStartedOpen(!mobileGetStartedOpen)}
+                                            className="w-full flex items-center justify-center gap-2 px-4 py-2 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-medium transition-colors mt-2"
+                                        >
+                                            <span>Get started</span>
+                                            <FiChevronDown className={`w-4 h-4 transition-transform ${mobileGetStartedOpen ? 'rotate-180' : ''}`} />
+                                        </button>
+                                        {mobileGetStartedOpen && (
+                                            <div className="mt-2 space-y-2 px-2 border-l-2 border-gray-100 dark:border-gray-800 ml-2">
+                                                <a href="https://ai.zygotrix.com/register" className="flex items-center gap-2 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-emerald-600 dark:hover:text-emerald-400">
+                                                    <FiCpu className="w-4 h-4" />
+                                                    <span>Zygotrix AI</span>
+                                                </a>
+                                                <a href={`${STUDIO_URL}/signup`} className="flex items-center gap-2 py-2 text-sm text-gray-600 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400">
+                                                    <FiLayout className="w-4 h-4" />
+                                                    <span>Zygotrix Studio</span>
+                                                </a>
+                                            </div>
+                                        )}
+                                    </div>
                                 </>
                             )}
                         </div>

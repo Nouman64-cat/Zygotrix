@@ -5,3 +5,4 @@ const config = {
 };
 
 export default config;
+// Force restart for tailwind config

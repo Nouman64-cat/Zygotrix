@@ -34,10 +34,10 @@ const Navbar: React.FC = () => {
 
     const pathname = usePathname();
     const { user, signOut } = useAuth();
-    const { theme, setTheme } = useTheme();
+    const { theme, setTheme, resolvedTheme } = useTheme();
 
     const toggleTheme = () => {
-        setTheme(theme === "dark" ? "light" : "dark");
+        setTheme(resolvedTheme === "dark" ? "light" : "dark");
     };
 
     useEffect(() => {
@@ -140,13 +140,13 @@ const Navbar: React.FC = () => {
                     {/* Desktop Actions */}
                     <div className="hidden lg:flex items-center gap-4">
                         {/* Theme Toggle */}
-                        {/* <button
+                        <button
                             onClick={toggleTheme}
                             className="p-1.5 text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors"
                             aria-label="Toggle theme"
                         >
-                            {theme === "dark" ? <FiSun className="w-4 h-4" /> : <FiMoon className="w-4 h-4" />}
-                        </button> */}
+                            {resolvedTheme === "dark" ? <FiSun className="w-4 h-4" /> : <FiMoon className="w-4 h-4" />}
+                        </button>
 
                         {user ? (
                             <>
@@ -228,6 +228,16 @@ const Navbar: React.FC = () => {
                                 </div>
                             )}
                         </div>
+
+                        {/* Mobile Theme Toggle */}
+                        <button
+                            onClick={toggleTheme}
+                            className="flex w-full items-center justify-between py-2 text-sm text-gray-600 dark:text-gray-400"
+                        >
+                            <span>Switch theme</span>
+                            {resolvedTheme === "dark" ? <FiSun className="w-4 h-4" /> : <FiMoon className="w-4 h-4" />}
+                        </button>
+
                         <div className="pt-4 space-y-2">
                             {user ? (
                                 <>

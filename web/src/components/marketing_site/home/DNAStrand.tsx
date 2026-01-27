@@ -40,31 +40,31 @@ const DNAStrand: React.FC = () => {
   // Generate more base pairs for a longer, more realistic DNA strand
   const basePairs = [
     { id: "bp-1", left: "A", right: "T", color: "#EF4444", bonds: 2 }, // Red for A-T (2 hydrogen bonds)
-    { id: "bp-2", left: "G", right: "C", color: "#3B82F6", bonds: 3 }, // Blue for G-C (3 hydrogen bonds)
+    { id: "bp-2", left: "G", right: "C", color: "#10B981", bonds: 3 }, // Emerald for G-C (3 hydrogen bonds)
     { id: "bp-3", left: "T", right: "A", color: "#EF4444", bonds: 2 }, // Red for T-A
-    { id: "bp-4", left: "C", right: "G", color: "#3B82F6", bonds: 3 }, // Blue for C-G
+    { id: "bp-4", left: "C", right: "G", color: "#10B981", bonds: 3 }, // Emerald for C-G
     { id: "bp-5", left: "A", right: "T", color: "#EF4444", bonds: 2 },
-    { id: "bp-6", left: "G", right: "C", color: "#3B82F6", bonds: 3 },
-    { id: "bp-7", left: "C", right: "G", color: "#3B82F6", bonds: 3 },
+    { id: "bp-6", left: "G", right: "C", color: "#10B981", bonds: 3 },
+    { id: "bp-7", left: "C", right: "G", color: "#10B981", bonds: 3 },
     { id: "bp-8", left: "T", right: "A", color: "#EF4444", bonds: 2 },
     { id: "bp-9", left: "A", right: "T", color: "#EF4444", bonds: 2 },
-    { id: "bp-10", left: "G", right: "C", color: "#3B82F6", bonds: 3 },
+    { id: "bp-10", left: "G", right: "C", color: "#10B981", bonds: 3 },
     { id: "bp-11", left: "T", right: "A", color: "#EF4444", bonds: 2 },
-    { id: "bp-12", left: "C", right: "G", color: "#3B82F6", bonds: 3 },
+    { id: "bp-12", left: "C", right: "G", color: "#10B981", bonds: 3 },
     { id: "bp-13", left: "A", right: "T", color: "#EF4444", bonds: 2 },
-    { id: "bp-14", left: "G", right: "C", color: "#3B82F6", bonds: 3 },
+    { id: "bp-14", left: "G", right: "C", color: "#10B981", bonds: 3 },
     { id: "bp-15", left: "T", right: "A", color: "#EF4444", bonds: 2 },
-    { id: "bp-16", left: "C", right: "G", color: "#3B82F6", bonds: 3 },
+    { id: "bp-16", left: "C", right: "G", color: "#10B981", bonds: 3 },
     { id: "bp-17", left: "A", right: "T", color: "#EF4444", bonds: 2 },
-    { id: "bp-18", left: "G", right: "C", color: "#3B82F6", bonds: 3 },
+    { id: "bp-18", left: "G", right: "C", color: "#10B981", bonds: 3 },
     { id: "bp-19", left: "T", right: "A", color: "#EF4444", bonds: 2 },
-    { id: "bp-20", left: "C", right: "G", color: "#3B82F6", bonds: 3 },
+    { id: "bp-20", left: "C", right: "G", color: "#10B981", bonds: 3 },
   ];
 
   return (
     <div className="relative w-full max-w-2xl h-[700px] mx-auto overflow-hidden">
       {/* Subtle background glow effect */}
-      <div className="absolute inset-0 bg-gradient-radial from-blue-500/8 via-purple-500/3 to-transparent rounded-full blur-xl" />
+      <div className="absolute inset-0 bg-gradient-radial from-emerald-500/10 via-teal-500/5 to-transparent rounded-full blur-xl" />
 
       {/* Vertical DNA Double Helix Structure */}
       <div className="relative w-full h-full flex items-center justify-center">
@@ -72,7 +72,7 @@ const DNAStrand: React.FC = () => {
           viewBox="0 0 300 700"
           className="w-full h-full"
           style={{
-            filter: "drop-shadow(0 0 8px rgba(59, 130, 246, 0.4))",
+            filter: "drop-shadow(0 0 8px rgba(16, 185, 129, 0.2))",
           }}
         >
           {/* Static vertical DNA structure */}
@@ -86,10 +86,10 @@ const DNAStrand: React.FC = () => {
                 x2="100%"
                 y2="100%"
               >
-                <stop offset="0%" stopColor="#1E3A8A" stopOpacity="0.8" />
-                <stop offset="30%" stopColor="#3B82F6" stopOpacity="0.9" />
+                <stop offset="0%" stopColor="#065f46" stopOpacity="0.8" />
+                <stop offset="30%" stopColor="#059669" stopOpacity="0.9" />
                 <stop offset="70%" stopColor="#10B981" stopOpacity="0.9" />
-                <stop offset="100%" stopColor="#059669" stopOpacity="0.8" />
+                <stop offset="100%" stopColor="#34d399" stopOpacity="0.8" />
               </linearGradient>
 
               <radialGradient id="adenineGradient" cx="50%" cy="50%" r="50%">
@@ -105,9 +105,9 @@ const DNAStrand: React.FC = () => {
               </radialGradient>
 
               <radialGradient id="guanineGradient" cx="50%" cy="50%" r="50%">
-                <stop offset="0%" stopColor="#DBEAFE" />
-                <stop offset="30%" stopColor="#3B82F6" />
-                <stop offset="100%" stopColor="#2563EB" />
+                <stop offset="0%" stopColor="#CCFBF1" />
+                <stop offset="30%" stopColor="#14B8A6" />
+                <stop offset="100%" stopColor="#0F766E" />
               </radialGradient>
 
               <radialGradient id="cytosineGradient" cx="50%" cy="50%" r="50%">
@@ -372,7 +372,7 @@ const DNAStrand: React.FC = () => {
         {Array.from({ length: 12 }, (_, i) => (
           <div
             key={`dna-particle-${i}`}
-            className="absolute w-2 h-2 bg-blue-400 rounded-full opacity-20"
+            className="absolute w-2 h-2 bg-emerald-400 rounded-full opacity-20"
             style={{
               left: `${10 + ((i * 7) % 80)}%`,
               top: `${15 + ((i * 11) % 70)}%`,

@@ -23,6 +23,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
         return {
             title: `${blog.title} | Zygotrix Blog`,
             description: blog.excerpt || blog.content.markdown.substring(0, 160),
+            alternates: {
+                canonical: `/blogs/${blog.slug}`,
+            },
             openGraph: {
                 title: blog.title,
                 description: blog.excerpt || blog.content.markdown.substring(0, 160),
@@ -53,5 +56,25 @@ export async function generateStaticParams() {
 
 export default async function BlogDetailPage({ params }: Props) {
     const resolvedParams = await params;
-    return <BlogDetailClient slug={resolvedParams.slug} />;
+    const blog = await fetchBlogBySlug(resolvedParams.slug);
+    const jsonLd = {
+        '@context': 'https://schema.org',
+        '@type': 'BlogPosting',
+        headline: blog?.title,
+        image: blog?.imageUrl ? [blog.imageUrl] : [],
+        datePublished: blog?.date, // Ensure this field exists in your API response
+        author: {
+            '@type': 'Person',
+            name: blog?.authors[0]?.name || 'Zygotrix Team'
+        }
+    };
+    return (
+        <>
+            <script
+                type="application/ld+json"
+                dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+            />
+            <BlogDetailClient slug={resolvedParams.slug} />
+        </>
+    );
 }

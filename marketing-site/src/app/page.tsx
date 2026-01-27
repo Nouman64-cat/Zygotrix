@@ -17,8 +17,31 @@ export const metadata: Metadata = {
 };
 
 export default function Home() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'Zygotrix',
+    applicationCategory: 'ScientificApplication',
+    operatingSystem: 'Web browser',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'USD',
+    },
+    description: 'Comprehensive platform for genetic analysis and simulation.',
+    publisher: {
+      '@type': 'Organization',
+      name: 'Zygotrix',
+      logo: 'https://cdn-zygotrix.s3.us-east-1.amazonaws.com/zygotrix-logo.png',
+      url: 'https://zygotrix.com'
+    }
+  }
   return (
     <main>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+      />
       <HeroSection />
       <YouTubeVideo />
       <ZygoAISectionClient />

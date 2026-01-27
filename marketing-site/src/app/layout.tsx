@@ -16,8 +16,12 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://zygotrix.com'),
   title: "Zygotrix - Genetics Intelligence Engine",
   description: "Uniting Mendelian ratios, polygenic scores, and expressive trait registries in a toolkit designed for the future of genetic research.",
+  alternates: {
+    canonical: './',
+  },
   openGraph: {
     title: "Zygotrix - Genetics Intelligence Engine",
     description: "Uniting Mendelian ratios, polygenic scores, and expressive trait registries in a toolkit designed for the future of genetic research.",

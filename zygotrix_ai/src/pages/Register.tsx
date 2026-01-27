@@ -9,10 +9,11 @@ import {
   FiArrowLeft,
   FiEye,
   FiEyeOff,
-  FiPhone,
 } from "react-icons/fi";
 import { GiDna2 } from "react-icons/gi";
 import { FaDna } from "react-icons/fa";
+import PhoneInput from "react-phone-input-2";
+import "react-phone-input-2/lib/style.css";
 import authService from "../services/auth/auth.service";
 
 type Step = "signup" | "verify" | "success";
@@ -514,20 +515,19 @@ export const Register: React.FC = () => {
                       className={`relative transition-transform duration-200 ${focusedField === "phone" ? "scale-[1.01]" : ""
                         }`}
                     >
-                      <div className="relative flex items-center">
-                        <FiPhone className="absolute left-3 text-slate-400 w-4 h-4" />
-                        <input
-                          type="tel"
-                          value={phone}
-                          onChange={(e) => setPhone(e.target.value)}
-                          onFocus={() => setFocusedField("phone")}
-                          onBlur={() => setFocusedField(null)}
-                          placeholder="+1 (555) 000-0000"
-                          disabled={isLoading}
-                          required
-                          className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-300"
-                        />
-                      </div>
+                      <PhoneInput
+                        country={"us"}
+                        value={phone}
+                        onChange={(phone) => setPhone(phone)}
+                        onFocus={() => setFocusedField("phone")}
+                        onBlur={() => setFocusedField(null)}
+                        inputClass="!w-full !pl-12 !pr-4 !py-2.5 sm:!py-3 !rounded-xl !bg-slate-50 !border !border-slate-200 !text-sm !text-slate-900 !placeholder-slate-400 focus:!border-emerald-500 focus:!outline-none focus:!ring-4 focus:!ring-emerald-500/10 !transition-all !duration-300 !h-auto !shadow-none"
+                        containerClass="!w-full"
+                        buttonClass="!rounded-l-xl !border-0 !bg-transparent !pl-2 hover:!bg-transparent"
+                        dropdownClass="!bg-white !text-slate-900 !border-slate-200 !shadow-xl !rounded-xl overflow-hidden"
+                        buttonStyle={{ backgroundColor: "transparent", border: "none" }}
+                        inputStyle={{ width: "100%", height: "46px" }}
+                      />
                     </div>
                   </div>
 

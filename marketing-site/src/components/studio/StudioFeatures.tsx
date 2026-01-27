@@ -16,52 +16,48 @@ type StudioFeaturesProps = {
 
 const StudioFeatures: React.FC<StudioFeaturesProps> = ({ cards }) => {
     return (
-        <section id="features" className="bg-slate-50 dark:bg-slate-950 py-24 border-t border-slate-200 dark:border-slate-800">
-            <div className="mx-auto max-w-7xl px-6">
-                <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
-                    <div className="max-w-2xl">
-                        <h2 className="text-3xl font-bold text-slate-900 dark:text-white sm:text-4xl font-mono tracking-tight">
-                            &lt;SystemModules /&gt;
-                        </h2>
-                        <p className="mt-4 text-base text-slate-600 dark:text-slate-400 max-w-xl">
-                            Deploy high-performance genetic simulation engines directly into your workflow.
-                            Built for scale, precision, and reproducibility.
-                        </p>
+        <section id="features" className="bg-slate-50 dark:bg-slate-950 py-24 relative overflow-hidden">
+            {/* Background Decor */}
+            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full max-w-7xl h-full pointer-events-none">
+                <div className="absolute top-40 right-10 w-96 h-96 bg-blue-500/5 rounded-full blur-3xl"></div>
+                <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/5 rounded-full blur-3xl"></div>
+            </div>
+
+            <div className="container mx-auto px-4 lg:px-6 relative z-10">
+                <div className="text-center max-w-3xl mx-auto mb-16">
+                    <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-6">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+                        Powerful Capabilities
                     </div>
+                    <h2 className="text-3xl md:text-5xl font-bold text-slate-900 dark:text-white mb-6 tracking-tight">
+                        Everything you need to <br />
+                        <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-500 to-teal-500">engineer biology.</span>
+                    </h2>
+                    <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
+                        A comprehensive suite of tools designed for modern synthetic biology. From sequence editing to population scale analysis.
+                    </p>
                 </div>
 
-                <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-                    {cards.map((feature) => (
+                <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                    {cards.map((feature, idx) => (
                         <div
                             key={feature.title}
-                            className="group relative flex flex-col gap-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/50 p-6 hover:border-emerald-500/50 dark:hover:border-emerald-500/50 transition-all duration-300"
+                            className="group relative flex flex-col p-8 rounded-2xl bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 hover:border-emerald-500/30 dark:hover:border-emerald-500/40 shadow-sm hover:shadow-xl hover:shadow-emerald-500/5 transition-all duration-300"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-br from-emerald-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity rounded-xl pointer-events-none" />
-
-                            <div className="flex items-center justify-between">
-                                <div
-                                    className={`flex h-10 w-10 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors`}
-                                >
-                                    <Icon name={feature.icon} />
-                                </div>
-                                <span className="text-[10px] font-mono uppercase tracking-wider text-slate-400 bg-slate-100 dark:bg-slate-800 px-2 py-1 rounded">
-                                    MOD_{feature.title.substring(0, 3).toUpperCase()}
-                                </span>
+                            <div className="mb-6 inline-flex p-3 rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-emerald-400 group-hover:bg-emerald-500 group-hover:text-white transition-colors duration-300 w-fit">
+                                <Icon name={feature.icon} className="w-6 h-6" />
                             </div>
 
-                            <div>
-                                <h3 className="text-lg font-bold text-slate-900 dark:text-white mb-2">
-                                    {feature.title}
-                                </h3>
-                                <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
-                                    {feature.description}
-                                </p>
-                            </div>
+                            <h3 className="text-xl font-bold text-slate-900 dark:text-white mb-3 group-hover:text-emerald-500 transition-colors">
+                                {feature.title}
+                            </h3>
 
-                            <div className="mt-auto pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                                <span className="text-xs text-slate-400 font-mono">STATUS: ONLINE</span>
-                                <div className="h-1.5 w-1.5 rounded-full bg-emerald-500 animate-pulse"></div>
-                            </div>
+                            <p className="text-base leading-relaxed text-slate-600 dark:text-slate-400">
+                                {feature.description}
+                            </p>
+
+                            {/* Hover effect bottom decoration */}
+                            <div className="absolute bottom-0 left-0 w-full h-1 bg-gradient-to-r from-emerald-500 to-teal-500 transform scale-x-0 group-hover:scale-x-100 transition-transform duration-500 rounded-b-2xl origin-left"></div>
                         </div>
                     ))}
                 </div>

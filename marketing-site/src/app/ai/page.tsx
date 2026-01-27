@@ -5,6 +5,12 @@ import VideoSection from '../../components/ai/VideoSection';
 import Features from '../../components/ai/Features';
 
 import Link from 'next/link';
+import type { Metadata } from 'next';
+
+export const metadata: Metadata = {
+    title: 'Zygotrix AI - Intelligent Research Copilot',
+    description: 'Transform your genetic research with AI. perform deep literature reviews, automated GWAS analysis, and data visualization in seconds.',
+};
 
 export default function AiPage() {
     return (

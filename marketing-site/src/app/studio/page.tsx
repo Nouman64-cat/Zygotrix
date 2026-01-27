@@ -1,8 +1,14 @@
 
 import React from 'react';
+import type { Metadata } from 'next';
 import StudioHero from '../../components/studio/StudioHero';
 import StudioFeatures from '../../components/studio/StudioFeatures';
 import type { IconKey } from '../../components/universal/Icon';
+
+export const metadata: Metadata = {
+    title: 'Zygotrix Studio - Precision Breeding & Simulation',
+    description: 'Design breeding programs, predict phenotypes, and map inheritance with our advanced simulation engine.',
+};
 
 const studioFeatureCards: { title: string; description: string; icon: IconKey; accent: string }[] = [
     {

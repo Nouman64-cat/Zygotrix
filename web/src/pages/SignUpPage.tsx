@@ -57,6 +57,7 @@ const SignUpPage: React.FC = () => {
     email: "",
     password: "",
     full_name: "",
+    phone: "",
   });
   const [otpDigits, setOtpDigits] = useState<string[]>(
     Array(OTP_LENGTH).fill("")
@@ -101,6 +102,7 @@ const SignUpPage: React.FC = () => {
         email: form.email,
         password: form.password,
         full_name: form.full_name.trim() ? form.full_name : undefined,
+        phone: form.phone,
       });
       setPendingEmail(form.email);
       setOtpDigits(Array(OTP_LENGTH).fill(""));
@@ -346,6 +348,25 @@ const SignUpPage: React.FC = () => {
                               onChange={handleChange}
                               required
                               placeholder="Dr. Amina Farooq"
+                              className="w-full rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 px-4 py-3 text-sm text-gray-900 dark:text-white shadow-sm transition-all duration-300 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:bg-white dark:focus:bg-gray-900 group-hover:border-gray-400 dark:group-hover:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
+                            />
+                            <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-500/5 to-teal-500/5 opacity-0 pointer-events-none transition-opacity duration-300 group-focus-within:opacity-100" />
+                          </div>
+                        </div>
+
+
+                        <div className="group">
+                          <label className="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2">
+                            Phone Number
+                          </label>
+                          <div className="relative">
+                            <input
+                              type="tel"
+                              name="phone"
+                              value={form.phone}
+                              onChange={handleChange}
+                              required
+                              placeholder="+1 (555) 000-0000"
                               className="w-full rounded-full border border-gray-300 dark:border-gray-700 bg-white dark:bg-gray-800/50 px-4 py-3 text-sm text-gray-900 dark:text-white shadow-sm transition-all duration-300 focus:border-emerald-500 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:bg-white dark:focus:bg-gray-900 group-hover:border-gray-400 dark:group-hover:border-gray-600 placeholder-gray-400 dark:placeholder-gray-500"
                             />
                             <div className="absolute inset-0 rounded-2xl bg-gradient-to-r from-emerald-500/5 to-teal-500/5 opacity-0 pointer-events-none transition-opacity duration-300 group-focus-within:opacity-100" />
@@ -642,8 +663,8 @@ const SignUpPage: React.FC = () => {
             </div>
           </div>
         </div>
-      </div>
-    </section>
+      </div >
+    </section >
   );
 };
 

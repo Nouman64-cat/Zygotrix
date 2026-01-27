@@ -77,6 +77,7 @@ class UserService:
         email: str,
         password: str,
         full_name: Optional[str] = None,
+        phone: Optional[str] = None,
         user_role: str = "user",
         password_is_hashed: bool = False
     ) -> Dict[str, Any]:
@@ -87,6 +88,7 @@ class UserService:
             email: User's email address
             password: Plain text password or hashed password (if password_is_hashed=True)
             full_name: User's full name (optional)
+            phone: User's phone number (optional)
             user_role: User role (default: "user")
             password_is_hashed: If True, password is already hashed (default: False)
 
@@ -117,6 +119,7 @@ class UserService:
             "email": normalized_email,
             "password_hash": password_hash,
             "full_name": self._serializer._clean_full_name(full_name),
+            "phone": phone,
             "created_at": datetime.now(timezone.utc),
             "user_role": final_role,
             "is_active": True,
@@ -570,6 +573,7 @@ class UserService:
         email: str,
         password: str,
         full_name: Optional[str],
+        phone: Optional[str],
         otp_data: Dict[str, Any],
         update_otp_only: bool = False
     ) -> datetime:
@@ -580,6 +584,7 @@ class UserService:
             email: Email address
             password: Plain text password (ignored if update_otp_only=True)
             full_name: Full name
+            phone: Phone number
             otp_data: OTP document from OTPService
             update_otp_only: If True, only update OTP fields (for resend)
 
@@ -603,6 +608,7 @@ class UserService:
                 "email": normalized_email,
                 "password_hash": password_hash,
                 "full_name": self._serializer._clean_full_name(full_name),
+                "phone": phone,
                 **otp_data
             }
 

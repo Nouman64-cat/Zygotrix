@@ -195,7 +195,7 @@ def get_pending_signups_collection(required: bool = False):
 
 
 def _insert_user_document(
-    email: str, password_hash: str, full_name: Optional[str]
+    email: str, password_hash: str, full_name: Optional[str], phone: Optional[str] = None
 ) -> Dict[str, Any]:
     collection = cast(Collection, get_users_collection(required=True))
     name = _clean_full_name(full_name)
@@ -210,6 +210,7 @@ def _insert_user_document(
         "email": normalized_email,
         "password_hash": password_hash,
         "full_name": name,
+        "phone": phone,
         "created_at": datetime.now(timezone.utc),
         "user_role": "super_admin" if is_super_admin else "user",
         "is_active": True,
@@ -228,9 +229,9 @@ def _insert_user_document(
 
 
 def create_user_account(
-    email: str, password: str, full_name: Optional[str]
+    email: str, password: str, full_name: Optional[str], phone: Optional[str] = None
 ) -> Dict[str, Any]:
-    return _insert_user_document(email, hash_password(password), full_name)
+    return _insert_user_document(email, hash_password(password), full_name, phone)
 
 
 def _get_user_document_by_email(email: str) -> Optional[Dict[str, Any]]:
@@ -341,14 +342,14 @@ def send_signup_otp_email(
 # Signup and authentication
 
 
-def request_signup_otp(email: str, password: str, full_name: Optional[str]) -> datetime:
+def request_signup_otp(email: str, password: str, full_name: Optional[str], phone: str) -> datetime:
     # In development mode, bypass OTP and create the account immediately
     if get_settings().is_development:
         if _get_user_document_by_email(email):
             raise HTTPException(
                 status_code=400, detail="Email is already registered.")
         create_user_account(email=email, password=password,
-                            full_name=full_name)
+                            full_name=full_name, phone=phone)
         # Return an immediate expiry timestamp; route will still fit response model
         return datetime.now(timezone.utc)
     if _get_user_document_by_email(email):
@@ -364,6 +365,7 @@ def request_signup_otp(email: str, password: str, full_name: Optional[str]) -> d
         "email": normalized_email,
         "password_hash": hash_password(password),
         "full_name": _clean_full_name(full_name),
+        "phone": phone,
         "otp_hash": hash_password(otp_code),
         "otp_expires_at": expires_at,
         "otp_attempts": 0,
@@ -427,7 +429,8 @@ def verify_signup_otp(email: str, otp: str) -> Dict[str, Any]:
             status_code=400, detail="Invalid OTP. Please try again.")
     password_hash = str(pending.get("password_hash", ""))
     full_name = pending.get("full_name")
-    user = _insert_user_document(normalized_email, password_hash, full_name)
+    phone = pending.get("phone")
+    user = _insert_user_document(normalized_email, password_hash, full_name, phone)
     collection.delete_one({"email": normalized_email})
 
     # Send WhatsApp notification to admin about new registration

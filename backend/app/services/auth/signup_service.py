@@ -180,6 +180,7 @@ class SignupService:
         email: str,
         password: str,
         full_name: Optional[str],
+        phone: str,
         ip_address: Optional[str] = None
     ) -> datetime:
         """
@@ -192,6 +193,7 @@ class SignupService:
             email: User's email address
             password: User's plain text password
             full_name: User's full name (optional)
+            phone: User's phone number
             ip_address: User's IP address (optional)
 
         Returns:
@@ -215,7 +217,8 @@ class SignupService:
             user = self._user_service.create_user(
                 email=email,
                 password=password,
-                full_name=full_name
+                full_name=full_name,
+                phone=phone
             )
             
             # Send email notification to super admin
@@ -231,6 +234,7 @@ class SignupService:
             email=email,
             password=password,
             full_name=full_name,
+            phone=phone,
             otp_data=otp_data
         )
 
@@ -281,11 +285,13 @@ class SignupService:
         # Create user account
         password_hash = pending.get("password_hash", "")
         full_name = pending.get("full_name")
+        phone = pending.get("phone")
 
         user = self._user_service.create_user(
             email=email,
             password=password_hash,
             full_name=full_name,
+            phone=phone,
             password_is_hashed=True  # Password is already hashed in pending signup
         )
 
@@ -342,6 +348,7 @@ class SignupService:
             email=email,
             password="",  # Ignored when update_otp_only=True
             full_name=pending.get("full_name"),
+            phone=pending.get("phone"),
             otp_data=otp_data,
             update_otp_only=True
         )

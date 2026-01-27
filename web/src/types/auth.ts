@@ -77,6 +77,7 @@ export type SignUpPayload = {
   email: string;
   password: string;
   full_name?: string;
+  phone: string;
 };
 
 export type SignInPayload = {

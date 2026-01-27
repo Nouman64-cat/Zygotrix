@@ -9,6 +9,7 @@ import {
   FiArrowLeft,
   FiEye,
   FiEyeOff,
+  FiPhone,
 } from "react-icons/fi";
 import { GiDna2 } from "react-icons/gi";
 import { FaDna } from "react-icons/fa";
@@ -111,6 +112,7 @@ export const Register: React.FC = () => {
   const [password, setPassword] = useState("");
 
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
   const [otp, setOtp] = useState(["", "", "", "", "", ""]);
 
   // UI state
@@ -136,7 +138,7 @@ export const Register: React.FC = () => {
     setError("");
     setSuccess("");
 
-    if (!email.trim() || !password.trim() || !fullName.trim()) {
+    if (!email.trim() || !password.trim() || !fullName.trim() || !phone.trim()) {
       setError("Please fill in all required fields");
       return;
     }
@@ -152,8 +154,10 @@ export const Register: React.FC = () => {
     try {
       const response = await authService.signup({
         email: email.trim(),
+
         password,
         full_name: fullName.trim() || undefined,
+        phone: phone.trim(),
       });
 
       setExpiresAt(response.expires_at);
@@ -493,6 +497,32 @@ export const Register: React.FC = () => {
                           onFocus={() => setFocusedField("email")}
                           onBlur={() => setFocusedField(null)}
                           placeholder="your.email@example.com"
+                          disabled={isLoading}
+                          required
+                          className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-300"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Phone */}
+                  <div className="space-y-1.5 sm:space-y-2">
+                    <label className="block text-xs font-semibold text-slate-700">
+                      Phone Number *
+                    </label>
+                    <div
+                      className={`relative transition-transform duration-200 ${focusedField === "phone" ? "scale-[1.01]" : ""
+                        }`}
+                    >
+                      <div className="relative flex items-center">
+                        <FiPhone className="absolute left-3 text-slate-400 w-4 h-4" />
+                        <input
+                          type="tel"
+                          value={phone}
+                          onChange={(e) => setPhone(e.target.value)}
+                          onFocus={() => setFocusedField("phone")}
+                          onBlur={() => setFocusedField(null)}
+                          placeholder="+1 (555) 000-0000"
                           disabled={isLoading}
                           required
                           className="w-full pl-9 sm:pl-10 pr-4 py-2.5 sm:py-3 rounded-xl bg-slate-50 border border-slate-200 text-sm text-slate-900 placeholder:text-slate-400 focus:outline-none focus:border-emerald-500 focus:ring-4 focus:ring-emerald-500/10 transition-all duration-300"

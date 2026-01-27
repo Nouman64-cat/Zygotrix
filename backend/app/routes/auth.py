@@ -42,6 +42,7 @@ def signup(payload: SignupInitiateRequest, request: Request) -> SignupInitiateRe
         email=payload.email,
         password=payload.password.get_secret_value(),
         full_name=payload.full_name,
+        phone=payload.phone,
         ip_address=ip_address,
     )
 

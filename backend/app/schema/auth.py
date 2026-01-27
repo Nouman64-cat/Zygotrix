@@ -153,6 +153,7 @@ class SignupInitiateRequest(BaseModel):
     password: SecretStr
     full_name: Optional[str] = Field(
         default=None, description="Optional display name.")
+    phone: str = Field(..., description="Required phone number")
 
     @field_validator("password")
     @classmethod

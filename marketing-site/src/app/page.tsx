@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import React from "react";
 import HeroSection from "../components/home/HeroSection";
+import YouTubeVideo from "../components/home/YouTubeVideo";
 import PricingClient from "../components/pricing/PricingClient";
 import ZygoAISectionClient from "../components/home/ZygoAISectionClient";
 import CommunitySectionClient from "../components/home/CommunitySectionClient";
@@ -19,6 +20,7 @@ export default function Home() {
   return (
     <main>
       <HeroSection />
+      <YouTubeVideo />
       <ZygoAISectionClient />
       <PricingClient />
       <CommunitySectionClient />

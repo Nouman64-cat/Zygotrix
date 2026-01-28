@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import rehypeRaw from "rehype-raw";
 
 import { fetchBlogBySlug, fetchBlogs } from "../../services/hygraphApi";
 import type { BlogDetail, BlogListEntry } from "../../types/blog";
@@ -394,7 +395,45 @@ const BlogDetailClient: React.FC<BlogDetailClientProps> = ({ slug }) => {
                     <div className="prose lg:prose-xl max-w-none dark:prose-invert">
                         <ReactMarkdown
                             remarkPlugins={[remarkGfm]}
-                            components={markdownComponents}
+                            rehypePlugins={[rehypeRaw]}
+                            components={{
+                                ...markdownComponents,
+                                // Add explicit handling for potentially unsafe elements if needed, 
+                                // or simply rely on rehype-raw to passthrough HTML. 
+                                // We can add specific styling for iframes if desired, but raw is sufficient for basic support.
+                                div: ({ node, ...props }) => <div {...props} />, // Ensure divs work if passed in raw HTML
+                                iframe: ({ node, ...props }) => {
+                                    let src = props.src as string;
+                                    // Transform standard YouTube watch links to embed links
+                                    if (src && (src.includes('youtube.com/watch') || src.includes('youtu.be/'))) {
+                                        try {
+                                            const url = new URL(src);
+                                            let videoId = '';
+                                            if (src.includes('youtube.com/watch')) {
+                                                videoId = url.searchParams.get('v') || '';
+                                            } else if (src.includes('youtu.be/')) {
+                                                videoId = url.pathname.slice(1);
+                                            }
+                                            if (videoId) {
+                                                src = `https://www.youtube.com/embed/${videoId}`;
+                                            }
+                                        } catch (e) {
+                                            // Fallback to original src if parsing fails
+                                        }
+                                    }
+                                    return (
+                                        <div className="aspect-video w-full my-6 rounded-lg overflow-hidden shadow-lg border border-gray-200 dark:border-gray-800">
+                                            <iframe
+                                                {...props}
+                                                src={src}
+                                                className="w-full h-full"
+                                                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                allowFullScreen
+                                            />
+                                        </div>
+                                    );
+                                }
+                            }}
                         >
                             {blog?.content.markdown}
                         </ReactMarkdown>

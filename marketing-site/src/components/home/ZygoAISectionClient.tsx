@@ -36,147 +36,96 @@ const ZygoAISectionClient: React.FC = () => {
                     </p>
                 </div>
 
-                {/* MacBook Pro CSS Mockup */}
-                <div className="relative mx-auto max-w-[900px] transform transition-all hover:scale-[1.01] duration-500 perspective-1000">
+                {/* MacBook Mockup - Login Page Style */}
+                <div className="relative mx-auto w-full max-w-[900px] transform transition-all hover:scale-[1.01] duration-500 perspective-1000">
                     {/* Glow effect */}
                     <div className="absolute -inset-4 bg-emerald-500/20 blur-3xl rounded-[3rem] -z-10 opacity-40" />
 
-                    {/* Lid (Screen) */}
-                    <div className="relative bg-[#0a0a0a] rounded-[2rem] p-3 shadow-2xl ring-1 ring-white/10">
-                        {/* Camera Notch */}
-                        <div className="absolute top-0 left-1/2 -translate-x-1/2 h-6 w-40 bg-[#0a0a0a] rounded-b-xl z-20">
-                            <div className="absolute top-2 left-1/2 -translate-x-1/2 w-2 h-2 rounded-full bg-[#1a1a1a] ring-1 ring-white/5 shadow-inner" />
-                        </div>
+                    {/* Laptop Mockup Container */}
+                    <div className="relative">
+                        {/* Screen Frame */}
+                        <div className="relative mx-auto bg-slate-800 rounded-t-xl sm:rounded-t-3xl border-[4px] sm:border-[8px] border-slate-700 shadow-2xl flex flex-col overflow-hidden ring-1 ring-white/10 z-20 w-[90%] sm:w-full aspect-[16/10] sm:h-auto">
+                            {/* Camera Notch Area */}
+                            <div className="absolute top-0 inset-x-0 h-3 sm:h-6 bg-slate-800 z-20 flex justify-center">
+                                <div className="w-16 sm:w-32 h-full bg-slate-900/50 rounded-b-md sm:rounded-b-lg flex items-center justify-center gap-1 sm:gap-2">
+                                    <div className="w-0.5 h-0.5 sm:w-1 sm:h-1 rounded-full bg-slate-600"></div>
+                                    <div className="w-1 h-1 sm:w-1.5 sm:h-1.5 rounded-full bg-emerald-900/80 ring-1 ring-emerald-500/30"></div>
+                                </div>
+                            </div>
 
-                        {/* Internal Screen Content */}
-                        <div className="relative bg-slate-900 w-full aspect-[16/10] rounded-[1.25rem] overflow-hidden border border-white/5">
-                            {/* App UI */}
-                            <div className="absolute inset-0 flex bg-[#0f1117]">
+                            {/* Screen Content: Dashboard UI */}
+                            <div className="flex-1 bg-slate-950 flex pt-3 sm:pt-6 relative overflow-hidden">
                                 {/* Sidebar */}
-                                <div className="hidden sm:flex w-64 bg-[#0B0C10] flex-col border-r border-white/5 p-5 gap-6">
-                                    <div className="flex items-center gap-3 text-emerald-400 font-bold tracking-tight">
-                                        <div className="w-7 h-7 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center">
-                                            <span className="text-sm">Z</span>
-                                        </div>
-                                        Zygotrix AI
-                                    </div>
-                                    <div className="space-y-2">
-                                        <div className="h-9 rounded-lg bg-white/[0.03] w-full animate-pulse flex items-center px-3">
-                                            <div className="h-2 w-24 bg-white/10 rounded-full" />
-                                        </div>
-                                        <div className="h-9 rounded-lg bg-transparent w-full flex items-center px-3">
-                                            <div className="h-2 w-32 bg-white/5 rounded-full" />
-                                        </div>
-                                        <div className="h-9 rounded-lg bg-transparent w-full flex items-center px-3">
-                                            <div className="h-2 w-20 bg-white/5 rounded-full" />
-                                        </div>
-                                    </div>
-                                    <div className="mt-auto">
-                                        <div className="h-10 rounded-lg bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-sm text-emerald-400 font-medium hover:bg-emerald-500/20 transition-colors cursor-pointer">
-                                            + New Research
-                                        </div>
-                                    </div>
+                                <div className="w-10 sm:w-16 border-r border-white/5 flex flex-col items-center py-2 sm:py-4 gap-2 sm:gap-4 flex-shrink-0">
+                                    <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-md bg-emerald-500/20 text-emerald-500 flex items-center justify-center text-[10px] sm:text-xs font-bold">AI</div>
+                                    {[1, 2, 3].map(i => <div key={i} className="w-5 h-5 sm:w-6 sm:h-6 rounded-md bg-white/5" />)}
                                 </div>
 
-                                {/* Main Area */}
-                                <div className="flex-1 flex flex-col relative bg-[#13151C]">
-                                    {/* App Header */}
-                                    <div className="h-16 border-b border-white/5 flex items-center justify-between px-8 bg-[#13151C]/50 backdrop-blur-sm">
-                                        <div className="flex items-center gap-3">
-                                            <div className="w-2 h-2 rounded-full bg-emerald-500 shadow-[0_0_8px_rgba(16,185,129,0.5)]" />
-                                            <span className="text-slate-400 text-sm font-medium">Session #2941 • Analysis Mode</span>
-                                        </div>
-                                        {/* Traffic Lights */}
-                                        <div className="flex gap-2 opacity-50">
-                                            <div className="w-3 h-3 rounded-full bg-[#FF5F56]" />
-                                            <div className="w-3 h-3 rounded-full bg-[#FFBD2E]" />
-                                            <div className="w-3 h-3 rounded-full bg-[#27C93F]" />
+                                {/* Main Content */}
+                                <div className="flex-1 p-3 sm:p-5 space-y-3 sm:space-y-4 overflow-hidden flex flex-col">
+                                    {/* Header Row */}
+                                    <div className="flex justify-between items-center">
+                                        <div className="h-2 sm:h-3 w-24 sm:w-32 bg-white/10 rounded-full" />
+                                        <div className="flex gap-2">
+                                            <div className="h-5 sm:h-6 w-16 sm:w-20 bg-emerald-500/10 rounded-full border border-emerald-500/20" />
                                         </div>
                                     </div>
 
-                                    {/* Messages Area */}
-                                    <div className="flex-1 p-8 space-y-8 overflow-hidden relative">
-                                        {/* User Bubble */}
-                                        <div className="flex justify-end">
-                                            <div className="bg-[#10B981] text-white px-6 py-4 rounded-2xl rounded-tr-sm max-w-lg shadow-lg shadow-emerald-500/10">
-                                                <p className="text-sm sm:text-[15px] font-medium leading-relaxed">
-                                                    Based on the heatmap, identify likely candidate genes for the drought resistance trait in SampleSet-A.
-                                                </p>
+                                    {/* Grid */}
+                                    <div className="grid grid-cols-3 gap-3 sm:gap-4 h-full pb-2 sm:pb-6">
+                                        {/* Card 1: Gene Sequence */}
+                                        <div className="col-span-2 bg-white/5 rounded-lg p-3 sm:p-4 border border-white/5 overflow-hidden relative flex flex-col justify-center">
+                                            <div className="flex justify-between items-center mb-2 sm:mb-4">
+                                                <div className="h-1.5 sm:h-2 w-12 sm:w-16 bg-white/10 rounded-full" />
+                                                <div className="h-1.5 sm:h-2 w-6 sm:w-8 bg-emerald-400/50 rounded-full" />
+                                            </div>
+                                            <div className="space-y-1.5 sm:space-y-2 animate-pulse">
+                                                {[...Array(5)].map((_, i) => (
+                                                    <div key={i} className="flex gap-1">
+                                                        <div className="h-1 sm:h-1.5 rounded-full w-full bg-gradient-to-r from-emerald-500/40 to-teal-500/40" style={{ width: `${Math.random() * 50 + 40}%` }} />
+                                                    </div>
+                                                ))}
                                             </div>
                                         </div>
 
-                                        {/* AI Response Bubble */}
-                                        <div className="flex gap-4 max-w-3xl">
-                                            <div className="w-10 h-10 rounded-full bg-slate-800 border border-white/10 flex items-center justify-center flex-shrink-0 shadow-lg">
-                                                <HiOutlineSparkles className="w-5 h-5 text-emerald-400" />
-                                            </div>
-                                            <div className="space-y-4 flex-1">
-                                                <div className="bg-[#1F2937] border border-white/5 px-6 py-5 rounded-2xl rounded-tl-sm shadow-xl">
-                                                    <p className="text-slate-300 text-sm sm:text-[15px] leading-relaxed mb-4">
-                                                        I've analyzed the expression variance in <strong className="text-white">SampleSet-A</strong>. Three candidate genes show significant upregulation correlations with the drought resistance phenotype <span className="text-emerald-400 font-mono text-xs">($p &lt; 0.05$)</span>:
-                                                    </p>
-                                                    <ul className="space-y-2.5 mb-5 relative z-10">
-                                                        <li className="flex items-start gap-2.5 text-slate-300 text-sm">
-                                                            <span className="text-emerald-500 mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                                            <span><strong className="text-white">DREB1A</strong> (Chr 4): Transcription factor known for stress response loops.</span>
-                                                        </li>
-                                                        <li className="flex items-start gap-2.5 text-slate-300 text-sm">
-                                                            <span className="text-emerald-500 mt-1.5 w-1.5 h-1.5 rounded-full bg-emerald-500" />
-                                                            <span><strong className="text-white">NCED3</strong> (Chr 11): Key limiter in abscisic acid biosynthesis.</span>
-                                                        </li>
-                                                    </ul>
+                                        {/* Card 2: Stats */}
+                                        <div className="col-span-1 bg-white/5 rounded-lg p-3 sm:p-4 border border-white/5 flex flex-col justify-between items-center">
+                                            <div className="h-10 w-10 sm:h-16 sm:w-16 rounded-full border-2 sm:border-4 border-emerald-500/30 border-t-emerald-400 animate-spin mb-1" />
+                                            <div className="h-1.5 sm:h-2 w-10 sm:w-14 bg-white/10 rounded-full mt-2" />
+                                        </div>
 
-                                                    {/* Chart Visual */}
-                                                    <div className="rounded-xl bg-[#111827] border border-white/10 p-5 mt-2">
-                                                        <div className="flex items-center justify-between mb-4">
-                                                            <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">Expression Levels (RPKM)</span>
-                                                            <div className="flex gap-2">
-                                                                <span className="w-2 h-2 rounded-full bg-emerald-500/50"></span>
-                                                                <span className="w-2 h-2 rounded-full bg-emerald-900/50"></span>
-                                                            </div>
-                                                        </div>
-                                                        <div className="flex items-end justify-between h-24 gap-1.5">
-                                                            {[35, 60, 25, 85, 40, 55, 20, 95, 45, 75].map((h, i) => (
-                                                                <div key={i} className="flex-1 bg-gray-800/30 rounded-t-sm relative group h-full">
-                                                                    <div
-                                                                        className="absolute bottom-0 inset-x-0 bg-gradient-to-t from-emerald-600 to-emerald-400 rounded-t-sm opacity-90 transition-all duration-700 group-hover:to-teal-300"
-                                                                        style={{ height: `${h}%` }}
-                                                                    />
-                                                                </div>
-                                                            ))}
-                                                        </div>
-                                                    </div>
+                                        {/* Card 3: Chat/Analysis */}
+                                        <div className="col-span-3 bg-white/5 rounded-lg p-3 sm:p-4 border border-white/5 h-24 sm:h-full relative overflow-hidden flex flex-col justify-center">
+                                            <div className="absolute top-3 left-3 right-3 space-y-2 sm:space-y-3">
+                                                <div className="flex gap-2 sm:gap-3 items-center">
+                                                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-emerald-500/20" />
+                                                    <div className="h-1.5 sm:h-2 w-3/4 bg-white/10 rounded-full" />
+                                                </div>
+                                                <div className="flex gap-2 sm:gap-3 items-center">
+                                                    <div className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-purple-500/20" />
+                                                    <div className="h-1.5 sm:h-2 w-1/2 bg-white/10 rounded-full" />
                                                 </div>
                                             </div>
-                                        </div>
-                                    </div>
-
-                                    {/* Input Bar Placeholder */}
-                                    <div className="p-6 pt-0 mt-auto">
-                                        <div className="bg-[#1F2937] border border-white/10 rounded-xl h-14 flex items-center px-4 gap-3 text-slate-500">
-                                            <div className="w-5 h-5 rounded-full border-2 border-slate-600 flex items-center justify-center text-[10px] font-bold">+</div>
-                                            <span className="text-sm">Ask a follow-up question...</span>
+                                            {/* Scan line */}
+                                            <div className="absolute inset-0 bg-gradient-to-b from-transparent via-emerald-500/5 to-transparent h-1/2 animate-[scan_3s_ease-in-out_infinite]" />
                                         </div>
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    </div>
 
-                    {/* Base (Bottom Chassis) */}
-                    <div className="relative mx-auto w-full max-w-[940px]">
-                        {/* Top Hinge Gradient */}
-                        <div className="h-[12px] bg-gradient-to-b from-[#272729] to-[#1a1a1c] mx-[2px] rounded-b-md shadow-inner" />
-
-                        {/* Main Aluminum Base */}
-                        <div className="h-[14px] bg-[#d1d5db] dark:bg-[#3f3f46] rounded-b-[16px] mx-auto relative shadow-2xl overflow-hidden">
-                            {/* Metallic Gradient Overlay */}
-                            <div className="absolute inset-0 bg-gradient-to-b from-[#e5e7eb] to-[#9ca3af] dark:from-[#52525b] dark:to-[#27272a]" />
-
-                            {/* Groove Notch */}
-                            <div className="absolute top-0 left-1/2 -translate-x-1/2 w-32 h-[6px] bg-[#1f2937] dark:bg-[#18181b] rounded-b-lg opacity-80" />
+                        {/* Laptop Base - Matches Login Page Style */}
+                        <div className="relative mx-auto bg-slate-700 rounded-b-xl sm:rounded-b-[20px] h-[10px] sm:h-[16px] w-[96%] sm:w-[104%] shadow-[0_20px_50px_-12px_rgba(0,0,0,0.5)] border-t border-slate-600">
+                            <div className="absolute left-1/2 top-0 -translate-x-1/2 w-20 sm:w-32 h-[3px] sm:h-[4px] bg-slate-800 rounded-b-md shadow-inner"></div>
                         </div>
                     </div>
+
+                    <style jsx>{`
+                        @keyframes scan {
+                            0% { transform: translateY(-100%); }
+                            100% { transform: translateY(200%); }
+                        }
+                    `}</style>
                 </div>
 
                 {/* Feature Pills Under Laptop */}

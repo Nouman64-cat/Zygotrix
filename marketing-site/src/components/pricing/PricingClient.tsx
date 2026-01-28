@@ -5,6 +5,31 @@ import { FaCheck, FaStar, FaMicroscope, FaGraduationCap } from "react-icons/fa";
 import { MdBolt, MdMic, MdAnalytics } from "react-icons/md";
 
 const PricingClient: React.FC = () => {
+    const [isPakistan, setIsPakistan] = React.useState(true);
+
+    React.useEffect(() => {
+        const checkLocation = async () => {
+            try {
+                // Fetch country code by IP to support VPN users
+                const response = await fetch('https://ipapi.co/country/');
+                const country = await response.text();
+
+                if (country && country.trim() !== 'PK') {
+                    setIsPakistan(false);
+                }
+            } catch (error) {
+                console.error("Failed to detect location, falling back to heuristic:", error);
+                // Fallback to system timezone if API fails
+                const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+                if (tz !== "Asia/Karachi") {
+                    setIsPakistan(false);
+                }
+            }
+        };
+
+        checkLocation();
+    }, []);
+
     return (
         <section className="py-20 bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -28,7 +53,7 @@ const PricingClient: React.FC = () => {
                             </h3>
                             <div className="flex items-baseline gap-2 mb-4">
                                 <span className="text-5xl font-bold text-gray-900 dark:text-white">
-                                    Rs. 0
+                                    {isPakistan ? "Rs. 0" : "$0"}
                                 </span>
                                 <span className="text-gray-500 dark:text-gray-400">/month</span>
                             </div>
@@ -89,7 +114,7 @@ const PricingClient: React.FC = () => {
                                 </h3>
                                 <div className="flex items-baseline gap-2 mb-4">
                                     <span className="text-5xl font-bold text-emerald-500">
-                                        Rs. 3,000
+                                        {isPakistan ? "Rs. 3,000" : "$20"}
                                     </span>
                                     <span className="text-gray-500 dark:text-gray-400">/month</span>
                                 </div>

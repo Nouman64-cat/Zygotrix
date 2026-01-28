@@ -255,6 +255,281 @@ Question: {user_message}"""
                 detail="An error occurred while generating response",
             )
 
+    async def generate_streaming_response(
+        self,
+        user_message: str,
+        context: str,
+        page_context: Optional[PageContext] = None,
+        user_name: str = "there",
+        conversation_history: Optional[List[Dict]] = None,
+        use_tools: bool = True,
+        max_tool_iterations: int = 5,
+    ):
+        """Streaming version of generate_response."""
+        import json
+        
+        # Import local dependencies (same as generate_response)
+        from ..chatbot_settings import get_chatbot_settings
+        from ...prompt_engineering.prompts import (
+            get_simulation_tool_prompt,
+            get_zigi_prompt_with_tools
+        )
+        from ...mcp import (
+            get_claude_tools_schema,
+            process_tool_calls,
+            extract_tool_calls, # Not fully used in stream loop but needed if we fallback or helper usage
+        )
+        
+        try:
+            # 1. Setup Context & Messages (Identical to generate_response)
+            is_simulation_studio = page_context and "Simulation Studio" in page_context.pageName
+            if is_simulation_studio:
+                simulation_context = context if context else ""
+                system_prompt = get_simulation_tool_prompt(user_name, simulation_context)
+                use_tools = False
+            else:
+                system_prompt = get_zigi_prompt_with_tools()
+
+            page_info = ""
+            if page_context:
+                features_list = "\n".join([f"- {feature}" for feature in page_context.features])
+                page_info = f"""
+CURRENT PAGE CONTEXT:
+The user is currently on: {page_context.pageName}
+Page Description: {page_context.description}
+Available Features on this page:
+{features_list}
+"""
+            
+            messages = []
+            if conversation_history:
+                for msg in conversation_history:
+                    messages.append({"role": msg["role"], "content": msg["content"]})
+            
+            current_message_content = f"""{page_info}
+
+Background information (use this to answer, but don't copy it directly):
+{context}
+
+Question: {user_message}"""
+            
+            messages.append({"role": "user", "content": current_message_content})
+
+            # Settings
+            try:
+                settings = get_chatbot_settings()
+                model = settings.model
+                max_tokens = settings.max_tokens
+                temperature = settings.temperature
+            except Exception:
+                model = "claude-3-haiku-20240307"
+                max_tokens = 1024
+                temperature = 0.7
+
+            tools = get_claude_tools_schema() if use_tools else []
+            total_input_tokens = 0
+            total_output_tokens = 0
+            tools_used = []
+            
+            working_messages = messages.copy()
+
+            # 2. Iteration Loop
+            for iteration in range(max_tool_iterations):
+                async with httpx.AsyncClient(timeout=120.0) as client:
+                    request_body = {
+                        "model": model,
+                        "max_tokens": max_tokens,
+                        "temperature": temperature,
+                        "system": system_prompt,
+                        "messages": working_messages,
+                        "stream": True # Enable Streaming
+                    }
+                    if tools:
+                        request_body["tools"] = tools
+
+                    async with client.stream(
+                        "POST", 
+                        self.api_url, 
+                        headers={
+                            "x-api-key": self.api_key,
+                            "content-type": "application/json",
+                            "anthropic-version": "2023-06-01",
+                        }, 
+                        json=request_body
+                    ) as response:
+                        
+                        if response.status_code != 200:
+                            # If direct error, yield error event
+                            error_text = await response.aread()
+                            logger.error(f"Claude API Streaming Error: {response.status_code} - {error_text}")
+                            yield f"event: error\ndata: {json.dumps({'message': 'AI Service Unavailable'})}\n\n"
+                            return
+
+                        # Buffers for tool use detection
+                        current_content_block_type = None
+                        current_tool_call_buffer = {} # index -> {name, inputs_str}
+                        
+                        # We need to reconstruct the full assistant message if tool use happens
+                        # so we can append it to working_messages for the next turn
+                        full_assistant_content_blocks = [] # List of blocks: {"type": "text", "text": "..."} or {"type": "tool_use", ...}
+                        
+                        current_block_index = 0
+
+                        # Processing stream
+                        async for line in response.aiter_lines():
+                            if not line.startswith("data: "):
+                                continue
+                            
+                            data_str = line[6:]
+                            if data_str == "[DONE]":
+                                break
+                            
+                            try:
+                                event_data = json.loads(data_str)
+                                event_type = event_data.get("type")
+                                
+                                # -- Usage Tracking --
+                                if event_type == "message_start":
+                                    msg = event_data.get("message", {})
+                                    usage = msg.get("usage", {})
+                                    total_input_tokens += usage.get("input_tokens", 0)
+                                    
+                                elif event_type == "message_delta":
+                                    usage = event_data.get("usage", {})
+                                    total_output_tokens += usage.get("output_tokens", 0)
+                                    stop_reason = event_data.get("delta", {}).get("stop_reason")
+                                    # If stop_reason is "tool_use", we'll handle it after the loop ends or via state check
+
+                                # -- Content Handling --
+                                elif event_type == "content_block_start":
+                                    current_block_index = event_data.get("index")
+                                    block = event_data.get("content_block", {})
+                                    block_type = block.get("type")
+                                    
+                                    if block_type == "text":
+                                        full_assistant_content_blocks.append({"type": "text", "text": ""})
+                                        current_content_block_type = "text"
+                                    elif block_type == "tool_use":
+                                        # Tool detected!
+                                        tool_info = {
+                                            "type": "tool_use", 
+                                            "id": block.get("id"),
+                                            "name": block.get("name"),
+                                            "input": {} # We'll parse input_json later maybe, or accumulate string
+                                        }
+                                        full_assistant_content_blocks.append(tool_info)
+                                        current_tool_call_buffer[current_block_index] = {
+                                            "id": block.get("id"),
+                                            "name": block.get("name"),
+                                            "input_json_str": ""
+                                        }
+                                        current_content_block_type = "tool_use"
+                                        
+                                        # Yield status update to frontend? (Optional, maybe later)
+                                        # yield f"event: status\ndata: ...\n\n"
+
+                                elif event_type == "content_block_delta":
+                                    current_block_index = event_data.get("index")
+                                    delta = event_data.get("delta", {})
+                                    delta_type = delta.get("type")
+                                    
+                                    if delta_type == "text_delta":
+                                        text_chunk = delta.get("text", "")
+                                        # Append to local buffer for history
+                                        if len(full_assistant_content_blocks) > current_block_index:
+                                            full_assistant_content_blocks[current_block_index]["text"] += text_chunk
+                                        
+                                        # Stream to client IF NOT inside a tool use block (which shouldn't happen for text_delta anyway)
+                                        # Only stream text content
+                                        payload = {"content": text_chunk, "type": "token"}
+                                        yield f"data: {json.dumps(payload)}\n\n"
+                                        
+                                    elif delta_type == "input_json_delta":
+                                        partial_json = delta.get("partial_json", "")
+                                        if current_block_index in current_tool_call_buffer:
+                                            current_tool_call_buffer[current_block_index]["input_json_str"] += partial_json
+
+                                elif event_type == "content_block_stop":
+                                    # Block finished
+                                    current_content_block_type = None
+
+                            except json.JSONDecodeError:
+                                continue
+                        
+                        # -- End of Stream for this iteration --
+                        
+                        # Check if we successfully collected tool calls
+                        collected_tool_calls_list = []
+                        if current_tool_call_buffer:
+                            for idx, t_data in current_tool_call_buffer.items():
+                                try:
+                                    inputs = json.loads(t_data["input_json_str"])
+                                    # Construct standard tool call object
+                                    tc = {
+                                        "id": t_data["id"],
+                                        "name": t_data["name"],
+                                        "input": inputs,
+                                        "type": "tool_use"
+                                    }
+                                    collected_tool_calls_list.append(tc)
+                                    # Update buffer used for history
+                                    full_assistant_content_blocks[idx]["input"] = inputs
+                                except Exception as e:
+                                    logger.error(f"Failed to parse tool input JSON: {e}")
+                        
+                        if collected_tool_calls_list:
+                            # We have tools to execute!
+                            logger.info(f"Streaming Interrupted for Tools: {[t['name'] for t in collected_tool_calls_list]}")
+                            
+                            # 1. Add assistant message to history
+                            working_messages.append({
+                                "role": "assistant",
+                                "content": full_assistant_content_blocks
+                            })
+                            
+                            # 2. Record usage so we don't track it twice? 
+                            # Actually, we keep running sum in total variables
+                            for t in collected_tool_calls_list:
+                                tools_used.append({"name": t["name"], "input": t["input"]})
+
+                            # 3. Execute Tools
+                            tool_results = await process_tool_calls(collected_tool_calls_list)
+                            
+                            # 4. Add tool results to history
+                            working_messages.append({
+                                "role": "user",
+                                "content": tool_results
+                            })
+                            
+                            # 5. CONTINUE loop -> Next iteration will call Claude again with tool results
+                            continue
+                        
+                        else:
+                            # No tools used -> This was the final answer!
+                            # Send [DONE] with usage
+                            final_usage_payload = {
+                                "type": "usage",
+                                "usage": {
+                                    "input_tokens": total_input_tokens,
+                                    "output_tokens": total_output_tokens,
+                                    "total_tokens": total_input_tokens + total_output_tokens,
+                                    "model": model,
+                                    "tools_used": tools_used
+                                }
+                            }
+                            yield f"data: {json.dumps(final_usage_payload)}\n\n"
+                            yield "data: [DONE]\n\n"
+                            return
+
+            # If we exit loop without returning (Max iterations), allow error event
+            yield f"event: error\ndata: {json.dumps({'message': 'Max tool iterations reached'})}\n\n"
+        
+        except Exception as e:
+            logger.error(f"Streaming Error: {e}")
+            import traceback
+            traceback.print_exc()
+            yield f"event: error\ndata: {json.dumps({'message': str(e)})}\n\n"
+
 
 # Global singleton instance
 _claude_ai_service: Optional[ClaudeAIService] = None

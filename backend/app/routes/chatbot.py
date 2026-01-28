@@ -321,6 +321,121 @@ async def chat(request: ChatRequest) -> ChatResponse:
         )
 
 
+from fastapi.responses import StreamingResponse
+import json
+
+@router.post("/chat/stream")
+async def chat_stream(request: ChatRequest) -> StreamingResponse:
+    """
+    Streaming chat endpoint providing real-time text generation (SSE).
+    """
+    try:
+        # Step 0: Check if chatbot is enabled and get settings
+        try:
+            settings = get_chatbot_settings()
+            if not settings.enabled:
+                raise HTTPException(status_code=503, detail="Chatbot is disabled")
+            response_caching_enabled = settings.response_caching
+        except Exception:
+            response_caching_enabled = True # Fail open
+
+        # Auth & Rate Limiting Check
+        user_id = request.userId or "anonymous"
+        is_admin = request.userRole in ["admin", "super_admin"] if request.userRole else False
+        
+        is_allowed, usage_info = get_rate_limiter().check_limit(user_id, is_admin=is_admin)
+        if not is_allowed:
+            # For streaming, we can't easily return a JSON body with 200, better to error or send specific event
+            # Standard HTTP 429
+            raise HTTPException(status_code=429, detail="Rate limit exceeded")
+
+        # Context Setup (Similar to /chat)
+        page_name = request.pageContext.pageName if request.pageContext else ""
+        session_id = request.sessionId or user_id
+        conversation_history = get_conversation_memory().get_history(session_id)
+        
+        # Intelligent Routing (Simplified for Stream: just use fallback/claude for now until router supports stream)
+        # For now, bypassing router to ensure streaming works directly
+        logger.info("🌊 Streaming Request - Using Direct Claude Service")
+        
+        # RAG Context Retrieval
+        llama_context = await get_rag_service().retrieve_context(
+            request.message, user_id=request.userId, user_name=request.userName
+        )
+        traits_context = get_traits_service().get_traits_context(request.message)
+        
+        combined_context = llama_context
+        if traits_context:
+            combined_context = f"{traits_context}\n\n{llama_context}" if llama_context else traits_context
+
+        user_name = request.userName or "there"
+
+        # Generator Wrapper for Side Effects (Recording Usage)
+        async def response_generator():
+            full_response_text = ""
+            final_usage = None
+            
+            try:
+                async for event in get_claude_ai_service().generate_streaming_response(
+                    user_message=request.message,
+                    context=combined_context,
+                    page_context=request.pageContext,
+                    user_name=user_name,
+                    conversation_history=conversation_history
+                ):
+                    yield event
+                    
+                    # Intercept data to track full response and usage
+                    if event.startswith("data: "):
+                        data_str = event[6:].strip()
+                        if data_str == "[DONE]": 
+                            break
+                        try:
+                            payload = json.loads(data_str)
+                            if payload.get("type") == "token":
+                                full_response_text += payload.get("content", "")
+                            elif payload.get("type") == "usage":
+                                final_usage = payload.get("usage")
+                        except:
+                            pass
+                
+                # Stream finished - Record Stats
+                if final_usage:
+                    total = final_usage.get("total_tokens", 0)
+                    model = final_usage.get("model")
+                    
+                    # Record Rate Limit
+                    get_rate_limiter().record_usage(user_id, total)
+                    
+                    # Log Analytics
+                    get_token_analytics_service().log_usage(
+                        user_id=request.userId,
+                        user_name=request.userName,
+                        input_tokens=final_usage.get("input_tokens", 0),
+                        output_tokens=final_usage.get("output_tokens", 0),
+                        cached=False,
+                        message_preview=request.message[:100],
+                        model=model
+                    )
+                    
+                    # Save to Memory
+                    get_conversation_memory().add_message(session_id, "user", request.message)
+                    get_conversation_memory().add_message(session_id, "assistant", full_response_text)
+                    
+            except Exception as e:
+                logger.error(f"Stream Generator Error: {e}")
+                error_payload = json.dumps({"message": "Stream interrupted"})
+                yield f"event: error\ndata: {error_payload}\n\n"
+
+        return StreamingResponse(response_generator(), media_type="text/event-stream")
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Streaming Setup Error: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
 @router.get("/cache/stats")
 async def get_cache_stats():
     """

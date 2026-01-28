@@ -218,77 +218,92 @@ export const useChat = (
         message: trimmedContent,
         attachments,
         page_context: "Chat Interface",
-        stream: false,
+        stream: true,
         enabled_tools: enabledTools || [],
       };
 
       try {
-        const response = await chatService.sendMessage(chatRequest);
+        await chatService.sendMessageStreaming(
+          chatRequest,
+          // onChunk
+          (chunk) => {
+            setMessages((prev) =>
+              prev.map((msg) => {
+                if (msg.id !== tempMessageId) return msg;
 
-        // Performance measure
-        if (typeof performance !== "undefined") {
-          performance.mark("chat-request-end");
-          performance.measure(
-            "chat-request",
-            "chat-request-start",
-            "chat-request-end"
-          );
-          const measure = performance.getEntriesByName("chat-request").pop();
-          if (measure) {
-            // Log commented out for production
-            // console.log(`[useChat] Request completed in ${measure.duration.toFixed(0)}ms`);
-          }
-        }
-
-        // Update conversation ID if this was a new conversation
-        if (!conversationId && response.conversation_id) {
-          setConversationId(response.conversation_id);
-
-          // Immediately add the conversation to the sidebar with placeholder title
-          if (options?.onAddConversation && options?.userId) {
-            const now = new Date().toISOString();
-            const placeholderTitle = truncateText(trimmedContent, 50);
-
-            options.onAddConversation({
-              id: response.conversation_id,
-              user_id: options.userId,
-              title: placeholderTitle,
-              status: "active",
-              is_pinned: false,
-              is_starred: false,
-              tags: [],
-              message_count: 1,
-              created_at: now,
-              updated_at: now,
-              is_generating_title: true, // Mark as generating title
-            });
-          }
-        }
-
-        // Update conversation title (internal state only)
-        // Note: We don't update the sidebar here - the skeleton will remain visible
-        // until loadConversations brings in the real generated title from the backend
-        // Update conversation title (internal state only)
-        // Note: We don't update the sidebar here - the skeleton will remain visible
-        // until loadConversations brings in the real generated title from the backend
-        if (response.conversation_title) {
-          setConversationTitle(response.conversation_title);
-        }
-
-        // Replace placeholder with actual response
-        setMessages((prev) =>
-          prev.map((msg) =>
-            msg.id === tempMessageId
-              ? {
-                  ...msg,
-                  id: response.message.id,
-                  content: response.message.content,
-                  isStreaming: false,
-                  metadata: response.message.metadata,
-                  created_at: response.message.created_at,
+                // Handle content updates
+                if (chunk.type === "content" && chunk.content) {
+                  return {
+                    ...msg,
+                    content: msg.content + chunk.content,
+                  };
                 }
-              : msg
-          )
+
+                // Handle metadata updates
+                if (chunk.type === "metadata" && chunk.metadata) {
+                  return {
+                    ...msg,
+                    metadata: {
+                      ...msg.metadata,
+                      ...chunk.metadata,
+                    },
+                  };
+                }
+
+                return msg;
+              })
+            );
+          },
+          // onComplete
+          (response) => {
+            // Update conversation ID if this was a new conversation
+            if (!conversationId && response.conversation_id) {
+              setConversationId(response.conversation_id);
+
+              // Immediately add the conversation to the sidebar
+              if (options?.onAddConversation && options?.userId) {
+                const now = new Date().toISOString();
+                const placeholderTitle = truncateText(trimmedContent, 50);
+
+                options.onAddConversation({
+                  id: response.conversation_id,
+                  user_id: options.userId,
+                  title: placeholderTitle,
+                  status: "active",
+                  is_pinned: false,
+                  is_starred: false,
+                  tags: [],
+                  message_count: 1,
+                  created_at: now,
+                  updated_at: now,
+                  is_generating_title: true,
+                });
+              }
+            }
+
+            if (response.conversation_title) {
+              setConversationTitle(response.conversation_title);
+            }
+
+            // Finalize message state
+            setMessages((prev) =>
+              prev.map((msg) =>
+                msg.id === tempMessageId
+                  ? {
+                    ...msg,
+                    id: response.message.id, // Update with real backend ID
+                    isStreaming: false,
+                    metadata: response.message.metadata,
+                    created_at: response.message.created_at,
+                  }
+                  : msg
+              )
+            );
+          },
+          // onError
+          (err) => {
+            throw err; // Re-throw to be caught by outer catch block
+          }
         );
       } catch (err) {
         console.error("[useChat] Error:", err);

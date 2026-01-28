@@ -28,7 +28,32 @@ function parseSSELine(line: string): StreamChunk | null {
     }
 
     try {
-      return JSON.parse(data) as StreamChunk;
+      const raw = JSON.parse(data);
+
+      // Adapt Backend Event Types to Frontend Types
+      if (raw.type === "token") {
+        return {
+          type: "content",
+          content: raw.content
+        };
+      }
+
+      if (raw.type === "usage") {
+        return {
+          type: "metadata",
+          metadata: raw.usage // Map usage object to metadata
+        };
+      }
+
+      if (raw.type === "error") {
+        return {
+          type: "error",
+          error: raw.message || "Unknown error"
+        };
+      }
+
+      // Pass through other types if they match
+      return raw as StreamChunk;
     } catch (error) {
       console.error("Failed to parse SSE chunk:", error, "Data:", data);
       return null;
@@ -85,8 +110,6 @@ export async function* streamChatResponse(
 
   const url = `${API_BASE_URL}${API_ENDPOINTS.ZYGOTRIX_AI.CHAT}`;
 
-
-
   const response = await fetch(url, {
     method: "POST",
     headers: {
@@ -109,16 +132,66 @@ export async function* streamChatResponse(
   const contentType = response.headers.get("content-type") || "";
 
 
+
+  /**
+   * Try to parse raw text as a complete ChatResponse and convert to chunks
+   */
+  function parseChatResponseToChunks(text: string): StreamChunk[] | null {
+    try {
+      const parsed = JSON.parse(text);
+      // Check if it looks like a standard ChatRequest response
+      if (parsed.message) {
+        const chunks: StreamChunk[] = [];
+
+        // 1. Content Chunk
+        chunks.push({
+          type: "content",
+          content: parsed.message.content || "",
+          conversation_id: parsed.conversation_id,
+          message_id: parsed.message.id,
+        });
+
+        // 2. Metadata Chunk (Critical for widgets)
+        if (parsed.message.metadata) {
+          chunks.push({
+            type: "metadata",
+            metadata: parsed.message.metadata,
+          });
+        }
+
+        return chunks;
+      }
+    } catch {
+      // Not valid JSON or not expected format
+    }
+    return null;
+  }
+
+  // ... (keep streamChatResponse signature) ...
+
   // If the response is not SSE, handle it as a regular JSON response
   if (!contentType.includes("text/event-stream") && !contentType.includes("text/plain")) {
     const text = await response.text();
 
-    const chunk = tryParseDirectJSON(text);
-    if (chunk) {
-      yield chunk;
-      yield { type: "done", conversation_id: chunk.conversation_id, message_id: chunk.message_id };
+    const chunks = parseChatResponseToChunks(text);
+    if (chunks) {
+      for (const chunk of chunks) {
+        yield chunk;
+      }
+      // Yield done using info from first chunk
+      yield {
+        type: "done",
+        conversation_id: chunks[0].conversation_id,
+        message_id: chunks[0].message_id
+      };
     } else {
-      throw new Error("Failed to parse non-streaming response");
+      const chunk = tryParseDirectJSON(text);
+      if (chunk) {
+        yield chunk;
+        yield { type: "done", conversation_id: chunk.conversation_id, message_id: chunk.message_id };
+      } else {
+        throw new Error("Failed to parse non-streaming response");
+      }
     }
     return;
   }

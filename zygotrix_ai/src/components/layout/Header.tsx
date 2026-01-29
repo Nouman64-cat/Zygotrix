@@ -4,6 +4,7 @@ import { MdPsychology } from 'react-icons/md';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts';
 import { Logo, IconButton, ThemeSwitcher, PreferencesModal } from '../common';
+import { cn } from '../../utils';
 import { LOGO_URL } from '../../config';
 import { useVoiceControl } from '../../contexts';
 
@@ -41,19 +42,19 @@ export const Header: React.FC<HeaderProps> = ({
               className="md:hidden"
             />
           )}
-          
+
           {/* Mobile-only logo and text */}
           <div className="flex items-center gap-2 md:hidden">
-            <img 
-              src={LOGO_URL} 
-              alt="Zygotrix" 
+            <img
+              src={LOGO_URL}
+              alt="Zygotrix"
               className="w-6 h-6 object-cover rounded-full"
             />
             <span className="text-xs font-semibold text-gray-900 dark:text-gray-100">
               Zygotrix AI
             </span>
           </div>
-          
+
           {/* Desktop logo */}
           <div className="hidden md:block">
             <Logo size="md" showText={true} />
@@ -77,24 +78,38 @@ export const Header: React.FC<HeaderProps> = ({
             variant="ghost"
           />
           <IconButton
-  icon={<FiMic className={isListening ? "text-red-500 animate-pulse" : ""} />}
-  onClick={toggleListening}
-  tooltip={isListening ? "Stop Listening" : "Start Voice Control"}
-  variant="ghost"
-  className={isListening ? "bg-red-50 dark:bg-red-900/20" : ""}
-/>
+            icon={<FiMic className={isListening ? "text-red-500 animate-pulse" : ""} />}
+            onClick={toggleListening}
+            tooltip={isListening ? "Stop Listening" : "Start Voice Control"}
+            variant="ghost"
+            className={isListening ? "bg-red-50 dark:bg-red-900/20" : ""}
+          />
 
           <div className="relative">
             <button
               onClick={() => setShowUserMenu(!showUserMenu)}
               className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
             >
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold">
+              <div className={cn(
+                "w-8 h-8 rounded-full flex items-center justify-center text-white font-semibold",
+                user?.subscription_status === "pro"
+                  ? "bg-gray-900 text-emerald-400 ring-2 ring-emerald-500 shadow-lg shadow-emerald-500/20"
+                  : "bg-gradient-to-br from-blue-500 to-purple-600"
+              )}>
                 {user?.full_name?.[0]?.toUpperCase() || user?.email?.[0]?.toUpperCase() || 'U'}
               </div>
-              <span className="hidden md:block text-sm font-medium text-gray-700 dark:text-gray-300">
-                {user?.full_name || user?.email}
-              </span>
+              <div className="hidden md:flex flex-col items-start">
+                <div className="flex items-center gap-1.5">
+                  <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+                    {user?.full_name || user?.email?.split('@')[0]}
+                  </span>
+                  {user?.subscription_status === "pro" && (
+                    <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold text-emerald-500 bg-gray-900 border border-emerald-500/30 rounded-md leading-none">
+                      PRO
+                    </span>
+                  )}
+                </div>
+              </div>
             </button>
 
             {showUserMenu && (

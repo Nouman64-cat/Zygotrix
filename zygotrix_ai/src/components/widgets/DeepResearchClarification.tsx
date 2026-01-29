@@ -6,7 +6,7 @@
  */
 
 import React, { useState, useCallback } from "react";
-import { FiSearch, FiCheck, FiAlertCircle } from "react-icons/fi";
+import { FiSearch, FiCheck } from "react-icons/fi";
 import { cn } from "../../utils";
 
 export interface ClarificationQuestion {
@@ -83,50 +83,44 @@ export const DeepResearchClarification: React.FC<
     }, [allAnswered, isLoading, questions, answers, onSubmit]);
 
     return (
-        <div className="bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-900/20 dark:to-teal-900/20 rounded-2xl border border-emerald-200 dark:border-emerald-700/50 overflow-hidden mt-4">
+        <div className="bg-white dark:bg-gray-900 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden mt-3 shadow-sm">
             {/* Header */}
-            <div className="px-5 py-4 bg-gradient-to-r from-emerald-500 to-teal-500 dark:from-emerald-600 dark:to-teal-600">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-white/20 flex items-center justify-center">
-                        <FiSearch className="text-white text-lg" />
-                    </div>
-                    <div>
-                        <h3 className="text-white font-semibold text-lg">
-                            Deep Research - Clarification
-                        </h3>
-                        <p className="text-emerald-100 text-sm">
-                            Answer the questions below to refine your research
-                        </p>
-                    </div>
+            <div className="px-4 py-3 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800/50 flex items-center gap-3">
+                <div className="w-8 h-8 rounded-lg bg-gray-200 dark:bg-gray-700 flex items-center justify-center shrink-0">
+                    <FiSearch className="text-gray-500 dark:text-gray-400 text-sm" />
+                </div>
+                <div>
+                    <h3 className="text-gray-900 dark:text-white font-medium text-sm leading-tight">
+                        Deep Research - Clarification
+                    </h3>
+                    <p className="text-gray-500 dark:text-gray-400 text-xs">
+                        Refine your research by answering these questions
+                    </p>
                 </div>
             </div>
 
             {/* Questions */}
-            <div className="p-5 space-y-6">
+            <div className="p-4 space-y-4">
                 {questions.map((question, index) => (
-                    <div key={question.id} className="space-y-3">
+                    <div key={question.id} className="space-y-2">
                         {/* Question */}
-                        <div className="flex items-start gap-3">
+                        <div className="flex items-start gap-2.5">
                             <div
                                 className={cn(
-                                    "w-7 h-7 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0",
+                                    "w-5 h-5 rounded-full flex items-center justify-center text-[10px] font-bold shrink-0 mt-0.5",
                                     answers[question.id]
-                                        ? "bg-emerald-500 text-white"
-                                        : "bg-emerald-100 dark:bg-emerald-800 text-emerald-600 dark:text-emerald-300"
+                                        ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900"
+                                        : "bg-gray-100 dark:bg-gray-800 text-gray-500 dark:text-gray-400 border border-gray-200 dark:border-gray-700"
                                 )}
                             >
-                                {answers[question.id] ? (
-                                    <FiCheck className="text-sm" />
-                                ) : (
-                                    index + 1
-                                )}
+                                {answers[question.id] ? <FiCheck /> : index + 1}
                             </div>
-                            <div className="flex-1">
-                                <p className="text-gray-900 dark:text-gray-100 font-medium">
+                            <div className="flex-1 min-w-0">
+                                <p className="text-gray-800 dark:text-gray-200 text-sm font-medium leading-normal">
                                     {question.question}
                                 </p>
                                 {question.context && (
-                                    <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
+                                    <p className="text-gray-500 dark:text-gray-400 text-xs mt-0.5">
                                         {question.context}
                                     </p>
                                 )}
@@ -134,7 +128,7 @@ export const DeepResearchClarification: React.FC<
                         </div>
 
                         {/* Answer Options */}
-                        <div className="ml-10 space-y-2">
+                        <div className="ml-7.5 pl-0.5 space-y-2">
                             {/* Suggested Answers */}
                             {question.suggested_answers.length > 0 &&
                                 !customInputs[question.id] && (
@@ -146,10 +140,10 @@ export const DeepResearchClarification: React.FC<
                                                     handleSelectAnswer(question.id, suggestion)
                                                 }
                                                 className={cn(
-                                                    "px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200",
+                                                    "px-3 py-1.5 rounded-md text-xs font-medium transition-all duration-200 border text-left",
                                                     answers[question.id] === suggestion
-                                                        ? "bg-emerald-500 text-white shadow-md"
-                                                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border border-gray-200 dark:border-gray-700 hover:border-emerald-300 dark:hover:border-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/30"
+                                                        ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 border-gray-900 dark:border-gray-100 shadow-sm"
+                                                        : "bg-white dark:bg-gray-800 text-gray-700 dark:text-gray-300 border-gray-200 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-500"
                                                 )}
                                             >
                                                 {suggestion}
@@ -157,9 +151,9 @@ export const DeepResearchClarification: React.FC<
                                         ))}
                                         <button
                                             onClick={() => handleToggleCustom(question.id)}
-                                            className="px-4 py-2 rounded-xl text-sm font-medium bg-transparent text-emerald-500 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/30 border border-dashed border-emerald-300 dark:border-emerald-600 transition-all duration-200"
+                                            className="px-3 py-1.5 rounded-md text-xs font-medium text-gray-500 dark:text-gray-400 border border-dashed border-gray-300 dark:border-gray-600 hover:border-gray-400 dark:hover:border-gray-500 hover:text-gray-700 dark:hover:text-gray-300 transition-colors"
                                         >
-                                            Custom answer...
+                                            Custom...
                                         </button>
                                     </div>
                                 )}
@@ -167,7 +161,7 @@ export const DeepResearchClarification: React.FC<
                             {/* Custom Input */}
                             {(customInputs[question.id] ||
                                 question.suggested_answers.length === 0) && (
-                                    <div className="space-y-2">
+                                    <div className="relative">
                                         <input
                                             type="text"
                                             value={answers[question.id] || ""}
@@ -175,14 +169,15 @@ export const DeepResearchClarification: React.FC<
                                                 handleCustomAnswer(question.id, e.target.value)
                                             }
                                             placeholder="Type your answer..."
-                                            className="w-full px-4 py-3 rounded-xl bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                                            className="w-full pl-3 pr-20 py-2 rounded-lg text-sm bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-gray-100 placeholder-gray-400 focus:outline-none focus:ring-1 focus:ring-gray-400 dark:focus:ring-gray-500 focus:border-gray-400 dark:focus:border-gray-500 transition-all"
+                                            autoFocus
                                         />
                                         {question.suggested_answers.length > 0 && (
                                             <button
                                                 onClick={() => handleToggleCustom(question.id)}
-                                                className="text-sm text-emerald-500 dark:text-emerald-400 hover:underline"
+                                                className="absolute right-2 top-1/2 -translate-y-1/2 text-xs text-gray-500 hover:text-gray-800 dark:hover:text-gray-200 px-1.5 py-0.5 rounded"
                                             >
-                                                ← Back to suggestions
+                                                Back
                                             </button>
                                         )}
                                     </div>
@@ -193,49 +188,47 @@ export const DeepResearchClarification: React.FC<
             </div>
 
             {/* Footer with Submit Button */}
-            <div className="px-5 py-4 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700/50">
-                <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-2 text-sm">
-                        {allAnswered ? (
-                            <>
-                                <FiCheck className="text-emerald-500" />
-                                <span className="text-emerald-600 dark:text-emerald-400">
-                                    All questions answered
-                                </span>
-                            </>
-                        ) : (
-                            <>
-                                <FiAlertCircle className="text-amber-500" />
-                                <span className="text-gray-500 dark:text-gray-400">
-                                    Answer all questions to continue
-                                </span>
-                            </>
-                        )}
-                    </div>
-
-                    <button
-                        onClick={handleSubmit}
-                        disabled={!allAnswered || isLoading}
-                        className={cn(
-                            "px-6 py-2.5 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2",
-                            allAnswered && !isLoading
-                                ? "bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 text-white shadow-lg shadow-emerald-500/30 cursor-pointer"
-                                : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
-                        )}
-                    >
-                        {isLoading ? (
-                            <>
-                                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                Researching...
-                            </>
-                        ) : (
-                            <>
-                                <FiSearch className="text-sm" />
-                                Start Deep Research
-                            </>
-                        )}
-                    </button>
+            <div className="px-4 py-3 bg-gray-50 dark:bg-gray-800/50 border-t border-gray-200 dark:border-gray-700 flex items-center justify-between gap-4">
+                <div className="flex items-center gap-1.5 text-xs">
+                    {allAnswered ? (
+                        <>
+                            <FiCheck className="text-green-600 dark:text-green-400" />
+                            <span className="text-green-700 dark:text-green-400 font-medium">
+                                Ready to submit
+                            </span>
+                        </>
+                    ) : (
+                        <>
+                            <div className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+                            <span className="text-gray-500 dark:text-gray-400">
+                                {Object.keys(answers).filter(k => answers[k]?.trim()).length} / {questions.length} answered
+                            </span>
+                        </>
+                    )}
                 </div>
+
+                <button
+                    onClick={handleSubmit}
+                    disabled={!allAnswered || isLoading}
+                    className={cn(
+                        "px-4 py-1.5 rounded-lg text-xs font-semibold transition-all duration-200 flex items-center gap-2 shadow-sm",
+                        allAnswered && !isLoading
+                            ? "bg-gray-900 dark:bg-gray-100 text-white dark:text-gray-900 hover:bg-black dark:hover:bg-white/90"
+                            : "bg-gray-200 dark:bg-gray-700 text-gray-400 dark:text-gray-500 cursor-not-allowed"
+                    )}
+                >
+                    {isLoading ? (
+                        <>
+                            <div className="w-3 h-3 border-2 border-current border-t-transparent rounded-full animate-spin" />
+                            Processing...
+                        </>
+                    ) : (
+                        <>
+                            <FiSearch className="text-xs" />
+                            Start Research
+                        </>
+                    )}
+                </button>
             </div>
         </div>
     );

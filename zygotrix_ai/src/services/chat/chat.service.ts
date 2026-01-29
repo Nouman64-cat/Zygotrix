@@ -29,7 +29,7 @@ class ChatService {
         page_context: request.page_context || request.pageContext?.pageName,
         stream: request.stream ?? false, // Non-streaming for now
         enabled_tools: request.enabled_tools || [],
-      }
+      },
     );
     return response.data;
   }
@@ -45,7 +45,7 @@ class ChatService {
     request: ChatRequest,
     onChunk: (chunk: StreamChunk) => void,
     onComplete: (response: ChatResponse) => void,
-    onError: (error: Error) => void
+    onError: (error: Error) => void,
   ): Promise<void> {
     try {
       let fullContent = "";
@@ -54,19 +54,9 @@ class ChatService {
       let metadata: MessageMetadata | undefined;
       let chunkCount = 0;
 
-      console.log(
-        "[ChatService] Starting streaming for message:",
-        request.message.substring(0, 50)
-      );
-
       // Stream the response
       for await (const chunk of streamChatResponse(request)) {
         chunkCount++;
-        console.log(
-          "[ChatService] Received chunk #" + chunkCount + ":",
-          chunk.type,
-          chunk.content?.substring(0, 50)
-        );
 
         if (chunk.type === "content") {
           fullContent += chunk.content || "";
@@ -82,13 +72,6 @@ class ChatService {
           throw new Error(chunk.error || "Unknown streaming error");
         }
       }
-
-      console.log(
-        "[ChatService] Streaming complete. Total chunks:",
-        chunkCount,
-        "Content length:",
-        fullContent.length
-      );
 
       // Call completion handler with full response
       onComplete({
@@ -124,7 +107,7 @@ class ChatService {
   }): Promise<ConversationListResponse> {
     const response = await axiosInstance.get<ConversationListResponse>(
       API_ENDPOINTS.ZYGOTRIX_AI.CONVERSATIONS,
-      { params }
+      { params },
     );
     return response.data;
   }
@@ -134,7 +117,7 @@ class ChatService {
    */
   async getConversation(conversationId: string): Promise<Conversation> {
     const response = await axiosInstance.get<Conversation>(
-      API_ENDPOINTS.ZYGOTRIX_AI.CONVERSATION(conversationId)
+      API_ENDPOINTS.ZYGOTRIX_AI.CONVERSATION(conversationId),
     );
     return response.data;
   }
@@ -148,11 +131,11 @@ class ChatService {
       limit?: number;
       before_id?: string;
       after_id?: string;
-    }
+    },
   ): Promise<MessageListResponse> {
     const response = await axiosInstance.get<MessageListResponse>(
       API_ENDPOINTS.ZYGOTRIX_AI.MESSAGES(conversationId),
-      { params }
+      { params },
     );
     return response.data;
   }
@@ -162,11 +145,11 @@ class ChatService {
    */
   async deleteConversation(
     conversationId: string,
-    permanent = false
+    permanent = false,
   ): Promise<void> {
     await axiosInstance.delete(
       API_ENDPOINTS.ZYGOTRIX_AI.CONVERSATION(conversationId),
-      { params: { permanent } }
+      { params: { permanent } },
     );
   }
 
@@ -181,11 +164,11 @@ class ChatService {
       is_starred?: boolean;
       folder_id?: string | null;
       tags?: string[];
-    }
+    },
   ): Promise<Conversation> {
     const response = await axiosInstance.patch<Conversation>(
       API_ENDPOINTS.ZYGOTRIX_AI.CONVERSATION(conversationId),
-      updates
+      updates,
     );
     return response.data;
   }
@@ -197,7 +180,7 @@ class ChatService {
    */
   async getChatbotStatus(): Promise<{ enabled: boolean }> {
     const response = await axiosInstance.get<{ enabled: boolean }>(
-      API_ENDPOINTS.CHATBOT.STATUS
+      API_ENDPOINTS.CHATBOT.STATUS,
     );
     return response.data;
   }

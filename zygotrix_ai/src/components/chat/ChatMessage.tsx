@@ -598,8 +598,13 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
         )}
       >
         {/* Avatar - only show for AI, hidden on mobile */}
+        {/* Avatar - only show for AI, hidden on mobile */}
         {!isUser && (
-          <div className="hidden md:flex flex-shrink-0">
+          <div className="hidden md:flex flex-shrink-0 relative">
+            {/* Circular Loader Ring around Avatar when thinking/streaming */}
+            {shouldAnimate && (
+              <div className="absolute -inset-1 rounded-full border-2 border-emerald-500/30 border-t-emerald-500 animate-spin" />
+            )}
             <div className="w-8 h-8 flex items-center justify-center">
               <img
                 src={LOGO_URL}
@@ -658,7 +663,7 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
                   {/* Deep Research Download Button - Only show for completed research, not clarification */}
                   {message.metadata?.model === "deep_research" &&
                     message.metadata?.widget_type !==
-                      "deep_research_clarification" && (
+                    "deep_research_clarification" && (
                       <Suspense
                         fallback={
                           <div className="h-6 w-24 bg-gray-100 dark:bg-gray-800 rounded animate-pulse" />

@@ -81,14 +81,14 @@ const UserAvatarDropdown: React.FC<UserAvatarDropdownProps> = ({
           <div className={cn(
             "w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-medium",
             user?.subscription_status === "pro"
-              ? "bg-gradient-to-br from-amber-400 via-orange-500 to-amber-600 shadow-lg shadow-amber-500/30"
+              ? "bg-gray-900 text-emerald-400 ring-2 ring-emerald-500 shadow-lg shadow-emerald-500/20"
               : "bg-emerald-600"
           )}>
             {getUserInitials()}
           </div>
           {/* PRO Badge */}
           {user?.subscription_status === "pro" && (
-            <span className="absolute -bottom-1 -right-1 flex items-center justify-center w-4 h-4 text-[8px] font-bold text-white bg-gradient-to-r from-amber-400 to-orange-500 rounded-full ring-2 ring-white dark:ring-gray-900 shadow-sm">
+            <span className="absolute -bottom-1 -right-1 flex items-center justify-center w-4 h-4 text-[8px] font-bold text-white bg-emerald-500 rounded-full ring-2 ring-white dark:ring-gray-900 shadow-sm">
               ★
             </span>
           )}
@@ -101,7 +101,7 @@ const UserAvatarDropdown: React.FC<UserAvatarDropdownProps> = ({
                   {user?.full_name || "User"}
                 </p>
                 {user?.subscription_status === "pro" && (
-                  <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold text-amber-700 bg-amber-100 dark:bg-amber-900/50 dark:text-amber-300 rounded-md">
+                  <span className="inline-flex items-center px-1.5 py-0.5 text-[10px] font-bold text-emerald-500 bg-gray-900 border border-emerald-500/30 rounded-md">
                     PRO
                   </span>
                 )}
@@ -294,7 +294,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         ) : (
           <div className="flex-1 flex items-center min-w-0">
             {conversation.is_pinned && (
-              <BsPinFill className="w-3 h-3 text-blue-500 mr-1.5 shrink-0" />
+              <BsPinFill className="w-3 h-3 text-gray-600 dark:text-gray-400 mr-1.5 shrink-0" />
             )}
 
             {/* Skeleton Loading State: Show when title is being generated */}

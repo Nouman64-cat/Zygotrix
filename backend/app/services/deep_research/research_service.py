@@ -471,9 +471,40 @@ class DeepResearchService:
                 metadata = chunk.get("metadata", {})
                 
                 # Extract citation info
-                author = metadata.get("author") or "Unknown Author"
-                title = metadata.get("title") or metadata.get("source") or "Untitled"
-                year = metadata.get("publication_year") or metadata.get("year") or "n.d."
+                author = metadata.get("author")
+                title = (
+                    metadata.get("title") or 
+                    metadata.get("source") or 
+                    metadata.get("filename") or 
+                    metadata.get("file_name") or 
+                    metadata.get("name")
+                )
+                year = metadata.get("publication_year") or metadata.get("year")
+
+                # Fallback: Parse explicit headers from text (handling the user's specific text format)
+                # Example: "TITLE: ... \n AUTHORS: ... \n YEAR: ..."
+                if not title or not author or not year:
+                    import re
+                    
+                    if not title:
+                        title_match = re.search(r'^TITLE:\s*(.+)$', text, re.MULTILINE)
+                        if title_match:
+                            title = title_match.group(1).strip()
+                            
+                    if not author:
+                        author_match = re.search(r'^AUTHORS?:\s*(.+)$', text, re.MULTILINE)
+                        if author_match:
+                            author = author_match.group(1).strip()
+                            
+                    if not year:
+                        year_match = re.search(r'^YEAR:\s*(\d{4})', text, re.MULTILINE)
+                        if year_match:
+                            year = year_match.group(1)
+
+                # Final fallbacks
+                author = author or "Unknown Author"
+                title = title or "Untitled Source"
+                year = year or "n.d."
                 
                 # Create a smart citation label (e.g. "Smith, 2023")
                 # If author is a list or looks like "Smith, J.", handle nicely? 

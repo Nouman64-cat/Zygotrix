@@ -270,7 +270,7 @@ class GwasDatasetService:
             Processed dataset dictionary or None if not found
         """
         # Check dataset exists and belongs to user
-        dataset = self.dataset_repo.get(dataset_id)
+        dataset = self.dataset_repo.find_by_id(dataset_id)
         if not dataset or dataset.user_id != user_id:
             return None
 

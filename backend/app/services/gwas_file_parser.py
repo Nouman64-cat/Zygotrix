@@ -78,6 +78,10 @@ class VcfParser:
                 # Parse column header (#CHROM line)
                 if line.startswith("#CHROM"):
                     columns = line.split("\t")
+                    # Fallback to whitespace splitting if tabs didn't work
+                    if len(columns) <= 1:
+                        columns = line.split()
+                        
                     # Sample IDs start from column 9 onwards
                     if len(columns) > 9:
                         sample_ids = columns[9:]
@@ -87,7 +91,10 @@ class VcfParser:
                 # Parse variant lines
                 fields = line.split("\t")
                 if len(fields) < 8:
-                    continue  # Invalid line
+                    # Fallback to whitespace splitting
+                    fields = line.split()
+                    if len(fields) < 8:
+                        continue  # Invalid line
 
                 chrom = fields[0]
                 pos = int(fields[1])

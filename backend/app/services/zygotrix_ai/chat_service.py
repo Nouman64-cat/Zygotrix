@@ -231,12 +231,18 @@ class ZygotrixChatService:
             )
 
         # Handle streaming vs non-streaming
-        if chat_request.stream:
+        # Force non-streaming if tools are enabled (tools are not supported in streaming mode yet)
+        tools_enabled = bool(chat_request.enabled_tools and len(chat_request.enabled_tools) > 0)
+        
+        if chat_request.stream and not tools_enabled:
             return await self._handle_streaming_chat(
                 claude_messages, system_prompt, model, max_tokens, temperature,
                 conversation, user_message, chat_request, user_id, user_name
             )
         else:
+            if tools_enabled and chat_request.stream:
+                logger.info("🔧 Tools enabled, forcing NON-STREAMING mode for tool execution")
+                
             return await self._handle_non_streaming_chat(
                 claude_messages, system_prompt, model, max_tokens, temperature,
                 conversation, user_message, chat_request, user_id, user_name

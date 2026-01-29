@@ -13,45 +13,49 @@ from collections import defaultdict
 from ..schema.gwas import SnpAssociation
 
 
+
+
+
 def generate_manhattan_data(associations: List[SnpAssociation]) -> Dict[str, Any]:
     """
-    Generate Manhattan plot data from association results.
+    Generate Manhattan plot data from association results with downsampling.
 
     Args:
         associations: List of SNP association results
 
     Returns:
-        Dict with chromosome-grouped data:
-            {
-                "chromosomes": [
-                    {
-                        "chr": 1,
-                        "positions": [123, 456, ...],
-                        "p_values": [0.001, 0.05, ...],
-                        "neg_log_p": [3.0, 1.3, ...],
-                        "rsids": ["rs123", "rs456", ...],
-                        "betas": [0.5, -0.2, ...] (optional),
-                    },
-                    ...
-                ],
-                "genome_wide_sig": 5e-8,  # Bonferroni threshold
-                "suggestive_sig": 1e-5,
-            }
+        Dict with chromosome-grouped data suitable for frontend rendering.
     """
     # Group by chromosome
     chr_data: Dict[int, Dict[str, List]] = defaultdict(
         lambda: {"positions": [], "p_values": [], "labels": []}
     )
 
-    for assoc in associations:
-        chr_num = assoc.chromosome
-        chr_data[chr_num]["positions"].append(assoc.position)
-        chr_data[chr_num]["p_values"].append(assoc.p_value)
-        # Only add label for significant SNPs (p < 1e-5)
-        if assoc.p_value < 1e-5:
-            chr_data[chr_num]["labels"].append(assoc.rsid)
-        else:
-            chr_data[chr_num]["labels"].append("")
+    # Downsampling strategy:
+    # 1. Keep all SNPs with p < 0.01 (-log10 > 2)
+    # 2. Keep 10% of other SNPs to maintain background density without overcrowding
+    # This reduces 50k SNPs to ~5k-6k points, which is much faster to render in SVG
+    
+    # Use deterministic sampling based on position/index to avoid flickering on re-renders
+    for i, assoc in enumerate(associations):
+        keep_point = False
+        
+        # Always keep significant/suggestive points
+        if assoc.p_value < 0.01:
+            keep_point = True
+        # Downsample the rest (every 10th point)
+        elif i % 10 == 0:
+            keep_point = True
+            
+        if keep_point:
+            chr_num = assoc.chromosome
+            chr_data[chr_num]["positions"].append(assoc.position)
+            chr_data[chr_num]["p_values"].append(assoc.p_value)
+            # Only add label for significant SNPs (p < 1e-5)
+            if assoc.p_value < 1e-5:
+                chr_data[chr_num]["labels"].append(assoc.rsid)
+            else:
+                chr_data[chr_num]["labels"].append("")
 
     # Convert to sorted list matching ChromosomeData schema
     chromosomes = [
@@ -111,13 +115,46 @@ def generate_qq_data(associations: List[SnpAssociation]) -> Dict[str, Any]:
 
     # Calculate genomic inflation factor (lambda_gc)
     # lambda = median(chi-square) / 0.456
-    # chi-square ≈ (z-score)^2 where z = qnorm(p/2)
-    # Approximation: lambda ≈ median(observed) / median(expected)
     lambda_gc = calculate_genomic_inflation(p_values_sorted)
 
+    # Downsample for display
+    # Keep tails (interesting points) and sample the middle
+    n_display = 1000  # Max points to display
+    
+    display_expected = []
+    display_observed = []
+    
+    if n_snps <= n_display:
+        display_expected = expected_neg_log
+        display_observed = observed_neg_log
+    else:
+        # Always include the top 100 most significant points (tail)
+        # Note: arrays are sorted by p-value ascending, so tail is at start (p=small -> -log=large)
+        # expected_neg_log and observed_neg_log are sorted descending (largest -log first at index 0)?
+        # Wait, p_values_sorted is ascending (0...1). 
+        # observed_neg_log = [-log(p)] so small p gives HUGE neg_log.
+        # So observed_neg_log[0] is the LARGEST value (most significant).
+        
+        # Correctly implementing downsampling:
+        # 1. Keep top K points (highest -log10)
+        top_k = 200
+        
+        display_expected.extend(expected_neg_log[:top_k])
+        display_observed.extend(observed_neg_log[:top_k])
+        
+        # 2. Sample the rest uniformly
+        remaining_indices = range(top_k, n_snps)
+        step = len(remaining_indices) / (n_display - top_k)
+        
+        for i in range(n_display - top_k):
+            idx = int(top_k + i * step)
+            if idx < n_snps:
+                display_expected.append(expected_neg_log[idx])
+                display_observed.append(observed_neg_log[idx])
+
     return {
-        "expected": expected_neg_log,
-        "observed": observed_neg_log,
+        "expected": display_expected,
+        "observed": display_observed,
         "genomic_inflation_lambda": round(lambda_gc, 3),
     }
 

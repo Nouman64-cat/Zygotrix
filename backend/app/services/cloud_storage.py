@@ -1,10 +1,10 @@
 """
-Cloud Storage Manager for DigitalOcean Spaces
+Cloud Storage Manager for AWS S3
 
 Provides S3-compatible cloud storage for GWAS datasets.
 Falls back to local storage if cloud credentials are not configured.
 
-Storage structure in Spaces:
+Storage structure in S3 bucket:
     gwas-datasets/{user_id}/{dataset_id}/
         - raw/           (original uploaded files)
         - processed/     (parsed and validated data)
@@ -28,53 +28,73 @@ logger = logging.getLogger(__name__)
 
 class CloudStorageManager:
     """
-    Manages cloud storage for GWAS datasets using DigitalOcean Spaces (S3-compatible).
+    Manages cloud storage for GWAS datasets using AWS S3.
     
-    Falls back to local storage if cloud credentials are not available.
+    Falls back to local storage if AWS credentials are not configured.
     """
 
     def __init__(self):
         """Initialize cloud storage manager."""
-        self.space_name = "zygotrix"  # Bucket name
-        self.region = "fra1"
-        self.endpoint_url = f"https://{self.region}.digitaloceanspaces.com"
+        self.provider = "local"
+        self.bucket_name = None
+        self.region = "us-east-1"
+        self.endpoint_url = None
+        self.access_key = None
+        self.secret_key = None
         
-        # Get credentials from environment
-        self.access_key = os.getenv("DIGITIAL_OCEAN_SPACE_ACCESS_KEY_ID")
-        self.secret_key = os.getenv("DIGITIAL_OCEAN_SPACE_SECRET_KEY")
+        # Try AWS Credentials
+        aws_key = os.getenv("AWS_IAM_KEY")
+        aws_secret = os.getenv("AWS_IAM_SECRET")
+        aws_bucket = os.getenv("AWS_BUCKET_NAME")
+        
+        if aws_key and aws_secret and aws_bucket:
+            self.provider = "aws"
+            self.access_key = aws_key
+            self.secret_key = aws_secret
+            self.bucket_name = aws_bucket
+            # Optional: Get region from env if needed
+            self.region = os.getenv("AWS_REGION", "us-east-1") 
         
         # Check if cloud storage is configured
-        self.cloud_enabled = bool(self.access_key and self.secret_key)
+        self.cloud_enabled = (self.provider == "aws")
         
         if self.cloud_enabled:
-            logger.info("☁️ Cloud storage enabled: DigitalOcean Spaces")
+            logger.info(f"☁️ Cloud storage enabled: AWS S3 ({self.bucket_name})")
             self._init_client()
         else:
-            logger.warning("⚠️ Cloud storage not configured. Using local storage fallback.")
+            logger.warning("⚠️ AWS cloud storage not configured. Using local storage fallback.")
             self._init_local_fallback()
     
     def _init_client(self):
-        """Initialize the S3 client for DigitalOcean Spaces."""
+        """Initialize the S3 client."""
         try:
-            self.s3_client = boto3.client(
-                's3',
-                region_name=self.region,
-                endpoint_url=self.endpoint_url,
-                aws_access_key_id=self.access_key,
-                aws_secret_access_key=self.secret_key,
-                config=Config(
+            client_kwargs = {
+                'service_name': 's3',
+                'aws_access_key_id': self.access_key,
+                'aws_secret_access_key': self.secret_key,
+                'config': Config(
                     signature_version='s3v4',
                     s3={'addressing_style': 'virtual'}
                 )
-            )
+            }
+            
+            # Only add endpoint_url and region if they are set (essential for DO, optional for AWS)
+            if self.endpoint_url:
+                client_kwargs['endpoint_url'] = self.endpoint_url
+                client_kwargs['region_name'] = self.region
+            elif self.region:
+                 client_kwargs['region_name'] = self.region
+
+            self.s3_client = boto3.client(**client_kwargs)
             
             # Test connection
-            self.s3_client.list_objects_v2(Bucket=self.space_name, MaxKeys=1)
-            logger.info(f"✅ Connected to DigitalOcean Spaces: {self.space_name}")
+            self.s3_client.list_objects_v2(Bucket=self.bucket_name, MaxKeys=1)
+            logger.info(f"✅ Connected to {self.provider.upper()}: {self.bucket_name}")
             
         except (ClientError, NoCredentialsError) as e:
-            logger.error(f"❌ Failed to connect to DigitalOcean Spaces: {e}")
+            logger.error(f"❌ Failed to connect to {self.provider.upper()}: {e}")
             self.cloud_enabled = False
+            self.provider = "local"
             self._init_local_fallback()
     
     def _init_local_fallback(self):
@@ -162,7 +182,7 @@ class CloudStorageManager:
             
             try:
                 self.s3_client.put_object(
-                    Bucket=self.space_name,
+                    Bucket=self.bucket_name,
                     Key=key,
                     Body=file_data,
                     ACL='private',
@@ -206,7 +226,7 @@ class CloudStorageManager:
             
             try:
                 response = self.s3_client.get_object(
-                    Bucket=self.space_name,
+                    Bucket=self.bucket_name,
                     Key=key,
                 )
                 return response['Body'].read()
@@ -249,7 +269,7 @@ class CloudStorageManager:
             
             try:
                 self.s3_client.put_object(
-                    Bucket=self.space_name,
+                    Bucket=self.bucket_name,
                     Key=key,
                     Body=json_data,
                     ACL='private',
@@ -280,7 +300,7 @@ class CloudStorageManager:
             
             try:
                 response = self.s3_client.get_object(
-                    Bucket=self.space_name,
+                    Bucket=self.bucket_name,
                     Key=key,
                 )
                 return json.loads(response['Body'].read().decode('utf-8'))
@@ -318,7 +338,7 @@ class CloudStorageManager:
             
             try:
                 self.s3_client.put_object(
-                    Bucket=self.space_name,
+                    Bucket=self.bucket_name,
                     Key=key,
                     Body=json_data,
                     ACL='private',
@@ -352,7 +372,7 @@ class CloudStorageManager:
             
             try:
                 response = self.s3_client.get_object(
-                    Bucket=self.space_name,
+                    Bucket=self.bucket_name,
                     Key=key,
                 )
                 return json.loads(response['Body'].read().decode('utf-8'))
@@ -389,7 +409,7 @@ class CloudStorageManager:
                 objects_to_delete = []
                 paginator = self.s3_client.get_paginator('list_objects_v2')
                 
-                for page in paginator.paginate(Bucket=self.space_name, Prefix=prefix):
+                for page in paginator.paginate(Bucket=self.bucket_name, Prefix=prefix):
                     if 'Contents' in page:
                         for obj in page['Contents']:
                             objects_to_delete.append({'Key': obj['Key']})
@@ -401,7 +421,7 @@ class CloudStorageManager:
                 for i in range(0, len(objects_to_delete), 1000):
                     batch = objects_to_delete[i:i + 1000]
                     self.s3_client.delete_objects(
-                        Bucket=self.space_name,
+                        Bucket=self.bucket_name,
                         Delete={'Objects': batch}
                     )
                 
@@ -447,7 +467,7 @@ class CloudStorageManager:
             
             try:
                 response = self.s3_client.list_objects_v2(
-                    Bucket=self.space_name,
+                    Bucket=self.bucket_name,
                     Prefix=prefix,
                 )
                 
@@ -530,7 +550,7 @@ class CloudStorageManager:
         try:
             url = self.s3_client.generate_presigned_url(
                 'get_object',
-                Params={'Bucket': self.space_name, 'Key': key},
+                Params={'Bucket': self.bucket_name, 'Key': key},
                 ExpiresIn=expires_in,
             )
             return url

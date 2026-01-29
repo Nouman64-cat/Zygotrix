@@ -152,6 +152,19 @@ class ExportService:
 
             lines.append("")
             lines.append(msg.content)
+            
+            # Append Deep Research References if available
+            if msg.metadata and msg.metadata.deep_research_data:
+                sources = msg.metadata.deep_research_data.get("sources", [])
+                if sources:
+                    lines.append("")
+                    lines.append("### References")
+                    for i, source in enumerate(sources):
+                        title = source.get("title", "Untitled Source")
+                        author = source.get("author") or "Unknown Author"
+                        year = source.get("publication_year") or source.get("year") or "n.d."
+                        lines.append(f"{i+1}. **{title}**. {author} ({year}).")
+            
             lines.append("")
             lines.append("---")
             lines.append("")
@@ -201,6 +214,19 @@ class ExportService:
                 lines.append(role_label)
 
             lines.append(msg.content)
+            
+            # Append Deep Research References if available
+            if msg.metadata and msg.metadata.deep_research_data:
+                sources = msg.metadata.deep_research_data.get("sources", [])
+                if sources:
+                    lines.append("")
+                    lines.append("References:")
+                    for i, source in enumerate(sources):
+                        title = source.get("title", "Untitled Source")
+                        author = source.get("author") or "Unknown Author"
+                        year = source.get("publication_year") or source.get("year") or "n.d."
+                        lines.append(f"{i+1}. {title}. {author} ({year}).")
+            
             lines.append("")
             lines.append("-" * 30)
             lines.append("")

@@ -468,19 +468,43 @@ class DeepResearchService:
                 if not text:
                     continue
                 
+                metadata = chunk.get("metadata", {})
+                
+                # Extract citation info
+                author = metadata.get("author") or "Unknown Author"
+                title = metadata.get("title") or metadata.get("source") or "Untitled"
+                year = metadata.get("publication_year") or metadata.get("year") or "n.d."
+                
+                # Create a smart citation label (e.g. "Smith, 2023")
+                # If author is a list or looks like "Smith, J.", handle nicely? 
+                # For now, blindly trust the metadata.
+                # If author is excessively long (e.g. a whole abstract), truncate it
+                if len(author) > 50:
+                    author = author[:47] + "..."
+                    
+                citation_key = f"({author}, {year})"
+                
+                # Format the chunk with explicit metadata for the model
+                # We give it a Source ID (for us) and a Citation Key (for the text)
+                chunk_context = f"""[Source {i+1}]
+CITATION_KEY: {citation_key}
+TITLE: {title}
+YEAR: {year}
+CONTENT:
+{text}
+"""
+                
                 # Check length limit before adding
-                text_len = len(text)
-                if current_chars + text_len > MAX_CONTEXT_CHARS:
+                chunk_len = len(chunk_context)
+                if current_chars + chunk_len > MAX_CONTEXT_CHARS:
                     logger.warning(
                         f"[{node_name}] Context limit reached ({current_chars} chars). "
                         f"Stopping at chunk {i}/{len(chunks)}."
                     )
                     break
                     
-                context_parts.append(f"[Source {i+1}]\n{text}")
-                current_chars += text_len
-                
-                metadata = chunk.get("metadata", {})
+                context_parts.append(chunk_context)
+                current_chars += chunk_len
                 
                 # Clean up text for preview - remove reference noise and normalize whitespace
                 preview_text = self._clean_content_preview(text)
@@ -488,13 +512,13 @@ class DeepResearchService:
                 # Extract citation-relevant fields for Harvard referencing
                 sources.append({
                     "id": chunk.get("id", f"source_{i}"),
-                    "title": metadata.get("title") or metadata.get("source", "Untitled"),
+                    "title": title,
                     "content_preview": preview_text,
                     "relevance_score": chunk.get("score", 0),
                     "rerank_score": chunk.get("rerank_score"),
                     # Citation fields for Harvard-style referencing
                     "author": metadata.get("author"),
-                    "publication_year": metadata.get("publication_year") or metadata.get("year"),
+                    "publication_year": year if year != "n.d." else None,
                     "publisher": metadata.get("publisher"),
                     "journal": metadata.get("journal"),
                     "doi": metadata.get("doi"),
@@ -687,15 +711,19 @@ class DeepResearchService:
 Your task is to synthesize information from multiple sources to provide a comprehensive, accurate answer to the user's research query.
 
 GUIDELINES:
-1. Synthesize information from all provided sources into a detailed research report
-2. Structure the response with clear headings, subheadings, and bullet points
-3. Cite sources frequently when making specific claims (e.g., [Source 1])
-4. Acknowledge any limitations or conflicting information
-5. Focus on genetics, genomics, and life sciences topics
-6. Be comprehensive and extensive - favor depth over brevity
-7. Use markdown formatting for readability
+1. Synthesize information from all provided sources into a detailed research report.
+2. Structure the response with clear headings, subheadings, and bullet points.
+3. CITE SOURCES FREQUENTLY. Use the "CITATION_KEY" provided in each source header (e.g., (Smith, 2023) or (Genome Assoc, 2024)).
+4. If a CITATION_KEY is not explicitly clear or looks generic, default to [Source N].
+5. Do NOT list a bibliography at the end; the system will handle that automatically. Just cite inline.
+6. Acknowledge any limitations or conflicting information.
+7. Focus on genetics, genomics, and life sciences topics.
+8. Be comprehensive and extensive - favor depth over brevity.
+9. Use markdown formatting for readability.
 
-If the sources don't contain relevant information, acknowledge this and provide what general knowledge you can while being clear about the limitations."""
+Example Citation Style:
+"Recent studies have shown that variance in height is largely polygenic (Smith et al., 2023), though environmental factors play a role [Source 2]."
+"""
 
         user_message = f"""Research Query: {query}
 

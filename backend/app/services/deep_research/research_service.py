@@ -719,7 +719,12 @@ GUIDELINES:
 6. Acknowledge any limitations or conflicting information.
 7. Focus on genetics, genomics, and life sciences topics.
 8. Be comprehensive and extensive - favor depth over brevity.
-9. Use markdown formatting for readability.
+9. **STRICTLY USE MARKDOWN FORMATTING**:
+   - Use `#` for the main title (e.g. `# Research Report: ...`).
+   - Use `##` for main sections (e.g. `## Introduction`).
+   - Use `###` for sub-sections.
+   - ENSURE there is a blank line before and after every header.
+   - Use bolding (`**text**`) for key concepts.
 
 Example Citation Style:
 "Recent studies have shown that variance in height is largely polygenic (Smith et al., 2023), though environmental factors play a role [Source 2]."

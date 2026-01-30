@@ -31,7 +31,7 @@ def _use_cpp_engine() -> bool:
 
 def _run_cpp_cli(request_data: Dict) -> Dict:
     """
-    Run the C++ CLI executable with exact-mode request and return JSON response.
+    Run the C++ Engine via AWS Lambda with exact-mode request and return JSON response.
 
     Args:
         request_data: Dictionary with genes, mother, father, as_percentages, joint_phenotypes
@@ -40,59 +40,27 @@ def _run_cpp_cli(request_data: Dict) -> Dict:
         Dictionary with results and missing_traits
 
     Raises:
-        RuntimeError: If CLI execution fails or returns error
+        RuntimeError: If Lambda execution fails or returns error
     """
-    settings = get_settings()
-
-    # Get CLI path
-    cli_path_str = settings.cpp_engine_cli_path
-    if not cli_path_str:
-        raise RuntimeError("C++ engine CLI path not configured in settings")
-
-    cli_path = Path(cli_path_str).expanduser().resolve()
-    if not cli_path.exists():
-        raise RuntimeError(f"C++ engine CLI not found at {cli_path}")
+    from app.services.aws_worker_client import get_aws_worker
 
     # Log the request for debugging (at debug level)
     logger.debug(
-        f"Calling C++ engine with {len(request_data.get('genes', []))} genes")
+        f"Calling C++ engine (Lambda) with {len(request_data.get('genes', []))} genes")
 
-    # Run CLI with JSON input
-    payload = json.dumps(request_data, separators=(',', ':'))
     try:
-        completed = subprocess.run(
-            [str(cli_path)],
-            input=payload.encode("utf-8"),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
-            timeout=30,
-        )
-    except subprocess.TimeoutExpired as exc:
-        logger.error("C++ engine timed out after 30 seconds")
-        raise RuntimeError("C++ engine timed out") from exc
+        worker = get_aws_worker()
+        # Use action="cross" for Mendelian simulation as established in other modules
+        response = worker.invoke(action="cross", payload=request_data)
+        
+        logger.debug(
+            f"C++ engine returned {len(response.get('results', {}))} trait results")
+        return response
 
-    if completed.returncode != 0:
-        error_msg = completed.stderr.decode(
-            "utf-8").strip() or completed.stdout.decode("utf-8").strip()
-        logger.error(
-            f"C++ engine failed with exit code {completed.returncode}: {error_msg}")
-        raise RuntimeError(f"C++ engine error: {error_msg}")
-
-    # Parse JSON response
-    try:
-        response = json.loads(completed.stdout.decode("utf-8"))
-    except json.JSONDecodeError as exc:
-        logger.error(f"C++ engine returned invalid JSON: {exc}")
-        raise RuntimeError(f"Invalid JSON from C++ engine: {exc}") from exc
-
-    if isinstance(response, dict) and "error" in response:
-        logger.error(f"C++ engine returned error: {response['error']}")
-        raise RuntimeError(f"C++ engine error: {response['error']}")
-
-    logger.debug(
-        f"C++ engine returned {len(response.get('results', {}))} trait results")
-    return response
+    except Exception as e:
+        logger.error(f"C++ engine (Lambda) failed: {e}")
+        # Propagate as RuntimeError to match existing error handling expectations
+        raise RuntimeError(f"C++ engine error: {str(e)}")
 
 
 def simulate_mendelian_traits(

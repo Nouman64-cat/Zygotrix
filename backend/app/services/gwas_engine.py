@@ -78,7 +78,9 @@ def run_gwas_analysis(
     """
     try:
         try:
+            print("DEBUG: Engine - Attempting to load CLI path")
             cli_path = _load_gwas_cli_path()
+            print(f"DEBUG: Engine - CLI path: {cli_path}")
             
             # Build request payload for C++ engine
             request_data = {
@@ -90,6 +92,7 @@ def run_gwas_analysis(
             }
 
             payload = json.dumps(request_data, separators=(",", ":"))
+            print(f"DEBUG: Engine - Payload size: {len(payload)} chars")
 
             completed = subprocess.run(
                 [str(cli_path)],
@@ -101,16 +104,20 @@ def run_gwas_analysis(
             )
             
             if completed.returncode != 0:
+                print(f"DEBUG: Engine - Subprocess failed with code {completed.returncode}")
+                print(f"DEBUG: Engine - stderr: {completed.stderr.decode('utf-8')[:500]}")
                 raise Exception(f"C++ engine exited with code {completed.returncode}")
 
+            print("DEBUG: Engine - Subprocess completed successfully")
             return json.loads(completed.stdout.decode("utf-8"))
 
-        except (HTTPException, Exception):
+        except (HTTPException, Exception) as e:
             # Fallback to Python implementation
-            # print("Falling back to Python GWAS engine implementation")
+            print(f"DEBUG: Engine - Falling back to Python due to: {e}")
             return _python_linear_regression(snps, samples, analysis_type)
 
     except Exception as e:
+        print(f"DEBUG: Engine - Critical failure: {e}")
         raise HTTPException(status_code=500, detail=f"GWAS analysis failed: {str(e)}")
 
 

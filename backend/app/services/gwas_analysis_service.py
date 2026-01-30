@@ -96,21 +96,27 @@ class GwasAnalysisService:
 
         try:
             # Step 1: Load dataset
+            print(f"DEBUG: Loading dataset {dataset_id} for user {user_id}")
             dataset = self.dataset_repo.find_by_id(dataset_id)
             if not dataset:
+                print(f"DEBUG: Dataset {dataset_id} not found")
                 raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
 
             if dataset.user_id != user_id:
+                print(f"DEBUG: Unauthorized access to dataset {dataset_id}")
                 raise HTTPException(status_code=403, detail="Unauthorized access to dataset")
 
             # Step 2: Prepare data for C++ engine
+            print(f"DEBUG: Preparing analysis data")
             snps, samples = self._prepare_analysis_data(
                 dataset_id=dataset_id,
                 phenotype_column=phenotype_column,
                 covariates=covariates or [],
             )
+            print(f"DEBUG: Data prepared. SNPs: {len(snps)}, Samples: {len(samples)}")
 
             # Step 3: Call C++ GWAS engine
+            print(f"DEBUG: Calling GWAS engine")
             engine_response = run_gwas_analysis(
                 snps=snps,
                 samples=samples,
@@ -119,15 +125,18 @@ class GwasAnalysisService:
                 num_threads=num_threads,
                 timeout=600,  # 10 minutes timeout
             )
+            print(f"DEBUG: Engine finished. Response keys: {engine_response.keys()}")
 
             # Step 4: Parse association results
             associations = self._parse_association_results(engine_response.get("results", []))
+            print(f"DEBUG: Parsed {len(associations)} associations")
 
             # Step 5: Generate visualization data
             manhattan_data = generate_manhattan_data(associations)
             qq_data = generate_qq_data(associations)
             top_associations = get_top_associations(associations, limit=100, p_threshold=1e-5)
             summary_stats = generate_summary_statistics(associations)
+            print(f"DEBUG: Visualization data generated")
 
             # Step 6: Save results to database
             result = self.result_repo.create(
@@ -140,6 +149,7 @@ class GwasAnalysisService:
                 qq_plot_data=qq_data,
                 top_hits=[assoc.model_dump() for assoc in top_associations],
             )
+            print(f"DEBUG: Results saved to DB")
 
             # Step 7: Update job status to COMPLETED
             execution_time = time.time() - start_time
@@ -151,24 +161,22 @@ class GwasAnalysisService:
                 snps_filtered=engine_response.get("snps_filtered", 0),
                 execution_time_seconds=execution_time,
             )
+            print(f"DEBUG: Job {job_id} marked as COMPLETED")
 
             return result
 
-        except HTTPException:
-            # Re-raise HTTP exceptions
-            raise
-
-        except Exception as e:
+        except (HTTPException, Exception) as e:
             # Update job status to FAILED
+            error_msg = str(e.detail) if hasattr(e, "detail") else str(e)
+            print(f"DEBUG: Critical failure: {error_msg}")
+            
             self.job_repo.update_status(
                 job_id=job_id,
                 status=GwasJobStatus.FAILED,
-                error_message=str(e),
+                error_message=error_msg,
             )
-            raise HTTPException(
-                status_code=500,
-                detail=f"GWAS analysis failed: {str(e)}",
-            )
+            # Re-raise so the background task logger sees it
+            raise e
 
     def _prepare_analysis_data(
         self,

@@ -13,8 +13,9 @@ import io
 import csv
 import json
 
-from ..dependencies import get_current_user
+from ..dependencies import get_current_user_optional
 from ..schema.auth import UserProfile
+from datetime import datetime, timezone
 from ..schema.gwas import (
     GwasDatasetResponse,
     GwasDatasetStatus,
@@ -34,6 +35,21 @@ from ..repositories import (
 from ..services import get_gwas_analysis_service, get_gwas_dataset_service
 from ..services import gwas_dataset  # For legacy trait search
 
+
+async def get_public_or_auth_user(
+    user: Optional[UserProfile] = Depends(get_current_user_optional)
+) -> UserProfile:
+    if user:
+        return user
+    return UserProfile(
+        id="public_gwas_user",
+        email="public@zygotrix.com",
+        created_at=datetime.now(timezone.utc).isoformat(),
+        user_role="user",
+        is_active=True,
+        full_name="Public Guest"
+    )
+
 router = APIRouter(prefix="/api/gwas", tags=["GWAS"])
 
 
@@ -49,7 +65,7 @@ async def upload_dataset(
     trait_type: str = Query(..., description="Trait type (quantitative or binary)"),
     trait_name: str = Query(..., description="Trait name"),
     file: UploadFile = File(..., description="Dataset file (VCF, PLINK, or custom JSON)"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> GwasDatasetResponse:
     """
     Upload a new GWAS dataset.
@@ -87,7 +103,7 @@ def list_datasets(
     status: Optional[GwasDatasetStatus] = Query(None, description="Filter by status"),
     skip: int = Query(0, ge=0, description="Number of records to skip"),
     limit: int = Query(50, ge=1, le=100, description="Max records to return"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> dict:
     """
     List user's GWAS datasets with pagination.
@@ -120,7 +136,7 @@ def list_datasets(
 @router.get("/datasets/{dataset_id}", response_model=GwasDatasetResponse)
 def get_dataset(
     dataset_id: str = Path(..., description="Dataset ID"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> GwasDatasetResponse:
     """Get detailed information about a specific dataset."""
     dataset_repo = get_gwas_dataset_repository()
@@ -138,7 +154,7 @@ def get_dataset(
 @router.delete("/datasets/{dataset_id}", status_code=204)
 def delete_dataset(
     dataset_id: str = Path(..., description="Dataset ID"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ):
     """
     Delete a GWAS dataset.
@@ -172,7 +188,7 @@ def delete_dataset(
 def create_analysis_job(
     request: GwasAnalysisRequest,
     background_tasks: BackgroundTasks,
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> GwasJobResponse:
     """
     Create and start a new GWAS analysis job.
@@ -278,7 +294,7 @@ def list_jobs(
     dataset_id: Optional[str] = Query(None, description="Filter by dataset ID"),
     skip: int = Query(0, ge=0),
     limit: int = Query(50, ge=1, le=100),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> dict:
     """
     List user's GWAS analysis jobs with pagination.
@@ -312,7 +328,7 @@ def list_jobs(
 @router.get("/jobs/{job_id}", response_model=GwasJobResponse)
 def get_job_status(
     job_id: str = Path(..., description="Job ID"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> GwasJobResponse:
     """
     Get current status of a GWAS analysis job.
@@ -336,7 +352,7 @@ def get_job_status(
 @router.delete("/jobs/{job_id}", status_code=204)
 def cancel_job(
     job_id: str = Path(..., description="Job ID"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ):
     """
     Cancel a running or queued GWAS analysis job.
@@ -368,7 +384,7 @@ def cancel_job(
 @router.get("/jobs/{job_id}/results", response_model=GwasResultResponse)
 def get_job_results(
     job_id: str = Path(..., description="Job ID"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> GwasResultResponse:
     """
     Get complete results for a GWAS analysis job.
@@ -390,7 +406,7 @@ def get_job_results(
 @router.get("/jobs/{job_id}/visualization", response_model=dict)
 def get_visualization_data(
     job_id: str = Path(..., description="Job ID"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> dict:
     """
     Get visualization data (Manhattan and Q-Q plots) for a job.
@@ -415,7 +431,7 @@ def get_top_associations(
     job_id: str = Path(..., description="Job ID"),
     limit: int = Query(100, ge=1, le=1000, description="Max associations to return"),
     p_threshold: float = Query(1e-5, gt=0, lt=1, description="P-value threshold"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> List[SnpAssociation]:
     """
     Get top significant associations for a job.
@@ -452,7 +468,7 @@ def get_top_associations(
 def export_results(
     job_id: str = Path(..., description="Job ID"),
     format: str = Query("csv", regex="^(csv|json)$", description="Export format"),
-    current_user: UserProfile = Depends(get_current_user),
+    current_user: UserProfile = Depends(get_public_or_auth_user),
 ) -> StreamingResponse:
     """
     Export GWAS results as CSV or JSON.

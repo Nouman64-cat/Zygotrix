@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import React from "react";
+import { SEO_KEYWORDS } from "../config/seo";
 import HeroSection from "../components/home/HeroSection";
 import YouTubeVideo from "../components/home/YouTubeVideo";
 import PricingClient from "../components/pricing/PricingClient";
@@ -9,6 +10,7 @@ import CommunitySectionClient from "../components/home/CommunitySectionClient";
 export const metadata: Metadata = {
   title: "Zygotrix - Genetic Analysis & Simulation Platform",
   description: "Zygotrix is a comprehensive platform for genetic analysis, DNA sequencing simulation, and inheritance pattern modeling. Built for researchers and teams.",
+  keywords: SEO_KEYWORDS.HOME,
   openGraph: {
     title: "Zygotrix - Genetic Analysis Platform",
     description: "Advanced tools for genetic analysis and simulation.",

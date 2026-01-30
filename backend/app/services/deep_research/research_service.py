@@ -463,43 +463,85 @@ class DeepResearchService:
             MAX_CONTEXT_CHARS = 72000  # Approx 18k tokens (safe buffer for 30k TPM)
             current_chars = 0
             
+            # --- PASS 1: Resolve best titles for sources ---
+            # Group chunks by source filename to find the best available title
+            # (e.g., if one chunk has the real title and others don't, propagate it)
+            source_title_map = {}
+            import re
+            
+            for chunk in chunks:
+                metadata = chunk.get("metadata", {})
+                source_id = metadata.get("source") or metadata.get("filename")
+                if not source_id:
+                    continue
+                    
+                # Candidate title extraction
+                candidate_title = metadata.get("title")
+                text = chunk.get("text", "")
+                
+                if not candidate_title:
+                   match = re.search(r'^TITLE:\s*(.+)$', text, re.MULTILINE)
+                   if match:
+                       candidate_title = match.group(1).strip()
+                
+                # Check for title immediately before AUTHORS key (permissive fallback)
+                if not candidate_title:
+                    match = re.search(r'^(.+?)[\r\n]+AUTHORS?:', text, re.MULTILINE)
+                    if match:
+                         possible_title = match.group(1).strip()
+                         # Validation: Title shouldn't be too long or look like "ABSTRACT"
+                         if len(possible_title) < 300 and "ABSTRACT" not in possible_title:
+                             candidate_title = possible_title
+
+                if not candidate_title:
+                    # Clean up source_id (remove extension)
+                    base_name = source_id
+                    if "." in base_name:
+                        base_name = base_name.rsplit(".", 1)[0]
+                    candidate_title = base_name # Fallback
+                
+                # Update map if we found a "better" title
+                # "Better" means: not a filename (doesn't start with PMC/contain .txt) if current is a filename
+                current_best = source_title_map.get(source_id)
+                
+                is_filename = lambda t: t.startswith("PMC") or t.endswith(".txt")
+                
+                if not current_best:
+                    source_title_map[source_id] = candidate_title
+                else:
+                    # If stored is a filename and candidate is NOT, swap it
+                    if is_filename(current_best) and not is_filename(candidate_title):
+                        source_title_map[source_id] = candidate_title
+            
+            # --- PASS 2: Build Context and Citations ---
             for i, chunk in enumerate(chunks):
                 text = chunk.get("text", "")
                 if not text:
                     continue
                 
                 metadata = chunk.get("metadata", {})
+                source_id = metadata.get("source") or metadata.get("filename")
                 
-                # Extract citation info
-                author = metadata.get("author")
-                title = (
-                    metadata.get("title") or 
-                    metadata.get("source") or 
-                    metadata.get("filename") or 
-                    metadata.get("file_name") or 
-                    metadata.get("name")
-                )
-                year = metadata.get("publication_year") or metadata.get("year")
+                # Resolve title using our map
+                title = source_title_map.get(source_id)
+                # If still no title (or no source_id found), fall back to basic extraction
+                if not title:
+                     title = metadata.get("title") or source_id or "Untitled Source"
 
-                # Fallback: Parse explicit headers from text (handling the user's specific text format)
-                # Example: "TITLE: ... \n AUTHORS: ... \n YEAR: ..."
-                if not title or not author or not year:
-                    import re
-                    
-                    if not title:
-                        title_match = re.search(r'^TITLE:\s*(.+)$', text, re.MULTILINE)
-                        if title_match:
-                            title = title_match.group(1).strip()
-                            
-                    if not author:
-                        author_match = re.search(r'^AUTHORS?:\s*(.+)$', text, re.MULTILINE)
-                        if author_match:
-                            author = author_match.group(1).strip()
-                            
-                    if not year:
-                        year_match = re.search(r'^YEAR:\s*(\d{4})', text, re.MULTILINE)
-                        if year_match:
-                            year = year_match.group(1)
+                # Extract citation info
+                author = metadata.get("author") or metadata.get("authors")
+                year = metadata.get("publication_year") or metadata.get("year")
+                
+                # Fallback: Parse explicit headers from text if metadata missing
+                if not author:
+                    author_match = re.search(r'^AUTHORS?:\s*(.+)$', text, re.MULTILINE)
+                    if author_match:
+                        author = author_match.group(1).strip()
+                        
+                if not year:
+                    year_match = re.search(r'^YEAR:\s*(\d{4})', text, re.MULTILINE)
+                    if year_match:
+                        year = year_match.group(1)
 
                 # Final fallbacks
                 author = author or "Unknown Author"
@@ -507,9 +549,6 @@ class DeepResearchService:
                 year = year or "n.d."
                 
                 # Create a smart citation label (e.g. "Smith, 2023")
-                # If author is a list or looks like "Smith, J.", handle nicely? 
-                # For now, blindly trust the metadata.
-                # If author is excessively long (e.g. a whole abstract), truncate it
                 if len(author) > 50:
                     author = author[:47] + "..."
                     
@@ -537,8 +576,44 @@ CONTENT:
                 context_parts.append(chunk_context)
                 current_chars += chunk_len
                 
-                # Clean up text for preview - remove reference noise and normalize whitespace
-                preview_text = self._clean_content_preview(text)
+                # Construct Harvard-style citation for the preview
+                # Format: Author (Year). Title. Journal. DOI
+                citation_parts = []
+                
+                # Author
+                c_author = metadata.get("author") or author
+                if c_author and c_author != "Unknown Author":
+                    citation_parts.append(f"{c_author}")
+                
+                # Year
+                c_year = metadata.get("publication_year") or metadata.get("year") or year
+                if c_year and c_year != "n.d.":
+                    citation_parts.append(f"({c_year})")
+                    
+                # Title
+                c_title = title # Use the unified title
+                if c_title and c_title != "Untitled Source":
+                    citation_parts.append(f"'{c_title}'")
+                    
+                # Journal/Source
+                c_journal = metadata.get("journal")
+                if c_journal:
+                    citation_parts.append(f"_{c_journal}_")
+                    
+                # DOI
+                c_doi = metadata.get("doi")
+                if c_doi:
+                    citation_parts.append(f"doi: {c_doi}")
+                
+                # Fallback if metadata is sparse
+                formatted_citation = ""
+                if not citation_parts:
+                    formatted_citation = self._clean_content_preview(text, max_length=200)
+                else:
+                    formatted_citation = ". ".join(citation_parts) + "."
+
+                # Use the formatted citation as the preview
+                preview_text = formatted_citation
                 
                 # Extract citation-relevant fields for Harvard referencing
                 sources.append({

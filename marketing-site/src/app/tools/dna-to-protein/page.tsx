@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import DnaToProteinClient from "../../../components/tools/DnaToProteinClient";
+import { SEO_KEYWORDS } from "../../../config/seo";
 
 export const metadata: Metadata = {
     title: "Free DNA to Protein Translator - Codon to Amino Acid Converter | Zygotrix",
     description: "Free online DNA and RNA to protein sequence translator. Convert DNA to mRNA codons and amino acid sequences. See the Central Dogma in action - transcription and translation visualized.",
-    keywords: "DNA to protein, RNA to protein, codon translator, amino acid sequence, DNA translation, RNA transcription, central dogma, codon table, genetic code, protein synthesis, mRNA translator, free biology tool",
+    keywords: SEO_KEYWORDS.TOOLS,
     openGraph: {
         title: "Free DNA to Protein Translator - Zygotrix",
         description: "Convert DNA and RNA to protein sequences and visualize the Central Dogma.",

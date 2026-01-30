@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import DnaGeneratorClient from "../../../components/tools/DnaGeneratorClient";
+import { SEO_KEYWORDS } from "../../../config/seo";
 
 export const metadata: Metadata = {
     title: "Free DNA Sequence Generator - Create Random DNA & RNA Online | Zygotrix",
     description: "Generate random DNA sequences up to 10 million base pairs with customizable GC content. Free online DNA generator tool powered by high-performance C++ engine. Download DNA and RNA sequences instantly.",
-    keywords: "DNA generator, random DNA sequence, DNA sequence generator, RNA transcription, GC content, base pairs, genetics tool, bioinformatics, molecular biology, DNA synthesizer, free DNA tool, online DNA generator",
+    keywords: SEO_KEYWORDS.TOOLS,
     openGraph: {
         title: "Free DNA Sequence Generator - Zygotrix",
         description: "Generate random DNA sequences up to 10 million base pairs with customizable GC content. Powered by Zygotrix C++ Engine.",

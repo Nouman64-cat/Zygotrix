@@ -1,10 +1,11 @@
 import type { Metadata } from "next";
 import PunnettSquareClient from "../../../components/tools/PunnettSquareClient";
+import { SEO_KEYWORDS } from "../../../config/seo";
 
 export const metadata: Metadata = {
     title: "Free Punnett Square Calculator - Genetics Cross Tool Online | Zygotrix",
     description: "Free online Punnett Square generator and calculator. Visualize genetic crosses, predict offspring genotypes and phenotypes, calculate inheritance ratios. Perfect for biology students and genetics education.",
-    keywords: "punnett square, punnett square generator, punnett square calculator, genetics calculator, genetic cross calculator, mendelian genetics, inheritance calculator, genotype calculator, phenotype predictor, biology tool, genetics education, free punnett square, online punnett square",
+    keywords: SEO_KEYWORDS.TOOLS,
     openGraph: {
         title: "Free Punnett Square Calculator - Zygotrix",
         description: "Visualize genetic crosses and calculate inheritance ratios with our free Punnett Square tool.",

@@ -1,6 +1,7 @@
 
 import React from 'react';
 import type { Metadata } from 'next';
+import { SEO_KEYWORDS } from '../../config/seo';
 import StudioHero from '../../components/studio/StudioHero';
 import StudioFeatures from '../../components/studio/StudioFeatures';
 import type { IconKey } from '../../components/universal/Icon';
@@ -8,6 +9,7 @@ import type { IconKey } from '../../components/universal/Icon';
 export const metadata: Metadata = {
     title: 'Zygotrix Studio - Precision Breeding & Simulation',
     description: 'Design breeding programs, predict phenotypes, and map inheritance with our advanced simulation engine.',
+    keywords: SEO_KEYWORDS.STUDIO,
 };
 
 const studioFeatureCards: { title: string; description: string; icon: IconKey; accent: string }[] = [

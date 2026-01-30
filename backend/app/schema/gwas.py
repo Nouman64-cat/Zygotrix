@@ -52,7 +52,7 @@ class GwasFileFormat(str, Enum):
 class SnpInfo(BaseModel):
     """Information about a single SNP."""
     rsid: str = Field(..., description="SNP identifier (e.g., rs1234567)")
-    chromosome: int = Field(..., ge=1, le=23, description="Chromosome number (1-22, X=23)")
+    chromosome: int = Field(..., ge=1, le=100, description="Chromosome number (1-22, X=23, etc.)")
     position: int = Field(..., gt=0, description="Base pair position")
     ref_allele: str = Field(..., min_length=1, max_length=100, description="Reference allele")
     alt_allele: str = Field(..., min_length=1, max_length=100, description="Alternate allele")
@@ -62,7 +62,7 @@ class SnpInfo(BaseModel):
 class SnpAssociation(BaseModel):
     """Association result for a single SNP."""
     rsid: str = Field(..., description="SNP identifier")
-    chromosome: int = Field(..., ge=1, le=23)
+    chromosome: int = Field(..., ge=1, le=100)
     position: int = Field(..., gt=0)
     ref_allele: str
     alt_allele: str
@@ -87,7 +87,7 @@ class SnpAssociation(BaseModel):
 
 class ChromosomeData(BaseModel):
     """Manhattan plot data for a single chromosome."""
-    chr: int = Field(..., ge=1, le=23)
+    chr: int = Field(..., ge=1, le=100)
     positions: List[int] = Field(..., description="SNP positions")
     p_values: List[float] = Field(..., description="P-values")
     labels: List[str] = Field(..., description="SNP IDs for significant SNPs")

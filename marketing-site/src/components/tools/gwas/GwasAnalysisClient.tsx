@@ -67,12 +67,14 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
                 if (!response.ok) throw new Error("Failed to check job status");
 
                 const job: GwasJobResponse = await response.json();
+                console.log("DEBUG: Polling job status:", job.id, job.status);
 
-                if (job.status === "COMPLETED") {
+                // Check for completed status (case-insensitive just in case)
+                if (job.status.toUpperCase() === "COMPLETED") {
                     clearInterval(pollInterval);
                     setStatusMessage("Fetching results...");
                     await fetchResults(jobId);
-                } else if (job.status === "FAILED" || job.status === "CANCELLED") {
+                } else if (job.status.toUpperCase() === "FAILED" || job.status.toUpperCase() === "CANCELLED") {
                     clearInterval(pollInterval);
                     setStage("error");
                     setError(`Analysis ${job.status.toLowerCase()}. Please try again.`);

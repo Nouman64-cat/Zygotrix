@@ -65,6 +65,14 @@ export const SEO_KEYWORDS = {
     "reverse complement generator",
     "nucleotide transcription tool",
     "central dogma simulator",
+
+    // 4. GWAS Analysis
+    "GWAS analysis online",
+    "Manhattan plot generator",
+    "Q-Q plot visualizer",
+    "genome-wide association study tool",
+    "VCF analysis online",
+    "SNP association viewer",
   ],
 
   // About/Team - Establishing Authority

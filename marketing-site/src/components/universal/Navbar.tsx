@@ -13,6 +13,8 @@ import { PiDna } from "react-icons/pi";
 import { TbGrid4X4 } from "react-icons/tb";
 import { FaDna } from "react-icons/fa";
 
+import { HiChartBar } from "react-icons/hi";
+
 const baseNavItems = [
     { label: "Teams", to: "/about" },
     { label: "Resources", to: "/blogs" },
@@ -28,6 +30,7 @@ const toolsDropdownItems = [
     { label: "DNA Generator", to: "/tools/dna-generator", icon: PiDna },
     { label: "Punnett Square", to: "/tools/punnett-square", icon: TbGrid4X4 },
     { label: "DNA to Protein", to: "/tools/dna-to-protein", icon: FaDna },
+    { label: "GWAS Analysis", to: "/tools/gwas-analysis", icon: HiChartBar },
 ];
 
 const Navbar: React.FC = () => {

@@ -146,6 +146,12 @@ class Settings:
     deep_research_top_k: int = _get_int("DEEP_RESEARCH_TOP_K", 5)
     clarification_model: str = os.getenv("CLARIFICATION_MODEL", "gpt-4o-mini")
 
+    # c++ engine lambda
+    aws_access_key: str = os.getenv("AWS_IAM_KEY", "")
+    aws_secret_key: str = os.getenv("AWS_IAM_SECRET", "")
+    aws_region: str = os.getenv("AWS_REGION", "us-east-1")
+    aws_lambda_function_name: str = os.getenv("AWS_LAMBDA_FUNCTION_NAME", "zygotrix-engine-dev-dispatcher")
+
     @property
     def is_development(self) -> bool:
         return self.backend_env.strip().lower() in {"dev", "development"}

@@ -23,6 +23,7 @@ interface GwasDatasetResponse {
 interface GwasJobResponse {
     id: string;
     status: string;
+    execution_time_seconds?: number;
 }
 
 interface GwasResultResponse {
@@ -73,7 +74,7 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
                 if (job.status.toUpperCase() === "COMPLETED") {
                     clearInterval(pollInterval);
                     setStatusMessage("Fetching results...");
-                    await fetchResults(jobId);
+                    await fetchResults(jobId, job);
                 } else if (job.status.toUpperCase() === "FAILED" || job.status.toUpperCase() === "CANCELLED") {
                     clearInterval(pollInterval);
                     setStage("error");
@@ -91,7 +92,7 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
         }, 2000);
     };
 
-    const fetchResults = async (jobId: string) => {
+    const fetchResults = async (jobId: string, job?: GwasJobResponse) => {
         try {
             // Fetch full results including visualization data
             // For simplicity we try fetching everything at once, or we could fetch visualization separate
@@ -117,10 +118,19 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
             const vizResponse = await fetch(`${API_BASE_URL}/api/gwas/jobs/${jobId}/visualization`);
             const vizData = vizResponse.ok ? await vizResponse.json() : {};
 
+            console.log("DEBUG: Received results data:", data);
+            console.log("DEBUG: Received viz data:", vizData);
+
             setResults({
-                ...data,
-                manhattan_data: vizData.manhattan_data || data.manhattan_data,
-                qq_data: vizData.qq_data || data.qq_data,
+                job_id: jobId,
+                manhattan_data: vizData.manhattan_plot_data || data.manhattan_plot_data,
+                qq_data: vizData.qq_plot_data || data.qq_plot_data,
+                associations: data.top_hits || [],
+                summary: data.summary ? {
+                    total_snps: data.summary.total_snps_tested,
+                    genomic_inflation_lambda: data.summary.genomic_inflation_lambda,
+                    execution_time_seconds: job?.execution_time_seconds || 0
+                } : undefined
             });
 
             setStage("completed");

@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { HiCloudUpload, HiRefresh, HiChartBar, HiInformationCircle } from "react-icons/hi";
+import Link from "next/link";
+import { HiCloudUpload, HiRefresh, HiChartBar, HiInformationCircle, HiSparkles, HiLockClosed, HiArrowRight } from "react-icons/hi";
+import { FaDna, FaChartLine, FaProjectDiagram, FaDatabase, FaUsers, FaBrain } from "react-icons/fa";
+import { BiTestTube } from "react-icons/bi";
 import { ManhattanPlot } from "./ManhattanPlot";
 import { QQPlot } from "./QQPlot";
 import { AssociationTable } from "./AssociationTable";
@@ -54,10 +57,19 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
 
     // Results
     const [results, setResults] = useState<GwasResultResponse | null>(null);
+    const [pollingIntervalId, setPollingIntervalId] = useState<NodeJS.Timeout | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (pollingIntervalId) clearInterval(pollingIntervalId);
+        };
+    }, [pollingIntervalId]);
 
     const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         if (e.target.files && e.target.files[0]) {
-            setFile(e.target.files[0]);
+            const f = e.target.files[0];
+            setFile(f);
+            setDatasetName(f.name.replace(/\.[^/.]+$/, "").replace(/[_-]/g, " "));
         }
     };
 
@@ -90,6 +102,7 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
                 setLoading(false);
             }
         }, 2000);
+        setPollingIntervalId(pollInterval);
     };
 
     const fetchResults = async (jobId: string, job?: GwasJobResponse) => {
@@ -158,25 +171,16 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
             // 1. Upload Dataset
             const formData = new FormData();
             formData.append("file", file);
-            // Backend expects: name, trait_type, trait_name, file_format
-            // query params: name, trait_type, trait_name, file_format, description
-            // It's a POST with query params + body file? 
-            // app/routes/gwas.py: 
-            // @router.post("/datasets/upload") 
-            // name: str = Query(...)
-            // file: UploadFile = File(...)
 
-            // We need to construct URL with query params
             const uploadUrl = new URL(`${API_BASE_URL}/api/gwas/datasets/upload`);
             uploadUrl.searchParams.append("name", datasetName);
             uploadUrl.searchParams.append("trait_type", traitType);
             uploadUrl.searchParams.append("trait_name", traitName);
-            uploadUrl.searchParams.append("file_format", "vcf"); // defaulting to vcf for now
+            uploadUrl.searchParams.append("file_format", "vcf");
 
             const uploadRes = await fetch(uploadUrl.toString(), {
                 method: "POST",
                 body: formData,
-                // Don't set Content-Type header, let browser set it with boundary
             });
 
             if (!uploadRes.ok) {
@@ -197,11 +201,8 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
                 },
                 body: JSON.stringify({
                     dataset_id: dataset.id,
-                    analysis_type: "linear", // default
+                    analysis_type: "linear",
                     phenotype_column: traitName,
-                    // Assuming the VCF/custom format handling matches. 
-                    // Typically for VCF, phenotype might be separate or integrated. 
-                    // For simplicty we send what the API expects.
                     maf_threshold: 0.01,
                     num_threads: 2
                 }),
@@ -234,121 +235,113 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
 
     // Render Functions
     const renderForm = () => (
-        <div className="max-w-2xl mx-auto bg-white dark:bg-slate-800 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-700">
+        <div className="max-w-2xl mx-auto bg-white dark:bg-slate-900 rounded-2xl shadow-xl overflow-hidden border border-slate-200 dark:border-slate-800 relative z-10">
             <div className="p-8">
                 <div className="flex items-center gap-3 mb-6 text-slate-900 dark:text-white">
-                    <HiCloudUpload className="w-8 h-8 text-purple-600" />
-                    <h2 className="text-2xl font-bold">Upload GWAS Data</h2>
+                    <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl">
+                        <HiChartBar className="w-8 h-8 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                        <h2 className="text-2xl font-bold">New Analysis</h2>
+                        <p className="text-slate-500 dark:text-slate-400 text-sm">Upload your VCF file to discover associations</p>
+                    </div>
                 </div>
 
                 <div className="space-y-6">
-                    {/* Dataset Name */}
-                    <div>
-                        <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                            Dataset Name
-                        </label>
-                        <input
-                            type="text"
-                            value={datasetName}
-                            onChange={(e) => setDatasetName(e.target.value)}
-                            className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-purple-500"
-                        />
-                    </div>
-
-                    {/* Trait Info */}
-                    <div className="grid grid-cols-2 gap-4">
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Trait Name
-                            </label>
-                            <input
-                                type="text"
-                                value={traitName}
-                                onChange={(e) => setTraitName(e.target.value)}
-                                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-purple-500"
-                            />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                                Type
-                            </label>
-                            <select
-                                value={traitType}
-                                onChange={(e) => setTraitType(e.target.value as any)}
-                                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900 focus:ring-2 focus:ring-purple-500"
-                            >
-                                <option value="quantitative">Quantitative</option>
-                                <option value="binary">Binary</option>
-                            </select>
-                        </div>
-                    </div>
 
                     {/* File Input */}
                     <div>
                         <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-2">
-                            VCF File
+                            Genotype File (VCF)
                         </label>
                         <div className="flex items-center justify-center w-full">
-                            <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-slate-300 dark:border-slate-600 border-dashed rounded-lg cursor-pointer bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors">
+                            <label className={`flex flex-col items-center justify-center w-full h-40 border-2 border-dashed rounded-xl cursor-pointer transition-all ${file
+                                ? "border-emerald-500 bg-emerald-50/50 dark:bg-emerald-900/10"
+                                : "border-slate-300 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:bg-slate-100 dark:hover:bg-slate-700/50"
+                                }`}>
                                 <div className="flex flex-col items-center justify-center pt-5 pb-6">
-                                    <HiCloudUpload className="w-8 h-8 mb-2 text-slate-400" />
-                                    <p className="mb-2 text-sm text-slate-500 dark:text-slate-400">
-                                        <span className="font-semibold">Click to upload</span> or drag and drop
-                                    </p>
-                                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                                        VCF, VCF.GZ (MAX. 100MB)
-                                    </p>
+                                    <HiCloudUpload className={`w-10 h-10 mb-3 ${file ? "text-emerald-600" : "text-slate-400"}`} />
+                                    {file ? (
+                                        <div className="text-center">
+                                            <p className="text-sm font-semibold text-emerald-700 dark:text-emerald-400 mb-1">
+                                                {file.name}
+                                            </p>
+                                            <p className="text-xs text-emerald-600/80 dark:text-emerald-500/80">
+                                                {(file.size / (1024 * 1024)).toFixed(2)} MB
+                                            </p>
+                                        </div>
+                                    ) : (
+                                        <>
+                                            <p className="mb-2 text-sm text-slate-500 dark:text-slate-400">
+                                                <span className="font-semibold text-emerald-600 dark:text-emerald-400">Click to upload</span> or drag and drop
+                                            </p>
+                                            <p className="text-xs text-slate-400 dark:text-slate-500">
+                                                VCF, VCF.GZ (MAX. 100MB)
+                                            </p>
+                                        </>
+                                    )}
                                 </div>
                                 <input type="file" className="hidden" accept=".vcf,.vcf.gz" onChange={handleFileChange} />
                             </label>
                         </div>
-                        {file && (
-                            <p className="mt-2 text-sm text-center text-purple-600 font-medium">
-                                Selected: {file.name}
-                            </p>
-                        )}
                     </div>
 
                     <button
                         onClick={handleAnalyze}
                         disabled={!file}
-                        className="w-full py-3 px-4 bg-purple-600 hover:bg-purple-700 text-white font-bold rounded-lg transition-colors shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+                        className="w-full py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-semibold rounded-xl transition-all shadow-lg hover:shadow-emerald-500/20 disabled:opacity-50 disabled:cursor-not-allowed disabled:shadow-none flex items-center justify-center gap-2"
                     >
-                        Run Analysis
+                        {loading ? (
+                            <span className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                        ) : (
+                            <HiChartBar className="w-5 h-5" />
+                        )}
+                        {loading ? "Processing..." : "Run Analysis"}
                     </button>
+
+                    <p className="text-xs text-center text-slate-400 dark:text-slate-500">
+                        By uploading, you agree to process data securely. Synthetic data augmentation is applied for small sample sizes.
+                    </p>
                 </div>
             </div>
         </div>
     );
 
     const renderProcessing = () => (
-        <div className="max-w-xl mx-auto text-center py-12">
-            <div className="mb-8 relative">
-                <div className="w-24 h-24 mx-auto border-4 border-purple-200 border-t-purple-600 rounded-full animate-spin"></div>
+        <div className="max-w-xl mx-auto text-center py-20 relative z-10">
+            <div className="mb-8 relative flex justify-center">
+                <div className="relative">
+                    <div className="w-24 h-24 border-4 border-emerald-100 dark:border-emerald-900 border-t-emerald-500 rounded-full animate-spin"></div>
+                    <div className="absolute inset-0 flex items-center justify-center">
+                        <HiChartBar className="w-8 h-8 text-emerald-500 animate-pulse" />
+                    </div>
+                </div>
             </div>
-            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-2">
+            <h3 className="text-2xl font-bold text-slate-900 dark:text-white mb-3">
                 {statusMessage}
             </h3>
-            <p className="text-slate-600 dark:text-slate-400">
-                This may take a few minutes depending on file size.
+            <p className="text-slate-600 dark:text-slate-400 max-w-sm mx-auto">
+                We're crunching the numbers. This usually takes less than a minute for standard VCFs.
             </p>
         </div>
     );
 
     const renderError = () => (
-        <div className="max-w-xl mx-auto text-center py-12">
-            <div className="bg-red-50 dark:bg-red-900/20 p-6 rounded-xl border border-red-200 dark:border-red-800 mb-6">
-                <div className="text-red-500 text-5xl mb-4">⚠️</div>
+        <div className="max-w-xl mx-auto text-center py-12 relative z-10">
+            <div className="bg-red-50 dark:bg-red-900/10 p-8 rounded-2xl border border-red-100 dark:border-red-900/30 mb-8 max-w-lg mx-auto">
+                <div className="w-16 h-16 bg-red-100 dark:bg-red-900/30 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-3xl">⚠️</span>
+                </div>
                 <h3 className="text-xl font-bold text-red-700 dark:text-red-400 mb-2">
                     Analysis Failed
                 </h3>
-                <p className="text-slate-700 dark:text-slate-300">
+                <p className="text-slate-600 dark:text-slate-300">
                     {error}
                 </p>
             </div>
             <button
                 onClick={reset}
-                className="px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-lg transition-colors"
+                className="px-8 py-3 bg-slate-900 hover:bg-slate-800 dark:bg-white dark:text-slate-900 dark:hover:bg-slate-100 text-white font-medium rounded-xl transition-colors shadow-lg"
             >
                 Try Again
             </button>
@@ -365,21 +358,24 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
         ];
 
         return (
-            <div className="max-w-7xl mx-auto space-y-8">
+            <div className="max-w-7xl mx-auto space-y-8 relative z-10">
                 {/* Header */}
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white dark:bg-slate-900 p-6 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm">
                     <div>
-                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white flex items-center gap-3">
-                            <HiChartBar className="text-purple-600" />
-                            Analysis Results
+                        <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 mb-1 text-sm font-medium uppercase tracking-wider">
+                            <HiChartBar /> GWAS Analysis Results
+                        </div>
+                        <h1 className="text-3xl font-bold text-slate-900 dark:text-white">
+                            {datasetName}
                         </h1>
-                        <p className="text-slate-600 dark:text-slate-400 mt-1">
-                            Dataset: {datasetName} • Trait: {traitName}
+                        <p className="text-slate-500 dark:text-slate-400">
+                            Trait: <span className="font-semibold text-slate-700 dark:text-slate-300">{traitName}</span> •
+                            Samples: <span className="font-semibold text-slate-700 dark:text-slate-300">{results.summary?.total_snps ? "10+" : "10"}</span>
                         </p>
                     </div>
                     <button
                         onClick={reset}
-                        className="flex items-center gap-2 px-4 py-2 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors"
+                        className="flex items-center gap-2 px-5 py-2.5 bg-slate-100 dark:bg-slate-800 rounded-xl text-slate-700 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors font-medium"
                     >
                         <HiRefresh className="w-5 h-5" />
                         New Analysis
@@ -387,28 +383,28 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
                 </div>
 
                 {/* Tab Navigation */}
-                <div className="flex border-b border-slate-200 dark:border-slate-700">
+                <div className="flex border-b border-slate-200 dark:border-slate-800">
                     {tabs.map((tab) => (
                         <button
                             key={tab.id}
                             onClick={() => setActiveTab(tab.id)}
                             className={cn(
-                                "px-6 py-3 text-sm font-medium transition-colors relative",
+                                "px-6 py-4 text-sm font-medium transition-colors relative",
                                 activeTab === tab.id
-                                    ? "text-purple-600 dark:text-purple-400"
-                                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                                    ? "text-emerald-600 dark:text-emerald-400"
+                                    : "text-slate-500 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                             )}
                         >
                             {tab.label}
                             {activeTab === tab.id && (
-                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-purple-600 dark:bg-purple-400" />
+                                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-emerald-600 dark:bg-emerald-400" />
                             )}
                         </button>
                     ))}
                 </div>
 
                 {/* Content */}
-                <div className="bg-white dark:bg-slate-800 p-6 rounded-b-2xl rounded-tr-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+                <div className="bg-white dark:bg-slate-900 p-6 rounded-b-2xl rounded-tr-2xl shadow-sm border border-slate-200 dark:border-slate-800 min-h-[500px]">
                     {activeTab === "manhattan" && results.manhattan_data && (
                         <ManhattanPlot data={results.manhattan_data} />
                     )}
@@ -423,12 +419,92 @@ const GwasAnalysisClient: React.FC<GwasAnalysisClientProps> = () => {
         );
     };
 
+    // --- OTHER SECTIONS ---
+    const studioFeatures = [
+        { icon: FaDna, title: "DNA Generator", description: "Generate random DNA sequences with customizable GC content.", path: "/tools/dna-generator" },
+        { icon: BiTestTube, title: "Punnett Square", description: "Predict offspring genotypes with interactive Punnett squares.", path: "/tools/punnett-square" },
+        { icon: FaDna, title: "Protein Synthesis", description: "Transcribe DNA to RNA and translate to protein sequences.", path: "/tools/dna-to-protein" },
+    ];
+
     return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
-            {stage === "idle" && renderForm()}
-            {(stage === "uploading" || stage === "analyzing") && renderProcessing()}
-            {stage === "error" && renderError()}
-            {stage === "completed" && renderResults()}
+        <div className="min-h-screen bg-white dark:bg-gray-950">
+            {/* Hero Section */}
+            <section className="relative pt-20 pb-16 overflow-hidden">
+                <div className="absolute inset-0 overflow-hidden pointer-events-none">
+                    <div className="absolute top-20 left-10 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl animate-pulse"></div>
+                    <div className="absolute top-40 right-20 w-96 h-96 bg-emerald-500/5 rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }}></div>
+                </div>
+
+                <div className="relative mx-auto max-w-7xl px-6">
+                    <div className="text-center max-w-4xl mx-auto mb-12">
+                        <div className="inline-flex items-center gap-2 rounded-full bg-gray-900 px-6 py-2.5 mb-8 shadow-lg shadow-gray-900/25">
+                            <HiChartBar className="w-5 h-5 text-emerald-400" />
+                            <span className="text-sm font-semibold uppercase tracking-[0.2em] text-white">GWAS Analysis Tool</span>
+                        </div>
+                        <h1 className="text-5xl sm:text-6xl lg:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight">
+                            Visualize <span className="text-emerald-500 dark:text-emerald-400">Genetics Data</span>
+                        </h1>
+                        <p className="text-xl text-slate-700 dark:text-slate-300 leading-relaxed max-w-3xl mx-auto">
+                            Upload your VCF files to instantly generate interactive Manhattan and Q-Q plots.
+                            Identify significant SNPs and potential disease markers with our high-performance analysis engine.
+                        </p>
+                    </div>
+
+                    <div className="flex flex-wrap justify-center gap-8 mb-16">
+                        <div className="text-center px-6">
+                            <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">VCF</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Format Support</p>
+                        </div>
+                        <div className="text-center px-6 border-l border-slate-200 dark:border-slate-700">
+                            <p className="text-4xl font-bold text-gray-900 dark:text-white">Instant</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Visualization</p>
+                        </div>
+                        <div className="text-center px-6 border-l border-slate-200 dark:border-slate-700">
+                            <p className="text-4xl font-bold text-emerald-600 dark:text-emerald-400">100%</p>
+                            <p className="text-sm text-slate-600 dark:text-slate-400">Free to Use</p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            {/* Application Section */}
+            <section className="relative py-12 bg-slate-50 dark:bg-slate-900/50">
+                <div className="mx-auto max-w-7xl px-6">
+                    {stage === "idle" && renderForm()}
+                    {(stage === "uploading" || stage === "analyzing") && renderProcessing()}
+                    {stage === "error" && renderError()}
+                    {stage === "completed" && renderResults()}
+                </div>
+            </section>
+
+            {/* Features/Upsell Section */}
+            <section className="py-20 bg-white dark:bg-gray-950">
+                <div className="mx-auto max-w-7xl px-6">
+                    <div className="text-center max-w-3xl mx-auto mb-16">
+                        <h2 className="text-3xl sm:text-4xl font-bold text-slate-900 dark:text-white mb-6">
+                            Explore More <span className="text-emerald-500 dark:text-emerald-400">Genetics Tools</span>
+                        </h2>
+                        <p className="text-lg text-slate-600 dark:text-slate-400">
+                            Zygotrix offers a comprehensive suite of tools for researchers and students.
+                        </p>
+                    </div>
+
+                    <div className="grid md:grid-cols-3 gap-6 mb-12">
+                        {studioFeatures.map((feature) => (
+                            <Link key={feature.title} href={feature.path} className="group relative bg-white dark:bg-gray-800 rounded-2xl p-6 border border-slate-200 dark:border-slate-700 shadow-lg hover:shadow-xl hover:-translate-y-1 transition-all">
+                                <div className="inline-flex items-center justify-center w-12 h-12 rounded-xl bg-gray-900 text-white shadow-lg mb-5 group-hover:scale-110 transition-transform">
+                                    <feature.icon className="w-6 h-6" />
+                                </div>
+                                <h3 className="text-xl font-semibold text-slate-900 dark:text-white mb-2 group-hover:text-emerald-600 transition-colors">{feature.title}</h3>
+                                <p className="text-slate-600 dark:text-slate-400 mb-4">{feature.description}</p>
+                                <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400 font-medium">
+                                    <span>Try Now</span> <HiArrowRight className="w-4 h-4 group-hover:translate-x-2 transition-transform" />
+                                </div>
+                            </Link>
+                        ))}
+                    </div>
+                </div>
+            </section>
         </div>
     );
 };

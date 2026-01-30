@@ -108,7 +108,7 @@ export const QQPlot: React.FC<QQPlotProps> = ({ data }) => {
                                 cx={x}
                                 cy={y}
                                 r="2"
-                                fill="#8B5CF6"
+                                fill="#10B981"
                                 opacity="0.6"
                             />
                         );
@@ -197,7 +197,7 @@ export const QQPlot: React.FC<QQPlotProps> = ({ data }) => {
 
             {/* Statistics Panel */}
             <div className="mt-4 w-full max-w-md grid grid-cols-2 gap-4">
-                <div className="bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-900/20 dark:to-blue-900/20 rounded-lg p-4 border border-purple-200 dark:border-purple-800">
+                <div className="bg-gradient-to-br from-emerald-50 to-slate-50 dark:from-emerald-900/20 dark:to-slate-900/20 rounded-lg p-4 border border-emerald-200 dark:border-emerald-800">
                     <div className="text-sm text-gray-600 dark:text-gray-400 mb-1">
                         Genomic Inflation (λ<sub>GC</sub>)
                     </div>

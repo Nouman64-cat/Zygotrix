@@ -86,9 +86,9 @@ export const AssociationTable: React.FC<AssociationTableProps> = ({ associations
             return <FaSort className="w-3 h-3 text-gray-400" />;
         }
         return sortDirection === 'asc' ? (
-            <FaSortUp className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+            <FaSortUp className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
         ) : (
-            <FaSortDown className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+            <FaSortDown className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
         );
     };
 
@@ -221,7 +221,7 @@ export const AssociationTable: React.FC<AssociationTableProps> = ({ associations
                                 "px-3 py-1.5 rounded text-sm font-medium transition-colors",
                                 currentPage === 1
                                     ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                                    : "bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                                    : "bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
                             )}
                         >
                             Previous
@@ -233,7 +233,7 @@ export const AssociationTable: React.FC<AssociationTableProps> = ({ associations
                                 "px-3 py-1.5 rounded text-sm font-medium transition-colors",
                                 currentPage === totalPages
                                     ? "bg-gray-100 dark:bg-gray-800 text-gray-400 cursor-not-allowed"
-                                    : "bg-purple-600 text-white hover:bg-purple-700 dark:bg-purple-500 dark:hover:bg-purple-600"
+                                    : "bg-emerald-600 text-white hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600"
                             )}
                         >
                             Next

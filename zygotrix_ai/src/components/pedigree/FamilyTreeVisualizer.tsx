@@ -72,42 +72,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
     return { nodes, edges };
 };
 
-const StatusHeader = ({ result }: { result?: GeneticAnalysisResult }) => {
-    if (!result) return null;
 
-    const isConflict = result.status === 'CONFLICT';
-    const isSolvable = result.status === 'SOLVABLE';
-
-    const bgColor = isConflict ? 'bg-red-500/10 border-red-500/30' :
-        isSolvable ? 'bg-green-500/10 border-green-500/30' :
-            'bg-blue-500/10 border-blue-500/30';
-
-    const textColor = isConflict ? 'text-red-400' :
-        isSolvable ? 'text-green-400' :
-            'text-blue-400';
-
-    const icon = isConflict ? <FiAlertTriangle className="text-xl" /> :
-        isSolvable ? <FiCheckCircle className="text-xl" /> :
-            <FiActivity className="text-xl" />;
-
-    const title = isConflict ? "ANOMALY DETECTED: NON-MENDELIAN PATTERN" :
-        isSolvable ? "MENDELIAN PATTERN CONFIRMED" :
-            "ANALYSIS STATUS: UNKNOWN";
-
-    return (
-        <div className={`absolute top-4 left-4 right-4 z-10 flex items-center p-4 rounded-xl border backdrop-blur-xl ${bgColor} ${textColor} shadow-lg`}>
-            <div className="mr-3 p-2 bg-black/5 dark:bg-white/5 rounded-full shadow-inner">{icon}</div>
-            <div>
-                <h3 className="text-sm font-bold tracking-widest uppercase">{title}</h3>
-                {isConflict && (
-                    <p className="text-xs text-gray-600 dark:text-white/60 mt-0.5">
-                        Possible Cause: <span className="font-mono text-red-600 dark:text-red-300">Epistasis / Gene Masking</span>
-                    </p>
-                )}
-            </div>
-        </div>
-    );
-};
 
 export default function FamilyTreeVisualizer({ data, analysisResult, isLoading }: FamilyTreeVisualizerProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
@@ -172,8 +137,6 @@ export default function FamilyTreeVisualizer({ data, analysisResult, isLoading }
 
     return (
         <div className="w-full h-full relative bg-white dark:bg-zinc-950">
-            <StatusHeader result={analysisResult} />
-
             <ReactFlow
                 nodes={nodes}
                 edges={edges}

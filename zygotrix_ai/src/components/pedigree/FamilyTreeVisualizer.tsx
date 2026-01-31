@@ -12,7 +12,7 @@ import ReactFlow, {
 } from 'reactflow';
 import dagre from 'dagre';
 import 'reactflow/dist/style.css';
-import { FiCheckCircle, FiAlertTriangle, FiActivity } from 'react-icons/fi';
+import { FiActivity } from 'react-icons/fi';
 
 import FamilyNode from './FamilyNode';
 import type { PedigreeStructure, GeneticAnalysisResult } from '../../types';
@@ -74,7 +74,7 @@ const getLayoutedElements = (nodes: Node[], edges: Edge[]) => {
 
 
 
-export default function FamilyTreeVisualizer({ data, analysisResult, isLoading }: FamilyTreeVisualizerProps) {
+export default function FamilyTreeVisualizer({ data, isLoading }: FamilyTreeVisualizerProps) {
     const [nodes, setNodes, onNodesChange] = useNodesState([]);
     const [edges, setEdges, onEdgesChange] = useEdgesState([]);
 

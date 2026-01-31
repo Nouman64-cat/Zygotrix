@@ -10,7 +10,7 @@ import { useTheme } from "../../context/ThemeContext";
 import { LOGO_URL } from "../../config";
 
 import { PiDna } from "react-icons/pi";
-import { TbGrid4X4 } from "react-icons/tb";
+import { TbGrid4X4, TbBinaryTree } from "react-icons/tb";
 import { FaDna } from "react-icons/fa";
 
 import { HiChartBar } from "react-icons/hi";
@@ -31,6 +31,7 @@ const toolsDropdownItems = [
     { label: "Punnett Square", to: "/tools/punnett-square", icon: TbGrid4X4 },
     { label: "DNA to Protein", to: "/tools/dna-to-protein", icon: FaDna },
     { label: "GWAS Analysis", to: "/tools/gwas-analysis", icon: HiChartBar },
+    { label: "Pedigree Analyst", to: "/tools/pedigree-analyst", icon: TbBinaryTree },
 ];
 
 const Navbar: React.FC = () => {

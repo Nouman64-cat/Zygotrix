@@ -2,6 +2,7 @@ import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, ThemeProvider, VoiceControlProvider, PreferencesProvider, ConversationsProvider } from './contexts';
 import { ProtectedRoute } from './components/common';
 import { Chat, Login, Register, ForgotPassword, SettingsPage } from './pages';
+import PedigreeWorkspace from './components/pedigree/PedigreeWorkspace';
 
 const App = () => {
   return (
@@ -36,6 +37,14 @@ const App = () => {
                     element={
                       <ProtectedRoute>
                         <SettingsPage />
+                      </ProtectedRoute>
+                    }
+                  />
+                  <Route
+                    path="/pedigree"
+                    element={
+                      <ProtectedRoute>
+                        <PedigreeWorkspace />
                       </ProtectedRoute>
                     }
                   />

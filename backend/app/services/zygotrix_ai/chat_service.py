@@ -1921,11 +1921,16 @@ Question: {user_message.content}"""
             response_content = pedigree_response.ai_message
             
             # 3. Store the response
+            # Construct the nested payload structure expected by frontend
+            pedigree_payload = {
+                "structured_data": pedigree_response.structured_data.model_dump() if pedigree_response.structured_data else None,
+                "analysis_result": pedigree_response.analysis_result.model_dump() if pedigree_response.analysis_result else None
+            }
+
             # Ensure metadata is properly typed including token counts
             msg_metadata = MessageMetadata(
                 widget_type="pedigree_analysis",
-                pedigree_data=pedigree_response.structured_data.model_dump() if pedigree_response.structured_data else None,
-                analysis_result=pedigree_response.analysis_result.model_dump() if pedigree_response.analysis_result else None,
+                pedigree_data=pedigree_payload,
                 total_tokens=0,
                 input_tokens=0,
                 output_tokens=0,

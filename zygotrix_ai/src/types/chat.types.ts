@@ -34,17 +34,22 @@ export interface MessageMetadata {
   cached?: boolean;
   // Widget data for interactive visualizations
   widget_type?:
-  | "breeding_lab"
-  | "dna_rna_visualizer"
-  | "gwas_results"
-  | "deep_research_clarification"
-  | "web_search"
-  | "scholar_mode";
+    | "breeding_lab"
+    | "dna_rna_visualizer"
+    | "gwas_results"
+    | "deep_research_clarification"
+    | "web_search"
+    | "scholar_mode"
+    | "pedigree_analysis";
   breeding_data?: {
     parent1?: any;
     parent2?: any;
     traits?: string[];
     results?: any;
+  };
+  pedigree_data?: {
+    structured_data?: any;
+    analysis_result?: any;
   };
   // Deep research data (handles both clarification and results)
   deep_research_data?: {

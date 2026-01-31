@@ -91,6 +91,7 @@ class MessageMetadata(BaseModel):
     gwas_data: Optional[dict] = None  # For GWAS analysis results
     deep_research_data: Optional[dict] = None  # For deep research clarification widget and Scholar Mode
     web_search_data: Optional[dict] = None  # For web search results with sources
+    pedigree_data: Optional[dict] = None  # For pedigree analysis results
 
 
 class Message(BaseModel):

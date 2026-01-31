@@ -1,4 +1,12 @@
 import React, { useState, Suspense } from "react";
+
+// Lazy load Pedigree Visualizer
+const PedigreeWidget = React.lazy(() =>
+  import("../pedigree/FamilyTreeVisualizer").then((module) => ({
+    default: module.default,
+  })),
+);
+
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FaCheck } from "react-icons/fa";
@@ -345,6 +353,11 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
     message.metadata?.widget_type === "deep_research_clarification" &&
     message.metadata?.deep_research_data;
 
+  // Check if message has pedigree widget data
+  const hasPedigreeWidget =
+    message.metadata?.widget_type === "pedigree_analysis" &&
+    message.metadata?.pedigree_data?.structured_data;
+
   // Render content - use markdown for AI messages, plain text for user
   const renderContent = () => {
     if (showLoader) {
@@ -562,6 +575,22 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
               }}
             />
           </Suspense>
+        )}
+
+        {/* Render Pedigree Visualizer if present */}
+        {hasPedigreeWidget && message.metadata?.pedigree_data?.structured_data && (
+          <div className="mt-6 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden h-[500px] bg-white dark:bg-black relative shadow-lg dark:shadow-2xl">
+            <div className="absolute top-0 right-0 z-20 text-[10px] bg-gray-100/80 dark:bg-zinc-900/80 px-2 py-1 text-gray-500 dark:text-zinc-400 font-mono pointer-events-none backdrop-blur border-l border-b border-gray-200 dark:border-zinc-800 rounded-bl-lg">
+              PEDIGREE LAB
+            </div>
+            <Suspense fallback={<WidgetLoadingFallback />}>
+              <PedigreeWidget
+                data={message.metadata.pedigree_data.structured_data}
+                analysisResult={message.metadata.pedigree_data.analysis_result}
+                isLoading={false}
+              />
+            </Suspense>
+          </div>
         )}
       </>
     );

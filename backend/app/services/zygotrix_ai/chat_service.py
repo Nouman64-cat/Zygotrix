@@ -230,6 +230,15 @@ class ZygotrixChatService:
                 chat_request, conversation, user_message, user_id, user_name
             )
 
+        # Check if Pedigree Analyst tool is enabled
+        pedigree_enabled = chat_request.enabled_tools and 'pedigree_analyst' in chat_request.enabled_tools
+        
+        if pedigree_enabled:
+            logger.info(f"🧬 Pedigree Analyst enabled - routing to pedigree service")
+            return await self._handle_pedigree_analyst_chat(
+                chat_request, conversation, user_message, user_id, user_name
+            )
+
         # Handle streaming vs non-streaming
         # Force non-streaming if tools are enabled (tools are not supported in streaming mode yet)
         tools_enabled = bool(chat_request.enabled_tools and len(chat_request.enabled_tools) > 0)
@@ -1879,6 +1888,80 @@ Question: {user_message.content}"""
                 conversation_title=conversation.title,
                 usage=msg_metadata,
             ), conversation.id, assistant_message.id
+
+
+    async def _handle_pedigree_analyst_chat(
+        self,
+        chat_request: ChatRequest,
+        conversation: Any,
+        user_message: Any,
+        user_id: str,
+        user_name: Optional[str]
+    ) -> ChatResponse:
+        """
+        Handle chat request using the Pedigree Analyst agent.
+        """
+        from ...services.pedigree_agent import process_pedigree_query
+        from ...schema.pedigree import PedigreeRequest
+
+        logger.info(f"🧬 Executing Pedigree Analysis for user {user_id}")
+        
+        # 1. Prepare request
+        pedigree_request = PedigreeRequest(
+            query=chat_request.message,
+            conversation_history=[
+                {"role": "user", "content": chat_request.message}
+            ]
+        )
+        
+        # 2. Execute agent
+        try:
+            pedigree_response = await process_pedigree_query(pedigree_request)
+            
+            response_content = pedigree_response.ai_message
+            
+            # 3. Store the response
+            # Ensure metadata is properly typed including token counts
+            msg_metadata = MessageMetadata(
+                widget_type="pedigree_analysis",
+                pedigree_data=pedigree_response.structured_data.model_dump() if pedigree_response.structured_data else None,
+                analysis_result=pedigree_response.analysis_result.model_dump() if pedigree_response.analysis_result else None,
+                total_tokens=0,
+                input_tokens=0,
+                output_tokens=0,
+                model="pedigree-agent"
+            )
+            
+            assistant_message = MessageService.create_message(
+                conversation_id=conversation.id,
+                role=MessageRole.ASSISTANT,
+                content=response_content,
+                metadata=msg_metadata
+            )
+            
+            # 4. Record usage (Approximation)
+            try:
+                self._record_token_usage(
+                    user_id,
+                    user_name,
+                    {"total_tokens": 1000}, # Placeholder until agent returns usage
+                    chat_request.message,
+                    "claude-3-5-sonnet-20240620"
+                )
+            except Exception as e:
+                logger.warning(f"Failed to record token usage: {e}")
+                
+            return ChatResponse(
+                conversation_id=conversation.id,
+                message=assistant_message,
+                conversation_title=conversation.title,
+                usage=msg_metadata
+            ), conversation.id, assistant_message.id
+            
+        except Exception as e:
+            logger.error(f"Pedigree Analysis failed: {e}", exc_info=True)
+            # Fallback to standard chat error
+            raise HTTPException(status_code=500, detail=f"Pedigree Analysis failed: {str(e)}")
 
 
 # Singleton instance

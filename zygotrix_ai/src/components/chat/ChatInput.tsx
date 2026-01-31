@@ -92,6 +92,12 @@ const AVAILABLE_TOOLS: AiTool[] = [
       "Comprehensive research combining deep research, web search, and AI synthesis (50/month)",
     icon: <LuGraduationCap />,
   },
+  {
+    id: "pedigree_analyst",
+    name: "Pedigree Analyst",
+    description: "Analyze family tree structures and genetic traits validation",
+    icon: <LuDna />,
+  },
 ];
 
 const RECORDING_PROMPTS = [

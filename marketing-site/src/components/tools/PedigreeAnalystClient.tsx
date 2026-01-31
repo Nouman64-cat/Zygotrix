@@ -52,7 +52,7 @@ const demoNodes: Node[] = [
         type: 'default',
         data: { label: 'Child (aa) - Target' },
         position: { x: 450, y: 300 },
-        style: { background: '#eff6ff', color: '#1e3a8a', border: '2px solid #3b82f6', borderRadius: '8px', fontWeight: 'bold', width: 160 }
+        style: { background: '#ecfdf5', color: '#064e3b', border: '2px solid #10b981', borderRadius: '8px', fontWeight: 'bold', width: 160 }
     }
 ];
 
@@ -60,8 +60,8 @@ const demoEdges: Edge[] = [
     { id: 'e1', source: 'gf1', target: 'f1', type: 'smoothstep', style: { stroke: '#94a3b8' } },
     { id: 'e2', source: 'gm1', target: 'f1', type: 'smoothstep', style: { stroke: '#94a3b8' } },
     // Connect parents to child
-    { id: 'e3', source: 'f1', target: 'c1', type: 'smoothstep', animate: true, style: { stroke: '#3b82f6', strokeWidth: 2 } },
-    { id: 'e4', source: 'm1', target: 'c1', type: 'smoothstep', animate: true, style: { stroke: '#3b82f6', strokeWidth: 2 } },
+    { id: 'e3', source: 'f1', target: 'c1', type: 'smoothstep', animated: true, style: { stroke: '#10b981', strokeWidth: 2 } },
+    { id: 'e4', source: 'm1', target: 'c1', type: 'smoothstep', animated: true, style: { stroke: '#10b981', strokeWidth: 2 } },
 ];
 
 const PedigreeAnalystClient: React.FC = () => {

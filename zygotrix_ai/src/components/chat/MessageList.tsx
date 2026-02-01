@@ -13,6 +13,8 @@ interface MessageListProps {
   onQuickAction?: (text: string) => void;
   onSend?: (message: string, attachments?: MessageAttachment[], enabledTools?: string[]) => void;
   inputDisabled?: boolean;
+  enabledTools?: string[];
+  onEnabledToolsChange?: (tools: string[]) => void;
 }
 
 // Quick action suggestions for genetics/genomics
@@ -54,11 +56,23 @@ const MessageListComponent: React.FC<MessageListProps> = ({
   isStreaming = false,
   onQuickAction,
   onSend,
-  inputDisabled = false
+  inputDisabled = false,
+  enabledTools,
+  onEnabledToolsChange,
 }) => {
-  const scrollRef = useAutoScroll<HTMLDivElement>([messages, isLoading], isStreaming);
+  const { scrollRef, scrollToBottom } = useAutoScroll<HTMLDivElement>([messages, isLoading], isStreaming);
   const isMobile = useIsMobile();
   const { user } = useAuth();
+
+  // Force scroll to bottom when the user sends a message
+  useEffect(() => {
+    if (messages.length > 0) {
+      const lastMessage = messages[messages.length - 1];
+      if (lastMessage.role === 'user') {
+        scrollToBottom();
+      }
+    }
+  }, [messages.length, scrollToBottom]);
 
   // Track how many messages to render (for long conversations)
   const [renderCount, setRenderCount] = useState(INITIAL_RENDER_COUNT);
@@ -151,6 +165,8 @@ const MessageListComponent: React.FC<MessageListProps> = ({
                 <ChatInput
                   onSend={onSend}
                   disabled={inputDisabled}
+                  enabledTools={enabledTools}
+                  onEnabledToolsChange={onEnabledToolsChange}
                 />
               </div>
             )}
@@ -178,6 +194,8 @@ const MessageListComponent: React.FC<MessageListProps> = ({
             <ChatInput
               onSend={onSend}
               disabled={inputDisabled}
+              enabledTools={enabledTools}
+              onEnabledToolsChange={onEnabledToolsChange}
             />
           </div>
         )}
@@ -220,7 +238,9 @@ export const MessageList = React.memo(MessageListComponent, (prevProps, nextProp
     prevProps.isStreaming === nextProps.isStreaming &&
     prevProps.inputDisabled === nextProps.inputDisabled &&
     prevProps.onQuickAction === nextProps.onQuickAction &&
-    prevProps.onSend === nextProps.onSend
+    prevProps.onSend === nextProps.onSend &&
+    prevProps.enabledTools === nextProps.enabledTools &&
+    prevProps.onEnabledToolsChange === nextProps.onEnabledToolsChange
   );
 });
 

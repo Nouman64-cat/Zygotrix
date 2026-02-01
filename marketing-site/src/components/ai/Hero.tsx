@@ -20,13 +20,13 @@ const Hero = () => {
                             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                             <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
                         </span>
-                        AI-Powered Comp Bio & Genomics
+                        Your Personal AI Geneticist
                     </div>
 
                     <h1 className="text-5xl lg:text-7xl font-bold tracking-tight text-slate-800 dark:text-white leading-tight">
                         Research Faster with <br />
                         <span className="inline-block bg-gradient-to-r from-emerald-600 to-teal-500 dark:from-emerald-400 dark:to-teal-300 bg-clip-text text-transparent animate-gradient-shift">
-                            Hands-Free AI
+                            Your AI Geneticist
                         </span>
                     </h1>
 

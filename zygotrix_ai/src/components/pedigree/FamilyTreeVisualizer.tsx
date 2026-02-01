@@ -81,12 +81,19 @@ export default function FamilyTreeVisualizer({ data, isLoading }: FamilyTreeVisu
     useEffect(() => {
         if (!data?.members) return;
 
-        const initialNodes: Node[] = data.members.map((member) => ({
-            id: member.id,
-            type: 'familyMember',
-            data: { ...member, isTarget: false },
-            position: { x: 0, y: 0 },
-        }));
+        const initialNodes: Node[] = data.members.map((member) => {
+            // Heuristic to identify the primary subject/offspring for highlighting
+            const rel = member.relation.toLowerCase();
+            const isTarget = ['self', 'me', 'proband', 'target', 'child'].some(k => rel.includes(k)) ||
+                (rel === 'son' || rel === 'daughter');
+
+            return {
+                id: member.id,
+                type: 'familyMember',
+                data: { ...member, isTarget: isTarget },
+                position: { x: 0, y: 0 },
+            };
+        });
 
         const initialEdges: Edge[] = [];
 
@@ -98,7 +105,7 @@ export default function FamilyTreeVisualizer({ data, isLoading }: FamilyTreeVisu
                     source: parentId,
                     target: member.id,
                     type: 'step',
-                    animated: false,
+                    animated: true,
                     style: { stroke: '#94a3b8', strokeWidth: 1.5 },
                 });
             });

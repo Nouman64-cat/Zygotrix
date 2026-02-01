@@ -14,39 +14,38 @@ const FamilyNode = ({ data }: NodeProps<FamilyNodeData>) => {
         phenotype.includes(t)
     );
 
-    // Cyberpunk/Scientific colors styling
-    // Recessive/Alert -> Gold/Yellow
-    // Dominant/Standard -> Blue/Slate
-    const borderColor = isRecessive ? 'border-yellow-500' : 'border-blue-500';
-    const glowColor = isRecessive ? 'shadow-yellow-500/20' : 'shadow-blue-500/20';
-    const bgColor = isRecessive ? 'bg-yellow-50/90 dark:bg-yellow-950/80' : 'bg-slate-50/90 dark:bg-slate-950/80';
-    const headerBg = isRecessive ? 'bg-yellow-100/50 dark:bg-yellow-900/30' : 'bg-blue-100/50 dark:bg-blue-900/30';
-    const textColor = isRecessive ? 'text-yellow-900 dark:text-yellow-100' : 'text-blue-900 dark:text-blue-100';
-    const labelColor = isRecessive ? 'text-yellow-600 dark:text-yellow-400' : 'text-blue-600 dark:text-blue-400';
+    // Reference Style: 
+    // Dominant -> Dark Background, White Text
+    // Recessive -> Light Background, Dark Text
+    const containerClasses = isRecessive
+        ? 'bg-white dark:bg-zinc-950 border-zinc-200 dark:border-zinc-800 text-zinc-900 dark:text-gray-100'
+        : 'bg-slate-900 dark:bg-slate-800 border-slate-900 dark:border-slate-800 text-white';
+
+    const targetClasses = data.isTarget
+        ? 'ring-2 ring-emerald-500 ring-offset-2 ring-offset-white dark:ring-offset-black'
+        : '';
 
     return (
-        <div className={`shadow-lg shadow-[0_4px_20px_-5px] ${glowColor} rounded-lg border ${borderColor} ${bgColor} min-w-[160px] max-w-[200px] overflow-hidden backdrop-blur-md transition-all duration-300 hover:scale-[1.02]`}>
-            <Handle type="target" position={Position.Top} className="!bg-gray-400 !w-2 !h-2 rounded-full !border-0" />
+        <div className={`
+            relative flex items-center justify-between gap-3 px-4 py-3 
+            min-w-[200px] rounded-xl border shadow-sm transition-transform hover:scale-105
+            ${containerClasses} ${targetClasses}
+        `}>
+            {/* Connection Handles - Hidden but functional */}
+            <Handle type="target" position={Position.Top} className="opacity-0" />
 
-            <div className={`px-3 py-2 border-b border-black/10 dark:border-white/10 ${headerBg} flex items-center justify-between`}>
-                <span className={`text-[10px] font-mono uppercase tracking-widest ${labelColor} truncate`}>
-                    {data.relation}
-                </span>
-                {data.isTarget && (
-                    <span className="flex h-2 w-2 rounded-full bg-red-500 shadow-[0_0_8px] shadow-red-500 animate-pulse" title="Target Subject" />
-                )}
-            </div>
+            <span className="text-sm font-semibold tracking-wide capitalize truncate max-w-[100px]" title={data.relation}>
+                {data.relation}
+            </span>
 
-            <div className="p-3">
-                <div className={`text-sm font-bold capitalize ${textColor} mb-1`}>
-                    {data.phenotype}
-                </div>
-                <div className="flex items-center justify-between text-[10px] text-gray-400 dark:text-white/40 font-mono">
-                    <span>{data.id}</span>
-                </div>
-            </div>
+            <span className={`
+                text-xs font-mono px-2 py-1 rounded-md opacity-90 capitalize truncate max-w-[100px]
+                ${isRecessive ? 'bg-zinc-100 dark:bg-zinc-800 text-zinc-600 dark:text-zinc-300' : 'bg-slate-700/50 text-slate-200'}
+            `} title={data.phenotype}>
+                {data.phenotype}
+            </span>
 
-            <Handle type="source" position={Position.Bottom} className="!bg-gray-400 !w-2 !h-2 rounded-full !border-0" />
+            <Handle type="source" position={Position.Bottom} className="opacity-0" />
         </div>
     );
 };

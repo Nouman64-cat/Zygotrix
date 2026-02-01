@@ -4,7 +4,6 @@ import ReactFlow, {
     Controls,
     useNodesState,
     useEdgesState,
-    MarkerType,
     BackgroundVariant,
     Position,
     type Node,
@@ -98,13 +97,9 @@ export default function FamilyTreeVisualizer({ data, isLoading }: FamilyTreeVisu
                     id: `e${parentId}-${member.id}`,
                     source: parentId,
                     target: member.id,
-                    type: 'smoothstep',
-                    animated: true,
-                    style: { stroke: '#94a3b8', strokeWidth: 2 }, // Slate-400
-                    markerEnd: {
-                        type: MarkerType.ArrowClosed,
-                        color: '#94a3b8',
-                    },
+                    type: 'step',
+                    animated: false,
+                    style: { stroke: '#94a3b8', strokeWidth: 1.5 },
                 });
             });
         });

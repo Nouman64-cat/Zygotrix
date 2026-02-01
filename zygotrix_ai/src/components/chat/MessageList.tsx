@@ -148,7 +148,6 @@ const MessageListComponent: React.FC<MessageListProps> = ({
           <div className="text-center max-w-4xl w-full">
             {/* Personalized greeting */}
             <div className="flex items-center justify-center gap-2 mb-3">
-              <span className="text-xl sm:text-2xl">✨</span>
               <span className="text-lg sm:text-xl text-gray-600 dark:text-gray-400">
                 {greeting}, {firstName}
               </span>

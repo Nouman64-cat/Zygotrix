@@ -14,10 +14,12 @@ import {
   FiCheck,
   FiMic,
 } from "react-icons/fi";
-import { LuDna, LuMicroscope, LuGraduationCap } from "react-icons/lu";
+import { LuMicroscope, LuGraduationCap } from "react-icons/lu";
 import { cn } from "../../utils";
 import { useVoiceControl, useVoiceCommand, useAuth } from "../../contexts";
 import type { MessageAttachment } from "../../types";
+import { TbBinaryTree } from "react-icons/tb";
+import { HiChartBar } from "react-icons/hi";
 
 // TypeScript declarations for Web Speech API
 interface SpeechRecognitionEvent extends Event {
@@ -76,7 +78,7 @@ const AVAILABLE_TOOLS: AiTool[] = [
     id: "gwas_analysis",
     name: "GWAS Analysis",
     description: "",
-    icon: <LuDna />,
+    icon: <HiChartBar />,
   },
   {
     id: "deep_research",
@@ -96,7 +98,7 @@ const AVAILABLE_TOOLS: AiTool[] = [
     id: "pedigree_analyst",
     name: "Pedigree Analyst",
     description: "Analyze family tree structures and genetic traits validation",
-    icon: <LuDna />,
+    icon: <TbBinaryTree />,
   },
 ];
 

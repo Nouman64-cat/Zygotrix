@@ -135,7 +135,8 @@ class SignupService:
                 timestamp=timestamp,
                 year=year,
                 ip_address=ip_address or "Unknown",
-                location=location
+                location=location,
+                user_phone=user.get("phone", "Not provided")
             )
             
         except Exception as e:

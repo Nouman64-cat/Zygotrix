@@ -243,7 +243,8 @@ class EmailService:
         timestamp: str,
         year: int,
         ip_address: str = "Unknown",
-        location: str = "Unknown"
+        location: str = "Unknown",
+        user_phone: str = "Not provided"
     ) -> bool:
         """Send new user registration notification to super admin."""
         subject = f"🎉 New User Registration: {user_email}"
@@ -252,6 +253,7 @@ class EmailService:
         context = {
             "user_name": name,
             "user_email": user_email,
+            "user_phone": user_phone,
             "user_role": user_role,
             "timestamp": timestamp,
             "year": year,
@@ -267,6 +269,7 @@ class EmailService:
             f"A new user has registered on Zygotrix:\n\n"
             f"Name: {name}\n"
             f"Email: {user_email}\n"
+            f"Phone: {user_phone}\n"
             f"Role: {user_role}\n"
             f"Registered: {timestamp}\n"
             f"IP Address: {ip_address}\n"

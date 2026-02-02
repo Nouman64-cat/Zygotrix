@@ -298,6 +298,8 @@ export async function sendMessage(request: ChatRequest): Promise<ChatResponse> {
 /**
  * Send a chat message with streaming response
  */
+import { API_URL } from "../config";
+
 export async function sendMessageStream(
   request: ChatRequest,
   onChunk: StreamCallback,
@@ -305,7 +307,7 @@ export async function sendMessageStream(
 ): Promise<void> {
   const token = localStorage.getItem("zygotrix_token");
 
-  const response = await fetch(`${import.meta.env.VITE_ZYGOTRIX_API}${API_BASE}/chat`, {
+  const response = await fetch(`${API_URL}${API_BASE}/chat`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

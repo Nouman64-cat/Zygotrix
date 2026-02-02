@@ -7,7 +7,7 @@ import remarkGfm from 'remark-gfm';
 import { parseSimulationCommands, executeSimulationCommands } from '../../services/simulationCommands';
 import { InlineActions } from './InlineActions';
 import { PreferencesModal } from '../zygotrix-ai/ConversationModals';
-import { ZYGO_AI_LOGO_URL } from '../../config';
+import { ZYGO_AI_LOGO_URL, BOT_NAME } from '../../config';
 
 interface ChatBotProps {
   isOpen: boolean;
@@ -26,7 +26,7 @@ const getChatMessagesKey = (userId?: string) => `zygotrix_chat_messages_${userId
 const getChatUsageKey = (userId?: string) => `zygotrix_chat_usage_${userId || 'anonymous'}`;
 
 export const ChatBot: React.FC<ChatBotProps> = ({ isOpen, onClose, currentPath, userName, userId, userRole, isEnabled = true, variant = 'floating', simulationToolContext }) => {
-  const botName = import.meta.env.VITE_ZYGOTRIX_BOT_NAME || 'Zigi';
+  const botName = BOT_NAME;
   const pageContext = getPageContext(currentPath);
 
   // User-specific storage keys

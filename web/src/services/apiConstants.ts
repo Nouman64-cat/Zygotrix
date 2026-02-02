@@ -1,5 +1,6 @@
-export const API_BASE_URL =
-  import.meta.env.VITE_ZYGOTRIX_API;
+import { API_URL } from "../config";
+
+export const API_BASE_URL = API_URL;
 
 export const API_ROUTES = {
   auth: {

@@ -5,9 +5,9 @@ import type {
   TagSummary,
 } from "../types/blog";
 
-const HYGRAPH_ENDPOINT =
-  import.meta.env.VITE_HYGRAPH_ENDPOINT ||
-  "https://ap-south-1.cdn.hygraph.com/content/cmg0d4ao2013r08wb95es4c0w/master";
+import { HYGRAPH_ENDPOINT } from "../config";
+
+// HYGRAPH_ENDPOINT is now imported from config
 
 const HYGRAPH_TOKEN =
   import.meta.env.VITE_HYGRAPH_TOKEN ||

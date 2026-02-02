@@ -11,8 +11,8 @@ const HeroSection: React.FC = () => {
                     {/* Left Column - Text Content */}
                     <div className="space-y-6 max-w-xl">
                         <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold leading-[1.1] tracking-tight">
-                            <span className="text-gray-900 dark:text-white">The Complete Ecosystem for </span>
-                            <span className="text-emerald-500 dark:text-emerald-400">Genetic Discovery</span>
+                            <span className="text-gray-900 dark:text-white">Genetics Ecosystem </span>
+                            <span className="text-emerald-500 dark:text-emerald-400">for Everyone</span>
                         </h1>
 
                         <p className="text-base sm:text-lg text-gray-600 dark:text-gray-400 leading-relaxed">

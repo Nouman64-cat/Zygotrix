@@ -48,6 +48,7 @@ export const API_ENDPOINTS = {
   GENETICS: {
     TRAITS: "/api/traits",
     MENDELIAN_SIMULATE: "/api/mendelian/simulate",
+    PEDIGREE_ANALYZE: "/api/pedigree/analyze",
   },
 } as const;
 

@@ -1,14 +1,24 @@
 import React, { useState, Suspense } from "react";
+import { createPortal } from "react-dom";
+
+// Lazy load Pedigree Visualizer
+const PedigreeWidget = React.lazy(() =>
+  import("../pedigree/FamilyTreeVisualizer").then((module) => ({
+    default: module.default,
+  })),
+);
+
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import { FaCheck } from "react-icons/fa";
 import { MdContentCopy } from "react-icons/md";
-import { FiFile } from "react-icons/fi";
+import { FiFile, FiMaximize2, FiMinimize2 } from "react-icons/fi";
 import { cn } from "../../utils";
 import { useTypingEffect } from "../../hooks";
 import { ThinkingLoader } from "../common/ThinkingLoader";
 import { LOGO_URL } from "../../config";
 import type { Message } from "../../types";
+import { PedigreeStatusHeader } from "../pedigree/PedigreeStatusHeader";
 
 // PERFORMANCE: Lazy load heavy widget components to reduce initial bundle size
 // These components are only loaded when actually needed in a message
@@ -304,6 +314,7 @@ const renderWithCitations = (children: React.ReactNode, sources?: any[]) => {
 
 const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   const isUser = message.role === "user";
+  const [isPedigreeExpanded, setIsPedigreeExpanded] = useState(false);
 
   // Only enable typing effect for AI messages that are CURRENTLY streaming
   // Historical messages (isStreaming is false/undefined) show immediately
@@ -344,6 +355,11 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
   const hasDeepResearchWidget =
     message.metadata?.widget_type === "deep_research_clarification" &&
     message.metadata?.deep_research_data;
+
+  // Check if message has pedigree widget data
+  const hasPedigreeWidget =
+    message.metadata?.widget_type === "pedigree_analysis" &&
+    message.metadata?.pedigree_data?.structured_data;
 
   // Render content - use markdown for AI messages, plain text for user
   const renderContent = () => {
@@ -562,6 +578,87 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
               }}
             />
           </Suspense>
+        )}
+
+        {/* Render Pedigree Visualizer if present */}
+        {hasPedigreeWidget && message.metadata?.pedigree_data?.structured_data && (
+          <>
+            {/* INLINE VIEW (conditionally rendered) */}
+            {!isPedigreeExpanded && (
+              <>
+                <PedigreeStatusHeader result={message.metadata.pedigree_data.analysis_result} />
+                <div className="mt-2 border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden h-[500px] bg-white dark:bg-black relative shadow-lg dark:shadow-2xl transition-all duration-300">
+                  <div className="absolute top-0 right-0 z-20 flex items-center gap-2 pointer-events-none px-2 py-1">
+                    <div className="text-[10px] font-mono backdrop-blur border-l border-b border-gray-200 dark:border-zinc-800 bg-gray-100/80 dark:bg-zinc-900/80 text-gray-500 dark:text-zinc-400 rounded-bl-lg px-2 py-1">
+                      PEDIGREE LAB
+                    </div>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        setIsPedigreeExpanded(true);
+                      }}
+                      className="pointer-events-auto p-1.5 bg-gray-100/80 dark:bg-zinc-800/80 rounded-md hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-gray-600 dark:text-gray-300 border border-transparent hover:border-gray-300 dark:hover:border-zinc-600 shadow-sm"
+                      title="Duplicate to Full Screen"
+                    >
+                      <FiMaximize2 />
+                    </button>
+                  </div>
+                  <Suspense fallback={<WidgetLoadingFallback />}>
+                    <PedigreeWidget
+                      data={message.metadata.pedigree_data.structured_data}
+                      isLoading={false}
+                    />
+                  </Suspense>
+                </div>
+              </>
+            )}
+
+            {/* EXPANDED VIEW (Portal) */}
+            {isPedigreeExpanded && typeof document !== 'undefined' && createPortal(
+              <div className="fixed inset-0 z-[9999] bg-white dark:bg-black flex flex-col p-4 animate-in fade-in zoom-in-95 duration-200">
+                {/* Header Top Bar */}
+                <div className="flex justify-between items-center mb-2 px-2">
+                  <div className="flex items-center gap-3">
+                    <div className="text-sm font-bold tracking-widest text-gray-500 dark:text-zinc-400 uppercase font-mono border-l-2 border-blue-500 pl-3">
+                      Zygotrix Pedigree Lab
+                    </div>
+                    <span className="text-xs px-2 py-0.5 rounded-full bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 font-mono">FULL SCREEN</span>
+                  </div>
+                  <button
+                    onClick={() => setIsPedigreeExpanded(false)}
+                    className="p-2 bg-gray-100 dark:bg-zinc-800 rounded-lg hover:bg-gray-200 dark:hover:bg-zinc-700 transition text-gray-700 dark:text-gray-200 flex items-center gap-2"
+                  >
+                    <FiMinimize2 />
+                    <span className="text-sm font-medium">Exit Full Screen</span>
+                  </button>
+                </div>
+
+                {/* Status Header moved here */}
+                <PedigreeStatusHeader result={message.metadata.pedigree_data.analysis_result} />
+
+                {/* Widget Container */}
+                <div className="flex-1 relative border border-gray-200 dark:border-zinc-800 rounded-xl overflow-hidden shadow-2xl bg-gray-50 dark:bg-zinc-950">
+                  <Suspense fallback={<div className="w-full h-full flex items-center justify-center">Loading...</div>}>
+                    <PedigreeWidget
+                      data={message.metadata.pedigree_data.structured_data}
+                      isLoading={false}
+                    />
+                  </Suspense>
+                </div>
+              </div>,
+              document.body
+            )}
+
+            {/* Placeholder when expanded to keep scroll position roughly stable */}
+            {isPedigreeExpanded && (
+              <div className="mt-6 border border-dashed border-gray-200 dark:border-zinc-800 rounded-xl h-[100px] flex items-center justify-center bg-gray-50/50 dark:bg-zinc-900/50">
+                <div className="text-sm text-gray-400 dark:text-zinc-500 font-mono flex items-center gap-2">
+                  <FiMaximize2 /> Viewing in Full Screen
+                  <button onClick={() => setIsPedigreeExpanded(false)} className="underline hover:text-blue-500 ml-2">Restore</button>
+                </div>
+              </div>
+            )}
+          </>
         )}
       </>
     );

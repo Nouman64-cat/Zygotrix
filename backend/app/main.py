@@ -27,6 +27,7 @@ from .routes.zygotrix_ai import router as zygotrix_ai_router
 from .routes.deep_research import router as deep_research_router
 from .routes.web_search import router as web_search_router
 from .routes.scholar_analytics import router as scholar_analytics_router
+from .routes.pedigree import router as pedigree_router
 from .schema.auth import UserProfile
 from .schema.polygenic import PolygenicScoreRequest, PolygenicScoreResponse
 from .schema.common import HealthResponse
@@ -173,6 +174,7 @@ app.include_router(traits_router)
 app.include_router(deep_research_router)
 app.include_router(web_search_router)
 app.include_router(scholar_analytics_router)
+app.include_router(pedigree_router)
 
 
 @app.get("/health", response_model=HealthResponse, tags=["System"])

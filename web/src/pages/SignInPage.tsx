@@ -64,7 +64,7 @@ const SignInPage: React.FC = () => {
   // Redirect if already authenticated
   useEffect(() => {
     if (user) {
-      const from = (location.state as any)?.from?.pathname || "/dashboard";
+      const from = (location.state as any)?.from?.pathname || "/studio";
       navigate(from, { replace: true });
     }
   }, [user, navigate, location]);

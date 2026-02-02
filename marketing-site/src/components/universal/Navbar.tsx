@@ -10,10 +10,12 @@ import { useTheme } from "../../context/ThemeContext";
 import { LOGO_URL } from "../../config";
 
 import { PiDna } from "react-icons/pi";
-import { TbGrid4X4 } from "react-icons/tb";
+import { TbGrid4X4, TbBinaryTree } from "react-icons/tb";
 import { FaDna } from "react-icons/fa";
 
 import { HiChartBar } from "react-icons/hi";
+import { MdOutlineAutoAwesome } from "react-icons/md";
+import { LuLayoutDashboard } from "react-icons/lu";
 
 const baseNavItems = [
     { label: "Teams", to: "/about" },
@@ -22,8 +24,8 @@ const baseNavItems = [
 ];
 
 const appsDropdownItems = [
-    { label: "Zygotrix AI", to: "/ai", icon: FiCpu },
-    { label: "Zygotrix Studio", to: "/studio", icon: FiLayout },
+    { label: "Zygotrix AI", to: "/ai", icon: MdOutlineAutoAwesome },
+    { label: "Zygotrix Studio", to: "/studio", icon: LuLayoutDashboard },
 ];
 
 const toolsDropdownItems = [
@@ -31,6 +33,7 @@ const toolsDropdownItems = [
     { label: "Punnett Square", to: "/tools/punnett-square", icon: TbGrid4X4 },
     { label: "DNA to Protein", to: "/tools/dna-to-protein", icon: FaDna },
     { label: "GWAS Analysis", to: "/tools/gwas-analysis", icon: HiChartBar },
+    { label: "Pedigree Analyst", to: "/tools/pedigree-analyst", icon: TbBinaryTree },
 ];
 
 const Navbar: React.FC = () => {
@@ -234,10 +237,10 @@ const Navbar: React.FC = () => {
                                                 <span className="text-xs font-semibold text-gray-500 uppercase">Choose product</span>
                                             </div>
                                             <a href="https://ai.zygotrix.com/register" className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 dark:text-gray-400 hover:bg-emerald-50 dark:hover:bg-emerald-900/10 hover:text-emerald-600 dark:hover:text-emerald-400 transition-colors">
-                                                <FiCpu className="w-4 h-4" /> Zygotrix AI
+                                                <MdOutlineAutoAwesome className="w-4 h-4" /> Zygotrix AI
                                             </a>
                                             <a href={`${STUDIO_URL}/signup`} className="flex items-center gap-3 px-4 py-3 text-sm text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/10 hover:text-blue-600 dark:hover:text-blue-400 transition-colors">
-                                                <FiLayout className="w-4 h-4" /> Zygotrix Studio
+                                                <LuLayoutDashboard className="w-4 h-4" /> Zygotrix Studio
                                             </a>
                                         </div>
                                     </div>

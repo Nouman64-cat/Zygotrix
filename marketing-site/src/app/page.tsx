@@ -6,6 +6,7 @@ import YouTubeVideo from "../components/home/YouTubeVideo";
 import PricingClient from "../components/pricing/PricingClient";
 import ZygoAISectionClient from "../components/home/ZygoAISectionClient";
 import CommunitySectionClient from "../components/home/CommunitySectionClient";
+import AppSelectionSection from "../components/home/AppSelectionSection";
 
 export const metadata: Metadata = {
   title: "Zygotrix - Genetic Analysis & Simulation Platform",
@@ -45,6 +46,7 @@ export default function Home() {
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
       />
       <HeroSection />
+      <AppSelectionSection />
       <YouTubeVideo />
       <ZygoAISectionClient />
       <PricingClient />

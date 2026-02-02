@@ -21,48 +21,7 @@ from ..config import get_settings
 from ..schema.gwas import GwasAnalysisType
 
 
-def _load_gwas_cli_path() -> Path:
-    """
-    Locate the C++ GWAS CLI executable.
-
-    Search order:
-    1. Settings cpp_gwas_cli_path (can be overridden via CPP_GWAS_CLI_PATH env var)
-    2. Auto-detect .exe extension on Windows
-
-    Returns:
-        Path to the executable
-
-    Raises:
-        HTTPException: If executable not found
-    """
-    settings = get_settings()
-    candidates = [
-        os.getenv("CPP_GWAS_CLI_PATH"),
-        getattr(settings, "cpp_gwas_cli_path", None),
-    ]
-
-    for candidate in candidates:
-        if not candidate:
-            continue
-        path = Path(candidate).expanduser().resolve()
-        candidates_to_check = [path]
-
-        # On Windows, try adding .exe extension if missing
-        if os.name == "nt" and path.suffix == "":
-            candidates_to_check.append(path.with_suffix(".exe"))
-
-        for candidate_path in candidates_to_check:
-            if candidate_path.exists() and os.access(candidate_path, os.X_OK):
-                return candidate_path
-
-    raise HTTPException(
-        status_code=500,
-        detail=(
-            "C++ GWAS CLI executable not found. "
-            "Build the engine first: see zygotrix_engine_cpp/GWAS_BUILD_INSTRUCTIONS.md"
-        ),
-    )
-
+from app.services.aws_worker_client import get_aws_worker
 
 def run_gwas_analysis(
     snps: List[Dict[str, Any]],
@@ -74,16 +33,19 @@ def run_gwas_analysis(
 ) -> Dict[str, Any]:
     """
     Run GWAS analysis.
-    Tries C++ engine first, falls back to Python implementation if not found or fails.
+    Tries AWS Lambda C++ engine first, falls back to Python implementation if not found or fails.
     """
     try:
         try:
-            print("DEBUG: Engine - Attempting to load CLI path")
-            cli_path = _load_gwas_cli_path()
-            print(f"DEBUG: Engine - CLI path: {cli_path}")
+            print("INFO: Engine - Invoking AWS Lambda for GWAS analysis")
+            worker = get_aws_worker()
             
             # Build request payload for C++ engine
-            request_data = {
+            # Note: Lambda expects 'action' and 'payload'. 
+            # Our 'action' is 'gwas'. The payload is the data.
+            # If the C++ logic inside lambda needs specific keys, we match what was sent to CLI.
+            
+            payload = {
                 "snps": snps,
                 "samples": samples,
                 "test_type": analysis_type.value,
@@ -91,33 +53,21 @@ def run_gwas_analysis(
                 "num_threads": num_threads,
             }
 
-            payload = json.dumps(request_data, separators=(",", ":"))
-            print(f"DEBUG: Engine - Payload size: {len(payload)} chars")
+            # Log size for debugging
+            # print(f"DEBUG: Engine - Payload size: {len(str(payload))} chars") # costly to stringify huge payload
 
-            completed = subprocess.run(
-                [str(cli_path)],
-                input=payload.encode("utf-8"),
-                stdout=subprocess.PIPE,
-                stderr=subprocess.PIPE,
-                check=False,
-                timeout=timeout,
-            )
+            response = worker.invoke(action="gwas", payload=payload)
             
-            if completed.returncode != 0:
-                print(f"DEBUG: Engine - Subprocess failed with code {completed.returncode}")
-                print(f"DEBUG: Engine - stderr: {completed.stderr.decode('utf-8')[:500]}")
-                raise Exception(f"C++ engine exited with code {completed.returncode}")
-
-            print("DEBUG: Engine - Subprocess completed successfully")
-            return json.loads(completed.stdout.decode("utf-8"))
+            print("INFO: Engine - AWS Lambda execution completed successfully")
+            return response
 
         except (HTTPException, Exception) as e:
             # Fallback to Python implementation
-            print(f"DEBUG: Engine - Falling back to Python due to: {e}")
+            print(f"WARN: Engine - AWS Lambda failed, falling back to Python: {e}")
             return _python_linear_regression(snps, samples, analysis_type)
 
     except Exception as e:
-        print(f"DEBUG: Engine - Critical failure: {e}")
+        print(f"ERROR: Engine - Critical failure: {e}")
         raise HTTPException(status_code=500, detail=f"GWAS analysis failed: {str(e)}")
 
 

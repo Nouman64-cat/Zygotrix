@@ -1,10 +1,6 @@
 from __future__ import annotations
 
-import json
-import subprocess
-import os
 import time
-from pathlib import Path
 from typing import Optional
 
 from ..config import get_settings
@@ -17,6 +13,7 @@ from ..schema.protein_generator import (
     ProteinSequenceResponse,
     ORFData,
 )
+from app.services.aws_worker_client import get_aws_worker
 
 # Import Python implementation as fallback
 from .protein_generator_impl import (
@@ -25,229 +22,49 @@ from .protein_generator_impl import (
     extract_amino_acids as py_extract_amino_acids,
     generate_protein_sequences as py_generate_protein_sequences,
     calculate_actual_gc as py_calculate_actual_gc,
-    find_all_orfs as py_find_all_orfs,
 )
 
-
-def _get_cpp_cli_path() -> Optional[Path]:
-    """Get the path to the C++ protein CLI, if available."""
-    settings = get_settings()
-    cli_path = Path(settings.cpp_protein_cli_path).resolve()
-    
-    # Try relative to the backend directory
-    if not cli_path.exists():
-        backend_dir = Path(__file__).parent.parent.parent
-        cli_path = (backend_dir / settings.cpp_protein_cli_path).resolve()
-    
-    if cli_path.exists() and os.access(cli_path, os.X_OK):
-        return cli_path
-    
-    return None
-
-
-def _get_parallel_dna_cli_path() -> Optional[Path]:
-    """Get the path to the parallel DNA generator CLI, if available."""
-    settings = get_settings()
-    cli_path = Path(settings.cpp_parallel_dna_cli_path).resolve()
-    
-    # Try relative to the backend directory
-    if not cli_path.exists():
-        backend_dir = Path(__file__).parent.parent.parent
-        cli_path = (backend_dir / settings.cpp_parallel_dna_cli_path).resolve()
-    
-    if cli_path.exists() and os.access(cli_path, os.X_OK):
-        return cli_path
-    
-    return None
-
-
-def _call_cpp_cli(request_data: dict, timeout: int = 120, show_logs: bool = True) -> dict:
-    """
-    Call the C++ CLI with the given request data.
-
-    Args:
-        request_data: Dictionary to send as JSON to the CLI
-        timeout: Maximum seconds to wait for response
-        show_logs: Whether to print thread pool logs from stderr
-
-    Returns:
-        Parsed JSON response from the CLI
-
-    Raises:
-        RuntimeError: If CLI fails or returns an error
-    """
-    cli_path = _get_cpp_cli_path()
-    if not cli_path:
-        raise RuntimeError("C++ CLI not available")
-
-    result = subprocess.run(
-        [str(cli_path)],
-        input=json.dumps(request_data),
-        capture_output=True,
-        text=True,
-        timeout=timeout
-    )
-
-    # Print thread pool logs from stderr if enabled
-    if show_logs and result.stderr:
-        for line in result.stderr.strip().split('\n'):
-            if line.startswith('['):  # Only print log lines (start with [ThreadPool], [OrfFinder], etc.)
-                print(f"   {line}")
-
-    if result.returncode != 0:
-        try:
-            error_response = json.loads(result.stdout)
-            if "error" in error_response:
-                raise RuntimeError(f"C++ CLI error: {error_response['error']}")
-        except json.JSONDecodeError:
-            pass
-        raise RuntimeError(f"C++ CLI failed: {result.stderr or result.stdout}")
-
-    response = json.loads(result.stdout)
-
-    if "error" in response:
-        raise RuntimeError(f"C++ CLI error: {response['error']}")
-
-    return response
-
-
-def _call_parallel_dna_cli(request_data: dict, timeout: int = 600, show_logs: bool = True) -> dict:
-    """
-    Call the parallel DNA generator CLI for large sequences.
-
-    Args:
-        request_data: Dictionary with length, gc_content, optional seed and threads
-        timeout: Maximum seconds to wait (default 10 minutes for very large sequences)
-        show_logs: Whether to print thread pool logs from stderr
-
-    Returns:
-        Parsed JSON response from the CLI
-
-    Raises:
-        RuntimeError: If CLI fails or returns an error
-    """
-    cli_path = _get_parallel_dna_cli_path()
-    if not cli_path:
-        raise RuntimeError("Parallel DNA CLI not available")
-
-    result = subprocess.run(
-        [str(cli_path)],
-        input=json.dumps(request_data),
-        capture_output=True,
-        text=True,
-        timeout=timeout
-    )
-
-    # Print thread pool logs from stderr if enabled
-    if show_logs and result.stderr:
-        for line in result.stderr.strip().split('\n'):
-            if line.startswith('['):  # Only print log lines (start with [ThreadPool], [DnaGenerator], etc.)
-                print(f"   {line}")
-
-    if result.returncode != 0:
-        try:
-            error_response = json.loads(result.stdout)
-            if "error" in error_response:
-                raise RuntimeError(f"Parallel DNA CLI error: {error_response['error']}")
-        except json.JSONDecodeError:
-            pass
-        raise RuntimeError(f"Parallel DNA CLI failed: {result.stderr or result.stdout}")
-
-    response = json.loads(result.stdout)
-
-    if "error" in response:
-        raise RuntimeError(f"Parallel DNA CLI error: {response['error']}")
-
-    return response
-
-
 def _use_cpp_engine() -> bool:
-    """Check if C++ engine should be used."""
-    settings = get_settings()
-    return settings.use_cpp_engine and _get_cpp_cli_path() is not None
-
-
-def _use_parallel_engine(length: int) -> bool:
-    """Check if parallel DNA engine should be used for this sequence length."""
-    settings = get_settings()
-    return (
-        settings.use_cpp_engine 
-        and length >= settings.parallel_dna_threshold
-        and _get_parallel_dna_cli_path() is not None
-    )
-
+    """Check if C++ engine (Lambda) is enabled."""
+    return get_settings().use_cpp_engine
 
 def generate_dna_rna(request: ProteinGenerateRequest) -> ProteinGenerateResponse:
     """
     Generate DNA and RNA sequences.
-    Uses parallel C++ engine for large sequences, regular C++ engine otherwise.
-    Falls back to Python if needed.
+    Uses AWS Lambda C++ engine if enabled, falls back to Python.
     """
-    # For large sequences, use the parallel DNA generator
-    if _use_parallel_engine(request.length):
-        try:
-            parallel_request = {
-                "length": request.length,
-                "gc_content": request.gc_content,
-            }
-            if request.seed is not None:
-                parallel_request["seed"] = request.seed
-            
-            # Use threads based on CPU cores, but minimum 2 for concurrency on single-core servers
-            import multiprocessing
-            num_threads = max(2, multiprocessing.cpu_count())
-            parallel_request["threads"] = num_threads
-            
-            print(f"⚡ [PARALLEL C++] Generating DNA sequence ({request.length:,} bp) with {num_threads} threads...")
-            start_time = time.time()
-            result = _call_parallel_dna_cli(parallel_request)
-            elapsed = time.time() - start_time
-            
-            threads_used = result.get("threads_used", num_threads)
-            gen_time_ms = result.get("generation_time_ms", int(elapsed * 1000))
-            print(f"✅ [PARALLEL C++] DNA generation complete! 🧵 {threads_used} threads, ⏱️ {gen_time_ms}ms")
-            
-            # Transcribe to RNA (simple complement)
-            dna_sequence = result["sequence"]
-            rna_sequence = py_transcribe_to_rna(dna_sequence)
-            
-            return ProteinGenerateResponse(
-                dna_sequence=dna_sequence,
-                rna_sequence=rna_sequence,
-                length=result["length"],
-                gc_content=result["gc_content"],
-                actual_gc=result["actual_gc"]
-            )
-        except Exception as e:
-            print(f"⚠️ [PARALLEL C++] Failed, trying regular C++ engine: {e}")
-    
-    # Regular C++ engine for smaller sequences
     if _use_cpp_engine():
         try:
-            cpp_request = {
-                "action": "generate",
+            print(f"🚀 [AWS LAMBDA] Generating DNA sequence ({request.length:,} bp)...")
+            start_time = time.time()
+            
+            worker = get_aws_worker()
+            payload = {
                 "length": request.length,
                 "gc_content": request.gc_content,
             }
             if request.seed is not None:
-                cpp_request["seed"] = request.seed
+                payload["seed"] = request.seed
+                
+            result = worker.invoke(action="dna", payload=payload)
             
-            print(f"🚀 [C++ ENGINE] Generating DNA sequence ({request.length:,} bp)...")
-            start_time = time.time()
-            result = _call_cpp_cli(cpp_request)
             elapsed = time.time() - start_time
-            print(f"✅ [C++ ENGINE] DNA generation complete! ⏱️ {elapsed:.3f}s")
+            print(f"✅ [AWS LAMBDA] DNA generation complete! ⏱️ {elapsed:.3f}s")
             
+            # Handle potential key variations from Lambda (dna_sequence vs sequence)
+            dna_seq = result.get("dna_sequence") or result.get("sequence")
+            if not dna_seq:
+                raise KeyError("dna_sequence")
+
             return ProteinGenerateResponse(
-                dna_sequence=result["dna_sequence"],
-                rna_sequence=result["rna_sequence"],
+                dna_sequence=dna_seq,
+                rna_sequence=result.get("rna_sequence") or py_transcribe_to_rna(dna_seq),
                 length=result["length"],
                 gc_content=result["gc_content"],
                 actual_gc=result["actual_gc"]
             )
         except Exception as e:
-            # Log and fall back to Python
-            print(f"⚠️ [C++ ENGINE] Failed, falling back to Python: {e}")
+            print(f"⚠️ [AWS LAMBDA] Failed, falling back to Python: {e}")
     
     # Python fallback
     print(f"🐍 [PYTHON] Generating DNA sequence ({request.length:,} bp)...")
@@ -266,23 +83,21 @@ def generate_dna_rna(request: ProteinGenerateRequest) -> ProteinGenerateResponse
         actual_gc=actual_gc
     )
 
-
 def extract_amino_acids_from_rna(request: AminoAcidExtractRequest) -> AminoAcidExtractResponse:
     """
     Extract amino acids from RNA sequence.
     """
     if _use_cpp_engine():
         try:
-            cpp_request = {
-                "action": "extract_amino_acids",
-                "rna_sequence": request.rna_sequence,
-            }
-            
-            result = _call_cpp_cli(cpp_request)
-            
+            worker = get_aws_worker()
+            # Explicitly state the action for the C++ engine
+            result = worker.invoke(action="protein", payload={
+                "action": "extract_amino_acids", 
+                "rna_sequence": request.rna_sequence
+            })
             return AminoAcidExtractResponse(amino_acids=result["amino_acids"])
-        except Exception as e:
-            print(f"C++ engine failed, falling back to Python: {e}")
+        except Exception:
+            pass
     
     # Python fallback
     amino_acids_list = py_extract_amino_acids(request.rna_sequence)
@@ -290,39 +105,38 @@ def extract_amino_acids_from_rna(request: AminoAcidExtractRequest) -> AminoAcidE
 
     return AminoAcidExtractResponse(amino_acids=amino_acids_str)
 
-
 def generate_protein_sequence(request: ProteinSequenceRequest) -> ProteinSequenceResponse:
     """
     Generate protein sequence from RNA.
-    Uses C++ engine for ORF finding if available, falls back to Python.
+    Uses AWS Lambda (action='protein') for ORF finding if enabled.
     """
     protein_data = None
     seq_len = len(request.rna_sequence)
     
-    # Try C++ engine first
     if _use_cpp_engine():
         try:
-            cpp_request = {
+            print(f"🚀 [AWS LAMBDA] Finding ORFs in RNA sequence ({seq_len:,} bp)...")
+            start_time = time.time()
+            
+            worker = get_aws_worker()
+            # Pass 'action' in payload so C++ engine knows strictly what to do
+            payload = {
                 "action": "find_orfs",
-                "rna_sequence": request.rna_sequence,
+                "rna_sequence": request.rna_sequence
             }
             
-            print(f"🚀 [C++ ENGINE] Finding ORFs in RNA sequence ({seq_len:,} bp)...")
-            start_time = time.time()
-            result = _call_cpp_cli(cpp_request, timeout=300)  # 5 minute timeout for large sequences
+            result = worker.invoke(action="protein", payload=payload)
             elapsed = time.time() - start_time
-            print(f"✅ [C++ ENGINE] Found {result.get('total_orfs', 0):,} ORFs! ⏱️ {elapsed:.3f}s")
+            print(f"✅ [AWS LAMBDA] Found {result.get('total_orfs', 0):,} ORFs! ⏱️ {elapsed:.3f}s")
             
-            # Convert C++ response to match Python format
             protein_data = {
                 "orfs": result.get("orfs", []),
                 "total_orfs": result.get("total_orfs", 0),
                 "sequence_3letter": result.get("sequence_3letter", ""),
                 "sequence_1letter": result.get("sequence_1letter", ""),
-                "amino_acids": []  # Not used for ORF-based response
             }
         except Exception as e:
-            print(f"⚠️ [C++ ENGINE] ORF finding failed, falling back to Python: {e}")
+            print(f"⚠️ [AWS LAMBDA] ORF finding failed, falling back to Python: {e}")
             protein_data = None
     
     # Python fallback
@@ -337,7 +151,6 @@ def generate_protein_sequence(request: ProteinSequenceRequest) -> ProteinSequenc
     orfs = protein_data.get("orfs", [])
     if orfs:
         first_orf = orfs[0]
-        # For protein classification, parse the 1-letter sequence
         protein_1letter = first_orf.get("protein_1letter", "")
         protein_length = len(protein_1letter)
     else:
@@ -348,18 +161,12 @@ def generate_protein_sequence(request: ProteinSequenceRequest) -> ProteinSequenc
         protein_type = "Invalid/Junk"
         stability_score = 0
     else:
-        # Get the first ORF's 1-letter sequence for classification
         sequence = orfs[0].get("protein_1letter", "") if orfs else ""
-        
-        # Count hydrophobic amino acids (1-letter codes)
         hydrophobic = set("IVLFMAW")
         hydrophobic_count = sum(1 for aa in sequence if aa in hydrophobic)
-
-        # Count charged amino acids (1-letter codes)
         charged = set("RKDEH")
         charged_count = sum(1 for aa in sequence if aa in charged)
 
-        # Classify
         if hydrophobic_count / protein_length > 0.4:
             protein_type = "Structural (Fibrous)"
             stability_score = 45 + (hydrophobic_count * 2)
@@ -373,11 +180,11 @@ def generate_protein_sequence(request: ProteinSequenceRequest) -> ProteinSequenc
     # Convert ORFs to ORFData schema
     orfs_data = [
         ORFData(
-            start_position=orf["start_position"],
-            end_position=orf["end_position"],
-            protein_3letter=orf["protein_3letter"],
-            protein_1letter=orf["protein_1letter"],
-            length=orf["length"]
+            start_position=orf.get("start_position") or orf.get("start", 0),
+            end_position=orf.get("end_position") or orf.get("end", 0),
+            protein_3letter=orf.get("protein_3letter", ""),
+            protein_1letter=orf.get("protein_1letter", ""),
+            length=orf.get("length", 0)
         )
         for orf in orfs
     ]

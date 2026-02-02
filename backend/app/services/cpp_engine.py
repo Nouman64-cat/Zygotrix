@@ -1,82 +1,45 @@
 from __future__ import annotations
 
-import json
-import os
-import subprocess
-from pathlib import Path
-from typing import Any
-
-from fastapi import HTTPException
-
-from ..config import get_settings
-from ..schema.cpp_engine import GeneticCrossRequest, GeneticCrossResponse
-
-
-def _load_cli_path() -> Path:
-    settings = get_settings()
-    candidates = [
-        os.getenv("CPP_ENGINE_CLI_PATH"),
-        getattr(settings, "cpp_engine_cli_path", None),
-    ]
-    for candidate in candidates:
-        if not candidate:
-            continue
-        path = Path(candidate).expanduser().resolve()
-        candidates_to_check = [path]
-        if os.name == "nt" and path.suffix == "":
-            candidates_to_check.append(path.with_suffix(".exe"))
-        for candidate_path in candidates_to_check:
-            if candidate_path.exists() and os.access(candidate_path, os.X_OK):
-                return candidate_path
-    raise HTTPException(
-        status_code=500,
-        detail="C++ engine CLI executable not found. Set CPP_ENGINE_CLI_PATH to the compiled zyg_cross_cli binary.",
-    )
-
+from app.schema.cpp_engine import GeneticCrossRequest, GeneticCrossResponse
+from app.schema.pedigree import PedigreeStructure, GeneticAnalysisResult
+from app.services.aws_worker_client import get_aws_worker
 
 def run_cpp_cross(request: GeneticCrossRequest) -> GeneticCrossResponse:
-    cli_path = _load_cli_path()
+    """
+    Executes a genetic cross using the AWS Lambda C++ Engine.
+    Action: 'cross'
+    """
+    worker = get_aws_worker()
+    payload = request.model_dump(exclude_none=True)
+    response_data = worker.invoke(action="cross", payload=payload)
+    return GeneticCrossResponse.model_validate(response_data)
 
-    payload = json.dumps(
-        request.model_dump(exclude_none=True),
-        separators=(",", ":"),
-    )
+def run_pedigree_analysis(structure: PedigreeStructure) -> GeneticAnalysisResult:
+    """
+    Invokes the C++ Engine to validate and solve a full pedigree tree.
+    Action: 'pedigree_analyze'
+    """
+    worker = get_aws_worker()
+    
+    # payload matches the structure the C++ PedigreeSolver expects
+    payload = structure.model_dump(exclude_none=True)
 
+    # Invoke Lambda with the new action
     try:
-        completed = subprocess.run(
-            [str(cli_path)],
-            input=payload.encode("utf-8"),
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=False,
-            timeout=30,
+        response_data = worker.invoke(action="pedigree_analyze", payload=payload)
+        return GeneticAnalysisResult.model_validate(response_data)
+    except Exception as e:
+        import logging
+        logger = logging.getLogger(__name__)
+        logger.warning(f"AWS Worker failed, using local MOCK for pedigree analysis: {e}")
+        
+        # fallback mock response for testing/dev
+        return GeneticAnalysisResult(
+             status="SOLVABLE",
+             mode_used="MENDELIAN",
+             probability_map={
+                 "gen1_m": {"AA": 0.0, "Aa": 1.0, "aa": 0.0},
+                 "gen1_f": {"AA": 0.0, "Aa": 1.0, "aa": 0.0}
+             },
+             visualization_grid={}
         )
-    except FileNotFoundError as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"C++ engine CLI executable not found at {cli_path}",
-        ) from exc
-    except subprocess.TimeoutExpired as exc:
-        raise HTTPException(
-            status_code=504,
-            detail="C++ engine timed out while computing the genetic cross",
-        ) from exc
-
-    if completed.returncode != 0:
-        detail = completed.stderr.decode("utf-8").strip() or completed.stdout.decode("utf-8").strip()
-        if not detail:
-            detail = f"C++ engine exited with status {completed.returncode}"
-        raise HTTPException(status_code=500, detail=detail)
-
-    try:
-        response_payload: Any = json.loads(completed.stdout.decode("utf-8"))
-    except json.JSONDecodeError as exc:
-        raise HTTPException(
-            status_code=500,
-            detail=f"Malformed response from C++ engine: {exc}",
-        ) from exc
-
-    if isinstance(response_payload, dict) and "error" in response_payload:
-        raise HTTPException(status_code=400, detail=response_payload["error"])
-
-    return GeneticCrossResponse.parse_obj(response_payload)

@@ -166,19 +166,7 @@ export const Chat: React.FC = () => {
     }
   }, [messages.length, conversationId, refreshConversations]);
 
-  // Auto-enable deep_research tool when a clarification widget is present
-  useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      // If the last message has a deep research clarification widget, keep the tool enabled
-      if (
-        lastMessage.metadata?.widget_type === 'deep_research_clarification' &&
-        !enabledTools.includes('deep_research')
-      ) {
-        setEnabledTools(prev => [...prev, 'deep_research']);
-      }
-    }
-  }, [messages, enabledTools]);
+
 
   // Ref to track the last assistant message ID to prevent duplicate refreshes
   const lastAssistantMessageIdRef = useRef<string | null>(null);
@@ -249,6 +237,8 @@ export const Chat: React.FC = () => {
               }
               onSend={handleSendMessage}
               inputDisabled={isLoading || isRateLimited}
+              enabledTools={enabledTools}
+              onEnabledToolsChange={handleEnabledToolsChange}
             />
 
             {/* Rate Limit Banner - shows persistently when rate limited */}

@@ -6,3 +6,4 @@ zygotrix_engine.egg-info
 *.exe
 build/
 tests/
+.DS_Store

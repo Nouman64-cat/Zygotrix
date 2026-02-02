@@ -14,10 +14,12 @@ import {
   FiCheck,
   FiMic,
 } from "react-icons/fi";
-import { LuDna, LuMicroscope, LuGraduationCap } from "react-icons/lu";
+import { LuMicroscope, LuGraduationCap } from "react-icons/lu";
 import { cn } from "../../utils";
 import { useVoiceControl, useVoiceCommand, useAuth } from "../../contexts";
 import type { MessageAttachment } from "../../types";
+import { TbBinaryTree } from "react-icons/tb";
+import { HiChartBar } from "react-icons/hi";
 
 // TypeScript declarations for Web Speech API
 interface SpeechRecognitionEvent extends Event {
@@ -76,7 +78,7 @@ const AVAILABLE_TOOLS: AiTool[] = [
     id: "gwas_analysis",
     name: "GWAS Analysis",
     description: "",
-    icon: <LuDna />,
+    icon: <HiChartBar />,
   },
   {
     id: "deep_research",
@@ -91,6 +93,12 @@ const AVAILABLE_TOOLS: AiTool[] = [
     description:
       "Comprehensive research combining deep research, web search, and AI synthesis (50/month)",
     icon: <LuGraduationCap />,
+  },
+  {
+    id: "pedigree_analyst",
+    name: "Pedigree Analyst",
+    description: "Analyze family tree structures and genetic traits validation",
+    icon: <TbBinaryTree />,
   },
 ];
 
@@ -809,30 +817,89 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     },
   });
 
+  // --- Dynamic Tool Voice Commands ---
+
+  // 1. GWAS Analysis
   useVoiceCommand({
-    id: "enable-tool",
-    description: "Enables a specific tool (e.g. enable gwas)",
+    id: "enable-gwas",
+    description: "Enables the GWAS Analysis tool",
     action: () => {
-      // Enable GWAS by default when this command is triggered
-      const tool = AVAILABLE_TOOLS[0];
-      if (tool) {
-        setEnabledTools((prev) =>
-          prev.includes(tool.id) ? prev : [...prev, tool.id],
-        );
-        console.log(`🔧 Enabled tool: ${tool.name}`);
-      }
+      const toolId = "gwas_analysis";
+      setEnabledTools([toolId]); // Mutual Exclusivity: Only enable this tool
+      console.log("🔧 Voice: Enabled GWAS Analysis");
     },
   });
 
   useVoiceCommand({
-    id: "disable-tool",
-    description: "Disables a specific tool (e.g. disable gwas)",
+    id: "disable-gwas",
+    description: "Disables the GWAS Analysis tool",
     action: () => {
-      const tool = AVAILABLE_TOOLS[0];
-      if (tool) {
-        setEnabledTools((prev) => prev.filter((id) => id !== tool.id));
-        console.log(`🔧 Disabled tool: ${tool.name}`);
-      }
+      const toolId = "gwas_analysis";
+      setEnabledTools((prev) => prev.filter((id) => id !== toolId));
+      console.log("🔧 Voice: Disabled GWAS Analysis");
+    },
+  });
+
+  // 2. Deep Research
+  useVoiceCommand({
+    id: "enable-deep-research",
+    description: "Enables the Deep Research tool",
+    action: () => {
+      const toolId = "deep_research";
+      setEnabledTools([toolId]); // Mutual Exclusivity: Only enable this tool
+      console.log("🔧 Voice: Enabled Deep Research");
+    },
+  });
+
+  useVoiceCommand({
+    id: "disable-deep-research",
+    description: "Disables the Deep Research tool",
+    action: () => {
+      const toolId = "deep_research";
+      setEnabledTools((prev) => prev.filter((id) => id !== toolId));
+      console.log("🔧 Voice: Disabled Deep Research");
+    },
+  });
+
+  // 3. Scholar Mode
+  useVoiceCommand({
+    id: "enable-scholar-mode",
+    description: "Enables Scholar Mode",
+    action: () => {
+      const toolId = "scholar_mode";
+      setEnabledTools([toolId]); // Mutual Exclusivity: Only enable this tool
+      console.log("🔧 Voice: Enabled Scholar Mode");
+    },
+  });
+
+  useVoiceCommand({
+    id: "disable-scholar-mode",
+    description: "Disables Scholar Mode",
+    action: () => {
+      const toolId = "scholar_mode";
+      setEnabledTools((prev) => prev.filter((id) => id !== toolId));
+      console.log("🔧 Voice: Disabled Scholar Mode");
+    },
+  });
+
+  // 4. Pedigree Analyst
+  useVoiceCommand({
+    id: "enable-pedigree",
+    description: "Enables the Pedigree Analyst tool",
+    action: () => {
+      const toolId = "pedigree_analyst";
+      setEnabledTools([toolId]); // Mutual Exclusivity: Only enable this tool
+      console.log("🔧 Voice: Enabled Pedigree Analyst");
+    },
+  });
+
+  useVoiceCommand({
+    id: "disable-pedigree",
+    description: "Disables the Pedigree Analyst tool",
+    action: () => {
+      const toolId = "pedigree_analyst";
+      setEnabledTools((prev) => prev.filter((id) => id !== toolId));
+      console.log("🔧 Voice: Disabled Pedigree Analyst");
     },
   });
 
@@ -1106,9 +1173,15 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                       </span>
                     )}
                     <button
-                      onClick={() => handleToggleTool(toolId)}
+                      type="button"
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        // Direct state update using current render value to avoid wrapper function issues
+                        setEnabledTools(enabledTools.filter((id) => id !== toolId));
+                      }}
                       className={cn(
-                        "transition-colors cursor-pointer",
+                        "relative z-10 transition-colors cursor-pointer p-1 rounded-full hover:bg-black/5 dark:hover:bg-white/10",
                         isLimitExhausted
                           ? "text-red-400 dark:text-red-400 hover:text-red-600 dark:hover:text-red-300"
                           : "text-emerald-600 dark:text-emerald-400 hover:text-red-500 dark:hover:text-red-400",

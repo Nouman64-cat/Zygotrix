@@ -73,6 +73,16 @@ export const SEO_KEYWORDS = {
     "genome-wide association study tool",
     "VCF analysis online",
     "SNP association viewer",
+    "association mapping tool",
+
+    // 5. Pedigree Analyst
+    "pedigree chart maker",
+    "family tree genetic analysis",
+    "mendelian inheritance calculator",
+    "visual pedigree builder",
+    "genetic trait tracking tool",
+    "auto-generated pedigree",
+    "inheritance pattern solver",
   ],
 
   // About/Team - Establishing Authority

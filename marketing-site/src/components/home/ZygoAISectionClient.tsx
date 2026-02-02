@@ -82,7 +82,7 @@ const ZygoAISectionClient: React.FC = () => {
                                             <div className="space-y-1.5 sm:space-y-2 animate-pulse">
                                                 {[...Array(5)].map((_, i) => (
                                                     <div key={i} className="flex gap-1">
-                                                        <div className="h-1 sm:h-1.5 rounded-full w-full bg-gradient-to-r from-emerald-500/40 to-teal-500/40" style={{ width: `${Math.random() * 50 + 40}%` }} />
+                                                        <div className="h-1 sm:h-1.5 rounded-full w-full bg-gradient-to-r from-emerald-500/40 to-teal-500/40" style={{ width: `${((i * 13) % 40) + 40}%` }} />
                                                     </div>
                                                 ))}
                                             </div>

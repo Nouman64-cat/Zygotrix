@@ -7,7 +7,9 @@ import type {
 } from "axios";
 import { storage, STORAGE_KEYS } from "../../../utils";
 
-const BASE_URL = import.meta.env.VITE_BASE_URL;
+import { API_URL } from "../../../config";
+
+const BASE_URL = API_URL;
 
 // Extend config to include timing metadata
 interface TimedAxiosRequestConfig extends InternalAxiosRequestConfig {

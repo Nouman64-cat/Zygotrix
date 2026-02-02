@@ -15,7 +15,10 @@ import type {
 } from "../../types/research.types";
 
 // API base URL
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+import { API_URL } from "../../config";
+
+// API base URL
+const API_BASE = API_URL;
 
 /**
  * Get authorization headers

@@ -52,4 +52,6 @@ export const API_ENDPOINTS = {
   },
 } as const;
 
-export const API_BASE_URL = import.meta.env.VITE_BASE_URL;
+import { API_URL } from "../../../config";
+
+export const API_BASE_URL = API_URL;

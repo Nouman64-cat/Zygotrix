@@ -3,49 +3,14 @@
 @plugin "@tailwindcss/typography";
 
 :root {
-  font-family: "Axiforma", -apple-system, BlinkMacSystemFont, "Segoe UI",
-    system-ui, sans-serif;
+  font-family:
+    var(--font-axiforma),
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    system-ui,
+    sans-serif;
   color: #1f2937;
-}
-
-@font-face {
-  font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-Light.ttf") format("truetype");
-  font-weight: 300;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-Regular.ttf") format("truetype");
-  font-weight: 400;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-Medium.ttf") format("truetype");
-  font-weight: 500;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-SemiBold.ttf") format("truetype");
-  font-weight: 600;
-  font-style: normal;
-  font-display: swap;
-}
-
-@font-face {
-  font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-Bold.ttf") format("truetype");
-  font-weight: 700;
-  font-style: normal;
-  font-display: swap;
 }
 
 body {
@@ -63,11 +28,11 @@ body,
 }
 
 /* Improve overall spacing compactness */
-.space-y-6> :not([hidden])~ :not([hidden]) {
+.space-y-6 > :not([hidden]) ~ :not([hidden]) {
   margin-top: 1rem;
 }
 
-.space-y-8> :not([hidden])~ :not([hidden]) {
+.space-y-8 > :not([hidden]) ~ :not([hidden]) {
   margin-top: 1.5rem;
 }
 
@@ -148,7 +113,6 @@ button:not(.btn-large) {
 }
 
 @keyframes pulse-glow {
-
   0%,
   100% {
     box-shadow: 0 0 5px rgba(16, 185, 129, 0.3);
@@ -188,7 +152,6 @@ button:not(.btn-large) {
 
 /* Authentication page animations */
 @keyframes float-up {
-
   0%,
   100% {
     transform: translateY(0px);
@@ -224,14 +187,17 @@ button:not(.btn-large) {
 }
 
 @keyframes glow-pulse {
-
   0%,
   100% {
-    box-shadow: 0 0 5px rgba(30, 58, 138, 0.3), 0 0 10px rgba(30, 58, 138, 0.2);
+    box-shadow:
+      0 0 5px rgba(30, 58, 138, 0.3),
+      0 0 10px rgba(30, 58, 138, 0.2);
   }
 
   50% {
-    box-shadow: 0 0 20px rgba(30, 58, 138, 0.5), 0 0 30px rgba(30, 58, 138, 0.3);
+    box-shadow:
+      0 0 20px rgba(30, 58, 138, 0.5),
+      0 0 30px rgba(30, 58, 138, 0.3);
   }
 }
 
@@ -291,7 +257,6 @@ button:not(.btn-large) {
 
 /* Enhanced DNA strand effects */
 @keyframes dna-base-pulse {
-
   0%,
   100% {
     transform: scale(1);
@@ -310,7 +275,6 @@ button:not(.btn-large) {
 
 /* Enhanced DNA Strand Animations */
 @keyframes dnaPulse {
-
   0%,
   100% {
     opacity: 0.9;
@@ -322,7 +286,6 @@ button:not(.btn-large) {
 }
 
 @keyframes dnaFloat {
-
   0%,
   100% {
     transform: translateY(0px);
@@ -354,7 +317,6 @@ button:not(.btn-large) {
 
 /* Gradient background animation */
 @keyframes gradientShift {
-
   0%,
   100% {
     background-position: 0% 50%;

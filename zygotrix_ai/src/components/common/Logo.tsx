@@ -42,7 +42,7 @@ export const Logo: React.FC<LogoProps> = ({ size = 'md', className, showText = t
               "bg-gray-900 border-emerald-500/30",
               size === 'sm' ? 'scale-75' : ''
             )}>
-              <span className="text-emerald-500">★</span>
+              {/* <span className="text-emerald-500">★</span> */}
               <span className="text-[10px] font-bold tracking-wide text-emerald-400">PRO</span>
             </div>
           )}

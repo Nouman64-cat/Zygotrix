@@ -25,3 +25,4 @@ numpy
 jinja2
 python-dotenv
 anthropic>=0.3.0
+pyyaml

@@ -43,9 +43,12 @@ class CloudStorageManager:
         self.secret_key = None
         
         # Try AWS Credentials
-        aws_key = os.getenv("AWS_IAM_KEY")
-        aws_secret = os.getenv("AWS_IAM_SECRET")
-        aws_bucket = os.getenv("AWS_BUCKET_NAME")
+        from app.config import get_settings
+        settings = get_settings()
+        
+        aws_key = settings.aws_access_key
+        aws_secret = settings.aws_secret_key
+        aws_bucket = settings.aws_bucket_name
         
         if aws_key and aws_secret and aws_bucket:
             self.provider = "aws"

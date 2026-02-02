@@ -1,0 +1,62 @@
+app:
+  name: "Zygotrix"
+  env: "Production"
+  frontend_url: "https://zygotrix.com"
+  university_url: "https://univeristy.zygotrix.com/"
+  bot_name: "Zygotrix AI"
+
+database:
+  mongodb:
+    db_name: "zygotrix"
+    collections:
+      traits: "traits"
+      users: "users"
+      pending_signups: "pending_signups"
+    traits_json_only: true
+
+  redis:
+    cache_ttl_seconds: 300
+
+auth:
+  token_ttl_minutes: 240
+  jwt_algorithm: "HS256"
+  signup_otp_ttl_minutes: 10
+
+email:
+  resend:
+    from: "no-reply@zygotrix.com"
+    support: "support@zygotrix.com"
+
+ai:
+  openai:
+    embedding_model: "text-embedding-3-small"
+
+  claude:
+    model: "claude-3-haiku-20240307"
+
+  cohere:
+    model: "rerank-v4.0-fast"
+
+  pinecone:
+    index_name: "zygotrix-embeddings"
+    host: "https://zygotrix-embeddings-z6tyapi.svc.aped-4627-b74a.pinecone.io"
+
+  routing:
+    enable: true
+    enable_llm_classifier: true
+    confidence_threshold: 0.85
+
+compute:
+  aws:
+    ses_region: "us-east-1"
+    smtp_port: 587
+    bucket_name: "vcf-zygotrix"
+    lambda_function_name: "zygotrix-engine-dev-dispatcher"
+
+  cpp_engine:
+    use_cpp: true
+    parallel_dna_threshold: 1000000
+
+cms:
+  hygraph:
+    endpoint: "https://ap-south-1.cdn.hygraph.com/content/cmgtfkcwm024206vz3snhwwxr/master"

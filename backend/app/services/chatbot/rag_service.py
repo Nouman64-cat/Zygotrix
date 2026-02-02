@@ -37,18 +37,22 @@ class RAGService:
     """
 
     def __init__(self):
-        self.openai_client = AsyncOpenAI(api_key=OPENAI_API_KEY)
-        self.embedding_model = OPENAI_EMBEDDING_MODEL
+        # Load configuration via Settings to ensure values are read from config.yml if not in env
+        from app.config import get_settings
+        settings = get_settings()
+
+        self.openai_client = AsyncOpenAI(api_key=settings.openai_api_key)
+        self.embedding_model = settings.openai_embedding_model
 
         # Initialize Pinecone
-        pc = Pinecone(api_key=PINECONE_API_KEY)
+        pc = Pinecone(api_key=settings.pinecone_api_key)
         self.index = pc.Index(
-            name=PINECONE_INDEX_NAME,
-            host=PINECONE_HOST
+            name=settings.pinecone_index_name,
+            host=settings.pinecone_host
         )
 
         logger.info(f"RAGService initialized with OpenAI model: {self.embedding_model}")
-        logger.info(f"Connected to Pinecone index: {PINECONE_INDEX_NAME}")
+        logger.info(f"Connected to Pinecone index: {settings.pinecone_index_name}")
 
     async def generate_embedding(self, text: str) -> List[float]:
         """

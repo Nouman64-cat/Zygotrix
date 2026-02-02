@@ -1,7 +1,10 @@
 // Chatbot service - calls backend API to avoid CORS issues
 
 // Backend API URL - defaults to localhost for development
-const API_BASE_URL = import.meta.env.VITE_ZYGOTRIX_API;
+// Backend API URL - defaults to localhost for development
+import { API_URL } from "../config";
+
+const API_BASE_URL = API_URL;
 
 export interface ChatMessageAction {
   description: string;
@@ -73,7 +76,7 @@ export async function sendMessage(
   pageContext?: PageContext,
   userName?: string,
   userId?: string,
-  userRole?: string
+  userRole?: string,
 ): Promise<string> {
   try {
     const sessionId = getSessionId();
@@ -136,7 +139,7 @@ export async function getTokenUsageStats(): Promise<{
 } | null> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/chatbot/admin/token-usage`
+      `${API_BASE_URL}/api/chatbot/admin/token-usage`,
     );
     if (!response.ok) {
       console.error("Failed to fetch token usage stats");
@@ -184,11 +187,11 @@ export interface DailyUsageResponse {
 
 // Fetch daily token usage for line chart
 export async function getDailyTokenUsage(
-  days: number = 30
+  days: number = 30,
 ): Promise<DailyUsageResponse | null> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/chatbot/admin/token-usage-daily?days=${days}`
+      `${API_BASE_URL}/api/chatbot/admin/token-usage-daily?days=${days}`,
     );
     if (!response.ok) {
       console.error("Failed to fetch daily token usage");
@@ -219,7 +222,7 @@ export async function getChatbotStatus(): Promise<{ enabled: boolean }> {
 // Get current user's rate limit status (public endpoint)
 export async function getUserRateLimit(
   userId?: string,
-  userRole?: string
+  userRole?: string,
 ): Promise<UsageInfo | null> {
   try {
     const url = new URL(`${API_BASE_URL}/api/chatbot/rate-limit`);
@@ -316,7 +319,7 @@ export interface EmbeddingDailyUsageResponse {
 export async function getEmbeddingUsageStats(): Promise<EmbeddingUsageStats | null> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/chatbot/admin/embedding-usage`
+      `${API_BASE_URL}/api/chatbot/admin/embedding-usage`,
     );
     if (!response.ok) {
       console.error("Failed to fetch embedding usage stats");
@@ -331,11 +334,11 @@ export async function getEmbeddingUsageStats(): Promise<EmbeddingUsageStats | nu
 
 // Fetch daily embedding usage for line chart
 export async function getDailyEmbeddingUsage(
-  days: number = 30
+  days: number = 30,
 ): Promise<EmbeddingDailyUsageResponse | null> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/chatbot/admin/embedding-usage-daily?days=${days}`
+      `${API_BASE_URL}/api/chatbot/admin/embedding-usage-daily?days=${days}`,
     );
     if (!response.ok) {
       console.error("Failed to fetch daily embedding usage");
@@ -423,11 +426,11 @@ export async function getDeepResearchStats(): Promise<DeepResearchStats | null> 
 
 // Fetch daily deep research analytics for line chart
 export async function getDailyDeepResearchUsage(
-  days: number = 30
+  days: number = 30,
 ): Promise<DeepResearchDailyResponse | null> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/deep-research/analytics/daily?days=${days}`
+      `${API_BASE_URL}/api/deep-research/analytics/daily?days=${days}`,
     );
     if (!response.ok) {
       console.error("Failed to fetch daily deep research usage");
@@ -515,11 +518,11 @@ export async function getWebSearchStats(): Promise<WebSearchStats | null> {
 
 // Fetch daily web search analytics for line chart
 export async function getDailyWebSearchUsage(
-  days: number = 30
+  days: number = 30,
 ): Promise<WebSearchDailyResponse | null> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/web-search/analytics/daily?days=${days}`
+      `${API_BASE_URL}/api/web-search/analytics/daily?days=${days}`,
     );
     if (!response.ok) {
       console.error("Failed to fetch daily web search usage");
@@ -603,11 +606,11 @@ export async function getScholarModeStats(): Promise<ScholarModeStats | null> {
 
 // Fetch daily Scholar Mode analytics for line chart
 export async function getDailyScholarModeUsage(
-  days: number = 30
+  days: number = 30,
 ): Promise<ScholarModeDailyResponse | null> {
   try {
     const response = await fetch(
-      `${API_BASE_URL}/api/scholar/analytics/daily?days=${days}`
+      `${API_BASE_URL}/api/scholar/analytics/daily?days=${days}`,
     );
     if (!response.ok) {
       console.error("Failed to fetch daily scholar mode usage");

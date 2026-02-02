@@ -2,6 +2,7 @@
 import React from "react";
 import { IconType } from "react-icons";
 import { FiGrid, FiFolder, FiActivity, FiCpu, FiEdit, FiSearch, FiBarChart2, FiUser, FiSettings, FiSliders } from "react-icons/fi";
+import { STUDIO_URL } from "../../config";
 
 // Floating Card Component
 const FloatingCard: React.FC<{
@@ -30,7 +31,7 @@ const FloatingCard: React.FC<{
 );
 
 const StudioHero: React.FC = () => {
-    const customLink = process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com";
+    const customLink = STUDIO_URL;
 
     return (
         <section className="relative bg-slate-50 dark:bg-slate-950 overflow-hidden pt-16 pb-20 lg:min-h-[90vh] flex items-center border-b border-slate-200 dark:border-slate-800">

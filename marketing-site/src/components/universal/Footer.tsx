@@ -4,7 +4,6 @@ import React, { useState } from "react";
 import Link from "next/link";
 import { subscribeToNewsletter } from "../../services/newsletter.api";
 
-const LOGO_URL = "/zygotrix-logo.png"; // Placeholder
 
 const footerLinks = [
     {

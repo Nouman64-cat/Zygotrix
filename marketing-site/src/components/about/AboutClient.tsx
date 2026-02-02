@@ -17,7 +17,6 @@ import { HiBeaker, HiCog } from "react-icons/hi";
 import { fetchTeamMembers } from "../../services/teamMember";
 import type { TeamMemberSummary } from "../../types/teamMember";
 
-const LOGO_URL = "/zygotrix-logo.png"; // Placeholder
 const CONTACT_EMAIL = "contact@zygotrix.com";
 
 const cardPalettes = [

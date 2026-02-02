@@ -20,12 +20,12 @@ import {
     FaUserGraduate,
     FaChartLine,
 } from "react-icons/fa";
+import { AI_APP_URL, BOT_NAME } from "../../config";
 
-const ZYGO_AI_LOGO_URL = "/zygo-ai-logo.png"; // Placeholder
-const ZYGOTRIX_AI_URL = process.env.NEXT_PUBLIC_ZYGOTRIX_AI_URL || "https://ai.zygotrix.com";
+const ZYGOTRIX_AI_URL = AI_APP_URL;
 
 const AiClient: React.FC = () => {
-    const botName = process.env.NEXT_PUBLIC_ZYGOTRIX_BOT_NAME || "ZygoAI";
+    const botName = BOT_NAME;
 
     const capabilities = [
         {

@@ -7,7 +7,7 @@ import { FiSun, FiMoon, FiChevronDown, FiCpu, FiLayout } from "react-icons/fi";
 
 import { useAuth } from "../../context/AuthContext";
 import { useTheme } from "../../context/ThemeContext";
-import { LOGO_URL } from "../../config";
+import { LOGO_URL, STUDIO_URL } from "../../config";
 
 import { PiDna } from "react-icons/pi";
 import { TbGrid4X4, TbBinaryTree } from "react-icons/tb";
@@ -95,8 +95,6 @@ const Navbar: React.FC = () => {
     const handleSignOut = () => {
         signOut();
     };
-
-    const STUDIO_URL = process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com";
 
     return (
         <header className="sticky top-0 z-50 bg-gray-50/80 dark:bg-gray-900/80 backdrop-blur-sm border-b border-gray-200/50 dark:border-gray-800/50">

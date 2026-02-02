@@ -9,8 +9,9 @@ import { ManhattanPlot } from "./ManhattanPlot";
 import { QQPlot } from "./QQPlot";
 import { AssociationTable } from "./AssociationTable";
 import { cn } from "./utils";
+import { API_URL } from "../../../config";
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_ZYGOTRIX_API || "https://api.zygotrix.com";
+const API_BASE_URL = API_URL;
 
 interface GwasAnalysisClientProps { }
 

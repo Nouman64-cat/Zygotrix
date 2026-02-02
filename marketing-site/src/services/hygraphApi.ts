@@ -5,7 +5,9 @@ import type {
   TagSummary,
 } from "../types/blog";
 
-const HYGRAPH_ENDPOINT = process.env.NEXT_PUBLIC_HYGRAPH_ENDPOINT || "https://ap-south-1.cdn.hygraph.com/content/cmg0d4ao2013r08wb95es4c0w/master";
+import { HYGRAPH_ENDPOINT } from "../config";
+
+// HYGRAPH_TOKEN remains a secret from env
 const HYGRAPH_TOKEN = process.env.NEXT_PUBLIC_HYGRAPH_TOKEN || "";
 
 type GraphQLResponse<T> = {

@@ -3,11 +3,9 @@ import type {
   TeamMembersResponse,
   TeamMemberSummary,
 } from "../types/teamMember";
+import { HYGRAPH_ENDPOINT } from "../config";
 
-const HYGRAPH_ENDPOINT =
-  process.env.NEXT_PUBLIC_HYGRAPH_ENDPOINT ||
-  "https://ap-south-1.cdn.hygraph.com/content/cmg0d4ao2013r08wb95es4c0w/master";
-
+// HYGRAPH_TOKEN remains secret
 const HYGRAPH_TOKEN =
   process.env.NEXT_PUBLIC_HYGRAPH_TOKEN ||
   process.env.NEXT_PUBLIC_HYGRAPH_PERMANENT_AUTH_TOKEN ||

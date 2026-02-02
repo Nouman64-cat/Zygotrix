@@ -3,6 +3,7 @@
 import React from "react";
 import { FaCheck, FaStar, FaMicroscope, FaGraduationCap } from "react-icons/fa";
 import { MdBolt, MdMic, MdAnalytics } from "react-icons/md";
+import { STUDIO_URL } from "../../config";
 
 const PricingClient: React.FC = () => {
     const [isPakistan, setIsPakistan] = React.useState(true);
@@ -90,7 +91,7 @@ const PricingClient: React.FC = () => {
                         </ul>
 
                         <a
-                            href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
+                            href={`${STUDIO_URL}/signup`}
                             className="block w-full text-center py-3 px-6 rounded-xl bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 text-gray-900 dark:text-white font-semibold transition-colors duration-200"
                         >
                             Get Started Free
@@ -185,7 +186,7 @@ const PricingClient: React.FC = () => {
                             </ul>
 
                             <a
-                                href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
+                                href={`${STUDIO_URL}/signup`}
                                 className="block w-full text-center py-3.5 px-6 rounded-xl bg-gray-900 hover:bg-gray-800 text-white font-semibold transition-all duration-200 shadow-lg shadow-gray-900/25"
                             >
                                 Upgrade to PRO

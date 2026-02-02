@@ -2,6 +2,7 @@ import React from "react";
 import Link from "next/link";
 import DNAStrand from "./DNAStrand";
 import { FaBrain, FaDna } from 'react-icons/fa';
+import { STUDIO_URL } from "../../config";
 
 const HeroSection: React.FC = () => {
     return (
@@ -28,7 +29,7 @@ const HeroSection: React.FC = () => {
                                 <FaBrain className="w-5 h-5" /> Launch Zygotrix AI
                             </Link>
                             <a
-                                href={`${process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com"}/signup`}
+                                href={`${STUDIO_URL}/signup`}
                                 className="px-6 py-3 rounded-lg bg-gray-900 dark:bg-white text-white dark:text-gray-900 text-sm font-semibold hover:bg-gray-800 dark:hover:bg-gray-100 transition-colors flex items-center gap-2"
                             >
                                 <FaDna className="w-5 h-5" /> Launch Studio

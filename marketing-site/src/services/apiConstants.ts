@@ -1,5 +1,6 @@
-export const API_BASE_URL =
-    process.env.NEXT_PUBLIC_ZYGOTRIX_API || "https://api.zygotrix.com";
+import { API_URL } from "../config";
+
+export const API_BASE_URL = API_URL;
 
 export const API_ROUTES = {
     protein: {

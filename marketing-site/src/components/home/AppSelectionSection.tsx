@@ -1,6 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { FaBrain, FaDna, FaArrowRight } from 'react-icons/fa';
+import { STUDIO_URL } from "../../config";
 
 const AppSelectionSection: React.FC = () => {
     return (
@@ -208,7 +209,7 @@ const AppSelectionSection: React.FC = () => {
                                 </p>
 
                                 <a
-                                    href={process.env.NEXT_PUBLIC_STUDIO_URL || "https://studio.zygotrix.com/signup"}
+                                    href={STUDIO_URL || "https://studio.zygotrix.com/signup"}
                                     className="w-full inline-flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-slate-900 dark:bg-slate-100 text-white dark:text-slate-900 font-bold hover:bg-slate-800 dark:hover:bg-slate-200 transition-all shadow-lg"
                                 >
                                     Launch Studio <FaArrowRight className="w-4 h-4" />

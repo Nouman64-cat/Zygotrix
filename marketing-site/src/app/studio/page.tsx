@@ -5,6 +5,7 @@ import { SEO_KEYWORDS } from '../../config/seo';
 import StudioHero from '../../components/studio/StudioHero';
 import StudioFeatures from '../../components/studio/StudioFeatures';
 import type { IconKey } from '../../components/universal/Icon';
+import { STUDIO_URL } from '../../config';
 
 export const metadata: Metadata = {
     title: 'Zygotrix Studio - Precision Breeding & Simulation',
@@ -72,7 +73,7 @@ export default function StudioPage() {
                     </p>
                     <div className="flex flex-col sm:flex-row gap-4 justify-center">
                         <a
-                            href={`${process.env.NEXT_PUBLIC_STUDIO_URL || 'https://studio.zygotrix.com'}/signup`}
+                            href={`${STUDIO_URL}/signup`}
                             className="px-8 py-3.5 rounded-lg bg-emerald-600 text-white font-semibold hover:bg-emerald-500 transition-all shadow-lg hover:shadow-emerald-500/30"
                         >
                             Get Started for Free

@@ -301,7 +301,13 @@ class ZygotrixChatService:
 
         # Generate new response
         content, metadata = await self.claude_service.generate_response(
-            claude_messages, system_prompt, model, max_tokens, temperature
+            user_message="",  # Not needed when messages provided
+            messages=claude_messages,
+            system_prompt=system_prompt,
+            model=model,
+            max_tokens=max_tokens,
+            temperature=temperature,
+            use_tools=True,
         )
 
         msg_metadata = MessageMetadata(
@@ -917,11 +923,13 @@ Question: {user_message.content}"""
             # Call Claude for a quick title (using Haiku for speed/cost if available, or just the current model)
             # We use a small max_tokens to ensure brevity
             title, _ = await self.claude_service.generate_response(
-                messages, 
+                user_message="",  # Not needed when messages provided
+                messages=messages, 
                 system_prompt="You are a helpful assistant that generates short, concise titles for conversations.",
                 model="claude-3-haiku-20240307", # Use fast model
                 max_tokens=20,
-                temperature=0.3
+                temperature=0.3,
+                use_tools=False,
             )
             
             # Clean up title
@@ -958,59 +966,76 @@ Question: {user_message.content}"""
 
         async def event_generator():
             assistant_content = ""
-            metadata = None
+            final_usage = None
 
-            async for chunk in self.claude_service.stream_response(
-                claude_messages, system_prompt, model, max_tokens, temperature
-            ):
-                if chunk["type"] == "content":
-                    assistant_content += chunk.get("content", "")
-                    yield f"data: {json.dumps(chunk)}\n\n"
+            try:
+                # Use the unified streaming method which yields SSE-formatted strings
+                async for event in self.claude_service.generate_streaming_response(
+                    user_message="",  # Not needed when messages provided
+                    messages=claude_messages,
+                    system_prompt=system_prompt,
+                    model=model,
+                    max_tokens=max_tokens,
+                    temperature=temperature,
+                    use_tools=False,  # Streaming mode doesn't support tools in this flow
+                ):
+                    # The new method yields SSE-formatted strings
+                    # Forward them directly and parse for tracking
+                    yield event
 
-                elif chunk["type"] == "metadata":
-                    metadata = chunk.get("metadata", {})
+                    # Parse the event to extract content and usage
+                    if event.startswith("data: "):
+                        data_str = event[6:].strip()
+                        if data_str == "[DONE]":
+                            break
+                        try:
+                            payload = json.loads(data_str)
+                            if payload.get("type") == "token":
+                                assistant_content += payload.get("content", "")
+                            elif payload.get("type") == "usage":
+                                final_usage = payload.get("usage")
+                        except json.JSONDecodeError:
+                            pass
 
-                elif chunk["type"] == "error":
-                    yield f"data: {json.dumps(chunk)}\n\n"
+                # Stream finished - Save assistant message
+                if assistant_content:
+                    metadata = final_usage or {}
+                    msg_metadata = MessageMetadata(
+                        input_tokens=metadata.get("input_tokens", 0),
+                        output_tokens=metadata.get("output_tokens", 0),
+                        total_tokens=metadata.get("total_tokens", 0),
+                        model=model,
+                    )
+                    assistant_message = MessageService.create_message(
+                        conversation_id=conversation.id,
+                        role=MessageRole.ASSISTANT,
+                        content=assistant_content,
+                        metadata=msg_metadata,
+                        parent_message_id=user_message.id,
+                    )
 
-                elif chunk["type"] == "done":
-                    # Save assistant message
-                    assistant_message = None
-                    if assistant_content:
-                        msg_metadata = MessageMetadata(
-                            input_tokens=metadata.get("input_tokens", 0) if metadata else 0,
-                            output_tokens=metadata.get("output_tokens", 0) if metadata else 0,
-                            total_tokens=metadata.get("total_tokens", 0) if metadata else 0,
-                            model=model,
-                            widget_type=metadata.get("widget_type") if metadata else None,
-                            breeding_data=metadata.get("breeding_data") if metadata else None,
-                            dna_rna_data=metadata.get("dna_rna_data") if metadata else None,
-                            gwas_data=metadata.get("gwas_data") if metadata else None,
-                        )
-                        assistant_message = MessageService.create_message(
-                            conversation_id=conversation.id,
-                            role=MessageRole.ASSISTANT,
-                            content=assistant_content,
-                            metadata=msg_metadata,
-                            parent_message_id=user_message.id,
-                        )
+                    # Update conversation title if first message
+                    if conversation.message_count <= 2:
+                        asyncio.create_task(self._generate_and_save_title(
+                            conversation.id,
+                            user_id,
+                            chat_request.message,
+                            assistant_content
+                        ))
 
-                        # Update conversation title if first message
-                        if conversation.message_count <= 2:
-                            # Trigger async title generation
-                            asyncio.create_task(self._generate_and_save_title(
-                                conversation.id, 
-                                user_id, 
-                                chat_request.message, 
-                                assistant_content
-                            ))
+                    # Record token usage
+                    self._record_token_usage(
+                        user_id, user_name, metadata, chat_request.message, model
+                    )
 
-                        # Record token usage
-                        self._record_token_usage(
-                            user_id, user_name, metadata if metadata else {}, chat_request.message, model
-                        )
+                    # Send done event with message ID
+                    yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation.id, 'message_id': assistant_message.id})}\n\n"
+                else:
+                    yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation.id, 'message_id': None})}\n\n"
 
-                    yield f"data: {json.dumps({'type': 'done', 'conversation_id': conversation.id, 'message_id': assistant_message.id if assistant_content else None})}\n\n"
+            except Exception as e:
+                logger.error(f"Stream Generator Error: {e}")
+                yield f"event: error\ndata: {json.dumps({'message': str(e)})}\n\n"
 
         return StreamingResponse(
             event_generator(),
@@ -1072,9 +1097,16 @@ Question: {user_message.content}"""
         else:
             # Cache MISS or tools enabled - call Claude API
             perf.start("llm_api_call")
-            content, metadata = await self.claude_service.generate_response_with_tools(
-                claude_messages, system_prompt, model, max_tokens, temperature,
+            content, metadata = await self.claude_service.generate_response(
+                user_message="",  # Not needed when messages provided
+                messages=claude_messages,
+                system_prompt=system_prompt,
+                model=model,
+                max_tokens=max_tokens,
+                temperature=temperature,
                 use_tools=True,
+                extract_widgets=True,  # Enable widget extraction for Zygotrix AI
+                enable_caching=True,
             )
             perf.stop("llm_api_call")
             

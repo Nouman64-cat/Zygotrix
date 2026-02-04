@@ -204,7 +204,7 @@ Respond with ONLY ONE of these words: CONVERSATIONAL, KNOWLEDGE, GENETICS_TOOLS,
             # Track token usage
             if hasattr(response, 'usage'):
                 try:
-                    from ..token_analytics_service import get_token_analytics_service
+                    from .token_analytics_service import get_token_analytics_service
                     analytics = get_token_analytics_service()
 
                     input_tokens = response.usage.input_tokens

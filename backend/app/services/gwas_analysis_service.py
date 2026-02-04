@@ -107,23 +107,35 @@ class GwasAnalysisService:
                 raise HTTPException(status_code=403, detail="Unauthorized access to dataset")
 
             # Step 2: Prepare data for C++ engine
-            print(f"DEBUG: Preparing analysis data")
-            snps, samples = self._prepare_analysis_data(
-                dataset_id=dataset_id,
-                phenotype_column=phenotype_column,
-                covariates=covariates or [],
-            )
-            print(f"DEBUG: Data prepared. SNPs: {len(snps)}, Samples: {len(samples)}")
+            # Step 2: Prepare payload for Lambda (Cloud-native)
+            print(f"DEBUG: Preparing cloud payload")
+            
+            # Ensure S3 keys exist
+            if not dataset.s3_key or not dataset.s3_bucket:
+                # Attempt to use file_path if s3_key missing (legacy/local support)
+                # But for this refactor we prefer failing or specific logic.
+                # Let's assume s3_key is mandatory for the new flow.
+                 print(f"DEBUG: Missing S3 info for dataset {dataset_id}")
+                 # Fallback/Error? For now raise error as per "Stop the Bleeding" strictness
+                 raise HTTPException(status_code=400, detail="Dataset not on S3 (s3_key missing). Analysis requires cloud storage.")
 
-            # Step 3: Call C++ GWAS engine
-            print(f"DEBUG: Calling GWAS engine")
+            payload = {
+                "s3_bucket": dataset.s3_bucket,
+                "s3_key": dataset.s3_key,
+                "phenotype_column": phenotype_column,
+                "parameters": {
+                    "test_type": analysis_type.value,
+                    "maf_threshold": maf_threshold,
+                    "num_threads": num_threads,
+                    "covariates": covariates or []
+                }
+            }
+
+            # Step 3: Call C++ GWAS engine via Lambda
+            print(f"DEBUG: Calling GWAS engine with s3_key: {dataset.s3_key}")
             engine_response = run_gwas_analysis(
-                snps=snps,
-                samples=samples,
-                analysis_type=analysis_type,
-                maf_threshold=maf_threshold,
-                num_threads=num_threads,
-                timeout=600,  # 10 minutes timeout
+                payload=payload,
+                timeout=600,
             )
             print(f"DEBUG: Engine finished. Response keys: {engine_response.keys()}")
 
@@ -178,135 +190,7 @@ class GwasAnalysisService:
             # Re-raise so the background task logger sees it
             raise e
 
-    def _prepare_analysis_data(
-        self,
-        dataset_id: str,
-        phenotype_column: str,
-        covariates: List[str],
-    ) -> tuple[List[Dict[str, Any]], List[Dict[str, Any]]]:
-        """
-        Prepare SNP and sample data for C++ engine.
-        
-        Loads processed data from storage and transforms it into the format
-        expected by the GWAS engine (sample-major genotypes).
-        """
-        from .gwas_dataset_service import get_gwas_dataset_service
-        import random
-
-        dataset_service = get_gwas_dataset_service()
-
-        # Get dataset to check user_id
-        dataset = self.dataset_repo.find_by_id(dataset_id)
-        if not dataset:
-            raise HTTPException(status_code=404, detail=f"Dataset {dataset_id} not found")
-
-        # Load processed data
-        processed_data = dataset_service.load_dataset_for_analysis(dataset.user_id, dataset_id)
-        if not processed_data:
-            raise HTTPException(status_code=404, detail=f"Processed data for dataset {dataset_id} not found")
-
-        snps_data = processed_data.get("snps", [])
-        raw_samples = processed_data.get("samples", [])
-
-        # Prepare samples list
-        samples = []
-        
-        # Check if raw_samples is list of strings (VCF) or list of dicts (Phenotype/Custom)
-        is_simple_sample_list = raw_samples and isinstance(raw_samples[0], str)
-
-        for i, raw_sample in enumerate(raw_samples):
-            if is_simple_sample_list:
-                sample_id = str(raw_sample)
-                # For VCF without phenotype file, we don't have phenotypes.
-                # If phenotype_column is "unknown_trait", generate synthetic data for demo.
-                if phenotype_column == "unknown_trait":
-                    # Generate random phenotype correlated with first SNP to ensure some "hits"
-                    # Just for demo purposes so the user sees results
-                    phenotype = random.gauss(10, 2)
-                    # Add effect from first SNP if available
-                    if snps_data:
-                        first_snp_gt = snps_data[0].get("genotypes", [])
-                        if i < len(first_snp_gt) and first_snp_gt[i] != -1:
-                            phenotype += first_snp_gt[i] * 2.0
-                else:
-                    phenotype = 0.0 # Unknown
-                
-                sample_covariates = []
-            else:
-                # Dict with phenotypes
-                sample_id = raw_sample.get("sample_id")
-                phenotypes = raw_sample.get("phenotypes", {})
-                phenotype = phenotypes.get(phenotype_column)
-                
-                if phenotype is None and phenotype_column == "unknown_trait":
-                    phenotype = random.gauss(10, 2)
-                elif phenotype is None:
-                    phenotype = 0.0
-                
-                sample_covariates = []
-                # TODO: Extract covariates based on `covariates` list arg
-
-            samples.append({
-                "sample_id": sample_id,
-                "phenotype": float(phenotype),
-                "genotypes": [],  # Will be filled below
-                "covariates": sample_covariates,
-            })
-
-        # Pivot genotypes from SNP-major (in snps_data) to Sample-major (in samples)
-        cleaned_snps = []
-        for snp in snps_data:
-            cleaned_snps.append({
-                "rsid": snp.get("rsid"),
-                "chromosome": snp.get("chromosome"),
-                "position": snp.get("position"),
-                "ref_allele": snp.get("ref_allele"),
-                "alt_allele": snp.get("alt_allele"),
-            })
-
-            genotypes = snp.get("genotypes", [])
-            for i, gt in enumerate(genotypes):
-                if i < len(samples):
-                    samples[i]["genotypes"].append(gt)
-
-        # Force augmentation for small datasets (e.g. single sample VCFs) to allow demo/plot generation
-        # This is CRITICAL for the marketing site tool where users might upload simple test files
-        MIN_SAMPLES_FOR_ANALYSIS = 10
-        if len(samples) < MIN_SAMPLES_FOR_ANALYSIS:
-            print(f"DEBUG: Dataset has only {len(samples)} samples. Augmenting with synthetic data to reach {MIN_SAMPLES_FOR_ANALYSIS}...")
-            
-            # Determine how many to add
-            needed = MIN_SAMPLES_FOR_ANALYSIS - len(samples)
-            
-            for k in range(needed):
-                # Generate synthetic sample
-                syn_id = f"synthetic_{k+1}"
-                
-                # Generate random phenotype (normal distribution)
-                # Make it correlated with the first few SNPs to ensure some "hits" for the plot
-                pheno_val = random.gauss(0, 1)
-                
-                syn_genotypes = []
-                for idx, snp in enumerate(cleaned_snps): 
-                    # Random genotype 0, 1, 2 based on basic Hardy-Weinberg-ish probabilities
-                    # Or just random
-                    g = random.choices([0, 1, 2], weights=[0.49, 0.42, 0.09])[0]
-                    syn_genotypes.append(g)
-                    
-                    # Add effect for first 5 SNPs
-                    if idx < 5:
-                       pheno_val += g * 0.5
-
-                samples.append({
-                    "sample_id": syn_id,
-                    "phenotype": pheno_val + random.gauss(0, 0.5), # Add noise
-                    "genotypes": syn_genotypes,
-                    "covariates": [],
-                })
-            
-            print(f"DEBUG: Augmentation complete. Total samples: {len(samples)}")
-
-        return cleaned_snps, samples
+    # _prepare_analysis_data removed to stop reading files into RAM
 
     def _parse_association_results(
         self,

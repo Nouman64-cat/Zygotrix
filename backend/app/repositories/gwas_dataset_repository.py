@@ -65,7 +65,10 @@ class GwasDatasetRepository:
             "status": GwasDatasetStatus.UPLOADING.value,
             "num_snps": None,
             "num_samples": None,
+            "num_samples": None,
             "file_path": file_path,
+            "s3_key": None,
+            "s3_bucket": None,
             "created_at": now,
             "updated_at": now,
         }
@@ -236,6 +239,8 @@ class GwasDatasetRepository:
             num_snps=doc.get("num_snps"),
             num_samples=doc.get("num_samples"),
             file_path=doc.get("file_path"),
+            s3_key=doc.get("s3_key"),
+            s3_bucket=doc.get("s3_bucket"),
             created_at=doc["created_at"],
             updated_at=doc.get("updated_at"),
         )

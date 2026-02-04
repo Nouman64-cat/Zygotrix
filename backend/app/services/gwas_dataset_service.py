@@ -11,6 +11,8 @@ Orchestrates:
 """
 
 import logging
+import shutil
+import gzip
 from pathlib import Path
 from typing import Dict, Any, Optional
 from fastapi import UploadFile, HTTPException
@@ -89,79 +91,93 @@ class GwasDatasetService:
             # 2. Create storage directories
             self.storage.create_dataset_directory(user_id, dataset_id)
 
-            # 3. Save uploaded file
-            file_content = await file.read()
-            file_path = await self.storage.save_uploaded_file(
-                user_id=user_id,
-                dataset_id=dataset_id,
-                file_data=file_content,
-                filename=file.filename,
-                file_type="raw",
-            )
+            # 3. Save uploaded file (Streaming)
+            import tempfile
+            import os
+            
+            # Create temp file
+            suffix = Path(file.filename).suffix
+            with tempfile.NamedTemporaryFile(mode='wb', suffix=suffix, delete=False) as tmp_file:
+                # Stream copy from upload to temp
+                shutil.copyfileobj(file.file, tmp_file)
+                tmp_path = Path(tmp_file.name)
+            
+            try:
+                # Upload to storage from path
+                file_path = self.storage.save_uploaded_file_from_path(
+                    user_id=user_id,
+                    dataset_id=dataset_id,
+                    source_path=tmp_path,
+                    filename=file.filename,
+                    file_type="raw",
+                )
+                
+                logger.info(f"Saved file to {file_path}")
 
-            logger.info(f"Saved file to {file_path}")
+                # Update dataset with file path and S3 info
+                update_fields = {"file_path": str(file_path)}
+                if self.storage.cloud_enabled:
+                    update_fields["s3_key"] = str(file_path) # CloudStorageManager returns the key
+                    update_fields["s3_bucket"] = self.storage.bucket_name
+                
+                self.dataset_repo.update(dataset_id, **update_fields)
 
-            # Update dataset with file path
-            self.dataset_repo.update(dataset_id, file_path=str(file_path))
+                # 4. Update status to PROCESSING
+                self.dataset_repo.update_status(
+                    dataset_id=dataset_id,
+                    status=GwasDatasetStatus.PROCESSING,
+                )
 
-            # 4. Update status to PROCESSING
-            self.dataset_repo.update_status(
-                dataset_id=dataset_id,
-                status=GwasDatasetStatus.PROCESSING,
-            )
+                # 5. Validate file header only (First 100 lines)
+                metadata_extracted = self._validate_and_extract_header(
+                    file_path=tmp_path,
+                    file_format=file_format,
+                )
 
-            # 5. Parse file based on format
-            # For cloud storage, we parse directly from the file content
-            parsed_data = self._parse_dataset_content(
-                file_content=file_content,
-                filename=file.filename,
-                file_format=file_format,
-            )
+                # 6. Save metadata
+                # Use extracted counts or defaults
+                sample_count = metadata_extracted.get("sample_count", 0)
+                snp_count = metadata_extracted.get("snp_count", 0)
 
-            # 6. Save processed data
-            self.storage.save_processed_data(
-                user_id=user_id,
-                dataset_id=dataset_id,
-                data=parsed_data,
-            )
+                metadata = {
+                    "name": name,
+                    "description": description,
+                    "file_format": file_format.value,
+                    "trait_type": trait_type,
+                    "trait_name": trait_name,
+                    "sample_count": sample_count,
+                    "snp_count": snp_count,
+                    "columns": metadata_extracted.get("columns", [])
+                }
+                self.storage.save_metadata(user_id, dataset_id, metadata)
 
-            # 7. Save metadata
-            # Extract counts with defaults
-            sample_count = parsed_data["metadata"].get("sample_count", len(parsed_data.get("samples", [])))
-            snp_count = parsed_data["metadata"].get("snp_count", len(parsed_data.get("snps", [])))
+                # 7. Update dataset status to READY
+                self.dataset_repo.update_status(
+                    dataset_id=dataset_id,
+                    status=GwasDatasetStatus.READY,
+                    num_snps=snp_count,
+                    num_samples=sample_count,
+                )
 
-            metadata = {
-                "name": name,
-                "description": description,
-                "file_format": file_format.value,
-                "trait_type": trait_type,
-                "trait_name": trait_name,
-                "sample_count": sample_count,
-                "snp_count": snp_count,
-            }
-            self.storage.save_metadata(user_id, dataset_id, metadata)
+                logger.info(
+                    f"Dataset {dataset_id} uploaded successfully: "
+                    f"~{snp_count} SNPs, "
+                    f"~{sample_count} samples"
+                )
 
-            # 8. Update dataset status to READY
-            self.dataset_repo.update_status(
-                dataset_id=dataset_id,
-                status=GwasDatasetStatus.READY,
-                num_snps=snp_count,
-                num_samples=sample_count,
-            )
-
-            logger.info(
-                f"Dataset {dataset_id} processed successfully: "
-                f"{snp_count} SNPs, "
-                f"{sample_count} samples"
-            )
-
-            # Return updated dataset
-            return self.dataset_repo.find_by_id(dataset_id)
+                return self.dataset_repo.find_by_id(dataset_id)
+                
+            finally:
+                # Cleanup temp file
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
 
         except Exception as e:
-            logger.error(f"Dataset upload/parsing failed: {str(e)}", exc_info=True)
+            logger.error(f"Dataset upload failed: {str(e)}", exc_info=True)
 
-            # Update status to ERROR if dataset was created
+            # Update status to ERROR
             if dataset_id:
                 self.dataset_repo.update_status(
                     dataset_id=dataset_id,
@@ -171,67 +187,71 @@ class GwasDatasetService:
 
             raise HTTPException(
                 status_code=400,
-                detail=f"Dataset upload/parsing failed: {str(e)}"
+                detail=f"Dataset upload failed: {str(e)}"
             )
 
-    def _parse_dataset_content(
+    def _validate_and_extract_header(
         self,
-        file_content: bytes,
-        filename: str,
+        file_path: Path,
         file_format: GwasFileFormat,
     ) -> Dict[str, Any]:
         """
-        Parse dataset from file content (bytes).
-        
-        Uses a temporary file for compatibility with existing parsers.
-        This approach works for both local and cloud storage.
-
-        Args:
-            file_content: File content as bytes
-            filename: Original filename
-            file_format: File format enum
-
-        Returns:
-            Parsed data dictionary
-
-        Raises:
-            ValueError: If format is unsupported
+        Validate file headers and extract minimal metadata.
+        Reads only the first 100 lines.
         """
-        import tempfile
-        import os
-        
-        logger.info(f"Parsing {file_format.value} file: {filename}")
-
-        # Create a temporary file to parse
-        # This is needed because existing parsers expect file paths
-        suffix = Path(filename).suffix
-        with tempfile.NamedTemporaryFile(mode='wb', suffix=suffix, delete=False) as tmp_file:
-            tmp_file.write(file_content)
-            tmp_path = Path(tmp_file.name)
+        metadata = {"sample_count": 0, "snp_count": 0, "columns": []}
         
         try:
-            if file_format == GwasFileFormat.VCF:
-                parser = VcfParser(tmp_path)
-                return parser.parse()
+            # Determine opener based on extension
+            opener = gzip.open if str(file_path).endswith('.gz') else open
+            mode = 'rt' # Text mode
 
-            elif file_format == GwasFileFormat.PLINK:
-                # For PLINK, file_path should be .bed file
-                parser = PlinkParser(tmp_path)
-                return parser.parse()
+            with opener(file_path, mode) as f:
+                if file_format == GwasFileFormat.VCF:
+                    # Parse VCF Header
+                    for i, line in enumerate(f):
+                        if i > 1000: # VCF headers can be long, but limit to 1000 lines check
+                            break
+                        
+                        line = line.strip()
+                        if line.startswith("#CHROM"):
+                            # Header line: #CHROM POS ID REF ALT QUAL FILTER INFO FORMAT sample1 sample2 ...
+                            parts = line.split('\t')
+                            if len(parts) > 9:
+                                samples = parts[9:]
+                                metadata["sample_count"] = len(samples)
+                                metadata["columns"] = parts[:9]
+                                return metadata
+                        elif not line.startswith("#"):
+                            # Data line before header? Invalid VCF
+                            raise ValueError("Invalid VCF: Found data line before #CHROM header")
+                    else:
+                        raise ValueError("Invalid VCF: No #CHROM header found in first 1000 lines")
 
-            elif file_format == GwasFileFormat.CUSTOM:
-                # Custom JSON format
-                parser = CustomJsonParser(tmp_path)
-                return parser.parse()
+                elif file_format == GwasFileFormat.PLINK:
+                    # PLINK typically uploads .bed, .bim, .fam
+                    # We can check .fam for sample count and .bim for SNP count
+                    # But if we only uploaded one file here (the packaged zip or single file), handle accordingly.
+                    # For now, just simplistic validation since logic assumes single file upload context in this method
+                    # If assume .fam is separate, we can't do much here with just .bed or .bim path.
+                    # Placeholder:
+                    metadata["sample_count"] = 0 
+                    return metadata
 
-            else:
-                raise ValueError(f"Unsupported file format: {file_format.value}")
-        finally:
-            # Clean up temporary file
-            try:
-                os.unlink(tmp_path)
-            except OSError:
-                pass
+                elif file_format == GwasFileFormat.CUSTOM:
+                     # Check JSON structure
+                    import json
+                    # Read first bit to ensure valid JSON start
+                    with open(file_path, 'r') as f_txt:
+                        start = f_txt.read(1024)
+                        if not start.strip().startswith("{") and not start.strip().startswith("["):
+                             raise ValueError("Invalid JSON format")
+                    return metadata
+
+        except Exception as e:
+            raise ValueError(f"File validation failed: {str(e)}")
+            
+        return metadata
 
     def delete_dataset(self, user_id: str, dataset_id: str) -> bool:
         """

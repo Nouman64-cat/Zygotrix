@@ -24,47 +24,22 @@ from ..schema.gwas import GwasAnalysisType
 from app.services.aws_worker_client import get_aws_worker
 
 def run_gwas_analysis(
-    snps: List[Dict[str, Any]],
-    samples: List[Dict[str, Any]],
-    analysis_type: GwasAnalysisType,
-    maf_threshold: float = 0.01,
-    num_threads: int = 4,
+    payload: Dict[str, Any],
     timeout: int = 600,
 ) -> Dict[str, Any]:
     """
-    Run GWAS analysis.
-    Tries AWS Lambda C++ engine first, falls back to Python implementation if not found or fails.
+    Run GWAS analysis via AWS Lambda (gwas_vcf action).
     """
     try:
-        try:
-            print("INFO: Engine - Invoking AWS Lambda for GWAS analysis")
-            worker = get_aws_worker()
-            
-            # Build request payload for C++ engine
-            # Note: Lambda expects 'action' and 'payload'. 
-            # Our 'action' is 'gwas'. The payload is the data.
-            # If the C++ logic inside lambda needs specific keys, we match what was sent to CLI.
-            
-            payload = {
-                "snps": snps,
-                "samples": samples,
-                "test_type": analysis_type.value,
-                "maf_threshold": maf_threshold,
-                "num_threads": num_threads,
-            }
-
-            # Log size for debugging
-            # print(f"DEBUG: Engine - Payload size: {len(str(payload))} chars") # costly to stringify huge payload
-
-            response = worker.invoke(action="gwas", payload=payload)
-            
-            print("INFO: Engine - AWS Lambda execution completed successfully")
-            return response
-
-        except (HTTPException, Exception) as e:
-            # Fallback to Python implementation
-            print(f"WARN: Engine - AWS Lambda failed, falling back to Python: {e}")
-            return _python_linear_regression(snps, samples, analysis_type)
+        print(f"INFO: Engine - Invoking AWS Lambda (gwas_vcf) for s3_key: {payload.get('s3_key')}")
+        worker = get_aws_worker()
+        
+        # Invoke Lambda with the pre-constructed cloud payload
+        # Action is now 'gwas_vcf' as per Phase 1 requirements
+        response = worker.invoke(action="gwas_vcf", payload=payload)
+        
+        print("INFO: Engine - AWS Lambda execution completed successfully")
+        return response
 
     except Exception as e:
         print(f"ERROR: Engine - Critical failure: {e}")

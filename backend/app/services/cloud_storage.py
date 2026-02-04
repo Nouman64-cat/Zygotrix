@@ -207,6 +207,60 @@ class CloudStorageManager:
             
             logger.info(f"📁 Saved locally: {local_path}")
             return str(local_path)
+
+    def save_uploaded_file_from_path(
+        self,
+        user_id: str,
+        dataset_id: str,
+        source_path: Path,
+        filename: str,
+        file_type: str = "raw",
+    ) -> str:
+        """
+        Save a file from a local path to storage (streaming).
+        
+        Args:
+            user_id: User ID
+            dataset_id: Dataset ID
+            source_path: Path to local source file
+            filename: Target filename
+            file_type: 'raw' or 'processed'
+            
+        Returns:
+            Path/key where file was saved
+        """
+        if file_type not in ("raw", "processed"):
+            raise ValueError(f"Invalid file_type: {file_type}")
+            
+        if self.cloud_enabled:
+            key = self._get_key(user_id, dataset_id, file_type, filename)
+            
+            try:
+                self.s3_client.upload_file(
+                    Filename=str(source_path),
+                    Bucket=self.bucket_name,
+                    Key=key,
+                    ExtraArgs={
+                        'ACL': 'private',
+                        'ContentType': self._get_content_type(filename)
+                    }
+                )
+                logger.info(f"☁️ Uploaded to Spaces: {key}")
+                return key
+                
+            except ClientError as e:
+                logger.error(f"Failed to upload to Spaces: {e}")
+                raise
+        else:
+            # Local storage fallback - just copy
+            import shutil
+            local_path = self._get_local_path(user_id, dataset_id, file_type, filename)
+            local_path.parent.mkdir(parents=True, exist_ok=True)
+            
+            shutil.copy2(source_path, local_path)
+            
+            logger.info(f"📁 Saved locally: {local_path}")
+            return str(local_path)
     
     def download_file(
         self,

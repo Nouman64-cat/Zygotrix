@@ -162,6 +162,8 @@ class GwasDatasetResponse(BaseModel):
     num_snps: Optional[int] = Field(None, description="Number of SNPs in dataset")
     num_samples: Optional[int] = Field(None, description="Number of samples")
     file_path: Optional[str] = Field(None, description="Path to uploaded file")
+    s3_key: Optional[str] = Field(None, description="S3 Key")
+    s3_bucket: Optional[str] = Field(None, description="S3 Bucket")
     created_at: datetime
     updated_at: Optional[datetime] = None
 

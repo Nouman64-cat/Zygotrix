@@ -149,7 +149,7 @@ class QueryRouter:
         No data sources needed - direct Claude response.
         Optimizes for: speed, cost
         """
-        from .claude_ai_service import get_claude_ai_service
+        from ..ai import get_claude_service
 
         logger.debug("Routing: CONVERSATIONAL (no data sources)")
 
@@ -159,7 +159,7 @@ The user just said: "{query}"
 
 Respond naturally and conversationally. Keep it brief and friendly."""
 
-        claude_service = get_claude_ai_service()
+        claude_service = get_claude_service()
 
         # Generate simple response (no context, no tools)
         response, token_usage = await claude_service.generate_response(
@@ -191,7 +191,7 @@ Respond naturally and conversationally. Keep it brief and friendly."""
         Skips: MCP tools
         Optimizes for: relevant context, no tool overhead
         """
-        from .claude_ai_service import get_claude_ai_service
+        from ..ai import get_claude_service
 
         logger.debug("Routing: KNOWLEDGE (Pinecone only)")
 
@@ -202,7 +202,7 @@ Respond naturally and conversationally. Keep it brief and friendly."""
             user_name=user_name
         )
 
-        claude_service = get_claude_ai_service()
+        claude_service = get_claude_service()
 
         # Generate response with context but NO MCP tools
         response, token_usage = await claude_service.generate_response(

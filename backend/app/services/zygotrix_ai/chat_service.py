@@ -27,7 +27,7 @@ from ..chatbot.token_analytics_service import get_token_analytics_service
 from ..chatbot.rag_service import get_rag_service
 from ..chatbot.traits_enrichment_service import get_traits_service
 from ..chatbot.response_cache_service import get_response_cache
-from .claude_service import get_zygotrix_claude_service
+from ..ai import get_claude_service
 from app.core.performance import PerformanceTracker
 
 logger = logging.getLogger(__name__)
@@ -37,7 +37,7 @@ class ZygotrixChatService:
     """Service for handling Zygotrix AI chat operations."""
 
     def __init__(self):
-        self.claude_service = get_zygotrix_claude_service()
+        self.claude_service = get_claude_service()
         self.rate_limiter = get_rate_limiter()
         self.token_analytics = get_token_analytics_service()
         self.rag_service = get_rag_service()

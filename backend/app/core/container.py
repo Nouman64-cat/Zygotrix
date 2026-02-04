@@ -126,14 +126,12 @@ class ServiceContainer:
         Get Zygotrix Claude service.
 
         Returns:
-            Zygotrix Claude service instance
+            Claude service instance
         """
         if "zygotrix_claude" not in self._services:
-            from ..services.zygotrix_ai.claude_service import (
-                get_zygotrix_claude_service,
-            )
+            from ..services.ai import get_claude_service
 
-            self._services["zygotrix_claude"] = get_zygotrix_claude_service()
+            self._services["zygotrix_claude"] = get_claude_service()
 
         return self._services["zygotrix_claude"]
 

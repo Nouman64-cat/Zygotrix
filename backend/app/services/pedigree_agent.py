@@ -1,7 +1,7 @@
 import json
 import logging
 import re
-from app.services.zygotrix_ai.claude_service import get_zygotrix_claude_service
+from app.services.ai import get_claude_service
 from app.services.cpp_engine import run_pedigree_analysis
 from app.schema.pedigree import PedigreeRequest, PedigreeResponse, PedigreeStructure
 
@@ -63,7 +63,7 @@ INSTRUCTIONS:
 """
 
 async def process_pedigree_query(request: PedigreeRequest) -> PedigreeResponse:
-    claude = get_zygotrix_claude_service()
+    claude = get_claude_service()
     
     # --- PHASE 1: EXTRACTION (LLM) ---
     logger.info(f"🧬 Phase 1: Extracting pedigree structure for query: {request.query[:50]}...")

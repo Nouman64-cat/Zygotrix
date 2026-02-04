@@ -20,7 +20,7 @@ from ..services.chatbot_settings import get_chatbot_settings
 from ..services.chatbot.response_cache_service import get_response_cache
 from ..services.chatbot.conversation_memory_service import get_conversation_memory
 from ..services.chatbot.rate_limiting_service import get_rate_limiter
-from ..services.chatbot.claude_ai_service import get_claude_ai_service
+from ..services.ai import get_claude_service
 from ..services.chatbot.rag_service import get_rag_service
 from ..services.chatbot.traits_enrichment_service import get_traits_service
 from ..services.chatbot.token_analytics_service import get_token_analytics_service
@@ -265,7 +265,7 @@ async def chat(request: ChatRequest) -> ChatResponse:
 
             # Step 5: Generate response using Claude with context, page context, user name, and conversation history
             user_name = request.userName or "there"
-            response, token_usage = await get_claude_ai_service().generate_response(
+            response, token_usage = await get_claude_service().generate_response(
                 user_message=request.message,
                 context=combined_context,
                 page_context=request.pageContext,
@@ -376,7 +376,7 @@ async def chat_stream(request: ChatRequest) -> StreamingResponse:
             final_usage = None
             
             try:
-                async for event in get_claude_ai_service().generate_streaming_response(
+                async for event in get_claude_service().generate_streaming_response(
                     user_message=request.message,
                     context=combined_context,
                     page_context=request.pageContext,

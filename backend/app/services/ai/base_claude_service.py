@@ -12,6 +12,8 @@ Following the DRY principle, all shared logic is centralized here.
 import os
 import json
 import logging
+import asyncio
+import random
 from typing import Optional, List, Dict, Tuple, Any, AsyncGenerator
 from abc import ABC
 
@@ -302,38 +304,80 @@ class BaseClaudeService(ABC):
         self,
         request_body: dict,
         enable_caching: bool = False,
-        timeout: float = 120.0
+        timeout: float = 120.0,
+        max_retries: int = 3
     ) -> dict:
         """
-        Make a non-streaming API request to Claude.
+        Make a non-streaming API request to Claude with retry logic.
         
         Args:
             request_body: Request body dictionary
             enable_caching: Whether caching is enabled
             timeout: Request timeout in seconds
+            max_retries: Maximum number of retries for transient errors
             
         Returns:
             Response data dictionary
             
         Raises:
-            HTTPException: If the API returns an error
+            HTTPException: If the API returns a non-retriable error or retries are exhausted
         """
-        async with httpx.AsyncClient(timeout=timeout) as client:
-            response = await client.post(
-                self.api_url,
-                headers=self._get_headers(enable_caching=enable_caching),
-                json=request_body,
-            )
+        last_exception = None
+        
+        for attempt in range(max_retries + 1):
+            try:
+                async with httpx.AsyncClient(timeout=timeout) as client:
+                    response = await client.post(
+                        self.api_url,
+                        headers=self._get_headers(enable_caching=enable_caching),
+                        json=request_body,
+                    )
+                    
+                    if response.status_code == 200:
+                        return response.json()
+                        
+                    # Check if error is retriable (5xx Server Errors or 429 Rate Limit)
+                    if response.status_code >= 500 or response.status_code == 429:
+                        error_text = response.text
+                        logger.warning(
+                            f"Claude API transient error (Attempt {attempt + 1}/{max_retries + 1}): "
+                            f"{response.status_code} - {error_text}"
+                        )
+                        
+                        if attempt < max_retries:
+                            # Exponential backoff with jitter: 2^attempt * 1s + random(0-1s)
+                            delay = (2 ** attempt) + random.random()
+                            logger.info(f"Retrying in {delay:.2f} seconds...")
+                            await asyncio.sleep(delay)
+                            continue
+                    
+                    # If we get here, it's either a non-retriable error or we've exhausted retries
+                    error_text = response.text
+                    logger.error(f"Claude API failed: {response.status_code} - {error_text}")
+                    raise HTTPException(
+                        status_code=500 if response.status_code >= 500 else response.status_code,
+                        detail=f"AI Provider Error: {response.status_code}"
+                    )
             
-            if response.status_code != 200:
-                error_text = response.text
-                logger.error(f"Claude API error: {response.status_code} - {error_text}")
-                raise HTTPException(
-                    status_code=500,
-                    detail="Failed to generate response from AI"
+            except httpx.RequestError as e:
+                # Network level errors (connection refused, timeout, etc) are also retriable
+                logger.warning(
+                    f"Claude API network error (Attempt {attempt + 1}/{max_retries + 1}): {str(e)}"
                 )
-            
-            return response.json()
+                last_exception = e
+                
+                if attempt < max_retries:
+                    delay = (2 ** attempt) + random.random()
+                    logger.info(f"Retrying network error in {delay:.2f} seconds...")
+                    await asyncio.sleep(delay)
+                    continue
+                    
+        # If we exit the loop, we failed
+        logger.error(f"Claude API failed after {max_retries + 1} attempts")
+        raise HTTPException(
+            status_code=503,
+            detail="AI Service Unavailable after multiple retries"
+        ) from last_exception
     
     async def _stream_api_request(
         self,

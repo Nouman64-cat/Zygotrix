@@ -68,17 +68,14 @@ async def process_pedigree_query(request: PedigreeRequest) -> PedigreeResponse:
     # --- PHASE 1: EXTRACTION (LLM) ---
     logger.info(f"🧬 Phase 1: Extracting pedigree structure for query: {request.query[:50]}...")
     
-    extraction_messages = [
-        {"role": "user", "content": f"Extract this family tree: {request.query}"}
-    ]
-    
     # We force a low temperature for rigid JSON extraction
     raw_structure_text, _ = await claude.generate_response(
-        messages=extraction_messages,
+        user_message=f"Extract this family tree: {request.query}",
         system_prompt=EXTRACTION_PROMPT,
         model="claude-3-haiku-20240307", 
         max_tokens=1024,
-        temperature=0.0
+        temperature=0.0,
+        use_tools=False
     )
     
     try:
@@ -130,16 +127,13 @@ async def process_pedigree_query(request: PedigreeRequest) -> PedigreeResponse:
     Engine Analysis: {analysis_result.model_dump_json()}
     """
     
-    response_messages = [
-        {"role": "user", "content": f"Explain this analysis result to the user: {context}"}
-    ]
-    
     final_explanation, _ = await claude.generate_response(
-        messages=response_messages,
+        user_message=f"Explain this analysis result to the user: {context}",
         system_prompt=EXPLANATION_PROMPT,
-        model="claude-3-haiku-20240307", # Updated model to Haiku as requested
+        model="claude-3-haiku-20240307",
         max_tokens=2048,
-        temperature=0.3
+        temperature=0.3,
+        use_tools=False
     )
 
     return PedigreeResponse(

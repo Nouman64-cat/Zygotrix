@@ -920,7 +920,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
 
   return (
     <div className="p-0 pb-6 sm:pb-0 sm:px-4 sm:py-2 md:px-6 md:py-2 lg:py-1">
-      <div className="max-w-5xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         {/* File Attachments Preview */}
         {attachments.length > 0 && (
           <div className="mb-2 sm:mb-3 mx-2 sm:mx-0 flex flex-wrap gap-2">

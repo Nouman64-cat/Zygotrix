@@ -22,7 +22,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 }) => {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
-  const { toggleListening, isListening, isDictating } = useVoiceControl();
+  const { toggleListening } = useVoiceControl();
   const { toggleTheme } = useTheme();
 
   // State
@@ -277,50 +277,10 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
 
       <div className="flex-1 flex flex-col overflow-hidden relative">
         {/* Desktop Header */}
-        <div className="hidden md:flex items-center justify-between px-6 py-3 border-b border-gray-200 dark:border-gray-800 bg-white dark:bg-gray-900 shrink-0">
-          <div className="flex items-center gap-2">
-            <Logo size="sm" showText={true} />
-          </div>
+        {/* Desktop Header */}
+        <div className="absolute top-0 left-0 w-full z-20 hidden md:flex items-center justify-end px-6 py-3 pointer-events-none">
+          <div className="flex items-center gap-2 pointer-events-auto">
 
-          <div className="flex items-center gap-2">
-            {/* Magic Wand Voice Control Button */}
-            <button
-              onClick={toggleListening}
-              title={
-                isDictating
-                  ? "Dictating to input..."
-                  : isListening
-                    ? "Stop Listening"
-                    : "Start Voice Control"
-              }
-              className="relative cursor-pointer group"
-            >
-              {isListening && !isDictating && (
-                <div className="absolute -top-0.5 -right-0.5 w-2 h-2 bg-emerald-400 rounded-full animate-ping opacity-75" />
-              )}
-
-              <div
-                className={`
-                relative w-10 h-10 rounded-full flex items-center justify-center
-                transition-all duration-300 group-hover:scale-105
-                ${isListening && !isDictating
-                    ? "bg-emerald-500 shadow-lg shadow-emerald-500/30"
-                    : "bg-gray-100 dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
-                  }
-              `}
-              >
-                <svg
-                  className={`w-5 h-5 transition-all duration-300 ${isListening && !isDictating
-                    ? "text-white"
-                    : "text-gray-600 dark:text-gray-400 group-hover:text-emerald-500 dark:group-hover:text-emerald-400"
-                    }`}
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 00-1.41 0L1.29 18.96a.996.996 0 000 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 000-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z" />
-                </svg>
-              </div>
-            </button>
 
             <div className="relative" ref={desktopAvatarRef}>
               <button
@@ -347,37 +307,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
           </div>
 
           <div className="flex items-center gap-2">
-            <button
-              onClick={toggleListening}
-              title={isListening ? "Stop Listening" : "Start Voice Control"}
-              className="relative cursor-pointer group"
-            >
-              {isListening && !isDictating && (
-                <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping opacity-75" />
-              )}
 
-              <div
-                className={`
-                relative w-9 h-9 rounded-full flex items-center justify-center
-                transition-all duration-300
-                ${isListening && !isDictating
-                    ? "bg-emerald-500 shadow-lg shadow-emerald-500/30"
-                    : "bg-gray-100 dark:bg-gray-800"
-                  }
-              `}
-              >
-                <svg
-                  className={`w-4 h-4 transition-colors duration-300 ${isListening && !isDictating
-                    ? "text-white"
-                    : "text-gray-600 dark:text-gray-400"
-                    }`}
-                  viewBox="0 0 24 24"
-                  fill="currentColor"
-                >
-                  <path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 00-1.41 0L1.29 18.96a.996.996 0 000 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 000-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z" />
-                </svg>
-              </div>
-            </button>
 
             <div className="relative" ref={mobileAvatarRef}>
               <button

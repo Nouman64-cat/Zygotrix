@@ -16,7 +16,7 @@ import {
 import { BsPinAngle, BsPinFill } from "react-icons/bs";
 import { cn, truncateText } from "../../utils";
 import { IconButton, Button, Logo } from "../common";
-import { useAuth, useConversations } from "../../contexts";
+import { useAuth, useConversations, useVoiceControl } from "../../contexts";
 import type { UserProfile } from "../../types";
 
 // User Avatar Dropdown Component
@@ -72,7 +72,7 @@ const UserAvatarDropdown: React.FC<UserAvatarDropdownProps> = ({
         onClick={() => setIsOpen(!isOpen)}
         className={cn(
           "flex items-center gap-3 w-full rounded-lg transition-colors duration-200 cursor-pointer",
-          "hover:bg-gray-100 dark:hover:bg-gray-800",
+          "hover:bg-gray-200 dark:hover:bg-gray-800",
           isCollapsed ? "justify-center p-2" : "px-3 py-2"
         )}
       >
@@ -222,6 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     renameConversation: onRenameConversation,
     pinConversation: onPinConversation,
   } = useConversations();
+  const { toggleListening, isListening, isDictating } = useVoiceControl();
 
   const handleLogout = async () => {
     await logout();
@@ -264,9 +265,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         key={conversation.id}
         className={cn(
           "group relative flex items-center gap-2 p-3 rounded-lg cursor-pointer",
-          "hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors duration-200",
+          "hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors duration-200",
           currentConversationId === conversation.id &&
-          "bg-gray-100 dark:bg-gray-800",
+          "bg-gray-200 dark:bg-gray-800",
           isCollapsed && "hidden"
         )}
         onClick={() => {
@@ -395,7 +396,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <aside
         className={cn(
-          "fixed md:sticky top-0 left-0 h-screen bg-white dark:bg-gray-900 border-r border-gray-200 dark:border-gray-800 z-30",
+          "fixed md:sticky top-0 left-0 h-screen bg-gray-100 dark:bg-black border-r border-gray-200/50 dark:border-gray-800/50 z-30",
           "flex flex-col transition-all duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           isCollapsed ? "w-16" : "w-72"
@@ -445,7 +446,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 icon={<FiMenu />}
                 onClick={onToggleCollapse}
                 tooltip={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
-                className="cursor-pointer text-gray-500 hover:text-gray-900 hover:!bg-gray-50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:!bg-gray-800"
+                className="cursor-pointer text-gray-500 hover:text-gray-900 hover:!bg-gray-200 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:!bg-gray-800"
               />
 
               {!isCollapsed && (
@@ -453,7 +454,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   icon={<FiSearch />}
                   onClick={() => onToggleSearch(true)}
                   tooltip="Search conversations"
-                  className="cursor-pointer text-gray-500 hover:text-gray-900 hover:!bg-gray-50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:!bg-gray-800"
+                  className="cursor-pointer text-gray-500 hover:text-gray-900 hover:!bg-gray-200 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:!bg-gray-800"
                 />
               )}
             </>
@@ -461,7 +462,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Mobile Header: Logo & Title (Mobile Only) */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-800 md:hidden">
+        <div className="flex items-center justify-between p-4 border-b border-gray-200/50 dark:border-gray-800/50 md:hidden">
           <Logo size="md" showText={true} />
           {/* Mobile close button handled below if needed, or by parent overlay */}
 
@@ -475,7 +476,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* New Chat Button (Desktop only) */}
-        <div className="hidden md:block p-2 border-b border-gray-200 dark:border-gray-800">
+        <div className="hidden md:block p-2 border-b border-gray-200/50 dark:border-gray-800/50">
           {isCollapsed ? (
             <div className="flex justify-center">
               <IconButton
@@ -485,14 +486,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onClose();
                 }}
                 tooltip="New chat"
-                className="cursor-pointer text-gray-500 hover:text-gray-900 hover:bg-gray-50 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800"
+                className="cursor-pointer text-gray-500 hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800"
                 size="sm"
               />
             </div>
           ) : (
             <Button
               variant="ghost"
-              className="w-full justify-start text-left hover:!bg-gray-100 dark:hover:!bg-gray-700/50 text-gray-700 dark:text-gray-200 shadow-none transition-colors cursor-pointer"
+              className="w-full justify-start text-left hover:!bg-gray-200 dark:hover:!bg-gray-700/50 text-gray-700 dark:text-gray-200 shadow-none transition-colors cursor-pointer h-auto py-3"
               leftIcon={<FiEdit className="text-gray-500" />}
               onClick={() => {
                 onNewConversation();
@@ -501,6 +502,67 @@ export const Sidebar: React.FC<SidebarProps> = ({
               size="sm"
             >
               New Chat
+            </Button>
+          )}
+        </div>
+
+        {/* Voice Control Button */}
+        <div className="hidden md:block p-2 border-b border-gray-200/50 dark:border-gray-800/50">
+          {isCollapsed ? (
+            <div className="flex justify-center">
+              <button
+                onClick={toggleListening}
+                title={isListening ? "Stop Listening" : "Start Voice Control"}
+                className="relative cursor-pointer group"
+              >
+                {isListening && !isDictating && (
+                  <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping opacity-75" />
+                )}
+                <div
+                  className={cn(
+                    "flex items-center justify-center transition-all duration-300 rounded-lg w-8 h-8",
+                    isListening && !isDictating
+                      ? "bg-emerald-500 shadow-lg shadow-emerald-500/30 text-white"
+                      : "text-gray-500 hover:text-gray-900 hover:bg-gray-200 dark:text-gray-400 dark:hover:text-gray-100 dark:hover:bg-gray-800"
+                  )}
+                >
+                  <svg
+                    className="w-4 h-4 transition-colors duration-300"
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 00-1.41 0L1.29 18.96a.996.996 0 000 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 000-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z" />
+                  </svg>
+                </div>
+              </button>
+            </div>
+          ) : (
+            <Button
+              variant="ghost"
+              className={cn(
+                "w-full justify-start text-left shadow-none transition-colors cursor-pointer h-auto py-3",
+                isListening
+                  ? "!bg-emerald-500 !text-white shadow-md !hover:bg-emerald-600 dark:!bg-emerald-600 dark:!hover:bg-emerald-700"
+                  : "hover:!bg-gray-200 dark:hover:!bg-gray-700/50 text-gray-700 dark:text-gray-200"
+              )}
+              leftIcon={
+                <div className="relative">
+                  <svg
+                    className={cn("w-4 h-4", isListening ? "" : "text-gray-500")}
+                    viewBox="0 0 24 24"
+                    fill="currentColor"
+                  >
+                    <path d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29a.996.996 0 00-1.41 0L1.29 18.96a.996.996 0 000 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05a.996.996 0 000-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z" />
+                  </svg>
+                  {isListening && !isDictating && (
+                    <div className="absolute -top-0.5 -right-0.5 w-1.5 h-1.5 bg-emerald-400 rounded-full animate-ping opacity-75" />
+                  )}
+                </div>
+              }
+              onClick={toggleListening}
+              size="sm"
+            >
+              {isListening ? "Stop Listening" : "Voice Control"}
             </Button>
           )}
         </div>
@@ -559,7 +621,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Bottom Section: User Avatar with Dropdown */}
-        <div className="border-t border-gray-200 dark:border-gray-800 p-3">
+        <div className="border-t border-gray-200/50 dark:border-gray-800/50 p-3">
           <UserAvatarDropdown
             user={user}
             isCollapsed={isCollapsed}

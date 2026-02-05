@@ -25,6 +25,9 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
   const { toggleListening } = useVoiceControl();
   const { toggleTheme } = useTheme();
 
+  // Check if user is PRO
+  const isPro = user?.subscription_status === 'pro';
+
   // State
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -285,7 +288,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <div className="relative" ref={desktopAvatarRef}>
               <button
                 onClick={() => setIsDesktopAvatarOpen(!isDesktopAvatarOpen)}
-                className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium cursor-pointer transition-transform hover:scale-105"
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium cursor-pointer transition-transform hover:scale-105 ${isPro ? 'bg-gray-800 ring-2 ring-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-emerald-600'}`}
               >
                 {getUserInitials()}
               </button>
@@ -312,7 +315,7 @@ export const MainLayout: React.FC<MainLayoutProps> = ({
             <div className="relative" ref={mobileAvatarRef}>
               <button
                 onClick={() => setIsMobileAvatarOpen(!isMobileAvatarOpen)}
-                className="w-8 h-8 rounded-full bg-emerald-600 flex items-center justify-center text-white text-sm font-medium cursor-pointer"
+                className={`w-8 h-8 rounded-full flex items-center justify-center text-white text-sm font-medium cursor-pointer ${isPro ? 'bg-gray-800 ring-2 ring-emerald-500 shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'bg-emerald-600'}`}
               >
                 {getUserInitials()}
               </button>

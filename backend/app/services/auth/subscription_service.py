@@ -21,6 +21,10 @@ DEEP_RESEARCH_MONTHLY_LIMIT_FREE = 0  # Free users can't use it
 SCHOLAR_MODE_MONTHLY_LIMIT_PRO = 50  # Pro users get 50 per month
 SCHOLAR_MODE_MONTHLY_LIMIT_FREE = 0  # Free users can't use it
 
+# Web search limits (DAILY) - more expensive API, so daily limit
+WEB_SEARCH_DAILY_LIMIT_PRO = 5  # Pro users get 5 per day
+WEB_SEARCH_DAILY_LIMIT_FREE = 0  # Free users can't use it
+
 
 class SubscriptionService:
     """
@@ -316,6 +320,80 @@ class SubscriptionService:
             logger.info(f"Reset scholar mode usage counter for user {user_id}")
         except Exception as e:
             logger.error(f"Error resetting scholar mode counter: {e}")
+
+    # ==================== Web Search Usage (DAILY) ====================
+
+    def check_web_search_access(self, user_id: str) -> Tuple[bool, str, Optional[int]]:
+        """
+        Check if a user can use web search.
+        
+        Args:
+            user_id: User's ID
+            
+        Returns:
+            Tuple of (can_access, reason, remaining_uses)
+            - can_access: Whether the user can use web search
+            - reason: Human-readable reason if access denied
+            - remaining_uses: Number of uses remaining (None for free users)
+        """
+        collection = get_users_collection()
+        if collection is None:
+            return False, "Database unavailable", None
+
+        try:
+            user = collection.find_one({"_id": ObjectId(user_id)})
+            if not user:
+                return False, "User not found", None
+
+            subscription_status = user.get("subscription_status", "free")
+            logger.info(f"Checking web search access for user {user_id}: subscription={subscription_status}")
+            
+            # Free users cannot access web search
+            if subscription_status == SubscriptionStatus.FREE.value:
+                return False, "Web Search is a PRO feature. Upgrade to access real-time web information.", None
+
+            # Pro users - check DAILY usage limits
+            # Note: We count from web_search_usage collection, not the user document
+            # because we need to exclude cached results
+            from ..common import get_database
+            db = get_database()
+            if db is None:
+                return False, "Database unavailable", None
+            
+            today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
+            
+            usage_today = db.web_search_usage.count_documents({
+                "user_id": user_id,
+                "timestamp": {"$gte": today_start},
+                "is_cached": False  # Only count actual API calls (cached are free)
+            })
+            
+            logger.info(f"Web search usage today for user {user_id}: {usage_today}/{WEB_SEARCH_DAILY_LIMIT_PRO}")
+            
+            remaining = WEB_SEARCH_DAILY_LIMIT_PRO - usage_today
+            
+            if remaining <= 0:
+                # Calculate reset time (midnight UTC)
+                tomorrow = today_start + timedelta(days=1)
+                reset_in = tomorrow - datetime.now(timezone.utc)
+                hours = int(reset_in.total_seconds() // 3600)
+                minutes = int((reset_in.total_seconds() % 3600) // 60)
+                
+                logger.warning(f"User {user_id} has exhausted web search daily limit")
+                return False, f"Daily web search limit reached ({WEB_SEARCH_DAILY_LIMIT_PRO}/{WEB_SEARCH_DAILY_LIMIT_PRO}). Resets in {hours}h {minutes}m.", 0
+
+            return True, "Access granted", remaining
+
+        except Exception as e:
+            logger.error(f"Error checking web search access: {e}")
+            return False, f"Error checking access: {str(e)}", None
+
+    def get_web_search_reset_time(self) -> datetime:
+        """Get the next reset time for daily web search limits (midnight UTC)."""
+        now = datetime.now(timezone.utc)
+        tomorrow = now.replace(hour=0, minute=0, second=0, microsecond=0) + timedelta(days=1)
+        return tomorrow
+
 
     def update_subscription_status(self, user_id: str, new_status: str) -> Tuple[bool, str]:
         """

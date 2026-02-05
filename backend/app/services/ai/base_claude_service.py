@@ -19,19 +19,15 @@ from abc import ABC
 
 import httpx
 from fastapi import HTTPException
-from dotenv import load_dotenv, find_dotenv
 
-load_dotenv(find_dotenv())
+# Import from centralized config (single source of truth)
+from .config import (
+    CLAUDE_API_KEY,
+    CLAUDE_API_URL,
+    ANTHROPIC_VERSION,
+)
 
 logger = logging.getLogger(__name__)
-
-# =============================================================================
-# SHARED CONFIGURATION
-# =============================================================================
-
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
-ANTHROPIC_VERSION = "2023-06-01"
 
 
 # =============================================================================

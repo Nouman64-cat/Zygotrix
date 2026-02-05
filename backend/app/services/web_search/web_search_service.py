@@ -7,30 +7,25 @@ This is a PRO-only feature with usage tracking for billing.
 Pricing: $10 per 1,000 searches (plus standard Claude token costs)
 """
 
-import os
 import time
-import json
 import hashlib
 import logging
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, Tuple
 from collections import OrderedDict
-from bson import ObjectId
 
 import httpx
-from dotenv import load_dotenv, find_dotenv
 
-load_dotenv(find_dotenv())
+# Import from centralized config (DRY principle)
+from ..ai.config import (
+    CLAUDE_API_KEY,
+    CLAUDE_API_URL,
+    ANTHROPIC_VERSION,
+    CLAUDE_WEB_SEARCH_MODEL as WEB_SEARCH_MODEL,
+)
+from ..base import BaseService, APIServiceMixin
 
 logger = logging.getLogger(__name__)
-
-# Configuration
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
-ANTHROPIC_VERSION = "2023-06-01"
-
-# Web search specific model (Claude 3.5 Sonnet supports web search)
-WEB_SEARCH_MODEL = os.getenv("WEB_SEARCH_MODEL", "claude-sonnet-4-20250514")
 
 
 class WebSearchCache:
@@ -82,7 +77,7 @@ class WebSearchCache:
 _search_cache = WebSearchCache(max_size=500, ttl_seconds=3600 * 4)  # Cache for 4 hours to maximize savings
 
 
-class WebSearchService:
+class WebSearchService(BaseService, APIServiceMixin):
     """
     Service for handling web search requests using Claude's built-in web search tool.
     
@@ -92,6 +87,10 @@ class WebSearchService:
     - Source extraction for citations
     - Token usage tracking
     - COST REDUCTION: Caching & Optimized Search Limits
+    
+    Inherits from:
+    - BaseService: Database access pattern
+    - APIServiceMixin: API availability checking
     """
     
     def __init__(self, db=None):
@@ -101,23 +100,15 @@ class WebSearchService:
         Args:
             db: MongoDB database instance (optional, defaults to singleton)
         """
+        BaseService.__init__(self, db)
         self.api_key = CLAUDE_API_KEY
         self.api_url = CLAUDE_API_URL
         self.model = WEB_SEARCH_MODEL
         
-        if db is None:
-            from ..common import get_database
-            self._db = get_database()
-        else:
-            self._db = db
-        
         if not self.api_key:
             logger.warning("CLAUDE_API_KEY not configured - web search will be disabled")
     
-    @property
-    def is_available(self) -> bool:
-        """Check if web search service is available."""
-        return self.api_key is not None and self.api_key.strip() != ""
+    # is_available property is inherited from APIServiceMixin
     
     def _get_headers(self) -> dict:
         """Get headers for Claude API requests with web search beta."""
@@ -131,50 +122,23 @@ class WebSearchService:
     
     async def check_access(self, user_id: str) -> Tuple[bool, str, int]:
         """
-        Check if user has access to web search (PRO feature).
+        Check if user has access to web search (PRO feature with daily limit).
+        
+        Delegates to subscription_service for unified access control (DRY principle).
         
         Args:
             user_id: The user's ID
             
         Returns:
-            Tuple of (can_access, reason, remaining_count or -1 if unlimited)
+            Tuple of (can_access, reason, remaining_count or 0 if denied)
         """
         from ..auth.subscription_service import get_subscription_service
         
         subscription_service = get_subscription_service()
+        can_access, reason, remaining = subscription_service.check_web_search_access(user_id)
         
-        # Check if user is PRO
-        try:
-            # Try to query with ObjectId if possible
-            query_id = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
-            user = self._db.users.find_one({"_id": query_id})
-        except Exception:
-            # Fallback to string query
-            user = self._db.users.find_one({"_id": user_id})
-            
-        if not user:
-            return False, "User not found", 0
-        
-        subscription_status = user.get("subscription_status", "free")
-        
-        if subscription_status != "pro":
-            return False, "Web Search is a PRO feature. Upgrade to access real-time web information.", 0
-        
-        # Enforce daily limit of 5 searches
-        today_start = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
-        
-        usage_today = self._db.web_search_usage.count_documents({
-            "user_id": user_id,
-            "timestamp": {"$gte": today_start},
-            "is_cached": False  # Only count actual API calls against the limit (cached are free)
-        })
-        
-        daily_limit = 5
-        if usage_today >= daily_limit:
-            return False, f"Daily web search limit reached ({daily_limit}/{daily_limit}). Please try again tomorrow.", 0
-            
-        remaining = daily_limit - usage_today
-        return True, "Access granted", remaining
+        # Convert None to 0 for consistency with the expected return type
+        return can_access, reason, remaining if remaining is not None else 0
     
     async def search(
         self,
@@ -355,8 +319,8 @@ class WebSearchService:
         """
         Record web search usage for billing.
         
-        Pricing: $10 per 1,000 searches + token costs
-        If cached, cost is 0.
+        Delegates to the unified UsageTrackingService (DRY principle).
+        Maintains cache invalidation for frontend daily limit stats.
         
         Args:
             user_id: User ID
@@ -368,73 +332,28 @@ class WebSearchService:
             is_cached: Whether valid cache result was used
         """
         try:
-            if is_cached:
-                search_cost = 0.0
-                input_cost = 0.0
-                output_cost = 0.0
-                total_cost = 0.0
-            else:
-                # Calculate cost
-                # $10 per 1,000 searches = $0.01 per search
-                search_cost = search_count * 0.01
-                
-                # Token costs (Claude Sonnet pricing: $3/1M input, $15/1M output)
-                input_cost = (input_tokens / 1_000_000) * 3.0
-                output_cost = (output_tokens / 1_000_000) * 15.0
-                total_cost = search_cost + input_cost + output_cost
+            # Use unified usage tracking service
+            from ..usage import get_usage_tracking_service
             
-            # Record in web_search_usage collection
-            usage_record = {
-                "user_id": user_id,
-                "user_name": user_name,
-                "timestamp": datetime.now(timezone.utc),
-                "search_count": search_count,
-                "input_tokens": input_tokens,
-                "output_tokens": output_tokens,
-                "query_preview": query_preview,
-                "search_cost": search_cost,
-                "token_cost": input_cost + output_cost,
-                "total_cost": total_cost,
-                "model": self.model,
-                "is_cached": is_cached
-            }
-            
-            self._db.web_search_usage.insert_one(usage_record)
-            
-            # Also update user's aggregate usage
-            try:
-                query_id = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
-            except Exception:
-                query_id = user_id
-                
-            self._db.users.update_one(
-                {"_id": query_id},
-                {
-                    "$inc": {
-                        "web_search_usage.total_searches": search_count,
-                        "web_search_usage.total_cost": total_cost
-                    },
-                    "$set": {
-                        "web_search_usage.last_used": datetime.now(timezone.utc)
-                    }
-                }
+            usage_service = get_usage_tracking_service()
+            await usage_service.record_web_search_usage(
+                user_id=user_id,
+                search_count=search_count,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                query_preview=query_preview,
+                user_name=user_name,
+                model=self.model,
+                is_cached=is_cached
             )
             
             # Invalidate user cache to ensure frontend gets fresh daily limit stats
             try:
                 from ..auth.user_service import get_user_service
-                # Use string ID as cache uses string keys
+                query_id = self.normalize_user_id(user_id)
                 get_user_service()._clear_user_cache(str(query_id))
             except Exception as e:
                 logger.warning(f"Failed to invalidate user cache after web search usage: {e}")
-            
-            log_prefix = "💰 Cached" if is_cached else "📊 New"
-            logger.info(
-                f"{log_prefix} web search usage recorded | "
-                f"User: {user_id} | "
-                f"Searches: {search_count} | "
-                f"Cost: ${total_cost:.4f}"
-            )
             
         except Exception as e:
             logger.error(f"Failed to record web search usage: {e}")

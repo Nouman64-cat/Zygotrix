@@ -14,7 +14,6 @@ Features:
 - Detailed logging
 """
 
-import os
 import uuid
 import time
 import logging
@@ -22,7 +21,6 @@ import asyncio
 from datetime import datetime
 from typing import Optional, Dict, Any, List, Literal, AsyncGenerator
 
-from dotenv import load_dotenv, find_dotenv
 from langgraph.graph import StateGraph, END
 from langgraph.errors import GraphRecursionError
 
@@ -39,18 +37,19 @@ from .schemas import (
 from .clarification_service import get_clarification_service
 from .cohere_reranker import get_cohere_reranker
 
-load_dotenv(find_dotenv())
+# Import from centralized config (DRY principle)
+from ..ai.config import (
+    CLAUDE_API_KEY,
+    CLAUDE_API_URL,
+    ANTHROPIC_VERSION,
+    CLAUDE_DEEP_RESEARCH_MODEL as CLAUDE_MODEL,
+    MAX_RECURSION_DEPTH,
+    MAX_RETRIEVAL_CHUNKS,
+    DEFAULT_TOP_K_RERANKED,
+    MAX_DEEP_RESEARCH_CONTEXT_CHARS as MAX_CONTEXT_CHARS,
+)
 
 logger = logging.getLogger(__name__)
-
-# Configuration
-MAX_RECURSION_DEPTH = int(os.getenv("DEEP_RESEARCH_MAX_DEPTH", "10"))
-MAX_RETRIEVAL_CHUNKS = int(os.getenv("DEEP_RESEARCH_MAX_CHUNKS", "100"))  # Pinecone retrieval
-DEFAULT_TOP_K_RERANKED = int(os.getenv("DEEP_RESEARCH_TOP_K", "20"))  # Cohere rerank output
-
-# Claude configuration
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-CLAUDE_MODEL = os.getenv("CLAUDE_MODEL", "claude-3-haiku-20240307")
 
 
 class DeepResearchService:
@@ -460,7 +459,7 @@ class DeepResearchService:
             context_parts = []
             sources = []
             
-            MAX_CONTEXT_CHARS = 72000  # Approx 18k tokens (safe buffer for 30k TPM)
+            # MAX_CONTEXT_CHARS imported from config (approx 18k tokens)
             current_chars = 0
             
             # --- PASS 1: Resolve best titles for sources ---

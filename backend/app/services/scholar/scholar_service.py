@@ -13,26 +13,25 @@ Flow:
 This is a PRO-only feature with usage tracking.
 """
 
-import os
 import logging
 import time
 from datetime import datetime, timezone
 from typing import Optional, Dict, Any, List, Tuple
-from bson import ObjectId
 from dataclasses import dataclass
 
 import httpx
-from dotenv import load_dotenv, find_dotenv
 
-load_dotenv(find_dotenv())
+# Import from centralized config (DRY principle)
+from ..ai.config import (
+    CLAUDE_API_KEY,
+    CLAUDE_API_URL,
+    ANTHROPIC_VERSION,
+    CLAUDE_SCHOLAR_MODEL as SCHOLAR_MODEL,
+    MAX_SCHOLAR_CONTEXT_CHARS,
+)
+from ..base import BaseService, APIServiceMixin
 
 logger = logging.getLogger(__name__)
-
-# Configuration
-CLAUDE_API_KEY = os.getenv("CLAUDE_API_KEY")
-CLAUDE_API_URL = "https://api.anthropic.com/v1/messages"
-ANTHROPIC_VERSION = "2023-06-01"
-SCHOLAR_MODEL = os.getenv("SCHOLAR_MODEL", "claude-3-5-haiku-latest")
 
 
 @dataclass
@@ -73,7 +72,7 @@ class ScholarResponse:
     error_message: Optional[str] = None
 
 
-class ScholarService:
+class ScholarService(BaseService, APIServiceMixin):
     """
     Service for Scholar Mode - comprehensive research with multiple data sources.
     
@@ -83,6 +82,10 @@ class ScholarService:
     - Synthesizes response with proper citations
     - PRO-only access control
     - Usage tracking for billing
+    
+    Inherits from:
+    - BaseService: Database access pattern
+    - APIServiceMixin: API availability checking
     """
     
     def __init__(self, db=None):
@@ -92,22 +95,14 @@ class ScholarService:
         Args:
             db: MongoDB database instance (optional, defaults to singleton)
         """
+        BaseService.__init__(self, db)
         self.api_key = CLAUDE_API_KEY
         self.model = SCHOLAR_MODEL
-        
-        if db is None:
-            from ..common import get_database
-            self._db = get_database()
-        else:
-            self._db = db
         
         if not self.api_key:
             logger.warning("CLAUDE_API_KEY not configured - scholar mode will be disabled")
     
-    @property
-    def is_available(self) -> bool:
-        """Check if scholar mode is available."""
-        return self.api_key is not None and self.api_key.strip() != ""
+    # is_available property is inherited from APIServiceMixin
     
     async def check_access(self, user_id: str) -> Tuple[bool, str, int]:
         """
@@ -527,65 +522,31 @@ Please provide a comprehensive, well-cited response to the research query based 
         web_search_sources: int,
         query_preview: str
     ):
-        """Record scholar mode usage for billing and monthly limit tracking."""
+        """
+        Record scholar mode usage for billing and monthly limit tracking.
+        
+        Delegates to the unified UsageTrackingService (DRY principle).
+        """
         try:
-            # Calculate cost (Scholar Mode combines multiple services)
-            # Token costs (Claude Sonnet pricing: $3/1M input, $15/1M output)
-            input_cost = (input_tokens / 1_000_000) * 3.0
-            output_cost = (output_tokens / 1_000_000) * 15.0
+            # Use unified usage tracking service
+            from ..usage import get_usage_tracking_service
             
-            # Source costs (Cohere reranking: ~$2 per 1000 documents)
-            source_cost = ((deep_research_sources + web_search_sources) / 1000) * 2.0
-            
-            total_cost = input_cost + output_cost + source_cost
-            
-            # Record in scholar_usage collection
-            usage_record = {
-                "user_id": user_id,
-                "user_name": user_name,
-                "timestamp": datetime.now(timezone.utc),
-                "input_tokens": input_tokens,
-                "output_tokens": output_tokens,
-                "deep_research_sources": deep_research_sources,
-                "web_search_sources": web_search_sources,
-                "query_preview": query_preview,
-                "token_cost": input_cost + output_cost,
-                "source_cost": source_cost,
-                "total_cost": total_cost,
-                "model": self.model
-            }
-            
-            self._db.scholar_usage.insert_one(usage_record)
-            
-            # Also update user's aggregate usage
-            try:
-                query_id = ObjectId(user_id) if ObjectId.is_valid(user_id) else user_id
-            except Exception:
-                query_id = user_id
-                
-            self._db.users.update_one(
-                {"_id": query_id},
-                {
-                    "$inc": {
-                        "scholar_usage.total_queries": 1,
-                        "scholar_usage.total_cost": total_cost
-                    },
-                    "$set": {
-                        "scholar_usage.last_used": datetime.now(timezone.utc)
-                    }
-                }
+            usage_service = get_usage_tracking_service()
+            await usage_service.record_scholar_usage(
+                user_id=user_id,
+                input_tokens=input_tokens,
+                output_tokens=output_tokens,
+                deep_research_sources=deep_research_sources,
+                web_search_sources=web_search_sources,
+                query_preview=query_preview,
+                user_name=user_name,
+                model=self.model
             )
             
             # Record usage for monthly limit tracking via subscription service
             from ..auth.subscription_service import get_subscription_service
             subscription_service = get_subscription_service()
             subscription_service.record_scholar_mode_usage(user_id)
-            
-            logger.info(
-                f"📊 Scholar Mode usage recorded | "
-                f"User: {user_id} | "
-                f"Cost: ${total_cost:.4f}"
-            )
             
         except Exception as e:
             logger.error(f"Failed to record scholar mode usage: {e}")

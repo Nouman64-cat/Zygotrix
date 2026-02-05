@@ -128,7 +128,7 @@ body {
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-Light.ttf") format("truetype");
+  src: url("/fonts/Axiforma-Light.ttf") format("truetype");
   font-weight: 300;
   font-style: normal;
   font-display: swap;
@@ -136,7 +136,7 @@ body {
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-Regular.ttf") format("truetype");
+  src: url("/fonts/Axiforma-Regular.ttf") format("truetype");
   font-weight: 400;
   font-style: normal;
   font-display: swap;
@@ -144,7 +144,7 @@ body {
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-Medium.ttf") format("truetype");
+  src: url("/fonts/Axiforma-Medium.ttf") format("truetype");
   font-weight: 500;
   font-style: normal;
   font-display: swap;
@@ -152,7 +152,7 @@ body {
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-SemiBold.ttf") format("truetype");
+  src: url("/fonts/Axiforma-SemiBold.ttf") format("truetype");
   font-weight: 600;
   font-style: normal;
   font-display: swap;
@@ -160,7 +160,7 @@ body {
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-Bold.ttf") format("truetype");
+  src: url("/fonts/Axiforma-Bold.ttf") format("truetype");
   font-weight: 700;
   font-style: normal;
   font-display: swap;
@@ -168,7 +168,7 @@ body {
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-ExtraBold.ttf") format("truetype");
+  src: url("/fonts/Axiforma-ExtraBold.ttf") format("truetype");
   font-weight: 800;
   font-style: normal;
   font-display: swap;
@@ -176,7 +176,7 @@ body {
 
 @font-face {
   font-family: "Axiforma";
-  src: url("https://cdn-zygotrix.s3.us-east-1.amazonaws.com/fonts/Axiforma-Black.ttf") format("truetype");
+  src: url("/fonts/Axiforma-Black.ttf") format("truetype");
   font-weight: 900;
   font-style: normal;
   font-display: swap;

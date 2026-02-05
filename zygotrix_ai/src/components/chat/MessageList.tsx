@@ -1,4 +1,4 @@
-import React, { useMemo, useCallback, useState, useEffect } from 'react';
+import React, { useMemo, useCallback, useState, useEffect, useRef } from 'react';
 import { ChatMessage } from './ChatMessage';
 import { ChatInput } from './ChatInput';
 import { PageLoader } from '../common/PageLoader';
@@ -60,19 +60,46 @@ const MessageListComponent: React.FC<MessageListProps> = ({
   enabledTools,
   onEnabledToolsChange,
 }) => {
-  const { scrollRef, scrollToBottom } = useAutoScroll<HTMLDivElement>([messages, isLoading], isStreaming);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const { scrollRef } = useAutoScroll<HTMLDivElement>([messages, isLoading], isStreaming);
   const isMobile = useIsMobile();
   const { user } = useAuth();
 
-  // Force scroll to bottom when the user sends a message
+  // Track previous message count to detect new messages
+  const prevMessageCountRef = useRef(messages.length);
+
+  // Force scroll to bottom when ANY new message is added
   useEffect(() => {
-    if (messages.length > 0) {
-      const lastMessage = messages[messages.length - 1];
-      if (lastMessage.role === 'user') {
-        scrollToBottom();
-      }
+    const currentLength = messages.length;
+    const prevLength = prevMessageCountRef.current;
+
+    // Only scroll if messages were added (not on initial load or removal)
+    if (currentLength > prevLength && currentLength > 0) {
+      // Smooth scroll function for animated scrolling
+      const smoothScrollToBottom = () => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTo({
+            top: scrollRef.current.scrollHeight,
+            behavior: 'smooth'
+          });
+        }
+      };
+
+      // Instant scroll as backup
+      const instantScrollToBottom = () => {
+        if (scrollRef.current) {
+          scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
+        }
+      };
+
+      // Primary: smooth animated scroll after DOM update
+      setTimeout(smoothScrollToBottom, 50);
+      // Backup: instant scroll if smooth was interrupted
+      setTimeout(instantScrollToBottom, 500);
     }
-  }, [messages.length, scrollToBottom]);
+
+    prevMessageCountRef.current = currentLength;
+  }, [messages]);
 
   // Track how many messages to render (for long conversations)
   const [renderCount, setRenderCount] = useState(INITIAL_RENDER_COUNT);
@@ -204,7 +231,7 @@ const MessageListComponent: React.FC<MessageListProps> = ({
 
   return (
     <div ref={scrollRef} className="flex-1 overflow-y-auto">
-      <div className="max-w-4xl mx-auto px-2 lg:px-4">
+      <div className="max-w-4xl mx-auto px-2 lg:px-4 pb-8 sm:pb-24">
         {/* Show loading indicator for older messages */}
         {isLoadingOlderMessages && (
           <div className="flex justify-center py-4">
@@ -223,6 +250,8 @@ const MessageListComponent: React.FC<MessageListProps> = ({
             <ChatMessage message={message} />
           </div>
         ))}
+        {/* Scroll anchor for seeking to bottom */}
+        <div ref={bottomRef} className="h-px w-full" />
       </div>
     </div>
   );

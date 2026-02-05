@@ -396,7 +396,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
       <aside
         className={cn(
-          "fixed md:sticky top-0 left-0 h-screen bg-gray-100 dark:bg-black border-r border-gray-200/50 dark:border-gray-800/50 z-30",
+          "fixed md:sticky top-0 left-0 h-screen bg-gray-100 dark:bg-gray-950 border-r border-gray-200/50 dark:border-gray-800/50 z-30",
           "flex flex-col transition-all duration-300 ease-in-out",
           isOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
           isCollapsed ? "w-16" : "w-72"

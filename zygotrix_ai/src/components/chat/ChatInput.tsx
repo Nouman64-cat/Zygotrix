@@ -301,7 +301,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
     if (textarea) {
       textarea.style.height = "auto";
       // Very compact on mobile (24px single line), taller on desktop (44px)
-      const minHeight = window.innerWidth < 640 ? 24 : 44;
+      const minHeight = window.innerWidth < 640 ? 24 : 24;
       const maxHeight = window.innerWidth < 640 ? 120 : 150;
       const newHeight = Math.max(
         minHeight,
@@ -732,7 +732,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
       // Don't reset enabled tools - keep them persistent for the session
       if (textareaRef.current) {
         textareaRef.current.style.height =
-          window.innerWidth < 640 ? "24px" : "44px";
+          window.innerWidth < 640 ? "24px" : "24px";
       }
 
       // After sending, clear dictation mode and reset recording indicator
@@ -967,7 +967,7 @@ export const ChatInput: React.FC<ChatInputProps> = ({
           )}
         >
           {/* Text Input Area - Top */}
-          <div className="px-3 pt-2.5 pb-0 sm:px-4 sm:pt-3 sm:pb-1">
+          <div className="px-3 pt-2.5 pb-0 sm:px-4 sm:pt-3 sm:pb-0">
             <textarea
               ref={textareaRef}
               value={value}
@@ -982,13 +982,13 @@ export const ChatInput: React.FC<ChatInputProps> = ({
                 "w-full resize-none bg-transparent text-gray-900 dark:text-gray-100 placeholder-gray-400 dark:placeholder-gray-500",
                 "focus:outline-none disabled:cursor-not-allowed",
                 "text-sm sm:text-base leading-snug sm:leading-relaxed",
-                "min-h-[24px] sm:min-h-[44px] max-h-[120px] sm:max-h-[150px]",
+                "min-h-[24px] sm:min-h-[24px] max-h-[120px] sm:max-h-[150px]",
               )}
             />
           </div>
 
           {/* Bottom Toolbar */}
-          <div className="flex items-center justify-between px-2 pb-2 sm:px-3 sm:pb-3 sm:pt-1">
+          <div className="flex items-center justify-between px-2 pb-2 sm:px-3 sm:pb-3 sm:pt-0">
             {/* Left Actions */}
             <div className="flex items-center gap-0.5 sm:gap-1">
               {/* File Upload Button */}

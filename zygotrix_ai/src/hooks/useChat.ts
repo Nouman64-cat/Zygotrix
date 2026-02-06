@@ -18,7 +18,7 @@ interface UseChatReturn {
   sendMessage: (
     content: string,
     attachments?: MessageAttachment[],
-    enabledTools?: string[]
+    enabledTools?: string[],
   ) => Promise<void>;
   clearMessages: () => void;
   setMessages: (messages: Message[]) => void;
@@ -26,7 +26,8 @@ interface UseChatReturn {
   startNewConversation: () => void;
   submitDeepResearchAnswers: (
     originalQuery: string,
-    answers: Array<{ question_id: string; answer: string }>
+    answers: Array<{ question_id: string; answer: string }>,
+    tool?: string,
   ) => Promise<void>;
 }
 
@@ -41,14 +42,14 @@ interface UseChatOptions {
 
 export const useChat = (
   initialConversationId?: string,
-  options?: UseChatOptions
+  options?: UseChatOptions,
 ): UseChatReturn => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [isStreaming, setIsStreaming] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [conversationId, setConversationId] = useState<string | null>(
-    initialConversationId || null
+    initialConversationId || null,
   );
   const [conversationTitle, setConversationTitle] =
     useState<string>("New Conversation");
@@ -62,14 +63,14 @@ export const useChat = (
     if (conversationId && messages.length > 0) {
       localStorage.setItem(
         `zygotrix_msg_cache_${conversationId}`,
-        JSON.stringify(messages)
+        JSON.stringify(messages),
       );
     }
   }, [messages, conversationId]);
 
   // Ref to track the current active conversation ID to prevent race conditions
   const activeConversationIdRef = useRef<string | null>(
-    initialConversationId || null
+    initialConversationId || null,
   );
 
   // Load an existing conversation
@@ -94,7 +95,7 @@ export const useChat = (
       // Check if we are still on the same conversation
       if (activeConversationIdRef.current !== convId) {
         console.log(
-          `[useChat] Ignoring stale response for ${convId}, active is ${activeConversationIdRef.current}`
+          `[useChat] Ignoring stale response for ${convId}, active is ${activeConversationIdRef.current}`,
         );
         return;
       }
@@ -113,7 +114,7 @@ export const useChat = (
         performance.measure(
           "load-conversation",
           "load-conversation-start",
-          "load-conversation-end"
+          "load-conversation-end",
         );
       }
     } catch (err) {
@@ -154,7 +155,7 @@ export const useChat = (
     async (
       content: string,
       attachments?: MessageAttachment[],
-      enabledTools?: string[]
+      enabledTools?: string[],
     ) => {
       if (!content.trim() && (!attachments || attachments.length === 0)) return;
 
@@ -251,7 +252,7 @@ export const useChat = (
                 }
 
                 return msg;
-              })
+              }),
             );
           },
           // onComplete
@@ -290,20 +291,20 @@ export const useChat = (
               prev.map((msg) =>
                 msg.id === tempMessageId
                   ? {
-                    ...msg,
-                    id: response.message.id, // Update with real backend ID
-                    isStreaming: false,
-                    metadata: response.message.metadata,
-                    created_at: response.message.created_at,
-                  }
-                  : msg
-              )
+                      ...msg,
+                      id: response.message.id, // Update with real backend ID
+                      isStreaming: false,
+                      metadata: response.message.metadata,
+                      created_at: response.message.created_at,
+                    }
+                  : msg,
+              ),
             );
           },
           // onError
           (err) => {
             throw err; // Re-throw to be caught by outer catch block
-          }
+          },
         );
       } catch (err) {
         console.error("[useChat] Error:", err);
@@ -319,7 +320,7 @@ export const useChat = (
         pendingRequestRef.current = null;
       }
     },
-    [conversationId, options]
+    [conversationId, options],
   );
 
   const clearMessages = useCallback(() => {
@@ -332,7 +333,8 @@ export const useChat = (
   const submitDeepResearchAnswers = useCallback(
     async (
       originalQuery: string,
-      answers: Array<{ question_id: string; answer: string }>
+      answers: Array<{ question_id: string; answer: string }>,
+      tool: string = "deep_research",
     ) => {
       // Build a message that includes the original query and user's answers
       // The deep_research tool will be enabled to continue the research
@@ -342,10 +344,10 @@ export const useChat = (
 
       const messageContent = `${originalQuery}\n\nClarification answers:\n${answersText}`;
 
-      // Send with deep_research tool enabled
-      await sendMessage(messageContent, undefined, ["deep_research"]);
+      // Send with correct tool enabled (deep_research or scholar_mode)
+      await sendMessage(messageContent, undefined, [tool]);
     },
-    [sendMessage]
+    [sendMessage],
   );
 
   // Listen for deep research submit events from the widget
@@ -355,12 +357,14 @@ export const useChat = (
         sessionId: string;
         originalQuery: string;
         answers: Array<{ question_id: string; answer: string }>;
+        tool?: string;
       }>;
 
       if (customEvent.detail) {
         submitDeepResearchAnswers(
           customEvent.detail.originalQuery,
-          customEvent.detail.answers
+          customEvent.detail.answers,
+          customEvent.detail.tool || "deep_research",
         );
       }
     };
@@ -370,7 +374,7 @@ export const useChat = (
     return () => {
       window.removeEventListener(
         "deepResearchSubmit",
-        handleDeepResearchSubmit
+        handleDeepResearchSubmit,
       );
     };
   }, [submitDeepResearchAnswers]);

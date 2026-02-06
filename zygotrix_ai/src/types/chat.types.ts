@@ -56,6 +56,7 @@ export interface MessageMetadata {
     // Clarification fields
     session_id?: string;
     original_query?: string;
+    title?: string;
     questions?: Array<{
       id: string;
       question: string;

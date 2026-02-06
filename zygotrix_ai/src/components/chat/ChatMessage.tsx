@@ -564,14 +564,19 @@ const ChatMessageComponent: React.FC<ChatMessageProps> = ({ message }) => {
             <DeepResearchClarification
               sessionId={message.metadata.deep_research_data.session_id || ""}
               questions={message.metadata.deep_research_data.questions || []}
+              title={message.metadata.deep_research_data.title}
               onSubmit={(answers) => {
                 // Dispatch a custom event that the chat context can listen to
+                // Determine tool based on message metadata model
+                const tool = message.metadata?.model === "scholar_mode" ? "scholar_mode" : "deep_research";
+
                 const event = new CustomEvent("deepResearchSubmit", {
                   detail: {
                     sessionId: message.metadata?.deep_research_data?.session_id,
                     originalQuery:
                       message.metadata?.deep_research_data?.original_query,
                     answers,
+                    tool,
                   },
                 });
                 window.dispatchEvent(event);

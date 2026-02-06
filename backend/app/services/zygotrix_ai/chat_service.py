@@ -28,6 +28,7 @@ from ..chatbot.rag_service import get_rag_service
 from ..chatbot.traits_enrichment_service import get_traits_service
 from ..chatbot.response_cache_service import get_response_cache
 from ..ai import get_claude_service
+from ..chatbot.prompt_confidence_service import get_confidence_analyzer, format_clarification_response
 from app.core.performance import PerformanceTracker
 
 logger = logging.getLogger(__name__)
@@ -42,7 +43,9 @@ class ZygotrixChatService:
         self.token_analytics = get_token_analytics_service()
         self.rag_service = get_rag_service()
         self.traits_service = get_traits_service()
+
         self.response_cache = get_response_cache()
+        self.confidence_analyzer = get_confidence_analyzer()
 
     async def process_chat_request(
         self,
@@ -159,7 +162,61 @@ class ZygotrixChatService:
             parent_message_id=chat_request.parent_message_id,
             attachments=safe_attachments
         )
+
         perf.stop("save_user_message")
+
+        # Check for prompt confidence (unless tools are explicitly enabled)
+        # We skip this check if the user is explicitly invoking tools, as they likely know what they want
+        # We also skip if this is a follow-up to a clarification (handled via client logic generally, but good to be safe)
+        has_tools = bool(chat_request.enabled_tools and len(chat_request.enabled_tools) > 0)
+        
+        if not has_tools:
+            perf.start("confidence_analysis")
+            # Analyze confidence
+            confidence_result = await self.confidence_analyzer.analyze(
+                query=chat_request.message,
+                user_id=user_id,
+                user_name=user_name
+            )
+            perf.stop("confidence_analysis")
+            
+            # Use intelligent thresholding - don't block extremely short greetings
+            # (Greetings are handled by QueryClassifier as CONVERSATIONAL, but if that fails, we don't want to clarify "Hi")
+            is_simple_greeting = len(chat_request.message.strip()) < 10 and \
+                                 any(w in chat_request.message.lower() for w in ['hi', 'hello', 'hey', 'start'])
+            
+            if confidence_result.needs_clarification and not is_simple_greeting:
+                logger.info(
+                    f"⚠️ Low confidence query ({confidence_result.overall_score:.2f}). "
+                    f"Asking for clarification: {confidence_result.clarification_type}"
+                )
+                
+                # Format clarification response
+                clarification_text = format_clarification_response(confidence_result)
+                
+                # Mock metadata for clarification
+                clarification_metadata = MessageMetadata(
+                    input_tokens=0,
+                    output_tokens=0,
+                    total_tokens=0,
+                    model="system-confidence-check",
+                )
+                
+                # Save as assistant message
+                assistant_message = MessageService.create_message(
+                    conversation_id=conversation.id,
+                    role=MessageRole.ASSISTANT,
+                    content=clarification_text,
+                    metadata=clarification_metadata,
+                    parent_message_id=user_message.id,
+                )
+                
+                return ChatResponse(
+                    conversation_id=conversation.id,
+                    message=assistant_message,
+                    conversation_title=conversation.title,
+                    usage=clarification_metadata,
+                ), conversation.id, assistant_message.id
 
         # Analyze message for preference signals (asynchronous, non-blocking)
         asyncio.create_task(self._analyze_and_update_preferences(
@@ -203,39 +260,41 @@ class ZygotrixChatService:
             perf.log_summary()
             logger.info(f"📊 Pre-LLM overhead: {perf.get_total_ms():.0f}ms | Model: {model} | Tokens budget: {max_tokens}")
 
-        # Check if Deep Research tool is enabled
-        deep_research_enabled = chat_request.enabled_tools and 'deep_research' in chat_request.enabled_tools
-        
-        if deep_research_enabled:
-            logger.info(f"🔬 Deep Research enabled - routing to LangGraph workflow")
-            return await self._handle_deep_research_chat(
-                chat_request, conversation, user_message, user_id, user_name
-            )
-        
-        # Check if Web Search tool is enabled (PRO feature)
-        web_search_enabled = chat_request.enabled_tools and 'web_search' in chat_request.enabled_tools
-        
-        if web_search_enabled:
-            logger.info(f"🌐 Web Search enabled - routing to web search service")
-            return await self._handle_web_search_chat(
-                chat_request, conversation, user_message, user_id, user_name
-            )
+        # ---------------------------------------------------------------------
+        # DISPATCH TO SPECIALIZED MODES
+        # We check specific modes (Scholar, Pedigree) before generic ones (Deep Research)
+        # to ensure correct routing if multiple flags are present.
+        # ---------------------------------------------------------------------
 
-        # Check if Scholar Mode is enabled (PRO feature)
+        # 1. Scholar Mode (Highest Priority - PRO Feature)
         scholar_mode_enabled = chat_request.enabled_tools and 'scholar_mode' in chat_request.enabled_tools
-        
         if scholar_mode_enabled:
             logger.info(f"🎓 Scholar Mode enabled - routing to scholar service")
             return await self._handle_scholar_mode_chat(
                 chat_request, conversation, user_message, user_id, user_name
             )
 
-        # Check if Pedigree Analyst tool is enabled
+        # 2. Pedigree Analyst
         pedigree_enabled = chat_request.enabled_tools and 'pedigree_analyst' in chat_request.enabled_tools
-        
         if pedigree_enabled:
             logger.info(f"🧬 Pedigree Analyst enabled - routing to pedigree service")
             return await self._handle_pedigree_analyst_chat(
+                chat_request, conversation, user_message, user_id, user_name
+            )
+
+        # 3. Deep Research (LangGraph workflow)
+        deep_research_enabled = chat_request.enabled_tools and 'deep_research' in chat_request.enabled_tools
+        if deep_research_enabled:
+            logger.info(f"🔬 Deep Research enabled - routing to LangGraph workflow")
+            return await self._handle_deep_research_chat(
+                chat_request, conversation, user_message, user_id, user_name
+            )
+        
+        # 4. Web Search (Simple search)
+        web_search_enabled = chat_request.enabled_tools and 'web_search' in chat_request.enabled_tools
+        if web_search_enabled:
+            logger.info(f"🌐 Web Search enabled - routing to web search service")
+            return await self._handle_web_search_chat(
                 chat_request, conversation, user_message, user_id, user_name
             )
 
@@ -1785,11 +1844,109 @@ Question: {user_message.content}"""
             ), conversation.id, assistant_message.id
         
         logger.info(f"🎓 Scholar Mode access granted for user {user_id}")
+
+        # ---------------------------------------------------------------------
+        # 1. Check for Clarification Answers (if returning from widget)
+        # ---------------------------------------------------------------------
+        import re
+        message = chat_request.message
+        original_query = message
+        clarification_answers = []
+        skip_clarification = False
+        
+        if "Clarification answers:" in message:
+            # Split into original query and answers section
+            parts = message.split("Clarification answers:")
+            original_query = parts[0].strip()
+            
+            if len(parts) > 1:
+                answers_section = parts[1].strip()
+                # Parse individual answers
+                answer_pattern = re.compile(r'Answer\s+\d+:\s*(.+?)(?=Answer\s+\d+:|$)', re.DOTALL)
+                matches = answer_pattern.findall(answers_section)
+                
+                if matches:
+                    skip_clarification = True
+                    logger.info(f"🎓 Detected {len(matches)} clarification answers for Scholar Mode")
+                    # Validly use these answers to refine the search implicitly
+                    # We format it to valid natural language to help the embedding model
+                    answers_combined = " ".join(matches)
+                    original_query = f"{original_query}. Specifically focusing on: {answers_combined}"
+
+        # ---------------------------------------------------------------------
+        # 2. Check Confidence (Only if NOT skipping clarification)
+        # ---------------------------------------------------------------------
+        if not skip_clarification:
+            perf = PerformanceTracker("scholar_confidence")
+            perf.start("analysis")
+            
+            confidence_result = await self.confidence_analyzer.analyze(
+                query=original_query,
+                user_id=user_id,
+                user_name=user_name
+            )
+            perf.stop("analysis")
+            
+            is_simple_greeting = len(original_query.strip()) < 10 and \
+                                    any(w in original_query.lower() for w in ['hi', 'hello', 'hey', 'start'])
+            
+            # If low confidence, return INTERACTIVE WIDGET
+            if confidence_result.needs_clarification and not is_simple_greeting:
+                logger.info(
+                    f"⚠️ Low confidence Scholar Mode query ({confidence_result.overall_score:.2f}). "
+                    f"Trigging clarification WIDGET."
+                )
+                
+                content = "I need some specific details to perform an effective academic literature search. Please answer the questions below."
+                
+                # Format questions for the widget
+                widget_questions = []
+                for i, q in enumerate(confidence_result.clarification_questions):
+                    widget_questions.append({
+                        "id": f"q{i+1}",
+                        "question": q,
+                        "context": "Verification needed for Scholar Mode",
+                        "suggested_answers": [],
+                    })
+                
+                # Mock metadata with WIDGET payload
+                # We reuse 'deep_research_clarification' to leverage the existing UI component
+                clarification_metadata = MessageMetadata(
+                    input_tokens=0,
+                    output_tokens=0,
+                    total_tokens=0,
+                    model="scholar_mode",
+                    provider="confidence_system",
+                    widget_type="deep_research_clarification", 
+                    deep_research_data={
+                        "title": "Scholar Mode - Verification",
+                        "session_id": f"scholar_{int(time.time())}",
+                        "original_query": original_query,
+                        "questions": widget_questions,
+                        "status": "needs_clarification",
+                    }
+                )
+                
+                # Save as assistant message
+                assistant_message = MessageService.create_message(
+                    conversation_id=conversation.id,
+                    role=MessageRole.ASSISTANT,
+                    content=content,
+                    metadata=clarification_metadata,
+                    parent_message_id=user_message.id,
+                )
+                
+                return ChatResponse(
+                    conversation_id=conversation.id,
+                    message=assistant_message,
+                    conversation_title=conversation.title,
+                    usage=clarification_metadata,
+                ), conversation.id, assistant_message.id
         
         try:
-            # Perform Scholar Mode research
+            # Perform Scholar Mode research (with refined query)
             scholar_response = await scholar_service.research(
-                query=chat_request.message,
+                query=original_query,
                 user_id=user_id,
                 user_name=user_name
             )
@@ -1826,7 +1983,7 @@ Question: {user_message.content}"""
             
             # Format successful response with source breakdown
             content = scholar_response.response
-            content += f"\n\n---\n*Scholar Mode completed in {scholar_response.processing_time_ms}ms using {scholar_response.sources_used} sources ({scholar_response.deep_research_sources} from knowledge base, {scholar_response.web_search_sources} from web)*"
+            content += f"\n\n---\n**Scholar Mode research completed** in {scholar_response.processing_time_ms}ms using {scholar_response.sources_used} sources ({scholar_response.deep_research_sources} from knowledge base, {scholar_response.web_search_sources} from web)"
             
             # Prepare scholar mode metadata for frontend
             scholar_data = None

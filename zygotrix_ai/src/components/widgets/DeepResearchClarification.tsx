@@ -21,11 +21,12 @@ export interface DeepResearchClarificationProps {
     questions: ClarificationQuestion[];
     onSubmit: (answers: Array<{ question_id: string; answer: string }>) => void;
     isLoading?: boolean;
+    title?: string;
 }
 
 export const DeepResearchClarification: React.FC<
     DeepResearchClarificationProps
-> = ({ sessionId: _sessionId, questions, onSubmit, isLoading = false }) => {
+> = ({ sessionId: _sessionId, questions, onSubmit, isLoading = false, title }) => {
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [customInputs, setCustomInputs] = useState<Record<string, boolean>>({});
 
@@ -91,7 +92,7 @@ export const DeepResearchClarification: React.FC<
                 </div>
                 <div>
                     <h3 className="text-gray-900 dark:text-white font-medium text-sm leading-tight">
-                        Deep Research - Clarification
+                        {title || "Deep Research - Clarification"}
                     </h3>
                     <p className="text-gray-500 dark:text-gray-400 text-xs">
                         Refine your research by answering these questions

@@ -6,7 +6,8 @@
 export const APP_ENV = "Production";
 
 // API URL
-// export const API_URL = 'https://api.zygotrix.com';
+// export const API_URL = "https://api.zygotrix.com";
+// export const API_URL = "https://server.zygotrix.com";
 export const API_URL = "http://localhost:8000";
 
 // Assets / CDN

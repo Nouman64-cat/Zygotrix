@@ -172,11 +172,38 @@ class ZygotrixChatService:
         
         if not has_tools:
             perf.start("confidence_analysis")
+            
+            # Fetch context for confidence analysis if this is an ongoing conversation
+            context_message = None
+            if conversation.message_count > 0:
+                try:
+                    from ...services.zygotrix_ai_service import get_messages_collection
+                    msg_collection = get_messages_collection()
+                    if msg_collection is not None:
+                        # Find the last ASSISTANT message to use as context
+                        # Use .value for Enum comparison in MongoDB query
+                        last_msg = msg_collection.find_one(
+                            {
+                                "conversation_id": conversation.id, 
+                                "role": MessageRole.ASSISTANT.value
+                            },
+                            sort=[("created_at", -1)],
+                            projection={"content": 1, "_id": 0}
+                        )
+                        if last_msg:
+                            context_message = last_msg.get("content", "")
+                            # Truncate if too long (save tokens/processing)
+                            if context_message and len(context_message) > 2000:
+                                context_message = context_message[:2000] + "..."
+                except Exception as e:
+                    logger.warning(f"Failed to fetch context for confidence analysis: {e}")
+
             # Analyze confidence
             confidence_result = await self.confidence_analyzer.analyze(
                 query=chat_request.message,
                 user_id=user_id,
-                user_name=user_name
+                user_name=user_name,
+                context_message=context_message
             )
             perf.stop("confidence_analysis")
             

@@ -5,7 +5,7 @@
  * user answers before starting the deep research process.
  */
 
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import { FiSearch, FiCheck } from "react-icons/fi";
 import { cn } from "../../utils";
 
@@ -29,6 +29,37 @@ export const DeepResearchClarification: React.FC<
 > = ({ sessionId: _sessionId, questions, onSubmit, isLoading = false, title }) => {
     const [answers, setAnswers] = useState<Record<string, string>>({});
     const [customInputs, setCustomInputs] = useState<Record<string, boolean>>({});
+
+    // Persist answers and UI state to session storage
+    useEffect(() => {
+        if (!_sessionId) return;
+
+        try {
+            const savedAnswers = sessionStorage.getItem(`clarification_answers_${_sessionId}`);
+            const savedCustomInputs = sessionStorage.getItem(`clarification_custom_${_sessionId}`);
+
+            if (savedAnswers) {
+                setAnswers(JSON.parse(savedAnswers));
+            }
+            if (savedCustomInputs) {
+                setCustomInputs(JSON.parse(savedCustomInputs));
+            }
+        } catch (e) {
+            console.error("Failed to load saved state", e);
+        }
+    }, [_sessionId]);
+
+    // Save state whenever it changes
+    useEffect(() => {
+        if (!_sessionId) return;
+
+        try {
+            sessionStorage.setItem(`clarification_answers_${_sessionId}`, JSON.stringify(answers));
+            sessionStorage.setItem(`clarification_custom_${_sessionId}`, JSON.stringify(customInputs));
+        } catch (e) {
+            console.error("Failed to save state", e);
+        }
+    }, [_sessionId, answers, customInputs]);
 
     // Check if all questions have been answered
     const allAnswered = questions.every(

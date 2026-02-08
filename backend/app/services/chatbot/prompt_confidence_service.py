@@ -98,12 +98,13 @@ class RuleBasedConfidenceAnalyzer:
         (r'\bGWAS\b(?!.*\b(dataset|file|vcf|analysis)\b)', "dataset"),
     ]
     
-    def analyze(self, query: str) -> ConfidenceResult:
+    def analyze(self, query: str, context_message: Optional[str] = None) -> ConfidenceResult:
         """
         Analyze query confidence using pattern matching.
         
         Args:
             query: User query string
+            context_message: content of the last assistant message (if any)
             
         Returns:
             ConfidenceResult with scores and clarification needs
@@ -132,12 +133,24 @@ class RuleBasedConfidenceAnalyzer:
         else:
             factors["specificity"] = 0.85
         
-        # Check for vague patterns (decreases specificity)
+        # Check for vague patterns (decreases specificity) - UNLESS we have context and referential terms
+        has_referential = re.search(r'\b(it|this|that|these|those|them|above|previous)\b', query_lower)
+        is_followup = bool(context_message and has_referential)
+        
         for pattern, penalty in self.VAGUE_PATTERNS:
             if re.search(pattern, query_lower, re.IGNORECASE):
-                factors["specificity"] = min(factors["specificity"], penalty)
+                # If it's a valid follow-up, ignore the vagueness penalty
+                if is_followup:
+                    factors["specificity"] = max(factors["specificity"], 0.7)
+                else:
+                    factors["specificity"] = min(factors["specificity"], penalty)
                 break
         
+        # Boost specificity for follow-ups
+        if is_followup:
+            factors["specificity"] = max(factors["specificity"], 0.8)
+            factors["context_completeness"] = max(factors["context_completeness"], 0.85)
+
         # Factor 2: Intent Clarity
         intent_score = 0.5
         for pattern, score in self.CLEAR_INTENT_PATTERNS:
@@ -145,11 +158,22 @@ class RuleBasedConfidenceAnalyzer:
                 intent_score = max(intent_score, score)
         factors["intent_clarity"] = intent_score
         
+        # Simplify/Elaborate intents (often used in follow-ups)
+        if re.search(r'\b(simplify|elaborate|explain|more|details|expand)\b', query_lower):
+            factors["intent_clarity"] = max(intent_score, 0.85)
+            if context_message:
+                factors["actionability"] = max(factors.get("actionability", 0.5), 0.9)
+        
         # Factor 3: Domain Relevance (genetics-specific)
         domain_score = 0.4  # Default for non-genetics queries
         for pattern, score in self.GENETICS_SPECIFIC_PATTERNS:
             if re.search(pattern, query_lower, re.IGNORECASE):
                 domain_score = max(domain_score, score)
+        
+        # If we have context, assume domain relevance is carried over or at least acceptable
+        if context_message:
+             domain_score = max(domain_score, 0.6)
+             
         factors["domain_relevance"] = domain_score
         
         # Factor 4: Context Completeness (check for missing parameters)
@@ -157,9 +181,11 @@ class RuleBasedConfidenceAnalyzer:
         missing_param = None
         for pattern, param_type in self.MISSING_PARAM_PATTERNS:
             if re.search(pattern, query_lower, re.IGNORECASE):
-                context_score = 0.4
-                missing_param = param_type
-                break
+                # Skip missing param check if it's a follow-up referring to "this" or "it"
+                if not is_followup:
+                    context_score = 0.4
+                    missing_param = param_type
+                    break
         factors["context_completeness"] = context_score
         
         # Factor 5: Actionability
@@ -318,6 +344,8 @@ class LLMConfidenceAnalyzer:
 
 Query: "{query}"
 
+{context_section}
+
 Evaluate these factors (0.0 to 1.0):
 1. SPECIFICITY: Is the query specific enough to answer well? (vague vs detailed)
 2. INTENT_CLARITY: Is it clear what the user wants? (explanation, calculation, search, etc.)
@@ -326,6 +354,7 @@ Evaluate these factors (0.0 to 1.0):
 5. ACTIONABILITY: Can you take a concrete action to help?
 
 If the overall confidence is LOW (< 0.65), suggest 1-2 clarifying questions.
+IMPORTANT: If the query refers to the previous context (e.g., "simplify it", "explain that"), and the context is provided, ensure Context Completeness and Specificity are HIGH.
 
 Respond in JSON format:
 {{
@@ -353,7 +382,8 @@ Respond in JSON format:
         self, 
         query: str,
         user_id: Optional[str] = None,
-        user_name: Optional[str] = None
+        user_name: Optional[str] = None,
+        context_message: Optional[str] = None
     ) -> ConfidenceResult:
         """
         Analyze query confidence using LLM.
@@ -362,6 +392,7 @@ Respond in JSON format:
             query: User query string
             user_id: Optional user ID for token tracking
             user_name: Optional user name for token tracking
+            context_message: Last assistant message for context
             
         Returns:
             ConfidenceResult with scores and clarification needs
@@ -369,13 +400,21 @@ Respond in JSON format:
         try:
             import json
             
+            context_section = ""
+            if context_message:
+                context_preview = context_message[:1000]
+                context_section = f"Previous Assistant Message Context:\n{context_preview}\n"
+            
             response = await self.client.messages.create(
                 model=self.model,
                 max_tokens=300,
                 temperature=0,
                 messages=[{
                     "role": "user",
-                    "content": self.ANALYSIS_PROMPT.format(query=query[:500])
+                    "content": self.ANALYSIS_PROMPT.format(
+                        query=query[:500],
+                        context_section=context_section
+                    )
                 }]
             )
             
@@ -434,7 +473,7 @@ Respond in JSON format:
         except Exception as e:
             logger.error(f"LLM confidence analysis failed: {e}")
             # Fallback to rule-based
-            return RuleBasedConfidenceAnalyzer().analyze(query)
+            return RuleBasedConfidenceAnalyzer().analyze(query, context_message)
 
 
 class HybridConfidenceAnalyzer:
@@ -468,7 +507,8 @@ class HybridConfidenceAnalyzer:
         query: str,
         user_id: Optional[str] = None,
         user_name: Optional[str] = None,
-        force_llm: bool = False
+        force_llm: bool = False,
+        context_message: Optional[str] = None
     ) -> ConfidenceResult:
         """
         Analyze query confidence using hybrid approach.
@@ -478,18 +518,22 @@ class HybridConfidenceAnalyzer:
             user_id: Optional user ID for token tracking
             user_name: Optional user name for token tracking
             force_llm: Force LLM analysis (for testing)
+            context_message: Last assistant message for context
             
         Returns:
             ConfidenceResult with scores and clarification needs
         """
         # Check cache first
-        cache_key = query.lower().strip()[:200]
+        # We need to include context length or hash in cache key if provided
+        context_key = f"_{len(context_message)}" if context_message else ""
+        cache_key = (query.lower().strip() + context_key)[:200]
+        
         if cache_key in self._cache:
             logger.debug(f"Cache hit for confidence analysis: {query[:50]}")
             return self._cache[cache_key]
         
         # Step 1: Rule-based analysis (fast path)
-        result = self.rule_analyzer.analyze(query)
+        result = self.rule_analyzer.analyze(query, context_message)
         
         # Step 2: Determine if LLM is needed
         use_llm = force_llm or (
@@ -503,7 +547,7 @@ class HybridConfidenceAnalyzer:
                 f"Rule-based confidence in uncertain zone ({result.overall_score:.2f}), "
                 f"using LLM analyzer"
             )
-            result = await self.llm_analyzer.analyze(query, user_id, user_name)
+            result = await self.llm_analyzer.analyze(query, user_id, user_name, context_message)
         else:
             logger.info(
                 f"Rule-based confidence: {result.overall_score:.2f} | "

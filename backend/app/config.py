@@ -112,6 +112,7 @@ class Settings:
     aws_ses_password: str = os.getenv("AWS_SES_PASSWORD", "")
     aws_ses_region: str = _get_str("AWS_SES_REGION", "compute.aws.ses_region", "us-east-1")
     aws_smtp_port: int = _get_int("AWS_SMTP_PORT", "compute.aws.smtp_port", 465)
+    aws_ses_from_email: str = _get_str("AWS_SES_FROM_EMAIL", "email.aws_ses.from", "noreply@zygotrix.com")
 
     # AI & Models
     openai_api_key: str = os.getenv("OPENAI_API_KEY", "")

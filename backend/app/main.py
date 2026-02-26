@@ -40,8 +40,6 @@ from typing import Optional
 from datetime import datetime, timezone
 import logging
 
-# Nouman Ejaz
-
 # Import exception handlers
 from .core.exceptions.handlers import register_exception_handlers
 

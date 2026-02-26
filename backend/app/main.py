@@ -61,11 +61,11 @@ async def lifespan(app: FastAPI):
     """
     # Startup
     logger.info("🚀 Starting Zygotrix Backend...")
-    
+
     # Initialize MCP
     async with mcp_lifespan() as mcp_client:
         logger.info("✅ MCP Client connected")
-        
+
         # Load GWAS dataset
         settings = get_settings()
         if not settings.traits_json_only:
@@ -74,23 +74,24 @@ async def lifespan(app: FastAPI):
                 logger.info("✅ GWAS dataset loaded")
             except gwas_dataset.DatasetLoadError as e:
                 logger.warning(f"⚠️ GWAS dataset unavailable: {e}")
-        
+
         # Create Zygotrix AI indexes at startup (performance optimization)
         try:
             from .services.zygotrix_ai_service import ensure_ai_indexes_created
             ensure_ai_indexes_created()
         except Exception as e:
             logger.warning(f"⚠️ Could not create Zygotrix AI indexes: {e}")
-        
+
         # Pre-warm RAG service at startup (eliminates cold start delay)
         try:
             from .services.chatbot.rag_service import get_rag_service
             rag_service = get_rag_service()
             if rag_service:
-                logger.info("✅ RAG Service pre-warmed (OpenAI + Pinecone ready)")
+                logger.info(
+                    "✅ RAG Service pre-warmed (OpenAI + Pinecone ready)")
         except Exception as e:
             logger.warning(f"⚠️ Could not pre-warm RAG service: {e}")
-        
+
         # Pre-warm Deep Research service at startup
         try:
             from .services.deep_research import get_deep_research_service
@@ -100,14 +101,14 @@ async def lifespan(app: FastAPI):
             logger.info("✅ Deep Research Service pre-warmed (LangGraph ready)")
         except Exception as e:
             logger.warning(f"⚠️ Could not pre-warm Deep Research service: {e}")
-        
+
         logger.info("✅ Zygotrix Backend started successfully")
-        
+
         yield  # Application runs here
-        
+
         # Shutdown
         logger.info("👋 Shutting down Zygotrix Backend...")
-    
+
     logger.info("✅ MCP Client disconnected")
     logger.info("✅ Zygotrix Backend shutdown complete")
 
